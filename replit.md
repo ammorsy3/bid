@@ -5,6 +5,7 @@ Bid is a web-based procurement platform that facilitates private tender manageme
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+UI Design Preference: Fast and bold card-based interface design.
 
 # System Architecture
 

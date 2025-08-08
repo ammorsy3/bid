@@ -37,8 +37,9 @@ export interface IStorage {
   // Invitation operations
   createInvitation(invitation: InsertInvitation): Promise<Invitation>;
   getInvitationsByVendorId(vendorId: string): Promise<(Invitation & { tender: Tender; requester: User })[]>;
-  getInvitationsByTenderId(tenderId: string): Promise<(Invitation & { vendor: User })[]>;
+  getInvitationsByTenderId(tenderId: string): Promise<(Invitation & { vendor?: User })[]>;
   updateInvitationStatus(id: string, status: string): Promise<void>;
+  getInvitationByToken(token: string): Promise<(Invitation & { tender: Tender; requester: User }) | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -142,6 +143,9 @@ export class DatabaseStorage implements IStorage {
         id: invitations.id,
         tenderId: invitations.tenderId,
         vendorId: invitations.vendorId,
+        vendorEmail: invitations.vendorEmail,
+        vendorName: invitations.vendorName,
+        invitationToken: invitations.invitationToken,
         status: invitations.status,
         invitedAt: invitations.invitedAt,
         tender: tenders,
@@ -154,20 +158,45 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(invitations.invitedAt));
   }
 
-  async getInvitationsByTenderId(tenderId: string): Promise<(Invitation & { vendor: User })[]> {
+  async getInvitationsByTenderId(tenderId: string): Promise<(Invitation & { vendor?: User })[]> {
     return await db
       .select({
         id: invitations.id,
         tenderId: invitations.tenderId,
         vendorId: invitations.vendorId,
+        vendorEmail: invitations.vendorEmail,
+        vendorName: invitations.vendorName,
+        invitationToken: invitations.invitationToken,
         status: invitations.status,
         invitedAt: invitations.invitedAt,
         vendor: users,
       })
       .from(invitations)
-      .innerJoin(users, eq(invitations.vendorId, users.id))
+      .leftJoin(users, eq(invitations.vendorId, users.id))
       .where(eq(invitations.tenderId, tenderId))
       .orderBy(desc(invitations.invitedAt));
+  }
+
+  async getInvitationByToken(token: string): Promise<(Invitation & { tender: Tender; requester: User }) | undefined> {
+    const [invitation] = await db
+      .select({
+        id: invitations.id,
+        tenderId: invitations.tenderId,
+        vendorId: invitations.vendorId,
+        vendorEmail: invitations.vendorEmail,
+        vendorName: invitations.vendorName,
+        invitationToken: invitations.invitationToken,
+        status: invitations.status,
+        invitedAt: invitations.invitedAt,
+        tender: tenders,
+        requester: users,
+      })
+      .from(invitations)
+      .innerJoin(tenders, eq(invitations.tenderId, tenders.id))
+      .innerJoin(users, eq(tenders.requesterId, users.id))
+      .where(eq(invitations.invitationToken, token));
+    
+    return invitation || undefined;
   }
 
   async updateInvitationStatus(id: string, status: string): Promise<void> {

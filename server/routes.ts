@@ -142,19 +142,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only requesters can create tenders" });
       }
 
+      console.log('Creating tender with data:', req.body);
+      console.log('User ID:', req.userId);
+      
       const tenderData = insertTenderSchema.parse({
         ...req.body,
         requesterId: req.userId,
       });
+      
+      console.log('Parsed tender data:', tenderData);
 
       const tender = await storage.createTender(tenderData);
 
-      // Create invitations for selected vendors
-      if (req.body.vendorIds && Array.isArray(req.body.vendorIds)) {
-        for (const vendorId of req.body.vendorIds) {
+      // Create invitations for vendor emails
+      if (req.body.vendorEmails && typeof req.body.vendorEmails === 'string') {
+        const emails = req.body.vendorEmails.split('\n')
+          .map(email => email.trim())
+          .filter(email => email && email.includes('@'));
+        
+        for (const email of emails) {
+          const invitationToken = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+          
           await storage.createInvitation({
             tenderId: tender.id,
-            vendorId,
+            vendorEmail: email,
+            invitationToken,
             status: 'pending',
           });
         }
@@ -291,6 +303,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const offers = await storage.getOffersByVendorId(req.userId!);
       res.json(offers);
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Invitation verification route (for invitation links)
+  app.get("/api/invitations/:token", async (req, res) => {
+    try {
+      const invitation = await storage.getInvitationByToken(req.params.token);
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found or expired" });
+      }
+
+      res.json({
+        tender: invitation.tender,
+        requester: invitation.requester,
+        invitationToken: invitation.invitationToken,
+        vendorEmail: invitation.vendorEmail,
+      });
     } catch (error) {
       res.status(500).json({ message: "Server error" });
     }

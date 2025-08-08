@@ -42,7 +42,10 @@ export const offers = pgTable("offers", {
 export const invitations = pgTable("invitations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   tenderId: varchar("tender_id").notNull().references(() => tenders.id),
-  vendorId: varchar("vendor_id").notNull().references(() => users.id),
+  vendorId: varchar("vendor_id").references(() => users.id), // nullable for email invitations
+  vendorEmail: text("vendor_email"), // for inviting unregistered vendors
+  vendorName: text("vendor_name"), // for inviting unregistered vendors
+  invitationToken: varchar("invitation_token").unique(), // unique token for invitation links
   status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'declined'
   invitedAt: timestamp("invited_at").defaultNow(),
 });

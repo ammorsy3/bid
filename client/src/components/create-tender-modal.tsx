@@ -4,15 +4,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { CloudUpload, Star } from "lucide-react";
+import { CloudUpload } from "lucide-react";
 
 const createTenderSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -20,7 +20,7 @@ const createTenderSchema = z.object({
   deadline: z.string().min(1, "Deadline is required"),
   budget: z.string().optional(),
   duration: z.string().optional(),
-  vendorIds: z.array(z.string()).min(1, "Select at least one vendor"),
+  vendorEmails: z.string().min(1, "Enter at least one vendor email"),
 });
 
 type CreateTenderForm = z.infer<typeof createTenderSchema>;
@@ -35,10 +35,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: vendors } = useQuery({
-    queryKey: ['/api/vendors'],
-    enabled: isOpen && !!user,
-  });
+  // No longer need to fetch vendors since we're using email invitations
 
   const form = useForm<CreateTenderForm>({
     resolver: zodResolver(createTenderSchema),
@@ -48,7 +45,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
       deadline: "",
       budget: "",
       duration: "",
-      vendorIds: [],
+      vendorEmails: "",
     },
   });
 
@@ -57,7 +54,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
       const response = await apiRequest('POST', '/api/tenders', data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (tender: any) => {
       toast({
         title: "Success",
         description: "Tender created and invitations sent successfully",
@@ -65,6 +62,8 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
       onClose();
       form.reset();
+      // Navigate to invitation links page
+      window.location.href = `/tenders/${tender.id}/invitations`;
     },
     onError: () => {
       toast({
@@ -176,52 +175,20 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
 
             <FormField
               control={form.control}
-              name="vendorIds"
-              render={() => (
+              name="vendorEmails"
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Invite Vendors</FormLabel>
-                  <div className="space-y-3 max-h-48 overflow-y-auto border border-neutral-200 rounded-lg p-4">
-                    {vendors?.map((vendor: any) => (
-                      <FormField
-                        key={vendor.id}
-                        control={form.control}
-                        name="vendorIds"
-                        render={({ field }) => {
-                          return (
-                            <FormItem
-                              key={vendor.id}
-                              className="flex flex-row items-start space-x-3 space-y-0"
-                            >
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes(vendor.id)}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([...field.value, vendor.id])
-                                      : field.onChange(
-                                          field.value?.filter(
-                                            (value) => value !== vendor.id
-                                          )
-                                        )
-                                  }}
-                                />
-                              </FormControl>
-                              <div className="flex-1">
-                                <p className="text-sm font-medium text-neutral-900">
-                                  {vendor.name} ({vendor.company})
-                                </p>
-                                <p className="text-xs text-neutral-500">{vendor.expertise}</p>
-                              </div>
-                              <div className="flex items-center text-xs text-success-600">
-                                <Star className="w-3 h-3 mr-1" />
-                                <span>{vendor.rating || "4.5"}</span>
-                              </div>
-                            </FormItem>
-                          )
-                        }}
-                      />
-                    ))}
-                  </div>
+                  <FormLabel>Invite Vendors by Email</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      rows={4} 
+                      placeholder="Enter vendor emails (one per line):&#10;vendor1@company.com&#10;vendor2@company.com&#10;vendor3@company.com" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <p className="text-xs text-neutral-500 mt-1">
+                    Enter one email per line. Vendors will receive invitation links to register and submit offers.
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}

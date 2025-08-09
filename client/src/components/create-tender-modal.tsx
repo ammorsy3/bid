@@ -194,11 +194,14 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 Cancel
               </Button>
               <Button 
-                type="submit" 
+                type="button" 
                 className="flex-1 bg-primary-600 hover:bg-primary-700"
                 disabled={createTenderMutation.isPending}
                 data-testid="button-publish-tender"
-                onClick={() => console.log('Button clicked! Form valid:', form.formState.isValid, 'Errors:', form.formState.errors)}
+                onClick={() => {
+                  console.log('Button clicked! Form valid:', form.formState.isValid, 'Errors:', form.formState.errors);
+                  form.handleSubmit(onSubmit)();
+                }}
               >
                 {createTenderMutation.isPending ? "Creating..." : "Publish & Send Invitations"}
               </Button>

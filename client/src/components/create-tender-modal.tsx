@@ -20,7 +20,6 @@ const createTenderSchema = z.object({
   deadline: z.string().min(1, "Deadline is required"),
   budget: z.string().optional(),
   duration: z.string().optional(),
-  vendorEmails: z.string().min(1, "Enter at least one vendor email"),
 });
 
 type CreateTenderForm = z.infer<typeof createTenderSchema>;

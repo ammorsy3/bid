@@ -11,6 +11,7 @@ import RequesterDashboard from "@/pages/requester-dashboard";
 import VendorDashboard from "@/pages/vendor-dashboard";
 import TenderDetails from "@/pages/tender-details";
 import InvitationLinks from "@/pages/invitation-links";
+import InvitationSignup from "@/pages/invitation-signup";
 import { useAuthStore } from "@/lib/auth";
 import { useEffect } from "react";
 
@@ -31,6 +32,7 @@ function Router() {
       </Route>
       <Route path="/tenders/:id" component={TenderDetails} />
       <Route path="/tenders/:id/invitations" component={InvitationLinks} />
+      <Route path="/invite/:token" component={InvitationSignup} />
       <Route component={NotFound} />
     </Switch>
   );

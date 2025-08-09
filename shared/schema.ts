@@ -21,11 +21,12 @@ export const tenders = pgTable("tenders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  deadline: timestamp("deadline").notNull(),
+  deadline: text("deadline").notNull(),
   budget: text("budget"),
   duration: text("duration"),
   status: text("status").notNull().default("active"), // 'draft', 'active', 'closed'
   requesterId: varchar("requester_id").notNull().references(() => users.id),
+  invitationToken: varchar("invitation_token").notNull().unique(), // single invitation token for the tender
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -45,7 +46,7 @@ export const invitations = pgTable("invitations", {
   vendorId: varchar("vendor_id").references(() => users.id), // nullable for email invitations
   vendorEmail: text("vendor_email"), // for inviting unregistered vendors
   vendorName: text("vendor_name"), // for inviting unregistered vendors
-  invitationToken: varchar("invitation_token").unique(), // unique token for invitation links
+  invitationToken: varchar("invitation_token").unique(), // unique token for tender access
   status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'declined'
   invitedAt: timestamp("invited_at").defaultNow(),
 });
@@ -97,6 +98,12 @@ export const insertUserSchema = createInsertSchema(users).omit({
 export const insertTenderSchema = createInsertSchema(tenders).omit({
   id: true,
   createdAt: true,
+});
+
+export const createTenderSchema = insertTenderSchema.omit({
+  requesterId: true,
+  status: true,
+  invitationToken: true,
 });
 
 export const insertOfferSchema = createInsertSchema(offers).omit({

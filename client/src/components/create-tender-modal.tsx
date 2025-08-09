@@ -45,7 +45,6 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
       deadline: "",
       budget: "",
       duration: "",
-      vendorEmails: "",
     },
   });
 
@@ -57,12 +56,12 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
     onSuccess: (tender: any) => {
       toast({
         title: "Success",
-        description: "Tender created and invitations sent successfully",
+        description: "Tender created successfully! Copy and share the invitation link with vendors.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
       onClose();
       form.reset();
-      // Navigate to invitation links page
+      // Navigate to invitation links page to show the link
       window.location.href = `/tenders/${tender.id}/invitations`;
     },
     onError: () => {
@@ -173,26 +172,20 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               </div>
             </div>
 
-            <FormField
-              control={form.control}
-              name="vendorEmails"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Invite Vendors by Email</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      rows={4} 
-                      placeholder="Enter vendor emails (one per line):&#10;vendor1@company.com&#10;vendor2@company.com&#10;vendor3@company.com" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <p className="text-xs text-neutral-500 mt-1">
-                    Enter one email per line. Vendors will receive invitation links to register and submit offers.
-                  </p>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
+              <h4 className="font-medium text-neutral-900 mb-2">Invitation Link</h4>
+              <p className="text-sm text-neutral-600 mb-3">
+                After creating this tender, you'll get a unique invitation link to share with vendors manually via email, messaging, or any communication method you prefer.
+              </p>
+              <div className="flex items-center space-x-2 text-xs text-neutral-500">
+                <span>•</span>
+                <span>Share the link only with qualified vendors</span>
+              </div>
+              <div className="flex items-center space-x-2 text-xs text-neutral-500 mt-1">
+                <span>•</span>
+                <span>Vendors can register and submit offers using this link</span>
+              </div>
+            </div>
 
             <div className="flex space-x-4 pt-4 border-t border-neutral-200">
               <Button type="button" variant="outline" onClick={handleClose} className="flex-1">

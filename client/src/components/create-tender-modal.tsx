@@ -74,6 +74,8 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
   });
 
   const onSubmit = (data: CreateTenderForm) => {
+    console.log('Form data on submit:', data);
+    console.log('Form errors:', form.formState.errors);
     createTenderMutation.mutate(data);
   };
 
@@ -195,6 +197,8 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 type="submit" 
                 className="flex-1 bg-primary-600 hover:bg-primary-700"
                 disabled={createTenderMutation.isPending}
+                data-testid="button-publish-tender"
+                onClick={() => console.log('Button clicked! Form valid:', form.formState.isValid, 'Errors:', form.formState.errors)}
               >
                 {createTenderMutation.isPending ? "Creating..." : "Publish & Send Invitations"}
               </Button>

@@ -73,8 +73,6 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
   });
 
   const onSubmit = (data: CreateTenderForm) => {
-    console.log('Form data on submit:', data);
-    console.log('Form errors:', form.formState.errors);
     createTenderMutation.mutate(data);
   };
 
@@ -198,7 +196,6 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 disabled={createTenderMutation.isPending}
                 data-testid="button-publish-tender"
                 onClick={() => {
-                  console.log('Button clicked! Form valid:', form.formState.isValid, 'Errors:', form.formState.errors);
                   form.handleSubmit(onSubmit)();
                 }}
               >

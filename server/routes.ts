@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
@@ -7,7 +7,7 @@ import { insertUserSchema, insertTenderSchema, insertOfferSchema } from "@shared
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
-interface AuthRequest extends Express.Request {
+interface AuthRequest extends Request {
   userId?: string;
   userRole?: string;
 }
@@ -142,35 +142,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only requesters can create tenders" });
       }
 
-      console.log('Creating tender with data:', req.body);
-      console.log('User ID:', req.userId);
+      // Generate single invitation token for the tender
+      const invitationToken = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
       
       const tenderData = insertTenderSchema.parse({
         ...req.body,
         requesterId: req.userId,
+        invitationToken,
       });
-      
-      console.log('Parsed tender data:', tenderData);
 
       const tender = await storage.createTender(tenderData);
-
-      // Create invitations for vendor emails
-      if (req.body.vendorEmails && typeof req.body.vendorEmails === 'string') {
-        const emails = req.body.vendorEmails.split('\n')
-          .map(email => email.trim())
-          .filter(email => email && email.includes('@'));
-        
-        for (const email of emails) {
-          const invitationToken = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
-          
-          await storage.createInvitation({
-            tenderId: tender.id,
-            vendorEmail: email,
-            invitationToken,
-            status: 'pending',
-          });
-        }
-      }
 
       res.json(tender);
     } catch (error) {
@@ -308,20 +289,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Invitation verification route (for invitation links)
-  app.get("/api/invitations/:token", async (req, res) => {
+  // Tender by invitation token route
+  app.get("/api/tenders/by-token/:token", async (req, res) => {
     try {
-      const invitation = await storage.getInvitationByToken(req.params.token);
-      if (!invitation) {
-        return res.status(404).json({ message: "Invitation not found or expired" });
+      const tender = await storage.getTenderByInvitationToken(req.params.token);
+      if (!tender) {
+        return res.status(404).json({ message: "Tender not found or invitation expired" });
       }
 
-      res.json({
-        tender: invitation.tender,
-        requester: invitation.requester,
-        invitationToken: invitation.invitationToken,
-        vendorEmail: invitation.vendorEmail,
-      });
+      res.json(tender);
     } catch (error) {
       res.status(500).json({ message: "Server error" });
     }

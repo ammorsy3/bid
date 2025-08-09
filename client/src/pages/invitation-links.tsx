@@ -19,10 +19,7 @@ export default function InvitationLinks() {
     enabled: !!user && !!id,
   });
 
-  const { data: invitations, isLoading: invitationsLoading } = useQuery({
-    queryKey: ['/api/tenders', id, 'invitations'],
-    enabled: !!user && !!id && user.role === 'requester',
-  });
+  // No longer need separate invitations query since we have the token in the tender
 
   const copyToClipboard = async (text: string, invitationId: string) => {
     try {
@@ -48,7 +45,7 @@ export default function InvitationLinks() {
     }
   };
 
-  if (tenderLoading || invitationsLoading) {
+  if (tenderLoading) {
     return (
       <div className="min-h-screen bg-neutral-50">
         <Navbar />
@@ -76,66 +73,54 @@ export default function InvitationLinks() {
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">Invitation Links</h1>
-          <p className="text-neutral-600">Share these links with vendors to invite them to submit offers</p>
+          <h1 className="text-3xl font-bold text-neutral-900 mb-2">Invitation Link</h1>
+          <p className="text-neutral-600">Share this link with qualified vendors to invite them to submit offers</p>
           <p className="text-sm text-neutral-500 mt-1">Tender: {tender.title}</p>
         </div>
 
-        {invitations?.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-neutral-600">No invitations sent yet</p>
+        {tender.invitationToken ? (
+          <div className="space-y-4">
+            <Card className="bg-white rounded-xl shadow-sm border border-neutral-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <Mail className="h-5 w-5 text-neutral-400" />
+                      <span className="font-medium text-neutral-900">
+                        Tender Invitation Link
+                      </span>
+                    </div>
+                    <div className="bg-neutral-50 rounded-lg p-3 font-mono text-sm text-neutral-700 break-all">
+                      {`${window.location.origin}/invite/${tender.invitationToken}`}
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(`${window.location.origin}/invite/${tender.invitationToken}`, tender.id)}
+                      className="flex items-center space-x-2"
+                    >
+                      {copiedLinks.has(tender.id) ? (
+                        <>
+                          <Check className="h-4 w-4 text-success-600" />
+                          <span>Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         ) : (
-          <div className="space-y-4">
-            {invitations?.map((invitation: any) => {
-              const invitationLink = `${window.location.origin}/invite/${invitation.invitationToken}`;
-              const isCopied = copiedLinks.has(invitation.id);
-              
-              return (
-                <Card key={invitation.id} className="bg-white rounded-xl shadow-sm border border-neutral-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <Mail className="h-5 w-5 text-neutral-400" />
-                          <span className="font-medium text-neutral-900">
-                            {invitation.vendorEmail || 'Unknown Email'}
-                          </span>
-                          {invitation.vendor && (
-                            <span className="text-sm text-success-600 bg-success-100 px-2 py-1 rounded-full">
-                              Registered
-                            </span>
-                          )}
-                        </div>
-                        <div className="bg-neutral-50 rounded-lg p-3 font-mono text-sm text-neutral-700 break-all">
-                          {invitationLink}
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyToClipboard(invitationLink, invitation.id)}
-                          className="flex items-center space-x-2"
-                        >
-                          {isCopied ? (
-                            <>
-                              <Check className="h-4 w-4 text-success-600" />
-                              <span>Copied</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="h-4 w-4" />
-                              <span>Copy</span>
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          <div className="text-center py-12">
+            <p className="text-neutral-600">No invitation link available</p>
           </div>
         )}
 

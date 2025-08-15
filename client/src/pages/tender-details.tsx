@@ -14,6 +14,7 @@ export default function TenderDetails() {
   const { id } = useParams();
   const { user } = useAuthStore();
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [showOffers, setShowOffers] = useState(false);
 
   const { data: tender, isLoading } = useQuery({
     queryKey: ['/api/tenders', id],
@@ -149,8 +150,12 @@ export default function TenderDetails() {
                 )}
                 {user?.role === 'requester' && (
                   <>
-                    <Button className="w-full bg-primary-600 hover:bg-primary-700">
-                      View All Offers ({offers?.length || 0})
+                    <Button 
+                      className="w-full bg-primary-600 hover:bg-primary-700"
+                      onClick={() => setShowOffers(!showOffers)}
+                      data-testid="button-view-offers"
+                    >
+                      {showOffers ? 'Hide Offers' : `View All Offers (${offers?.length || 0})`}
                     </Button>
                     <Button variant="outline" className="w-full">
                       Edit Tender
@@ -182,6 +187,65 @@ export default function TenderDetails() {
             )}
           </div>
         </div>
+
+        {/* Offers Section */}
+        {showOffers && user?.role === 'requester' && (
+          <div className="mt-8">
+            <Card className="bg-white rounded-xl shadow-sm border border-neutral-200">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold">Received Offers ({offers?.length || 0})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {offers && offers.length > 0 ? (
+                  <div className="space-y-4">
+                    {offers.map((offer: any, index: number) => (
+                      <div key={offer.id} className="border border-neutral-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <h4 className="font-medium text-neutral-900">Offer #{index + 1}</h4>
+                              <Badge className="bg-success-100 text-success-800 text-xs px-2 py-1">
+                                Submitted
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-neutral-600">
+                              <p><span className="font-medium">Vendor:</span> {offer.vendor?.name || 'Unknown Vendor'}</p>
+                              <p><span className="font-medium">Company:</span> {offer.vendor?.company || 'N/A'}</p>
+                              <p><span className="font-medium">Submitted:</span> {format(new Date(offer.createdAt), 'PPP')}</p>
+                            </div>
+                            {offer.notes && (
+                              <div className="mt-2">
+                                <p className="text-sm font-medium text-neutral-700">Notes:</p>
+                                <p className="text-sm text-neutral-600">{offer.notes}</p>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex space-x-2">
+                            {offer.technicalFileUrl && (
+                              <Button variant="outline" size="sm">
+                                Technical Proposal
+                              </Button>
+                            )}
+                            {offer.financialFileUrl && (
+                              <Button variant="outline" size="sm">
+                                Financial Proposal
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-neutral-500">No offers received yet.</p>
+                    <p className="text-sm text-neutral-400 mt-1">Vendors will be able to submit offers using the invitation link.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </main>
       
       {/* Submit Offer Modal */}

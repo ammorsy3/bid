@@ -39,7 +39,7 @@ export default function Landing() {
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-6xl font-bold text-neutral-900 mb-6">
               Professional
-              <span className="text-primary-600"> Procurement</span>
+              <span className="text-[#f54a00]"> Procurement</span>
               <br />
               Platform
             </h1>

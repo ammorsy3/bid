@@ -161,7 +161,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getInvitationsByTenderId(tenderId: string): Promise<(Invitation & { vendor?: User })[]> {
-    return await db
+    const results = await db
       .select({
         id: invitations.id,
         tenderId: invitations.tenderId,
@@ -177,6 +177,11 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(users, eq(invitations.vendorId, users.id))
       .where(eq(invitations.tenderId, tenderId))
       .orderBy(desc(invitations.invitedAt));
+    
+    return results.map(result => ({
+      ...result,
+      vendor: result.vendor || undefined
+    }));
   }
 
   async getTenderByInvitationToken(token: string): Promise<(Tender & { requester: User }) | undefined> {

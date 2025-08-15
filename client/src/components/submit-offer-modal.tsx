@@ -161,7 +161,6 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                 className="flex-1 bg-primary-600 hover:bg-primary-700"
                 disabled={submitOfferMutation.isPending}
                 onClick={() => {
-                  console.log('Submit Offer clicked! Form valid:', form.formState.isValid, 'Errors:', form.formState.errors);
                   form.handleSubmit(onSubmit)();
                 }}
                 data-testid="button-submit-offer"

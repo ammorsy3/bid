@@ -1,16 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import { useAuthStore } from "@/lib/auth";
+import { useState } from "react";
 import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Building, Clock, DollarSign } from "lucide-react";
 import { format } from "date-fns";
+import SubmitOfferModal from "@/components/submit-offer-modal";
 
 export default function TenderDetails() {
   const { id } = useParams();
   const { user } = useAuthStore();
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
 
   const { data: tender, isLoading } = useQuery({
     queryKey: ['/api/tenders', id],
@@ -136,7 +139,11 @@ export default function TenderDetails() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {user?.role === 'vendor' && (
-                  <Button className="w-full bg-primary-600 hover:bg-primary-700">
+                  <Button 
+                    className="w-full bg-primary-600 hover:bg-primary-700"
+                    onClick={() => setIsOfferModalOpen(true)}
+                    data-testid="button-submit-offer"
+                  >
                     Submit Offer
                   </Button>
                 )}
@@ -176,6 +183,16 @@ export default function TenderDetails() {
           </div>
         </div>
       </main>
+      
+      {/* Submit Offer Modal */}
+      {tender && user && (
+        <SubmitOfferModal 
+          isOpen={isOfferModalOpen}
+          onClose={() => setIsOfferModalOpen(false)}
+          tender={tender}
+          requester={{ id: tender.requesterId, name: "Requester", company: "Company" }}
+        />
+      )}
     </div>
   );
 }

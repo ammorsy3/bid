@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Building, Clock, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import SubmitOfferModal from "@/components/submit-offer-modal";
+import type { Tender, Offer, User } from "@shared/schema";
 
 export default function TenderDetails() {
   const { id } = useParams();
@@ -16,12 +17,12 @@ export default function TenderDetails() {
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [showOffers, setShowOffers] = useState(false);
 
-  const { data: tender, isLoading } = useQuery({
+  const { data: tender, isLoading } = useQuery<Tender>({
     queryKey: ['/api/tenders', id],
     enabled: !!user && !!id,
   });
 
-  const { data: offers } = useQuery({
+  const { data: offers } = useQuery<(Offer & { vendor: User })[]>({
     queryKey: ['/api/tenders', id, 'offers'],
     enabled: !!user && !!id && user.role === 'requester',
   });
@@ -121,7 +122,7 @@ export default function TenderDetails() {
                       <div>
                         <p className="text-sm text-neutral-600">Created</p>
                         <p className="font-medium text-neutral-900">
-                          {format(new Date(tender.createdAt), 'PPP')}
+                          {tender.createdAt ? format(new Date(tender.createdAt), 'PPP') : 'Unknown'}
                         </p>
                       </div>
                     </div>
@@ -198,7 +199,7 @@ export default function TenderDetails() {
               <CardContent>
                 {offers && offers.length > 0 ? (
                   <div className="space-y-4">
-                    {offers.map((offer: any, index: number) => (
+                    {offers.map((offer, index: number) => (
                       <div key={offer.id} className="border border-neutral-200 rounded-lg p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -211,7 +212,7 @@ export default function TenderDetails() {
                             <div className="text-sm text-neutral-600">
                               <p><span className="font-medium">Vendor:</span> {offer.vendor?.name || 'Unknown Vendor'}</p>
                               <p><span className="font-medium">Company:</span> {offer.vendor?.company || 'N/A'}</p>
-                              <p><span className="font-medium">Submitted:</span> {format(new Date(offer.createdAt), 'PPP')}</p>
+                              <p><span className="font-medium">Submitted:</span> {offer.submittedAt ? format(new Date(offer.submittedAt), 'PPP') : 'Unknown'}</p>
                             </div>
                             {offer.notes && (
                               <div className="mt-2">
@@ -253,8 +254,8 @@ export default function TenderDetails() {
         <SubmitOfferModal 
           isOpen={isOfferModalOpen}
           onClose={() => setIsOfferModalOpen(false)}
-          tender={tender}
-          requester={{ id: tender.requesterId, name: "Requester", company: "Company" }}
+          tender={{ id: tender.id, title: tender.title, deadline: tender.deadline }}
+          requester={{ name: "Requester", company: "Company" }}
         />
       )}
     </div>

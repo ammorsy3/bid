@@ -32,6 +32,7 @@ export default function Register() {
 
   const urlParams = new URLSearchParams(search);
   const roleFromUrl = urlParams.get('role') as 'requester' | 'vendor' | null;
+  const invitationToken = urlParams.get('token');
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -50,9 +51,14 @@ export default function Register() {
 
   useEffect(() => {
     if (user) {
-      setLocation("/dashboard");
+      // If there's an invitation token, redirect to the invitation page
+      if (invitationToken) {
+        setLocation(`/invite/${invitationToken}`);
+      } else {
+        setLocation("/dashboard");
+      }
     }
-  }, [user, setLocation]);
+  }, [user, setLocation, invitationToken]);
 
   const onSubmit = async (data: RegisterForm) => {
     try {
@@ -61,7 +67,12 @@ export default function Register() {
         title: "Success",
         description: "Account created successfully",
       });
-      setLocation("/dashboard");
+      // If there's an invitation token, redirect to the invitation page
+      if (invitationToken) {
+        setLocation(`/invite/${invitationToken}`);
+      } else {
+        setLocation("/dashboard");
+      }
     } catch (error) {
       toast({
         title: "Error",

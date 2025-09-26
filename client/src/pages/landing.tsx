@@ -11,7 +11,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-[#f35000]">Bid</h1>
+              <h1 className="text-2xl font-bold text-[#f33c20]">Bid</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="ghost" asChild>
@@ -52,7 +52,7 @@ export default function Landing() {
                   Start as Requester
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="bg-white hover:bg-neutral-50 text-primary-600 px-8 py-4 rounded-lg font-semibold text-lg border-2 border-primary-600">
+              <Button asChild variant="outline" size="lg" className="bg-white hover:bg-neutral-50 text-[#f33c20] px-8 py-4 rounded-lg font-semibold text-lg border-2 border-[#f33c20]">
                 <Link href="/register?role=vendor">
                   Join as Vendor
                 </Link>
@@ -64,8 +64,8 @@ export default function Landing() {
           <div className="grid md:grid-cols-3 gap-8 mb-16">
             <Card className="bg-white p-8 rounded-xl shadow-sm border border-neutral-200">
               <CardContent className="p-0">
-                <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
-                  <Lock className="text-primary-600 h-6 w-6" />
+                <div className="w-12 h-12 bg-[#f33c20]/10 rounded-lg flex items-center justify-center mb-4">
+                  <Lock className="text-[#f33c20] h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-semibold text-neutral-900 mb-3">Private Tenders</h3>
                 <p className="text-neutral-600">Invite only qualified vendors to your private tenders. No public browsing ensures confidentiality.</p>
@@ -74,8 +74,8 @@ export default function Landing() {
             
             <Card className="bg-white p-8 rounded-xl shadow-sm border border-neutral-200">
               <CardContent className="p-0">
-                <div className="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center mb-4">
-                  <Users className="text-secondary-orange h-6 w-6" />
+                <div className="w-12 h-12 bg-[#f33c20]/10 rounded-lg flex items-center justify-center mb-4">
+                  <Users className="text-[#f33c20] h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-semibold text-neutral-900 mb-3">Vendor Management</h3>
                 <p className="text-neutral-600">Build and manage your qualified vendor pool with unified pre-qualification processes.</p>
@@ -84,8 +84,8 @@ export default function Landing() {
             
             <Card className="bg-white p-8 rounded-xl shadow-sm border border-neutral-200">
               <CardContent className="p-0">
-                <div className="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center mb-4">
-                  <Zap className="text-success-600 h-6 w-6" />
+                <div className="w-12 h-12 bg-[#f33c20]/10 rounded-lg flex items-center justify-center mb-4">
+                  <Zap className="text-[#f33c20] h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-semibold text-neutral-900 mb-3">Fast Processing</h3>
                 <p className="text-neutral-600">Streamlined workflows and card-based interface for quick decision making and bid processing.</p>

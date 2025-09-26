@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Send, Users, Clock } from "lucide-react";
 import { useState } from "react";
+import type { Tender } from "@shared/schema";
 
 export default function RequesterDashboard() {
   const { user } = useAuthStore();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const { data: tenders, isLoading } = useQuery({
+  const { data: tenders, isLoading } = useQuery<Tender[]>({
     queryKey: ['/api/tenders'],
     enabled: !!user,
   });
@@ -42,7 +43,7 @@ export default function RequesterDashboard() {
           </div>
           <Button 
             onClick={() => setIsCreateModalOpen(true)}
-            className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-semibold"
+            className="bg-[#f33c20] hover:bg-[#d63519] text-white px-6 py-3 rounded-lg font-semibold"
           >
             Create Tender
           </Button>
@@ -54,8 +55,8 @@ export default function RequesterDashboard() {
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
-                    <FileText className="text-primary-600 h-5 w-5" />
+                  <div className="w-8 h-8 bg-[#f33c20]/10 rounded-lg flex items-center justify-center">
+                    <FileText className="text-[#f33c20] h-5 w-5" />
                   </div>
                 </div>
                 <div className="ml-4">
@@ -70,8 +71,8 @@ export default function RequesterDashboard() {
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-secondary-100 rounded-lg flex items-center justify-center">
-                    <Send className="text-secondary-orange h-5 w-5" />
+                  <div className="w-8 h-8 bg-[#f33c20]/10 rounded-lg flex items-center justify-center">
+                    <Send className="text-[#f33c20] h-5 w-5" />
                   </div>
                 </div>
                 <div className="ml-4">
@@ -86,8 +87,8 @@ export default function RequesterDashboard() {
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center">
-                    <Users className="text-success-600 h-5 w-5" />
+                  <div className="w-8 h-8 bg-[#f33c20]/10 rounded-lg flex items-center justify-center">
+                    <Users className="text-[#f33c20] h-5 w-5" />
                   </div>
                 </div>
                 <div className="ml-4">
@@ -104,8 +105,8 @@ export default function RequesterDashboard() {
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center">
-                    <Clock className="text-warning-600 h-5 w-5" />
+                  <div className="w-8 h-8 bg-[#f33c20]/10 rounded-lg flex items-center justify-center">
+                    <Clock className="text-[#f33c20] h-5 w-5" />
                   </div>
                 </div>
                 <div className="ml-4">
@@ -127,7 +128,7 @@ export default function RequesterDashboard() {
             <p className="text-neutral-600 mb-4">No tenders created yet</p>
             <Button 
               onClick={() => setIsCreateModalOpen(true)}
-              className="bg-primary-600 hover:bg-primary-700"
+              className="bg-[#f33c20] hover:bg-[#d63519]"
             >
               Create Your First Tender
             </Button>

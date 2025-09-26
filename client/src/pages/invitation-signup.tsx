@@ -63,7 +63,7 @@ export default function InvitationSignup() {
             <p className="text-neutral-600 mb-4">
               You're logged in as a requester. Please log out and sign in with a vendor account to access this tender.
             </p>
-            <Button variant="outline" onClick={() => setLocation('/login')}>
+            <Button variant="outline" onClick={() => setLocation(`/login?token=${token}`)}>
               Switch Account
             </Button>
           </CardContent>
@@ -138,12 +138,12 @@ export default function InvitationSignup() {
                   To submit an offer for this tender, you need to sign in or create a vendor account.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Link href="/login">
+                  <Link href={`/login?token=${token}`}>
                     <Button variant="outline" className="w-full" data-testid="button-login">
                       Sign In
                     </Button>
                   </Link>
-                  <Link href="/register">
+                  <Link href={`/register?token=${token}&role=vendor`}>
                     <Button className="w-full" data-testid="button-register">
                       Create Vendor Account
                     </Button>

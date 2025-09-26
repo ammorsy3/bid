@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
@@ -19,8 +19,12 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const search = useSearch();
   const { login, isLoading, user } = useAuthStore();
   const { toast } = useToast();
+  
+  const urlParams = new URLSearchParams(search);
+  const invitationToken = urlParams.get('token');
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -32,9 +36,14 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      setLocation("/dashboard");
+      // If there's an invitation token, redirect to the invitation page
+      if (invitationToken) {
+        setLocation(`/invite/${invitationToken}`);
+      } else {
+        setLocation("/dashboard");
+      }
     }
-  }, [user, setLocation]);
+  }, [user, setLocation, invitationToken]);
 
   const onSubmit = async (data: LoginForm) => {
     try {
@@ -43,7 +52,12 @@ export default function Login() {
         title: "Success",
         description: "Logged in successfully",
       });
-      setLocation("/dashboard");
+      // If there's an invitation token, redirect to the invitation page
+      if (invitationToken) {
+        setLocation(`/invite/${invitationToken}`);
+      } else {
+        setLocation("/dashboard");
+      }
     } catch (error) {
       toast({
         title: "Error",

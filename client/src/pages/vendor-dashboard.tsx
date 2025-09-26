@@ -4,16 +4,17 @@ import Navbar from "@/components/navbar";
 import VendorInvitationCard from "@/components/vendor-invitation-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Send, Trophy } from "lucide-react";
+import type { Tender, Offer } from "@shared/schema";
 
 export default function VendorDashboard() {
   const { user } = useAuthStore();
 
-  const { data: invitations, isLoading } = useQuery({
+  const { data: invitations, isLoading } = useQuery<Tender[]>({
     queryKey: ['/api/tenders'],
     enabled: !!user,
   });
 
-  const { data: myOffers } = useQuery({
+  const { data: myOffers } = useQuery<Offer[]>({
     queryKey: ['/api/my-offers'],
     enabled: !!user,
   });
@@ -40,8 +41,8 @@ export default function VendorDashboard() {
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-secondary-100 rounded-lg flex items-center justify-center">
-                    <Mail className="text-secondary-orange h-5 w-5" />
+                  <div className="w-8 h-8 bg-[#f33c20]/10 rounded-lg flex items-center justify-center">
+                    <Mail className="text-[#f33c20] h-5 w-5" />
                   </div>
                 </div>
                 <div className="ml-4">
@@ -56,8 +57,8 @@ export default function VendorDashboard() {
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
-                    <Send className="text-primary-600 h-5 w-5" />
+                  <div className="w-8 h-8 bg-[#f33c20]/10 rounded-lg flex items-center justify-center">
+                    <Send className="text-[#f33c20] h-5 w-5" />
                   </div>
                 </div>
                 <div className="ml-4">
@@ -72,8 +73,8 @@ export default function VendorDashboard() {
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center">
-                    <Trophy className="text-success-600 h-5 w-5" />
+                  <div className="w-8 h-8 bg-[#f33c20]/10 rounded-lg flex items-center justify-center">
+                    <Trophy className="text-[#f33c20] h-5 w-5" />
                   </div>
                 </div>
                 <div className="ml-4">

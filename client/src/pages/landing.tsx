@@ -25,7 +25,7 @@ export default function Landing() {
                 </span>
               </Button>
               <Button asChild>
-                <Link href="/login" className="bg-[#fc4c00] hover:bg-[#e04400] text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                <Link href="/login" className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-10 hover:bg-[#e04400] text-white px-6 py-2 rounded-lg font-medium transition-colors bg-[#e03c00]">
                   Login
                 </Link>
               </Button>

@@ -23,7 +23,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/dashboard">
-              <h1 className="text-2xl font-bold text-primary-600 mr-8 cursor-pointer">Bid</h1>
+              <h1 className="text-2xl font-bold mr-8 cursor-pointer text-[#f76700]">Bid</h1>
             </Link>
             <nav className="flex space-x-8">
               <Link 

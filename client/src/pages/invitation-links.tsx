@@ -14,6 +14,7 @@ export default function InvitationLinks() {
   const { user } = useAuthStore();
   const { toast } = useToast();
   const [copiedLinks, setCopiedLinks] = useState<Set<string>>(new Set());
+  const [copiedMessage, setCopiedMessage] = useState(false);
 
   const { data: tender, isLoading: tenderLoading } = useQuery<Tender>({
     queryKey: ['/api/tenders', id],
@@ -41,6 +42,29 @@ export default function InvitationLinks() {
       toast({
         title: "Error",
         description: "Failed to copy link",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const copyInvitationMessage = async () => {
+    if (!tender) return;
+    
+    const invitationLink = `${window.location.origin}/invite/${tender.invitationToken}`;
+    const message = `You're invited to submit an offer for "${tender.title}"\n\nTender Details:\n- Budget: ${tender.budget || 'Not specified'}\n- Deadline: ${tender.deadline}\n- Duration: ${tender.duration || 'Not specified'}\n\nClick here to view details and submit your offer:\n${invitationLink}`;
+    
+    try {
+      await navigator.clipboard.writeText(message);
+      setCopiedMessage(true);
+      setTimeout(() => setCopiedMessage(false), 2000);
+      toast({
+        title: "Copied!",
+        description: "Invitation message copied to clipboard",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy message",
         variant: "destructive",
       });
     }
@@ -83,37 +107,67 @@ export default function InvitationLinks() {
           <div className="space-y-4">
             <Card className="bg-white rounded-xl shadow-sm border border-neutral-200">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <Mail className="h-5 w-5 text-neutral-400" />
-                      <span className="font-medium text-neutral-900">
-                        Tender Invitation Link
-                      </span>
-                    </div>
-                    <div className="bg-neutral-50 rounded-lg p-3 font-mono text-sm text-neutral-700 break-all">
-                      {`${window.location.origin}/invite/${tender.invitationToken}`}
-                    </div>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <Mail className="h-5 w-5 text-neutral-400" />
+                    <span className="font-medium text-neutral-900">
+                      Tender Invitation Link
+                    </span>
                   </div>
-                  <div className="ml-4">
+                  <div className="bg-neutral-50 rounded-lg p-3 font-mono text-sm text-neutral-700 break-all">
+                    {`${window.location.origin}/invite/${tender.invitationToken}`}
+                  </div>
+                  <div className="flex gap-3">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => copyToClipboard(`${window.location.origin}/invite/${tender.invitationToken}`, tender.id)}
-                      className="flex items-center space-x-2"
+                      className="flex items-center space-x-2 flex-1"
+                      data-testid="button-copy-link"
                     >
                       {copiedLinks.has(tender.id) ? (
                         <>
                           <Check className="h-4 w-4 text-success-600" />
-                          <span>Copied</span>
+                          <span>Link Copied</span>
                         </>
                       ) : (
                         <>
                           <Copy className="h-4 w-4" />
-                          <span>Copy</span>
+                          <span>Copy Link</span>
                         </>
                       )}
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={copyInvitationMessage}
+                      className="flex items-center space-x-2 flex-1"
+                      data-testid="button-copy-message"
+                    >
+                      {copiedMessage ? (
+                        <>
+                          <Check className="h-4 w-4 text-success-600" />
+                          <span>Message Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="h-4 w-4" />
+                          <span>Copy Message</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 mb-2">Invitation Message Preview</h4>
+                    <div className="text-sm text-blue-800 whitespace-pre-line">
+                      You're invited to submit an offer for "{tender.title}"<br/><br/>
+                      Tender Details:<br/>
+                      - Budget: {tender.budget || 'Not specified'}<br/>
+                      - Deadline: {tender.deadline}<br/>
+                      - Duration: {tender.duration || 'Not specified'}<br/><br/>
+                      Click here to view details and submit your offer:<br/>
+                      {`${window.location.origin}/invite/${tender.invitationToken}`}
+                    </div>
                   </div>
                 </div>
               </CardContent>

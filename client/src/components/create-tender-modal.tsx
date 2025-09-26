@@ -4,6 +4,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,7 +13,9 @@ import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { CloudUpload } from "lucide-react";
+import { CloudUpload, Copy, Check, Mail, ExternalLink } from "lucide-react";
+import { useState } from "react";
+import type { Tender } from "@shared/schema";
 
 const createTenderSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -33,6 +36,8 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
   const { user } = useAuthStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [createdTender, setCreatedTender] = useState<Tender | null>(null);
+  const [invitationCopied, setInvitationCopied] = useState(false);
 
   // No longer need to fetch vendors since we're using email invitations
 
@@ -52,16 +57,9 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
       const response = await apiRequest('POST', '/api/tenders', data);
       return response.json();
     },
-    onSuccess: (tender: any) => {
-      toast({
-        title: "Success",
-        description: "Tender created successfully! Copy and share the invitation link with vendors.",
-      });
+    onSuccess: (tender: Tender) => {
+      setCreatedTender(tender);
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
-      onClose();
-      form.reset();
-      // Navigate to invitation links page to show the link
-      window.location.href = `/tenders/${tender.id}/invitations`;
     },
     onError: () => {
       toast({
@@ -79,8 +77,149 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
   const handleClose = () => {
     onClose();
     form.reset();
+    setCreatedTender(null);
+    setInvitationCopied(false);
   };
 
+  const copyInvitationLink = async () => {
+    if (!createdTender) return;
+    
+    const invitationLink = `${window.location.origin}/invite/${createdTender.invitationToken}`;
+    try {
+      await navigator.clipboard.writeText(invitationLink);
+      setInvitationCopied(true);
+      setTimeout(() => setInvitationCopied(false), 2000);
+      toast({
+        title: "Copied!",
+        description: "Invitation link copied to clipboard",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy link",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const copyInvitationMessage = async () => {
+    if (!createdTender) return;
+    
+    const invitationLink = `${window.location.origin}/invite/${createdTender.invitationToken}`;
+    const message = `You're invited to submit an offer for "${createdTender.title}"\n\nTender Details:\n- Budget: ${createdTender.budget || 'Not specified'}\n- Deadline: ${createdTender.deadline}\n- Duration: ${createdTender.duration || 'Not specified'}\n\nClick here to view details and submit your offer:\n${invitationLink}`;
+    
+    try {
+      await navigator.clipboard.writeText(message);
+      toast({
+        title: "Copied!",
+        description: "Invitation message copied to clipboard",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy message",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const goToTenderDetails = () => {
+    if (!createdTender) return;
+    handleClose();
+    window.location.href = `/tenders/${createdTender.id}`;
+  };
+
+  // Show success state with invitation link after creation
+  if (createdTender) {
+    const invitationLink = `${window.location.origin}/invite/${createdTender.invitationToken}`;
+    
+    return (
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-semibold text-success-600 flex items-center gap-2">
+              <Check className="h-6 w-6" />
+              Tender Created Successfully!
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-neutral-900 mb-2">{createdTender.title}</h3>
+              <p className="text-neutral-600">Your tender is now live and ready for vendor invitations</p>
+            </div>
+            
+            <Card className="bg-primary-50 border-primary-200">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Mail className="h-5 w-5 text-primary-600" />
+                  <h4 className="font-semibold text-primary-900">Invitation Link</h4>
+                </div>
+                <p className="text-sm text-primary-800 mb-4">
+                  Share this link with qualified vendors to invite them to submit offers:
+                </p>
+                <div className="bg-white rounded-lg p-3 mb-4">
+                  <code className="text-sm text-primary-900 break-all font-mono">{invitationLink}</code>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={copyInvitationLink}
+                    size="sm"
+                    className="flex-1"
+                    data-testid="button-copy-link"
+                  >
+                    {invitationCopied ? (
+                      <><Check className="h-4 w-4 mr-2" />Copied!</>
+                    ) : (
+                      <><Copy className="h-4 w-4 mr-2" />Copy Link</>
+                    )}
+                  </Button>
+                  <Button 
+                    onClick={copyInvitationMessage}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    data-testid="button-copy-message"
+                  >
+                    <Mail className="h-4 w-4 mr-2" />Copy Message
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
+              <h4 className="font-medium text-neutral-900 mb-2">Next Steps</h4>
+              <ul className="text-sm text-neutral-600 space-y-1">
+                <li>• Share the invitation link with qualified vendors via email or messaging</li>
+                <li>• Vendors can register and submit offers using this link</li>
+                <li>• Monitor submissions from your dashboard</li>
+              </ul>
+            </div>
+            
+            <div className="flex gap-3 pt-4 border-t border-neutral-200">
+              <Button 
+                variant="outline" 
+                onClick={handleClose}
+                className="flex-1"
+                data-testid="button-close-modal"
+              >
+                Close
+              </Button>
+              <Button 
+                onClick={goToTenderDetails}
+                className="flex-1 bg-primary-600 hover:bg-primary-700"
+                data-testid="button-view-tender"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View Tender Details
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+  
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

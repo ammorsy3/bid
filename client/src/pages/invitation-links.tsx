@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Copy, Check, Mail } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import type { Tender } from "@shared/schema";
 
 export default function InvitationLinks() {
   const { id } = useParams();
@@ -14,7 +15,7 @@ export default function InvitationLinks() {
   const { toast } = useToast();
   const [copiedLinks, setCopiedLinks] = useState<Set<string>>(new Set());
 
-  const { data: tender, isLoading: tenderLoading } = useQuery({
+  const { data: tender, isLoading: tenderLoading } = useQuery<Tender>({
     queryKey: ['/api/tenders', id],
     enabled: !!user && !!id,
   });

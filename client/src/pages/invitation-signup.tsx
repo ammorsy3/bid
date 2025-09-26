@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import { useEffect } from "react";
+import type { Tender, User } from "@shared/schema";
 
 export default function InvitationSignup() {
   const { token } = useParams();
   const [, setLocation] = useLocation();
   const { user } = useAuthStore();
 
-  const { data: tender, isLoading, error } = useQuery({
+  const { data: tender, isLoading, error } = useQuery<Tender & { requester: User }>({
     queryKey: ['/api/tenders/by-token', token],
     enabled: !!token,
   });

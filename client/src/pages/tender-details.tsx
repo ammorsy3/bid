@@ -6,7 +6,7 @@ import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail } from "lucide-react";
 import { format } from "date-fns";
 import SubmitOfferModal from "@/components/submit-offer-modal";
 import type { Tender, Offer, User } from "@shared/schema";
@@ -157,6 +157,15 @@ export default function TenderDetails() {
                       data-testid="button-view-offers"
                     >
                       {showOffers ? 'Hide Offers' : `View All Offers (${offers?.length || 0})`}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => window.location.href = `/tenders/${tender.id}/invitations`}
+                      data-testid="button-invitation-link"
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      Invitation Link
                     </Button>
                     <Button variant="outline" className="w-full">
                       Edit Tender

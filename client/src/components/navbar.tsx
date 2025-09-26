@@ -28,11 +28,7 @@ export default function Navbar() {
             <nav className="flex space-x-8">
               <Link 
                 href="/dashboard" 
-                className={`px-1 py-4 text-sm font-medium ${
-                  location === '/dashboard' 
-                    ? 'text-primary-600 border-b-2 border-primary-600' 
-                    : 'text-neutral-500 hover:text-neutral-700'
-                }`}
+                className="px-1 py-4 text-sm font-medium border-b-2 border-primary-600 text-[#f06800]"
               >
                 Dashboard
               </Link>

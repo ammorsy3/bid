@@ -47,7 +47,7 @@ export default function Landing() {
               Streamline your tender process with private invitations, qualified vendor management, and secure bid submissions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-lg font-semibold text-lg">
+              <Button asChild size="lg" className="hover:bg-primary-700 text-white px-8 py-4 rounded-lg font-semibold text-lg bg-[#f33c20]">
                 <Link href="/register?role=requester">
                   Start as Requester
                 </Link>

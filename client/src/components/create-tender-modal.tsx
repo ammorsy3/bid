@@ -1,10 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { SmartInput, SmartTextarea } from "@/components/ui/smart-input";
+import { FormProgress, DraftIndicator } from "@/components/ui/form-progress";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,14 +13,20 @@ import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { CloudUpload, Copy, Check, Mail, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import { Copy, Check, Mail, ExternalLink, Sparkles, Info } from "lucide-react";
+import { useState, useEffect } from "react";
 import type { Tender } from "@shared/schema";
+import { useAutosave, DraftStorage } from "@/lib/autosave";
+import { calculateFormProgress, getConstraints } from "@/lib/form-validation";
+import { useFormKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const createTenderSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
-  deadline: z.string().min(1, "Deadline is required"),
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  deadline: z.string().min(1, "Deadline is required").refine((val) => {
+    return new Date(val) > new Date();
+  }, "Deadline must be in the future"),
   budget: z.string().optional(),
   duration: z.string().optional(),
 });
@@ -32,14 +38,17 @@ interface CreateTenderModalProps {
   onClose: () => void;
 }
 
+const FORM_ID = 'create-tender';
+const REQUIRED_FIELDS: (keyof CreateTenderForm)[] = ['title', 'description', 'deadline'];
+
 export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModalProps) {
   const { user } = useAuthStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [createdTender, setCreatedTender] = useState<Tender | null>(null);
   const [invitationCopied, setInvitationCopied] = useState(false);
-
-  // No longer need to fetch vendors since we're using email invitations
+  const [showDraftPrompt, setShowDraftPrompt] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
 
   const form = useForm<CreateTenderForm>({
     resolver: zodResolver(createTenderSchema),
@@ -52,6 +61,40 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
     },
   });
 
+  const formValues = form.watch();
+  const { lastSaved, isSaving, clearDraft, loadDraft } = useAutosave(
+    FORM_ID,
+    formValues,
+    isOpen && !createdTender
+  );
+
+  const progress = calculateFormProgress(form, REQUIRED_FIELDS);
+
+  // Check for existing draft whenever modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const draft = DraftStorage.load<CreateTenderForm>(FORM_ID);
+      if (draft && !createdTender) {
+        setHasDraft(true);
+        setShowDraftPrompt(true);
+      } else {
+        setHasDraft(false);
+        setShowDraftPrompt(false);
+      }
+    }
+  }, [isOpen, createdTender]);
+
+  // Keyboard shortcuts
+  useFormKeyboardShortcuts({
+    onSubmit: () => {
+      if (!createdTender) {
+        form.handleSubmit(onSubmit)();
+      }
+    },
+    onCancel: handleClose,
+    enabled: isOpen,
+  });
+
   const createTenderMutation = useMutation({
     mutationFn: async (data: CreateTenderForm) => {
       const response = await apiRequest('POST', '/api/tenders', data);
@@ -59,7 +102,12 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
     },
     onSuccess: (tender: Tender) => {
       setCreatedTender(tender);
+      clearDraft();
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
+      toast({
+        title: "Success!",
+        description: "Tender created successfully",
+      });
     },
     onError: () => {
       toast({
@@ -74,12 +122,36 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
     createTenderMutation.mutate(data);
   };
 
-  const handleClose = () => {
+  function handleClose() {
     onClose();
     form.reset();
     setCreatedTender(null);
     setInvitationCopied(false);
-  };
+    setShowDraftPrompt(false);
+    setHasDraft(false);
+  }
+
+  function handleLoadDraft() {
+    const draft = loadDraft();
+    if (draft) {
+      form.reset(draft.data);
+      setShowDraftPrompt(false);
+      toast({
+        title: "Draft loaded",
+        description: "Your previous work has been restored",
+      });
+    }
+  }
+
+  function handleDiscardDraft() {
+    clearDraft();
+    setShowDraftPrompt(false);
+    setHasDraft(false);
+    toast({
+      title: "Draft discarded",
+      description: "Starting with a fresh form",
+    });
+  }
 
   const copyInvitationLink = async () => {
     if (!createdTender) return;
@@ -222,54 +294,117 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
   
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-neutral-900">Create New Tender</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-2xl font-semibold text-neutral-900 flex items-center gap-2">
+              <Sparkles className="h-6 w-6 text-primary-600" />
+              Create New Tender
+            </DialogTitle>
+            <DraftIndicator 
+              lastSaved={lastSaved}
+              isSaving={isSaving}
+              hasDraft={hasDraft}
+              onLoadDraft={handleLoadDraft}
+            />
+          </div>
+          <p className="text-sm text-neutral-600 mt-2">
+            Press <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-300 rounded text-xs">Ctrl+Enter</kbd> to submit • <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-300 rounded text-xs">Esc</kbd> to close
+          </p>
         </DialogHeader>
+
+        {showDraftPrompt && (
+          <Alert className="bg-primary-50 border-primary-200">
+            <Info className="h-4 w-4 text-primary-600" />
+            <AlertDescription className="flex items-center justify-between">
+              <span className="text-primary-900">You have an unsaved draft from earlier</span>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={handleDiscardDraft}>
+                  Discard
+                </Button>
+                <Button size="sm" onClick={handleLoadDraft} className="bg-primary-600 hover:bg-primary-700">
+                  Load Draft
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tender Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter tender title..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            {/* Progress Indicator */}
+            <FormProgress 
+              progress={progress}
+              steps={[
+                { label: 'Tender title', completed: !!formValues.title && !form.formState.errors.title },
+                { label: 'Description', completed: !!formValues.description && !form.formState.errors.description },
+                { label: 'Deadline', completed: !!formValues.deadline && !form.formState.errors.deadline },
+              ]}
             />
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      rows={4} 
-                      placeholder="Provide detailed requirements and specifications..." 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Essential Fields */}
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tender Title *</FormLabel>
+                    <FormControl>
+                      <SmartInput 
+                        placeholder="e.g., Website Development for E-commerce Platform" 
+                        error={form.formState.errors.title}
+                        isDirty={form.formState.dirtyFields.title}
+                        constraints={getConstraints('title', field.value)}
+                        data-testid="input-title"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description *</FormLabel>
+                    <FormControl>
+                      <SmartTextarea 
+                        rows={4}
+                        maxLength={1000}
+                        placeholder="Provide detailed requirements, specifications, and expectations..." 
+                        error={form.formState.errors.description}
+                        isDirty={form.formState.dirtyFields.description}
+                        data-testid="input-description"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Additional Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="deadline"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Submission Deadline</FormLabel>
+                    <FormLabel>Submission Deadline *</FormLabel>
                     <FormControl>
-                      <Input type="datetime-local" {...field} />
+                      <SmartInput 
+                        type="datetime-local"
+                        error={form.formState.errors.deadline}
+                        isDirty={form.formState.dirtyFields.deadline}
+                        constraints={getConstraints('deadline', field.value)}
+                        data-testid="input-deadline"
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -284,7 +419,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                     <FormLabel>Estimated Budget</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger data-testid="select-budget">
                           <SelectValue placeholder="Select budget range" />
                         </SelectTrigger>
                       </FormControl>
@@ -301,44 +436,38 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               />
             </div>
 
-            <div>
-              <FormLabel className="text-sm font-medium text-neutral-700 mb-2 block">Attachments</FormLabel>
-              <div className="border-2 border-dashed border-neutral-300 rounded-lg p-8 text-center hover:border-primary-400 transition-colors cursor-pointer">
-                <CloudUpload className="mx-auto h-8 w-8 text-neutral-400 mb-4" />
-                <p className="text-neutral-600 mb-2">Drag and drop files here, or click to browse</p>
-                <p className="text-sm text-neutral-500">Supports PDF, DOC, DOCX up to 10MB</p>
-              </div>
-            </div>
-
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-              <h4 className="font-medium text-neutral-900 mb-2">Invitation Link</h4>
+              <h4 className="font-medium text-neutral-900 mb-2">Invitation System</h4>
               <p className="text-sm text-neutral-600 mb-3">
-                After creating this tender, you'll get a unique invitation link to share with vendors manually via email, messaging, or any communication method you prefer.
+                After creating this tender, you'll receive a unique invitation link to share with qualified vendors.
               </p>
               <div className="flex items-center space-x-2 text-xs text-neutral-500">
                 <span>•</span>
-                <span>Share the link only with qualified vendors</span>
+                <span>Share via email, messaging, or any preferred channel</span>
               </div>
               <div className="flex items-center space-x-2 text-xs text-neutral-500 mt-1">
                 <span>•</span>
-                <span>Vendors can register and submit offers using this link</span>
+                <span>Vendors register and submit offers using the link</span>
               </div>
             </div>
 
             <div className="flex space-x-4 pt-4 border-t border-neutral-200">
-              <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleClose} 
+                className="flex-1"
+                data-testid="button-cancel"
+              >
                 Cancel
               </Button>
               <Button 
-                type="button" 
+                type="submit"
                 className="flex-1 bg-primary-600 hover:bg-primary-700"
-                disabled={createTenderMutation.isPending}
+                disabled={createTenderMutation.isPending || progress < 100}
                 data-testid="button-publish-tender"
-                onClick={() => {
-                  form.handleSubmit(onSubmit)();
-                }}
               >
-                {createTenderMutation.isPending ? "Creating..." : "Publish & Send Invitations"}
+                {createTenderMutation.isPending ? "Creating..." : "Publish Tender"}
               </Button>
             </div>
           </form>

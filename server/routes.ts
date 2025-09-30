@@ -4,6 +4,8 @@ import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { insertUserSchema, insertTenderSchema, insertOfferSchema } from "@shared/schema";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { ObjectPermission } from "./objectAcl";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -297,6 +299,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(tender);
     } catch (error) {
       res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Object storage routes for protected file uploads
+  // Get upload URL for file upload
+  app.post("/api/objects/upload", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Failed to get upload URL" });
+    }
+  });
+
+  // Serve protected objects with ACL check
+  app.get("/objects/:objectPath(*)", authenticateToken, async (req: AuthRequest, res) => {
+    const userId = req.userId;
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        userId: userId,
+        requestedPermission: ObjectPermission.READ,
+      });
+      if (!canAccess) {
+        return res.sendStatus(403);
+      }
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error accessing object:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  // Set file metadata after upload
+  app.put("/api/objects/metadata", authenticateToken, async (req: AuthRequest, res) => {
+    if (!req.body.fileURL) {
+      return res.status(400).json({ error: "fileURL is required" });
+    }
+
+    const userId = req.userId!;
+
+    try {
+      const objectStorageService = new ObjectStorageService();
+      
+      // Normalize the path first
+      const normalizedPath = objectStorageService.normalizeObjectEntityPath(req.body.fileURL);
+      
+      if (!normalizedPath.startsWith("/objects/")) {
+        return res.status(400).json({ error: "Invalid file URL" });
+      }
+
+      // Get the file and check existing ACL
+      const objectFile = await objectStorageService.getObjectEntityFile(normalizedPath);
+      const { getObjectAclPolicy } = await import("./objectAcl");
+      const existingAcl = await getObjectAclPolicy(objectFile);
+
+      // Security check: Only allow setting ACL if:
+      // 1. No existing ACL (new file), OR
+      // 2. Caller is the existing owner
+      if (existingAcl && existingAcl.owner !== userId) {
+        return res.status(403).json({ error: "Not authorized to modify this file" });
+      }
+
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        req.body.fileURL,
+        {
+          owner: userId,
+          visibility: "private",
+        },
+      );
+
+      res.status(200).json({
+        objectPath: objectPath,
+      });
+    } catch (error) {
+      console.error("Error setting file metadata:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 

@@ -1,19 +1,27 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
+import { SmartTextarea } from "@/components/ui/smart-input";
+import { FormProgress, DraftIndicator } from "@/components/ui/form-progress";
+import { ObjectUploader } from "@/components/ObjectUploader";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, DollarSign, AlertTriangle } from "lucide-react";
-import { format } from "date-fns";
+import { FileText, DollarSign, AlertTriangle, Clock, Sparkles, Check, X } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
+import { useState, useEffect } from "react";
+import { useAutosave, DraftStorage } from "@/lib/autosave";
+import { calculateFormProgress } from "@/lib/form-validation";
+import { useFormKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import type { UploadResult } from "@uppy/core";
 
 const submitOfferSchema = z.object({
-  technicalFileUrl: z.string().optional(),
-  financialFileUrl: z.string().optional(),
+  technicalFileUrl: z.string().min(1, "Technical proposal is required"),
+  financialFileUrl: z.string().min(1, "Financial proposal is required"),
   notes: z.string().optional(),
 });
 
@@ -26,6 +34,7 @@ interface SubmitOfferModalProps {
     id: string;
     title: string;
     deadline: string;
+    budget?: string;
   };
   requester: {
     name: string;
@@ -33,9 +42,20 @@ interface SubmitOfferModalProps {
   };
 }
 
+const FORM_ID_PREFIX = 'submit-offer-';
+const REQUIRED_FIELDS: (keyof SubmitOfferForm)[] = ['technicalFileUrl', 'financialFileUrl'];
+
 export default function SubmitOfferModal({ isOpen, onClose, tender, requester }: SubmitOfferModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [hasDraft, setHasDraft] = useState(false);
+  const [showDraftPrompt, setShowDraftPrompt] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<{
+    technical?: string;
+    financial?: string;
+  }>({});
+
+  const FORM_ID = `${FORM_ID_PREFIX}${tender.id}`;
 
   const form = useForm<SubmitOfferForm>({
     resolver: zodResolver(submitOfferSchema),
@@ -46,20 +66,76 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     },
   });
 
+  const formValues = form.watch();
+  const { lastSaved, isSaving, clearDraft, loadDraft } = useAutosave(
+    FORM_ID,
+    formValues,
+    isOpen
+  );
+
+  const progress = calculateFormProgress(form, REQUIRED_FIELDS);
+
+  // Calculate time remaining with real-time updates
+  const deadlineDate = new Date(tender.deadline);
+  const [timeRemaining, setTimeRemaining] = useState('');
+  const [isUrgent, setIsUrgent] = useState(false);
+  
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      const remaining = formatDistanceToNow(deadlineDate, { addSuffix: true });
+      const urgent = deadlineDate.getTime() - now.getTime() < 24 * 60 * 60 * 1000; // Less than 24 hours
+      
+      setTimeRemaining(remaining);
+      setIsUrgent(urgent);
+    };
+    
+    if (isOpen) {
+      updateCountdown();
+      const interval = setInterval(updateCountdown, 60000); // Update every minute
+      return () => clearInterval(interval);
+    }
+  }, [isOpen, deadlineDate]);
+
+  // Check for existing draft on mount
+  useEffect(() => {
+    if (isOpen) {
+      const draft = DraftStorage.load<SubmitOfferForm>(FORM_ID);
+      if (draft) {
+        setHasDraft(true);
+        setShowDraftPrompt(true);
+      } else {
+        setHasDraft(false);
+        setShowDraftPrompt(false);
+      }
+    }
+  }, [isOpen, FORM_ID]);
+
+  // Keyboard shortcuts
+  useFormKeyboardShortcuts({
+    onSubmit: () => {
+      form.handleSubmit(onSubmit)();
+    },
+    onCancel: handleClose,
+    enabled: isOpen,
+  });
+
   const submitOfferMutation = useMutation({
     mutationFn: async (data: SubmitOfferForm) => {
       const response = await apiRequest('POST', `/api/tenders/${tender.id}/offers`, data);
       return response.json();
     },
     onSuccess: () => {
+      clearDraft();
       toast({
-        title: "Success",
+        title: "Success!",
         description: "Offer submitted successfully",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
       queryClient.invalidateQueries({ queryKey: ['/api/my-offers'] });
       onClose();
       form.reset();
+      setUploadedFiles({});
     },
     onError: () => {
       toast({
@@ -74,38 +150,228 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     submitOfferMutation.mutate(data);
   };
 
-  const handleClose = () => {
+  function handleClose() {
     onClose();
     form.reset();
+    setUploadedFiles({});
+    setShowDraftPrompt(false);
+    setHasDraft(false);
+  }
+
+  function handleLoadDraft() {
+    const draft = loadDraft();
+    if (draft) {
+      form.reset(draft.data);
+      setShowDraftPrompt(false);
+      toast({
+        title: "Draft loaded",
+        description: "Your previous work has been restored",
+      });
+    }
+  }
+
+  function handleDiscardDraft() {
+    clearDraft();
+    setShowDraftPrompt(false);
+    setHasDraft(false);
+    toast({
+      title: "Draft discarded",
+      description: "Starting with a fresh form",
+    });
+  }
+
+  const handleGetUploadURL = async () => {
+    const response = await apiRequest('POST', '/api/objects/upload', {});
+    const data = await response.json();
+    return {
+      method: 'PUT' as const,
+      url: data.uploadURL,
+    };
+  };
+
+  const handleTechnicalUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    if (result.successful && result.successful[0]) {
+      const uploadURL = result.successful[0].uploadURL;
+      
+      // Set ACL metadata
+      const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', {
+        fileURL: uploadURL,
+      });
+      const { objectPath } = await metadataResponse.json();
+      
+      form.setValue('technicalFileUrl', objectPath, { shouldValidate: true, shouldDirty: true });
+      setUploadedFiles(prev => ({ ...prev, technical: result.successful![0].name }));
+      
+      toast({
+        title: "Uploaded!",
+        description: "Technical proposal uploaded successfully",
+      });
+    }
+  };
+
+  const handleFinancialUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    if (result.successful && result.successful[0]) {
+      const uploadURL = result.successful[0].uploadURL;
+      
+      // Set ACL metadata
+      const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', {
+        fileURL: uploadURL,
+      });
+      const { objectPath } = await metadataResponse.json();
+      
+      form.setValue('financialFileUrl', objectPath, { shouldValidate: true, shouldDirty: true });
+      setUploadedFiles(prev => ({ ...prev, financial: result.successful![0].name }));
+      
+      toast({
+        title: "Uploaded!",
+        description: "Financial proposal uploaded successfully",
+      });
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-neutral-900">Submit Offer</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-2xl font-semibold text-neutral-900 flex items-center gap-2">
+              <Sparkles className="h-6 w-6 text-primary-600" />
+              Submit Offer
+            </DialogTitle>
+            <DraftIndicator 
+              lastSaved={lastSaved}
+              isSaving={isSaving}
+              hasDraft={hasDraft}
+              onLoadDraft={handleLoadDraft}
+            />
+          </div>
           <p className="text-neutral-600 mt-2">{tender.title} - {requester.company || requester.name}</p>
+          <p className="text-sm text-neutral-600 mt-1">
+            Press <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-300 rounded text-xs">Ctrl+Enter</kbd> to submit • <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-300 rounded text-xs">Esc</kbd> to close
+          </p>
         </DialogHeader>
+
+        {showDraftPrompt && (
+          <Alert className="bg-primary-50 border-primary-200">
+            <Sparkles className="h-4 w-4 text-primary-600" />
+            <AlertDescription className="flex items-center justify-between">
+              <span className="text-primary-900">You have an unsaved draft from earlier</span>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={handleDiscardDraft}>
+                  Discard
+                </Button>
+                <Button size="sm" onClick={handleLoadDraft} className="bg-primary-600 hover:bg-primary-700">
+                  Load Draft
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div>
-              <FormLabel className="text-sm font-medium text-neutral-700 mb-2 block">Technical Proposal</FormLabel>
-              <div className="border-2 border-dashed border-neutral-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors cursor-pointer">
-                <FileText className="mx-auto h-6 w-6 text-neutral-400 mb-2" />
-                <p className="text-sm text-neutral-600 mb-1">Upload technical proposal (PDF)</p>
-                <p className="text-xs text-neutral-500">Max size: 10MB</p>
+            {/* Progress & Deadline */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <FormProgress 
+                  progress={progress}
+                  steps={[
+                    { label: 'Technical proposal', completed: !!formValues.technicalFileUrl && !form.formState.errors.technicalFileUrl },
+                    { label: 'Financial proposal', completed: !!formValues.financialFileUrl && !form.formState.errors.financialFileUrl },
+                  ]}
+                />
+              </div>
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isUrgent ? 'bg-error-50 text-error-700' : 'bg-neutral-100 text-neutral-700'}`}>
+                <Clock className="h-4 w-4" />
+                <span className="text-sm font-medium">{timeRemaining}</span>
               </div>
             </div>
 
-            <div>
-              <FormLabel className="text-sm font-medium text-neutral-700 mb-2 block">Financial Proposal</FormLabel>
-              <div className="border-2 border-dashed border-neutral-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors cursor-pointer">
-                <DollarSign className="mx-auto h-6 w-6 text-neutral-400 mb-2" />
-                <p className="text-sm text-neutral-600 mb-1">Upload financial proposal (PDF)</p>
-                <p className="text-xs text-neutral-500">Max size: 10MB</p>
-              </div>
-            </div>
+            {tender.budget && (
+              <Alert>
+                <DollarSign className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Tender Budget:</strong> {tender.budget} • Price your offer competitively
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* File Uploads */}
+            <FormField
+              control={form.control}
+              name="technicalFileUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Technical Proposal *</FormLabel>
+                  <FormControl>
+                    <div className="space-y-2">
+                      <ObjectUploader
+                        maxNumberOfFiles={1}
+                        maxFileSize={10485760}
+                        allowedFileTypes={['.pdf', '.doc', '.docx']}
+                        onGetUploadParameters={handleGetUploadURL}
+                        onComplete={handleTechnicalUploadComplete}
+                        buttonVariant="outline"
+                        buttonClassName="w-full h-24 border-2 border-dashed"
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <FileText className="h-6 w-6 text-neutral-400" />
+                          <div className="text-center">
+                            <p className="text-sm text-neutral-600">Upload technical proposal</p>
+                            <p className="text-xs text-neutral-500">PDF, DOC, DOCX • Max 10MB</p>
+                          </div>
+                        </div>
+                      </ObjectUploader>
+                      {uploadedFiles.technical && (
+                        <div className="flex items-center gap-2 text-sm text-success-600">
+                          <Check className="h-4 w-4" />
+                          <span>{uploadedFiles.technical}</span>
+                        </div>
+                      )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="financialFileUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Financial Proposal *</FormLabel>
+                  <FormControl>
+                    <div className="space-y-2">
+                      <ObjectUploader
+                        maxNumberOfFiles={1}
+                        maxFileSize={10485760}
+                        allowedFileTypes={['.pdf', '.doc', '.docx', '.xls', '.xlsx']}
+                        onGetUploadParameters={handleGetUploadURL}
+                        onComplete={handleFinancialUploadComplete}
+                        buttonVariant="outline"
+                        buttonClassName="w-full h-24 border-2 border-dashed"
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <DollarSign className="h-6 w-6 text-neutral-400" />
+                          <div className="text-center">
+                            <p className="text-sm text-neutral-600">Upload financial proposal</p>
+                            <p className="text-xs text-neutral-500">PDF, DOC, XLS • Max 10MB</p>
+                          </div>
+                        </div>
+                      </ObjectUploader>
+                      {uploadedFiles.financial && (
+                        <div className="flex items-center gap-2 text-sm text-success-600">
+                          <Check className="h-4 w-4" />
+                          <span>{uploadedFiles.financial}</span>
+                        </div>
+                      )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
@@ -114,9 +380,13 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                 <FormItem>
                   <FormLabel>Additional Notes</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      rows={4} 
-                      placeholder="Any additional information or clarifications..." 
+                    <SmartTextarea 
+                      rows={4}
+                      maxLength={500}
+                      placeholder="Any additional information, clarifications, or value propositions..." 
+                      error={form.formState.errors.notes}
+                      isDirty={form.formState.dirtyFields.notes}
+                      data-testid="input-notes"
                       {...field} 
                     />
                   </FormControl>
@@ -138,8 +408,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                 </div>
                 <div className="flex justify-between">
                   <span>Deadline:</span>
-                  <span className="font-medium text-warning-600">
-                    {format(new Date(tender.deadline), 'MMM d, yyyy')}
+                  <span className={`font-medium ${isUrgent ? 'text-error-600' : 'text-warning-600'}`}>
+                    {format(deadlineDate, 'MMM d, yyyy h:mm a')}
                   </span>
                 </div>
               </div>
@@ -153,16 +423,19 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
             </div>
 
             <div className="flex space-x-4 pt-4 border-t border-neutral-200">
-              <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleClose} 
+                className="flex-1"
+                data-testid="button-cancel"
+              >
                 Cancel
               </Button>
               <Button 
-                type="button" 
+                type="submit"
                 className="flex-1 bg-primary-600 hover:bg-primary-700"
-                disabled={submitOfferMutation.isPending}
-                onClick={() => {
-                  form.handleSubmit(onSubmit)();
-                }}
+                disabled={submitOfferMutation.isPending || progress < 100}
                 data-testid="button-submit-offer"
               >
                 {submitOfferMutation.isPending ? "Submitting..." : "Submit Offer"}

@@ -2,6 +2,20 @@
 
 Bid is a web-based procurement platform that facilitates private tender management between service requesters (clients) and vendors. The platform enables requesters to create tenders with specific requirements and deadlines, invite qualified vendors, and manage the bidding process. Vendors can view invitations, submit technical and financial proposals, and track their submission status. The system emphasizes private, invitation-based procurement rather than public tendering.
 
+# Recent Changes (September 30, 2025)
+
+## Enhanced Proposal Submission Form
+The vendor proposal submission form now features a comprehensive smart form experience:
+- **Autosave with Draft Recovery**: Automatically saves form progress every 3 seconds to localStorage, with a draft recovery prompt when reopening
+- **Real File Uploads**: Integrated Replit Object Storage with Uppy for technical and financial proposal uploads (PDF, DOC, XLS up to 10MB)
+- **ACL Security**: File uploads are protected with ACL metadata, ensuring only authorized users can access uploaded proposals
+- **Progress Tracking**: Visual progress indicator showing completion status of required fields
+- **Inline Validation**: Real-time validation feedback with SmartTextarea components showing green checks for valid inputs
+- **Keyboard Shortcuts**: Ctrl+Enter to submit, Escape to close modal for power users
+- **Deadline Countdown**: Real-time countdown timer updating every minute with urgency indicator (red for <24 hours)
+- **Budget Alerts**: Displays tender budget information to help vendors price competitively
+- **Submission Summary**: Clear overview of tender details, client info, and deadline before submission
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

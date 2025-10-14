@@ -14,6 +14,7 @@ export const users = pgTable("users", {
   company: text("company"),
   expertise: text("expertise"), // for vendors
   rating: text("rating").default("0"), // for vendors
+  verificationStatus: text("verification_status").default("not_verified"), // 'not_verified', 'under_review', 'verified'
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -51,11 +52,50 @@ export const invitations = pgTable("invitations", {
   invitedAt: timestamp("invited_at").defaultNow(),
 });
 
+export const vendorQualifications = pgTable("vendor_qualifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  vendorId: varchar("vendor_id").notNull().references(() => users.id).unique(),
+  
+  // Legal & Compliance (Private)
+  legalCompanyName: text("legal_company_name").notNull(),
+  crNumber: text("cr_number").notNull(),
+  vatCertificateUrl: text("vat_certificate_url"),
+  vatNumber: text("vat_number"),
+  gosiCertificateUrl: text("gosi_certificate_url"),
+  nationalAddressLine1: text("national_address_line1").notNull(),
+  nationalAddressCity: text("national_address_city").notNull(),
+  nationalAddressRegion: text("national_address_region").notNull(),
+  nationalAddressPostalCode: text("national_address_postal_code").notNull(),
+  nationalAddressCountry: text("national_address_country").notNull().default("Saudi Arabia"),
+  
+  // Public Profile
+  displayName: text("display_name").notNull(),
+  logoUrl: text("logo_url"),
+  headerUrl: text("header_url"),
+  headerColor: text("header_color"),
+  bio: text("bio").notNull(),
+  categories: text("categories").array().notNull(),
+  profileFileUrl: text("profile_file_url"),
+  linkedinUrl: text("linkedin_url"),
+  xUrl: text("x_url"),
+  websiteUrl: text("website_url"),
+  
+  // Admin fields
+  rejectionReason: text("rejection_reason"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   tenders: many(tenders),
   offers: many(offers),
   invitations: many(invitations),
+  qualification: one(vendorQualifications, {
+    fields: [users.id],
+    references: [vendorQualifications.vendorId],
+  }),
 }));
 
 export const tendersRelations = relations(tenders, ({ one, many }) => ({
@@ -89,6 +129,13 @@ export const invitationsRelations = relations(invitations, ({ one }) => ({
   }),
 }));
 
+export const vendorQualificationsRelations = relations(vendorQualifications, ({ one }) => ({
+  vendor: one(users, {
+    fields: [vendorQualifications.vendorId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -116,6 +163,23 @@ export const insertInvitationSchema = createInsertSchema(invitations).omit({
   invitedAt: true,
 });
 
+export const insertVendorQualificationSchema = createInsertSchema(vendorQualifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const submitPreQualificationSchema = insertVendorQualificationSchema.omit({
+  vendorId: true,
+  rejectionReason: true,
+}).extend({
+  bio: z.string().min(100, "Bio must be at least 100 words").max(1500, "Bio is too long"),
+  categories: z.array(z.string()).min(3, "Select at least 3 categories").max(7, "Maximum 7 categories"),
+  linkedinUrl: z.string().url().optional().or(z.literal("")),
+  xUrl: z.string().url().optional().or(z.literal("")),
+  websiteUrl: z.string().url().optional().or(z.literal("")),
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -125,3 +189,6 @@ export type InsertOffer = z.infer<typeof insertOfferSchema>;
 export type Offer = typeof offers.$inferSelect;
 export type InsertInvitation = z.infer<typeof insertInvitationSchema>;
 export type Invitation = typeof invitations.$inferSelect;
+export type InsertVendorQualification = z.infer<typeof insertVendorQualificationSchema>;
+export type VendorQualification = typeof vendorQualifications.$inferSelect;
+export type SubmitPreQualification = z.infer<typeof submitPreQualificationSchema>;

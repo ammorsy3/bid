@@ -1,0 +1,119 @@
+Stage 1 — Vendor Pre-Qualification
+Simple definition
+A short, guided onboarding where a vendor provides required legal/compliance info (private) and public profile info. When submitted, the account moves to Under Review until Bid Ops verifies it.
+Plain goal (one sentence)
+Collect just enough vendor info to verify identity and create a simple public profile—fast, clear, and reviewable.
+Ready-to-Paste Guideline (for Replit AI Agent)
+Role: You are a senior product manager and UX designer implementing Stage 1: Vendor Pre-Qualification for the Bid platform.
+Format: Return your output as a clear, structured implementation spec (no code in the response). Include: scope, flows, fields, rules, validations, microcopy, notifications, analytics events, acceptance criteria, and edge cases.
+1) Scope (In / Out)
+In scope
+Vendor onboarding form with two sections:
+Legal & Compliance (Private, not shown on profile)
+Company name (as per CR), CR number, VAT cert (if applicable), GOSI cert, National Address.
+Public Profile (Shown on profile)
+Display name (public), Logo, Header (image/color), Short bio (100–300 words), Category/Tags (3–7), Profile File (PDF brochure, optional), Social links (LinkedIn/X/Website).
+Status machine: Not Verified → Under Review → Verified (with rejection back to Not Verified).
+Auto-create Vendor Profile when vendor submits the pre-qualification.
+Conditional submission rule (tender-level): allow or block submission while vendor is Under Review.
+Out of scope (MVP)
+Stats/ratings/portfolio grids on profile.
+Any public display of legal documents or numbers.
+Action buttons (Invite to Tender / Join Vendors Base).
+Payments, messaging, or advanced verification automations.
+2) User Flows (High level)
+2.1 Vendor — Pre-Qualification
+Step 1: Sign in → Pre-Qualification starts.
+Step 2: Fill Legal & Compliance (private).
+Step 3: Fill Public Profile (name/logo/header/bio/category/profile PDF/socials).
+Step 4: Inline validation → Submit for Review.
+Step 5: Status becomes Under Review; Vendor Profile is auto-created (public).
+Step 6 (later): Bid Ops verifies → Verified OR rejects → Not Verified (+reason).
+2.2 Requester — During Proposal Review (context)
+While viewing a proposal, can open vendor’s public profile (name/logo/header/bio/category/profile PDF/socials) to understand who they are.
+3) Status Model & Rules
+Vendor Account Status
+NOT_VERIFIED: default; can’t submit (unless tender allows conditional submission? No—must be at least Under Review).
+UNDER_REVIEW: after vendor submits pre-qualification; may submit only if the tender has allow_conditional_submission = true. Awards/evaluation can be held until verification.
+VERIFIED: full submission and award eligibility.
+Transitions
+NOT_VERIFIED → UNDER_REVIEW (on submit).
+UNDER_REVIEW → VERIFIED (approved by Ops).
+UNDER_REVIEW → NOT_VERIFIED (rejected, with reason).
+Tender policy toggle
+allow_conditional_submission (default: false).
+If true: Under Review vendors may submit; award is blocked until verified.
+If false: vendors must be Verified to submit.
+4) Fields & Validations
+4.1 Legal & Compliance (Private)
+Company name (as per CR) — required, text; 2–120 chars.
+CR number — required, text; normalize to digits; length check.
+VAT certificate — optional if not registered; upload file (PDF/JPG/PNG), max 10MB; capture VAT number if present.
+GOSI certificate — required if applicable; upload file (PDF/JPG/PNG), max 10MB.
+National Address — required; structured (address1, city, region, postal code, country).
+Note: All legal documents remain private (never shown on public profile).
+4.2 Public Profile (Shown)
+Display name (public) — required; 2–60 chars.
+Logo — optional; image; recommended 512×512 min.
+Header — optional; image or color token.
+Short bio — required; 100–300 words; plain text.
+Category/Tags — required; 3–7 items (free text or controlled list).
+Profile File (PDF brochure) — optional; max 10MB; 1–5 pages recommended.
+Social links — optional; LinkedIn, X, Website (validate URL).
+General validation
+Required fields must be completed to enable Submit for Review.
+Show a completeness progress bar with checklist of what’s missing.
+Accept files: PDF/JPG/PNG; max 10MB; basic virus/mime check.
+5) UX & Microcopy (short, human)
+Buttons
+“Save as draft”
+“Submit for review”
+Inline help
+“Legal documents are private and used only for verification.”
+“Your profile helps requesters recognize your brand.”
+“Keep bio short, clear, and focused on your services.”
+“Add 3–7 categories that best describe your work.”
+“Optional: upload a one-pager PDF to introduce your company.”
+Errors
+“Please enter your CR number.”
+“Logo must be an image under 10MB.”
+“Bio is too short—aim for at least 100 words.”
+Success
+“Submitted. Your account is now Under Review.”
+“Profile created. You can update it anytime.”
+6) Notifications (MVP)
+Vendor (on submit): “Thanks! Your account is under review.”
+Vendor (approved): “You’re verified. Your submissions are fully eligible.”
+Vendor (rejected): “We couldn’t verify your account: {reason}. Please update and resubmit.”
+7) Privacy & Visibility
+Public profile shows only: name, logo, header, bio, category/tags, status (text badge), profile PDF link, and social links.
+Legal/compliance fields are strictly private (Ops use only).
+Status is visible as text: Not Verified / Under Review / Verified—no numbers, no certificate images.
+8) Analytics Events (name + key props)
+vendor_prequal_started {vendor_id}
+vendor_prequal_submitted {vendor_id, has_profile_pdf, category_count}
+vendor_status_changed {vendor_id, from, to, by_role}
+profile_created_auto {vendor_id}
+profile_viewed {viewer_role} (e.g., Requester viewing during evaluation)
+submission_blocked_due_to_status {vendor_id, tender_id, required_status}
+conditional_submission_allowed {tender_id}
+9) Acceptance Criteria (Definition of Done)
+Form & Flow
+Vendor can complete legal & profile sections with inline validation and progress bar.
+Submit is disabled until required fields are complete.
+On submit, status changes to Under Review and a public profile is auto-created.
+Visibility & Privacy
+Public profile shows only approved public fields; no legal data.
+Status badge visible on the public profile (text only).
+Rules
+If tender has allow_conditional_submission = false, Under Review vendors cannot submit (clear message).
+If true, Under Review vendors can submit, but award is blocked until Verified.
+Comms & Analytics
+Confirmation messages and three notification templates exist.
+Listed analytics events are emitted with stated properties.
+10) Edge Cases
+No logo/header → show neutral placeholders.
+No profile PDF → hide the field entirely (no dead link).
+Broken social URLs → suppress the link on public view; prompt vendor in edit view only.
+Rejection → revert to Not Verified with reason; vendor can edit and resubmit.
+Name mismatch → “Display name” is public; “Legal name (CR)” remains private and separate.

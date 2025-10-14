@@ -11,6 +11,7 @@ interface User {
   company?: string;
   expertise?: string;
   rating?: string;
+  verificationStatus?: string;
 }
 
 interface AuthState {

@@ -10,7 +10,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, DollarSign, AlertTriangle, Clock, Sparkles, Check, X } from "lucide-react";
+import { useAuthStore } from "@/lib/auth";
+import { FileText, DollarSign, AlertTriangle, Clock, Sparkles, Check, X, ShieldAlert } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { useState, useEffect } from "react";
 import { useAutosave, DraftStorage } from "@/lib/autosave";
@@ -18,6 +19,7 @@ import { calculateFormProgress } from "@/lib/form-validation";
 import { useFormKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { UploadResult } from "@uppy/core";
+import { useLocation } from "wouter";
 
 const submitOfferSchema = z.object({
   technicalFileUrl: z.string().min(1, "Technical proposal is required"),
@@ -48,6 +50,8 @@ const REQUIRED_FIELDS: (keyof SubmitOfferForm)[] = ['technicalFileUrl', 'financi
 export default function SubmitOfferModal({ isOpen, onClose, tender, requester }: SubmitOfferModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const [, navigate] = useLocation();
   const [hasDraft, setHasDraft] = useState(false);
   const [showDraftPrompt, setShowDraftPrompt] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<{
@@ -56,6 +60,10 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   }>({});
 
   const FORM_ID = `${FORM_ID_PREFIX}${tender.id}`;
+  
+  // Check verification status
+  const verificationStatus = user?.verificationStatus || 'not_verified';
+  const isVerified = verificationStatus === 'verified';
 
   const form = useForm<SubmitOfferForm>({
     resolver: zodResolver(submitOfferSchema),
@@ -296,6 +304,43 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </Alert>
             )}
 
+            {/* Verification Status Alert */}
+            {!isVerified && (
+              <Alert className={verificationStatus === 'under_review' ? 'bg-primary-50 border-primary-200' : 'bg-error-50 border-error-200'}>
+                <ShieldAlert className={`h-4 w-4 ${verificationStatus === 'under_review' ? 'text-primary-600' : 'text-error-600'}`} />
+                <AlertDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      {verificationStatus === 'under_review' ? (
+                        <div>
+                          <strong className="text-primary-900">Verification Under Review</strong>
+                          <p className="text-sm text-primary-800 mt-1">Your pre-qualification is being reviewed. You'll be able to submit offers once verified.</p>
+                        </div>
+                      ) : (
+                        <div>
+                          <strong className="text-error-900">Verification Required</strong>
+                          <p className="text-sm text-error-800 mt-1">Complete your pre-qualification to submit offers.</p>
+                        </div>
+                      )}
+                    </div>
+                    {verificationStatus === 'not_verified' && (
+                      <Button 
+                        size="sm" 
+                        className="bg-primary-600 hover:bg-primary-700"
+                        onClick={() => {
+                          handleClose();
+                          navigate('/vendor-prequalification');
+                        }}
+                        data-testid="button-prequalify"
+                      >
+                        Complete Pre-Qualification
+                      </Button>
+                    )}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* File Uploads */}
             <FormField
               control={form.control}
@@ -435,10 +480,10 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               <Button 
                 type="submit"
                 className="flex-1 bg-primary-600 hover:bg-primary-700"
-                disabled={submitOfferMutation.isPending || progress < 100}
+                disabled={submitOfferMutation.isPending || progress < 100 || !isVerified}
                 data-testid="button-submit-offer"
               >
-                {submitOfferMutation.isPending ? "Submitting..." : "Submit Offer"}
+                {submitOfferMutation.isPending ? "Submitting..." : !isVerified ? "Verification Required" : "Submit Offer"}
               </Button>
             </div>
           </form>

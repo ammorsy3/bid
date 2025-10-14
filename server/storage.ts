@@ -3,6 +3,7 @@ import {
   tenders, 
   offers, 
   invitations,
+  vendorQualifications,
   type User, 
   type InsertUser,
   type Tender,
@@ -10,7 +11,9 @@ import {
   type Offer,
   type InsertOffer,
   type Invitation,
-  type InsertInvitation
+  type InsertInvitation,
+  type VendorQualification,
+  type InsertVendorQualification
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -42,6 +45,12 @@ export interface IStorage {
   getInvitationsByVendorId(vendorId: string): Promise<(Invitation & { tender: Tender; requester: User })[]>;
   getInvitationsByTenderId(tenderId: string): Promise<(Invitation & { vendor?: User })[]>;
   updateInvitationStatus(id: string, status: string): Promise<void>;
+  
+  // Vendor qualification operations
+  createVendorQualification(qualification: InsertVendorQualification): Promise<VendorQualification>;
+  getVendorQualificationByVendorId(vendorId: string): Promise<VendorQualification | undefined>;
+  updateVendorQualification(vendorId: string, qualification: Partial<InsertVendorQualification>): Promise<VendorQualification>;
+  updateUserVerificationStatus(userId: string, status: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -208,6 +217,29 @@ export class DatabaseStorage implements IStorage {
 
   async updateInvitationStatus(id: string, status: string): Promise<void> {
     await db.update(invitations).set({ status }).where(eq(invitations.id, id));
+  }
+
+  async createVendorQualification(qualification: InsertVendorQualification): Promise<VendorQualification> {
+    const [result] = await db.insert(vendorQualifications).values(qualification).returning();
+    return result;
+  }
+
+  async getVendorQualificationByVendorId(vendorId: string): Promise<VendorQualification | undefined> {
+    const [result] = await db.select().from(vendorQualifications).where(eq(vendorQualifications.vendorId, vendorId));
+    return result || undefined;
+  }
+
+  async updateVendorQualification(vendorId: string, qualification: Partial<InsertVendorQualification>): Promise<VendorQualification> {
+    const [result] = await db
+      .update(vendorQualifications)
+      .set({ ...qualification, updatedAt: new Date() })
+      .where(eq(vendorQualifications.vendorId, vendorId))
+      .returning();
+    return result;
+  }
+
+  async updateUserVerificationStatus(userId: string, status: string): Promise<void> {
+    await db.update(users).set({ verificationStatus: status }).where(eq(users.id, userId));
   }
 }
 

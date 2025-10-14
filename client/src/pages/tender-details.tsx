@@ -6,9 +6,11 @@ import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Calendar, Building, Clock, DollarSign, Mail, User as UserIcon } from "lucide-react";
 import { format } from "date-fns";
 import SubmitOfferModal from "@/components/submit-offer-modal";
+import VendorProfileView from "@/components/VendorProfileView";
 import type { Tender, Offer, User } from "@shared/schema";
 
 export default function TenderDetails() {
@@ -16,6 +18,7 @@ export default function TenderDetails() {
   const { user } = useAuthStore();
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [showOffers, setShowOffers] = useState(false);
+  const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
 
   const { data: tender, isLoading } = useQuery<Tender>({
     queryKey: ['/api/tenders', id],
@@ -25,6 +28,26 @@ export default function TenderDetails() {
   const { data: offers } = useQuery<(Offer & { vendor: User })[]>({
     queryKey: ['/api/tenders', id, 'offers'],
     enabled: !!user && !!id && user.role === 'requester',
+  });
+
+  interface VendorProfile {
+    id: string;
+    displayName: string;
+    logoUrl?: string;
+    headerUrl?: string;
+    headerColor?: string;
+    bio?: string;
+    categories?: string[];
+    profileFileUrl?: string;
+    linkedinUrl?: string;
+    xUrl?: string;
+    websiteUrl?: string;
+    verificationStatus: string;
+  }
+
+  const { data: vendorProfile } = useQuery<VendorProfile>({
+    queryKey: ['/api/vendor/profile', selectedVendorId],
+    enabled: !!selectedVendorId,
   });
 
   if (isLoading) {
@@ -218,10 +241,22 @@ export default function TenderDetails() {
                                 Submitted
                               </Badge>
                             </div>
-                            <div className="text-sm text-neutral-600">
+                            <div className="text-sm text-neutral-600 space-y-1">
                               <p><span className="font-medium">Vendor:</span> {offer.vendor?.name || 'Unknown Vendor'}</p>
                               <p><span className="font-medium">Company:</span> {offer.vendor?.company || 'N/A'}</p>
                               <p><span className="font-medium">Submitted:</span> {offer.submittedAt ? format(new Date(offer.submittedAt), 'PPP') : 'Unknown'}</p>
+                              {offer.vendorId && (
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  className="h-auto p-0 text-primary-600 hover:text-primary-700"
+                                  onClick={() => setSelectedVendorId(offer.vendorId)}
+                                  data-testid={`link-vendor-profile-${index}`}
+                                >
+                                  <UserIcon className="h-3 w-3 mr-1" />
+                                  View Vendor Profile
+                                </Button>
+                              )}
                             </div>
                             {offer.notes && (
                               <div className="mt-2">
@@ -267,6 +302,18 @@ export default function TenderDetails() {
           requester={{ name: "Requester", company: "Company" }}
         />
       )}
+
+      {/* Vendor Profile Dialog */}
+      <Dialog open={!!selectedVendorId} onOpenChange={(open) => !open && setSelectedVendorId(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Vendor Profile</DialogTitle>
+          </DialogHeader>
+          {vendorProfile && (
+            <VendorProfileView profile={vendorProfile} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

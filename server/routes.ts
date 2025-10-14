@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { insertUserSchema, insertTenderSchema, insertOfferSchema } from "@shared/schema";
+import { insertUserSchema, insertTenderSchema, insertOfferSchema, submitPreQualificationSchema } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 
@@ -69,7 +69,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: user.role,
           company: user.company,
           expertise: user.expertise,
-          rating: user.rating
+          rating: user.rating,
+          verificationStatus: user.verificationStatus
         } 
       });
     } catch (error) {
@@ -107,7 +108,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: user.role,
           company: user.company,
           expertise: user.expertise,
-          rating: user.rating
+          rating: user.rating,
+          verificationStatus: user.verificationStatus
         } 
       });
     } catch (error) {
@@ -130,7 +132,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: user.role,
         company: user.company,
         expertise: user.expertise,
-        rating: user.rating
+        rating: user.rating,
+        verificationStatus: user.verificationStatus
       });
     } catch (error) {
       res.status(500).json({ message: "Server error" });
@@ -224,9 +227,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only vendors can submit offers" });
       }
 
-      // In the new system, vendors access tenders via invitation token
-      // If they can access this endpoint, they have proper access
-      // TODO: Implement token-based invitation tracking if needed
+      // Check vendor verification status
+      const vendor = await storage.getUser(req.userId!);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+
+      if (vendor.verificationStatus !== 'verified') {
+        return res.status(403).json({ 
+          message: "Only verified vendors can submit offers",
+          verificationStatus: vendor.verificationStatus
+        });
+      }
 
       const offerData = insertOfferSchema.parse({
         ...req.body,
@@ -386,6 +398,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "File not found" });
       }
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Vendor pre-qualification routes
+  app.post("/api/vendor/prequalification", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.userRole !== 'vendor') {
+        return res.status(403).json({ message: "Only vendors can submit pre-qualification" });
+      }
+
+      const qualificationData = submitPreQualificationSchema.parse(req.body);
+      
+      // Check if vendor already has a qualification
+      const existing = await storage.getVendorQualificationByVendorId(req.userId!);
+      
+      if (existing) {
+        // Update existing qualification
+        const updated = await storage.updateVendorQualification(req.userId!, qualificationData);
+        await storage.updateUserVerificationStatus(req.userId!, 'under_review');
+        return res.json({ ...updated, message: "Pre-qualification updated and submitted for review" });
+      } else {
+        // Create new qualification
+        const qualification = await storage.createVendorQualification({
+          ...qualificationData,
+          vendorId: req.userId!,
+        });
+        
+        // Update user verification status to under_review
+        await storage.updateUserVerificationStatus(req.userId!, 'under_review');
+        
+        res.json({ ...qualification, message: "Pre-qualification submitted for review" });
+      }
+    } catch (error) {
+      console.error('Pre-qualification error:', error);
+      res.status(400).json({ message: "Invalid qualification data" });
+    }
+  });
+
+  app.get("/api/vendor/profile/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const vendorId = req.params.id;
+      
+      const [vendor, qualification] = await Promise.all([
+        storage.getUser(vendorId),
+        storage.getVendorQualificationByVendorId(vendorId)
+      ]);
+      
+      if (!vendor || vendor.role !== 'vendor') {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+
+      // Return only public profile information
+      const publicProfile = {
+        id: vendor.id,
+        displayName: qualification?.displayName || vendor.name,
+        logoUrl: qualification?.logoUrl,
+        headerUrl: qualification?.headerUrl,
+        headerColor: qualification?.headerColor,
+        bio: qualification?.bio,
+        categories: qualification?.categories || [],
+        profileFileUrl: qualification?.profileFileUrl,
+        linkedinUrl: qualification?.linkedinUrl,
+        xUrl: qualification?.xUrl,
+        websiteUrl: qualification?.websiteUrl,
+        verificationStatus: vendor.verificationStatus || 'not_verified',
+      };
+
+      res.json(publicProfile);
+    } catch (error) {
+      console.error('Get vendor profile error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get("/api/vendor/qualification", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.userRole !== 'vendor') {
+        return res.status(403).json({ message: "Only vendors can access this" });
+      }
+
+      const qualification = await storage.getVendorQualificationByVendorId(req.userId!);
+      
+      // Return null instead of 404 when no qualification exists (for new vendors)
+      res.json(qualification || null);
+    } catch (error) {
+      console.error('Get qualification error:', error);
+      res.status(500).json({ message: "Server error" });
     }
   });
 

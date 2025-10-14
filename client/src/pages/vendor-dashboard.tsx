@@ -3,11 +3,16 @@ import { useAuthStore } from "@/lib/auth";
 import Navbar from "@/components/navbar";
 import VendorInvitationCard from "@/components/vendor-invitation-card";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mail, Send, Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Mail, Send, Trophy, AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import type { Tender, Offer } from "@shared/schema";
+import { useLocation } from "wouter";
 
 export default function VendorDashboard() {
   const { user } = useAuthStore();
+  const [, navigate] = useLocation();
 
   const { data: invitations, isLoading } = useQuery<Tender[]>({
     queryKey: ['/api/tenders'],
@@ -25,14 +30,63 @@ export default function VendorDashboard() {
 
   if (!user) return null;
 
+  const verificationStatus = user.verificationStatus || 'not_verified';
+
   return (
     <div className="min-h-screen bg-neutral-50">
       <Navbar />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-neutral-900">Tender Invitations</h1>
-          <p className="text-neutral-600 mt-1">Respond to private tender invitations from qualified requesters</p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-neutral-900">Tender Invitations</h1>
+              <p className="text-neutral-600 mt-1">Respond to private tender invitations from qualified requesters</p>
+            </div>
+            {verificationStatus === 'verified' && (
+              <Badge className="bg-success-600 text-white">
+                <CheckCircle2 className="h-4 w-4 mr-1" />
+                Verified
+              </Badge>
+            )}
+          </div>
+
+          {/* Verification Status Alerts */}
+          {verificationStatus === 'not_verified' && (
+            <Alert className="bg-warning-50 border-warning-200 mb-6">
+              <AlertCircle className="h-4 w-4 text-warning-600" />
+              <AlertDescription className="flex items-center justify-between">
+                <span className="text-warning-800">
+                  Complete your pre-qualification to start receiving tender invitations
+                </span>
+                <Button 
+                  onClick={() => navigate('/vendor-prequalification')}
+                  className="bg-primary-600 hover:bg-primary-700"
+                  data-testid="button-start-prequalification"
+                >
+                  Start Pre-Qualification
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {verificationStatus === 'under_review' && (
+            <Alert className="bg-primary-50 border-primary-200 mb-6">
+              <Clock className="h-4 w-4 text-primary-600" />
+              <AlertDescription className="flex items-center justify-between">
+                <span className="text-primary-800">
+                  Your pre-qualification is under review. You'll be notified once verified.
+                </span>
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/vendor-prequalification')}
+                  data-testid="button-update-prequalification"
+                >
+                  Update Profile
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         {/* Status Cards */}

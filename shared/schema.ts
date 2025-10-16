@@ -58,24 +58,19 @@ export const vendorQualifications = pgTable("vendor_qualifications", {
   
   // Legal & Compliance (Private)
   legalCompanyName: text("legal_company_name").notNull(),
-  crNumber: text("cr_number").notNull(),
+  crNumber: text("cr_number").notNull(), // Validated as numeric in form
   vatCertificateUrl: text("vat_certificate_url"),
   vatNumber: text("vat_number"),
-  gosiCertificateUrl: text("gosi_certificate_url"),
-  nationalAddressLine1: text("national_address_line1").notNull(),
-  nationalAddressCity: text("national_address_city").notNull(),
-  nationalAddressRegion: text("national_address_region").notNull(),
-  nationalAddressPostalCode: text("national_address_postal_code").notNull(),
-  nationalAddressCountry: text("national_address_country").notNull().default("Saudi Arabia"),
+  gosiCertificateUrl: text("gosi_certificate_url").notNull(), // Required
+  nationalAddressCertificateUrl: text("national_address_certificate_url").notNull(), // Now a file upload
   
   // Public Profile
   displayName: text("display_name").notNull(),
-  logoUrl: text("logo_url"),
+  logoUrl: text("logo_url").notNull(), // Required
   headerUrl: text("header_url"),
-  headerColor: text("header_color"),
   bio: text("bio").notNull(),
-  categories: text("categories").array().notNull(),
-  profileFileUrl: text("profile_file_url"),
+  category: text("category").notNull(), // Single selection from fixed list
+  profileFileUrl: text("profile_file_url").notNull(), // Required (Company Profile)
   linkedinUrl: text("linkedin_url"),
   xUrl: text("x_url"),
   websiteUrl: text("website_url"),
@@ -169,12 +164,43 @@ export const insertVendorQualificationSchema = createInsertSchema(vendorQualific
   updatedAt: true,
 });
 
+// Fixed category options for vendor selection
+export const VENDOR_CATEGORIES = [
+  "Construction & Infrastructure",
+  "Information Technology",
+  "Healthcare & Medical Supplies",
+  "Transportation & Logistics",
+  "Professional Services",
+  "Manufacturing & Production",
+  "Food & Beverage",
+  "Energy & Utilities",
+  "Education & Training",
+  "Telecommunications",
+  "Facility Management",
+  "Security Services",
+  "Marketing & Advertising",
+  "Legal Services",
+  "Financial Services",
+] as const;
+
+// Helper function to count words in bio
+const countWords = (text: string) => text.trim().split(/\s+/).filter(word => word.length > 0).length;
+
 export const submitPreQualificationSchema = insertVendorQualificationSchema.omit({
   vendorId: true,
   rejectionReason: true,
 }).extend({
-  bio: z.string().min(100, "Bio must be at least 100 words").max(1500, "Bio is too long"),
-  categories: z.array(z.string()).min(3, "Select at least 3 categories").max(7, "Maximum 7 categories"),
+  crNumber: z.string().regex(/^\d+$/, "CR number must contain only numbers"),
+  bio: z.string().refine(
+    (val) => {
+      const words = countWords(val);
+      return words >= 5 && words <= 100;
+    },
+    { message: "Bio must be between 5 and 100 words" }
+  ),
+  category: z.enum(VENDOR_CATEGORIES, { 
+    errorMap: () => ({ message: "Please select a valid category" }) 
+  }),
   linkedinUrl: z.string().url().optional().or(z.literal("")),
   xUrl: z.string().url().optional().or(z.literal("")),
   websiteUrl: z.string().url().optional().or(z.literal("")),

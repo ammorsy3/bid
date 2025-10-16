@@ -35,9 +35,8 @@ export default function TenderDetails() {
     displayName: string;
     logoUrl?: string;
     headerUrl?: string;
-    headerColor?: string;
     bio?: string;
-    categories?: string[];
+    category?: string;
     profileFileUrl?: string;
     linkedinUrl?: string;
     xUrl?: string;

@@ -10,9 +10,8 @@ interface VendorProfile {
   displayName: string;
   logoUrl?: string;
   headerUrl?: string;
-  headerColor?: string;
   bio?: string;
-  categories?: string[];
+  category?: string;
   profileFileUrl?: string;
   linkedinUrl?: string;
   xUrl?: string;
@@ -54,8 +53,6 @@ export default function VendorProfileView({ profile, compact = false }: VendorPr
 
   const headerStyle = profile.headerUrl
     ? { backgroundImage: `url(${profile.headerUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-    : profile.headerColor
-    ? { backgroundColor: profile.headerColor }
     : { backgroundColor: '#f3f4f6' };
 
   if (compact) {
@@ -83,23 +80,15 @@ export default function VendorProfileView({ profile, compact = false }: VendorPr
               {getStatusBadge()}
             </div>
             
-            {profile.categories && profile.categories.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-2">
-                {profile.categories.slice(0, 3).map((category, index) => (
-                  <Badge 
-                    key={index} 
-                    variant="outline" 
-                    className="text-xs"
-                    data-testid={`tag-category-${index}`}
-                  >
-                    {category}
-                  </Badge>
-                ))}
-                {profile.categories.length > 3 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{profile.categories.length - 3} more
-                  </Badge>
-                )}
+            {profile.category && (
+              <div className="mb-2">
+                <Badge 
+                  variant="outline" 
+                  className="text-xs"
+                  data-testid="tag-category"
+                >
+                  {profile.category}
+                </Badge>
               </div>
             )}
             
@@ -146,21 +135,16 @@ export default function VendorProfileView({ profile, compact = false }: VendorPr
           </div>
         </div>
 
-        {/* Categories */}
-        {profile.categories && profile.categories.length > 0 && (
+        {/* Category */}
+        {profile.category && (
           <div className="mb-6">
-            <h3 className="text-sm font-medium text-neutral-700 mb-2">Categories</h3>
-            <div className="flex flex-wrap gap-2">
-              {profile.categories.map((category, index) => (
-                <Badge 
-                  key={index} 
-                  variant="outline"
-                  data-testid={`tag-category-${index}`}
-                >
-                  {category}
-                </Badge>
-              ))}
-            </div>
+            <h3 className="text-sm font-medium text-neutral-700 mb-2">Category</h3>
+            <Badge 
+              variant="outline"
+              data-testid="tag-category"
+            >
+              {profile.category}
+            </Badge>
           </div>
         )}
 

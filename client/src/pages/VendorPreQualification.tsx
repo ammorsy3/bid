@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthStore } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
@@ -37,13 +38,7 @@ const preQualificationSchema = z.object({
   displayName: z.string().min(2, "Display name is required").max(60),
   logoUrl: z.string().min(1, "Company logo is required"),
   headerUrl: z.string().optional(),
-  bio: z.string().refine(
-    (val) => {
-      const words = countWords(val);
-      return words >= 5 && words <= 100;
-    },
-    { message: "Bio must be between 5 and 100 words" }
-  ),
+  bio: z.string().min(5, "Bio must be at least 5 characters").max(100, "Bio must not exceed 100 characters"),
   category: z.string().min(1, "Please select a category"),
   profileFileUrl: z.string().min(1, "Company profile is required"),
   linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
@@ -62,6 +57,7 @@ const REQUIRED_FIELDS: (keyof PreQualificationForm)[] = [
 export default function VendorPreQualification() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { checkAuth } = useAuthStore();
   const [, navigate] = useLocation();
   const [uploadedFiles, setUploadedFiles] = useState<{
     vat?: string;
@@ -120,11 +116,12 @@ export default function VendorPreQualification() {
       const response = await apiRequest('POST', '/api/vendor/prequalification', data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Success!",
         description: "Your pre-qualification has been submitted for review",
       });
+      await checkAuth(); // Refresh auth store with updated verification status
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       navigate('/vendor-dashboard');
     },
@@ -230,10 +227,15 @@ export default function VendorPreQualification() {
                       <FormLabel>CR Number *</FormLabel>
                       <FormControl>
                         <SmartInput 
-                          {...field} 
+                          {...field}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            field.onChange(value);
+                          }}
                           error={form.formState.errors.crNumber}
                           isDirty={form.formState.dirtyFields.crNumber}
                           data-testid="input-cr-number"
+                          placeholder="Numeric only"
                         />
                       </FormControl>
                       <FormMessage />
@@ -473,8 +475,8 @@ export default function VendorPreQualification() {
                         <SmartTextarea 
                           {...field} 
                           rows={6}
-                          maxLength={1500}
-                          placeholder="Describe your company, services, and expertise (100-1500 characters)"
+                          maxLength={100}
+                          placeholder="Describe your company, services, and expertise (5-100 characters)"
                           error={form.formState.errors.bio}
                           isDirty={form.formState.dirtyFields.bio}
                           data-testid="input-bio"
@@ -484,7 +486,7 @@ export default function VendorPreQualification() {
                         <div className="flex items-center justify-between">
                           <span>Keep it clear and focused on your services</span>
                           <span className="text-neutral-500">
-                            {countWords(field.value || "")} / 5-100 words
+                            {(field.value || "").length} / 100 characters
                           </span>
                         </div>
                       </FormDescription>

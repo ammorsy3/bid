@@ -2,9 +2,20 @@
 
 Bid is a web-based procurement platform that facilitates private tender management between service requesters (clients) and vendors. The platform enables requesters to create tenders with specific requirements and deadlines, invite qualified vendors, and manage the bidding process. Vendors can view invitations, submit technical and financial proposals, and track their submission status. The system emphasizes private, invitation-based procurement rather than public tendering.
 
-# Recent Changes (September 30, 2025)
+# Recent Changes
 
-## Enhanced Proposal Submission Form
+## October 16, 2025 - Pre-Qualification Form Refinements
+Refined vendor pre-qualification form with Saudi-specific compliance requirements:
+- **CR Number Validation**: Commercial Registration number now requires numeric-only input (regex validation)
+- **Required Documents**: GOSI certificate, logo, and company profile are now mandatory fields
+- **National Address Certificate**: Changed from text fields (city/street/postal) to file upload for official certificate
+- **Category System**: Replaced free-text multi-input with single-select dropdown featuring 15 predefined categories (IT & Software, Construction, Healthcare, Finance, Legal Services, etc.)
+- **Bio Validation**: Enhanced with 5-100 word count requirement and real-time word counter display
+- **Simplified Header Upload**: Removed "or color" option, now only supports header image upload
+- **Label Updates**: Renamed "Profile File" to "Company Profile" for clarity
+- **Database Schema**: Updated vendor_qualifications table to reflect single category selection, removed headerColor field, replaced national address text fields with nationalAddressCertificateUrl
+
+## September 30, 2025 - Enhanced Proposal Submission Form
 The vendor proposal submission form now features a comprehensive smart form experience:
 - **Autosave with Draft Recovery**: Automatically saves form progress every 3 seconds to localStorage, with a draft recovery prompt when reopening
 - **Real File Uploads**: Integrated Replit Object Storage with Uppy for technical and financial proposal uploads (PDF, DOC, XLS up to 10MB)

@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { Copy, Check, Mail, ExternalLink, Sparkles, Info } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import type { Tender } from "@shared/schema";
 import { useAutosave, DraftStorage } from "@/lib/autosave";
 import { calculateFormProgress, getConstraints } from "@/lib/form-validation";
@@ -45,6 +46,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
   const { user } = useAuthStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   const [createdTender, setCreatedTender] = useState<Tender | null>(null);
   const [invitationCopied, setInvitationCopied] = useState(false);
   const [showDraftPrompt, setShowDraftPrompt] = useState(false);
@@ -98,6 +100,10 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
   const createTenderMutation = useMutation({
     mutationFn: async (data: CreateTenderForm) => {
       const response = await apiRequest('POST', '/api/tenders', data);
+      if (!response.ok) {
+        const error = await response.json();
+        throw error;
+      }
       return response.json();
     },
     onSuccess: (tender: Tender) => {
@@ -109,12 +115,21 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
         description: "Tender created successfully",
       });
     },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create tender",
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      if (error?.requiresProfile) {
+        toast({
+          title: "Profile Required",
+          description: "Please complete your company profile before creating tenders",
+        });
+        handleClose();
+        navigate('/requester-profile');
+      } else {
+        toast({
+          title: "Error",
+          description: error?.message || "Failed to create tender",
+          variant: "destructive",
+        });
+      }
     },
   });
 

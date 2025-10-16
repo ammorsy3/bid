@@ -13,33 +13,39 @@ import { SmartInput, SmartTextarea } from "@/components/ui/smart-input";
 import { FormProgress } from "@/components/ui/form-progress";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAutosave } from "@/lib/autosave";
 import { calculateFormProgress } from "@/lib/form-validation";
 import { CheckCircle2, Building2, FileText, User, Sparkles, Upload } from "lucide-react";
 import { useLocation } from "wouter";
+import { VENDOR_CATEGORIES } from "@shared/schema";
 import type { UploadResult } from "@uppy/core";
+
+// Helper to count words in bio
+const countWords = (text: string) => text.trim().split(/\s+/).filter(word => word.length > 0).length;
 
 const preQualificationSchema = z.object({
   // Legal & Compliance
   legalCompanyName: z.string().min(2, "Company name is required").max(120),
-  crNumber: z.string().min(1, "CR number is required"),
+  crNumber: z.string().regex(/^\d+$/, "CR number must contain only numbers"),
   vatCertificateUrl: z.string().optional(),
   vatNumber: z.string().optional(),
-  gosiCertificateUrl: z.string().optional(),
-  nationalAddressLine1: z.string().min(1, "Address is required"),
-  nationalAddressCity: z.string().min(1, "City is required"),
-  nationalAddressRegion: z.string().min(1, "Region is required"),
-  nationalAddressPostalCode: z.string().min(1, "Postal code is required"),
-  nationalAddressCountry: z.string().default("Saudi Arabia"),
+  gosiCertificateUrl: z.string().min(1, "GOSI certificate is required"),
+  nationalAddressCertificateUrl: z.string().min(1, "National Address certificate is required"),
   
   // Public Profile
   displayName: z.string().min(2, "Display name is required").max(60),
-  logoUrl: z.string().optional(),
+  logoUrl: z.string().min(1, "Company logo is required"),
   headerUrl: z.string().optional(),
-  headerColor: z.string().optional(),
-  bio: z.string().min(100, "Bio must be at least 100 characters").max(1500, "Bio is too long"),
-  categories: z.string().min(1, "Categories are required (comma-separated, 3-7 items)"),
-  profileFileUrl: z.string().optional(),
+  bio: z.string().refine(
+    (val) => {
+      const words = countWords(val);
+      return words >= 5 && words <= 100;
+    },
+    { message: "Bio must be between 5 and 100 words" }
+  ),
+  category: z.string().min(1, "Please select a category"),
+  profileFileUrl: z.string().min(1, "Company profile is required"),
   linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   xUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
@@ -49,8 +55,8 @@ type PreQualificationForm = z.infer<typeof preQualificationSchema>;
 
 const FORM_ID = 'vendor-prequalification';
 const REQUIRED_FIELDS: (keyof PreQualificationForm)[] = [
-  'legalCompanyName', 'crNumber', 'nationalAddressLine1', 'nationalAddressCity', 
-  'nationalAddressRegion', 'nationalAddressPostalCode', 'displayName', 'bio', 'categories'
+  'legalCompanyName', 'crNumber', 'gosiCertificateUrl', 'nationalAddressCertificateUrl',
+  'displayName', 'logoUrl', 'bio', 'category', 'profileFileUrl'
 ];
 
 export default function VendorPreQualification() {
@@ -60,9 +66,10 @@ export default function VendorPreQualification() {
   const [uploadedFiles, setUploadedFiles] = useState<{
     vat?: string;
     gosi?: string;
+    nationalAddress?: string;
     logo?: string;
     header?: string;
-    profilePdf?: string;
+    companyProfile?: string;
   }>({});
 
   const form = useForm<PreQualificationForm>({
@@ -73,17 +80,12 @@ export default function VendorPreQualification() {
       vatCertificateUrl: "",
       vatNumber: "",
       gosiCertificateUrl: "",
-      nationalAddressLine1: "",
-      nationalAddressCity: "",
-      nationalAddressRegion: "",
-      nationalAddressPostalCode: "",
-      nationalAddressCountry: "Saudi Arabia",
+      nationalAddressCertificateUrl: "",
       displayName: "",
       logoUrl: "",
       headerUrl: "",
-      headerColor: "",
       bio: "",
-      categories: "",
+      category: "",
       profileFileUrl: "",
       linkedinUrl: "",
       xUrl: "",
@@ -102,13 +104,10 @@ export default function VendorPreQualification() {
 
   useEffect(() => {
     if (existingQualification && typeof existingQualification === 'object') {
-      // Convert categories array to comma-separated string
       const qual = existingQualification as any;
-      const categoriesString = Array.isArray(qual.categories) ? qual.categories.join(', ') : '';
       
       form.reset({
         ...qual,
-        categories: categoriesString,
         linkedinUrl: qual.linkedinUrl || "",
         xUrl: qual.xUrl || "",
         websiteUrl: qual.websiteUrl || "",
@@ -118,20 +117,7 @@ export default function VendorPreQualification() {
 
   const submitMutation = useMutation({
     mutationFn: async (data: PreQualificationForm) => {
-      // Convert categories string to array
-      const categoriesArray = data.categories
-        .split(',')
-        .map(cat => cat.trim())
-        .filter(cat => cat.length > 0);
-
-      if (categoriesArray.length < 3 || categoriesArray.length > 7) {
-        throw new Error("Please provide 3-7 categories");
-      }
-
-      const response = await apiRequest('POST', '/api/vendor/prequalification', {
-        ...data,
-        categories: categoriesArray,
-      });
+      const response = await apiRequest('POST', '/api/vendor/prequalification', data);
       return response.json();
     },
     onSuccess: () => {
@@ -309,7 +295,7 @@ export default function VendorPreQualification() {
                   name="gosiCertificateUrl"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>GOSI Certificate</FormLabel>
+                      <FormLabel>GOSI Certificate *</FormLabel>
                       <FormControl>
                         <div className="space-y-2">
                           <ObjectUploader
@@ -341,89 +327,33 @@ export default function VendorPreQualification() {
 
                 <FormField
                   control={form.control}
-                  name="nationalAddressLine1"
+                  name="nationalAddressCertificateUrl"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>National Address *</FormLabel>
+                      <FormLabel>National Address Certificate *</FormLabel>
                       <FormControl>
-                        <SmartInput 
-                          {...field} 
-                          placeholder="Street address"
-                          error={form.formState.errors.nationalAddressLine1}
-                          isDirty={form.formState.dirtyFields.nationalAddressLine1}
-                          data-testid="input-address"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="nationalAddressCity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>City *</FormLabel>
-                      <FormControl>
-                        <SmartInput 
-                          {...field} 
-                          error={form.formState.errors.nationalAddressCity}
-                          isDirty={form.formState.dirtyFields.nationalAddressCity}
-                          data-testid="input-city"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="nationalAddressRegion"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Region *</FormLabel>
-                      <FormControl>
-                        <SmartInput 
-                          {...field} 
-                          error={form.formState.errors.nationalAddressRegion}
-                          isDirty={form.formState.dirtyFields.nationalAddressRegion}
-                          data-testid="input-region"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="nationalAddressPostalCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Postal Code *</FormLabel>
-                      <FormControl>
-                        <SmartInput 
-                          {...field} 
-                          error={form.formState.errors.nationalAddressPostalCode}
-                          isDirty={form.formState.dirtyFields.nationalAddressPostalCode}
-                          data-testid="input-postal-code"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="nationalAddressCountry"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Country *</FormLabel>
-                      <FormControl>
-                        <Input {...field} disabled data-testid="input-country" />
+                        <div className="space-y-2">
+                          <ObjectUploader
+                            maxNumberOfFiles={1}
+                            maxFileSize={10485760}
+                            allowedFileTypes={['.pdf', '.jpg', '.jpeg', '.png']}
+                            onGetUploadParameters={handleGetUploadURL}
+                            onComplete={(result) => handleFileUpload(result, 'nationalAddressCertificateUrl', 'nationalAddress')}
+                            buttonVariant="outline"
+                            buttonClassName="w-full"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Upload className="h-4 w-4" />
+                              <span>Upload National Address Certificate</span>
+                            </div>
+                          </ObjectUploader>
+                          {uploadedFiles.nationalAddress && (
+                            <p className="text-sm text-success-600 flex items-center gap-1">
+                              <CheckCircle2 className="h-4 w-4" />
+                              {uploadedFiles.nationalAddress}
+                            </p>
+                          )}
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -502,7 +432,7 @@ export default function VendorPreQualification() {
                     name="headerUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Header Image or Color</FormLabel>
+                        <FormLabel>Header Image</FormLabel>
                         <FormControl>
                           <div className="space-y-2">
                             <ObjectUploader
@@ -550,7 +480,14 @@ export default function VendorPreQualification() {
                           data-testid="input-bio"
                         />
                       </FormControl>
-                      <FormDescription>Keep it clear and focused on your services</FormDescription>
+                      <FormDescription>
+                        <div className="flex items-center justify-between">
+                          <span>Keep it clear and focused on your services</span>
+                          <span className="text-neutral-500">
+                            {countWords(field.value || "")} / 5-100 words
+                          </span>
+                        </div>
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -558,20 +495,25 @@ export default function VendorPreQualification() {
 
                 <FormField
                   control={form.control}
-                  name="categories"
+                  name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Categories/Tags *</FormLabel>
-                      <FormControl>
-                        <SmartInput 
-                          {...field} 
-                          placeholder="e.g., Construction, IT Services, Consulting (3-7 categories, comma-separated)"
-                          error={form.formState.errors.categories}
-                          isDirty={form.formState.dirtyFields.categories}
-                          data-testid="input-categories"
-                        />
-                      </FormControl>
-                      <FormDescription>Add 3-7 categories that best describe your work</FormDescription>
+                      <FormLabel>Category *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-category">
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {VENDOR_CATEGORIES.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>Select the category that best describes your work</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -582,7 +524,7 @@ export default function VendorPreQualification() {
                   name="profileFileUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Profile File (PDF Brochure)</FormLabel>
+                      <FormLabel>Company Profile *</FormLabel>
                       <FormControl>
                         <div className="space-y-2">
                           <ObjectUploader
@@ -590,7 +532,7 @@ export default function VendorPreQualification() {
                             maxFileSize={10485760}
                             allowedFileTypes={['.pdf']}
                             onGetUploadParameters={handleGetUploadURL}
-                            onComplete={(result) => handleFileUpload(result, 'profileFileUrl', 'profilePdf')}
+                            onComplete={(result) => handleFileUpload(result, 'profileFileUrl', 'companyProfile')}
                             buttonVariant="outline"
                             buttonClassName="w-full"
                           >
@@ -599,15 +541,15 @@ export default function VendorPreQualification() {
                               <span>Upload Company Brochure (PDF, 1-5 pages recommended)</span>
                             </div>
                           </ObjectUploader>
-                          {uploadedFiles.profilePdf && (
+                          {uploadedFiles.companyProfile && (
                             <p className="text-sm text-success-600 flex items-center gap-1">
                               <CheckCircle2 className="h-4 w-4" />
-                              {uploadedFiles.profilePdf}
+                              {uploadedFiles.companyProfile}
                             </p>
                           )}
                         </div>
                       </FormControl>
-                      <FormDescription>Optional: upload a one-pager PDF to introduce your company</FormDescription>
+                      <FormDescription>Upload a one-pager PDF to introduce your company</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

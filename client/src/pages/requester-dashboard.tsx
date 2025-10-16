@@ -5,12 +5,14 @@ import TenderCard from "@/components/tender-card";
 import CreateTenderModal from "@/components/create-tender-modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Send, Users, Clock } from "lucide-react";
+import { FileText, Send, Users, Clock, User } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 import type { Tender } from "@shared/schema";
 
 export default function RequesterDashboard() {
   const { user } = useAuthStore();
+  const [, navigate] = useLocation();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const { data: tenders, isLoading } = useQuery<Tender[]>({
@@ -41,12 +43,24 @@ export default function RequesterDashboard() {
             <h1 className="text-3xl font-bold text-neutral-900">My Tenders</h1>
             <p className="text-neutral-600 mt-1">Manage your private procurement processes</p>
           </div>
-          <Button 
-            onClick={() => setIsCreateModalOpen(true)}
-            className="bg-[#f33c20] hover:bg-[#d63519] text-white px-6 py-3 rounded-lg font-semibold"
-          >
-            Create Tender
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              onClick={() => navigate('/requester-profile')}
+              variant="outline"
+              className="px-4 py-3 rounded-lg font-semibold"
+              data-testid="button-manage-profile"
+            >
+              <User className="h-4 w-4 mr-2" />
+              Manage Profile
+            </Button>
+            <Button 
+              onClick={() => setIsCreateModalOpen(true)}
+              className="bg-[#f33c20] hover:bg-[#d63519] text-white px-6 py-3 rounded-lg font-semibold"
+              data-testid="button-create-tender"
+            >
+              Create Tender
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}

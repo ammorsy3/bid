@@ -4,6 +4,17 @@ Bid is a web-based procurement platform that facilitates private tender manageme
 
 # Recent Changes
 
+## October 16, 2025 - Requester Profile System & Validation Fixes
+Implemented complete requester profile management and refined vendor validation:
+- **Requester Profile System**: Created comprehensive profile management for requesters with company information, bio, logo upload, industry selection, and contact details
+- **Profile Requirement**: Requesters must complete their profile before creating tenders - enforced at both frontend and backend with automatic redirect to profile page
+- **CR Number Input**: Fixed vendor pre-qualification to prevent typing non-numeric characters in CR number field (real-time input filtering)
+- **Bio Character Validation**: Changed bio validation from 5-100 words to 5-100 characters across schema, backend, and frontend with character counter
+- **Dashboard Status Sync**: Fixed vendor dashboard to properly refresh authentication state after pre-qualification submission, correctly showing "under review" status
+- **Vendor Proposal Access**: Vendors can now submit proposals immediately after pre-qualification (while under_review status), removing waiting period
+- **Profile Management UI**: Added "Manage Profile" button to requester dashboard header for easy profile access; vendors already have "Update Profile" in their dashboard
+- **Database Schema**: Added requester_profiles table with companyName, bio, logoUrl, industry, companySize, websiteUrl, linkedinUrl, and contact information fields
+
 ## October 16, 2025 - Pre-Qualification Form Refinements
 Refined vendor pre-qualification form with Saudi-specific compliance requirements:
 - **CR Number Validation**: Commercial Registration number now requires numeric-only input (regex validation)

@@ -26,8 +26,10 @@ const createTenderSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
   deadline: z.string().min(1, "Deadline is required").refine((val) => {
-    return new Date(val) > new Date();
-  }, "Deadline must be in the future"),
+    const deadlineDate = new Date(val);
+    const now = new Date();
+    return deadlineDate.getTime() > now.getTime();
+  }, "Must be a future date"),
   budget: z.string().optional(),
   duration: z.string().optional(),
 });
@@ -54,6 +56,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
 
   const form = useForm<CreateTenderForm>({
     resolver: zodResolver(createTenderSchema),
+    mode: 'onChange',
     defaultValues: {
       title: "",
       description: "",

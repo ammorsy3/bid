@@ -399,7 +399,7 @@ export default function VendorPreQualification() {
                     name="logoUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Logo</FormLabel>
+                        <FormLabel>Logo *</FormLabel>
                         <FormControl>
                           <div className="space-y-2">
                             <ObjectUploader

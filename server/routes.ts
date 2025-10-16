@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { insertUserSchema, insertTenderSchema, insertOfferSchema, submitPreQualificationSchema } from "@shared/schema";
+import { insertUserSchema, insertTenderSchema, insertOfferSchema, submitPreQualificationSchema, submitRequesterProfileSchema } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 
@@ -147,6 +147,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only requesters can create tenders" });
       }
 
+      // Check if requester has completed their profile
+      const profile = await storage.getRequesterProfileByRequesterId(req.userId!);
+      if (!profile) {
+        return res.status(403).json({ 
+          message: "Please complete your profile before creating tenders",
+          requiresProfile: true
+        });
+      }
+
       // Generate single invitation token for the tender
       const invitationToken = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
       
@@ -233,9 +242,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Vendor not found" });
       }
 
-      if (vendor.verificationStatus !== 'verified') {
+      // Allow both verified and under_review vendors to submit offers
+      if (vendor.verificationStatus !== 'verified' && vendor.verificationStatus !== 'under_review') {
         return res.status(403).json({ 
-          message: "Only verified vendors can submit offers",
+          message: "Please complete pre-qualification to submit offers",
           verificationStatus: vendor.verificationStatus
         });
       }
@@ -483,6 +493,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(qualification || null);
     } catch (error) {
       console.error('Get qualification error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Requester profile routes
+  app.post("/api/requester/profile", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.userRole !== 'requester') {
+        return res.status(403).json({ message: "Only requesters can create profiles" });
+      }
+
+      const profileData = submitRequesterProfileSchema.parse(req.body);
+      
+      // Check if requester already has a profile
+      const existing = await storage.getRequesterProfileByRequesterId(req.userId!);
+      
+      if (existing) {
+        // Update existing profile
+        const updated = await storage.updateRequesterProfile(req.userId!, profileData);
+        return res.json({ ...updated, message: "Profile updated successfully" });
+      } else {
+        // Create new profile
+        const profile = await storage.createRequesterProfile({
+          ...profileData,
+          requesterId: req.userId!,
+        });
+        
+        res.json({ ...profile, message: "Profile created successfully" });
+      }
+    } catch (error) {
+      console.error('Requester profile error:', error);
+      res.status(400).json({ message: "Invalid profile data" });
+    }
+  });
+
+  app.get("/api/requester/profile", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.userRole !== 'requester') {
+        return res.status(403).json({ message: "Only requesters can access this" });
+      }
+
+      const profile = await storage.getRequesterProfileByRequesterId(req.userId!);
+      
+      // Return null instead of 404 when no profile exists (for new requesters)
+      res.json(profile || null);
+    } catch (error) {
+      console.error('Get requester profile error:', error);
       res.status(500).json({ message: "Server error" });
     }
   });

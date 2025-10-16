@@ -4,6 +4,7 @@ import {
   offers, 
   invitations,
   vendorQualifications,
+  requesterProfiles,
   type User, 
   type InsertUser,
   type Tender,
@@ -13,7 +14,9 @@ import {
   type Invitation,
   type InsertInvitation,
   type VendorQualification,
-  type InsertVendorQualification
+  type InsertVendorQualification,
+  type RequesterProfile,
+  type InsertRequesterProfile
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -51,6 +54,11 @@ export interface IStorage {
   getVendorQualificationByVendorId(vendorId: string): Promise<VendorQualification | undefined>;
   updateVendorQualification(vendorId: string, qualification: Partial<InsertVendorQualification>): Promise<VendorQualification>;
   updateUserVerificationStatus(userId: string, status: string): Promise<void>;
+  
+  // Requester profile operations
+  createRequesterProfile(profile: InsertRequesterProfile): Promise<RequesterProfile>;
+  getRequesterProfileByRequesterId(requesterId: string): Promise<RequesterProfile | undefined>;
+  updateRequesterProfile(requesterId: string, profile: Partial<InsertRequesterProfile>): Promise<RequesterProfile>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -240,6 +248,25 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserVerificationStatus(userId: string, status: string): Promise<void> {
     await db.update(users).set({ verificationStatus: status }).where(eq(users.id, userId));
+  }
+
+  async createRequesterProfile(profile: InsertRequesterProfile): Promise<RequesterProfile> {
+    const [result] = await db.insert(requesterProfiles).values(profile).returning();
+    return result;
+  }
+
+  async getRequesterProfileByRequesterId(requesterId: string): Promise<RequesterProfile | undefined> {
+    const [result] = await db.select().from(requesterProfiles).where(eq(requesterProfiles.requesterId, requesterId));
+    return result || undefined;
+  }
+
+  async updateRequesterProfile(requesterId: string, profile: Partial<InsertRequesterProfile>): Promise<RequesterProfile> {
+    const [result] = await db
+      .update(requesterProfiles)
+      .set({ ...profile, updatedAt: new Date() })
+      .where(eq(requesterProfiles.requesterId, requesterId))
+      .returning();
+    return result;
   }
 }
 

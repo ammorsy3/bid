@@ -8,6 +8,7 @@ import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import RequesterDashboard from "@/pages/requester-dashboard";
+import RequesterProfile from "@/pages/RequesterProfile";
 import VendorDashboard from "@/pages/vendor-dashboard";
 import VendorPreQualification from "@/pages/VendorPreQualification";
 import TenderDetails from "@/pages/tender-details";
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/dashboard">
         {user?.role === 'requester' ? <RequesterDashboard /> : <VendorDashboard />}
       </Route>
+      <Route path="/requester-profile" component={RequesterProfile} />
       <Route path="/vendor-dashboard" component={VendorDashboard} />
       <Route path="/vendor-prequalification" component={VendorPreQualification} />
       <Route path="/tenders/:id" component={TenderDetails} />

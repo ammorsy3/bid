@@ -82,6 +82,30 @@ export const vendorQualifications = pgTable("vendor_qualifications", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const requesterProfiles = pgTable("requester_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  requesterId: varchar("requester_id").notNull().references(() => users.id).unique(),
+  
+  // Company Info
+  companyName: text("company_name").notNull(),
+  industry: text("industry").notNull(),
+  companySize: text("company_size"), // e.g., "1-10", "11-50", "51-200", etc.
+  
+  // Profile
+  logoUrl: text("logo_url"),
+  bio: text("bio").notNull(),
+  websiteUrl: text("website_url"),
+  linkedinUrl: text("linkedin_url"),
+  
+  // Contact
+  contactPerson: text("contact_person").notNull(),
+  contactEmail: text("contact_email").notNull(),
+  contactPhone: text("contact_phone"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   tenders: many(tenders),
@@ -90,6 +114,10 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   qualification: one(vendorQualifications, {
     fields: [users.id],
     references: [vendorQualifications.vendorId],
+  }),
+  requesterProfile: one(requesterProfiles, {
+    fields: [users.id],
+    references: [requesterProfiles.requesterId],
   }),
 }));
 
@@ -131,6 +159,13 @@ export const vendorQualificationsRelations = relations(vendorQualifications, ({ 
   }),
 }));
 
+export const requesterProfilesRelations = relations(requesterProfiles, ({ one }) => ({
+  requester: one(users, {
+    fields: [requesterProfiles.requesterId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -164,6 +199,20 @@ export const insertVendorQualificationSchema = createInsertSchema(vendorQualific
   updatedAt: true,
 });
 
+export const insertRequesterProfileSchema = createInsertSchema(requesterProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const submitRequesterProfileSchema = insertRequesterProfileSchema.omit({
+  requesterId: true,
+}).extend({
+  bio: z.string().min(5, "Bio must be at least 5 characters").max(100, "Bio must not exceed 100 characters"),
+  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+});
+
 // Fixed category options for vendor selection
 export const VENDOR_CATEGORIES = [
   "Construction & Infrastructure",
@@ -183,21 +232,12 @@ export const VENDOR_CATEGORIES = [
   "Financial Services",
 ] as const;
 
-// Helper function to count words in bio
-const countWords = (text: string) => text.trim().split(/\s+/).filter(word => word.length > 0).length;
-
 export const submitPreQualificationSchema = insertVendorQualificationSchema.omit({
   vendorId: true,
   rejectionReason: true,
 }).extend({
   crNumber: z.string().regex(/^\d+$/, "CR number must contain only numbers"),
-  bio: z.string().refine(
-    (val) => {
-      const words = countWords(val);
-      return words >= 5 && words <= 100;
-    },
-    { message: "Bio must be between 5 and 100 words" }
-  ),
+  bio: z.string().min(5, "Bio must be at least 5 characters").max(100, "Bio must not exceed 100 characters"),
   category: z.enum(VENDOR_CATEGORIES, { 
     errorMap: () => ({ message: "Please select a valid category" }) 
   }),
@@ -218,3 +258,6 @@ export type Invitation = typeof invitations.$inferSelect;
 export type InsertVendorQualification = z.infer<typeof insertVendorQualificationSchema>;
 export type VendorQualification = typeof vendorQualifications.$inferSelect;
 export type SubmitPreQualification = z.infer<typeof submitPreQualificationSchema>;
+export type InsertRequesterProfile = z.infer<typeof insertRequesterProfileSchema>;
+export type RequesterProfile = typeof requesterProfiles.$inferSelect;
+export type SubmitRequesterProfile = z.infer<typeof submitRequesterProfileSchema>;

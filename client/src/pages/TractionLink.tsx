@@ -33,10 +33,11 @@ export default function TractionLink() {
 
   const [formData, setFormData] = useState({
     companyName: "",
+    contactName: "",
     contactEmail: "",
     contactPhone: "",
     category: "",
-    message: ""
+    notes: ""
   });
 
   // Fetch traction link data
@@ -221,14 +222,14 @@ export default function TractionLink() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
+                  <Label htmlFor="contactName">Contact Name *</Label>
                   <Input
-                    id="category"
+                    id="contactName"
                     required
-                    value={formData.category}
-                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                    placeholder="e.g., IT Services, Construction"
-                    data-testid="input-category"
+                    value={formData.contactName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, contactName: e.target.value }))}
+                    placeholder="Your full name"
+                    data-testid="input-contact-name"
                   />
                 </div>
               </div>
@@ -248,28 +249,39 @@ export default function TractionLink() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="contactPhone">Contact Phone *</Label>
+                  <Label htmlFor="category">Category *</Label>
                   <Input
-                    id="contactPhone"
-                    type="tel"
+                    id="category"
                     required
-                    value={formData.contactPhone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, contactPhone: e.target.value }))}
-                    placeholder="+966 xxx xxx xxx"
-                    data-testid="input-phone"
+                    value={formData.category}
+                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                    placeholder="e.g., IT Services, Construction"
+                    data-testid="input-category"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="message">Message (Optional)</Label>
+                <Label htmlFor="contactPhone">Contact Phone (Optional)</Label>
+                <Input
+                  id="contactPhone"
+                  type="tel"
+                  value={formData.contactPhone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, contactPhone: e.target.value }))}
+                  placeholder="+966 xxx xxx xxx"
+                  data-testid="input-phone"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notes">Message (Optional)</Label>
                 <Textarea
-                  id="message"
-                  value={formData.message}
-                  onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                   placeholder="Tell us about your company and why you'd like to join..."
                   rows={4}
-                  data-testid="input-message"
+                  data-testid="input-notes"
                 />
               </div>
 

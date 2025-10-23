@@ -16,6 +16,7 @@ import InvitationLinks from "@/pages/invitation-links";
 import InvitationSignup from "@/pages/invitation-signup";
 import TractionLink from "@/pages/TractionLink";
 import VendorInvitation from "@/pages/VendorInvitation";
+import VendorsBase from "@/pages/VendorsBase";
 import { useAuthStore } from "@/lib/auth";
 import { useEffect } from "react";
 
@@ -42,6 +43,7 @@ function Router() {
       <Route path="/invite/:token" component={InvitationSignup} />
       <Route path="/r/:slug" component={TractionLink} />
       <Route path="/vendor-invitation/:token" component={VendorInvitation} />
+      <Route path="/vendors-base" component={VendorsBase} />
       <Route component={NotFound} />
     </Switch>
   );

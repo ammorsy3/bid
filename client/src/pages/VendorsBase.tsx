@@ -82,12 +82,12 @@ export default function VendorsBase() {
     mutationFn: async (id: string) => {
       return await apiRequest('POST', `/api/join-requests/${id}/approve`, {});
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/join-requests'] });
       queryClient.invalidateQueries({ queryKey: ['/api/vendors-base'] });
       toast({
         title: "Request approved",
-        description: "Vendor has been added to your base",
+        description: data.message || "Vendor has been added to your base",
       });
       setSelectedRequest(null);
     },

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Mail, Send, MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
+import { enUS } from "date-fns/locale";
 import { Link } from "wouter";
 
 interface TenderCardProps {
@@ -54,7 +55,7 @@ export default function TenderCard({ tender }: TenderCardProps) {
           <div className="flex items-center text-sm text-neutral-600">
             <Calendar className="w-4 h-4 mr-2" />
             <span>Deadline: <span className={`font-medium ${getUrgencyColor(tender.deadline)}`}>
-              {format(new Date(tender.deadline), 'MMM d, yyyy')}
+              {format(new Date(tender.deadline), 'MMM d, yyyy', { locale: enUS })}
             </span></span>
           </div>
           <div className="flex items-center text-sm text-neutral-600">

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, Building, Clock, DollarSign, Mail, User as UserIcon } from "lucide-react";
 import { format } from "date-fns";
+import { enUS } from "date-fns/locale";
 import SubmitOfferModal from "@/components/submit-offer-modal";
 import VendorProfileView from "@/components/VendorProfileView";
 import type { Tender, Offer, User } from "@shared/schema";
@@ -114,7 +115,7 @@ export default function TenderDetails() {
                       <div>
                         <p className="text-sm text-neutral-600">Deadline</p>
                         <p className="font-medium text-neutral-900">
-                          {format(new Date(tender.deadline), 'PPP')}
+                          {format(new Date(tender.deadline), 'PPP', { locale: enUS })}
                         </p>
                       </div>
                     </div>
@@ -144,7 +145,7 @@ export default function TenderDetails() {
                       <div>
                         <p className="text-sm text-neutral-600">Created</p>
                         <p className="font-medium text-neutral-900">
-                          {tender.createdAt ? format(new Date(tender.createdAt), 'PPP') : 'Unknown'}
+                          {tender.createdAt ? format(new Date(tender.createdAt), 'PPP', { locale: enUS }) : 'Unknown'}
                         </p>
                       </div>
                     </div>
@@ -243,7 +244,7 @@ export default function TenderDetails() {
                             <div className="text-sm text-neutral-600 space-y-1">
                               <p><span className="font-medium">Vendor:</span> {offer.vendor?.name || 'Unknown Vendor'}</p>
                               <p><span className="font-medium">Company:</span> {offer.vendor?.company || 'N/A'}</p>
-                              <p><span className="font-medium">Submitted:</span> {offer.submittedAt ? format(new Date(offer.submittedAt), 'PPP') : 'Unknown'}</p>
+                              <p><span className="font-medium">Submitted:</span> {offer.submittedAt ? format(new Date(offer.submittedAt), 'PPP', { locale: enUS }) : 'Unknown'}</p>
                               {offer.vendorId && (
                                 <Button
                                   variant="link"

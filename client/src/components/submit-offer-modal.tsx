@@ -62,9 +62,9 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
 
   const FORM_ID = `${FORM_ID_PREFIX}${tender.id}`;
   
-  // Check verification status
+  // Check verification status - allow both verified and under_review to submit
   const verificationStatus = user?.verificationStatus || 'not_verified';
-  const isVerified = verificationStatus === 'verified';
+  const canSubmitOffer = verificationStatus === 'verified' || verificationStatus === 'under_review';
 
   const form = useForm<SubmitOfferForm>({
     resolver: zodResolver(submitOfferSchema),
@@ -306,37 +306,39 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
             )}
 
             {/* Verification Status Alert */}
-            {!isVerified && (
-              <Alert className={verificationStatus === 'under_review' ? 'bg-primary-50 border-primary-200' : 'bg-error-50 border-error-200'}>
-                <ShieldAlert className={`h-4 w-4 ${verificationStatus === 'under_review' ? 'text-primary-600' : 'text-error-600'}`} />
+            {!canSubmitOffer && (
+              <Alert className="bg-error-50 border-error-200">
+                <ShieldAlert className="h-4 w-4 text-error-600" />
                 <AlertDescription>
                   <div className="flex items-center justify-between">
                     <div>
-                      {verificationStatus === 'under_review' ? (
-                        <div>
-                          <strong className="text-primary-900">Verification Under Review</strong>
-                          <p className="text-sm text-primary-800 mt-1">Your pre-qualification is being reviewed. You'll be able to submit offers once verified.</p>
-                        </div>
-                      ) : (
-                        <div>
-                          <strong className="text-error-900">Verification Required</strong>
-                          <p className="text-sm text-error-800 mt-1">Complete your pre-qualification to submit offers.</p>
-                        </div>
-                      )}
+                      <strong className="text-error-900">Verification Required</strong>
+                      <p className="text-sm text-error-800 mt-1">Complete your pre-qualification to submit offers.</p>
                     </div>
-                    {verificationStatus === 'not_verified' && (
-                      <Button 
-                        size="sm" 
-                        className="bg-primary-600 hover:bg-primary-700"
-                        onClick={() => {
-                          handleClose();
-                          navigate('/vendor-prequalification');
-                        }}
-                        data-testid="button-prequalify"
-                      >
-                        Complete Pre-Qualification
-                      </Button>
-                    )}
+                    <Button 
+                      size="sm" 
+                      className="bg-primary-600 hover:bg-primary-700"
+                      onClick={() => {
+                        handleClose();
+                        navigate('/vendor-prequalification');
+                      }}
+                      data-testid="button-prequalify"
+                    >
+                      Complete Pre-Qualification
+                    </Button>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {/* Under Review Notice */}
+            {verificationStatus === 'under_review' && (
+              <Alert className="bg-success-50 border-success-200">
+                <ShieldAlert className="h-4 w-4 text-success-600" />
+                <AlertDescription>
+                  <div>
+                    <strong className="text-success-900">Pre-Qualification Submitted</strong>
+                    <p className="text-sm text-success-800 mt-1">Your pre-qualification is under review. You can submit offers now while we verify your information.</p>
                   </div>
                 </AlertDescription>
               </Alert>
@@ -481,10 +483,10 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               <Button 
                 type="submit"
                 className="flex-1 bg-primary-600 hover:bg-primary-700"
-                disabled={submitOfferMutation.isPending || progress < 100 || !isVerified}
+                disabled={submitOfferMutation.isPending || progress < 100 || !canSubmitOffer}
                 data-testid="button-submit-offer"
               >
-                {submitOfferMutation.isPending ? "Submitting..." : !isVerified ? "Verification Required" : "Submit Offer"}
+                {submitOfferMutation.isPending ? "Submitting..." : !canSubmitOffer ? "Verification Required" : "Submit Offer"}
               </Button>
             </div>
           </form>

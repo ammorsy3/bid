@@ -7,15 +7,15 @@ import { SiLinkedin } from "react-icons/si";
 interface RequesterProfile {
   id: string;
   companyName: string;
-  logoUrl?: string;
+  logoUrl?: string | null;
   bio: string;
   industry: string;
-  companySize?: string;
-  websiteUrl?: string;
-  linkedinUrl?: string;
+  companySize?: string | null;
+  websiteUrl?: string | null;
+  linkedinUrl?: string | null;
   contactPerson: string;
   contactEmail: string;
-  contactPhone?: string;
+  contactPhone?: string | null;
 }
 
 interface RequesterProfileViewProps {
@@ -160,7 +160,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(profile.linkedinUrl, '_blank')}
+                  onClick={() => window.open(profile.linkedinUrl!, '_blank')}
                   data-testid="link-linkedin"
                 >
                   <SiLinkedin className="h-4 w-4 mr-2" />
@@ -172,7 +172,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(profile.websiteUrl, '_blank')}
+                  onClick={() => window.open(profile.websiteUrl!, '_blank')}
                   data-testid="link-website"
                 >
                   <Globe className="h-4 w-4 mr-2" />

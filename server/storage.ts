@@ -5,6 +5,10 @@ import {
   invitations,
   vendorQualifications,
   requesterProfiles,
+  vendorsBase,
+  joinRequests,
+  invitationLinks,
+  analyticsEvents,
   type User, 
   type InsertUser,
   type Tender,
@@ -16,10 +20,18 @@ import {
   type VendorQualification,
   type InsertVendorQualification,
   type RequesterProfile,
-  type InsertRequesterProfile
+  type InsertRequesterProfile,
+  type VendorBase,
+  type InsertVendorBase,
+  type JoinRequest,
+  type InsertJoinRequest,
+  type InvitationLink,
+  type InsertInvitationLink,
+  type AnalyticsEvent,
+  type InsertAnalyticsEvent
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, ilike, or } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -59,6 +71,28 @@ export interface IStorage {
   createRequesterProfile(profile: InsertRequesterProfile): Promise<RequesterProfile>;
   getRequesterProfileByRequesterId(requesterId: string): Promise<RequesterProfile | undefined>;
   updateRequesterProfile(requesterId: string, profile: Partial<InsertRequesterProfile>): Promise<RequesterProfile>;
+  getRequesterProfileByTractionSlug(slug: string): Promise<RequesterProfile | undefined>;
+  
+  // Vendors Base operations
+  addVendorToBase(vendorBase: InsertVendorBase): Promise<VendorBase>;
+  getVendorsInBase(requesterId: string, searchQuery?: string): Promise<(VendorBase & { vendor: User })[]>;
+  isVendorInBase(requesterId: string, vendorId: string): Promise<boolean>;
+  removeVendorFromBase(requesterId: string, vendorId: string): Promise<void>;
+  
+  // Join Requests operations
+  createJoinRequest(joinRequest: InsertJoinRequest): Promise<JoinRequest>;
+  getJoinRequestsByRequesterId(requesterId: string, status?: string): Promise<(JoinRequest & { vendor?: User })[]>;
+  getJoinRequestById(id: string): Promise<JoinRequest | undefined>;
+  updateJoinRequestStatus(id: string, status: string): Promise<JoinRequest>;
+  getPendingJoinRequestsCount(requesterId: string): Promise<number>;
+  
+  // Invitation Links operations
+  createInvitationLink(invitationLink: InsertInvitationLink): Promise<InvitationLink>;
+  getInvitationLinkByToken(token: string): Promise<(InvitationLink & { requester: User; tender?: Tender }) | undefined>;
+  updateInvitationLinkStatus(id: string, status: string): Promise<InvitationLink>;
+  
+  // Analytics operations
+  logAnalyticsEvent(event: InsertAnalyticsEvent): Promise<AnalyticsEvent>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -266,6 +300,173 @@ export class DatabaseStorage implements IStorage {
       .set({ ...profile, updatedAt: new Date() })
       .where(eq(requesterProfiles.requesterId, requesterId))
       .returning();
+    return result;
+  }
+
+  async getRequesterProfileByTractionSlug(slug: string): Promise<RequesterProfile | undefined> {
+    const [result] = await db.select().from(requesterProfiles).where(eq(requesterProfiles.tractionSlug, slug));
+    return result || undefined;
+  }
+
+  // Vendors Base operations
+  async addVendorToBase(vendorBase: InsertVendorBase): Promise<VendorBase> {
+    const [result] = await db.insert(vendorsBase).values(vendorBase).returning();
+    return result;
+  }
+
+  async getVendorsInBase(requesterId: string, searchQuery?: string): Promise<(VendorBase & { vendor: User })[]> {
+    const conditions = searchQuery
+      ? and(
+          eq(vendorsBase.requesterId, requesterId),
+          or(
+            ilike(users.name, `%${searchQuery}%`),
+            ilike(users.company, `%${searchQuery}%`)
+          )
+        )
+      : eq(vendorsBase.requesterId, requesterId);
+
+    return await db
+      .select({
+        id: vendorsBase.id,
+        requesterId: vendorsBase.requesterId,
+        vendorId: vendorsBase.vendorId,
+        joinMethod: vendorsBase.joinMethod,
+        addedAt: vendorsBase.addedAt,
+        vendor: users,
+      })
+      .from(vendorsBase)
+      .innerJoin(users, eq(vendorsBase.vendorId, users.id))
+      .where(conditions)
+      .orderBy(desc(vendorsBase.addedAt));
+  }
+
+  async isVendorInBase(requesterId: string, vendorId: string): Promise<boolean> {
+    const [result] = await db
+      .select()
+      .from(vendorsBase)
+      .where(and(
+        eq(vendorsBase.requesterId, requesterId),
+        eq(vendorsBase.vendorId, vendorId)
+      ));
+    return !!result;
+  }
+
+  async removeVendorFromBase(requesterId: string, vendorId: string): Promise<void> {
+    await db.delete(vendorsBase).where(
+      and(
+        eq(vendorsBase.requesterId, requesterId),
+        eq(vendorsBase.vendorId, vendorId)
+      )
+    );
+  }
+
+  // Join Requests operations
+  async createJoinRequest(joinRequest: InsertJoinRequest): Promise<JoinRequest> {
+    const [result] = await db.insert(joinRequests).values(joinRequest).returning();
+    return result;
+  }
+
+  async getJoinRequestsByRequesterId(requesterId: string, status?: string): Promise<(JoinRequest & { vendor?: User })[]> {
+    const conditions = status 
+      ? and(eq(joinRequests.requesterId, requesterId), eq(joinRequests.status, status))
+      : eq(joinRequests.requesterId, requesterId);
+
+    const results = await db
+      .select({
+        id: joinRequests.id,
+        requesterId: joinRequests.requesterId,
+        vendorId: joinRequests.vendorId,
+        companyName: joinRequests.companyName,
+        contactName: joinRequests.contactName,
+        contactEmail: joinRequests.contactEmail,
+        category: joinRequests.category,
+        notes: joinRequests.notes,
+        status: joinRequests.status,
+        createdAt: joinRequests.createdAt,
+        decidedAt: joinRequests.decidedAt,
+        vendor: users,
+      })
+      .from(joinRequests)
+      .leftJoin(users, eq(joinRequests.vendorId, users.id))
+      .where(conditions)
+      .orderBy(desc(joinRequests.createdAt));
+
+    return results.map(result => ({
+      ...result,
+      vendor: result.vendor || undefined
+    }));
+  }
+
+  async getJoinRequestById(id: string): Promise<JoinRequest | undefined> {
+    const [result] = await db.select().from(joinRequests).where(eq(joinRequests.id, id));
+    return result || undefined;
+  }
+
+  async updateJoinRequestStatus(id: string, status: string): Promise<JoinRequest> {
+    const [result] = await db
+      .update(joinRequests)
+      .set({ status, decidedAt: new Date() })
+      .where(eq(joinRequests.id, id))
+      .returning();
+    return result;
+  }
+
+  async getPendingJoinRequestsCount(requesterId: string): Promise<number> {
+    const results = await db
+      .select()
+      .from(joinRequests)
+      .where(and(
+        eq(joinRequests.requesterId, requesterId),
+        eq(joinRequests.status, 'pending')
+      ));
+    return results.length;
+  }
+
+  // Invitation Links operations
+  async createInvitationLink(invitationLink: InsertInvitationLink): Promise<InvitationLink> {
+    const [result] = await db.insert(invitationLinks).values(invitationLink).returning();
+    return result;
+  }
+
+  async getInvitationLinkByToken(token: string): Promise<(InvitationLink & { requester: User; tender?: Tender }) | undefined> {
+    const [result] = await db
+      .select({
+        id: invitationLinks.id,
+        requesterId: invitationLinks.requesterId,
+        tenderId: invitationLinks.tenderId,
+        vendorEmail: invitationLinks.vendorEmail,
+        token: invitationLinks.token,
+        status: invitationLinks.status,
+        createdAt: invitationLinks.createdAt,
+        acceptedAt: invitationLinks.acceptedAt,
+        requester: users,
+        tender: tenders,
+      })
+      .from(invitationLinks)
+      .innerJoin(users, eq(invitationLinks.requesterId, users.id))
+      .leftJoin(tenders, eq(invitationLinks.tenderId, tenders.id))
+      .where(eq(invitationLinks.token, token));
+
+    if (!result) return undefined;
+
+    return {
+      ...result,
+      tender: result.tender || undefined
+    };
+  }
+
+  async updateInvitationLinkStatus(id: string, status: string): Promise<InvitationLink> {
+    const [result] = await db
+      .update(invitationLinks)
+      .set({ status, acceptedAt: status === 'accepted' ? new Date() : undefined })
+      .where(eq(invitationLinks.id, id))
+      .returning();
+    return result;
+  }
+
+  // Analytics operations
+  async logAnalyticsEvent(event: InsertAnalyticsEvent): Promise<AnalyticsEvent> {
+    const [result] = await db.insert(analyticsEvents).values(event).returning();
     return result;
   }
 }

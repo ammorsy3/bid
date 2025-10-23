@@ -3,7 +3,15 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { insertUserSchema, insertTenderSchema, insertOfferSchema, submitPreQualificationSchema, submitRequesterProfileSchema } from "@shared/schema";
+import { 
+  insertUserSchema, 
+  insertTenderSchema, 
+  insertOfferSchema, 
+  submitPreQualificationSchema, 
+  submitRequesterProfileSchema,
+  submitJoinRequestSchema,
+  createInvitationLinkSchema
+} from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 
@@ -497,6 +505,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to generate traction slug from company name
+  const generateTractionSlug = (companyName: string): string => {
+    return companyName
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+  };
+
   // Requester profile routes
   app.post("/api/requester/profile", authenticateToken, async (req: AuthRequest, res) => {
     try {
@@ -510,14 +528,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existing = await storage.getRequesterProfileByRequesterId(req.userId!);
       
       if (existing) {
-        // Update existing profile
+        // Update existing profile (keep existing slug)
         const updated = await storage.updateRequesterProfile(req.userId!, profileData);
         return res.json({ ...updated, message: "Profile updated successfully" });
       } else {
-        // Create new profile
+        // Generate unique traction slug from company name
+        let tractionSlug = generateTractionSlug(profileData.companyName);
+        let slugSuffix = 1;
+        
+        // Ensure slug is unique
+        while (await storage.getRequesterProfileByTractionSlug(tractionSlug)) {
+          tractionSlug = `${generateTractionSlug(profileData.companyName)}-${slugSuffix}`;
+          slugSuffix++;
+        }
+
+        // Create new profile with traction slug
         const profile = await storage.createRequesterProfile({
           ...profileData,
           requesterId: req.userId!,
+          tractionSlug,
         });
         
         res.json({ ...profile, message: "Profile created successfully" });
@@ -557,6 +586,401 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(profile);
     } catch (error) {
       console.error('Get public requester profile error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Vendors Base routes
+  app.get("/api/vendors-base", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.userRole !== 'requester') {
+        return res.status(403).json({ message: "Only requesters can access vendors base" });
+      }
+
+      const searchQuery = req.query.search as string | undefined;
+      const vendors = await storage.getVendorsInBase(req.userId!, searchQuery);
+      
+      // Log analytics event
+      await storage.logAnalyticsEvent({
+        eventType: 'vendors_base_viewed',
+        requesterId: req.userId!,
+        metadata: JSON.stringify({ searchQuery: searchQuery || null })
+      });
+
+      res.json(vendors);
+    } catch (error) {
+      console.error('Get vendors base error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Join Requests routes
+  app.get("/api/join-requests", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.userRole !== 'requester') {
+        return res.status(403).json({ message: "Only requesters can view join requests" });
+      }
+
+      const status = req.query.status as string | undefined;
+      const requests = await storage.getJoinRequestsByRequesterId(req.userId!, status);
+      
+      res.json(requests);
+    } catch (error) {
+      console.error('Get join requests error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get("/api/join-requests/pending-count", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.userRole !== 'requester') {
+        return res.status(403).json({ message: "Only requesters can view join requests" });
+      }
+
+      const count = await storage.getPendingJoinRequestsCount(req.userId!);
+      res.json({ count });
+    } catch (error) {
+      console.error('Get pending count error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/join-requests/:id/approve", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.userRole !== 'requester') {
+        return res.status(403).json({ message: "Only requesters can approve join requests" });
+      }
+
+      const { id } = req.params;
+      const joinRequest = await storage.getJoinRequestById(id);
+      
+      if (!joinRequest) {
+        return res.status(404).json({ message: "Join request not found" });
+      }
+
+      if (joinRequest.requesterId !== req.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Check if vendor already in base
+      if (joinRequest.vendorId) {
+        const alreadyInBase = await storage.isVendorInBase(req.userId!, joinRequest.vendorId);
+        if (alreadyInBase) {
+          return res.status(400).json({ message: "Vendor already in your base" });
+        }
+      }
+
+      // Update join request status
+      const updated = await storage.updateJoinRequestStatus(id, 'approved');
+
+      // Add vendor to base if they have an account
+      if (joinRequest.vendorId) {
+        await storage.addVendorToBase({
+          requesterId: req.userId!,
+          vendorId: joinRequest.vendorId,
+          joinMethod: 'traction'
+        });
+      }
+
+      // Log analytics event
+      await storage.logAnalyticsEvent({
+        eventType: 'join_request_decided',
+        requesterId: req.userId!,
+        vendorId: joinRequest.vendorId || undefined,
+        metadata: JSON.stringify({ status: 'APPROVED', joinRequestId: id })
+      });
+
+      res.json({ ...updated, message: "Join request approved" });
+    } catch (error) {
+      console.error('Approve join request error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/join-requests/:id/reject", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.userRole !== 'requester') {
+        return res.status(403).json({ message: "Only requesters can reject join requests" });
+      }
+
+      const { id } = req.params;
+      const joinRequest = await storage.getJoinRequestById(id);
+      
+      if (!joinRequest) {
+        return res.status(404).json({ message: "Join request not found" });
+      }
+
+      if (joinRequest.requesterId !== req.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Update join request status
+      const updated = await storage.updateJoinRequestStatus(id, 'rejected');
+
+      // Log analytics event
+      await storage.logAnalyticsEvent({
+        eventType: 'join_request_decided',
+        requesterId: req.userId!,
+        vendorId: joinRequest.vendorId || undefined,
+        metadata: JSON.stringify({ status: 'REJECTED', joinRequestId: id })
+      });
+
+      res.json({ ...updated, message: "Join request rejected" });
+    } catch (error) {
+      console.error('Reject join request error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Traction Link routes (public)
+  app.get("/api/r/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const profile = await storage.getRequesterProfileByTractionSlug(slug);
+      
+      if (!profile) {
+        return res.status(404).json({ message: "Requester not found" });
+      }
+
+      // Get requester user info
+      const requester = await storage.getUser(profile.requesterId);
+      if (!requester) {
+        return res.status(404).json({ message: "Requester not found" });
+      }
+
+      // Log analytics event
+      await storage.logAnalyticsEvent({
+        eventType: 'traction_link_opened',
+        requesterId: profile.requesterId,
+        metadata: JSON.stringify({ slug })
+      });
+
+      res.json({
+        requester: {
+          id: requester.id,
+          name: requester.name,
+          company: requester.company
+        },
+        profile: {
+          companyName: profile.companyName,
+          industry: profile.industry,
+          bio: profile.bio,
+          logoUrl: profile.logoUrl,
+          websiteUrl: profile.websiteUrl,
+          linkedinUrl: profile.linkedinUrl
+        }
+      });
+    } catch (error) {
+      console.error('Get traction link error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/r/:slug/apply", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const profile = await storage.getRequesterProfileByTractionSlug(slug);
+      
+      if (!profile) {
+        return res.status(404).json({ message: "Requester not found" });
+      }
+
+      const applicationData = submitJoinRequestSchema.parse(req.body);
+      
+      // Check if vendor with this email exists
+      const vendor = await storage.getUserByEmail(applicationData.contactEmail);
+
+      // Create join request
+      const joinRequest = await storage.createJoinRequest({
+        ...applicationData,
+        requesterId: profile.requesterId,
+        vendorId: vendor?.id || null,
+      });
+
+      // Log analytics event
+      await storage.logAnalyticsEvent({
+        eventType: 'join_request_submitted',
+        requesterId: profile.requesterId,
+        vendorId: vendor?.id || undefined,
+        metadata: JSON.stringify({ 
+          slug, 
+          contactEmail: applicationData.contactEmail,
+          companyName: applicationData.companyName
+        })
+      });
+
+      res.json({ 
+        ...joinRequest, 
+        message: "Your request was sent. We'll notify you if approved." 
+      });
+    } catch (error) {
+      console.error('Submit join request error:', error);
+      res.status(400).json({ message: "Invalid application data" });
+    }
+  });
+
+  // Invitation Link routes
+  app.post("/api/invitation-links", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.userRole !== 'requester') {
+        return res.status(403).json({ message: "Only requesters can create invitation links" });
+      }
+
+      const linkData = createInvitationLinkSchema.parse(req.body);
+      
+      // Generate unique token
+      const token = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+
+      // Create invitation link
+      const invitationLink = await storage.createInvitationLink({
+        ...linkData,
+        requesterId: req.userId!,
+        token,
+      });
+
+      // Log analytics event
+      await storage.logAnalyticsEvent({
+        eventType: 'invitation_link_created',
+        requesterId: req.userId!,
+        metadata: JSON.stringify({ 
+          vendorEmail: linkData.vendorEmail,
+          tenderId: linkData.tenderId || null
+        })
+      });
+
+      res.json({ 
+        ...invitationLink, 
+        invitationUrl: `${req.protocol}://${req.get('host')}/vendor-invitation/${token}`
+      });
+    } catch (error) {
+      console.error('Create invitation link error:', error);
+      res.status(400).json({ message: "Invalid invitation data" });
+    }
+  });
+
+  app.get("/api/invitation-links/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const invitationLink = await storage.getInvitationLinkByToken(token);
+      
+      if (!invitationLink) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+
+      if (invitationLink.status !== 'pending') {
+        return res.status(400).json({ 
+          message: invitationLink.status === 'accepted' ? "Invitation already accepted" : "Invitation expired" 
+        });
+      }
+
+      // Check tender deadline if linked to tender
+      if (invitationLink.tender) {
+        const deadline = new Date(invitationLink.tender.deadline);
+        if (deadline < new Date()) {
+          // Mark as expired
+          await storage.updateInvitationLinkStatus(invitationLink.id, 'expired');
+          return res.status(400).json({ message: "Invitation expired (tender deadline passed)" });
+        }
+      }
+
+      // Log analytics event
+      await storage.logAnalyticsEvent({
+        eventType: 'invitation_link_opened',
+        requesterId: invitationLink.requesterId,
+        metadata: JSON.stringify({ token })
+      });
+
+      res.json({
+        requester: {
+          id: invitationLink.requester.id,
+          name: invitationLink.requester.name,
+          company: invitationLink.requester.company
+        },
+        vendorEmail: invitationLink.vendorEmail,
+        tender: invitationLink.tender ? {
+          id: invitationLink.tender.id,
+          title: invitationLink.tender.title,
+          deadline: invitationLink.tender.deadline
+        } : null
+      });
+    } catch (error) {
+      console.error('Get invitation link error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/invitation-links/:token/accept", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.userRole !== 'vendor') {
+        return res.status(403).json({ message: "Only vendors can accept invitations" });
+      }
+
+      const { token } = req.params;
+      const invitationLink = await storage.getInvitationLinkByToken(token);
+      
+      if (!invitationLink) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+
+      if (invitationLink.status !== 'pending') {
+        return res.status(400).json({ 
+          message: invitationLink.status === 'accepted' ? "Invitation already accepted" : "Invitation expired" 
+        });
+      }
+
+      // Check tender deadline if linked to tender
+      if (invitationLink.tender) {
+        const deadline = new Date(invitationLink.tender.deadline);
+        if (deadline < new Date()) {
+          // Mark as expired
+          await storage.updateInvitationLinkStatus(invitationLink.id, 'expired');
+          return res.status(400).json({ message: "Invitation expired (tender deadline passed)" });
+        }
+      }
+
+      // Get vendor email
+      const vendor = await storage.getUser(req.userId!);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+
+      // Verify email matches
+      if (vendor.email !== invitationLink.vendorEmail) {
+        return res.status(403).json({ message: "This invitation was sent to a different email address" });
+      }
+
+      // Check if vendor already in base
+      const alreadyInBase = await storage.isVendorInBase(invitationLink.requesterId, req.userId!);
+      if (!alreadyInBase) {
+        // Add vendor to base
+        await storage.addVendorToBase({
+          requesterId: invitationLink.requesterId,
+          vendorId: req.userId!,
+          joinMethod: 'invitation'
+        });
+
+        // Log analytics event
+        await storage.logAnalyticsEvent({
+          eventType: 'vendor_added_to_base',
+          requesterId: invitationLink.requesterId,
+          vendorId: req.userId!,
+          metadata: JSON.stringify({ method: 'INVITATION', token })
+        });
+      }
+
+      // Update invitation link status
+      await storage.updateInvitationLinkStatus(invitationLink.id, 'accepted');
+
+      res.json({ 
+        message: "You're now in the requester's Vendors Base. Welcome!",
+        requester: {
+          id: invitationLink.requester.id,
+          name: invitationLink.requester.name,
+          company: invitationLink.requester.company
+        }
+      });
+    } catch (error) {
+      console.error('Accept invitation link error:', error);
       res.status(500).json({ message: "Server error" });
     }
   });

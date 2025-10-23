@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { FileText, DollarSign, AlertTriangle, Clock, Sparkles, Check, X, ShieldAlert } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
+import { enUS } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { useAutosave, DraftStorage } from "@/lib/autosave";
 import { calculateFormProgress } from "@/lib/form-validation";
@@ -91,7 +92,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   useEffect(() => {
     const updateCountdown = () => {
       const now = new Date();
-      const remaining = formatDistanceToNow(deadlineDate, { addSuffix: true });
+      const remaining = formatDistanceToNow(deadlineDate, { addSuffix: true, locale: enUS });
       const urgent = deadlineDate.getTime() - now.getTime() < 24 * 60 * 60 * 1000; // Less than 24 hours
       
       setTimeRemaining(remaining);
@@ -454,7 +455,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                 <div className="flex justify-between">
                   <span>Deadline:</span>
                   <span className={`font-medium ${isUrgent ? 'text-error-600' : 'text-warning-600'}`}>
-                    {format(deadlineDate, 'MMM d, yyyy h:mm a')}
+                    {format(deadlineDate, 'MMM d, yyyy h:mm a', { locale: enUS })}
                   </span>
                 </div>
               </div>

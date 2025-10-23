@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, DollarSign, Clock, Eye, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
+import { enUS } from "date-fns/locale";
 import { useState } from "react";
 import SubmitOfferModal from "./submit-offer-modal";
 
@@ -71,7 +72,7 @@ export default function VendorInvitationCard({ invitation }: VendorInvitationCar
             <div className="flex items-center text-sm text-neutral-600">
               <Calendar className="w-4 h-4 mr-2" />
               <span>Deadline: <span className={`font-medium ${getUrgencyColor(invitation.tender.deadline)}`}>
-                {format(new Date(invitation.tender.deadline), 'MMM d, yyyy')}
+                {format(new Date(invitation.tender.deadline), 'MMM d, yyyy', { locale: enUS })}
               </span></span>
             </div>
             {invitation.tender.budget && (

@@ -1,0 +1,137 @@
+BID — Vendors Base & Entry Links (Business Documentation)
+0) Purpose (what we’re building now)
+Create a Requester-owned Vendors Base and the two ways vendors can enter it:
+Traction Link (public join hub for that Requester)
+Invitation Link (direct, private invite sent by the Requester)
+Note: Vendor/Requester Profiles already exist and are separate. In all UIs, just show a “Profile” button/link for each vendor. Do not restate profile fields here.
+1) Scope (in / out)
+In scope (MVP)
+A private Vendors Base per Requester (list of vendors associated with that Requester).
+Two entry paths:
+Traction Link → vendor applies → Requester approves/rejects.
+Invitation Link → vendor accepts → joins immediately (or goes pending, per policy).
+Minimal Requester UI to view the base, filter, and open vendor Profile.
+Minimal review UI for pending requests from Traction Link.
+Clear states, simple notifications, basic analytics.
+Out of scope (for now)
+Action buttons on public profiles (invite, request to join, etc.).
+Bulk operations, groups/segments, or advanced search.
+Any public exposure of legal/compliance docs (remain private elsewhere).
+2) Core concepts & definitions
+Vendors Base (per Requester):
+A private list of vendors tied to one Requester. It’s that Requester’s trusted catalog.
+What appears for a vendor in the base UI: Name + “Profile” button (link to existing Profile).
+Traction Link (Public Join Hub):
+A public URL for a Requester (e.g., /r/{slug}/vendors) where vendors can apply to join this Requester’s Vendors Base.
+Invitation Link (Direct Invite):
+A private link the Requester sends to a known vendor to join their Vendors Base directly (no public page required).
+Vendor Account Status:
+Not Verified / Under Review / Verified (pre-qualification states already implemented).
+Being in a Vendors Base does not automatically mean Verified.
+Join Request (object/state):
+The record created when a vendor comes via Traction Link and awaits the Requester’s decision.
+3) States & transitions
+3.1 Vendors Base membership (per Requester↔Vendor)
+Not in Base → In Base
+Entry triggers:
+Invitation Link Accepted (direct join)
+Traction Link → Approved (after Requester review)
+Tender Invite Accepted (optional policy; see 5.4)
+Removal (future): manual remove by Requester (out of scope now).
+3.2 Join Request (Traction path)
+Pending → Approved → vendor added to the Requester’s Base
+Pending → Rejected → not added; vendor notified
+4) User stories (business level)
+As a Requester, I want a private list (Vendors Base) of vendors tied to me, so I can know who is relevant to my tenders.
+As a Vendor, I want to join a specific Requester’s list either by a public link (Traction) or a direct invite, so I can be discoverable and invited more easily.
+As a Requester, I want to review incoming applications (from my Traction Link), approve the good ones, and ignore the rest.
+As both sides, I want to open a vendor’s Profile from anywhere (no duplicated info here).
+5) Flows (step-by-step)
+5.1 Traction Link — Vendor apply → Requester review
+Requester shares Traction Link publicly (website/social/email).
+Vendor opens the page and fills a short apply form (business contact + company basics; do not pull profile fields here).
+System creates a Join Request = Pending for that Requester.
+Requester sees a list of Pending requests → Approve or Reject.
+On Approve: vendor is added to the Requester’s Vendors Base.
+Notifications are sent to both sides (see §7).
+5.2 Invitation Link — Direct add
+Requester creates an Invitation Link (per vendor email).
+Vendor opens the link and accepts.
+Vendor is added to the Requester’s Vendors Base (no Pending state).
+Optional policy: require a soft confirmation screen; default is direct join.
+5.3 Viewing Vendors Base (Requester)
+Requester opens Vendors Base:
+Sees a private list of vendors “in base”.
+Can filter (by simple attributes like category if available; or just search by name for MVP).
+Each vendor row has Name + “Profile” button (link to Profile).
+No actions (invite/bulk/group) in MVP—view & filter only.
+5.4 Optional policy (future-safe, can enable now or later)
+Tender Invite Acceptance → Auto-Add to Base (with vendor consent):
+If enabled, accepting a tender invite can also add the vendor to the Requester’s base with a simple consent checkbox.
+Default for MVP: disabled unless you want it on.
+6) UI requirements (minimal)
+6.1 Requester — Vendors Base (list view)
+Header: “Vendors Base” + count
+Controls: search by name; (optional) simple filter if available
+List item: Vendor Name + Profile button (opens the existing Profile)
+Empty state: “No vendors yet. Share your Traction Link or send an Invitation Link.”
+6.2 Requester — Join Requests (Traction)
+Tab/Section: “Join Requests” with counts
+Each request: vendor name (as submitted), contact email, submitted date, Approve / Reject
+On Approve: adds to Vendors Base; show toast “Added to your Vendors Base.”
+On Reject: stays out; show toast “Request rejected.”
+6.3 Traction Link page (public)
+Header: Requester name/logo/header/bio (from existing Requester Profile; read-only)
+Apply form (short): company name, contact name, contact email, category, note (free text)
+Submit → success confirmation (“Your request was sent.”)
+6.4 Invitation Link (vendor view)
+Simple screen: “{Requester} invited you to join their Vendors Base.”
+Accept → confirmation; show “Go to your Profile” and/or “Back to Home”.
+Anywhere a vendor appears in internal lists or proposal views, show a Profile button only—do not restate profile fields here.
+7) Notifications (copy level)
+To Vendor (Traction submitted):
+“Thanks! Your request to join {Requester} was received. We’ll notify you if approved.”
+To Requester (new Traction request):
+“A vendor requested to join your Vendors Base. Open Join Requests to review.”
+To Vendor (Traction approved):
+“Approved! You were added to {Requester}’s Vendors Base.”
+To Vendor (Traction rejected):
+“Your request to join {Requester} was not approved at this time.”
+To Vendor (Invitation accepted):
+“You’re now in {Requester}’s Vendors Base. Welcome!”
+8) Policies & rules
+Privacy: Vendors Base is private to the Requester.
+Profiles: Use Profile link/button; do not duplicate profile data in the base.
+Verification independence: Being in a Requester’s base does not change Vendor Account Status; eligibility for tenders/awards still depends on Not Verified / Under Review / Verified.
+No legal docs appear anywhere in Vendors Base or Traction flows.
+9) Basic analytics (MVP)
+traction_link_opened {requester_id}
+join_request_submitted {requester_id}
+join_request_decided {requester_id, status: APPROVED|REJECTED}
+vendor_added_to_base {requester_id, method: INVITATION|TRACTION|TENDER_INVITE}
+vendors_base_viewed {requester_id}
+invitation_link_opened {requester_id}
+10) Acceptance criteria (Definition of Done)
+Vendors Base
+Requester sees a private list with Name + Profile button per vendor.
+Search by name works; empty state is informative.
+Traction Link
+Public page loads with Requester’s branding (from Profile).
+Apply form submits; Join Request created as Pending.
+Requester can Approve/Reject from Join Requests view.
+On Approve, vendor appears in Vendors Base; both sides notified.
+Invitation Link
+Requester can generate a link per vendor email.
+Vendor opens link and Accepts; immediately added to Vendors Base; notified.
+Policies
+No profile fields are duplicated in the base UI; use Profile link only.
+No legal documents shown anywhere in this phase.
+Vendors Base membership is independent from verification status.
+Analytics
+Events listed in §9 fire with the stated properties.
+11) Edge cases
+Vendor already in base accepts another invite → show success, avoid duplicates.
+Vendor applies via Traction and also gets direct invite → first approval wins; second path should detect existing membership and not duplicate.
+Broken/expired invitation link → show friendly error and a “Contact Requester” hint.
+Requester deletes Traction Link publicly (future) → page shows “This requester is not accepting applications right now.”
+Name mismatch between traction form and existing profile → keep the profile as source of truth in lists; the traction form data remains in the Join Request record for audit.

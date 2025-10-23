@@ -4,6 +4,14 @@ Bid is a web-based procurement platform that facilitates private tender manageme
 
 # Recent Changes
 
+## October 23, 2025 - Date Localization & Profile Viewing Enhancements
+Improved user experience with proper date formatting and requester profile access for vendors:
+- **Date Format Fix**: Changed all deadline and date displays from Hijri calendar format to English locale (dates now show as "Oct 23, 2025" instead of "Jmd.1 1447 ah")
+- **Requester Profile Viewing**: Vendors can now view requester profiles from tender detail pages via "View Client Profile" button, showing company information, contact details, and social links
+- **Under Review Offer Submission**: Enhanced vendor experience by allowing immediate offer submission after pre-qualification submission (while status is "under_review"), displaying success message: "You can submit offers now while we verify your information"
+- **API Enhancement**: Added public requester profile endpoint (`/api/requester/profile/:requesterId`) accessible to all authenticated users
+- **UI Components**: Created RequesterProfileView component with compact and full display modes for requester company profiles
+
 ## October 16, 2025 - Requester Profile System & Validation Fixes
 Implemented complete requester profile management and refined vendor validation:
 - **Requester Profile System**: Created comprehensive profile management for requesters with company information, bio, logo upload, industry selection, and contact details

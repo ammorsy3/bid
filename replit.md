@@ -4,6 +4,17 @@ Bid is a web-based procurement platform that facilitates private tender manageme
 
 # Recent Changes
 
+## October 23, 2025 - Vendors Base System Implementation
+Implemented complete Vendors Base feature allowing requesters to build and manage their approved vendor network:
+- **Traction Link**: Auto-generated public link (/r/{slug}) where vendors can apply to join requester's base without prior registration
+- **Join Requests Management**: Review panel for requesters to approve/reject vendor applications with detailed company information
+- **Dual Entry Paths**: Vendors can join through Traction Link (public application) or Invitation Link (direct invite tied to tender deadlines)
+- **Vendors Base Page**: Complete vendor management interface with search functionality, vendor profiles, and join request history
+- **Dashboard Integration**: Added "Invite Your Vendors!" section to requester dashboard showing traction link with copy/share functionality and pending request count
+- **Database Schema**: Added 4 new tables (vendors_base, join_requests, invitation_links, analytics_events) with proper relations and event logging
+- **Important Behavior**: Join requests from non-registered vendors are approved but vendor only added to base after they create an account with the approved email
+- **Navigation**: Added "Vendors" link to requester navbar leading to /vendors-base for easy access to vendor management
+
 ## October 23, 2025 - Date Localization & Profile Viewing Enhancements
 Improved user experience with proper date formatting and requester profile access for vendors:
 - **Date Format Fix**: Changed all deadline and date displays from Hijri calendar format to English locale (dates now show as "Oct 23, 2025" instead of "Jmd.1 1447 ah")

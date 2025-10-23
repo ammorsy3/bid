@@ -673,6 +673,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update join request status
       const updated = await storage.updateJoinRequestStatus(id, 'approved');
 
+      let responseMessage = "Join request approved";
+      let vendorAdded = false;
+
       // Add vendor to base if they have an account
       if (joinRequest.vendorId) {
         await storage.addVendorToBase({
@@ -680,6 +683,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           vendorId: joinRequest.vendorId,
           joinMethod: 'traction'
         });
+        vendorAdded = true;
+        responseMessage = "Vendor approved and added to your base";
+      } else {
+        responseMessage = "Request approved. Vendor will be added when they register with email: " + joinRequest.contactEmail;
       }
 
       // Log analytics event
@@ -687,10 +694,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventType: 'join_request_decided',
         requesterId: req.userId!,
         vendorId: joinRequest.vendorId || undefined,
-        metadata: JSON.stringify({ status: 'APPROVED', joinRequestId: id })
+        metadata: JSON.stringify({ status: 'APPROVED', joinRequestId: id, vendorAdded })
       });
 
-      res.json({ ...updated, message: "Join request approved" });
+      res.json({ ...updated, message: responseMessage, vendorAdded });
     } catch (error) {
       console.error('Approve join request error:', error);
       res.status(500).json({ message: "Server error" });

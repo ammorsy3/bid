@@ -35,7 +35,7 @@ export default function Navbar() {
               {user?.role === 'requester' && (
                 <>
                   <Link 
-                    href="/vendors"
+                    href="/vendors-base"
                     className="text-neutral-500 hover:text-neutral-700 px-1 py-4 text-sm font-medium transition-colors"
                   >
                     Vendors

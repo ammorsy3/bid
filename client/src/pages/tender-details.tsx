@@ -12,7 +12,8 @@ import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import SubmitOfferModal from "@/components/submit-offer-modal";
 import VendorProfileView from "@/components/VendorProfileView";
-import type { Tender, Offer, User } from "@shared/schema";
+import RequesterProfileView from "@/components/RequesterProfileView";
+import type { Tender, Offer, User, RequesterProfile } from "@shared/schema";
 
 export default function TenderDetails() {
   const { id } = useParams();
@@ -20,6 +21,7 @@ export default function TenderDetails() {
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [showOffers, setShowOffers] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
+  const [showRequesterProfile, setShowRequesterProfile] = useState(false);
 
   const { data: tender, isLoading } = useQuery<Tender>({
     queryKey: ['/api/tenders', id],
@@ -48,6 +50,11 @@ export default function TenderDetails() {
   const { data: vendorProfile } = useQuery<VendorProfile>({
     queryKey: ['/api/vendor/profile', selectedVendorId],
     enabled: !!selectedVendorId,
+  });
+
+  const { data: requesterProfile } = useQuery<RequesterProfile>({
+    queryKey: ['/api/requester/profile', tender?.requesterId],
+    enabled: !!tender?.requesterId && showRequesterProfile,
   });
 
   if (isLoading) {
@@ -164,13 +171,24 @@ export default function TenderDetails() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {user?.role === 'vendor' && (
-                  <Button 
-                    className="w-full bg-primary-600 hover:bg-primary-700"
-                    onClick={() => setIsOfferModalOpen(true)}
-                    data-testid="button-submit-offer"
-                  >
-                    Submit Offer
-                  </Button>
+                  <>
+                    <Button 
+                      className="w-full bg-primary-600 hover:bg-primary-700"
+                      onClick={() => setIsOfferModalOpen(true)}
+                      data-testid="button-submit-offer"
+                    >
+                      Submit Offer
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setShowRequesterProfile(true)}
+                      data-testid="button-view-requester-profile"
+                    >
+                      <Building className="h-4 w-4 mr-2" />
+                      View Client Profile
+                    </Button>
+                  </>
                 )}
                 {user?.role === 'requester' && (
                   <>
@@ -311,6 +329,20 @@ export default function TenderDetails() {
           </DialogHeader>
           {vendorProfile && (
             <VendorProfileView profile={vendorProfile} />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Requester Profile Dialog */}
+      <Dialog open={showRequesterProfile} onOpenChange={setShowRequesterProfile}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Client Profile</DialogTitle>
+          </DialogHeader>
+          {requesterProfile ? (
+            <RequesterProfileView profile={requesterProfile} />
+          ) : (
+            <p className="text-center text-neutral-500 py-8">Loading profile...</p>
           )}
         </DialogContent>
       </Dialog>

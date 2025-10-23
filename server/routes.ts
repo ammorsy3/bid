@@ -544,6 +544,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public endpoint for viewing requester profile (accessible by vendors)
+  app.get("/api/requester/profile/:requesterId", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { requesterId } = req.params;
+      const profile = await storage.getRequesterProfileByRequesterId(requesterId);
+      
+      if (!profile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+
+      res.json(profile);
+    } catch (error) {
+      console.error('Get public requester profile error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

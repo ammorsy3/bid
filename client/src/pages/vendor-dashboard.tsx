@@ -9,10 +9,18 @@ import { Badge } from "@/components/ui/badge";
 import { Mail, Send, Trophy, AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import type { Tender, Offer } from "@shared/schema";
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 
 export default function VendorDashboard() {
   const { user } = useAuthStore();
   const [, navigate] = useLocation();
+
+  // Redirect to pre-qualification if vendor is not verified or under review
+  useEffect(() => {
+    if (user && user.verificationStatus === 'not_verified') {
+      navigate('/vendor-prequalification');
+    }
+  }, [user, navigate]);
 
   const { data: invitations, isLoading } = useQuery<Tender[]>({
     queryKey: ['/api/tenders'],

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Send, Users, Clock, User, Copy, ExternalLink, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import type { Tender } from "@shared/schema";
 
@@ -42,10 +42,22 @@ export default function RequesterDashboard() {
   });
 
   // Fetch requester profile for traction slug
-  const { data: requesterProfile } = useQuery<RequesterProfile>({
+  const { data: requesterProfile, isLoading: loadingProfile, error: profileError } = useQuery<RequesterProfile>({
     queryKey: ['/api/requester/profile'],
     enabled: !!user,
+    retry: false, // Don't retry on 404
   });
+
+  // Redirect to profile creation if no profile exists (404 error)
+  useEffect(() => {
+    if (user && profileError && !loadingProfile) {
+      toast({
+        title: "Welcome!",
+        description: "Let's set up your profile to get started",
+      });
+      navigate('/requester-profile');
+    }
+  }, [user, profileError, loadingProfile, navigate, toast]);
 
   // Fetch pending join requests count
   const { data: pendingData } = useQuery<{ count: number }>({

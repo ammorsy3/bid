@@ -59,7 +59,7 @@ export default function Register() {
         if (user.role === 'requester') {
           setLocation("/requester-profile");
         } else {
-          setLocation("/profile");
+          setLocation("/vendor-prequalification");
         }
       }
     }
@@ -80,7 +80,7 @@ export default function Register() {
         if (data.role === 'requester') {
           setLocation("/requester-profile");
         } else {
-          setLocation("/profile");
+          setLocation("/vendor-prequalification");
         }
       }
     } catch (error) {

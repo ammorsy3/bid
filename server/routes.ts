@@ -663,41 +663,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if vendor already in base
-      if (joinRequest.vendorId) {
-        const alreadyInBase = await storage.isVendorInBase(req.userId!, joinRequest.vendorId);
-        if (alreadyInBase) {
-          return res.status(400).json({ message: "Vendor already in your base" });
-        }
+      const alreadyInBase = await storage.isVendorInBase(req.userId!, joinRequest.vendorId);
+      if (alreadyInBase) {
+        return res.status(400).json({ message: "Vendor already in your base" });
       }
 
       // Update join request status
       const updated = await storage.updateJoinRequestStatus(id, 'approved');
 
-      let responseMessage = "Join request approved";
-      let vendorAdded = false;
-
-      // Add vendor to base if they have an account
-      if (joinRequest.vendorId) {
-        await storage.addVendorToBase({
-          requesterId: req.userId!,
-          vendorId: joinRequest.vendorId,
-          joinMethod: 'traction'
-        });
-        vendorAdded = true;
-        responseMessage = "Vendor approved and added to your base";
-      } else {
-        responseMessage = "Request approved. Vendor will be added when they register with email: " + joinRequest.contactEmail;
-      }
+      // Add vendor to base (vendorId is always required now)
+      await storage.addVendorToBase({
+        requesterId: req.userId!,
+        vendorId: joinRequest.vendorId,
+        joinMethod: 'traction'
+      });
 
       // Log analytics event
       await storage.logAnalyticsEvent({
         eventType: 'join_request_decided',
         requesterId: req.userId!,
-        vendorId: joinRequest.vendorId || undefined,
-        metadata: JSON.stringify({ status: 'APPROVED', joinRequestId: id, vendorAdded })
+        vendorId: joinRequest.vendorId,
+        metadata: JSON.stringify({ status: 'APPROVED', joinRequestId: id, vendorAdded: true })
       });
 
-      res.json({ ...updated, message: responseMessage, vendorAdded });
+      res.json({ ...updated, message: "Vendor approved and added to your base", vendorAdded: true });
     } catch (error) {
       console.error('Approve join request error:', error);
       res.status(500).json({ message: "Server error" });
@@ -728,7 +717,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.logAnalyticsEvent({
         eventType: 'join_request_decided',
         requesterId: req.userId!,
-        vendorId: joinRequest.vendorId || undefined,
+        vendorId: joinRequest.vendorId,
         metadata: JSON.stringify({ status: 'REJECTED', joinRequestId: id })
       });
 
@@ -783,8 +772,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/r/:slug/apply", async (req, res) => {
+  // Unified join request submission - requires authenticated vendor
+  app.post("/api/r/:slug/apply", authenticateToken, async (req: AuthRequest, res) => {
     try {
+      if (req.userRole !== 'vendor') {
+        return res.status(403).json({ message: "Only vendors can submit join requests" });
+      }
+
       const { slug } = req.params;
       const profile = await storage.getRequesterProfileByTractionSlug(slug);
       
@@ -794,35 +788,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const applicationData = submitJoinRequestSchema.parse(req.body);
       
-      // Check if vendor with this email exists
-      const vendor = await storage.getUserByEmail(applicationData.contactEmail);
+      // Check for duplicate join request within 24 hours
+      const existingRequest = await storage.getJoinRequestByVendorAndRequester(
+        req.userId!,
+        profile.requesterId
+      );
+      
+      if (existingRequest) {
+        const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        if (existingRequest.createdAt && new Date(existingRequest.createdAt) > dayAgo) {
+          return res.status(400).json({ 
+            message: "You already submitted a join request to this requester within the last 24 hours" 
+          });
+        }
+      }
 
-      // Create join request
+      // Create join request with authenticated vendor
       const joinRequest = await storage.createJoinRequest({
         ...applicationData,
         requesterId: profile.requesterId,
-        vendorId: vendor?.id || null,
+        vendorId: req.userId!,
       });
 
       // Log analytics event
       await storage.logAnalyticsEvent({
         eventType: 'join_request_submitted',
         requesterId: profile.requesterId,
-        vendorId: vendor?.id || undefined,
-        metadata: JSON.stringify({ 
-          slug, 
-          contactEmail: applicationData.contactEmail,
-          companyName: applicationData.companyName
-        })
+        vendorId: req.userId!,
+        metadata: JSON.stringify({ slug })
       });
 
       res.json({ 
         ...joinRequest, 
-        message: "Your request was sent. We'll notify you if approved." 
+        message: "Request sent to " + profile.companyName 
       });
     } catch (error) {
       console.error('Submit join request error:', error);
-      res.status(400).json({ message: "Invalid application data" });
+      res.status(400).json({ message: "Failed to submit join request" });
     }
   });
 

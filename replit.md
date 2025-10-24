@@ -4,6 +4,16 @@ Bid is a web-based procurement platform that facilitates private tender manageme
 
 # Recent Changes
 
+## October 24, 2025 - Improved Signup Flow & Profile Completion
+Implemented guided signup journey ensuring users complete their profiles before accessing the dashboard:
+- **Registration Redirect**: New users are now redirected to profile/pre-qualification pages instead of dashboard immediately after signup
+- **Requester Journey**: Register → Profile Creation → Dashboard (with Traction Link visible)
+- **Vendor Journey**: Register → Pre-Qualification → Dashboard (with verification status)
+- **Dashboard Profile Check**: Both dashboards now check profile completion on load and redirect if incomplete
+- **Welcome Messages**: Clear success messages guide users through the profile completion process
+- **No Circular Redirects**: Proper error state checking prevents redirect loops after profile completion
+- **Traction Link Visibility**: Requesters see their traction link only after completing their profile, solving the issue where new requesters couldn't find the Vendors Base features
+
 ## October 23, 2025 - Vendors Base System Implementation
 Implemented complete Vendors Base feature allowing requesters to build and manage their approved vendor network:
 - **Traction Link**: Auto-generated public link (/r/{slug}) where vendors can apply to join requester's base without prior registration

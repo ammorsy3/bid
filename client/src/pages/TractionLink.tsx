@@ -1,13 +1,12 @@
-import { useState } from "react";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, ExternalLink, CheckCircle2, Loader2 } from "lucide-react";
+import { useAuthStore } from "@/lib/auth";
+import { apiRequest } from "@/lib/queryClient";
+import { Building2, ExternalLink, CheckCircle2, Loader2, LogIn, UserPlus, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface TractionLinkData {
   requester: {
@@ -27,18 +26,10 @@ interface TractionLinkData {
 
 export default function TractionLink() {
   const [, params] = useRoute("/r/:slug");
+  const [, navigate] = useLocation();
   const slug = params?.slug;
   const { toast } = useToast();
-  const [submitted, setSubmitted] = useState(false);
-
-  const [formData, setFormData] = useState({
-    companyName: "",
-    contactName: "",
-    contactEmail: "",
-    contactPhone: "",
-    category: "",
-    notes: ""
-  });
+  const { user } = useAuthStore();
 
   // Fetch traction link data
   const { data, isLoading, error } = useQuery<TractionLinkData>({
@@ -46,47 +37,31 @@ export default function TractionLink() {
     enabled: !!slug
   });
 
-  // Submit application mutation
-  const submitApplication = useMutation({
-    mutationFn: async (applicationData: any) => {
-      const response = await fetch(`/api/r/${slug}/apply`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(applicationData)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to submit application");
-      }
-
-      return response.json();
+  // Join vendors base mutation
+  const joinBase = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", `/api/r/${slug}/apply`);
+      return await response.json();
     },
     onSuccess: () => {
-      setSubmitted(true);
       toast({
-        title: "Application submitted!",
-        description: "We'll notify you if your request is approved.",
+        title: "Request submitted!",
+        description: `Your request to join ${data?.profile.companyName}'s Vendors Base has been sent.`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Submission failed",
+        title: "Request failed",
         description: error.message,
         variant: "destructive",
       });
     }
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    submitApplication.mutate(formData);
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loader-page" />
       </div>
     );
   }
@@ -106,7 +81,13 @@ export default function TractionLink() {
     );
   }
 
-  if (submitted) {
+  // Determine vendor status and what action to show
+  const isVendor = user?.role === "vendor";
+  const hasProfile = user?.verificationStatus && user.verificationStatus !== 'not_verified';
+  const isRequester = user?.role === "requester";
+
+  // Success state - shown after joining
+  if (joinBase.isSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
         <Card className="max-w-md w-full mx-4">
@@ -114,16 +95,24 @@ export default function TractionLink() {
             <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
               <CheckCircle2 className="h-8 w-8 text-green-600" />
             </div>
-            <CardTitle className="text-2xl">Application Submitted!</CardTitle>
+            <CardTitle className="text-2xl" data-testid="text-success-title">Request Submitted!</CardTitle>
             <CardDescription className="text-base">
               Your request to join {data.profile.companyName}'s Vendors Base has been sent. 
-              We'll notify you at <span className="font-medium">{formData.contactEmail}</span> if approved.
+              You'll be notified if approved.
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
+          <CardContent className="text-center space-y-3">
             <p className="text-sm text-muted-foreground">
-              You can safely close this page.
+              The requester will review your profile and get back to you.
             </p>
+            <Button 
+              onClick={() => navigate("/dashboard")}
+              variant="outline"
+              className="w-full"
+              data-testid="button-go-dashboard"
+            >
+              Go to Dashboard
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -198,112 +187,110 @@ export default function TractionLink() {
           )}
         </Card>
 
-        {/* Application Form */}
+        {/* Join Action Card - Contextual based on user status */}
         <Card>
           <CardHeader>
-            <CardTitle data-testid="text-form-title">Join Our Vendors Base</CardTitle>
+            <CardTitle data-testid="text-join-title">Join Our Vendors Base</CardTitle>
             <CardDescription>
-              Submit your request to become an approved vendor and access future tender opportunities.
+              Get access to future tender opportunities from {data.profile.companyName}.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="companyName">Company Name *</Label>
-                  <Input
-                    id="companyName"
-                    required
-                    value={formData.companyName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
-                    placeholder="Your company name"
-                    data-testid="input-company-name"
-                  />
+          <CardContent className="space-y-4">
+            {/* If user is a requester */}
+            {isRequester && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Requester Account</AlertTitle>
+                <AlertDescription>
+                  This link is for vendors. You're logged in as a requester.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* If not logged in */}
+            {!user && (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  To join this Vendors Base, you need a vendor account. Sign in or create one to continue.
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => navigate("/auth?mode=login&redirect=" + encodeURIComponent(`/r/${slug}`))}
+                    size="lg"
+                    variant="outline"
+                    className="flex-1"
+                    data-testid="button-login"
+                  >
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Sign In
+                  </Button>
+                  <Button
+                    onClick={() => navigate("/auth?mode=register&role=vendor&redirect=" + encodeURIComponent(`/r/${slug}`))}
+                    size="lg"
+                    className="flex-1"
+                    data-testid="button-register"
+                  >
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Create Vendor Account
+                  </Button>
                 </div>
+              </>
+            )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="contactName">Contact Name *</Label>
-                  <Input
-                    id="contactName"
-                    required
-                    value={formData.contactName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, contactName: e.target.value }))}
-                    placeholder="Your full name"
-                    data-testid="input-contact-name"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="contactEmail">Contact Email *</Label>
-                  <Input
-                    id="contactEmail"
-                    type="email"
-                    required
-                    value={formData.contactEmail}
-                    onChange={(e) => setFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
-                    placeholder="your@email.com"
-                    data-testid="input-email"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
-                  <Input
-                    id="category"
-                    required
-                    value={formData.category}
-                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                    placeholder="e.g., IT Services, Construction"
-                    data-testid="input-category"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="contactPhone">Contact Phone (Optional)</Label>
-                <Input
-                  id="contactPhone"
-                  type="tel"
-                  value={formData.contactPhone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, contactPhone: e.target.value }))}
-                  placeholder="+966 xxx xxx xxx"
-                  data-testid="input-phone"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Message (Optional)</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                  placeholder="Tell us about your company and why you'd like to join..."
-                  rows={4}
-                  data-testid="input-notes"
-                />
-              </div>
-
-              <div className="flex gap-3">
+            {/* If logged in as vendor but no profile */}
+            {isVendor && !hasProfile && (
+              <>
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Profile Required</AlertTitle>
+                  <AlertDescription>
+                    Please complete your vendor profile before joining any Vendors Base.
+                  </AlertDescription>
+                </Alert>
                 <Button
-                  type="submit"
+                  onClick={() => navigate("/vendor/pre-qualification")}
                   size="lg"
-                  disabled={submitApplication.isPending}
-                  className="flex-1"
-                  data-testid="button-submit"
+                  className="w-full"
+                  data-testid="button-complete-profile"
                 >
-                  {submitApplication.isPending ? (
+                  Complete Your Profile
+                </Button>
+              </>
+            )}
+
+            {/* If logged in as vendor with profile - ONE CLICK JOIN */}
+            {isVendor && hasProfile && (
+              <>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-900">
+                    <strong>Ready to join!</strong> Click the button below to send your request. 
+                    We'll use your existing profile information.
+                  </p>
+                </div>
+                <Button
+                  onClick={() => joinBase.mutate()}
+                  disabled={joinBase.isPending}
+                  size="lg"
+                  className="w-full"
+                  data-testid="button-join-base"
+                >
+                  {joinBase.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Submitting...
                     </>
                   ) : (
-                    "Submit Application"
+                    <>
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Join Vendors Base
+                    </>
                   )}
                 </Button>
-              </div>
-            </form>
+                <p className="text-xs text-center text-muted-foreground">
+                  Your company name, contact details, and expertise from your profile will be shared with {data.profile.companyName}
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -311,8 +298,8 @@ export default function TractionLink() {
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="pt-6">
             <p className="text-sm text-blue-900">
-              <strong>What happens next?</strong> After submitting, {data.profile.companyName} will 
-              review your request. If approved, you'll be added to their Vendors Base and can access 
+              <strong>What happens next?</strong> After your request is submitted, {data.profile.companyName} will 
+              review your vendor profile. If approved, you'll be added to their Vendors Base and can access 
               future tender opportunities.
             </p>
           </CardContent>

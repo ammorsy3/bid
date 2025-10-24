@@ -118,21 +118,15 @@ export const vendorsBase = pgTable("vendors_base", {
   addedAt: timestamp("added_at").defaultNow(),
 });
 
-// Join Requests - Traction Link applications
+// Join Requests - Traction Link applications (references vendor data, no duplication)
 export const joinRequests = pgTable("join_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   requesterId: varchar("requester_id").notNull().references(() => users.id),
-  vendorId: varchar("vendor_id").references(() => users.id), // Null if vendor not yet registered
-  
-  // Application data
-  companyName: text("company_name").notNull(),
-  contactName: text("contact_name").notNull(),
-  contactEmail: text("contact_email").notNull(),
-  category: text("category"),
-  notes: text("notes"),
+  vendorId: varchar("vendor_id").notNull().references(() => users.id), // Always required - vendor account must exist
   
   // Status
   status: text("status").notNull().default("pending"), // 'pending' | 'approved' | 'rejected'
+  rejectionReason: text("rejection_reason"), // Optional reason for rejection
   
   createdAt: timestamp("created_at").defaultNow(),
   decidedAt: timestamp("decided_at"),
@@ -365,14 +359,11 @@ export const insertJoinRequestSchema = createInsertSchema(joinRequests).omit({
   decidedAt: true,
 });
 
+// Join request is now a simple reference - no form validation needed
 export const submitJoinRequestSchema = insertJoinRequestSchema.omit({
   requesterId: true,
-  vendorId: true,
   status: true,
-}).extend({
-  contactEmail: z.string().email("Invalid email address"),
-  companyName: z.string().min(2, "Company name is required"),
-  contactName: z.string().min(2, "Contact name is required"),
+  rejectionReason: true,
 });
 
 export const insertInvitationLinkSchema = createInsertSchema(invitationLinks).omit({

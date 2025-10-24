@@ -83,6 +83,7 @@ export interface IStorage {
   createJoinRequest(joinRequest: InsertJoinRequest): Promise<JoinRequest>;
   getJoinRequestsByRequesterId(requesterId: string, status?: string): Promise<(JoinRequest & { vendor?: User })[]>;
   getJoinRequestById(id: string): Promise<JoinRequest | undefined>;
+  getJoinRequestByVendorAndRequester(vendorId: string, requesterId: string): Promise<JoinRequest | undefined>;
   updateJoinRequestStatus(id: string, status: string): Promise<JoinRequest>;
   getPendingJoinRequestsCount(requesterId: string): Promise<number>;
   
@@ -376,12 +377,8 @@ export class DatabaseStorage implements IStorage {
         id: joinRequests.id,
         requesterId: joinRequests.requesterId,
         vendorId: joinRequests.vendorId,
-        companyName: joinRequests.companyName,
-        contactName: joinRequests.contactName,
-        contactEmail: joinRequests.contactEmail,
-        category: joinRequests.category,
-        notes: joinRequests.notes,
         status: joinRequests.status,
+        rejectionReason: joinRequests.rejectionReason,
         createdAt: joinRequests.createdAt,
         decidedAt: joinRequests.decidedAt,
         vendor: users,
@@ -399,6 +396,19 @@ export class DatabaseStorage implements IStorage {
 
   async getJoinRequestById(id: string): Promise<JoinRequest | undefined> {
     const [result] = await db.select().from(joinRequests).where(eq(joinRequests.id, id));
+    return result || undefined;
+  }
+
+  async getJoinRequestByVendorAndRequester(vendorId: string, requesterId: string): Promise<JoinRequest | undefined> {
+    const [result] = await db
+      .select()
+      .from(joinRequests)
+      .where(and(
+        eq(joinRequests.vendorId, vendorId),
+        eq(joinRequests.requesterId, requesterId)
+      ))
+      .orderBy(desc(joinRequests.createdAt))
+      .limit(1);
     return result || undefined;
   }
 

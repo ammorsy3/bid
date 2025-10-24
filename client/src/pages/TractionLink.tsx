@@ -248,7 +248,7 @@ export default function TractionLink() {
                   </AlertDescription>
                 </Alert>
                 <Button
-                  onClick={() => navigate("/vendor/pre-qualification")}
+                  onClick={() => navigate("/vendor-prequalification")}
                   size="lg"
                   className="w-full"
                   data-testid="button-complete-profile"

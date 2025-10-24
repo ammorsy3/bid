@@ -1,0 +1,54 @@
+Bid — Traction Link & Join Request (Unify with Vendor Account)
+Objective
+Replace the ad-hoc join form with a single, unified flow: a vendor uses (or creates) their Bid account to submit a Join Request. Data comes from the vendor’s existing account profile/compliance, not from a separate form.
+Key Changes
+No standalone join form. Traction Link routes to a “Join via Bid” funnel.
+New vendor: completes the same onboarding used in Pre-Qualification (Primary info → Compliance → Profile), then auto-creates account and auto-submits the Join Request.
+Existing vendor: enters email/CR → verify (OTP/magic link) → one click “Submit Join Request” (no extra fields).
+Join Requests store references to vendor_id (single source of truth).
+Flows
+A) New Vendor via Traction Link
+Identify: Enter email or CR → search.
+Not found → Onboard:
+Primary info (account basics)
+Compliance (CR/VAT/GOSI/National Address — private)
+Public Profile (display name, logo, header, bio, category, optional PDF, socials)
+Submit:
+Create vendor account
+Status → Under Review
+Auto-create public Profile
+Create Join Request (Pending) for that Requester
+Notify both sides.
+B) Existing Vendor via Traction Link
+Identify: Enter email or CR → match existing vendor.
+Verify: OTP/magic link (no full login page).
+Consent screen: “Share my existing profile with {Requester}.”
+Submit Join Request (instant, no extra forms).
+Notify both sides.
+C) Requester Review
+Join Requests: Pending → Approve (adds vendor to Vendors Base) / Reject.
+Vendors Base list shows Name + Profile button only.
+Rules & Policies
+Profiles already exist: show Profile button everywhere; do not duplicate profile fields in Vendors Base.
+Verification status independent from Base membership.
+Deduplicate by email and CR; prevent duplicate Join Requests within 24h.
+Consent checkbox to allow Requester to view the vendor’s public profile (default on).
+No legal docs displayed; they remain private in compliance.
+Minimal UX Copy
+Identify: “Enter your Email or CR to continue.”
+New: “Create your Bid vendor account to complete your request.”
+Existing: “We found your account. Verify to submit your request.”
+Submitted: “Request sent to {Requester}.”
+Approved: “You’re now in {Requester}’s Vendors Base.”
+Rejected: “Your request was not approved at this time.”
+Acceptance Criteria (DoD)
+Traction Link always starts with Email/CR identify step.
+New vendors finish onboarding once; account + profile created; Join Request auto-submitted.
+Existing vendors submit with one click after OTP.
+Requester can Approve/Reject; on Approve, vendor appears in Vendors Base.
+No duplicate profile data shown in the Base; Profile button only.
+Events logged: traction_link_opened, join_request_submitted, join_request_decided, vendor_added_to_base, vendors_base_viewed.
+Edge Cases
+Existing vendor with Under Review status can still submit a Join Request.
+If multiple Requesters, one vendor can have multiple Join Requests (separate records).
+If invitation link and traction link collide, first accepted path wins; second shows “already in base.”

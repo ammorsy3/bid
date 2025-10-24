@@ -4,6 +4,17 @@ Bid is a web-based procurement platform that facilitates private tender manageme
 
 # Recent Changes
 
+## October 24, 2025 - Unified Join Request System
+Refactored join request flow to eliminate data duplication and enforce vendor account requirement:
+- **Schema Simplification**: join_requests table now only stores references (vendorId, requesterId, status, rejectionReason) instead of duplicating vendor data
+- **Vendor Account Requirement**: All join requests now require an existing vendor account - vendorId is mandatory (non-nullable)
+- **Authentication Required**: /api/r/:slug/apply endpoint now requires vendor authentication before submission
+- **Deduplication Logic**: Prevents duplicate join requests to the same requester within 24 hours
+- **Profile-Based Display**: VendorsBase page now shows vendor information from vendor profile data instead of duplicate join request fields
+- **Single Source of Truth**: All vendor data (company name, email, expertise, verification status) comes from users and vendor_qualifications tables
+- **Data Migration**: Removed legacy join requests with null vendorId during migration
+- **Important Change**: Vendors must now have accounts before applying through traction links (future enhancement: onboarding flow for new vendors)
+
 ## October 24, 2025 - Improved Signup Flow & Profile Completion
 Implemented guided signup journey ensuring users complete their profiles before accessing the dashboard:
 - **Registration Redirect**: New users are now redirected to profile/pre-qualification pages instead of dashboard immediately after signup

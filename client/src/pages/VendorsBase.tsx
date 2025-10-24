@@ -26,14 +26,20 @@ interface VendorProfile {
 
 interface JoinRequest {
   id: string;
-  companyName: string;
-  contactEmail: string;
-  contactPhone: string;
-  category: string;
-  message: string | null;
+  requesterId: string;
+  vendorId: string;
   status: string;
-  vendorId: string | null;
+  rejectionReason: string | null;
   createdAt: string;
+  decidedAt: string | null;
+  vendor?: {
+    id: string;
+    name: string;
+    email: string;
+    company: string;
+    expertise: string | null;
+    verificationStatus: string;
+  };
 }
 
 export default function VendorsBase() {
@@ -273,10 +279,10 @@ export default function VendorsBase() {
                       <div className="flex items-start justify-between">
                         <div>
                           <CardTitle className="text-lg" data-testid={`text-request-company-${request.id}`}>
-                            {request.companyName}
+                            {request.vendor?.company || 'Unknown Vendor'}
                           </CardTitle>
                           <CardDescription data-testid={`text-request-category-${request.id}`}>
-                            {request.category}
+                            {request.vendor?.expertise || 'No category'}
                           </CardDescription>
                         </div>
                         <Dialog>
@@ -293,7 +299,7 @@ export default function VendorsBase() {
                           <DialogContent data-testid="dialog-review">
                             <DialogHeader>
                               <DialogTitle data-testid="text-dialog-title">
-                                Review Application: {selectedRequest?.companyName}
+                                Review Application: {selectedRequest?.vendor?.company || 'Unknown Vendor'}
                               </DialogTitle>
                               <DialogDescription>
                                 Decide whether to approve or reject this vendor application
@@ -305,35 +311,33 @@ export default function VendorsBase() {
                                   <div>
                                     <label className="text-sm font-medium">Company Name</label>
                                     <p className="text-sm text-muted-foreground" data-testid="text-dialog-company">
-                                      {selectedRequest.companyName}
+                                      {selectedRequest.vendor?.company || 'Unknown'}
                                     </p>
                                   </div>
                                   <div>
-                                    <label className="text-sm font-medium">Category</label>
-                                    <p className="text-sm text-muted-foreground" data-testid="text-dialog-category">
-                                      {selectedRequest.category}
+                                    <label className="text-sm font-medium">Contact Person</label>
+                                    <p className="text-sm text-muted-foreground" data-testid="text-dialog-contact">
+                                      {selectedRequest.vendor?.name || 'Unknown'}
                                     </p>
                                   </div>
                                   <div>
-                                    <label className="text-sm font-medium">Contact Email</label>
+                                    <label className="text-sm font-medium">Email</label>
                                     <p className="text-sm text-muted-foreground" data-testid="text-dialog-email">
-                                      {selectedRequest.contactEmail}
+                                      {selectedRequest.vendor?.email || 'Unknown'}
                                     </p>
                                   </div>
                                   <div>
-                                    <label className="text-sm font-medium">Contact Phone</label>
-                                    <p className="text-sm text-muted-foreground" data-testid="text-dialog-phone">
-                                      {selectedRequest.contactPhone}
+                                    <label className="text-sm font-medium">Expertise</label>
+                                    <p className="text-sm text-muted-foreground" data-testid="text-dialog-expertise">
+                                      {selectedRequest.vendor?.expertise || 'Not specified'}
                                     </p>
                                   </div>
-                                  {selectedRequest.message && (
-                                    <div>
-                                      <label className="text-sm font-medium">Message</label>
-                                      <p className="text-sm text-muted-foreground" data-testid="text-dialog-message">
-                                        {selectedRequest.message}
-                                      </p>
-                                    </div>
-                                  )}
+                                  <div>
+                                    <label className="text-sm font-medium">Verification Status</label>
+                                    <Badge variant={selectedRequest.vendor?.verificationStatus === 'verified' ? 'default' : 'secondary'}>
+                                      {selectedRequest.vendor?.verificationStatus || 'unknown'}
+                                    </Badge>
+                                  </div>
                                 </div>
                                 <div className="flex gap-3 pt-4">
                                   <Button
@@ -374,18 +378,18 @@ export default function VendorsBase() {
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center gap-2">
                           <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span data-testid={`text-request-email-${request.id}`}>{request.contactEmail}</span>
+                          <span data-testid={`text-request-email-${request.id}`}>{request.vendor?.email || 'N/A'}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span data-testid={`text-request-phone-${request.id}`}>{request.contactPhone}</span>
+                          <UserCheck className="h-4 w-4 text-muted-foreground" />
+                          <span data-testid={`text-request-name-${request.id}`}>{request.vendor?.name || 'N/A'}</span>
                         </div>
                       </div>
-                      {request.message && (
+                      {request.vendor?.expertise && (
                         <div className="flex items-start gap-2 text-sm">
-                          <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5" />
-                          <p className="text-muted-foreground" data-testid={`text-request-message-${request.id}`}>
-                            {request.message}
+                          <Building2 className="h-4 w-4 text-muted-foreground mt-0.5" />
+                          <p className="text-muted-foreground" data-testid={`text-request-expertise-${request.id}`}>
+                            {request.vendor.expertise}
                           </p>
                         </div>
                       )}
@@ -422,10 +426,10 @@ export default function VendorsBase() {
                     >
                       <div className="flex-1">
                         <p className="font-medium" data-testid={`text-history-company-${request.id}`}>
-                          {request.companyName}
+                          {request.vendor?.company || 'Unknown Vendor'}
                         </p>
                         <p className="text-sm text-muted-foreground" data-testid={`text-history-email-${request.id}`}>
-                          {request.contactEmail}
+                          {request.vendor?.email || 'No email'}
                         </p>
                       </div>
                       <Badge 

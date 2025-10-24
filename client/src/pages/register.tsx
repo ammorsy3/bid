@@ -55,7 +55,12 @@ export default function Register() {
       if (invitationToken) {
         setLocation(`/invite/${invitationToken}`);
       } else {
-        setLocation("/dashboard");
+        // Redirect to profile creation based on role
+        if (user.role === 'requester') {
+          setLocation("/requester-profile");
+        } else {
+          setLocation("/profile");
+        }
       }
     }
   }, [user, setLocation, invitationToken]);
@@ -64,14 +69,19 @@ export default function Register() {
     try {
       await register(data);
       toast({
-        title: "Success",
-        description: "Account created successfully",
+        title: "Success!",
+        description: "Account created successfully. Now let's set up your profile!",
       });
       // If there's an invitation token, redirect to the invitation page
       if (invitationToken) {
         setLocation(`/invite/${invitationToken}`);
       } else {
-        setLocation("/dashboard");
+        // Redirect to profile creation based on role
+        if (data.role === 'requester') {
+          setLocation("/requester-profile");
+        } else {
+          setLocation("/profile");
+        }
       }
     } catch (error) {
       toast({

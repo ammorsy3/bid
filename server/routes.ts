@@ -811,6 +811,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get vendor profile from join request (for requester review)
+  app.get("/api/join-requests/:id/profile", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.userRole !== 'requester') {
+        return res.status(403).json({ message: "Only requesters can view vendor profiles" });
+      }
+
+      const { id } = req.params;
+      const joinRequest = await storage.getJoinRequestById(id);
+      
+      if (!joinRequest) {
+        return res.status(404).json({ message: "Join request not found" });
+      }
+
+      if (joinRequest.requesterId !== req.userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get vendor user info
+      const vendor = await storage.getUser(joinRequest.vendorId);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+
+      // Get vendor qualification/profile
+      const qualification = await storage.getVendorQualificationByVendorId(joinRequest.vendorId);
+      
+      // Return filtered profile data (no legal/compliance documents)
+      res.json({
+        vendor: {
+          id: vendor.id,
+          name: vendor.name,
+          company: vendor.company,
+          verificationStatus: vendor.verificationStatus
+        },
+        profile: qualification ? {
+          displayName: qualification.displayName,
+          logoUrl: qualification.logoUrl,
+          headerUrl: qualification.headerUrl,
+          bio: qualification.bio,
+          category: qualification.category,
+          profileFileUrl: qualification.profileFileUrl, // Brochure/company profile
+          linkedinUrl: qualification.linkedinUrl,
+          xUrl: qualification.xUrl,
+          websiteUrl: qualification.websiteUrl
+        } : null
+      });
+    } catch (error) {
+      console.error('Get vendor profile from join request error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Traction Link routes (public)
   app.get("/api/r/:slug", async (req, res) => {
     try {

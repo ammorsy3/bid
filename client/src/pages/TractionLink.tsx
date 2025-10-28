@@ -225,7 +225,7 @@ export default function TractionLink() {
                     Sign In
                   </Button>
                   <Button
-                    onClick={() => navigate("/register?role=vendor&redirect=" + encodeURIComponent(`/r/${slug}`))}
+                    onClick={() => navigate("/vendor-onboarding?redirect=" + encodeURIComponent(`/r/${slug}`))}
                     size="lg"
                     className="flex-1"
                     data-testid="button-register"

@@ -33,6 +33,7 @@ export default function Register() {
   const urlParams = new URLSearchParams(search);
   const roleFromUrl = urlParams.get('role') as 'requester' | 'vendor' | null;
   const invitationToken = urlParams.get('token');
+  const redirectUrl = urlParams.get('redirect');
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -51,9 +52,11 @@ export default function Register() {
 
   useEffect(() => {
     if (user) {
-      // If there's an invitation token, redirect to the invitation page
+      // Priority: invitation token > custom redirect > default profile setup
       if (invitationToken) {
         setLocation(`/invite/${invitationToken}`);
+      } else if (redirectUrl) {
+        setLocation(decodeURIComponent(redirectUrl));
       } else {
         // Redirect to profile creation based on role
         if (user.role === 'requester') {
@@ -63,7 +66,7 @@ export default function Register() {
         }
       }
     }
-  }, [user, setLocation, invitationToken]);
+  }, [user, setLocation, invitationToken, redirectUrl]);
 
   const onSubmit = async (data: RegisterForm) => {
     try {
@@ -72,9 +75,11 @@ export default function Register() {
         title: "Success!",
         description: "Account created successfully. Now let's set up your profile!",
       });
-      // If there's an invitation token, redirect to the invitation page
+      // Priority: invitation token > custom redirect > default profile setup
       if (invitationToken) {
         setLocation(`/invite/${invitationToken}`);
+      } else if (redirectUrl) {
+        setLocation(decodeURIComponent(redirectUrl));
       } else {
         // Redirect to profile creation based on role
         if (data.role === 'requester') {

@@ -15,6 +15,7 @@ export const users = pgTable("users", {
   expertise: text("expertise"), // for vendors
   rating: text("rating").default("0"), // for vendors
   verificationStatus: text("verification_status").default("not_verified"), // 'not_verified', 'under_review', 'verified'
+  onboardingState: text("onboarding_state").default("completed"), // 'draft' | 'completed'
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -786,7 +786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Requester not found" });
       }
 
-      const applicationData = submitJoinRequestSchema.parse(req.body);
+      // No request body needed - we use the authenticated vendor's ID
       
       // Check for duplicate join request within 24 hours
       const existingRequest = await storage.getJoinRequestByVendorAndRequester(
@@ -803,9 +803,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Create join request with authenticated vendor
+      // Create join request with authenticated vendor - no body data needed
       const joinRequest = await storage.createJoinRequest({
-        ...applicationData,
         requesterId: profile.requesterId,
         vendorId: req.userId!,
       });

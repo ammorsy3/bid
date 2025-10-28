@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -23,10 +23,32 @@ import { useEffect } from "react";
 
 function Router() {
   const { user, checkAuth } = useAuthStore();
+  const [location, setLocation] = useLocation();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  // Redirect vendors with draft onboarding state to complete onboarding
+  useEffect(() => {
+    if (user && user.role === 'vendor' && user.onboardingState === 'draft') {
+      // Strip query params to correctly identify public pages
+      const pathname = location.split('?')[0];
+      
+      // Exclude auth pages and onboarding page itself from redirect
+      const isPublicPage = 
+        pathname === '/' ||
+        pathname === '/login' ||
+        pathname === '/register' ||
+        pathname.startsWith('/vendor-onboarding');
+      
+      if (!isPublicPage) {
+        // Preserve the intended destination as a redirect parameter
+        const redirectParam = encodeURIComponent(location);
+        setLocation(`/vendor-onboarding?redirect=${redirectParam}`);
+      }
+    }
+  }, [user, location, setLocation]);
 
   return (
     <Switch>

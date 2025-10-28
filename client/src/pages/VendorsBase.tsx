@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Users, CheckCircle, XCircle, Loader2, Building2, Mail, Phone, MessageSquare, UserCheck, FileText, UserPlus } from "lucide-react";
+import { Search, Users, CheckCircle, XCircle, Loader2, Building2, Mail, Phone, MessageSquare, UserCheck, FileText, UserPlus, Eye, ShieldCheck, Clock } from "lucide-react";
+import VendorProfileDrawer from "@/components/VendorProfileDrawer";
 
 interface VendorProfile {
   id: string;
@@ -46,6 +47,8 @@ export default function VendorsBase() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
+  const [profileDrawerOpen, setProfileDrawerOpen] = useState(false);
+  const [profileJoinRequestId, setProfileJoinRequestId] = useState<string | null>(null);
 
   // Fetch vendors in base
   const { data: vendors = [], isLoading: loadingVendors } = useQuery<VendorProfile[]>({
@@ -277,25 +280,61 @@ export default function VendorsBase() {
                   <Card key={request.id} className="border-primary/20" data-testid={`card-request-${request.id}`}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-lg" data-testid={`text-request-company-${request.id}`}>
-                            {request.vendor?.company || 'Unknown Vendor'}
-                          </CardTitle>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <CardTitle className="text-lg" data-testid={`text-request-company-${request.id}`}>
+                              {request.vendor?.company || 'Unknown Vendor'}
+                            </CardTitle>
+                            <Badge 
+                              variant={
+                                request.vendor?.verificationStatus === 'verified' ? 'default' :
+                                request.vendor?.verificationStatus === 'under_review' ? 'secondary' :
+                                'outline'
+                              }
+                              className={
+                                request.vendor?.verificationStatus === 'verified' 
+                                  ? 'bg-green-100 text-green-800 border-green-200' 
+                                  : request.vendor?.verificationStatus === 'under_review'
+                                  ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                                  : 'bg-gray-100 text-gray-800 border-gray-200'
+                              }
+                              data-testid={`badge-request-status-${request.id}`}
+                            >
+                              {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 mr-1" />}
+                              {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 mr-1" />}
+                              {request.vendor?.verificationStatus === 'verified' ? 'Verified' : 
+                               request.vendor?.verificationStatus === 'under_review' ? 'Under Review' : 
+                               'Not Verified'}
+                            </Badge>
+                          </div>
                           <CardDescription data-testid={`text-request-category-${request.id}`}>
                             {request.vendor?.expertise || 'No category'}
                           </CardDescription>
                         </div>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setSelectedRequest(request)}
-                              data-testid={`button-review-${request.id}`}
-                            >
-                              Review
-                            </Button>
-                          </DialogTrigger>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setProfileJoinRequestId(request.id);
+                              setProfileDrawerOpen(true);
+                            }}
+                            data-testid={`button-view-profile-${request.id}`}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Profile
+                          </Button>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setSelectedRequest(request)}
+                                data-testid={`button-review-${request.id}`}
+                              >
+                                Review
+                              </Button>
+                            </DialogTrigger>
                           <DialogContent data-testid="dialog-review">
                             <DialogHeader>
                               <DialogTitle data-testid="text-dialog-title">
@@ -372,6 +411,7 @@ export default function VendorsBase() {
                             )}
                           </DialogContent>
                         </Dialog>
+                      </div>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-2">
@@ -450,6 +490,18 @@ export default function VendorsBase() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Vendor Profile Drawer */}
+      {profileJoinRequestId && (
+        <VendorProfileDrawer
+          open={profileDrawerOpen}
+          onClose={() => {
+            setProfileDrawerOpen(false);
+            setProfileJoinRequestId(null);
+          }}
+          joinRequestId={profileJoinRequestId}
+        />
+      )}
     </div>
   );
 }

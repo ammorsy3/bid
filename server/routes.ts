@@ -148,6 +148,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Vendor onboarding - Step 1: Create account with draft status
+  app.post("/api/vendor-register-step1", async (req, res) => {
+    try {
+      const { username, email, password, name, company } = req.body;
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await storage.createUser({
+        username,
+        email,
+        password: hashedPassword,
+        name,
+        role: 'vendor',
+        company,
+        onboardingState: 'draft', // Mark as draft until profile is completed
+      });
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { userId: user.id, role: user.role },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      res.json({ 
+        token,
+        userId: user.id,
+        message: "Account created successfully"
+      });
+    } catch (error) {
+      console.error('Vendor registration step 1 error:', error);
+      res.status(400).json({ message: "Failed to create account" });
+    }
+  });
+
+  // Vendor onboarding - Step 2: Complete profile
+  app.post("/api/vendor-register-step2", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (req.userRole !== 'vendor') {
+        return res.status(403).json({ message: "Only vendors can complete vendor profiles" });
+      }
+
+      // Create vendor qualification
+      const qualificationData = {
+        vendorId: req.userId!,
+        legalCompanyName: req.body.legalCompanyName,
+        crNumber: req.body.crNumber,
+        vatCertificateUrl: req.body.vatCertificateUrl || null,
+        vatNumber: req.body.vatNumber || null,
+        gosiCertificateUrl: req.body.gosiCertificateUrl || null,
+        nationalAddressCertificateUrl: req.body.nationalAddressCertificateUrl || null,
+        displayName: req.body.displayName,
+        logoUrl: req.body.logoUrl || null,
+        headerUrl: req.body.headerUrl || null,
+        bio: req.body.bio,
+        category: req.body.category,
+        profileFileUrl: req.body.profileFileUrl || null,
+        linkedinUrl: req.body.linkedinUrl || null,
+        xUrl: req.body.xUrl || null,
+        websiteUrl: req.body.websiteUrl || null,
+      };
+
+      await storage.createVendorQualification(qualificationData);
+
+      // Update user onboardingState to completed and verificationStatus to under_review
+      await storage.updateUser(req.userId!, {
+        onboardingState: 'completed',
+        verificationStatus: 'under_review'
+      });
+
+      res.json({ message: "Profile completed successfully" });
+    } catch (error) {
+      console.error('Vendor registration step 2 error:', error);
+      res.status(400).json({ message: "Failed to create profile" });
+    }
+  });
+
   // Tender routes
   app.post("/api/tenders", authenticateToken, async (req: AuthRequest, res) => {
     try {

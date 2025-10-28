@@ -11,6 +11,7 @@ import RequesterDashboard from "@/pages/requester-dashboard";
 import RequesterProfile from "@/pages/RequesterProfile";
 import VendorDashboard from "@/pages/vendor-dashboard";
 import VendorPreQualification from "@/pages/VendorPreQualification";
+import VendorOnboarding from "@/pages/VendorOnboarding";
 import TenderDetails from "@/pages/tender-details";
 import InvitationLinks from "@/pages/invitation-links";
 import InvitationSignup from "@/pages/invitation-signup";
@@ -38,6 +39,7 @@ function Router() {
       <Route path="/requester-profile" component={RequesterProfile} />
       <Route path="/vendor-dashboard" component={VendorDashboard} />
       <Route path="/vendor-prequalification" component={VendorPreQualification} />
+      <Route path="/vendor-onboarding" component={VendorOnboarding} />
       <Route path="/tenders/:id" component={TenderDetails} />
       <Route path="/tenders/:id/invitations" component={InvitationLinks} />
       <Route path="/invite/:token" component={InvitationSignup} />

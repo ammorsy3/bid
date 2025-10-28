@@ -25,6 +25,7 @@ export default function Login() {
   
   const urlParams = new URLSearchParams(search);
   const invitationToken = urlParams.get('token');
+  const redirectUrl = urlParams.get('redirect');
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -36,14 +37,16 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      // If there's an invitation token, redirect to the invitation page
+      // Priority: invitation token > custom redirect > default dashboard
       if (invitationToken) {
         setLocation(`/invite/${invitationToken}`);
+      } else if (redirectUrl) {
+        setLocation(decodeURIComponent(redirectUrl));
       } else {
         setLocation("/dashboard");
       }
     }
-  }, [user, setLocation, invitationToken]);
+  }, [user, setLocation, invitationToken, redirectUrl]);
 
   const onSubmit = async (data: LoginForm) => {
     try {
@@ -52,9 +55,11 @@ export default function Login() {
         title: "Success",
         description: "Logged in successfully",
       });
-      // If there's an invitation token, redirect to the invitation page
+      // Priority: invitation token > custom redirect > default dashboard
       if (invitationToken) {
         setLocation(`/invite/${invitationToken}`);
+      } else if (redirectUrl) {
+        setLocation(decodeURIComponent(redirectUrl));
       } else {
         setLocation("/dashboard");
       }

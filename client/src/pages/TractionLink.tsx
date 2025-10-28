@@ -215,7 +215,7 @@ export default function TractionLink() {
                 </p>
                 <div className="flex gap-3">
                   <Button
-                    onClick={() => navigate("/auth?mode=login&redirect=" + encodeURIComponent(`/r/${slug}`))}
+                    onClick={() => navigate("/login?redirect=" + encodeURIComponent(`/r/${slug}`))}
                     size="lg"
                     variant="outline"
                     className="flex-1"
@@ -225,7 +225,7 @@ export default function TractionLink() {
                     Sign In
                   </Button>
                   <Button
-                    onClick={() => navigate("/auth?mode=register&role=vendor&redirect=" + encodeURIComponent(`/r/${slug}`))}
+                    onClick={() => navigate("/register?role=vendor&redirect=" + encodeURIComponent(`/r/${slug}`))}
                     size="lg"
                     className="flex-1"
                     data-testid="button-register"

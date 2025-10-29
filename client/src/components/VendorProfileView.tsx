@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Clock, AlertCircle, ExternalLink, FileText, Building2 } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, ExternalLink, FileText, Building2, Globe } from "lucide-react";
 import { SiLinkedin } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -29,51 +29,47 @@ export default function VendorProfileView({ profile, compact = false }: VendorPr
     switch (profile.verificationStatus) {
       case 'verified':
         return (
-          <Badge className="bg-success-600 text-white" data-testid="status-verified">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
+          <Badge className="bg-success-600 text-white px-3 py-1" data-testid="status-verified">
+            <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
             Verified
           </Badge>
         );
       case 'under_review':
         return (
-          <Badge className="bg-primary-600 text-white" data-testid="status-under-review">
-            <Clock className="h-3 w-3 mr-1" />
+          <Badge className="bg-primary-600 text-white px-3 py-1" data-testid="status-under-review">
+            <Clock className="h-3.5 w-3.5 mr-1.5" />
             Under Review
           </Badge>
         );
       default:
         return (
-          <Badge variant="outline" className="border-neutral-300 text-neutral-600" data-testid="status-not-verified">
-            <AlertCircle className="h-3 w-3 mr-1" />
+          <Badge variant="outline" className="border-neutral-400 text-neutral-700 px-3 py-1" data-testid="status-not-verified">
+            <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
             Not Verified
           </Badge>
         );
     }
   };
 
-  const headerStyle = profile.headerUrl
-    ? { backgroundImage: `url(${profile.headerUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-    : { backgroundColor: '#f3f4f6' };
-
   if (compact) {
     return (
-      <Card className="p-4">
+      <Card className="p-4 hover:shadow-md transition-shadow">
         <div className="flex items-start gap-4">
           {profile.logoUrl ? (
             <img 
               src={profile.logoUrl} 
               alt={profile.displayName}
-              className="w-16 h-16 rounded-lg object-cover border border-neutral-200"
+              className="w-16 h-16 rounded-lg object-contain bg-white border border-neutral-200 p-1.5 flex-shrink-0"
               data-testid="img-vendor-logo"
             />
           ) : (
-            <div className="w-16 h-16 rounded-lg bg-neutral-100 flex items-center justify-center border border-neutral-200">
+            <div className="w-16 h-16 rounded-lg bg-neutral-50 flex items-center justify-center border border-neutral-200 flex-shrink-0">
               <Building2 className="h-8 w-8 text-neutral-400" />
             </div>
           )}
           
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <h3 className="text-lg font-semibold text-neutral-900 truncate" data-testid="text-vendor-name">
                 {profile.displayName}
               </h3>
@@ -84,7 +80,7 @@ export default function VendorProfileView({ profile, compact = false }: VendorPr
               <div className="mb-2">
                 <Badge 
                   variant="outline" 
-                  className="text-xs"
+                  className="text-xs bg-primary-50 border-primary-200 text-primary-700"
                   data-testid="tag-category"
                 >
                   {profile.category}
@@ -104,114 +100,137 @@ export default function VendorProfileView({ profile, compact = false }: VendorPr
   }
 
   return (
-    <Card className="overflow-hidden">
-      {/* Header */}
-      <div className="h-32" style={headerStyle} data-testid="vendor-header" />
+    <Card className="overflow-hidden shadow-lg">
+      {/* Premium Hero Header */}
+      <div className="relative">
+        {profile.headerUrl ? (
+          <div 
+            className="h-48 md:h-64 bg-cover bg-center"
+            style={{ backgroundImage: `url(${profile.headerUrl})` }}
+            data-testid="vendor-header"
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/40" />
+          </div>
+        ) : (
+          <div 
+            className="h-48 md:h-64 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700"
+            data-testid="vendor-header"
+          >
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-10 right-10 w-32 h-32 bg-white rounded-full blur-3xl" />
+              <div className="absolute bottom-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
+            </div>
+          </div>
+        )}
+      </div>
       
       {/* Profile Content */}
-      <div className="p-6">
-        {/* Logo and Name */}
-        <div className="flex items-start gap-4 mb-6 -mt-16">
-          {profile.logoUrl ? (
-            <img 
-              src={profile.logoUrl} 
-              alt={profile.displayName}
-              className="w-24 h-24 rounded-xl object-cover border-4 border-white shadow-lg"
-              data-testid="img-vendor-logo"
-            />
-          ) : (
-            <div className="w-24 h-24 rounded-xl bg-white border-4 border-white shadow-lg flex items-center justify-center">
-              <Building2 className="h-12 w-12 text-neutral-400" />
-            </div>
-          )}
+      <div className="px-6 pb-8">
+        {/* Logo and Name Section */}
+        <div className="flex flex-col md:flex-row md:items-end gap-4 mb-8 -mt-12 md:-mt-16">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            {profile.logoUrl ? (
+              <img 
+                src={profile.logoUrl} 
+                alt={profile.displayName}
+                className="w-28 h-28 md:w-32 md:h-32 rounded-2xl object-contain bg-white border-4 border-white shadow-2xl p-3"
+                data-testid="img-vendor-logo"
+              />
+            ) : (
+              <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-white border-4 border-white shadow-2xl flex items-center justify-center">
+                <Building2 className="h-14 w-14 md:h-16 md:w-16 text-neutral-400" />
+              </div>
+            )}
+          </div>
           
-          <div className="flex-1 mt-12">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-2xl font-bold text-neutral-900" data-testid="text-vendor-name">
-                {profile.displayName}
-              </h2>
+          {/* Name and Status */}
+          <div className="flex-1 md:mb-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-3" data-testid="text-vendor-name">
+              {profile.displayName}
+            </h2>
+            <div className="flex items-center gap-2 flex-wrap">
               {getStatusBadge()}
+              {profile.category && (
+                <Badge 
+                  variant="outline"
+                  className="bg-primary-50 border-primary-200 text-primary-700 px-3 py-1"
+                  data-testid="tag-category"
+                >
+                  {profile.category}
+                </Badge>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Category */}
-        {profile.category && (
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-neutral-700 mb-2">Category</h3>
-            <Badge 
-              variant="outline"
-              data-testid="tag-category"
-            >
-              {profile.category}
-            </Badge>
-          </div>
-        )}
-
-        {/* Bio */}
+        {/* About Section */}
         {profile.bio && (
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-neutral-700 mb-2">About</h3>
-            <p className="text-neutral-600 whitespace-pre-wrap" data-testid="text-bio">
+          <div className="mb-8">
+            <h3 className="text-sm font-semibold text-neutral-900 mb-3 uppercase tracking-wide">About</h3>
+            <p className="text-neutral-700 leading-relaxed" data-testid="text-bio">
               {profile.bio}
             </p>
           </div>
         )}
 
-        {/* Profile PDF */}
+        {/* Profile PDF Button */}
         {profile.profileFileUrl && (
-          <div className="mb-6">
+          <div className="mb-8">
             <Button 
               variant="outline" 
-              className="w-full"
+              className="w-full md:w-auto border-2 hover:border-primary-600 hover:text-primary-600 transition-all"
               onClick={() => window.open(profile.profileFileUrl, '_blank')}
               data-testid="button-view-brochure"
             >
               <FileText className="h-4 w-4 mr-2" />
-              View Company Brochure
+              View Company Profile
               <ExternalLink className="h-4 w-4 ml-2" />
             </Button>
           </div>
         )}
 
-        {/* Social Links */}
+        {/* Social Links - Icon based */}
         {(profile.linkedinUrl || profile.xUrl || profile.websiteUrl) && (
           <div>
-            <h3 className="text-sm font-medium text-neutral-700 mb-3">Connect</h3>
-            <div className="flex gap-3">
+            <h3 className="text-sm font-semibold text-neutral-900 mb-3 uppercase tracking-wide">Connect</h3>
+            <div className="flex gap-2 flex-wrap">
               {profile.linkedinUrl && (
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
+                  className="h-10 w-10 rounded-full hover:bg-primary-50 hover:border-primary-600 hover:text-primary-600 transition-all"
                   onClick={() => window.open(profile.linkedinUrl, '_blank')}
                   data-testid="link-linkedin"
+                  title="LinkedIn"
                 >
-                  <SiLinkedin className="h-4 w-4 mr-2" />
-                  LinkedIn
+                  <SiLinkedin className="h-5 w-5" />
                 </Button>
               )}
               
               {profile.xUrl && (
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
+                  className="h-10 w-10 rounded-full hover:bg-primary-50 hover:border-primary-600 hover:text-primary-600 transition-all"
                   onClick={() => window.open(profile.xUrl, '_blank')}
                   data-testid="link-x"
+                  title="X (Twitter)"
                 >
-                  <FaXTwitter className="h-4 w-4 mr-2" />
-                  X
+                  <FaXTwitter className="h-5 w-5" />
                 </Button>
               )}
               
               {profile.websiteUrl && (
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
+                  className="h-10 w-10 rounded-full hover:bg-primary-50 hover:border-primary-600 hover:text-primary-600 transition-all"
                   onClick={() => window.open(profile.websiteUrl, '_blank')}
                   data-testid="link-website"
+                  title="Website"
                 >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Website
+                  <Globe className="h-5 w-5" />
                 </Button>
               )}
             </div>

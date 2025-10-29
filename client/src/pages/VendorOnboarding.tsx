@@ -7,12 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { SmartTextarea } from "@/components/ui/smart-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ChevronLeft, ChevronRight, Loader2, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, CheckCircle2, Upload } from "lucide-react";
+import { ObjectUploader } from "@/components/ObjectUploader";
+import { VENDOR_CATEGORIES } from "@shared/schema";
+import type { UploadResult } from "@uppy/core";
 
 // Step 1: Account credentials
 const step1Schema = z.object({
@@ -23,20 +26,23 @@ const step1Schema = z.object({
   company: z.string().min(2, "Company name is required"),
 });
 
-// Step 2: Vendor pre-qualification (files temporarily optional for smooth onboarding)
+// Step 2: Vendor pre-qualification (identical to VendorPreQualification)
 const step2Schema = z.object({
-  legalCompanyName: z.string().min(1, "Legal company name is required"),
-  crNumber: z.string().regex(/^\d+$/, "CR number must contain only numbers").min(10, "CR number must be at least 10 digits"),
-  vatCertificateUrl: z.string().optional().or(z.literal("")),
-  vatNumber: z.string().optional().or(z.literal("")),
-  gosiCertificateUrl: z.string().optional().or(z.literal("")), // Temporarily optional
-  nationalAddressCertificateUrl: z.string().optional().or(z.literal("")), // Temporarily optional
-  displayName: z.string().min(1, "Display name is required"),
-  logoUrl: z.string().optional().or(z.literal("")), // Temporarily optional
-  headerUrl: z.string().optional().or(z.literal("")),
-  bio: z.string().min(20, "Bio must be at least 20 characters"),
-  category: z.string().min(1, "Category is required"),
-  profileFileUrl: z.string().optional().or(z.literal("")), // Temporarily optional
+  // Legal & Compliance
+  legalCompanyName: z.string().min(2, "Company name is required").max(120),
+  crNumber: z.string().regex(/^\d+$/, "CR number must contain only numbers"),
+  vatCertificateUrl: z.string().optional(),
+  vatNumber: z.string().optional(),
+  gosiCertificateUrl: z.string().min(1, "GOSI certificate is required"),
+  nationalAddressCertificateUrl: z.string().min(1, "National Address certificate is required"),
+  
+  // Public Profile
+  displayName: z.string().min(2, "Display name is required").max(60),
+  logoUrl: z.string().min(1, "Company logo is required"),
+  headerUrl: z.string().optional(),
+  bio: z.string().min(5, "Bio must be at least 5 characters").max(100, "Bio must not exceed 100 characters"),
+  category: z.string().min(1, "Please select a category"),
+  profileFileUrl: z.string().min(1, "Company profile is required"),
   linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   xUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
@@ -45,18 +51,8 @@ const step2Schema = z.object({
 type Step1Form = z.infer<typeof step1Schema>;
 type Step2Form = z.infer<typeof step2Schema>;
 
-const CATEGORIES = [
-  "Construction & Infrastructure",
-  "IT & Technology",
-  "Consulting & Professional Services",
-  "Manufacturing & Industrial",
-  "Healthcare & Medical",
-  "Transportation & Logistics",
-  "Energy & Utilities",
-  "Food & Hospitality",
-  "Marketing & Communications",
-  "Other"
-];
+// Helper to count words in bio
+const countWords = (text: string) => text.trim().split(/\s+/).filter(word => word.length > 0).length;
 
 export default function VendorOnboarding() {
   const [, setLocation] = useLocation();
@@ -66,6 +62,14 @@ export default function VendorOnboarding() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<{
+    vat?: string;
+    gosi?: string;
+    nationalAddress?: string;
+    logo?: string;
+    header?: string;
+    companyProfile?: string;
+  }>({});
 
   const urlParams = new URLSearchParams(search);
   const redirectUrl = urlParams.get('redirect');
@@ -104,6 +108,33 @@ export default function VendorOnboarding() {
     },
   });
 
+  const handleGetUploadURL = async () => {
+    const response = await apiRequest('POST', '/api/objects/upload', {});
+    const data = await response.json();
+    return {
+      method: 'PUT' as const,
+      url: data.uploadURL,
+    };
+  };
+
+  const handleFileUpload = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>, fieldName: keyof Step2Form, fileKey: string) => {
+    if (result.successful && result.successful[0]) {
+      const uploadURL = result.successful[0].uploadURL;
+      
+      const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', {
+        fileURL: uploadURL,
+      });
+      const { objectPath } = await metadataResponse.json();
+      
+      step2Form.setValue(fieldName, objectPath, { shouldValidate: true, shouldDirty: true });
+      setUploadedFiles(prev => ({ ...prev, [fileKey]: result.successful![0].name }));
+      
+      toast({
+        title: "Uploaded!",
+        description: `${result.successful[0].name} uploaded successfully`,
+      });
+    }
+  };
 
   const handleStep1Submit = async (data: Step1Form) => {
     setIsSubmitting(true);
@@ -291,22 +322,27 @@ export default function VendorOnboarding() {
           </Card>
         )}
 
-        {/* Step 2: Vendor profile - simplified for now, will expand */}
+        {/* Step 2: Vendor profile (identical to VendorPreQualification) */}
         {currentStep === 2 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Complete Your Vendor Profile</CardTitle>
-              <CardDescription>
-                Step 2 of 2: Provide your company details and qualifications
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...step2Form}>
-                <form onSubmit={step2Form.handleSubmit(handleStep2Submit)} className="space-y-6">
-                  {/* Legal & Compliance Section */}
-                  <div className="space-y-4">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Complete Your Vendor Profile</CardTitle>
+                <CardDescription>
+                  Step 2 of 2: Provide your company details and qualifications
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Form {...step2Form}>
+              <form onSubmit={step2Form.handleSubmit(handleStep2Submit)} className="space-y-6">
+                {/* Legal & Compliance Section */}
+                <Card className="p-6">
+                  <div className="flex items-center gap-2 mb-6">
                     <h3 className="text-lg font-semibold">Legal & Compliance</h3>
-                    
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={step2Form.control}
                       name="legalCompanyName"
@@ -328,19 +364,149 @@ export default function VendorOnboarding() {
                         <FormItem>
                           <FormLabel>CR Number *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Numeric only" {...field} data-testid="input-cr-number" />
+                            <Input 
+                              {...field}
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/\D/g, '');
+                                field.onChange(value);
+                              }}
+                              placeholder="Numeric only"
+                              data-testid="input-cr-number"
+                            />
                           </FormControl>
-                          <FormDescription>Enter numbers only</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={step2Form.control}
+                      name="vatCertificateUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>VAT Certificate (if applicable)</FormLabel>
+                          <FormControl>
+                            <div className="space-y-2">
+                              <ObjectUploader
+                                maxNumberOfFiles={1}
+                                maxFileSize={10485760}
+                                allowedFileTypes={['.pdf', '.jpg', '.jpeg', '.png']}
+                                onGetUploadParameters={handleGetUploadURL}
+                                onComplete={(result) => handleFileUpload(result, 'vatCertificateUrl', 'vat')}
+                                buttonVariant="outline"
+                                buttonClassName="w-full"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Upload className="h-4 w-4" />
+                                  <span>Upload VAT Certificate</span>
+                                </div>
+                              </ObjectUploader>
+                              {uploadedFiles.vat && (
+                                <p className="text-sm text-green-600 flex items-center gap-1">
+                                  <CheckCircle2 className="h-4 w-4" />
+                                  {uploadedFiles.vat}
+                                </p>
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={step2Form.control}
+                      name="vatNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>VAT Number (if applicable)</FormLabel>
+                          <FormControl>
+                            <Input {...field} data-testid="input-vat-number" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={step2Form.control}
+                      name="gosiCertificateUrl"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>GOSI Certificate *</FormLabel>
+                          <FormControl>
+                            <div className="space-y-2">
+                              <ObjectUploader
+                                maxNumberOfFiles={1}
+                                maxFileSize={10485760}
+                                allowedFileTypes={['.pdf', '.jpg', '.jpeg', '.png']}
+                                onGetUploadParameters={handleGetUploadURL}
+                                onComplete={(result) => handleFileUpload(result, 'gosiCertificateUrl', 'gosi')}
+                                buttonVariant="outline"
+                                buttonClassName="w-full"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Upload className="h-4 w-4" />
+                                  <span>Upload GOSI Certificate</span>
+                                </div>
+                              </ObjectUploader>
+                              {uploadedFiles.gosi && (
+                                <p className="text-sm text-green-600 flex items-center gap-1">
+                                  <CheckCircle2 className="h-4 w-4" />
+                                  {uploadedFiles.gosi}
+                                </p>
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={step2Form.control}
+                      name="nationalAddressCertificateUrl"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>National Address Certificate *</FormLabel>
+                          <FormControl>
+                            <div className="space-y-2">
+                              <ObjectUploader
+                                maxNumberOfFiles={1}
+                                maxFileSize={10485760}
+                                allowedFileTypes={['.pdf', '.jpg', '.jpeg', '.png']}
+                                onGetUploadParameters={handleGetUploadURL}
+                                onComplete={(result) => handleFileUpload(result, 'nationalAddressCertificateUrl', 'nationalAddress')}
+                                buttonVariant="outline"
+                                buttonClassName="w-full"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Upload className="h-4 w-4" />
+                                  <span>Upload National Address Certificate</span>
+                                </div>
+                              </ObjectUploader>
+                              {uploadedFiles.nationalAddress && (
+                                <p className="text-sm text-green-600 flex items-center gap-1">
+                                  <CheckCircle2 className="h-4 w-4" />
+                                  {uploadedFiles.nationalAddress}
+                                </p>
+                              )}
+                            </div>
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
+                </Card>
 
-                  {/* Public Profile Section */}
-                  <div className="space-y-4">
+                {/* Public Profile Section */}
+                <Card className="p-6">
+                  <div className="flex items-center gap-2 mb-6">
                     <h3 className="text-lg font-semibold">Public Profile</h3>
-                    
+                  </div>
+
+                  <div className="space-y-6">
                     <FormField
                       control={step2Form.control}
                       name="displayName"
@@ -350,10 +516,83 @@ export default function VendorOnboarding() {
                           <FormControl>
                             <Input {...field} data-testid="input-display-name" />
                           </FormControl>
+                          <FormDescription>How your company will appear to requesters</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <FormField
+                        control={step2Form.control}
+                        name="logoUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Logo *</FormLabel>
+                            <FormControl>
+                              <div className="space-y-2">
+                                <ObjectUploader
+                                  maxNumberOfFiles={1}
+                                  maxFileSize={5242880}
+                                  allowedFileTypes={['.jpg', '.jpeg', '.png']}
+                                  onGetUploadParameters={handleGetUploadURL}
+                                  onComplete={(result) => handleFileUpload(result, 'logoUrl', 'logo')}
+                                  buttonVariant="outline"
+                                  buttonClassName="w-full"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <Upload className="h-4 w-4" />
+                                    <span>Upload Logo (512x512 min)</span>
+                                  </div>
+                                </ObjectUploader>
+                                {uploadedFiles.logo && (
+                                  <p className="text-sm text-green-600 flex items-center gap-1">
+                                    <CheckCircle2 className="h-4 w-4" />
+                                    {uploadedFiles.logo}
+                                  </p>
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={step2Form.control}
+                        name="headerUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Header Image</FormLabel>
+                            <FormControl>
+                              <div className="space-y-2">
+                                <ObjectUploader
+                                  maxNumberOfFiles={1}
+                                  maxFileSize={5242880}
+                                  allowedFileTypes={['.jpg', '.jpeg', '.png']}
+                                  onGetUploadParameters={handleGetUploadURL}
+                                  onComplete={(result) => handleFileUpload(result, 'headerUrl', 'header')}
+                                  buttonVariant="outline"
+                                  buttonClassName="w-full"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <Upload className="h-4 w-4" />
+                                    <span>Upload Header Image</span>
+                                  </div>
+                                </ObjectUploader>
+                                {uploadedFiles.header && (
+                                  <p className="text-sm text-green-600 flex items-center gap-1">
+                                    <CheckCircle2 className="h-4 w-4" />
+                                    {uploadedFiles.header}
+                                  </p>
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
                     <FormField
                       control={step2Form.control}
@@ -362,14 +601,22 @@ export default function VendorOnboarding() {
                         <FormItem>
                           <FormLabel>Short Bio *</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="Tell requesters about your company..."
-                              className="min-h-[100px]"
-                              {...field}
+                            <SmartTextarea 
+                              {...field} 
+                              rows={4}
+                              maxLength={100}
+                              placeholder="Describe your company, services, and expertise (5-100 characters)"
                               data-testid="input-bio"
                             />
                           </FormControl>
-                          <FormDescription>Minimum 20 characters</FormDescription>
+                          <FormDescription>
+                            <div className="flex items-center justify-between">
+                              <span>Keep it clear and focused on your services</span>
+                              <span className="text-gray-500">
+                                {(field.value || "").length} / 100 characters
+                              </span>
+                            </div>
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -384,58 +631,133 @@ export default function VendorOnboarding() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-category">
-                                <SelectValue placeholder="Select your primary category" />
+                                <SelectValue placeholder="Select a category" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {CATEGORIES.map((cat) => (
-                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                              {VENDOR_CATEGORIES.map((category) => (
+                                <SelectItem key={category} value={category}>
+                                  {category}
+                                </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
+                          <FormDescription>Select the category that best describes your work</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
 
-                  {/* File uploads - simplified message for now */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-900">
-                      <strong>Note:</strong> File uploads for documents, certificates, and images will be required.
-                      For now, you can complete this step and upload files later from your profile settings.
-                    </p>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setCurrentStep(1)}
-                      disabled={isSubmitting}
-                      data-testid="button-back"
-                    >
-                      <ChevronLeft className="mr-2 h-4 w-4" />
-                      Back
-                    </Button>
-                    <Button type="submit" disabled={isSubmitting} size="lg" data-testid="button-complete">
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Completing...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="mr-2 h-4 w-4" />
-                          Complete Profile
-                        </>
+                    <FormField
+                      control={step2Form.control}
+                      name="profileFileUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company Profile *</FormLabel>
+                          <FormControl>
+                            <div className="space-y-2">
+                              <ObjectUploader
+                                maxNumberOfFiles={1}
+                                maxFileSize={10485760}
+                                allowedFileTypes={['.pdf']}
+                                onGetUploadParameters={handleGetUploadURL}
+                                onComplete={(result) => handleFileUpload(result, 'profileFileUrl', 'companyProfile')}
+                                buttonVariant="outline"
+                                buttonClassName="w-full"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Upload className="h-4 w-4" />
+                                  <span>Upload Company Brochure (PDF, 1-5 pages recommended)</span>
+                                </div>
+                              </ObjectUploader>
+                              {uploadedFiles.companyProfile && (
+                                <p className="text-sm text-green-600 flex items-center gap-1">
+                                  <CheckCircle2 className="h-4 w-4" />
+                                  {uploadedFiles.companyProfile}
+                                </p>
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormDescription>Upload a one-pager PDF to introduce your company</FormDescription>
+                          <FormMessage />
+                        </FormItem>
                       )}
-                    </Button>
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                        control={step2Form.control}
+                        name="linkedinUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>LinkedIn URL</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="https://linkedin.com/company/..." data-testid="input-linkedin" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={step2Form.control}
+                        name="xUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>X (Twitter) URL</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="https://x.com/..." data-testid="input-x" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={step2Form.control}
+                        name="websiteUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Website URL</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="https://example.com" data-testid="input-website" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
+                </Card>
+
+                <div className="flex justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCurrentStep(1)}
+                    disabled={isSubmitting}
+                    data-testid="button-back"
+                  >
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting} size="lg" data-testid="button-complete">
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Completing...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        Complete Profile
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
         )}
       </div>
     </div>

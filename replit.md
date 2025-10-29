@@ -16,10 +16,10 @@ The client application is built with React and TypeScript, utilizing a component
 The server is built on Express.js with TypeScript, following a RESTful API design. It features a clean separation of concerns for route handlers, business logic, and data access. Authentication is JWT-based, with bcrypt for password hashing. The architecture includes middleware for logging, error handling, and authentication.
 
 ## Data Storage Solutions
-PostgreSQL is the primary database, accessed via Drizzle ORM for type-safe operations and migrations. Neon's serverless PostgreSQL service provides scalable cloud-based data storage. Key entities include users (requesters/vendors), tenders, offers, and invitations, all using UUID primary keys.
+PostgreSQL is the primary database, accessed via Drizzle ORM for type-safe operations and migrations. Neon's serverless PostgreSQL service provides scalable cloud-based data storage. Key entities include users (requesters/vendors/admins), tenders, offers, invitations, auditLogs, and blockedAwards, all using UUID primary keys. Audit logs track all administrative actions with before/after state snapshots for compliance and transparency.
 
 ## Authentication and Authorization
-Authentication uses JWT tokens with a role-based access control system for requesters and vendors. Authentication state is persisted with Zustand and localStorage. Bcrypt handles password hashing. The frontend enforces role-based access for routes and components.
+Authentication uses JWT tokens with a role-based access control system for requesters, vendors, and admins. Authentication state is persisted with Zustand and localStorage. Bcrypt handles password hashing. The frontend enforces role-based access for routes and components. Admin access is controlled by an `isAdmin` boolean flag on user records and protected by the `requireAdmin` middleware on backend routes.
 
 ## Development and Build Tools
 Vite is used for fast development and optimized production builds. TypeScript is configured for strict type checking across the project. Drizzle Kit manages database migrations.
@@ -32,6 +32,7 @@ Vite is used for fast development and optimized production builds. TypeScript is
 - **Requester Profile System**: Comprehensive profile management for requesters (company info, logo, industry) that is required before tender creation. Vendors can view requester profiles.
 - **Vendor Pre-Qualification**: Refined form with Saudi-specific compliance requirements, including CR number validation, mandatory document uploads, and a single-select category system.
 - **Date Localization**: All date displays are formatted to English locale.
+- **Super-Admin Dashboard**: Comprehensive administrative control panel with operational capabilities including vendor verification, join request management, award unblocking, user promotion, and complete audit logging. Features event-first analytics with real-time metric calculations from database aggregations.
 
 # External Dependencies
 

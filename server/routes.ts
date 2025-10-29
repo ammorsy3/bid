@@ -41,6 +41,19 @@ const authenticateToken = (req: any, res: any, next: any) => {
   });
 };
 
+// Middleware to verify admin access
+const requireAdmin = async (req: any, res: any, next: any) => {
+  try {
+    const user = await storage.getUser(req.userId);
+    if (!user || !user.isAdmin) {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    next();
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
@@ -1125,6 +1138,187 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Accept invitation link error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Admin Routes
+  // Get admin dashboard metrics
+  app.get("/api/admin/metrics", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const metrics = await storage.getAdminMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error('Get admin metrics error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Get pending vendors for verification
+  app.get("/api/admin/vendors/pending", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const vendors = await storage.getPendingVendors();
+      res.json(vendors);
+    } catch (error) {
+      console.error('Get pending vendors error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Approve vendor
+  app.post("/api/admin/vendors/:vendorId/approve", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const { vendorId } = req.params;
+      const { notes } = req.body;
+      await storage.approveVendor(vendorId, req.userId!, notes);
+      res.json({ message: "Vendor approved successfully" });
+    } catch (error) {
+      console.error('Approve vendor error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Reject vendor
+  app.post("/api/admin/vendors/:vendorId/reject", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const { vendorId } = req.params;
+      const { reason } = req.body;
+      if (!reason) {
+        return res.status(400).json({ message: "Rejection reason is required" });
+      }
+      await storage.rejectVendor(vendorId, reason, req.userId!);
+      res.json({ message: "Vendor rejected" });
+    } catch (error) {
+      console.error('Reject vendor error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Get all join requests (optionally filtered by status)
+  app.get("/api/admin/join-requests", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const { status } = req.query;
+      const joinRequests = await storage.getAllJoinRequests(status as string | undefined);
+      res.json(joinRequests);
+    } catch (error) {
+      console.error('Get join requests error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Approve join request
+  app.post("/api/admin/join-requests/:requestId/approve", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const { requestId } = req.params;
+      await storage.approveJoinRequest(requestId, req.userId!);
+      res.json({ message: "Join request approved" });
+    } catch (error) {
+      console.error('Approve join request error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Reject join request
+  app.post("/api/admin/join-requests/:requestId/reject", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const { requestId } = req.params;
+      const { reason } = req.body;
+      if (!reason) {
+        return res.status(400).json({ message: "Rejection reason is required" });
+      }
+      await storage.rejectJoinRequest(requestId, reason, req.userId!);
+      res.json({ message: "Join request rejected" });
+    } catch (error) {
+      console.error('Reject join request error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Get blocked awards
+  app.get("/api/admin/awards/blocked", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const awards = await storage.getBlockedAwards();
+      res.json(awards);
+    } catch (error) {
+      console.error('Get blocked awards error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Unblock award
+  app.post("/api/admin/awards/:awardId/unblock", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const { awardId } = req.params;
+      await storage.unblockAward(awardId, req.userId!);
+      res.json({ message: "Award unblocked successfully" });
+    } catch (error: any) {
+      console.error('Unblock award error:', error);
+      res.status(error.message?.includes('not verified') ? 400 : 500)
+        .json({ message: error.message || "Server error" });
+    }
+  });
+
+  // Get audit logs
+  app.get("/api/admin/audit-logs", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const { limit } = req.query;
+      const logs = await storage.getAuditLogs(limit ? parseInt(limit as string) : 50);
+      res.json(logs);
+    } catch (error) {
+      console.error('Get audit logs error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Promote user to admin
+  app.post("/api/admin/users/:userId/promote", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get user's current state before promotion
+      const userBefore = await storage.getUser(userId);
+      if (!userBefore) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check if user is already an admin
+      if (userBefore.isAdmin) {
+        return res.status(400).json({ message: "User is already an admin" });
+      }
+      
+      // Capture before state
+      const beforeState = {
+        isAdmin: false,
+        name: userBefore.name,
+        email: userBefore.email,
+        role: userBefore.role,
+      };
+      
+      // Promote user
+      const user = await storage.makeUserAdmin(userId);
+      
+      // Capture after state
+      const afterState = {
+        isAdmin: true,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      };
+      
+      // Log the audit action
+      await storage.logAuditAction({
+        adminId: req.userId!,
+        action: 'user_promoted_to_admin',
+        targetType: 'user',
+        targetId: userId,
+        beforeState: JSON.stringify(beforeState),
+        afterState: JSON.stringify(afterState),
+        notes: null
+      });
+
+      res.json({ message: "User promoted to admin", user });
+    } catch (error) {
+      console.error('Promote user error:', error);
       res.status(500).json({ message: "Server error" });
     }
   });

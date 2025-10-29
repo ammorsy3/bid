@@ -19,6 +19,13 @@ import InvitationSignup from "@/pages/invitation-signup";
 import TractionLink from "@/pages/TractionLink";
 import VendorInvitation from "@/pages/VendorInvitation";
 import VendorsBase from "@/pages/VendorsBase";
+import AdminDashboard from "@/pages/AdminDashboard";
+import AdminVendors from "@/pages/AdminVendors";
+import AdminJoinRequests from "@/pages/AdminJoinRequests";
+import AdminAwards from "@/pages/AdminAwards";
+import AdminAuditLogs from "@/pages/AdminAuditLogs";
+import AdminUsers from "@/pages/AdminUsers";
+import AdminLayout from "@/components/AdminLayout";
 import { useAuthStore } from "@/lib/auth";
 import { useEffect } from "react";
 
@@ -70,6 +77,36 @@ function Router() {
       <Route path="/r/:slug" component={TractionLink} />
       <Route path="/vendor-invitation/:token" component={VendorInvitation} />
       <Route path="/vendors-base" component={VendorsBase} />
+      <Route path="/admin">
+        <AdminLayout>
+          <AdminDashboard />
+        </AdminLayout>
+      </Route>
+      <Route path="/admin/vendors">
+        <AdminLayout>
+          <AdminVendors />
+        </AdminLayout>
+      </Route>
+      <Route path="/admin/join-requests">
+        <AdminLayout>
+          <AdminJoinRequests />
+        </AdminLayout>
+      </Route>
+      <Route path="/admin/awards">
+        <AdminLayout>
+          <AdminAwards />
+        </AdminLayout>
+      </Route>
+      <Route path="/admin/users">
+        <AdminLayout>
+          <AdminUsers />
+        </AdminLayout>
+      </Route>
+      <Route path="/admin/audit-logs">
+        <AdminLayout>
+          <AdminAuditLogs />
+        </AdminLayout>
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

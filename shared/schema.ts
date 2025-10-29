@@ -10,7 +10,8 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
-  role: text("role").notNull(), // 'requester' or 'vendor'
+  role: text("role").notNull(), // 'requester', 'vendor', or 'admin'
+  isAdmin: boolean("is_admin").default(false), // Admin flag for super-admin privileges
   company: text("company"),
   expertise: text("expertise"), // for vendors
   rating: text("rating").default("0"), // for vendors
@@ -269,6 +270,63 @@ export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => 
   }),
 }));
 
+// Audit Log - Track all admin actions
+export const auditLog = pgTable("audit_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminId: varchar("admin_id").notNull().references(() => users.id),
+  action: text("action").notNull(), // e.g., 'vendor_verified', 'join_request_approved', 'award_unblocked'
+  targetType: text("target_type").notNull(), // e.g., 'vendor', 'join_request', 'tender'
+  targetId: varchar("target_id").notNull(), // ID of the affected resource
+  beforeState: text("before_state"), // JSON string of state before action
+  afterState: text("after_state"), // JSON string of state after action
+  notes: text("notes"), // Optional notes from admin
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Awards - Track tender awards and their status
+export const awards = pgTable("awards", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenderId: varchar("tender_id").notNull().references(() => tenders.id),
+  vendorId: varchar("vendor_id").notNull().references(() => users.id),
+  offerId: varchar("offer_id").notNull().references(() => offers.id),
+  status: text("status").notNull().default("pending"), // 'pending', 'blocked', 'awarded'
+  blockReason: text("block_reason"), // Why award is blocked (e.g., 'vendor_not_verified')
+  awardedAt: timestamp("awarded_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Admin Setup Token Usage
+export const adminSetupToken = pgTable("admin_setup_token", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  used: boolean("used").default(false),
+  usedBy: varchar("used_by").references(() => users.id),
+  usedAt: timestamp("used_at"),
+});
+
+export const auditLogRelations = relations(auditLog, ({ one }) => ({
+  admin: one(users, {
+    fields: [auditLog.adminId],
+    references: [users.id],
+  }),
+}));
+
+export const awardsRelations = relations(awards, ({ one }) => ({
+  tender: one(tenders, {
+    fields: [awards.tenderId],
+    references: [tenders.id],
+  }),
+  vendor: one(users, {
+    fields: [awards.vendorId],
+    references: [users.id],
+  }),
+  offer: one(offers, {
+    fields: [awards.offerId],
+    references: [offers.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -386,6 +444,16 @@ export const insertAnalyticsEventSchema = createInsertSchema(analyticsEvents).om
   createdAt: true,
 });
 
+export const insertAuditLogSchema = createInsertSchema(auditLog).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAwardSchema = createInsertSchema(awards).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -411,3 +479,7 @@ export type InvitationLink = typeof invitationLinks.$inferSelect;
 export type CreateInvitationLink = z.infer<typeof createInvitationLinkSchema>;
 export type InsertAnalyticsEvent = z.infer<typeof insertAnalyticsEventSchema>;
 export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AuditLog = typeof auditLog.$inferSelect;
+export type InsertAward = z.infer<typeof insertAwardSchema>;
+export type Award = typeof awards.$inferSelect;

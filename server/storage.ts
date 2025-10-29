@@ -9,6 +9,8 @@ import {
   joinRequests,
   invitationLinks,
   analyticsEvents,
+  auditLog,
+  awards,
   type User, 
   type InsertUser,
   type Tender,
@@ -28,7 +30,11 @@ import {
   type InvitationLink,
   type InsertInvitationLink,
   type AnalyticsEvent,
-  type InsertAnalyticsEvent
+  type InsertAnalyticsEvent,
+  type AuditLog,
+  type InsertAuditLog,
+  type Award,
+  type InsertAward
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ilike, or } from "drizzle-orm";
@@ -95,6 +101,27 @@ export interface IStorage {
   
   // Analytics operations
   logAnalyticsEvent(event: InsertAnalyticsEvent): Promise<AnalyticsEvent>;
+  
+  // Admin operations
+  makeUserAdmin(userId: string): Promise<User>;
+  getPendingVendors(): Promise<(User & { qualification?: VendorQualification })[]>;
+  approveVendor(vendorId: string, adminId: string, notes?: string): Promise<void>;
+  rejectVendor(vendorId: string, reason: string, adminId: string): Promise<void>;
+  getAllJoinRequests(status?: string): Promise<(JoinRequest & { vendor?: User; requester?: User })[]>;
+  approveJoinRequest(joinRequestId: string, adminId: string): Promise<void>;
+  rejectJoinRequest(joinRequestId: string, reason: string, adminId: string): Promise<void>;
+  getBlockedAwards(): Promise<(Award & { tender?: Tender; vendor?: User; offer?: Offer })[]>;
+  unblockAward(awardId: string, adminId: string): Promise<void>;
+  getAuditLogs(limit?: number): Promise<(AuditLog & { admin?: User })[]>;
+  logAuditAction(auditEntry: InsertAuditLog): Promise<AuditLog>;
+  
+  // Analytics aggregations for admin dashboard
+  getAdminMetrics(): Promise<{
+    pendingVerifications: number;
+    pendingJoinRequests: number;
+    proposalsLast24h: number;
+    blockedAwards: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -484,6 +511,314 @@ export class DatabaseStorage implements IStorage {
   async logAnalyticsEvent(event: InsertAnalyticsEvent): Promise<AnalyticsEvent> {
     const [result] = await db.insert(analyticsEvents).values(event).returning();
     return result;
+  }
+
+  // Admin operations
+  async makeUserAdmin(userId: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ isAdmin: true })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async getPendingVendors(): Promise<(User & { qualification?: VendorQualification })[]> {
+    const results = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        password: users.password,
+        name: users.name,
+        role: users.role,
+        isAdmin: users.isAdmin,
+        company: users.company,
+        expertise: users.expertise,
+        rating: users.rating,
+        verificationStatus: users.verificationStatus,
+        onboardingState: users.onboardingState,
+        createdAt: users.createdAt,
+        qualification: vendorQualifications,
+      })
+      .from(users)
+      .leftJoin(vendorQualifications, eq(users.id, vendorQualifications.vendorId))
+      .where(and(
+        eq(users.role, 'vendor'),
+        eq(users.verificationStatus, 'under_review')
+      ));
+
+    return results.map(row => ({
+      ...row,
+      qualification: row.qualification || undefined
+    }));
+  }
+
+  async approveVendor(vendorId: string, adminId: string, notes?: string): Promise<void> {
+    const beforeState = await this.getUser(vendorId);
+    
+    await db
+      .update(users)
+      .set({ verificationStatus: 'verified' })
+      .where(eq(users.id, vendorId));
+
+    const afterState = await this.getUser(vendorId);
+
+    await this.logAuditAction({
+      adminId,
+      action: 'vendor_verified',
+      targetType: 'vendor',
+      targetId: vendorId,
+      beforeState: JSON.stringify(beforeState),
+      afterState: JSON.stringify(afterState),
+      notes: notes || null
+    });
+  }
+
+  async rejectVendor(vendorId: string, reason: string, adminId: string): Promise<void> {
+    const beforeState = await this.getUser(vendorId);
+    
+    await db
+      .update(users)
+      .set({ verificationStatus: 'not_verified' })
+      .where(eq(users.id, vendorId));
+
+    await db
+      .update(vendorQualifications)
+      .set({ rejectionReason: reason })
+      .where(eq(vendorQualifications.vendorId, vendorId));
+
+    const afterState = await this.getUser(vendorId);
+
+    await this.logAuditAction({
+      adminId,
+      action: 'vendor_rejected',
+      targetType: 'vendor',
+      targetId: vendorId,
+      beforeState: JSON.stringify(beforeState),
+      afterState: JSON.stringify(afterState),
+      notes: reason
+    });
+  }
+
+  async getAllJoinRequests(status?: string): Promise<(JoinRequest & { vendor?: User; requester?: User })[]> {
+    const query = db
+      .select({
+        id: joinRequests.id,
+        requesterId: joinRequests.requesterId,
+        vendorId: joinRequests.vendorId,
+        status: joinRequests.status,
+        rejectionReason: joinRequests.rejectionReason,
+        createdAt: joinRequests.createdAt,
+        decidedAt: joinRequests.decidedAt,
+        vendor: users,
+        requester: users,
+      })
+      .from(joinRequests)
+      .leftJoin(users, eq(joinRequests.vendorId, users.id));
+
+    if (status) {
+      const results = await query.where(eq(joinRequests.status, status));
+      return results.map(row => ({
+        id: row.id,
+        requesterId: row.requesterId,
+        vendorId: row.vendorId,
+        status: row.status,
+        rejectionReason: row.rejectionReason,
+        createdAt: row.createdAt,
+        decidedAt: row.decidedAt,
+        vendor: row.vendor || undefined,
+        requester: undefined
+      }));
+    }
+
+    const results = await query;
+    return results.map(row => ({
+      id: row.id,
+      requesterId: row.requesterId,
+      vendorId: row.vendorId,
+      status: row.status,
+      rejectionReason: row.rejectionReason,
+      createdAt: row.createdAt,
+      decidedAt: row.decidedAt,
+      vendor: row.vendor || undefined,
+      requester: undefined
+    }));
+  }
+
+  async approveJoinRequest(joinRequestId: string, adminId: string): Promise<void> {
+    const joinRequest = await this.getJoinRequestById(joinRequestId);
+    if (!joinRequest) throw new Error('Join request not found');
+
+    const beforeState = joinRequest;
+    
+    await this.updateJoinRequestStatus(joinRequestId, 'approved');
+    await this.addVendorToBase({
+      requesterId: joinRequest.requesterId,
+      vendorId: joinRequest.vendorId,
+      joinMethod: 'traction'
+    });
+
+    const afterState = await this.getJoinRequestById(joinRequestId);
+
+    await this.logAuditAction({
+      adminId,
+      action: 'join_request_approved',
+      targetType: 'join_request',
+      targetId: joinRequestId,
+      beforeState: JSON.stringify(beforeState),
+      afterState: JSON.stringify(afterState),
+      notes: null
+    });
+  }
+
+  async rejectJoinRequest(joinRequestId: string, reason: string, adminId: string): Promise<void> {
+    const joinRequest = await this.getJoinRequestById(joinRequestId);
+    if (!joinRequest) throw new Error('Join request not found');
+
+    const beforeState = joinRequest;
+    
+    await db
+      .update(joinRequests)
+      .set({ status: 'rejected', rejectionReason: reason, decidedAt: new Date() })
+      .where(eq(joinRequests.id, joinRequestId));
+
+    const afterState = await this.getJoinRequestById(joinRequestId);
+
+    await this.logAuditAction({
+      adminId,
+      action: 'join_request_rejected',
+      targetType: 'join_request',
+      targetId: joinRequestId,
+      beforeState: JSON.stringify(beforeState),
+      afterState: JSON.stringify(afterState),
+      notes: reason
+    });
+  }
+
+  async getBlockedAwards(): Promise<(Award & { tender?: Tender; vendor?: User; offer?: Offer })[]> {
+    const results = await db
+      .select({
+        id: awards.id,
+        tenderId: awards.tenderId,
+        vendorId: awards.vendorId,
+        offerId: awards.offerId,
+        status: awards.status,
+        blockReason: awards.blockReason,
+        awardedAt: awards.awardedAt,
+        createdAt: awards.createdAt,
+        tender: tenders,
+        vendor: users,
+        offer: offers,
+      })
+      .from(awards)
+      .leftJoin(tenders, eq(awards.tenderId, tenders.id))
+      .leftJoin(users, eq(awards.vendorId, users.id))
+      .leftJoin(offers, eq(awards.offerId, offers.id))
+      .where(eq(awards.status, 'blocked'));
+
+    return results.map(row => ({
+      ...row,
+      tender: row.tender || undefined,
+      vendor: row.vendor || undefined,
+      offer: row.offer || undefined,
+    }));
+  }
+
+  async unblockAward(awardId: string, adminId: string): Promise<void> {
+    const [award] = await db.select().from(awards).where(eq(awards.id, awardId));
+    if (!award) throw new Error('Award not found');
+
+    const vendor = await this.getUser(award.vendorId);
+    if (vendor?.verificationStatus !== 'verified') {
+      throw new Error('Cannot unblock award: vendor is not verified');
+    }
+
+    const beforeState = award;
+    
+    await db
+      .update(awards)
+      .set({ status: 'awarded', awardedAt: new Date() })
+      .where(eq(awards.id, awardId));
+
+    const [afterState] = await db.select().from(awards).where(eq(awards.id, awardId));
+
+    await this.logAuditAction({
+      adminId,
+      action: 'award_unblocked',
+      targetType: 'award',
+      targetId: awardId,
+      beforeState: JSON.stringify(beforeState),
+      afterState: JSON.stringify(afterState),
+      notes: null
+    });
+  }
+
+  async getAuditLogs(limit: number = 50): Promise<(AuditLog & { admin?: User })[]> {
+    const results = await db
+      .select({
+        id: auditLog.id,
+        adminId: auditLog.adminId,
+        action: auditLog.action,
+        targetType: auditLog.targetType,
+        targetId: auditLog.targetId,
+        beforeState: auditLog.beforeState,
+        afterState: auditLog.afterState,
+        notes: auditLog.notes,
+        createdAt: auditLog.createdAt,
+        admin: users,
+      })
+      .from(auditLog)
+      .leftJoin(users, eq(auditLog.adminId, users.id))
+      .orderBy(desc(auditLog.createdAt))
+      .limit(limit);
+
+    return results.map(row => ({
+      ...row,
+      admin: row.admin || undefined,
+    }));
+  }
+
+  async logAuditAction(auditEntry: InsertAuditLog): Promise<AuditLog> {
+    const [result] = await db.insert(auditLog).values(auditEntry).returning();
+    return result;
+  }
+
+  async getAdminMetrics(): Promise<{
+    pendingVerifications: number;
+    pendingJoinRequests: number;
+    proposalsLast24h: number;
+    blockedAwards: number;
+  }> {
+    const pendingVendors = await db
+      .select()
+      .from(users)
+      .where(and(
+        eq(users.role, 'vendor'),
+        eq(users.verificationStatus, 'under_review')
+      ));
+
+    const pendingRequests = await db
+      .select()
+      .from(joinRequests)
+      .where(eq(joinRequests.status, 'pending'));
+
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const recentProposals = await db
+      .select()
+      .from(offers);
+
+    const blockedAwardsList = await db
+      .select()
+      .from(awards)
+      .where(eq(awards.status, 'blocked'));
+
+    return {
+      pendingVerifications: pendingVendors.length,
+      pendingJoinRequests: pendingRequests.length,
+      proposalsLast24h: recentProposals.length,
+      blockedAwards: blockedAwardsList.length,
+    };
   }
 }
 

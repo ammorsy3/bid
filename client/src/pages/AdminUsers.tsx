@@ -25,10 +25,11 @@ export default function AdminUsers() {
       });
       setUserId("");
     },
-    onError: () => {
+    onError: (error: any) => {
+      const errorMessage = error.message || "Failed to promote user. Please check the user ID and try again.";
       toast({
         title: "Error",
-        description: "Failed to promote user. Please check the user ID and try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },

@@ -16,6 +16,7 @@ import { ChevronLeft, ChevronRight, Loader2, CheckCircle2, Upload } from "lucide
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import type { UploadResult } from "@uppy/core";
+import { useAuthStore } from "@/lib/auth";
 
 // Step 1: Account credentials
 const step1Schema = z.object({
@@ -58,6 +59,7 @@ export default function VendorOnboarding() {
   const [, setLocation] = useLocation();
   const search = useSearch();
   const { toast } = useToast();
+  const { checkAuth } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -179,6 +181,12 @@ export default function VendorOnboarding() {
         title: "Profile completed!",
         description: "Your vendor profile has been created successfully.",
       });
+      
+      // Refresh auth state before redirecting to ensure onboardingState is updated
+      await checkAuth();
+      
+      // Small delay to ensure auth state propagates
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Redirect to traction link or dashboard
       if (redirectUrl) {

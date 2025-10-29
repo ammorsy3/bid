@@ -12,6 +12,7 @@ interface User {
   expertise?: string;
   rating?: string;
   verificationStatus?: string;
+  onboardingState?: 'draft' | 'completed';
 }
 
 interface AuthState {

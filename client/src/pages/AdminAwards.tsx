@@ -16,9 +16,7 @@ export default function AdminAwards() {
 
   const unblockMutation = useMutation({
     mutationFn: async (awardId: string) => {
-      return await apiRequest(`/api/admin/awards/${awardId}/unblock`, {
-        method: "POST",
-      });
+      return await apiRequest("POST", `/api/admin/awards/${awardId}/unblock`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/awards/blocked"] });

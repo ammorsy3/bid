@@ -14,9 +14,7 @@ export default function AdminUsers() {
 
   const promoteMutation = useMutation({
     mutationFn: async (userId: string) => {
-      return await apiRequest(`/api/admin/users/${userId}/promote`, {
-        method: "POST",
-      });
+      return await apiRequest("POST", `/api/admin/users/${userId}/promote`);
     },
     onSuccess: () => {
       toast({

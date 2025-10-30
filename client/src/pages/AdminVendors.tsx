@@ -13,7 +13,7 @@ import { format } from "date-fns";
 export default function AdminVendors() {
   const { toast } = useToast();
   const [selectedVendor, setSelectedVendor] = useState<any>(null);
-  const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+  const [actionType, setActionType] = useState<"approve" | "reject" | "view" | null>(null);
   const [notes, setNotes] = useState("");
 
   const { data: vendors, isLoading } = useQuery({
@@ -22,10 +22,7 @@ export default function AdminVendors() {
 
   const approveMutation = useMutation({
     mutationFn: async ({ vendorId, notes }: { vendorId: string; notes?: string }) => {
-      return await apiRequest(`/api/admin/vendors/${vendorId}/approve`, {
-        method: "POST",
-        body: JSON.stringify({ notes }),
-      });
+      return await apiRequest("POST", `/api/admin/vendors/${vendorId}/approve`, { notes });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/vendors/pending"] });
@@ -47,10 +44,7 @@ export default function AdminVendors() {
 
   const rejectMutation = useMutation({
     mutationFn: async ({ vendorId, reason }: { vendorId: string; reason: string }) => {
-      return await apiRequest(`/api/admin/vendors/${vendorId}/reject`, {
-        method: "POST",
-        body: JSON.stringify({ reason }),
-      });
+      return await apiRequest("POST", `/api/admin/vendors/${vendorId}/reject`, { reason });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/vendors/pending"] });
@@ -177,7 +171,15 @@ export default function AdminVendors() {
                       <XCircle className="h-4 w-4 mr-2" />
                       Reject
                     </Button>
-                    <Button variant="ghost" size="sm" data-testid={`button-view-profile-${vendor.id}`}>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => {
+                        setSelectedVendor(vendor);
+                        setActionType("view");
+                      }}
+                      data-testid={`button-view-profile-${vendor.id}`}
+                    >
                       <Eye className="h-4 w-4 mr-2" />
                       View Profile
                     </Button>
@@ -189,7 +191,109 @@ export default function AdminVendors() {
         )}
       </div>
 
-      <Dialog open={actionType !== null} onOpenChange={(open) => !open && handleClose()}>
+      {/* Profile View Dialog */}
+      <Dialog open={actionType === "view"} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" data-testid="dialog-profile">
+          <DialogHeader>
+            <DialogTitle data-testid="text-profile-title">Vendor Profile</DialogTitle>
+            <DialogDescription>Complete vendor pre-qualification details</DialogDescription>
+          </DialogHeader>
+          {selectedVendor && (
+            <div className="space-y-6">
+              {/* Basic Info */}
+              <div>
+                <h3 className="font-semibold text-lg mb-3">Basic Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Display Name</p>
+                    <p className="font-medium">{selectedVendor.qualification?.displayName || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Legal Company Name</p>
+                    <p className="font-medium">{selectedVendor.qualification?.legalCompanyName || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Email</p>
+                    <p className="font-medium">{selectedVendor.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">CR Number</p>
+                    <p className="font-medium">{selectedVendor.qualification?.crNumber || "N/A"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Category & Location */}
+              <div>
+                <h3 className="font-semibold text-lg mb-3">Business Details</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Category</p>
+                    <p className="font-medium">{selectedVendor.qualification?.category || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">City</p>
+                    <p className="font-medium">{selectedVendor.qualification?.city || "N/A"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Certifications */}
+              {selectedVendor.qualification?.certifications && selectedVendor.qualification.certifications.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-lg mb-3">Certifications</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedVendor.qualification.certifications.map((cert: string, index: number) => (
+                      <Badge key={index} variant="secondary">{cert}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Documents */}
+              {selectedVendor.qualification?.documents && (
+                <div>
+                  <h3 className="font-semibold text-lg mb-3">Uploaded Documents</h3>
+                  <div className="space-y-2">
+                    {Object.entries(selectedVendor.qualification.documents).map(([key, url]: [string, any]) => (
+                      url && (
+                        <div key={key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium capitalize">
+                            {key.replace(/([A-Z])/g, ' $1').trim()}
+                          </span>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => window.open(url, '_blank')}
+                          >
+                            View Document
+                          </Button>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Submission Date */}
+              <div>
+                <p className="text-sm text-gray-600">Submitted On</p>
+                <p className="font-medium">
+                  {selectedVendor.createdAt ? format(new Date(selectedVendor.createdAt), "PPPp") : "N/A"}
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={handleClose} data-testid="button-close-profile">
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Action Dialog (Approve/Reject) */}
+      <Dialog open={actionType === "approve" || actionType === "reject"} onOpenChange={(open) => !open && handleClose()}>
         <DialogContent data-testid="dialog-action">
           <DialogHeader>
             <DialogTitle data-testid="text-dialog-title">

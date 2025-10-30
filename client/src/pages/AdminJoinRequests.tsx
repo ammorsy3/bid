@@ -22,9 +22,7 @@ export default function AdminJoinRequests() {
 
   const approveMutation = useMutation({
     mutationFn: async (requestId: string) => {
-      return await apiRequest(`/api/admin/join-requests/${requestId}/approve`, {
-        method: "POST",
-      });
+      return await apiRequest("POST", `/api/admin/join-requests/${requestId}/approve`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/join-requests"] });
@@ -46,10 +44,7 @@ export default function AdminJoinRequests() {
 
   const rejectMutation = useMutation({
     mutationFn: async ({ requestId, reason }: { requestId: string; reason: string }) => {
-      return await apiRequest(`/api/admin/join-requests/${requestId}/reject`, {
-        method: "POST",
-        body: JSON.stringify({ reason }),
-      });
+      return await apiRequest("POST", `/api/admin/join-requests/${requestId}/reject`, { reason });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/join-requests"] });

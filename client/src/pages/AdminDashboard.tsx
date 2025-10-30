@@ -77,24 +77,27 @@ export default function AdminDashboard() {
           {cards.map((card) => {
             const Icon = card.icon;
             return (
-              <Link key={card.title} href={card.link}>
-                <a data-testid={card.dataTestId}>
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      <CardTitle className="text-sm font-medium text-gray-600">
-                        {card.title}
-                      </CardTitle>
-                      <div className={`${card.bgColor} p-2 rounded-lg`}>
-                        <Icon className={`h-5 w-5 ${card.color}`} />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold" data-testid={`text-${card.dataTestId}-value`}>
-                        {card.value}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </a>
+              <Link 
+                key={card.title} 
+                href={card.link}
+                className="block"
+                data-testid={card.dataTestId}
+              >
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-600">
+                      {card.title}
+                    </CardTitle>
+                    <div className={`${card.bgColor} p-2 rounded-lg`}>
+                      <Icon className={`h-5 w-5 ${card.color}`} />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold" data-testid={`text-${card.dataTestId}-value`}>
+                      {card.value}
+                    </div>
+                  </CardContent>
+                </Card>
               </Link>
             );
           })}
@@ -107,23 +110,29 @@ export default function AdminDashboard() {
               <CardDescription>Frequently used admin operations</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Link href="/admin/vendors">
-                <a className="block p-3 rounded-lg hover:bg-gray-50 transition-colors" data-testid="link-verify-vendors">
-                  <div className="font-medium">Verify Vendors</div>
-                  <div className="text-sm text-gray-600">Review and approve pending vendor applications</div>
-                </a>
+              <Link 
+                href="/admin/vendors"
+                className="block p-3 rounded-lg hover:bg-gray-50 transition-colors" 
+                data-testid="link-verify-vendors"
+              >
+                <div className="font-medium">Verify Vendors</div>
+                <div className="text-sm text-gray-600">Review and approve pending vendor applications</div>
               </Link>
-              <Link href="/admin/join-requests">
-                <a className="block p-3 rounded-lg hover:bg-gray-50 transition-colors" data-testid="link-join-requests">
-                  <div className="font-medium">Manage Join Requests</div>
-                  <div className="text-sm text-gray-600">Approve or reject vendor base applications</div>
-                </a>
+              <Link 
+                href="/admin/join-requests"
+                className="block p-3 rounded-lg hover:bg-gray-50 transition-colors" 
+                data-testid="link-join-requests"
+              >
+                <div className="font-medium">Manage Join Requests</div>
+                <div className="text-sm text-gray-600">Approve or reject vendor base applications</div>
               </Link>
-              <Link href="/admin/audit-logs">
-                <a className="block p-3 rounded-lg hover:bg-gray-50 transition-colors" data-testid="link-audit-logs">
-                  <div className="font-medium">View Audit Logs</div>
-                  <div className="text-sm text-gray-600">Track all administrative actions</div>
-                </a>
+              <Link 
+                href="/admin/audit-logs"
+                className="block p-3 rounded-lg hover:bg-gray-50 transition-colors" 
+                data-testid="link-audit-logs"
+              >
+                <div className="font-medium">View Audit Logs</div>
+                <div className="text-sm text-gray-600">Track all administrative actions</div>
               </Link>
             </CardContent>
           </Card>

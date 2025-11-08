@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,20 @@ export default function CompanyOnboarding() {
 
   // If user has active company but it's in draft state, we're completing profile
   const isCompletingProfile = activeCompany && activeCompany.onboardingState === 'draft';
+
+  // Pre-populate form when completing profile
+  useEffect(() => {
+    if (isCompletingProfile && activeCompany) {
+      setFormData({
+        name: activeCompany.profile?.displayName || activeCompany.name || "",
+        legalName: "",
+        crNumber: "",
+        vatNumber: "",
+        city: "",
+        category: ""
+      });
+    }
+  }, [isCompletingProfile, activeCompany]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,15 +121,14 @@ export default function CompanyOnboarding() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name" data-testid="label-company-name">Company Name</Label>
+              <Label htmlFor="name" data-testid="label-company-name">Company Display Name</Label>
               <Input
                 id="name"
                 data-testid="input-company-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Enter company name"
+                placeholder="Enter company display name"
                 required
-                disabled={isCompletingProfile}
               />
             </div>
 

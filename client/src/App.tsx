@@ -7,18 +7,10 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
-import RequesterDashboard from "@/pages/requester-dashboard";
-import RequesterProfile from "@/pages/RequesterProfile";
-import VendorDashboard from "@/pages/vendor-dashboard";
-import VendorPreQualification from "@/pages/VendorPreQualification";
-import VendorOnboarding from "@/pages/VendorOnboarding";
-import VendorStatus from "@/pages/VendorStatus";
+import Dashboard from "@/pages/Dashboard";
+import CompanyOnboarding from "@/pages/CompanyOnboarding";
 import TenderDetails from "@/pages/tender-details";
-import InvitationLinks from "@/pages/invitation-links";
-import InvitationSignup from "@/pages/invitation-signup";
 import TractionLink from "@/pages/TractionLink";
-import VendorInvitation from "@/pages/VendorInvitation";
-import VendorsBase from "@/pages/VendorsBase";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminVendors from "@/pages/AdminVendors";
 import AdminJoinRequests from "@/pages/AdminJoinRequests";
@@ -30,53 +22,67 @@ import { useAuthStore } from "@/lib/auth";
 import { useEffect } from "react";
 
 function Router() {
-  const { user, checkAuth } = useAuthStore();
+  const { user, activeCompany, checkAuth } = useAuthStore();
   const [location, setLocation] = useLocation();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  // Redirect vendors with draft onboarding state to complete onboarding
+  // Redirect authenticated users without active company to company creation
   useEffect(() => {
-    if (user && user.role === 'vendor' && user.onboardingState === 'draft') {
-      // Strip query params to correctly identify public pages
+    if (user && !activeCompany) {
       const pathname = location.split('?')[0];
       
-      // Exclude auth pages and onboarding page itself from redirect
+      // Exclude public pages and company onboarding from redirect
       const isPublicPage = 
         pathname === '/' ||
         pathname === '/login' ||
         pathname === '/register' ||
-        pathname.startsWith('/vendor-onboarding');
+        pathname.startsWith('/r/') || // Traction links
+        pathname === '/company-onboarding';
       
       if (!isPublicPage) {
-        // Preserve the intended destination as a redirect parameter
-        const redirectParam = encodeURIComponent(location);
-        setLocation(`/vendor-onboarding?redirect=${redirectParam}`);
+        setLocation('/company-onboarding');
       }
     }
-  }, [user, location, setLocation]);
+  }, [user, activeCompany, location, setLocation]);
+
+  // Redirect users with draft company onboarding to complete profile
+  useEffect(() => {
+    if (user && activeCompany && activeCompany.onboardingState === 'draft') {
+      const pathname = location.split('?')[0];
+      
+      // Exclude public pages and onboarding page itself
+      const isPublicPage = 
+        pathname === '/' ||
+        pathname === '/login' ||
+        pathname === '/register' ||
+        pathname.startsWith('/r/') ||
+        pathname === '/company-onboarding';
+      
+      if (!isPublicPage) {
+        setLocation('/company-onboarding');
+      }
+    }
+  }, [user, activeCompany, location, setLocation]);
 
   return (
     <Switch>
+      {/* Public routes */}
       <Route path="/" component={Landing} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
-      <Route path="/dashboard">
-        {user?.role === 'requester' ? <RequesterDashboard /> : <VendorDashboard />}
-      </Route>
-      <Route path="/requester-profile" component={RequesterProfile} />
-      <Route path="/vendor-dashboard" component={VendorDashboard} />
-      <Route path="/vendor-prequalification" component={VendorPreQualification} />
-      <Route path="/vendor-onboarding" component={VendorOnboarding} />
-      <Route path="/vendor-status" component={VendorStatus} />
-      <Route path="/tenders/:id" component={TenderDetails} />
-      <Route path="/tenders/:id/invitations" component={InvitationLinks} />
-      <Route path="/invite/:token" component={InvitationSignup} />
       <Route path="/r/:slug" component={TractionLink} />
-      <Route path="/vendor-invitation/:token" component={VendorInvitation} />
-      <Route path="/vendors-base" component={VendorsBase} />
+      
+      {/* Company onboarding (requires auth, no active company needed) */}
+      <Route path="/company-onboarding" component={CompanyOnboarding} />
+      
+      {/* Main dashboard (requires active company) */}
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/tenders/:id" component={TenderDetails} />
+      
+      {/* Admin routes */}
       <Route path="/admin">
         <AdminLayout>
           <AdminDashboard />
@@ -107,6 +113,8 @@ function Router() {
           <AdminAuditLogs />
         </AdminLayout>
       </Route>
+      
+      {/* 404 */}
       <Route component={NotFound} />
     </Switch>
   );

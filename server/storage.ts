@@ -1,121 +1,147 @@
 import { 
-  users, 
-  tenders, 
-  offers, 
+  users,
+  companies,
+  companyProfiles,
+  userCompanies,
+  tenders,
+  offers,
   invitations,
-  vendorQualifications,
-  requesterProfiles,
   vendorsBase,
   joinRequests,
   invitationLinks,
-  analyticsEvents,
-  auditLog,
   awards,
-  type User, 
+  productEvents,
+  auditLog,
+  type User,
   type InsertUser,
+  type Company,
+  type InsertCompany,
+  type CompanyProfile,
+  type InsertCompanyProfile,
+  type UserCompany,
+  type InsertUserCompany,
   type Tender,
   type InsertTender,
   type Offer,
   type InsertOffer,
   type Invitation,
   type InsertInvitation,
-  type VendorQualification,
-  type InsertVendorQualification,
-  type RequesterProfile,
-  type InsertRequesterProfile,
   type VendorBase,
   type InsertVendorBase,
   type JoinRequest,
   type InsertJoinRequest,
   type InvitationLink,
-  type InsertInvitationLink,
-  type AnalyticsEvent,
-  type InsertAnalyticsEvent,
-  type AuditLog,
-  type InsertAuditLog,
   type Award,
-  type InsertAward
+  type InsertAward,
+  type ProductEvent,
+  type InsertProductEvent,
+  type AuditLog,
+  type InsertAuditLog
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, ilike, or } from "drizzle-orm";
+import { eq, and, desc, ilike, or, isNull, sql, gte } from "drizzle-orm";
 
 export interface IStorage {
-  // User operations
+  // ============================================================================
+  // USER OPERATIONS
+  // ============================================================================
   getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<InsertUser>): Promise<User>;
-  getVendors(): Promise<User[]>;
 
-  // Tender operations
+  // ============================================================================
+  // COMPANY OPERATIONS
+  // ============================================================================
+  createCompany(company: InsertCompany): Promise<Company>;
+  getCompany(id: string): Promise<Company | undefined>;
+  getCompanyBySlug(slug: string): Promise<Company | undefined>;
+  getCompanyByCrNumber(crNumber: string): Promise<Company | undefined>;
+  updateCompany(id: string, updates: Partial<InsertCompany>): Promise<Company>;
+  getCompaniesWithPendingVerification(): Promise<(Company & { profile?: CompanyProfile })[]>;
+  verifyCompany(companyId: string, adminId: string, notes?: string): Promise<void>;
+  rejectCompany(companyId: string, reason: string, adminId: string): Promise<void>;
+
+  // ============================================================================
+  // COMPANY PROFILE OPERATIONS
+  // ============================================================================
+  createCompanyProfile(profile: InsertCompanyProfile): Promise<CompanyProfile>;
+  getCompanyProfile(companyId: string): Promise<CompanyProfile | undefined>;
+  getCompanyProfileByTractionSlug(slug: string): Promise<(CompanyProfile & { company: Company }) | undefined>;
+  updateCompanyProfile(companyId: string, updates: Partial<InsertCompanyProfile>): Promise<CompanyProfile>;
+
+  // ============================================================================
+  // USER-COMPANY OPERATIONS (Team Management)
+  // ============================================================================
+  addUserToCompany(userCompany: InsertUserCompany): Promise<UserCompany>;
+  getUserCompanies(userId: string): Promise<(UserCompany & { company: Company; profile?: CompanyProfile })[]>;
+  getCompanyMembers(companyId: string): Promise<(UserCompany & { user: User })[]>;
+  updateUserRole(userId: string, companyId: string, role: string): Promise<UserCompany>;
+  removeUserFromCompany(userId: string, companyId: string): Promise<void>;
+  getUserRoleInCompany(userId: string, companyId: string): Promise<string | null>;
+
+  // ============================================================================
+  // TENDER OPERATIONS
+  // ============================================================================
   createTender(tender: InsertTender): Promise<Tender>;
-  getTendersByRequesterId(requesterId: string): Promise<Tender[]>;
-  getTenderById(id: string): Promise<Tender | undefined>;
+  getTender(id: string): Promise<Tender | undefined>;
+  getTendersByCompany(companyId: string): Promise<Tender[]>;
+  getTenderByInvitationToken(token: string): Promise<(Tender & { company: Company; profile?: CompanyProfile }) | undefined>;
   updateTenderStatus(id: string, status: string): Promise<void>;
 
-  // Offer operations
+  // ============================================================================
+  // OFFER OPERATIONS
+  // ============================================================================
   createOffer(offer: InsertOffer): Promise<Offer>;
-  getOffersByTenderId(tenderId: string): Promise<(Offer & { vendor: User })[]>;
-  getOffersByVendorId(vendorId: string): Promise<(Offer & { tender: Tender; requester: User })[]>;
+  getOffersByTender(tenderId: string): Promise<(Offer & { company: Company; profile?: CompanyProfile })[]>;
+  getOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender })[]>;
 
-  // Tender by invitation token
-  getTenderByInvitationToken(token: string): Promise<(Tender & { requester: User }) | undefined>;
-  
-  // Invitation operations  
+  // ============================================================================
+  // INVITATION OPERATIONS
+  // ============================================================================
   createInvitation(invitation: InsertInvitation): Promise<Invitation>;
-  getInvitationsByVendorId(vendorId: string): Promise<(Invitation & { tender: Tender; requester: User })[]>;
-  getInvitationsByTenderId(tenderId: string): Promise<(Invitation & { vendor?: User })[]>;
-  updateInvitationStatus(id: string, status: string): Promise<void>;
-  
-  // Vendor qualification operations
-  createVendorQualification(qualification: InsertVendorQualification): Promise<VendorQualification>;
-  getVendorQualificationByVendorId(vendorId: string): Promise<VendorQualification | undefined>;
-  updateVendorQualification(vendorId: string, qualification: Partial<InsertVendorQualification>): Promise<VendorQualification>;
-  updateUserVerificationStatus(userId: string, status: string): Promise<void>;
-  
-  // Requester profile operations
-  createRequesterProfile(profile: InsertRequesterProfile): Promise<RequesterProfile>;
-  getRequesterProfileByRequesterId(requesterId: string): Promise<RequesterProfile | undefined>;
-  updateRequesterProfile(requesterId: string, profile: Partial<InsertRequesterProfile>): Promise<RequesterProfile>;
-  getRequesterProfileByTractionSlug(slug: string): Promise<RequesterProfile | undefined>;
-  
-  // Vendors Base operations
+  getInvitationsByTender(tenderId: string): Promise<Invitation[]>;
+
+  // ============================================================================
+  // VENDORS BASE OPERATIONS
+  // ============================================================================
   addVendorToBase(vendorBase: InsertVendorBase): Promise<VendorBase>;
-  getVendorsInBase(requesterId: string, searchQuery?: string): Promise<(VendorBase & { vendor: User })[]>;
-  isVendorInBase(requesterId: string, vendorId: string): Promise<boolean>;
-  removeVendorFromBase(requesterId: string, vendorId: string): Promise<void>;
-  
-  // Join Requests operations
+  getVendorsInBase(requesterCompanyId: string, searchQuery?: string): Promise<(VendorBase & { vendorCompany: Company; profile?: CompanyProfile })[]>;
+  isVendorInBase(requesterCompanyId: string, vendorCompanyId: string): Promise<boolean>;
+  removeVendorFromBase(requesterCompanyId: string, vendorCompanyId: string): Promise<void>;
+
+  // ============================================================================
+  // JOIN REQUEST OPERATIONS
+  // ============================================================================
   createJoinRequest(joinRequest: InsertJoinRequest): Promise<JoinRequest>;
-  getJoinRequestsByRequesterId(requesterId: string, status?: string): Promise<(JoinRequest & { vendor?: User })[]>;
+  getJoinRequestsByRequester(requesterCompanyId: string, status?: string): Promise<(JoinRequest & { vendorCompany: Company; profile?: CompanyProfile })[]>;
   getJoinRequestById(id: string): Promise<JoinRequest | undefined>;
-  getJoinRequestByVendorAndRequester(vendorId: string, requesterId: string): Promise<JoinRequest | undefined>;
-  updateJoinRequestStatus(id: string, status: string): Promise<JoinRequest>;
-  getPendingJoinRequestsCount(requesterId: string): Promise<number>;
-  
-  // Invitation Links operations
-  createInvitationLink(invitationLink: InsertInvitationLink): Promise<InvitationLink>;
-  getInvitationLinkByToken(token: string): Promise<(InvitationLink & { requester: User; tender?: Tender }) | undefined>;
-  updateInvitationLinkStatus(id: string, status: string): Promise<InvitationLink>;
-  
-  // Analytics operations
-  logAnalyticsEvent(event: InsertAnalyticsEvent): Promise<AnalyticsEvent>;
-  
-  // Admin operations
-  makeUserAdmin(userId: string): Promise<User>;
-  getPendingVendors(): Promise<(User & { qualification?: VendorQualification })[]>;
-  approveVendor(vendorId: string, adminId: string, notes?: string): Promise<void>;
-  rejectVendor(vendorId: string, reason: string, adminId: string): Promise<void>;
-  getAllJoinRequests(status?: string): Promise<(JoinRequest & { vendor?: User; requester?: User })[]>;
-  approveJoinRequest(joinRequestId: string, adminId: string): Promise<void>;
-  rejectJoinRequest(joinRequestId: string, reason: string, adminId: string): Promise<void>;
-  getBlockedAwards(): Promise<(Award & { tender?: Tender; vendor?: User; offer?: Offer })[]>;
+  getJoinRequestByCompanies(vendorCompanyId: string, requesterCompanyId: string): Promise<JoinRequest | undefined>;
+  updateJoinRequestStatus(id: string, status: string, decidedBy: string): Promise<JoinRequest>;
+  getPendingJoinRequestsCount(requesterCompanyId: string): Promise<number>;
+
+  // ============================================================================
+  // AWARD OPERATIONS
+  // ============================================================================
+  createAward(award: InsertAward): Promise<Award>;
+  getBlockedAwards(): Promise<(Award & { tender: Tender; company: Company })[]>;
   unblockAward(awardId: string, adminId: string): Promise<void>;
-  getAuditLogs(limit?: number): Promise<(AuditLog & { admin?: User })[]>;
+
+  // ============================================================================
+  // PRODUCT EVENT OPERATIONS
+  // ============================================================================
+  logProductEvent(event: InsertProductEvent): Promise<ProductEvent>;
+  getEventCountLast24h(eventType: string): Promise<number>;
+
+  // ============================================================================
+  // ADMIN OPERATIONS
+  // ============================================================================
+  makeUserAdmin(userId: string): Promise<User>;
+  getAllJoinRequests(status?: string): Promise<(JoinRequest & { vendorCompany?: Company; requesterCompany?: Company })[]>;
+  approveJoinRequestByAdmin(joinRequestId: string, adminId: string): Promise<void>;
+  rejectJoinRequestByAdmin(joinRequestId: string, reason: string, adminId: string): Promise<void>;
+  getAuditLogs(limit?: number): Promise<(AuditLog & { admin: User })[]>;
   logAuditAction(auditEntry: InsertAuditLog): Promise<AuditLog>;
-  
-  // Analytics aggregations for admin dashboard
   getAdminMetrics(): Promise<{
     pendingVerifications: number;
     pendingJoinRequests: number;
@@ -125,13 +151,12 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // ============================================================================
+  // USER OPERATIONS
+  // ============================================================================
+
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || undefined;
   }
 
@@ -150,370 +175,592 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getVendors(): Promise<User[]> {
-    return await db.select().from(users).where(eq(users.role, 'vendor'));
+  // ============================================================================
+  // COMPANY OPERATIONS
+  // ============================================================================
+
+  async createCompany(insertCompany: InsertCompany): Promise<Company> {
+    const [company] = await db.insert(companies).values(insertCompany).returning();
+    return company;
   }
+
+  async getCompany(id: string): Promise<Company | undefined> {
+    const [company] = await db
+      .select()
+      .from(companies)
+      .where(and(eq(companies.id, id), isNull(companies.deletedAt)));
+    return company || undefined;
+  }
+
+  async getCompanyBySlug(slug: string): Promise<Company | undefined> {
+    const [company] = await db
+      .select()
+      .from(companies)
+      .where(and(eq(companies.slug, slug), isNull(companies.deletedAt)));
+    return company || undefined;
+  }
+
+  async getCompanyByCrNumber(crNumber: string): Promise<Company | undefined> {
+    const [company] = await db
+      .select()
+      .from(companies)
+      .where(and(eq(companies.crNumber, crNumber), isNull(companies.deletedAt)));
+    return company || undefined;
+  }
+
+  async updateCompany(id: string, updates: Partial<InsertCompany>): Promise<Company> {
+    const [company] = await db
+      .update(companies)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(companies.id, id))
+      .returning();
+    return company;
+  }
+
+  async getCompaniesWithPendingVerification(): Promise<(Company & { profile?: CompanyProfile })[]> {
+    const results = await db
+      .select({
+        company: companies,
+        profile: companyProfiles,
+      })
+      .from(companies)
+      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
+      .where(and(
+        eq(companies.verificationStatus, 'under_review'),
+        isNull(companies.deletedAt)
+      ))
+      .orderBy(desc(companies.createdAt));
+
+    return results.map(r => ({
+      ...r.company,
+      profile: r.profile || undefined
+    }));
+  }
+
+  async verifyCompany(companyId: string, adminId: string, notes?: string): Promise<void> {
+    const [before] = await db.select().from(companies).where(eq(companies.id, companyId));
+    
+    await db
+      .update(companies)
+      .set({ 
+        verificationStatus: 'verified',
+        rejectionReason: null,
+        updatedAt: new Date()
+      })
+      .where(eq(companies.id, companyId));
+
+    const [after] = await db.select().from(companies).where(eq(companies.id, companyId));
+
+    // Log audit entry
+    await this.logAuditAction({
+      adminId,
+      action: 'company_verified',
+      targetType: 'company',
+      targetId: companyId,
+      beforeState: JSON.stringify(before),
+      afterState: JSON.stringify(after),
+      notes: notes || null
+    });
+
+    // Log product event
+    await this.logProductEvent({
+      eventType: 'company_verified',
+      companyId,
+      metadata: { verifiedBy: adminId }
+    });
+  }
+
+  async rejectCompany(companyId: string, reason: string, adminId: string): Promise<void> {
+    const [before] = await db.select().from(companies).where(eq(companies.id, companyId));
+    
+    await db
+      .update(companies)
+      .set({ 
+        verificationStatus: 'rejected',
+        rejectionReason: reason,
+        updatedAt: new Date()
+      })
+      .where(eq(companies.id, companyId));
+
+    const [after] = await db.select().from(companies).where(eq(companies.id, companyId));
+
+    // Log audit entry
+    await this.logAuditAction({
+      adminId,
+      action: 'company_rejected',
+      targetType: 'company',
+      targetId: companyId,
+      beforeState: JSON.stringify(before),
+      afterState: JSON.stringify(after),
+      notes: reason
+    });
+  }
+
+  // ============================================================================
+  // COMPANY PROFILE OPERATIONS
+  // ============================================================================
+
+  async createCompanyProfile(insertProfile: InsertCompanyProfile): Promise<CompanyProfile> {
+    const [profile] = await db.insert(companyProfiles).values(insertProfile).returning();
+    return profile;
+  }
+
+  async getCompanyProfile(companyId: string): Promise<CompanyProfile | undefined> {
+    const [profile] = await db
+      .select()
+      .from(companyProfiles)
+      .where(eq(companyProfiles.companyId, companyId));
+    return profile || undefined;
+  }
+
+  async getCompanyProfileByTractionSlug(slug: string): Promise<(CompanyProfile & { company: Company }) | undefined> {
+    const [result] = await db
+      .select({
+        profile: companyProfiles,
+        company: companies
+      })
+      .from(companyProfiles)
+      .innerJoin(companies, eq(companyProfiles.companyId, companies.id))
+      .where(and(
+        eq(companyProfiles.tractionSlug, slug),
+        isNull(companies.deletedAt)
+      ));
+
+    if (!result) return undefined;
+
+    return {
+      ...result.profile,
+      company: result.company
+    };
+  }
+
+  async updateCompanyProfile(companyId: string, updates: Partial<InsertCompanyProfile>): Promise<CompanyProfile> {
+    const [profile] = await db
+      .update(companyProfiles)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(companyProfiles.companyId, companyId))
+      .returning();
+    return profile;
+  }
+
+  // ============================================================================
+  // USER-COMPANY OPERATIONS
+  // ============================================================================
+
+  async addUserToCompany(insertUserCompany: InsertUserCompany): Promise<UserCompany> {
+    const [userCompany] = await db.insert(userCompanies).values(insertUserCompany).returning();
+    return userCompany;
+  }
+
+  async getUserCompanies(userId: string): Promise<(UserCompany & { company: Company; profile?: CompanyProfile })[]> {
+    const results = await db
+      .select({
+        userCompany: userCompanies,
+        company: companies,
+        profile: companyProfiles
+      })
+      .from(userCompanies)
+      .innerJoin(companies, eq(userCompanies.companyId, companies.id))
+      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
+      .where(and(
+        eq(userCompanies.userId, userId),
+        isNull(userCompanies.deletedAt),
+        isNull(companies.deletedAt)
+      ))
+      .orderBy(desc(userCompanies.joinedAt));
+
+    return results.map(r => ({
+      ...r.userCompany,
+      company: r.company,
+      profile: r.profile || undefined
+    }));
+  }
+
+  async getCompanyMembers(companyId: string): Promise<(UserCompany & { user: User })[]> {
+    const results = await db
+      .select({
+        userCompany: userCompanies,
+        user: users
+      })
+      .from(userCompanies)
+      .innerJoin(users, eq(userCompanies.userId, users.id))
+      .where(and(
+        eq(userCompanies.companyId, companyId),
+        isNull(userCompanies.deletedAt)
+      ))
+      .orderBy(desc(userCompanies.joinedAt));
+
+    return results.map(r => ({
+      ...r.userCompany,
+      user: r.user
+    }));
+  }
+
+  async updateUserRole(userId: string, companyId: string, role: string): Promise<UserCompany> {
+    const [userCompany] = await db
+      .update(userCompanies)
+      .set({ roleInCompany: role })
+      .where(and(
+        eq(userCompanies.userId, userId),
+        eq(userCompanies.companyId, companyId),
+        isNull(userCompanies.deletedAt)
+      ))
+      .returning();
+    return userCompany;
+  }
+
+  async removeUserFromCompany(userId: string, companyId: string): Promise<void> {
+    await db
+      .update(userCompanies)
+      .set({ deletedAt: new Date() })
+      .where(and(
+        eq(userCompanies.userId, userId),
+        eq(userCompanies.companyId, companyId)
+      ));
+  }
+
+  async getUserRoleInCompany(userId: string, companyId: string): Promise<string | null> {
+    const [result] = await db
+      .select({ role: userCompanies.roleInCompany })
+      .from(userCompanies)
+      .where(and(
+        eq(userCompanies.userId, userId),
+        eq(userCompanies.companyId, companyId),
+        isNull(userCompanies.deletedAt)
+      ));
+    return result?.role || null;
+  }
+
+  // ============================================================================
+  // TENDER OPERATIONS
+  // ============================================================================
 
   async createTender(insertTender: InsertTender): Promise<Tender> {
     const [tender] = await db.insert(tenders).values(insertTender).returning();
     return tender;
   }
 
-  async getTendersByRequesterId(requesterId: string): Promise<Tender[]> {
+  async getTender(id: string): Promise<Tender | undefined> {
+    const [tender] = await db.select().from(tenders).where(eq(tenders.id, id));
+    return tender || undefined;
+  }
+
+  async getTendersByCompany(companyId: string): Promise<Tender[]> {
     return await db
       .select()
       .from(tenders)
-      .where(eq(tenders.requesterId, requesterId))
+      .where(eq(tenders.companyId, companyId))
       .orderBy(desc(tenders.createdAt));
   }
 
-  async getTenderById(id: string): Promise<Tender | undefined> {
-    const [tender] = await db.select().from(tenders).where(eq(tenders.id, id));
-    return tender || undefined;
+  async getTenderByInvitationToken(token: string): Promise<(Tender & { company: Company; profile?: CompanyProfile }) | undefined> {
+    const [result] = await db
+      .select({
+        tender: tenders,
+        company: companies,
+        profile: companyProfiles
+      })
+      .from(tenders)
+      .innerJoin(companies, eq(tenders.companyId, companies.id))
+      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
+      .where(eq(tenders.invitationToken, token));
+
+    if (!result) return undefined;
+
+    return {
+      ...result.tender,
+      company: result.company,
+      profile: result.profile || undefined
+    };
   }
 
   async updateTenderStatus(id: string, status: string): Promise<void> {
     await db.update(tenders).set({ status }).where(eq(tenders.id, id));
   }
 
+  // ============================================================================
+  // OFFER OPERATIONS
+  // ============================================================================
+
   async createOffer(insertOffer: InsertOffer): Promise<Offer> {
     const [offer] = await db.insert(offers).values(insertOffer).returning();
     return offer;
   }
 
-  async getOffersByTenderId(tenderId: string): Promise<(Offer & { vendor: User })[]> {
-    return await db
+  async getOffersByTender(tenderId: string): Promise<(Offer & { company: Company; profile?: CompanyProfile })[]> {
+    const results = await db
       .select({
-        id: offers.id,
-        tenderId: offers.tenderId,
-        vendorId: offers.vendorId,
-        technicalFileUrl: offers.technicalFileUrl,
-        financialFileUrl: offers.financialFileUrl,
-        notes: offers.notes,
-        submittedAt: offers.submittedAt,
-        vendor: users,
+        offer: offers,
+        company: companies,
+        profile: companyProfiles
       })
       .from(offers)
-      .innerJoin(users, eq(offers.vendorId, users.id))
+      .innerJoin(companies, eq(offers.companyId, companies.id))
+      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
       .where(eq(offers.tenderId, tenderId))
       .orderBy(desc(offers.submittedAt));
+
+    return results.map(r => ({
+      ...r.offer,
+      company: r.company,
+      profile: r.profile || undefined
+    }));
   }
 
-  async getOffersByVendorId(vendorId: string): Promise<(Offer & { tender: Tender; requester: User })[]> {
-    return await db
+  async getOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender })[]> {
+    const results = await db
       .select({
-        id: offers.id,
-        tenderId: offers.tenderId,
-        vendorId: offers.vendorId,
-        technicalFileUrl: offers.technicalFileUrl,
-        financialFileUrl: offers.financialFileUrl,
-        notes: offers.notes,
-        submittedAt: offers.submittedAt,
-        tender: tenders,
-        requester: users,
+        offer: offers,
+        tender: tenders
       })
       .from(offers)
       .innerJoin(tenders, eq(offers.tenderId, tenders.id))
-      .innerJoin(users, eq(tenders.requesterId, users.id))
-      .where(eq(offers.vendorId, vendorId))
+      .where(eq(offers.companyId, companyId))
       .orderBy(desc(offers.submittedAt));
+
+    return results.map(r => ({
+      ...r.offer,
+      tender: r.tender
+    }));
   }
+
+  // ============================================================================
+  // INVITATION OPERATIONS
+  // ============================================================================
 
   async createInvitation(insertInvitation: InsertInvitation): Promise<Invitation> {
     const [invitation] = await db.insert(invitations).values(insertInvitation).returning();
     return invitation;
   }
 
-  async getInvitationsByVendorId(vendorId: string): Promise<(Invitation & { tender: Tender; requester: User })[]> {
+  async getInvitationsByTender(tenderId: string): Promise<Invitation[]> {
     return await db
-      .select({
-        id: invitations.id,
-        tenderId: invitations.tenderId,
-        vendorId: invitations.vendorId,
-        vendorEmail: invitations.vendorEmail,
-        vendorName: invitations.vendorName,
-        invitationToken: invitations.invitationToken,
-        status: invitations.status,
-        invitedAt: invitations.invitedAt,
-        tender: tenders,
-        requester: users,
-      })
+      .select()
       .from(invitations)
-      .innerJoin(tenders, eq(invitations.tenderId, tenders.id))
-      .innerJoin(users, eq(tenders.requesterId, users.id))
-      .where(eq(invitations.vendorId, vendorId))
+      .where(eq(invitations.tenderId, tenderId))
       .orderBy(desc(invitations.invitedAt));
   }
 
-  async getInvitationsByTenderId(tenderId: string): Promise<(Invitation & { vendor?: User })[]> {
-    const results = await db
+  // ============================================================================
+  // VENDORS BASE OPERATIONS
+  // ============================================================================
+
+  async addVendorToBase(insertVendorBase: InsertVendorBase): Promise<VendorBase> {
+    const [vendorBase] = await db.insert(vendorsBase).values(insertVendorBase).returning();
+    return vendorBase;
+  }
+
+  async getVendorsInBase(requesterCompanyId: string, searchQuery?: string): Promise<(VendorBase & { vendorCompany: Company; profile?: CompanyProfile })[]> {
+    let query = db
       .select({
-        id: invitations.id,
-        tenderId: invitations.tenderId,
-        vendorId: invitations.vendorId,
-        vendorEmail: invitations.vendorEmail,
-        vendorName: invitations.vendorName,
-        invitationToken: invitations.invitationToken,
-        status: invitations.status,
-        invitedAt: invitations.invitedAt,
-        vendor: users,
+        vendorBase: vendorsBase,
+        vendorCompany: companies,
+        profile: companyProfiles
       })
-      .from(invitations)
-      .leftJoin(users, eq(invitations.vendorId, users.id))
-      .where(eq(invitations.tenderId, tenderId))
-      .orderBy(desc(invitations.invitedAt));
-    
-    return results.map(result => ({
-      ...result,
-      vendor: result.vendor || undefined
+      .from(vendorsBase)
+      .innerJoin(companies, eq(vendorsBase.vendorCompanyId, companies.id))
+      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
+      .where(and(
+        eq(vendorsBase.requesterCompanyId, requesterCompanyId),
+        isNull(companies.deletedAt)
+      ))
+      .$dynamic();
+
+    if (searchQuery) {
+      query = query.where(
+        or(
+          ilike(companies.name, `%${searchQuery}%`),
+          ilike(companyProfiles.displayName, `%${searchQuery}%`)
+        )
+      );
+    }
+
+    const results = await query.orderBy(desc(vendorsBase.addedAt));
+
+    return results.map(r => ({
+      ...r.vendorBase,
+      vendorCompany: r.vendorCompany,
+      profile: r.profile || undefined
     }));
   }
 
-  async getTenderByInvitationToken(token: string): Promise<(Tender & { requester: User }) | undefined> {
-    const [tender] = await db
-      .select({
-        id: tenders.id,
-        title: tenders.title,
-        description: tenders.description,
-        deadline: tenders.deadline,
-        budget: tenders.budget,
-        duration: tenders.duration,
-        status: tenders.status,
-        requesterId: tenders.requesterId,
-        invitationToken: tenders.invitationToken,
-        createdAt: tenders.createdAt,
-        requester: users,
-      })
-      .from(tenders)
-      .innerJoin(users, eq(tenders.requesterId, users.id))
-      .where(eq(tenders.invitationToken, token));
-    
-    return tender || undefined;
-  }
-
-  async updateInvitationStatus(id: string, status: string): Promise<void> {
-    await db.update(invitations).set({ status }).where(eq(invitations.id, id));
-  }
-
-  async createVendorQualification(qualification: InsertVendorQualification): Promise<VendorQualification> {
-    const [result] = await db.insert(vendorQualifications).values(qualification).returning();
-    return result;
-  }
-
-  async getVendorQualificationByVendorId(vendorId: string): Promise<VendorQualification | undefined> {
-    const [result] = await db.select().from(vendorQualifications).where(eq(vendorQualifications.vendorId, vendorId));
-    return result || undefined;
-  }
-
-  async updateVendorQualification(vendorId: string, qualification: Partial<InsertVendorQualification>): Promise<VendorQualification> {
-    const [result] = await db
-      .update(vendorQualifications)
-      .set({ ...qualification, updatedAt: new Date() })
-      .where(eq(vendorQualifications.vendorId, vendorId))
-      .returning();
-    return result;
-  }
-
-  async updateUserVerificationStatus(userId: string, status: string): Promise<void> {
-    await db.update(users).set({ verificationStatus: status }).where(eq(users.id, userId));
-  }
-
-  async createRequesterProfile(profile: InsertRequesterProfile): Promise<RequesterProfile> {
-    const [result] = await db.insert(requesterProfiles).values(profile).returning();
-    return result;
-  }
-
-  async getRequesterProfileByRequesterId(requesterId: string): Promise<RequesterProfile | undefined> {
-    const [result] = await db.select().from(requesterProfiles).where(eq(requesterProfiles.requesterId, requesterId));
-    return result || undefined;
-  }
-
-  async updateRequesterProfile(requesterId: string, profile: Partial<InsertRequesterProfile>): Promise<RequesterProfile> {
-    const [result] = await db
-      .update(requesterProfiles)
-      .set({ ...profile, updatedAt: new Date() })
-      .where(eq(requesterProfiles.requesterId, requesterId))
-      .returning();
-    return result;
-  }
-
-  async getRequesterProfileByTractionSlug(slug: string): Promise<RequesterProfile | undefined> {
-    const [result] = await db.select().from(requesterProfiles).where(eq(requesterProfiles.tractionSlug, slug));
-    return result || undefined;
-  }
-
-  // Vendors Base operations
-  async addVendorToBase(vendorBase: InsertVendorBase): Promise<VendorBase> {
-    const [result] = await db.insert(vendorsBase).values(vendorBase).returning();
-    return result;
-  }
-
-  async getVendorsInBase(requesterId: string, searchQuery?: string): Promise<(VendorBase & { vendor: User })[]> {
-    const conditions = searchQuery
-      ? and(
-          eq(vendorsBase.requesterId, requesterId),
-          or(
-            ilike(users.name, `%${searchQuery}%`),
-            ilike(users.company, `%${searchQuery}%`)
-          )
-        )
-      : eq(vendorsBase.requesterId, requesterId);
-
-    return await db
-      .select({
-        id: vendorsBase.id,
-        requesterId: vendorsBase.requesterId,
-        vendorId: vendorsBase.vendorId,
-        joinMethod: vendorsBase.joinMethod,
-        addedAt: vendorsBase.addedAt,
-        vendor: users,
-      })
-      .from(vendorsBase)
-      .innerJoin(users, eq(vendorsBase.vendorId, users.id))
-      .where(conditions)
-      .orderBy(desc(vendorsBase.addedAt));
-  }
-
-  async isVendorInBase(requesterId: string, vendorId: string): Promise<boolean> {
+  async isVendorInBase(requesterCompanyId: string, vendorCompanyId: string): Promise<boolean> {
     const [result] = await db
       .select()
       .from(vendorsBase)
       .where(and(
-        eq(vendorsBase.requesterId, requesterId),
-        eq(vendorsBase.vendorId, vendorId)
+        eq(vendorsBase.requesterCompanyId, requesterCompanyId),
+        eq(vendorsBase.vendorCompanyId, vendorCompanyId)
       ));
     return !!result;
   }
 
-  async removeVendorFromBase(requesterId: string, vendorId: string): Promise<void> {
+  async removeVendorFromBase(requesterCompanyId: string, vendorCompanyId: string): Promise<void> {
     await db.delete(vendorsBase).where(
       and(
-        eq(vendorsBase.requesterId, requesterId),
-        eq(vendorsBase.vendorId, vendorId)
+        eq(vendorsBase.requesterCompanyId, requesterCompanyId),
+        eq(vendorsBase.vendorCompanyId, vendorCompanyId)
       )
     );
   }
 
-  // Join Requests operations
-  async createJoinRequest(joinRequest: InsertJoinRequest): Promise<JoinRequest> {
-    const [result] = await db.insert(joinRequests).values(joinRequest).returning();
-    return result;
+  // ============================================================================
+  // JOIN REQUEST OPERATIONS
+  // ============================================================================
+
+  async createJoinRequest(insertJoinRequest: InsertJoinRequest): Promise<JoinRequest> {
+    const [joinRequest] = await db.insert(joinRequests).values(insertJoinRequest).returning();
+    return joinRequest;
   }
 
-  async getJoinRequestsByRequesterId(requesterId: string, status?: string): Promise<(JoinRequest & { vendor?: User })[]> {
-    const conditions = status 
-      ? and(eq(joinRequests.requesterId, requesterId), eq(joinRequests.status, status))
-      : eq(joinRequests.requesterId, requesterId);
-
-    const results = await db
+  async getJoinRequestsByRequester(requesterCompanyId: string, status?: string): Promise<(JoinRequest & { vendorCompany: Company; profile?: CompanyProfile })[]> {
+    let query = db
       .select({
-        id: joinRequests.id,
-        requesterId: joinRequests.requesterId,
-        vendorId: joinRequests.vendorId,
-        status: joinRequests.status,
-        rejectionReason: joinRequests.rejectionReason,
-        createdAt: joinRequests.createdAt,
-        decidedAt: joinRequests.decidedAt,
-        vendor: users,
+        joinRequest: joinRequests,
+        vendorCompany: companies,
+        profile: companyProfiles
       })
       .from(joinRequests)
-      .leftJoin(users, eq(joinRequests.vendorId, users.id))
-      .where(conditions)
-      .orderBy(desc(joinRequests.createdAt));
+      .innerJoin(companies, eq(joinRequests.vendorCompanyId, companies.id))
+      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
+      .where(eq(joinRequests.requesterCompanyId, requesterCompanyId))
+      .$dynamic();
 
-    return results.map(result => ({
-      ...result,
-      vendor: result.vendor || undefined
+    if (status) {
+      query = query.where(eq(joinRequests.status, status));
+    }
+
+    const results = await query.orderBy(desc(joinRequests.createdAt));
+
+    return results.map(r => ({
+      ...r.joinRequest,
+      vendorCompany: r.vendorCompany,
+      profile: r.profile || undefined
     }));
   }
 
   async getJoinRequestById(id: string): Promise<JoinRequest | undefined> {
-    const [result] = await db.select().from(joinRequests).where(eq(joinRequests.id, id));
-    return result || undefined;
+    const [joinRequest] = await db.select().from(joinRequests).where(eq(joinRequests.id, id));
+    return joinRequest || undefined;
   }
 
-  async getJoinRequestByVendorAndRequester(vendorId: string, requesterId: string): Promise<JoinRequest | undefined> {
-    const [result] = await db
+  async getJoinRequestByCompanies(vendorCompanyId: string, requesterCompanyId: string): Promise<JoinRequest | undefined> {
+    const [joinRequest] = await db
       .select()
       .from(joinRequests)
       .where(and(
-        eq(joinRequests.vendorId, vendorId),
-        eq(joinRequests.requesterId, requesterId)
+        eq(joinRequests.vendorCompanyId, vendorCompanyId),
+        eq(joinRequests.requesterCompanyId, requesterCompanyId)
       ))
       .orderBy(desc(joinRequests.createdAt))
       .limit(1);
-    return result || undefined;
+    return joinRequest || undefined;
   }
 
-  async updateJoinRequestStatus(id: string, status: string): Promise<JoinRequest> {
-    const [result] = await db
+  async updateJoinRequestStatus(id: string, status: string, decidedBy: string): Promise<JoinRequest> {
+    const [joinRequest] = await db
       .update(joinRequests)
-      .set({ status, decidedAt: new Date() })
+      .set({ 
+        status, 
+        decidedAt: new Date(),
+        decidedBy
+      })
       .where(eq(joinRequests.id, id))
       .returning();
-    return result;
+    return joinRequest;
   }
 
-  async getPendingJoinRequestsCount(requesterId: string): Promise<number> {
+  async getPendingJoinRequestsCount(requesterCompanyId: string): Promise<number> {
     const results = await db
       .select()
       .from(joinRequests)
       .where(and(
-        eq(joinRequests.requesterId, requesterId),
+        eq(joinRequests.requesterCompanyId, requesterCompanyId),
         eq(joinRequests.status, 'pending')
       ));
     return results.length;
   }
 
-  // Invitation Links operations
-  async createInvitationLink(invitationLink: InsertInvitationLink): Promise<InvitationLink> {
-    const [result] = await db.insert(invitationLinks).values(invitationLink).returning();
-    return result;
+  // ============================================================================
+  // AWARD OPERATIONS
+  // ============================================================================
+
+  async createAward(insertAward: InsertAward): Promise<Award> {
+    const [award] = await db.insert(awards).values(insertAward).returning();
+    return award;
   }
 
-  async getInvitationLinkByToken(token: string): Promise<(InvitationLink & { requester: User; tender?: Tender }) | undefined> {
-    const [result] = await db
+  async getBlockedAwards(): Promise<(Award & { tender: Tender; company: Company })[]> {
+    const results = await db
       .select({
-        id: invitationLinks.id,
-        requesterId: invitationLinks.requesterId,
-        tenderId: invitationLinks.tenderId,
-        vendorEmail: invitationLinks.vendorEmail,
-        token: invitationLinks.token,
-        status: invitationLinks.status,
-        createdAt: invitationLinks.createdAt,
-        acceptedAt: invitationLinks.acceptedAt,
-        requester: users,
+        award: awards,
         tender: tenders,
+        company: companies
       })
-      .from(invitationLinks)
-      .innerJoin(users, eq(invitationLinks.requesterId, users.id))
-      .leftJoin(tenders, eq(invitationLinks.tenderId, tenders.id))
-      .where(eq(invitationLinks.token, token));
+      .from(awards)
+      .innerJoin(tenders, eq(awards.tenderId, tenders.id))
+      .innerJoin(companies, eq(awards.companyId, companies.id))
+      .where(eq(awards.status, 'blocked'))
+      .orderBy(desc(awards.createdAt));
 
-    if (!result) return undefined;
-
-    return {
-      ...result,
-      tender: result.tender || undefined
-    };
+    return results.map(r => ({
+      ...r.award,
+      tender: r.tender,
+      company: r.company
+    }));
   }
 
-  async updateInvitationLinkStatus(id: string, status: string): Promise<InvitationLink> {
-    const [result] = await db
-      .update(invitationLinks)
-      .set({ status, acceptedAt: status === 'accepted' ? new Date() : undefined })
-      .where(eq(invitationLinks.id, id))
-      .returning();
-    return result;
+  async unblockAward(awardId: string, adminId: string): Promise<void> {
+    const [before] = await db.select().from(awards).where(eq(awards.id, awardId));
+    
+    await db
+      .update(awards)
+      .set({ 
+        status: 'awarded',
+        blockReason: null,
+        awardedAt: new Date()
+      })
+      .where(eq(awards.id, awardId));
+
+    const [after] = await db.select().from(awards).where(eq(awards.id, awardId));
+
+    // Log audit entry
+    await this.logAuditAction({
+      adminId,
+      action: 'award_unblocked',
+      targetType: 'award',
+      targetId: awardId,
+      beforeState: JSON.stringify(before),
+      afterState: JSON.stringify(after),
+      notes: null
+    });
   }
 
-  // Analytics operations
-  async logAnalyticsEvent(event: InsertAnalyticsEvent): Promise<AnalyticsEvent> {
-    const [result] = await db.insert(analyticsEvents).values(event).returning();
-    return result;
+  // ============================================================================
+  // PRODUCT EVENT OPERATIONS
+  // ============================================================================
+
+  async logProductEvent(insertEvent: InsertProductEvent): Promise<ProductEvent> {
+    const [event] = await db.insert(productEvents).values(insertEvent).returning();
+    return event;
   }
 
-  // Admin operations
+  async getEventCountLast24h(eventType: string): Promise<number> {
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const results = await db
+      .select()
+      .from(productEvents)
+      .where(and(
+        eq(productEvents.eventType, eventType),
+        gte(productEvents.createdAt, oneDayAgo)
+      ));
+    return results.length;
+  }
+
+  // ============================================================================
+  // ADMIN OPERATIONS
+  // ============================================================================
+
   async makeUserAdmin(userId: string): Promise<User> {
     const [user] = await db
       .update(users)
@@ -523,265 +770,101 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getPendingVendors(): Promise<(User & { qualification?: VendorQualification })[]> {
-    const results = await db
+  async getAllJoinRequests(status?: string): Promise<(JoinRequest & { vendorCompany?: Company; requesterCompany?: Company })[]> {
+    let query = db
       .select({
-        id: users.id,
-        username: users.username,
-        email: users.email,
-        password: users.password,
-        name: users.name,
-        role: users.role,
-        isAdmin: users.isAdmin,
-        company: users.company,
-        expertise: users.expertise,
-        rating: users.rating,
-        verificationStatus: users.verificationStatus,
-        onboardingState: users.onboardingState,
-        createdAt: users.createdAt,
-        qualification: vendorQualifications,
-      })
-      .from(users)
-      .leftJoin(vendorQualifications, eq(users.id, vendorQualifications.vendorId))
-      .where(and(
-        eq(users.role, 'vendor'),
-        eq(users.verificationStatus, 'under_review')
-      ));
-
-    return results.map(row => ({
-      ...row,
-      qualification: row.qualification || undefined
-    }));
-  }
-
-  async approveVendor(vendorId: string, adminId: string, notes?: string): Promise<void> {
-    const beforeState = await this.getUser(vendorId);
-    
-    await db
-      .update(users)
-      .set({ verificationStatus: 'verified' })
-      .where(eq(users.id, vendorId));
-
-    const afterState = await this.getUser(vendorId);
-
-    await this.logAuditAction({
-      adminId,
-      action: 'vendor_verified',
-      targetType: 'vendor',
-      targetId: vendorId,
-      beforeState: JSON.stringify(beforeState),
-      afterState: JSON.stringify(afterState),
-      notes: notes || null
-    });
-  }
-
-  async rejectVendor(vendorId: string, reason: string, adminId: string): Promise<void> {
-    const beforeState = await this.getUser(vendorId);
-    
-    await db
-      .update(users)
-      .set({ verificationStatus: 'not_verified' })
-      .where(eq(users.id, vendorId));
-
-    await db
-      .update(vendorQualifications)
-      .set({ rejectionReason: reason })
-      .where(eq(vendorQualifications.vendorId, vendorId));
-
-    const afterState = await this.getUser(vendorId);
-
-    await this.logAuditAction({
-      adminId,
-      action: 'vendor_rejected',
-      targetType: 'vendor',
-      targetId: vendorId,
-      beforeState: JSON.stringify(beforeState),
-      afterState: JSON.stringify(afterState),
-      notes: reason
-    });
-  }
-
-  async getAllJoinRequests(status?: string): Promise<(JoinRequest & { vendor?: User; requester?: User })[]> {
-    const query = db
-      .select({
-        id: joinRequests.id,
-        requesterId: joinRequests.requesterId,
-        vendorId: joinRequests.vendorId,
-        status: joinRequests.status,
-        rejectionReason: joinRequests.rejectionReason,
-        createdAt: joinRequests.createdAt,
-        decidedAt: joinRequests.decidedAt,
-        vendor: users,
-        requester: users,
+        joinRequest: joinRequests,
+        vendorCompany: companies,
+        requesterCompany: sql<Company>`requester_companies`
       })
       .from(joinRequests)
-      .leftJoin(users, eq(joinRequests.vendorId, users.id));
+      .leftJoin(companies, eq(joinRequests.vendorCompanyId, companies.id))
+      .leftJoin(sql`${companies} AS requester_companies`, eq(joinRequests.requesterCompanyId, sql`requester_companies.id`))
+      .$dynamic();
 
     if (status) {
-      const results = await query.where(eq(joinRequests.status, status));
-      return results.map(row => ({
-        id: row.id,
-        requesterId: row.requesterId,
-        vendorId: row.vendorId,
-        status: row.status,
-        rejectionReason: row.rejectionReason,
-        createdAt: row.createdAt,
-        decidedAt: row.decidedAt,
-        vendor: row.vendor || undefined,
-        requester: undefined
-      }));
+      query = query.where(eq(joinRequests.status, status));
     }
 
-    const results = await query;
-    return results.map(row => ({
-      id: row.id,
-      requesterId: row.requesterId,
-      vendorId: row.vendorId,
-      status: row.status,
-      rejectionReason: row.rejectionReason,
-      createdAt: row.createdAt,
-      decidedAt: row.decidedAt,
-      vendor: row.vendor || undefined,
-      requester: undefined
+    const results = await query.orderBy(desc(joinRequests.createdAt));
+
+    return results.map(r => ({
+      ...r.joinRequest,
+      vendorCompany: r.vendorCompany || undefined,
+      requesterCompany: r.requesterCompany || undefined
     }));
   }
 
-  async approveJoinRequest(joinRequestId: string, adminId: string): Promise<void> {
+  async approveJoinRequestByAdmin(joinRequestId: string, adminId: string): Promise<void> {
     const joinRequest = await this.getJoinRequestById(joinRequestId);
     if (!joinRequest) throw new Error('Join request not found');
 
-    const beforeState = joinRequest;
-    
-    await this.updateJoinRequestStatus(joinRequestId, 'approved');
+    // Update join request
+    await this.updateJoinRequestStatus(joinRequestId, 'approved', adminId);
+
+    // Add to vendors base
     await this.addVendorToBase({
-      requesterId: joinRequest.requesterId,
-      vendorId: joinRequest.vendorId,
-      joinMethod: 'traction'
+      requesterCompanyId: joinRequest.requesterCompanyId,
+      vendorCompanyId: joinRequest.vendorCompanyId,
+      joinMethod: 'traction',
+      addedBy: adminId
     });
 
-    const afterState = await this.getJoinRequestById(joinRequestId);
-
+    // Log audit
     await this.logAuditAction({
       adminId,
-      action: 'join_request_approved',
+      action: 'join_request_approved_by_admin',
       targetType: 'join_request',
       targetId: joinRequestId,
-      beforeState: JSON.stringify(beforeState),
-      afterState: JSON.stringify(afterState),
+      beforeState: JSON.stringify({ status: 'pending' }),
+      afterState: JSON.stringify({ status: 'approved' }),
       notes: null
     });
   }
 
-  async rejectJoinRequest(joinRequestId: string, reason: string, adminId: string): Promise<void> {
-    const joinRequest = await this.getJoinRequestById(joinRequestId);
-    if (!joinRequest) throw new Error('Join request not found');
-
-    const beforeState = joinRequest;
-    
+  async rejectJoinRequestByAdmin(joinRequestId: string, reason: string, adminId: string): Promise<void> {
     await db
       .update(joinRequests)
-      .set({ status: 'rejected', rejectionReason: reason, decidedAt: new Date() })
+      .set({ 
+        status: 'rejected',
+        rejectionReason: reason,
+        decidedAt: new Date(),
+        decidedBy: adminId
+      })
       .where(eq(joinRequests.id, joinRequestId));
 
-    const afterState = await this.getJoinRequestById(joinRequestId);
-
+    // Log audit
     await this.logAuditAction({
       adminId,
-      action: 'join_request_rejected',
+      action: 'join_request_rejected_by_admin',
       targetType: 'join_request',
       targetId: joinRequestId,
-      beforeState: JSON.stringify(beforeState),
-      afterState: JSON.stringify(afterState),
+      beforeState: JSON.stringify({ status: 'pending' }),
+      afterState: JSON.stringify({ status: 'rejected', reason }),
       notes: reason
     });
   }
 
-  async getBlockedAwards(): Promise<(Award & { tender?: Tender; vendor?: User; offer?: Offer })[]> {
+  async getAuditLogs(limit: number = 100): Promise<(AuditLog & { admin: User })[]> {
     const results = await db
       .select({
-        id: awards.id,
-        tenderId: awards.tenderId,
-        vendorId: awards.vendorId,
-        offerId: awards.offerId,
-        status: awards.status,
-        blockReason: awards.blockReason,
-        awardedAt: awards.awardedAt,
-        createdAt: awards.createdAt,
-        tender: tenders,
-        vendor: users,
-        offer: offers,
-      })
-      .from(awards)
-      .leftJoin(tenders, eq(awards.tenderId, tenders.id))
-      .leftJoin(users, eq(awards.vendorId, users.id))
-      .leftJoin(offers, eq(awards.offerId, offers.id))
-      .where(eq(awards.status, 'blocked'));
-
-    return results.map(row => ({
-      ...row,
-      tender: row.tender || undefined,
-      vendor: row.vendor || undefined,
-      offer: row.offer || undefined,
-    }));
-  }
-
-  async unblockAward(awardId: string, adminId: string): Promise<void> {
-    const [award] = await db.select().from(awards).where(eq(awards.id, awardId));
-    if (!award) throw new Error('Award not found');
-
-    const vendor = await this.getUser(award.vendorId);
-    if (vendor?.verificationStatus !== 'verified') {
-      throw new Error('Cannot unblock award: vendor is not verified');
-    }
-
-    const beforeState = award;
-    
-    await db
-      .update(awards)
-      .set({ status: 'awarded', awardedAt: new Date() })
-      .where(eq(awards.id, awardId));
-
-    const [afterState] = await db.select().from(awards).where(eq(awards.id, awardId));
-
-    await this.logAuditAction({
-      adminId,
-      action: 'award_unblocked',
-      targetType: 'award',
-      targetId: awardId,
-      beforeState: JSON.stringify(beforeState),
-      afterState: JSON.stringify(afterState),
-      notes: null
-    });
-  }
-
-  async getAuditLogs(limit: number = 50): Promise<(AuditLog & { admin?: User })[]> {
-    const results = await db
-      .select({
-        id: auditLog.id,
-        adminId: auditLog.adminId,
-        action: auditLog.action,
-        targetType: auditLog.targetType,
-        targetId: auditLog.targetId,
-        beforeState: auditLog.beforeState,
-        afterState: auditLog.afterState,
-        notes: auditLog.notes,
-        createdAt: auditLog.createdAt,
-        admin: users,
+        auditLog: auditLog,
+        admin: users
       })
       .from(auditLog)
-      .leftJoin(users, eq(auditLog.adminId, users.id))
+      .innerJoin(users, eq(auditLog.adminId, users.id))
       .orderBy(desc(auditLog.createdAt))
       .limit(limit);
 
-    return results.map(row => ({
-      ...row,
-      admin: row.admin || undefined,
+    return results.map(r => ({
+      ...r.auditLog,
+      admin: r.admin
     }));
   }
 
-  async logAuditAction(auditEntry: InsertAuditLog): Promise<AuditLog> {
-    const [result] = await db.insert(auditLog).values(auditEntry).returning();
-    return result;
+  async logAuditAction(insertAudit: InsertAuditLog): Promise<AuditLog> {
+    const [audit] = await db.insert(auditLog).values(insertAudit).returning();
+    return audit;
   }
 
   async getAdminMetrics(): Promise<{
@@ -790,34 +873,35 @@ export class DatabaseStorage implements IStorage {
     proposalsLast24h: number;
     blockedAwards: number;
   }> {
-    const pendingVendors = await db
+    // Pending verifications
+    const pendingVerifications = await db
       .select()
-      .from(users)
+      .from(companies)
       .where(and(
-        eq(users.role, 'vendor'),
-        eq(users.verificationStatus, 'under_review')
+        eq(companies.verificationStatus, 'under_review'),
+        isNull(companies.deletedAt)
       ));
 
-    const pendingRequests = await db
+    // Pending join requests (across all companies)
+    const pendingJoinRequests = await db
       .select()
       .from(joinRequests)
       .where(eq(joinRequests.status, 'pending'));
 
-    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const recentProposals = await db
-      .select()
-      .from(offers);
+    // Proposals last 24h
+    const proposalsCount = await this.getEventCountLast24h('proposal_submitted');
 
-    const blockedAwardsList = await db
+    // Blocked awards
+    const blockedAwards = await db
       .select()
       .from(awards)
       .where(eq(awards.status, 'blocked'));
 
     return {
-      pendingVerifications: pendingVendors.length,
-      pendingJoinRequests: pendingRequests.length,
-      proposalsLast24h: recentProposals.length,
-      blockedAwards: blockedAwardsList.length,
+      pendingVerifications: pendingVerifications.length,
+      pendingJoinRequests: pendingJoinRequests.length,
+      proposalsLast24h: proposalsCount,
+      blockedAwards: blockedAwards.length
     };
   }
 }

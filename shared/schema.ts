@@ -1,189 +1,318 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, boolean, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// ============================================================================
+// CORE TABLES - Company-Centric Model
+// ============================================================================
+
+// Users - Lightweight authentication only
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
-  role: text("role").notNull(), // 'requester', 'vendor', or 'admin'
-  isAdmin: boolean("is_admin").default(false), // Admin flag for super-admin privileges
-  company: text("company"),
-  expertise: text("expertise"), // for vendors
-  rating: text("rating").default("0"), // for vendors
-  verificationStatus: text("verification_status").default("not_verified"), // 'not_verified', 'under_review', 'verified'
-  onboardingState: text("onboarding_state").default("draft"), // 'draft' | 'completed'
-  createdAt: timestamp("created_at").defaultNow(),
+  isAdmin: boolean("is_admin").default(false).notNull(), // Platform admins (global, not tied to companies)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Companies - Central entity for all business operations
+export const companies = pgTable("companies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Basic Info
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(), // For URLs and lookups
+  
+  // Legal & Compliance (Private - for admin review)
+  legalName: text("legal_name").notNull(),
+  crNumber: text("cr_number").notNull().unique(),
+  vatNumber: text("vat_number").unique(),
+  city: text("city"),
+  category: text("category"),
+  certifications: jsonb("certifications").$type<string[]>().default([]),
+  documents: jsonb("documents").$type<{
+    vatCertificate?: string;
+    gosiCertificate?: string;
+    nationalAddressCertificate?: string;
+    [key: string]: string | undefined;
+  }>(),
+  
+  // Status & State
+  verificationStatus: text("verification_status").notNull().default("not_verified"), // 'not_verified', 'under_review', 'verified', 'rejected'
+  onboardingState: text("onboarding_state").notNull().default("draft"), // 'draft', 'completed'
+  rejectionReason: text("rejection_reason"),
+  
+  // Soft Delete
+  deletedAt: timestamp("deleted_at"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Company Profiles - Public-facing company information
+export const companyProfiles = pgTable("company_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id).unique(),
+  
+  // Public Display
+  displayName: text("display_name").notNull(),
+  bio: text("bio"),
+  tags: jsonb("tags").$type<string[]>().default([]),
+  
+  // Media
+  logoUrl: text("logo_url"),
+  headerUrl: text("header_url"),
+  brochureUrl: text("brochure_url"), // Company profile PDF
+  
+  // Social Links
+  socialLinks: jsonb("social_links").$type<{
+    website?: string;
+    linkedin?: string;
+    twitter?: string;
+    [key: string]: string | undefined;
+  }>(),
+  
+  // Visibility
+  isPublic: boolean("is_public").default(true).notNull(),
+  
+  // Vendors Base (for requesters)
+  tractionSlug: text("traction_slug").unique(), // For traction link: /r/{slug}
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// User-Company Junction - Many-to-many with roles
+export const userCompanies = pgTable("user_companies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  companyId: varchar("company_id").notNull().references(() => companies.id),
+  
+  // Role within company
+  roleInCompany: text("role_in_company").notNull(), // 'owner', 'admin', 'member', 'viewer'
+  
+  // Metadata
+  invitedBy: varchar("invited_by").references(() => users.id),
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  
+  // Soft Delete
+  deletedAt: timestamp("deleted_at"),
+});
+
+// ============================================================================
+// DOMAIN TABLES - Business Operations
+// ============================================================================
+
+// Tenders - RFX/procurement requests
 export const tenders = pgTable("tenders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id), // Company issuing tender
+  createdBy: varchar("created_by").notNull().references(() => users.id), // User who created it
+  
+  // Tender Details
   title: text("title").notNull(),
   description: text("description").notNull(),
   deadline: text("deadline").notNull(),
   budget: text("budget"),
   duration: text("duration"),
   status: text("status").notNull().default("active"), // 'draft', 'active', 'closed'
-  requesterId: varchar("requester_id").notNull().references(() => users.id),
-  invitationToken: varchar("invitation_token").notNull().unique(), // single invitation token for the tender
-  createdAt: timestamp("created_at").defaultNow(),
+  
+  // Invitation & Access
+  invitationToken: varchar("invitation_token").notNull().unique(),
+  
+  // Policy Gates
+  allowConditionalSubmission: boolean("allow_conditional_submission").default(false).notNull(), // Allow unverified companies to submit
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Offers - Proposals submitted to tenders
 export const offers = pgTable("offers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   tenderId: varchar("tender_id").notNull().references(() => tenders.id),
-  vendorId: varchar("vendor_id").notNull().references(() => users.id),
+  companyId: varchar("company_id").notNull().references(() => companies.id), // Company submitting offer
+  createdBy: varchar("created_by").notNull().references(() => users.id), // User who submitted it
+  
+  // Proposal Files
   technicalFileUrl: text("technical_file_url"),
   financialFileUrl: text("financial_file_url"),
   notes: text("notes"),
-  submittedAt: timestamp("submitted_at").defaultNow(),
+  
+  // Status Gates
+  conditionalSubmission: boolean("conditional_submission").default(false).notNull(), // Was company unverified at submission?
+  
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
 });
 
+// Invitations - Tender invitations to specific vendors
 export const invitations = pgTable("invitations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   tenderId: varchar("tender_id").notNull().references(() => tenders.id),
-  vendorId: varchar("vendor_id").references(() => users.id), // nullable for email invitations
-  vendorEmail: text("vendor_email"), // for inviting unregistered vendors
-  vendorName: text("vendor_name"), // for inviting unregistered vendors
-  invitationToken: varchar("invitation_token").unique(), // unique token for tender access
+  companyId: varchar("company_id").references(() => companies.id), // Invited company (nullable for email invitations)
+  vendorEmail: text("vendor_email"), // For inviting unregistered companies
+  vendorName: text("vendor_name"),
+  invitationToken: varchar("invitation_token").unique(),
   status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'declined'
-  invitedAt: timestamp("invited_at").defaultNow(),
+  
+  invitedAt: timestamp("invited_at").defaultNow().notNull(),
 });
 
-export const vendorQualifications = pgTable("vendor_qualifications", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  vendorId: varchar("vendor_id").notNull().references(() => users.id).unique(),
-  
-  // Legal & Compliance (Private)
-  legalCompanyName: text("legal_company_name").notNull(),
-  crNumber: text("cr_number").notNull(), // Validated as numeric in form
-  vatCertificateUrl: text("vat_certificate_url"),
-  vatNumber: text("vat_number"),
-  gosiCertificateUrl: text("gosi_certificate_url").notNull(), // Required
-  nationalAddressCertificateUrl: text("national_address_certificate_url").notNull(), // Now a file upload
-  
-  // Public Profile
-  displayName: text("display_name").notNull(),
-  logoUrl: text("logo_url").notNull(), // Required
-  headerUrl: text("header_url"),
-  bio: text("bio").notNull(),
-  category: text("category").notNull(), // Single selection from fixed list
-  profileFileUrl: text("profile_file_url").notNull(), // Required (Company Profile)
-  linkedinUrl: text("linkedin_url"),
-  xUrl: text("x_url"),
-  websiteUrl: text("website_url"),
-  
-  // Admin fields
-  rejectionReason: text("rejection_reason"),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const requesterProfiles = pgTable("requester_profiles", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  requesterId: varchar("requester_id").notNull().references(() => users.id).unique(),
-  
-  // Company Info
-  companyName: text("company_name").notNull(),
-  industry: text("industry").notNull(),
-  companySize: text("company_size"), // e.g., "1-10", "11-50", "51-200", etc.
-  
-  // Profile
-  logoUrl: text("logo_url"),
-  bio: text("bio").notNull(),
-  websiteUrl: text("website_url"),
-  linkedinUrl: text("linkedin_url"),
-  
-  // Contact
-  contactPerson: text("contact_person").notNull(),
-  contactEmail: text("contact_email").notNull(),
-  contactPhone: text("contact_phone"),
-  
-  // Vendors Base
-  tractionSlug: text("traction_slug").unique(), // Auto-generated from company name
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Vendors Base - Private catalog of vendors per requester
+// Vendors Base - Private catalog of approved vendors per requester company
 export const vendorsBase = pgTable("vendors_base", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  requesterId: varchar("requester_id").notNull().references(() => users.id),
-  vendorId: varchar("vendor_id").notNull().references(() => users.id),
+  requesterCompanyId: varchar("requester_company_id").notNull().references(() => companies.id),
+  vendorCompanyId: varchar("vendor_company_id").notNull().references(() => companies.id),
   joinMethod: text("join_method").notNull(), // 'invitation' | 'traction' | 'tender_invite'
-  addedAt: timestamp("added_at").defaultNow(),
+  
+  addedBy: varchar("added_by").references(() => users.id), // User who approved/added
+  addedAt: timestamp("added_at").defaultNow().notNull(),
 });
 
-// Join Requests - Traction Link applications (references vendor data, no duplication)
+// Join Requests - Vendor applications to join requester's vendor base
 export const joinRequests = pgTable("join_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  requesterId: varchar("requester_id").notNull().references(() => users.id),
-  vendorId: varchar("vendor_id").notNull().references(() => users.id), // Always required - vendor account must exist
+  requesterCompanyId: varchar("requester_company_id").notNull().references(() => companies.id),
+  vendorCompanyId: varchar("vendor_company_id").notNull().references(() => companies.id),
+  createdBy: varchar("created_by").notNull().references(() => users.id), // Vendor user who submitted
   
   // Status
-  status: text("status").notNull().default("pending"), // 'pending' | 'approved' | 'rejected'
-  rejectionReason: text("rejection_reason"), // Optional reason for rejection
+  status: text("status").notNull().default("pending"), // 'pending', 'approved', 'rejected'
+  rejectionReason: text("rejection_reason"),
   
-  createdAt: timestamp("created_at").defaultNow(),
+  decidedBy: varchar("decided_by").references(() => users.id), // User who approved/rejected
   decidedAt: timestamp("decided_at"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Invitation Links - Direct vendor invites tied to tender deadlines
+// Invitation Links - Direct vendor invites (instant add to base)
 export const invitationLinks = pgTable("invitation_links", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  requesterId: varchar("requester_id").notNull().references(() => users.id),
-  tenderId: varchar("tender_id").references(() => tenders.id), // Link to tender for deadline validation
+  requesterCompanyId: varchar("requester_company_id").notNull().references(() => companies.id),
+  tenderId: varchar("tender_id").references(() => tenders.id),
   vendorEmail: text("vendor_email").notNull(),
   token: varchar("token").notNull().unique(),
-  status: text("status").notNull().default("pending"), // 'pending' | 'accepted' | 'expired'
+  status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'expired'
   
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
   acceptedAt: timestamp("accepted_at"),
 });
 
-// Analytics Events - Append-only event log
-export const analyticsEvents = pgTable("analytics_events", {
+// Awards - Tender awards and status
+export const awards = pgTable("awards", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  eventType: text("event_type").notNull(), // e.g., 'traction_link_opened', 'join_request_submitted', etc.
-  requesterId: varchar("requester_id").references(() => users.id),
-  vendorId: varchar("vendor_id").references(() => users.id),
-  metadata: text("metadata"), // JSON string for additional event data
+  tenderId: varchar("tender_id").notNull().references(() => tenders.id),
+  companyId: varchar("company_id").notNull().references(() => companies.id), // Winning company
+  offerId: varchar("offer_id").notNull().references(() => offers.id),
   
-  createdAt: timestamp("created_at").defaultNow(),
+  status: text("status").notNull().default("pending"), // 'pending', 'blocked', 'awarded'
+  blockReason: text("block_reason"), // e.g., 'company_not_verified'
+  
+  awardedBy: varchar("awarded_by").references(() => users.id),
+  awardedAt: timestamp("awarded_at"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Relations
-export const usersRelations = relations(users, ({ many, one }) => ({
+// ============================================================================
+// ANALYTICS & OBSERVABILITY
+// ============================================================================
+
+// Product Events - Append-only event log for analytics
+export const productEvents = pgTable("product_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventType: text("event_type").notNull(), // e.g., 'company_created', 'company_verified', 'proposal_submitted'
+  
+  // Context
+  companyId: varchar("company_id").references(() => companies.id),
+  userId: varchar("user_id").references(() => users.id),
+  
+  // Event Data
+  metadata: jsonb("metadata").$type<Record<string, any>>(),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Audit Log - Admin actions tracking
+export const auditLog = pgTable("audit_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminId: varchar("admin_id").notNull().references(() => users.id),
+  
+  // Action Details
+  action: text("action").notNull(), // e.g., 'company_verified', 'join_request_approved'
+  targetType: text("target_type").notNull(), // e.g., 'company', 'join_request'
+  targetId: varchar("target_id").notNull(),
+  
+  // State Tracking
+  beforeState: text("before_state"), // JSON snapshot
+  afterState: text("after_state"), // JSON snapshot
+  notes: text("notes"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ============================================================================
+// RELATIONS
+// ============================================================================
+
+export const usersRelations = relations(users, ({ many }) => ({
+  userCompanies: many(userCompanies),
+  createdTenders: many(tenders),
+  createdOffers: many(offers),
+  productEvents: many(productEvents),
+  auditActions: many(auditLog),
+}));
+
+export const companiesRelations = relations(companies, ({ one, many }) => ({
+  profile: one(companyProfiles, {
+    fields: [companies.id],
+    references: [companyProfiles.companyId],
+  }),
+  userCompanies: many(userCompanies),
   tenders: many(tenders),
   offers: many(offers),
-  invitations: many(invitations),
-  qualification: one(vendorQualifications, {
-    fields: [users.id],
-    references: [vendorQualifications.vendorId],
-  }),
-  requesterProfile: one(requesterProfiles, {
-    fields: [users.id],
-    references: [requesterProfiles.requesterId],
-  }),
   vendorsInBase: many(vendorsBase, { relationName: 'requesterVendors' }),
   requestersBase: many(vendorsBase, { relationName: 'vendorRequesters' }),
   joinRequestsReceived: many(joinRequests, { relationName: 'requesterJoinRequests' }),
   joinRequestsSubmitted: many(joinRequests, { relationName: 'vendorJoinRequests' }),
+  awards: many(awards),
+  productEvents: many(productEvents),
+}));
+
+export const companyProfilesRelations = relations(companyProfiles, ({ one }) => ({
+  company: one(companies, {
+    fields: [companyProfiles.companyId],
+    references: [companies.id],
+  }),
+}));
+
+export const userCompaniesRelations = relations(userCompanies, ({ one }) => ({
+  user: one(users, {
+    fields: [userCompanies.userId],
+    references: [users.id],
+  }),
+  company: one(companies, {
+    fields: [userCompanies.companyId],
+    references: [companies.id],
+  }),
 }));
 
 export const tendersRelations = relations(tenders, ({ one, many }) => ({
-  requester: one(users, {
-    fields: [tenders.requesterId],
+  company: one(companies, {
+    fields: [tenders.companyId],
+    references: [companies.id],
+  }),
+  createdByUser: one(users, {
+    fields: [tenders.createdBy],
     references: [users.id],
   }),
   offers: many(offers),
   invitations: many(invitations),
+  awards: many(awards),
 }));
 
 export const offersRelations = relations(offers, ({ one }) => ({
@@ -191,8 +320,12 @@ export const offersRelations = relations(offers, ({ one }) => ({
     fields: [offers.tenderId],
     references: [tenders.id],
   }),
-  vendor: one(users, {
-    fields: [offers.vendorId],
+  company: one(companies, {
+    fields: [offers.companyId],
+    references: [companies.id],
+  }),
+  createdByUser: one(users, {
+    fields: [offers.createdBy],
     references: [users.id],
   }),
 }));
@@ -202,112 +335,38 @@ export const invitationsRelations = relations(invitations, ({ one }) => ({
     fields: [invitations.tenderId],
     references: [tenders.id],
   }),
-  vendor: one(users, {
-    fields: [invitations.vendorId],
-    references: [users.id],
-  }),
-}));
-
-export const vendorQualificationsRelations = relations(vendorQualifications, ({ one }) => ({
-  vendor: one(users, {
-    fields: [vendorQualifications.vendorId],
-    references: [users.id],
-  }),
-}));
-
-export const requesterProfilesRelations = relations(requesterProfiles, ({ one }) => ({
-  requester: one(users, {
-    fields: [requesterProfiles.requesterId],
-    references: [users.id],
+  company: one(companies, {
+    fields: [invitations.companyId],
+    references: [companies.id],
   }),
 }));
 
 export const vendorsBaseRelations = relations(vendorsBase, ({ one }) => ({
-  requester: one(users, {
-    fields: [vendorsBase.requesterId],
-    references: [users.id],
+  requesterCompany: one(companies, {
+    fields: [vendorsBase.requesterCompanyId],
+    references: [companies.id],
     relationName: 'requesterVendors',
   }),
-  vendor: one(users, {
-    fields: [vendorsBase.vendorId],
-    references: [users.id],
+  vendorCompany: one(companies, {
+    fields: [vendorsBase.vendorCompanyId],
+    references: [companies.id],
     relationName: 'vendorRequesters',
   }),
 }));
 
 export const joinRequestsRelations = relations(joinRequests, ({ one }) => ({
-  requester: one(users, {
-    fields: [joinRequests.requesterId],
-    references: [users.id],
+  requesterCompany: one(companies, {
+    fields: [joinRequests.requesterCompanyId],
+    references: [companies.id],
     relationName: 'requesterJoinRequests',
   }),
-  vendor: one(users, {
-    fields: [joinRequests.vendorId],
-    references: [users.id],
+  vendorCompany: one(companies, {
+    fields: [joinRequests.vendorCompanyId],
+    references: [companies.id],
     relationName: 'vendorJoinRequests',
   }),
-}));
-
-export const invitationLinksRelations = relations(invitationLinks, ({ one }) => ({
-  requester: one(users, {
-    fields: [invitationLinks.requesterId],
-    references: [users.id],
-  }),
-  tender: one(tenders, {
-    fields: [invitationLinks.tenderId],
-    references: [tenders.id],
-  }),
-}));
-
-export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => ({
-  requester: one(users, {
-    fields: [analyticsEvents.requesterId],
-    references: [users.id],
-  }),
-  vendor: one(users, {
-    fields: [analyticsEvents.vendorId],
-    references: [users.id],
-  }),
-}));
-
-// Audit Log - Track all admin actions
-export const auditLog = pgTable("audit_log", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  adminId: varchar("admin_id").notNull().references(() => users.id),
-  action: text("action").notNull(), // e.g., 'vendor_verified', 'join_request_approved', 'award_unblocked'
-  targetType: text("target_type").notNull(), // e.g., 'vendor', 'join_request', 'tender'
-  targetId: varchar("target_id").notNull(), // ID of the affected resource
-  beforeState: text("before_state"), // JSON string of state before action
-  afterState: text("after_state"), // JSON string of state after action
-  notes: text("notes"), // Optional notes from admin
-  
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Awards - Track tender awards and their status
-export const awards = pgTable("awards", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  tenderId: varchar("tender_id").notNull().references(() => tenders.id),
-  vendorId: varchar("vendor_id").notNull().references(() => users.id),
-  offerId: varchar("offer_id").notNull().references(() => offers.id),
-  status: text("status").notNull().default("pending"), // 'pending', 'blocked', 'awarded'
-  blockReason: text("block_reason"), // Why award is blocked (e.g., 'vendor_not_verified')
-  awardedAt: timestamp("awarded_at"),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Admin Setup Token Usage
-export const adminSetupToken = pgTable("admin_setup_token", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  used: boolean("used").default(false),
-  usedBy: varchar("used_by").references(() => users.id),
-  usedAt: timestamp("used_at"),
-});
-
-export const auditLogRelations = relations(auditLog, ({ one }) => ({
-  admin: one(users, {
-    fields: [auditLog.adminId],
+  createdByUser: one(users, {
+    fields: [joinRequests.createdBy],
     references: [users.id],
   }),
 }));
@@ -317,9 +376,9 @@ export const awardsRelations = relations(awards, ({ one }) => ({
     fields: [awards.tenderId],
     references: [tenders.id],
   }),
-  vendor: one(users, {
-    fields: [awards.vendorId],
-    references: [users.id],
+  company: one(companies, {
+    fields: [awards.companyId],
+    references: [companies.id],
   }),
   offer: one(offers, {
     fields: [awards.offerId],
@@ -327,54 +386,29 @@ export const awardsRelations = relations(awards, ({ one }) => ({
   }),
 }));
 
-// Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-});
+export const productEventsRelations = relations(productEvents, ({ one }) => ({
+  company: one(companies, {
+    fields: [productEvents.companyId],
+    references: [companies.id],
+  }),
+  user: one(users, {
+    fields: [productEvents.userId],
+    references: [users.id],
+  }),
+}));
 
-export const insertTenderSchema = createInsertSchema(tenders).omit({
-  id: true,
-  createdAt: true,
-});
+export const auditLogRelations = relations(auditLog, ({ one }) => ({
+  admin: one(users, {
+    fields: [auditLog.adminId],
+    references: [users.id],
+  }),
+}));
 
-export const createTenderSchema = insertTenderSchema.omit({
-  requesterId: true,
-  status: true,
-  invitationToken: true,
-});
+// ============================================================================
+// VALIDATION SCHEMAS
+// ============================================================================
 
-export const insertOfferSchema = createInsertSchema(offers).omit({
-  id: true,
-  submittedAt: true,
-});
-
-export const insertInvitationSchema = createInsertSchema(invitations).omit({
-  id: true,
-  invitedAt: true,
-});
-
-export const insertVendorQualificationSchema = createInsertSchema(vendorQualifications).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertRequesterProfileSchema = createInsertSchema(requesterProfiles).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const submitRequesterProfileSchema = insertRequesterProfileSchema.omit({
-  requesterId: true,
-}).extend({
-  bio: z.string().min(5, "Bio must be at least 5 characters").max(100, "Bio must not exceed 100 characters"),
-  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-});
-
-// Fixed category options for vendor selection
+// Fixed category options
 export const VENDOR_CATEGORIES = [
   "Construction & Infrastructure",
   "Information Technology",
@@ -393,18 +427,86 @@ export const VENDOR_CATEGORIES = [
   "Financial Services",
 ] as const;
 
-export const submitPreQualificationSchema = insertVendorQualificationSchema.omit({
-  vendorId: true,
+// User schemas
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const registerUserSchema = insertUserSchema.omit({
+  isAdmin: true,
+});
+
+// Company schemas
+export const insertCompanySchema = createInsertSchema(companies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+});
+
+export const createCompanySchema = insertCompanySchema.omit({
+  slug: true,
+  verificationStatus: true,
+  onboardingState: true,
   rejectionReason: true,
 }).extend({
   crNumber: z.string().regex(/^\d+$/, "CR number must contain only numbers"),
-  bio: z.string().min(5, "Bio must be at least 5 characters").max(100, "Bio must not exceed 100 characters"),
   category: z.enum(VENDOR_CATEGORIES, { 
     errorMap: () => ({ message: "Please select a valid category" }) 
-  }),
-  linkedinUrl: z.string().url().optional().or(z.literal("")),
-  xUrl: z.string().url().optional().or(z.literal("")),
-  websiteUrl: z.string().url().optional().or(z.literal("")),
+  }).optional(),
+});
+
+// Company Profile schemas
+export const insertCompanyProfileSchema = createInsertSchema(companyProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateCompanyProfileSchema = insertCompanyProfileSchema.omit({
+  companyId: true,
+}).extend({
+  bio: z.string().min(5).max(500).optional(),
+  displayName: z.string().min(2).max(100),
+});
+
+// User-Company schemas
+export const insertUserCompanySchema = createInsertSchema(userCompanies).omit({
+  id: true,
+  joinedAt: true,
+  deletedAt: true,
+});
+
+// Tender schemas
+export const insertTenderSchema = createInsertSchema(tenders).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const createTenderSchema = insertTenderSchema.omit({
+  companyId: true,
+  createdBy: true,
+  status: true,
+  invitationToken: true,
+});
+
+// Offer schemas
+export const insertOfferSchema = createInsertSchema(offers).omit({
+  id: true,
+  submittedAt: true,
+});
+
+export const createOfferSchema = insertOfferSchema.omit({
+  companyId: true,
+  createdBy: true,
+  conditionalSubmission: true,
+});
+
+// Other domain schemas
+export const insertInvitationSchema = createInsertSchema(invitations).omit({
+  id: true,
+  invitedAt: true,
 });
 
 export const insertVendorBaseSchema = createInsertSchema(vendorsBase).omit({
@@ -418,28 +520,16 @@ export const insertJoinRequestSchema = createInsertSchema(joinRequests).omit({
   decidedAt: true,
 });
 
-// Join request is now a simple reference - no form validation needed
-export const submitJoinRequestSchema = insertJoinRequestSchema.omit({
-  requesterId: true,
+export const createJoinRequestSchema = insertJoinRequestSchema.omit({
+  requesterCompanyId: true,
+  vendorCompanyId: true,
+  createdBy: true,
   status: true,
   rejectionReason: true,
+  decidedBy: true,
 });
 
-export const insertInvitationLinkSchema = createInsertSchema(invitationLinks).omit({
-  id: true,
-  createdAt: true,
-  acceptedAt: true,
-});
-
-export const createInvitationLinkSchema = insertInvitationLinkSchema.omit({
-  requesterId: true,
-  token: true,
-  status: true,
-}).extend({
-  vendorEmail: z.string().email("Invalid email address"),
-});
-
-export const insertAnalyticsEventSchema = createInsertSchema(analyticsEvents).omit({
+export const insertProductEventSchema = createInsertSchema(productEvents).omit({
   id: true,
   createdAt: true,
 });
@@ -454,32 +544,50 @@ export const insertAwardSchema = createInsertSchema(awards).omit({
   createdAt: true,
 });
 
-// Types
-export type InsertUser = z.infer<typeof insertUserSchema>;
+// ============================================================================
+// TYPES
+// ============================================================================
+
 export type User = typeof users.$inferSelect;
-export type InsertTender = z.infer<typeof insertTenderSchema>;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type RegisterUser = z.infer<typeof registerUserSchema>;
+
+export type Company = typeof companies.$inferSelect;
+export type InsertCompany = z.infer<typeof insertCompanySchema>;
+export type CreateCompany = z.infer<typeof createCompanySchema>;
+
+export type CompanyProfile = typeof companyProfiles.$inferSelect;
+export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
+export type UpdateCompanyProfile = z.infer<typeof updateCompanyProfileSchema>;
+
+export type UserCompany = typeof userCompanies.$inferSelect;
+export type InsertUserCompany = z.infer<typeof insertUserCompanySchema>;
+
 export type Tender = typeof tenders.$inferSelect;
-export type InsertOffer = z.infer<typeof insertOfferSchema>;
+export type InsertTender = z.infer<typeof insertTenderSchema>;
+export type CreateTender = z.infer<typeof createTenderSchema>;
+
 export type Offer = typeof offers.$inferSelect;
-export type InsertInvitation = z.infer<typeof insertInvitationSchema>;
+export type InsertOffer = z.infer<typeof insertOfferSchema>;
+export type CreateOffer = z.infer<typeof createOfferSchema>;
+
 export type Invitation = typeof invitations.$inferSelect;
-export type InsertVendorQualification = z.infer<typeof insertVendorQualificationSchema>;
-export type VendorQualification = typeof vendorQualifications.$inferSelect;
-export type SubmitPreQualification = z.infer<typeof submitPreQualificationSchema>;
-export type InsertRequesterProfile = z.infer<typeof insertRequesterProfileSchema>;
-export type RequesterProfile = typeof requesterProfiles.$inferSelect;
-export type SubmitRequesterProfile = z.infer<typeof submitRequesterProfileSchema>;
-export type InsertVendorBase = z.infer<typeof insertVendorBaseSchema>;
+export type InsertInvitation = z.infer<typeof insertInvitationSchema>;
+
 export type VendorBase = typeof vendorsBase.$inferSelect;
-export type InsertJoinRequest = z.infer<typeof insertJoinRequestSchema>;
+export type InsertVendorBase = z.infer<typeof insertVendorBaseSchema>;
+
 export type JoinRequest = typeof joinRequests.$inferSelect;
-export type SubmitJoinRequest = z.infer<typeof submitJoinRequestSchema>;
-export type InsertInvitationLink = z.infer<typeof insertInvitationLinkSchema>;
+export type InsertJoinRequest = z.infer<typeof insertJoinRequestSchema>;
+export type CreateJoinRequest = z.infer<typeof createJoinRequestSchema>;
+
 export type InvitationLink = typeof invitationLinks.$inferSelect;
-export type CreateInvitationLink = z.infer<typeof createInvitationLinkSchema>;
-export type InsertAnalyticsEvent = z.infer<typeof insertAnalyticsEventSchema>;
-export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
-export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
-export type AuditLog = typeof auditLog.$inferSelect;
-export type InsertAward = z.infer<typeof insertAwardSchema>;
+
 export type Award = typeof awards.$inferSelect;
+export type InsertAward = z.infer<typeof insertAwardSchema>;
+
+export type ProductEvent = typeof productEvents.$inferSelect;
+export type InsertProductEvent = z.infer<typeof insertProductEventSchema>;
+
+export type AuditLog = typeof auditLog.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;

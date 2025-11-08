@@ -1,0 +1,26 @@
+Context & Rationale
+We’re moving Bid from a role-based user model (Vendor vs. Requester) to a company-centric model where every registered entity represents a company that can act as both buyer and supplier.
+The goal is to make the platform more natural to real-world business behavior — companies don’t fit in one box. The same organization can publish tenders and submit proposals. To support that, we’ll unify everything under a single Company Account model.
+Why We’re Changing It
+Real-world alignment: In practice, companies alternate between requesting and supplying services. One identity, one verification, one profile makes that flow seamless.
+Data consistency: Legal, compliance, and profile information belong to the company, not to the individual user.
+Collaboration & scaling: We’ll enable each company to invite team members (users) with different permissions — owner, admin, viewer, etc.
+Flexibility for consultants and multi-business users: A single user might belong to multiple companies (for example, managing several CRs). This will later allow cross-organization work without creating separate accounts.
+Simpler verification: One Pre-Qualification and one Verification status per company, reused in all contexts.
+Unified analytics: All actions (creating tenders, submitting proposals) are tracked under one entity, so we can analyze company performance as a whole.
+Expected Structural Changes
+Introduce a Company entity as a top-level object, separate from users.
+Replace the one-to-one relationship between user and role with a many-to-many relationship between users and companies through a linking table (user_companies).
+Add a role_in_company field to define access levels (Owner, Admin, Member, Viewer).
+Store pre-qualification, verification status, and public profile under the company record instead of per user.
+The platform context will switch dynamically based on the active company a user is operating within.
+Functional Impact
+Registration flow: A new user either creates a company or joins an existing one.
+Dashboard: All actions are contextual to the “active company.”
+Profile & Pre-Qualification: Shared company-wide. Once verified, all members inherit the verified status.
+Invitations: Requesters can invite entire companies (not individuals).
+Roles & permissions: Admins can add, remove, or manage team members inside their company account.
+Future readiness: Enables white-label, multi-organization features, agency accounts, and shared analytics dashboards later on.
+In summary
+We’re shifting from user-role identity to a company-entity model.
+This change simplifies onboarding, supports team collaboration, prevents data duplication, and mirrors how businesses actually operate. It will require adjustments to authentication, permissions, data ownership, and the onboarding journey — but it will make Bid much more scalable and enterprise-ready.

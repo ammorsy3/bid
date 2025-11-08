@@ -2,34 +2,71 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { apiRequest } from './queryClient';
 
+// ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
+
 interface User {
   id: string;
   username: string;
   email: string;
   name: string;
-  role: 'requester' | 'vendor';
-  company?: string;
-  expertise?: string;
-  rating?: string;
-  verificationStatus?: string;
-  onboardingState?: 'draft' | 'completed';
+  isAdmin: boolean;
+}
+
+interface CompanyProfile {
+  displayName: string;
+  bio: string | null;
+  logoUrl: string | null;
+  headerUrl: string | null;
+  brochureUrl: string | null;
+  socialLinks: Record<string, string> | null;
+  isPublic: boolean;
+  tractionSlug: string | null;
+}
+
+interface Company {
+  id: string;
+  name: string;
+  slug: string;
+  verificationStatus: string;
+  onboardingState: string;
+  role: string; // User's role in this company: 'owner' | 'admin' | 'member' | 'viewer'
+  profile: CompanyProfile | null;
 }
 
 interface AuthState {
+  // User data
   user: User | null;
   token: string | null;
+  
+  // Company context
+  activeCompany: Company | null;
+  companies: Company[];
+  
+  // UI state
   isLoading: boolean;
+  
+  // Actions
   login: (email: string, password: string) => Promise<void>;
   register: (userData: any) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
+  switchCompany: (companyId: string) => Promise<void>;
+  updateCompanies: (companies: Company[], activeCompany: Company | null) => void;
 }
+
+// ============================================================================
+// AUTH STORE
+// ============================================================================
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
       token: null,
+      activeCompany: null,
+      companies: [],
       isLoading: false,
 
       login: async (email: string, password: string) => {
@@ -40,7 +77,9 @@ export const useAuthStore = create<AuthState>()(
           
           set({ 
             user: data.user, 
-            token: data.token, 
+            token: data.token,
+            activeCompany: data.activeCompany || null,
+            companies: data.companies || [],
             isLoading: false 
           });
 
@@ -60,7 +99,9 @@ export const useAuthStore = create<AuthState>()(
           
           set({ 
             user: data.user, 
-            token: data.token, 
+            token: data.token,
+            activeCompany: null, // No company yet
+            companies: [],
             isLoading: false 
           });
 
@@ -73,7 +114,12 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         localStorage.removeItem('token');
-        set({ user: null, token: null });
+        set({ 
+          user: null, 
+          token: null, 
+          activeCompany: null,
+          companies: []
+        });
       },
 
       checkAuth: async () => {
@@ -86,21 +132,65 @@ export const useAuthStore = create<AuthState>()(
           });
           
           if (response.ok) {
-            const user = await response.json();
-            set({ user, token });
+            const data = await response.json();
+            set({ 
+              user: data.user, 
+              token,
+              activeCompany: data.companies.find((c: Company) => c.id === data.activeCompanyId) || null,
+              companies: data.companies || []
+            });
           } else {
             localStorage.removeItem('token');
-            set({ user: null, token: null });
+            set({ 
+              user: null, 
+              token: null,
+              activeCompany: null,
+              companies: []
+            });
           }
         } catch (error) {
           localStorage.removeItem('token');
-          set({ user: null, token: null });
+          set({ 
+            user: null, 
+            token: null,
+            activeCompany: null,
+            companies: []
+          });
         }
       },
+
+      switchCompany: async (companyId: string) => {
+        set({ isLoading: true });
+        try {
+          const response = await apiRequest('POST', `/api/companies/switch/${companyId}`, {});
+          const data = await response.json();
+          
+          set({ 
+            token: data.token,
+            activeCompany: data.activeCompany,
+            isLoading: false 
+          });
+
+          // Update token in localStorage
+          localStorage.setItem('token', data.token);
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      updateCompanies: (companies: Company[], activeCompany: Company | null) => {
+        set({ companies, activeCompany });
+      }
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ token: state.token, user: state.user }),
+      partialize: (state) => ({ 
+        token: state.token, 
+        user: state.user,
+        activeCompany: state.activeCompany,
+        companies: state.companies
+      }),
     }
   )
 );

@@ -1,0 +1,80 @@
+Bid — Company-Centric Refactor & Admin (Execution Brief)
+Objective
+Implement the company-centric architecture with a clean break from legacy data. One company account can both issue RFX/tenders and submit proposals. Users belong to companies; the platform runs in an Active Company context.
+Non-Negotiable Decisions (confirm)
+Clean break: Drop legacy tables and rebuild. No dual-write/dual-read.
+Core schema: companies, user_companies (many-to-many), users. All domain records reference companyId (not userId).
+Active Company storage: Both places
+Frontend state (e.g., Zustand) for instant UX
+JWT/session for secure server-side auth & audit
+Refresh token on company switch.
+Admins: Platform-scoped. They verify/manage companies, not users. Read-only view-as mode; no destructive impersonation.
+Profiles: Use Profile link/button everywhere. Public profile never shows legal docs; status is a text badge only.
+Analytics: Persist events (append-only) in DB; optional in-memory counters for real-time UI must be rebuildable from DB.
+Scope (what to build now)
+DB refactor: new core tables; update all FKs to companyId.
+Auth & context: JWT { userId, activeCompanyId, roleInCompany }, endpoint to switch company, UI company switcher.
+Registration flow (unified):
+Create user
+Create company or join existing (invite)
+Company Pre-Qualification (legal/compliance, private) + Public Profile (display name, bio, tags, logo, optional PDF, socials) → status = Under Review
+Vendors Base & Entry Links:
+Traction Link → identify (email/CR) → new vendor completes onboarding once → auto create Join Request (Pending)
+Invitation Link → existing vendor accepts → added to Requester’s base
+Join Requests list shows Profile button, status badge, brochure link if present
+Admin panel (MVP): Verify/reject companies; review join requests; see proposals blocked by verification; audit log; basic analytics cards.
+Company management: profile, pre-qual, verification status; team members (invite/remove/change role); company switcher.
+Enhancements (add these)
+Company status gates: Enforce policy checks before sensitive actions
+Submitting proposals or being awarded requires company_status = Verified (unless tender’s allow_conditional_submission = true, in which case award is still blocked).
+Idempotency & rate limits:
+All write endpoints accept request_id for idempotency.
+Basic rate limit for auth and company switch.
+Uniqueness & validation:
+Unique constraints on CR, VAT (when applicable), and company slug.
+Prevent duplicate Join Requests within 24h per requester–company pair.
+Soft delete & auditability:
+Soft-delete for companies and memberships; never hard-delete domain data.
+Audit log: who/what/when + before→after summary.
+Notifications (copy exists): Wire the submit/approve/reject emails for Join Requests and Verification decisions.
+UX quality:
+Profile UI uses Hero header + visible logo + status badge; brochure button if present.
+Company switcher shows confirmation toast “Now acting as {Company}.”
+Empty states and clear error messages across admin and base views.
+Observability:
+Log p95 latency, cold starts (if any), DB timings.
+Persist key product events: company_created, company_verified, join_request_submitted/decided, vendor_added_to_base, tender_created, proposal_submitted, award_blocked_due_to_verification, company_switched.
+Acceptance Criteria (DoD)
+Schema: All domain rows reference companyId. No residual userId ownership in tenders/proposals/vendors base.
+Auth/context: JWT carries activeCompanyId and roleInCompany; server validates membership on every write. Company switch refreshes token and updates UI state.
+Registration: New company completes pre-qual + public profile in the flow; status becomes Under Review; public Profile is created automatically.
+Vendors Base:
+Traction path uses account onboarding; Invitation path is one-click for existing vendors.
+Join Requests list/detail shows Profile button, status badge, brochure link; no legal docs.
+Admin:
+Admin can verify/reject companies with notes; proposals blocked by verification are visible; audit log records every admin action.
+Admins are not company members; view-as is read-only and clearly bannered.
+Policies enforced: Submission/award rules respect company verification and tender’s conditional flag.
+Analytics: Events persisted; dashboard cards read from DB aggregations; counters are rebuildable.
+Security: Unique constraints in place; rate limits active; idempotency enforced; soft delete enabled.
+UX: Company switch feedback; consistent Profile link usage; mobile-friendly layouts; clear empty states.
+Non-Functional Requirements
+Performance: Page interactions under 200 ms client-side after data load; p95 API endpoints under 300 ms for typical reads.
+Pagination & search: Server-side pagination on admin lists; simple search by name/CR/email where relevant.
+Accessibility: Keyboard navigation, focus states, alt text for logos/headers.
+Environments: Separate dev/stage/prod; secrets isolated; seed script creates one platform admin.
+Data protection: No legal/compliance docs on public pages; PII minimal in logs.
+Deliverables
+Updated schema (diagram + migrations)
+Endpoint inventory (auth, company switch, team mgmt, join requests, verification, events)
+Admin panels (companies verify queue, join requests, proposals blocked, audit, analytics cards)
+Registration/onboarding flows (screens + copy)
+Test results (see scenarios below)
+Test Scenarios (must pass)
+New user → create company → complete pre-qual/profile → status Under Review → Profile visible (no legal docs).
+Traction Link: new vendor completes onboarding; Join Request appears; requester can open Profile then approve → vendor in base.
+Invitation Link: existing vendor accepts; vendor added instantly; no duplicate join records within 24h.
+Proposal submission blocked when company not verified and tender doesn’t allow conditional; allowed when conditional is true but award blocked until verified.
+Admin verifies company; previously blocked proposal becomes eligible; audit log entry created.
+Multi-company user: switch active company; JWT refreshed; UI context changes; actions tagged with the new activeCompanyId.
+Analytics events are persisted and match UI cards; counters recover after restart.

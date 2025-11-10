@@ -20,7 +20,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function Login() {
   const [, setLocation] = useLocation();
   const search = useSearch();
-  const { login, isLoading, user } = useAuthStore();
+  const { login, isLoading, user, activeCompany } = useAuthStore();
   const { toast } = useToast();
   
   const urlParams = new URLSearchParams(search);
@@ -37,16 +37,18 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      // Priority: invitation token > custom redirect > default dashboard
+      // Priority: invitation token > custom redirect > activeCompany check
       if (invitationToken) {
         setLocation(`/invite/${invitationToken}`);
       } else if (redirectUrl) {
         setLocation(decodeURIComponent(redirectUrl));
-      } else {
+      } else if (activeCompany) {
         setLocation("/dashboard");
+      } else {
+        setLocation("/company-onboarding");
       }
     }
-  }, [user, setLocation, invitationToken, redirectUrl]);
+  }, [user, activeCompany, setLocation, invitationToken, redirectUrl]);
 
   const onSubmit = async (data: LoginForm) => {
     try {
@@ -55,14 +57,7 @@ export default function Login() {
         title: "Success",
         description: "Logged in successfully",
       });
-      // Priority: invitation token > custom redirect > default dashboard
-      if (invitationToken) {
-        setLocation(`/invite/${invitationToken}`);
-      } else if (redirectUrl) {
-        setLocation(decodeURIComponent(redirectUrl));
-      } else {
-        setLocation("/dashboard");
-      }
+      // Redirect is handled by useEffect which watches user and activeCompany changes
     } catch (error) {
       toast({
         title: "Error",
@@ -89,7 +84,7 @@ export default function Login() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your email" {...field} />
+                      <Input data-testid="input-email" placeholder="Enter your email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -103,14 +98,14 @@ export default function Login() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Enter your password" {...field} />
+                      <Input data-testid="input-password" type="password" placeholder="Enter your password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <Button type="submit" className="w-full bg-primary-600 hover:bg-primary-700" disabled={isLoading}>
+              <Button data-testid="button-submit" type="submit" className="w-full bg-primary-600 hover:bg-primary-700" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>

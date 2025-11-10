@@ -2,8 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -17,9 +15,6 @@ const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   name: z.string().min(2, "Name must be at least 2 characters"),
-  role: z.enum(["requester", "vendor"]),
-  company: z.string().optional(),
-  expertise: z.string().optional(),
 });
 
 type RegisterForm = z.infer<typeof registerSchema>;
@@ -31,7 +26,6 @@ export default function Register() {
   const { toast } = useToast();
 
   const urlParams = new URLSearchParams(search);
-  const roleFromUrl = urlParams.get('role') as 'requester' | 'vendor' | null;
   const invitationToken = urlParams.get('token');
   const redirectUrl = urlParams.get('redirect');
 
@@ -42,28 +36,18 @@ export default function Register() {
       email: "",
       password: "",
       name: "",
-      role: roleFromUrl || "requester",
-      company: "",
-      expertise: "",
     },
   });
 
-  const selectedRole = form.watch("role");
-
   useEffect(() => {
     if (user) {
-      // Priority: invitation token > custom redirect > default profile setup
+      // Priority: invitation token > custom redirect > default company onboarding
       if (invitationToken) {
         setLocation(`/invite/${invitationToken}`);
       } else if (redirectUrl) {
         setLocation(decodeURIComponent(redirectUrl));
       } else {
-        // Redirect to profile creation based on role
-        if (user.role === 'requester') {
-          setLocation("/requester-profile");
-        } else {
-          setLocation("/vendor-prequalification");
-        }
+        setLocation("/company-onboarding");
       }
     }
   }, [user, setLocation, invitationToken, redirectUrl]);
@@ -73,20 +57,15 @@ export default function Register() {
       await register(data);
       toast({
         title: "Success!",
-        description: "Account created successfully. Now let's set up your profile!",
+        description: "Account created successfully. Now let's set up your company!",
       });
-      // Priority: invitation token > custom redirect > default profile setup
+      // Priority: invitation token > custom redirect > default company onboarding
       if (invitationToken) {
         setLocation(`/invite/${invitationToken}`);
       } else if (redirectUrl) {
         setLocation(decodeURIComponent(redirectUrl));
       } else {
-        // Redirect to profile creation based on role
-        if (data.role === 'requester') {
-          setLocation("/requester-profile");
-        } else {
-          setLocation("/vendor-prequalification");
-        }
+        setLocation("/company-onboarding");
       }
     } catch (error) {
       toast({
@@ -114,7 +93,7 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your full name" {...field} />
+                      <Input data-testid="input-name" placeholder="Enter your full name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -128,7 +107,7 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="Choose a username" {...field} />
+                      <Input data-testid="input-username" placeholder="Choose a username" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -142,7 +121,7 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your email" {...field} />
+                      <Input data-testid="input-email" placeholder="Enter your email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -156,66 +135,14 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Create a password" {...field} />
+                      <Input data-testid="input-password" type="password" placeholder="Create a password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your role" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="requester">Requester (Create Tenders)</SelectItem>
-                        <SelectItem value="vendor">Vendor (Submit Offers)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="company"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter your company name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {selectedRole === 'vendor' && (
-                <FormField
-                  control={form.control}
-                  name="expertise"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Expertise</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Describe your areas of expertise" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              <Button type="submit" className="w-full bg-primary-600 hover:bg-primary-700" disabled={isLoading}>
+              <Button data-testid="button-submit" type="submit" className="w-full bg-primary-600 hover:bg-primary-700" disabled={isLoading}>
                 {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>

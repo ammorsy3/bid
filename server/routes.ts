@@ -254,6 +254,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: defaultCompany.company.id,
           name: defaultCompany.company.name,
           slug: defaultCompany.company.slug,
+          legalName: defaultCompany.company.legalName,
+          crNumber: defaultCompany.company.crNumber,
+          vatNumber: defaultCompany.company.vatNumber,
+          city: defaultCompany.company.city,
+          category: defaultCompany.company.category,
           verificationStatus: defaultCompany.company.verificationStatus,
           onboardingState: defaultCompany.company.onboardingState,
           role: defaultCompany.roleInCompany,
@@ -263,6 +268,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: uc.company.id,
           name: uc.company.name,
           slug: uc.company.slug,
+          legalName: uc.company.legalName,
+          crNumber: uc.company.crNumber,
+          vatNumber: uc.company.vatNumber,
+          city: uc.company.city,
+          category: uc.company.category,
           verificationStatus: uc.company.verificationStatus,
           onboardingState: uc.company.onboardingState,
           role: uc.roleInCompany,
@@ -298,6 +308,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: uc.company.id,
           name: uc.company.name,
           slug: uc.company.slug,
+          legalName: uc.company.legalName,
+          crNumber: uc.company.crNumber,
+          vatNumber: uc.company.vatNumber,
+          city: uc.company.city,
+          category: uc.company.category,
           verificationStatus: uc.company.verificationStatus,
           onboardingState: uc.company.onboardingState,
           role: uc.roleInCompany,
@@ -472,7 +487,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update company profile
+  // Update company profile (and company details if provided)
   app.put("/api/companies/:companyId/profile", 
     authenticateToken, 
     requireCompanyRole('admin'),
@@ -485,7 +500,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Access denied" });
         }
 
-        const profileData = updateCompanyProfileSchema.parse(req.body);
+        const { displayName, bio, legalName, crNumber, vatNumber, city, category } = req.body;
+
+        // Get current company
+        const company = await storage.getCompany(companyId);
+        if (!company) {
+          return res.status(404).json({ message: "Company not found" });
+        }
 
         // Check if profile exists
         const existingProfile = await storage.getCompanyProfile(companyId);
@@ -493,15 +514,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Company profile not found" });
         }
 
-        const profile = await storage.updateCompanyProfile(companyId, profileData);
+        // Check CR number uniqueness if it's being changed
+        if (crNumber && crNumber !== company.crNumber) {
+          const existingCompany = await storage.getCompanyByCrNumber(crNumber);
+          if (existingCompany) {
+            return res.status(400).json({ message: "A company with this CR number already exists" });
+          }
+        }
 
-        // Mark company onboarding as completed if it was draft
-        const company = await storage.getCompany(companyId);
-        if (company && company.onboardingState === 'draft') {
-          await storage.updateCompany(companyId, {
-            onboardingState: 'completed'
+        // Determine if legal identity fields are changing
+        const legalFieldsChanged = 
+          (legalName && legalName !== company.legalName) ||
+          (crNumber && crNumber !== company.crNumber) ||
+          (vatNumber && vatNumber !== company.vatNumber);
+
+        // Update company fields if provided
+        const companyUpdates: any = {};
+        if (legalName) companyUpdates.legalName = legalName;
+        if (crNumber) companyUpdates.crNumber = crNumber;
+        if (vatNumber !== undefined) companyUpdates.vatNumber = vatNumber;
+        if (city) companyUpdates.city = city;
+        if (category) companyUpdates.category = category;
+
+        // Mark onboarding as completed if it was draft
+        if (company.onboardingState === 'draft') {
+          companyUpdates.onboardingState = 'completed';
+        }
+
+        // Reset verification if legal identity changed
+        if (legalFieldsChanged && company.verificationStatus === 'verified') {
+          companyUpdates.verificationStatus = 'under_review';
+          
+          // Log event for verification reset
+          await storage.logProductEvent({
+            eventType: 'company_updated',
+            companyId,
+            userId: req.auth!.userId,
+            metadata: { 
+              verificationReset: true,
+              reason: 'legal_identity_changed'
+            }
           });
         }
+
+        // Update company if there are changes
+        if (Object.keys(companyUpdates).length > 0) {
+          await storage.updateCompany(companyId, companyUpdates);
+        }
+
+        // Update profile
+        const profileUpdates: any = {};
+        if (displayName) profileUpdates.displayName = displayName;
+        if (bio !== undefined) profileUpdates.bio = bio;
+
+        const profile = await storage.updateCompanyProfile(companyId, profileUpdates);
 
         res.json(profile);
       } catch (error) {

@@ -125,7 +125,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
           description: "Please complete your company profile before creating tenders",
         });
         handleClose();
-        navigate('/requester-profile');
+        navigate('/company-onboarding');
       } else {
         toast({
           title: "Error",

@@ -25,30 +25,44 @@ export default function CompanyOnboarding() {
     category: ""
   });
 
-  // If user has active company but it's in draft state, we're completing profile
-  const isCompletingProfile = activeCompany && activeCompany.onboardingState === 'draft';
+  // Determine current state
+  const isCreating = !activeCompany;
+  const isCompletingDraft = activeCompany && activeCompany.onboardingState === 'draft';
+  const isEditingCompleted = activeCompany && activeCompany.onboardingState === 'completed';
 
-  // Pre-populate form when completing profile
+  // Pre-populate form when completing draft or editing completed profile
   useEffect(() => {
-    if (isCompletingProfile && activeCompany) {
-      setFormData({
-        name: activeCompany.profile?.displayName || activeCompany.name || "",
-        legalName: "",
-        crNumber: "",
-        vatNumber: "",
-        city: "",
-        category: ""
-      });
+    if (activeCompany) {
+      if (isCompletingDraft) {
+        setFormData({
+          name: activeCompany.profile?.displayName || activeCompany.name || "",
+          legalName: "",
+          crNumber: "",
+          vatNumber: "",
+          city: "",
+          category: ""
+        });
+      } else if (isEditingCompleted) {
+        // Pre-populate with existing company data
+        setFormData({
+          name: activeCompany.profile?.displayName || activeCompany.name || "",
+          legalName: activeCompany.legalName || "",
+          crNumber: activeCompany.crNumber || "",
+          vatNumber: activeCompany.vatNumber || "",
+          city: activeCompany.city || "",
+          category: activeCompany.category || ""
+        });
+      }
     }
-  }, [isCompletingProfile, activeCompany]);
+  }, [activeCompany, isCompletingDraft, isEditingCompleted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      if (isCompletingProfile) {
-        // Update company profile
+      if (isCompletingDraft) {
+        // Update company profile (draft completion)
         const response = await apiRequest('PUT', `/api/companies/${activeCompany.id}/profile`, {
           displayName: formData.name,
           bio: `${formData.category} company based in ${formData.city || 'Saudi Arabia'}`
@@ -61,6 +75,31 @@ export default function CompanyOnboarding() {
 
         toast({
           title: "Profile completed!",
+          description: "Your company profile has been updated successfully."
+        });
+
+        // Refresh auth to get updated company
+        await useAuthStore.getState().checkAuth();
+        setLocation("/dashboard");
+      } else if (isEditingCompleted) {
+        // Update company profile and company details (editing completed profile)
+        const response = await apiRequest('PUT', `/api/companies/${activeCompany.id}/profile`, {
+          displayName: formData.name,
+          bio: `${formData.category} company based in ${formData.city || 'Saudi Arabia'}`,
+          legalName: formData.legalName,
+          crNumber: formData.crNumber,
+          vatNumber: formData.vatNumber,
+          city: formData.city,
+          category: formData.category
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to update company profile");
+        }
+
+        toast({
+          title: "Profile updated!",
           description: "Your company profile has been updated successfully."
         });
 
@@ -110,10 +149,12 @@ export default function CompanyOnboarding() {
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle>
-            {isCompletingProfile ? "Complete Your Company Profile" : "Create Your Company"}
+            {isEditingCompleted ? "Edit Company Profile" : isCompletingDraft ? "Complete Your Company Profile" : "Create Your Company"}
           </CardTitle>
           <CardDescription>
-            {isCompletingProfile 
+            {isEditingCompleted 
+              ? "Update your company profile and information"
+              : isCompletingDraft 
               ? "Add details to your company profile to get started"
               : "Set up your company to start using the platform"}
           </CardDescription>
@@ -132,7 +173,7 @@ export default function CompanyOnboarding() {
               />
             </div>
 
-            {!isCompletingProfile && (
+            {(isCreating || isEditingCompleted) && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="legalName" data-testid="label-legal-name">Legal Name</Label>
@@ -206,7 +247,7 @@ export default function CompanyOnboarding() {
               disabled={loading}
               data-testid="button-submit"
             >
-              {loading ? "Processing..." : (isCompletingProfile ? "Complete Profile" : "Create Company")}
+              {loading ? "Processing..." : (isEditingCompleted ? "Update Profile" : isCompletingDraft ? "Complete Profile" : "Create Company")}
             </Button>
           </form>
         </CardContent>

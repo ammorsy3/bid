@@ -4,10 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building2, FileText, Users, Inbox, LogOut } from "lucide-react";
+import { useState } from "react";
+import CreateTenderModal from "@/components/create-tender-modal";
 
 export default function Dashboard() {
   const { user, activeCompany, companies, logout } = useAuthStore();
   const [, setLocation] = useLocation();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   if (!user) {
     setLocation("/login");
@@ -146,11 +149,23 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardContent className="space-y-2">
                       {canManage && (
-                        <Button variant="outline" className="w-full" size="sm" data-testid="button-create-tender">
+                        <Button 
+                          variant="outline" 
+                          className="w-full" 
+                          size="sm" 
+                          data-testid="button-create-tender"
+                          onClick={() => setIsCreateModalOpen(true)}
+                        >
                           Create Tender
                         </Button>
                       )}
-                      <Button variant="outline" className="w-full" size="sm" data-testid="button-view-profile">
+                      <Button 
+                        variant="outline" 
+                        className="w-full" 
+                        size="sm" 
+                        data-testid="button-view-profile"
+                        onClick={() => setLocation('/company-onboarding')}
+                      >
                         View Profile
                       </Button>
                     </CardContent>
@@ -210,6 +225,12 @@ export default function Dashboard() {
           )}
         </Tabs>
       </main>
+
+      {/* Create Tender Modal */}
+      <CreateTenderModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+      />
     </div>
   );
 }

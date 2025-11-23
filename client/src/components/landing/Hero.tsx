@@ -21,9 +21,11 @@ export const Hero = () => {
                   Try Bid Now
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="shadow-lg transform hover:scale-105" data-testid="button-watch-demo">
-                Watch Demo
-              </Button>
+              <a href="#how-it-works">
+                <Button size="lg" variant="outline" className="shadow-lg transform hover:scale-105" data-testid="button-watch-demo">
+                  Watch Demo
+                </Button>
+              </a>
             </div>
             <div className="mt-8 flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500">
               <div className="flex items-center space-x-2">

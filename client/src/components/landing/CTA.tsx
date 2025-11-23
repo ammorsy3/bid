@@ -17,9 +17,11 @@ export const CTA = () => {
               Try Bid Now
             </Button>
           </Link>
-          <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 shadow-lg transform hover:scale-105" data-testid="button-schedule-demo">
-            Schedule a Demo
-          </Button>
+          <a href="#how-it-works">
+            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 shadow-lg transform hover:scale-105" data-testid="button-schedule-demo">
+              Learn More
+            </Button>
+          </a>
         </div>
         <div className="mt-8 text-sm text-blue-200">
           No credit card required | 14-day free trial | Setup in 5 minutes

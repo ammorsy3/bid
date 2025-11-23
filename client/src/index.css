@@ -123,6 +123,20 @@
   .text-success-600 {
     color: var(--success-600);
   }
+}
+
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ticker-scroll {
+  animation: ticker-scroll 30s linear infinite;
+}
   
   .bg-success-100 {
     background-color: var(--success-100);

@@ -893,6 +893,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Get company's offer for a specific tender
+  app.get("/api/tenders/:id/my-offer",
+    authenticateToken,
+    requireCompanyContext,
+    async (req: AuthRequest, res) => {
+      try {
+        const offer = await storage.getOfferByTenderAndCompany(
+          req.params.id,
+          req.auth!.activeCompanyId!
+        );
+        res.json(offer || null);
+      } catch (error) {
+        console.error('Get my offer error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
   // Get company's submitted offers
   app.get("/api/my-offers",
     authenticateToken,

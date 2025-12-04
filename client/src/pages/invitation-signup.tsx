@@ -154,7 +154,7 @@ export default function InvitationSignup() {
             ) : (
               <div className="space-y-4">
                 <p className="text-center text-muted-foreground text-sm">
-                  To submit an offer for this tender, you need to sign in or create a vendor account.
+                  To submit an offer for this tender, you need to sign in or create a Bid account.
                 </p>
                 <div className="flex gap-4 justify-center">
                   <Link href={`/login?redirect=/invite/${id}`}>
@@ -164,7 +164,7 @@ export default function InvitationSignup() {
                   </Link>
                   <Link href={`/register?redirect=/invite/${id}`}>
                     <Button className="min-w-48 bg-blue-500 hover:bg-blue-600" data-testid="button-create-account">
-                      Create Vendor Account
+                      Create a Bid Account
                     </Button>
                   </Link>
                 </div>

@@ -5,10 +5,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2 } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Tender } from "@shared/schema";
+import SubmitOfferModal from "@/components/submit-offer-modal";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface TenderWithCounts extends Tender {
   offersCount: number;
@@ -42,8 +44,10 @@ export default function TenderDetails() {
   const { user, activeCompany } = useAuthStore();
   const { toast } = useToast();
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isSubmitOfferModalOpen, setIsSubmitOfferModalOpen] = useState(false);
 
   const canManage = activeCompany && ['owner', 'admin'].includes(activeCompany.role);
+  const isOwner = activeCompany && tender?.companyId === activeCompany.id;
 
   const { data: tender, isLoading } = useQuery<TenderWithCounts>({
     queryKey: ['/api/tenders', id],

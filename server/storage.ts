@@ -99,6 +99,7 @@ export interface IStorage {
   createOffer(offer: InsertOffer): Promise<Offer>;
   getOffersByTender(tenderId: string): Promise<(Offer & { company: Company; profile?: CompanyProfile })[]>;
   getOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender })[]>;
+  getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null>;
 
   // ============================================================================
   // INVITATION OPERATIONS
@@ -583,6 +584,16 @@ export class DatabaseStorage implements IStorage {
       ...r.offer,
       tender: r.tender
     }));
+  }
+
+  async getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null> {
+    const [offer] = await db
+      .select()
+      .from(offers)
+      .where(and(eq(offers.tenderId, tenderId), eq(offers.companyId, companyId)))
+      .limit(1);
+
+    return offer || null;
   }
 
   // ============================================================================

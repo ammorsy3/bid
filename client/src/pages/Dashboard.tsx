@@ -148,7 +148,7 @@ export default function Dashboard() {
 
   // Copy invitation link
   const copyInvitationLink = async (tender: TenderWithCounts) => {
-    const invitationLink = `${window.location.origin}/invite/${tender.invitationToken}`;
+    const invitationLink = `${window.location.origin}/invite/${tender.id}`;
     try {
       await navigator.clipboard.writeText(invitationLink);
       setCopiedLinkId(tender.id);

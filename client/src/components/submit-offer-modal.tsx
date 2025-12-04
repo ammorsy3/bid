@@ -51,7 +51,7 @@ const REQUIRED_FIELDS: (keyof SubmitOfferForm)[] = ['technicalFileUrl', 'financi
 export default function SubmitOfferModal({ isOpen, onClose, tender, requester }: SubmitOfferModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
+  const { activeCompany } = useAuthStore();
   const [, navigate] = useLocation();
   const [hasDraft, setHasDraft] = useState(false);
   const [showDraftPrompt, setShowDraftPrompt] = useState(false);
@@ -63,7 +63,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   const FORM_ID = `${FORM_ID_PREFIX}${tender.id}`;
   
   // Check verification status - allow both verified and under_review to submit
-  const verificationStatus = user?.verificationStatus || 'not_verified';
+  const verificationStatus = activeCompany?.verificationStatus || 'not_verified';
   const canSubmitOffer = verificationStatus === 'verified' || verificationStatus === 'under_review';
 
   const form = useForm<SubmitOfferForm>({
@@ -320,11 +320,11 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                       className="bg-primary-600 hover:bg-primary-700"
                       onClick={() => {
                         handleClose();
-                        navigate('/vendor-prequalification');
+                        navigate('/company-onboarding');
                       }}
                       data-testid="button-prequalify"
                     >
-                      Complete Pre-Qualification
+                      Complete Profile
                     </Button>
                   </div>
                 </AlertDescription>

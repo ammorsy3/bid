@@ -1,0 +1,87 @@
+Context: I'm working on an AI-powered sourcing platform called "Seet". The project is already built with a working dashboard that has navigation tabs (Overview, Tenders, Proposals, Vendors Base). The Vendors Base tab currently shows placeholder text "Vendors base management coming soon..." but I need the actual functionality to work.
+Goal: Implement the Vendors Base functionality in the existing codebase so users can view, search, and manage vendor applications with data persistence.
+Step 1: Inspect Existing Code & Set Up Database
+First, locate the existing Vendors Base page/component and the current database setup:
+Find the file that handles the Vendors Base route/page
+Check if a vendors table or collection exists in the database
+Identify the existing database technology (Replit Database, PostgreSQL, MongoDB, etc.)
+Then create or update the Vendor database schema:
+id (auto-generated unique identifier)
+company_name (text, required)
+contact_name (text, required)
+contact_email (text, required, validated format)
+contact_phone (text, optional)
+industry (text/dropdown: IT Services, Logistics, Manufacturing, Consulting, Other)
+location_country (text, required)
+location_city (text, optional)
+website_url (text, optional)
+status (enum: "pending", "approved", "rejected"; default: "pending")
+created_at (timestamp, auto-generated)
+updated_at (timestamp, auto-updated)
+Update or create API endpoints:
+GET /api/vendors - Fetch all vendors with optional filters (status, search query)
+POST /api/vendors - Create new vendor application
+PATCH /api/vendors/:id - Update vendor status or details
+DELETE /api/vendors/:id - Remove a vendor
+Step 2: Update Vendors Base Page UI
+Replace the "Vendors base management coming soon..." placeholder with the full interface:
+Page Header:
+Title: "Vendors Base"
+Subtitle: "Manage your approved vendors and review new applications"
+Tab Navigation (horizontal tabs above the content area):
+Tab 1: "Vendors (X)" - where X is the count of approved vendors, displayed with a people icon
+Tab 2: "Join Requests" - shows pending vendor applications with a user-add icon
+Active tab should have a white background and border, inactive tabs should be gray
+Search Bar:
+Full-width search input field below the tabs
+Placeholder text: "Search vendors by name, company, or category..."
+Include a search icon on the left side of the input
+Real-time filtering as user types
+Search should match against: company_name, contact_name, industry fields
+Empty State (when no vendors exist, centered in a large white card):
+Large user group icon (gray, centered)
+Heading: "No vendors yet"
+Description text below: "Your approved vendors will appear here. Invite vendors or review join requests to build your base."
+Step 3: Implement Vendors List Display (Active Tab)
+When vendors exist and status = "approved", display them in a card grid or table:
+Each Vendor Card Should Show:
+Company logo placeholder (circular avatar with first letter of company name, colored background)
+Company name (bold, large font)
+Industry tag (small colored badge/chip)
+Location: "City, Country" format
+Contact email (smaller gray text)
+"View Details" button or clickable card
+Layout:
+Grid layout with 2-3 cards per row on desktop
+Cards should have light borders and subtle shadows
+Spacing between cards
+Actions:
+Clicking a vendor card opens a detail modal or page showing full information
+Option to remove vendor (changes status to "rejected")
+Step 4: Implement Join Requests Tab
+When "Join Requests" tab is clicked, fetch and show vendors where status = "pending":
+Display Format:
+Similar card layout to main vendors list
+Show: Company name, Contact person name, Email, Industry, Submitted date (formatted as "X days ago" or date)
+Action Buttons on Each Card:
+"Approve" button (green/primary color) - updates status to "approved", moves vendor to main list
+"Reject" button (red/danger color) - updates status to "rejected", removes from view
+Empty State for Join Requests:
+Centered message: "No pending requests"
+Lighter/smaller than main empty state
+Step 5: Implement Search & Filter
+Add real-time search functionality to the existing search bar:
+Filter vendors list as user types (no need to press enter)
+Search should be case-insensitive
+Match against company name, contact name, and industry fields
+Update displayed count in tab: "Vendors (X)" where X reflects filtered results
+Show "No results found" message if search returns no matches
+Clear search should restore full list
+Technical Requirements:
+Data Persistence: Use the existing database setup to store vendor data
+UI Consistency: Match the existing design system and styling used in the dashboard
+Status Management: Changing vendor status (approve/reject) should update the database and immediately refresh the UI without page reload
+Tab State: Switching between "Vendors" and "Join Requests" tabs should be instant
+Form Validation: Validate email format and required fields if adding new vendors
+Dynamic Counts: Tab labels should show accurate real-time vendor counts
+Build Order: Please implement this step-by-step. Start by inspecting the existing code structure, then update the database schema, implement the page UI, add tab functionality, and finally add search. Let me know when Step 1 is complete so I can checkpoint before moving to Step 2.

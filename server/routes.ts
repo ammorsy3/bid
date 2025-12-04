@@ -660,7 +660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  // Get tender by invitation token
+  // Get tender by invitation token (public endpoint for vendors)
   app.get("/api/tenders/by-token/:token", async (req, res) => {
     try {
       const tender = await storage.getTenderByInvitationToken(req.params.token);
@@ -674,6 +674,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Server error" });
     }
   });
+
+  // Update tender
+  app.patch("/api/tenders/:id",
+    authenticateToken,
+    requireCompanyContext,
+    requireCompanyRole('admin'),
+    async (req: AuthRequest, res) => {
+      try {
+        const tender = await storage.getTender(req.params.id);
+        if (!tender) {
+          return res.status(404).json({ message: "Tender not found" });
+        }
+
+        // Verify ownership
+        if (tender.companyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+
+        // Only allow editing draft tenders
+        if (tender.status !== 'draft') {
+          return res.status(400).json({ message: "Can only edit draft tenders" });
+        }
+
+        const updates = createTenderSchema.partial().parse(req.body);
+        const updatedTender = await storage.updateTender(req.params.id, updates);
+        res.json(updatedTender);
+      } catch (error) {
+        console.error('Update tender error:', error);
+        res.status(400).json({ message: "Invalid tender data" });
+      }
+    }
+  );
+
+  // Update tender status
+  app.patch("/api/tenders/:id/status",
+    authenticateToken,
+    requireCompanyContext,
+    requireCompanyRole('admin'),
+    async (req: AuthRequest, res) => {
+      try {
+        const tender = await storage.getTender(req.params.id);
+        if (!tender) {
+          return res.status(404).json({ message: "Tender not found" });
+        }
+
+        // Verify ownership
+        if (tender.companyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+
+        const { status } = req.body;
+        if (!['draft', 'published', 'closed', 'cancelled'].includes(status)) {
+          return res.status(400).json({ message: "Invalid status" });
+        }
+
+        // Validate status transitions
+        const validTransitions: Record<string, string[]> = {
+          'draft': ['published', 'cancelled'],
+          'published': ['closed', 'cancelled'],
+          'closed': [],
+          'cancelled': []
+        };
+
+        if (!validTransitions[tender.status]?.includes(status)) {
+          return res.status(400).json({ 
+            message: `Cannot transition from ${tender.status} to ${status}` 
+          });
+        }
+
+        await storage.updateTenderStatus(req.params.id, status);
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Update tender status error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  // Delete tender
+  app.delete("/api/tenders/:id",
+    authenticateToken,
+    requireCompanyContext,
+    requireCompanyRole('admin'),
+    async (req: AuthRequest, res) => {
+      try {
+        const tender = await storage.getTender(req.params.id);
+        if (!tender) {
+          return res.status(404).json({ message: "Tender not found" });
+        }
+
+        // Verify ownership
+        if (tender.companyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+
+        await storage.deleteTender(req.params.id);
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Delete tender error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
 
   // ==========================================================================
   // OFFER ROUTES

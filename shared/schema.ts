@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, boolean, jsonb, integer } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -116,10 +116,18 @@ export const tenders = pgTable("tenders", {
   // Tender Details
   title: text("title").notNull(),
   description: text("description").notNull(),
+  category: text("category"), // IT Services, Logistics, Construction, Consulting, Manufacturing, Other
   deadline: text("deadline").notNull(),
-  budget: text("budget"),
+  
+  // Budget Fields
+  budget: text("budget"), // Legacy field for backwards compatibility
+  budgetRange: text("budget_range"), // "Under $10k", "$10k-$50k", "$50k-$100k", "$100k-$500k", "$500k+", "Not specified"
+  budgetMin: integer("budget_min"), // Optional minimum
+  budgetMax: integer("budget_max"), // Optional maximum
+  currency: text("currency").default("USD"),
+  
   duration: text("duration"),
-  status: text("status").notNull().default("active"), // 'draft', 'active', 'closed'
+  status: text("status").notNull().default("draft"), // 'draft', 'published', 'closed', 'cancelled'
   
   // Invitation & Access
   invitationToken: varchar("invitation_token").notNull().unique(),
@@ -128,6 +136,7 @@ export const tenders = pgTable("tenders", {
   allowConditionalSubmission: boolean("allow_conditional_submission").default(false).notNull(), // Allow unverified companies to submit
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Offers - Proposals submitted to tenders
@@ -482,6 +491,7 @@ export const insertUserCompanySchema = createInsertSchema(userCompanies).omit({
 export const insertTenderSchema = createInsertSchema(tenders).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
 });
 
 export const createTenderSchema = insertTenderSchema.omit({
@@ -489,6 +499,7 @@ export const createTenderSchema = insertTenderSchema.omit({
   createdBy: true,
   status: true,
   invitationToken: true,
+  allowConditionalSubmission: true,
 });
 
 // Offer schemas

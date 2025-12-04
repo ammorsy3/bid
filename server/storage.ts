@@ -39,7 +39,7 @@ import {
   type InsertAuditLog
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, ilike, or, isNull, sql, gte } from "drizzle-orm";
+import { eq, and, desc, ilike, or, isNull, sql, gte, count } from "drizzle-orm";
 
 export interface IStorage {
   // ============================================================================
@@ -85,9 +85,13 @@ export interface IStorage {
   // ============================================================================
   createTender(tender: InsertTender): Promise<Tender>;
   getTender(id: string): Promise<Tender | undefined>;
+  getTenderWithProposalCount(id: string): Promise<(Tender & { proposalCount: number }) | undefined>;
   getTendersByCompany(companyId: string): Promise<Tender[]>;
+  getTendersWithProposalCounts(companyId: string): Promise<(Tender & { proposalCount: number })[]>;
   getTenderByInvitationToken(token: string): Promise<(Tender & { company: Company; profile?: CompanyProfile }) | undefined>;
+  updateTender(id: string, updates: Partial<InsertTender>): Promise<Tender>;
   updateTenderStatus(id: string, status: string): Promise<void>;
+  deleteTender(id: string): Promise<void>;
 
   // ============================================================================
   // OFFER OPERATIONS
@@ -475,7 +479,64 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTenderStatus(id: string, status: string): Promise<void> {
-    await db.update(tenders).set({ status }).where(eq(tenders.id, id));
+    await db.update(tenders).set({ status, updatedAt: new Date() }).where(eq(tenders.id, id));
+  }
+
+  async getTenderWithProposalCount(id: string): Promise<(Tender & { proposalCount: number }) | undefined> {
+    const [tender] = await db.select().from(tenders).where(eq(tenders.id, id));
+    if (!tender) return undefined;
+    
+    const [countResult] = await db
+      .select({ count: count() })
+      .from(offers)
+      .where(eq(offers.tenderId, id));
+    
+    return {
+      ...tender,
+      proposalCount: Number(countResult?.count || 0)
+    };
+  }
+
+  async getTendersWithProposalCounts(companyId: string): Promise<(Tender & { proposalCount: number })[]> {
+    const companyTenders = await db
+      .select()
+      .from(tenders)
+      .where(eq(tenders.companyId, companyId))
+      .orderBy(desc(tenders.createdAt));
+    
+    const result = await Promise.all(
+      companyTenders.map(async (tender) => {
+        const [countResult] = await db
+          .select({ count: count() })
+          .from(offers)
+          .where(eq(offers.tenderId, tender.id));
+        
+        return {
+          ...tender,
+          proposalCount: Number(countResult?.count || 0)
+        };
+      })
+    );
+    
+    return result;
+  }
+
+  async updateTender(id: string, updates: Partial<InsertTender>): Promise<Tender> {
+    const [tender] = await db
+      .update(tenders)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(tenders.id, id))
+      .returning();
+    return tender;
+  }
+
+  async deleteTender(id: string): Promise<void> {
+    // Delete related offers first
+    await db.delete(offers).where(eq(offers.tenderId, id));
+    // Delete related invitations
+    await db.delete(invitations).where(eq(invitations.tenderId, id));
+    // Then delete the tender
+    await db.delete(tenders).where(eq(tenders.id, id));
   }
 
   // ============================================================================

@@ -21,10 +21,11 @@ interface TenderCardProps {
 export default function TenderCard({ tender }: TenderCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-warning-100 text-warning-800';
-      case 'draft': return 'bg-neutral-100 text-neutral-800';
-      case 'closed': return 'bg-success-100 text-success-800';
-      default: return 'bg-neutral-100 text-neutral-800';
+      case 'published': return 'bg-blue-100 text-blue-800';
+      case 'draft': return 'bg-gray-100 text-gray-800';
+      case 'closed': return 'bg-green-100 text-green-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 

@@ -1,351 +1,506 @@
-import { useQuery } from "@tanstack/react-query";
-import { useParams } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useParams, useLocation } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import { useState } from "react";
-import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Building, Clock, DollarSign, Mail, User as UserIcon } from "lucide-react";
-import { format } from "date-fns";
-import { enUS } from "date-fns/locale";
-import SubmitOfferModal from "@/components/submit-offer-modal";
-import VendorProfileView from "@/components/VendorProfileView";
-import RequesterProfileView from "@/components/RequesterProfileView";
-import type { Tender, Offer, User, RequesterProfile } from "@shared/schema";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import type { Tender } from "@shared/schema";
+
+interface TenderWithCounts extends Tender {
+  offersCount: number;
+  invitedCount: number;
+}
+
+interface Offer {
+  id: string;
+  tenderId: string;
+  companyId: string;
+  technicalFileUrl: string | null;
+  financialFileUrl: string | null;
+  notes: string | null;
+  submittedAt: string;
+  company: {
+    id: string;
+    name: string;
+    category: string | null;
+    verificationStatus: string;
+  };
+  profile?: {
+    displayName: string | null;
+    bio: string | null;
+    logoUrl: string | null;
+  };
+}
 
 export default function TenderDetails() {
   const { id } = useParams();
-  const { user } = useAuthStore();
-  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
-  const [showOffers, setShowOffers] = useState(false);
-  const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
-  const [showRequesterProfile, setShowRequesterProfile] = useState(false);
+  const [, setLocation] = useLocation();
+  const { user, activeCompany } = useAuthStore();
+  const { toast } = useToast();
+  const [copiedLink, setCopiedLink] = useState(false);
 
-  const { data: tender, isLoading } = useQuery<Tender>({
+  const canManage = activeCompany && ['owner', 'admin'].includes(activeCompany.role);
+
+  const { data: tender, isLoading } = useQuery<TenderWithCounts>({
     queryKey: ['/api/tenders', id],
+    queryFn: async () => {
+      const response = await fetch(`/api/tenders/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (!response.ok) throw new Error("Failed to fetch tender");
+      return response.json();
+    },
     enabled: !!user && !!id,
   });
 
-  const { data: offers } = useQuery<(Offer & { vendor: User })[]>({
+  const { data: offers = [], isLoading: loadingOffers } = useQuery<Offer[]>({
     queryKey: ['/api/tenders', id, 'offers'],
-    enabled: !!user && !!id && user.role === 'requester',
+    queryFn: async () => {
+      const response = await fetch(`/api/tenders/${id}/offers`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (!response.ok) throw new Error("Failed to fetch offers");
+      return response.json();
+    },
+    enabled: !!user && !!id && canManage,
   });
 
-  interface VendorProfile {
-    id: string;
-    displayName: string;
-    logoUrl?: string;
-    headerUrl?: string;
-    bio?: string;
-    category?: string;
-    profileFileUrl?: string;
-    linkedinUrl?: string;
-    xUrl?: string;
-    websiteUrl?: string;
-    verificationStatus: string;
-  }
-
-  const { data: vendorProfile } = useQuery<VendorProfile>({
-    queryKey: ['/api/vendor/profile', selectedVendorId],
-    enabled: !!selectedVendorId,
+  const updateStatus = useMutation({
+    mutationFn: async (status: string) => {
+      return await apiRequest('PATCH', `/api/tenders/${id}/status`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders', id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
+      toast({
+        title: "Status updated",
+        description: "Tender status has been updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update status",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   });
 
-  const { data: requesterProfile } = useQuery<RequesterProfile>({
-    queryKey: ['/api/requester/profile', tender?.requesterId],
-    enabled: !!tender?.requesterId && showRequesterProfile,
+  const deleteTender = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('DELETE', `/api/tenders/${id}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
+      toast({
+        title: "Tender deleted",
+        description: "The tender has been removed",
+      });
+      setLocation('/dashboard');
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to delete",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   });
+
+  const copyInvitationLink = async () => {
+    if (!tender) return;
+    const invitationLink = `${window.location.origin}/invite/${tender.invitationToken}`;
+    try {
+      await navigator.clipboard.writeText(invitationLink);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+      toast({
+        title: "Copied!",
+        description: "Invitation link copied to clipboard",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy link",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', { 
+      month: 'long', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'published':
+        return { className: 'bg-blue-100 text-blue-800', label: 'Published' };
+      case 'draft':
+        return { className: 'bg-gray-100 text-gray-800', label: 'Draft' };
+      case 'closed':
+        return { className: 'bg-green-100 text-green-800', label: 'Closed' };
+      case 'cancelled':
+        return { className: 'bg-red-100 text-red-800', label: 'Cancelled' };
+      default:
+        return { className: 'bg-gray-100 text-gray-800', label: status };
+    }
+  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-neutral-50">
-        <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-center text-neutral-600">Loading tender details...</p>
-        </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!tender) {
     return (
-      <div className="min-h-screen bg-neutral-50">
-        <Navbar />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-center text-neutral-600">Tender not found</p>
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <h3 className="text-xl font-semibold mb-2">Tender not found</h3>
+              <p className="text-muted-foreground mb-4">
+                The tender you're looking for doesn't exist or you don't have access to it.
+              </p>
+              <Button onClick={() => setLocation('/dashboard')}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-warning-100 text-warning-800';
-      case 'draft': return 'bg-neutral-100 text-neutral-800';
-      case 'closed': return 'bg-success-100 text-success-800';
-      default: return 'bg-neutral-100 text-neutral-800';
-    }
-  };
+  const statusBadge = getStatusBadge(tender.status);
+  const daysRemaining = Math.ceil((new Date(tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+  const isExpired = daysRemaining < 0;
+  const invitationLink = `${window.location.origin}/invite/${tender.invitationToken}`;
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <Navbar />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={() => setLocation('/dashboard')}
+            className="mb-4"
+            data-testid="button-back"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-3xl font-bold" data-testid="text-tender-title">{tender.title}</h1>
+                <Badge className={statusBadge.className} data-testid="badge-status">
+                  {statusBadge.label}
+                </Badge>
+              </div>
+              <p className="text-muted-foreground">
+                Created on {formatDate(tender.createdAt)}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Tender Details */}
-          <div className="lg:col-span-2">
-            <Card className="bg-white rounded-xl shadow-sm border border-neutral-200">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Description */}
+            <Card>
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-2xl font-bold text-neutral-900 mb-2">
-                      {tender.title}
-                    </CardTitle>
-                    <Badge className={`${getStatusColor(tender.status)} text-xs font-medium px-2.5 py-0.5 rounded-full`}>
-                      {tender.status}
-                    </Badge>
-                  </div>
-                </div>
+                <CardTitle>Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-neutral-900 mb-3">Description</h3>
-                    <p className="text-neutral-600 leading-relaxed">{tender.description}</p>
-                  </div>
+                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap" data-testid="text-description">
+                  {tender.description}
+                </p>
+              </CardContent>
+            </Card>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center space-x-3">
-                      <Calendar className="h-5 w-5 text-neutral-400" />
-                      <div>
-                        <p className="text-sm text-neutral-600">Deadline</p>
-                        <p className="font-medium text-neutral-900">
-                          {format(new Date(tender.deadline), 'PPP', { locale: enUS })}
-                        </p>
-                      </div>
-                    </div>
-
-                    {tender.budget && (
-                      <div className="flex items-center space-x-3">
-                        <DollarSign className="h-5 w-5 text-neutral-400" />
-                        <div>
-                          <p className="text-sm text-neutral-600">Budget</p>
-                          <p className="font-medium text-neutral-900">{tender.budget}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {tender.duration && (
-                      <div className="flex items-center space-x-3">
-                        <Clock className="h-5 w-5 text-neutral-400" />
-                        <div>
-                          <p className="text-sm text-neutral-600">Duration</p>
-                          <p className="font-medium text-neutral-900">{tender.duration}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-center space-x-3">
-                      <Building className="h-5 w-5 text-neutral-400" />
-                      <div>
-                        <p className="text-sm text-neutral-600">Created</p>
-                        <p className="font-medium text-neutral-900">
-                          {tender.createdAt ? format(new Date(tender.createdAt), 'PPP', { locale: enUS }) : 'Unknown'}
-                        </p>
-                      </div>
+            {/* Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Tender Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Submission Deadline</p>
+                      <p className={`font-medium ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : ''}`}>
+                        {formatDate(tender.deadline)}
+                        {!isExpired && (
+                          <span className="text-sm ml-2">
+                            ({daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left)
+                          </span>
+                        )}
+                        {isExpired && (
+                          <span className="text-sm ml-2">(Expired)</span>
+                        )}
+                      </p>
                     </div>
                   </div>
+
+                  <div className="flex items-center gap-3">
+                    <DollarSign className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Budget Range</p>
+                      <p className="font-medium">
+                        {tender.budgetRange || tender.budget || 'Not specified'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {tender.category && (
+                    <div className="flex items-center gap-3">
+                      <Building className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Category</p>
+                        <p className="font-medium">{tender.category}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {tender.duration && (
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Duration</p>
+                        <p className="font-medium">{tender.duration}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Invitation Link */}
+            <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Invitation Link
+                </CardTitle>
+                <CardDescription>
+                  Share this link with qualified vendors to invite them to submit proposals
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-4">
+                  <code className="text-sm break-all" data-testid="text-invitation-link">
+                    {invitationLink}
+                  </code>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={copyInvitationLink}
+                    className="flex-1"
+                    data-testid="button-copy-link"
+                  >
+                    {copiedLink ? (
+                      <>
+                        <Check className="h-4 w-4 mr-2" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy Link
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => window.open(invitationLink, '_blank')}
+                    data-testid="button-open-link"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Preview
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Proposals Section */}
+            {canManage && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Send className="h-5 w-5" />
+                    Proposals ({offers.length})
+                  </CardTitle>
+                  <CardDescription>
+                    View and manage proposals submitted by vendors
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loadingOffers ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                  ) : offers.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                      <p className="text-muted-foreground">No proposals received yet</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Share the invitation link with vendors to start receiving proposals
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {offers.map((offer, index) => (
+                        <Card key={offer.id} className="border" data-testid={`card-offer-${offer.id}`}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="font-medium">
+                                    {offer.profile?.displayName || offer.company.name}
+                                  </h4>
+                                  {offer.company.verificationStatus === 'verified' && (
+                                    <Badge variant="secondary" className="text-xs">Verified</Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {offer.company.category || 'No category'}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Submitted {formatDate(offer.submittedAt)}
+                                </p>
+                                {offer.notes && (
+                                  <p className="text-sm mt-2">{offer.notes}</p>
+                                )}
+                              </div>
+                              <div className="flex gap-2">
+                                {offer.technicalFileUrl && (
+                                  <Button variant="outline" size="sm" asChild>
+                                    <a href={offer.technicalFileUrl} target="_blank" rel="noopener noreferrer">
+                                      Technical
+                                    </a>
+                                  </Button>
+                                )}
+                                {offer.financialFileUrl && (
+                                  <Button variant="outline" size="sm" asChild>
+                                    <a href={offer.financialFileUrl} target="_blank" rel="noopener noreferrer">
+                                      Financial
+                                    </a>
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Actions */}
-            <Card className="bg-white rounded-xl shadow-sm border border-neutral-200">
+            {/* Quick Stats */}
+            <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-semibold">Actions</CardTitle>
+                <CardTitle>Quick Stats</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                {user?.role === 'vendor' && (
-                  <>
-                    <Button 
-                      className="w-full bg-primary-600 hover:bg-primary-700"
-                      onClick={() => setIsOfferModalOpen(true)}
-                      data-testid="button-submit-offer"
-                    >
-                      Submit Offer
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setShowRequesterProfile(true)}
-                      data-testid="button-view-requester-profile"
-                    >
-                      <Building className="h-4 w-4 mr-2" />
-                      View Client Profile
-                    </Button>
-                  </>
-                )}
-                {user?.role === 'requester' && (
-                  <>
-                    <Button 
-                      className="w-full bg-primary-600 hover:bg-primary-700"
-                      onClick={() => setShowOffers(!showOffers)}
-                      data-testid="button-view-offers"
-                    >
-                      {showOffers ? 'Hide Offers' : `View All Offers (${offers?.length || 0})`}
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => window.location.href = `/tenders/${tender.id}/invitations`}
-                      data-testid="button-invitation-link"
-                    >
-                      <Mail className="h-4 w-4 mr-2" />
-                      Invitation Link
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      Edit Tender
-                    </Button>
-                  </>
-                )}
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Proposals</span>
+                  <span className="font-semibold">{offers.length}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Status</span>
+                  <Badge className={statusBadge.className}>{statusBadge.label}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Time Remaining</span>
+                  <span className={`font-semibold ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : ''}`}>
+                    {isExpired ? 'Expired' : `${daysRemaining} days`}
+                  </span>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Quick Stats */}
-            {user?.role === 'requester' && (
-              <Card className="bg-white rounded-xl shadow-sm border border-neutral-200">
+            {/* Actions */}
+            {canManage && (
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg font-semibold">Quick Stats</CardTitle>
+                  <CardTitle>Actions</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-neutral-600">Offers Received</span>
-                    <span className="font-semibold text-neutral-900">{offers?.length || 0}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-neutral-600">Days Remaining</span>
-                    <span className="font-semibold text-neutral-900">
-                      {Math.ceil((new Date(tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))}
-                    </span>
-                  </div>
+                <CardContent className="space-y-3">
+                  {tender.status === 'draft' && (
+                    <>
+                      <Button 
+                        className="w-full bg-blue-600 hover:bg-blue-700"
+                        onClick={() => updateStatus.mutate('published')}
+                        disabled={updateStatus.isPending}
+                        data-testid="button-publish"
+                      >
+                        Publish Tender
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => setLocation(`/tenders/${tender.id}/edit`)}
+                        data-testid="button-edit"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Tender
+                      </Button>
+                    </>
+                  )}
+                  
+                  {tender.status === 'published' && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => updateStatus.mutate('closed')}
+                      disabled={updateStatus.isPending}
+                      data-testid="button-close"
+                    >
+                      Close Tender
+                    </Button>
+                  )}
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => {
+                      if (confirm('Are you sure you want to delete this tender? This action cannot be undone.')) {
+                        deleteTender.mutate();
+                      }
+                    }}
+                    disabled={deleteTender.isPending}
+                    data-testid="button-delete"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Tender
+                  </Button>
                 </CardContent>
               </Card>
             )}
           </div>
         </div>
-
-        {/* Offers Section */}
-        {showOffers && user?.role === 'requester' && (
-          <div className="mt-8">
-            <Card className="bg-white rounded-xl shadow-sm border border-neutral-200">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold">Received Offers ({offers?.length || 0})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {offers && offers.length > 0 ? (
-                  <div className="space-y-4">
-                    {offers.map((offer, index: number) => (
-                      <div key={offer.id} className="border border-neutral-200 rounded-lg p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <h4 className="font-medium text-neutral-900">Offer #{index + 1}</h4>
-                              <Badge className="bg-success-100 text-success-800 text-xs px-2 py-1">
-                                Submitted
-                              </Badge>
-                            </div>
-                            <div className="text-sm text-neutral-600 space-y-1">
-                              <p><span className="font-medium">Vendor:</span> {offer.vendor?.name || 'Unknown Vendor'}</p>
-                              <p><span className="font-medium">Company:</span> {offer.vendor?.company || 'N/A'}</p>
-                              <p><span className="font-medium">Submitted:</span> {offer.submittedAt ? format(new Date(offer.submittedAt), 'PPP', { locale: enUS }) : 'Unknown'}</p>
-                              {offer.vendorId && (
-                                <Button
-                                  variant="link"
-                                  size="sm"
-                                  className="h-auto p-0 text-primary-600 hover:text-primary-700"
-                                  onClick={() => setSelectedVendorId(offer.vendorId)}
-                                  data-testid={`link-vendor-profile-${index}`}
-                                >
-                                  <UserIcon className="h-3 w-3 mr-1" />
-                                  View Vendor Profile
-                                </Button>
-                              )}
-                            </div>
-                            {offer.notes && (
-                              <div className="mt-2">
-                                <p className="text-sm font-medium text-neutral-700">Notes:</p>
-                                <p className="text-sm text-neutral-600">{offer.notes}</p>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex space-x-2">
-                            {offer.technicalFileUrl && (
-                              <Button variant="outline" size="sm">
-                                Technical Proposal
-                              </Button>
-                            )}
-                            {offer.financialFileUrl && (
-                              <Button variant="outline" size="sm">
-                                Financial Proposal
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-neutral-500">No offers received yet.</p>
-                    <p className="text-sm text-neutral-400 mt-1">Vendors will be able to submit offers using the invitation link.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </main>
-      
-      {/* Submit Offer Modal */}
-      {tender && user && (
-        <SubmitOfferModal 
-          isOpen={isOfferModalOpen}
-          onClose={() => setIsOfferModalOpen(false)}
-          tender={{ id: tender.id, title: tender.title, deadline: tender.deadline }}
-          requester={{ name: "Requester", company: "Company" }}
-        />
-      )}
-
-      {/* Vendor Profile Dialog */}
-      <Dialog open={!!selectedVendorId} onOpenChange={(open) => !open && setSelectedVendorId(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Vendor Profile</DialogTitle>
-          </DialogHeader>
-          {vendorProfile && (
-            <VendorProfileView profile={vendorProfile} />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Requester Profile Dialog */}
-      <Dialog open={showRequesterProfile} onOpenChange={setShowRequesterProfile}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Client Profile</DialogTitle>
-          </DialogHeader>
-          {requesterProfile ? (
-            <RequesterProfileView profile={requesterProfile} />
-          ) : (
-            <p className="text-center text-neutral-500 py-8">Loading profile...</p>
-          )}
-        </DialogContent>
-      </Dialog>
+      </div>
     </div>
   );
 }

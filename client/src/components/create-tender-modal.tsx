@@ -174,7 +174,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
   const copyInvitationLink = async () => {
     if (!createdTender) return;
     
-    const invitationLink = `${window.location.origin}/invite/${createdTender.invitationToken}`;
+    const invitationLink = `${window.location.origin}/invite/${createdTender.id}`;
     try {
       await navigator.clipboard.writeText(invitationLink);
       setInvitationCopied(true);
@@ -195,7 +195,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
   const copyInvitationMessage = async () => {
     if (!createdTender) return;
     
-    const invitationLink = `${window.location.origin}/invite/${createdTender.invitationToken}`;
+    const invitationLink = `${window.location.origin}/invite/${createdTender.id}`;
     const message = `You're invited to submit an offer for "${createdTender.title}"\n\nTender Details:\n- Budget: ${createdTender.budget || 'Not specified'}\n- Deadline: ${createdTender.deadline}\n- Duration: ${createdTender.duration || 'Not specified'}\n\nClick here to view details and submit your offer:\n${invitationLink}`;
     
     try {
@@ -221,7 +221,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
 
   // Show success state with invitation link after creation
   if (createdTender) {
-    const invitationLink = `${window.location.origin}/invite/${createdTender.invitationToken}`;
+    const invitationLink = `${window.location.origin}/invite/${createdTender.id}`;
     
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>

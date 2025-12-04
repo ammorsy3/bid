@@ -113,7 +113,7 @@ export default function TenderDetails() {
 
   const copyInvitationLink = async () => {
     if (!tender) return;
-    const invitationLink = `${window.location.origin}/invite/${tender.invitationToken}`;
+    const invitationLink = `${window.location.origin}/invite/${tender.id}`;
     try {
       await navigator.clipboard.writeText(invitationLink);
       setCopiedLink(true);
@@ -186,7 +186,7 @@ export default function TenderDetails() {
   const statusBadge = getStatusBadge(tender.status);
   const daysRemaining = Math.ceil((new Date(tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
   const isExpired = daysRemaining < 0;
-  const invitationLink = `${window.location.origin}/invite/${tender.invitationToken}`;
+  const invitationLink = `${window.location.origin}/invite/${tender.id}`;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

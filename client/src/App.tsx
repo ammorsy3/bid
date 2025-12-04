@@ -11,6 +11,7 @@ import Dashboard from "@/pages/Dashboard";
 import CompanyOnboarding from "@/pages/CompanyOnboarding";
 import TenderDetails from "@/pages/tender-details";
 import TractionLink from "@/pages/TractionLink";
+import InvitationSignup from "@/pages/invitation-signup";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminVendors from "@/pages/AdminVendors";
 import AdminJoinRequests from "@/pages/AdminJoinRequests";
@@ -47,6 +48,7 @@ function Router() {
         pathname === '/login' ||
         pathname === '/register' ||
         pathname.startsWith('/r/') || // Traction links
+        pathname.startsWith('/invite/') || // Invitation links
         pathname === '/company-onboarding';
       
       if (!isPublicPage) {
@@ -66,6 +68,7 @@ function Router() {
         pathname === '/login' ||
         pathname === '/register' ||
         pathname.startsWith('/r/') ||
+        pathname.startsWith('/invite/') ||
         pathname === '/company-onboarding';
       
       if (!isPublicPage) {
@@ -81,6 +84,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/r/:slug" component={TractionLink} />
+      <Route path="/invite/:id" component={InvitationSignup} />
       
       {/* Company onboarding (requires auth, no active company needed) */}
       <Route path="/company-onboarding" component={CompanyOnboarding} />

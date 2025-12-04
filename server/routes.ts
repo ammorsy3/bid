@@ -675,6 +675,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get tender for invitation page (public endpoint)
+  app.get("/api/tenders/:id/invite", async (req, res) => {
+    try {
+      const tender = await storage.getTender(req.params.id);
+      if (!tender) {
+        return res.status(404).json({ message: "Tender not found" });
+      }
+
+      // Only show published tenders
+      if (tender.status !== 'published' && tender.status !== 'draft') {
+        return res.status(404).json({ message: "Tender not available" });
+      }
+
+      // Get company info
+      const company = await storage.getCompany(tender.companyId);
+      const profile = company ? await storage.getCompanyProfile(company.id) : null;
+
+      // Return only public information
+      res.json({
+        id: tender.id,
+        title: tender.title,
+        description: tender.description,
+        budget: tender.budget,
+        budgetRange: tender.budgetRange,
+        deadline: tender.deadline,
+        duration: tender.duration,
+        status: tender.status,
+        company: company ? {
+          id: company.id,
+          name: company.name
+        } : null,
+        profile: profile ? {
+          displayName: profile.displayName
+        } : null
+      });
+    } catch (error) {
+      console.error('Get tender invite error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Update tender
   app.patch("/api/tenders/:id",
     authenticateToken,

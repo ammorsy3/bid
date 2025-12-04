@@ -50,7 +50,7 @@ export default function InvitationLinks() {
   const copyInvitationMessage = async () => {
     if (!tender) return;
     
-    const invitationLink = `${window.location.origin}/invite/${tender.invitationToken}`;
+    const invitationLink = `${window.location.origin}/invite/${tender.id}`;
     const message = `You're invited to submit an offer for "${tender.title}"\n\nTender Details:\n- Budget: ${tender.budget || 'Not specified'}\n- Deadline: ${tender.deadline}\n- Duration: ${tender.duration || 'Not specified'}\n\nClick here to view details and submit your offer:\n${invitationLink}`;
     
     try {
@@ -103,7 +103,7 @@ export default function InvitationLinks() {
           <p className="text-sm text-neutral-500 mt-1">Tender: {tender.title}</p>
         </div>
 
-        {tender.invitationToken ? (
+        {tender.id ? (
           <div className="space-y-4">
             <Card className="bg-white rounded-xl shadow-sm border border-neutral-200">
               <CardContent className="p-6">
@@ -115,13 +115,13 @@ export default function InvitationLinks() {
                     </span>
                   </div>
                   <div className="bg-neutral-50 rounded-lg p-3 font-mono text-sm text-neutral-700 break-all">
-                    {`${window.location.origin}/invite/${tender.invitationToken}`}
+                    {`${window.location.origin}/invite/${tender.id}`}
                   </div>
                   <div className="flex gap-3">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => copyToClipboard(`${window.location.origin}/invite/${tender.invitationToken}`, tender.id)}
+                      onClick={() => copyToClipboard(`${window.location.origin}/invite/${tender.id}`, tender.id)}
                       className="flex items-center space-x-2 flex-1"
                       data-testid="button-copy-link"
                     >
@@ -166,7 +166,7 @@ export default function InvitationLinks() {
                       - Deadline: {tender.deadline}<br/>
                       - Duration: {tender.duration || 'Not specified'}<br/><br/>
                       Click here to view details and submit your offer:<br/>
-                      {`${window.location.origin}/invite/${tender.invitationToken}`}
+                      {`${window.location.origin}/invite/${tender.id}`}
                     </div>
                   </div>
                 </div>

@@ -1,0 +1,137 @@
+Context: I'm working on "Bid", an AI-powered sourcing platform. The project is already built with a working dashboard. The Tenders tab currently shows placeholder text "Tender management coming soon..." but I need the full Tenders functionality to work.
+Goal: Implement the Tenders module so company owners can create, view, and manage procurement tenders. Each tender should automatically generate a unique invitation link that can be shared with vendors.
+Step 1: Inspect Existing Code & Set Up Database
+First, locate the existing Tenders page/component and database setup:
+Find the file that handles the Tenders route/page
+Check if a tenders table or collection exists in the database
+Identify the existing database technology being used
+Then create or update the Tender database schema:
+id (auto-generated unique identifier)
+title (text, required, minimum 3 characters)
+description (long text, required, minimum 10 characters, maximum 1000 characters)
+buyer_company_id (reference to the company creating the tender)
+category (text/dropdown: IT Services, Logistics, Construction, Consulting, Manufacturing, Other)
+budget_min (number, optional)
+budget_max (number, optional)
+budget_range (text, dropdown: "Under $10k", "$10k-$50k", "$50k-$100k", "$100k-$500k", "$500k+", "Not specified")
+currency (text, default: "USD")
+submission_deadline (datetime, required, must be future date)
+invitation_link (text, unique, auto-generated on tender creation)
+status (enum: "draft", "published", "closed", "cancelled"; default: "draft")
+created_by_user_id (reference to user who created it)
+created_at (timestamp, auto-generated)
+updated_at (timestamp, auto-updated)
+Update or create API endpoints:
+GET /api/tenders - Fetch all tenders for the logged-in company
+POST /api/tenders - Create new tender and generate unique invitation link
+PATCH /api/tenders/:id - Update tender details or status
+DELETE /api/tenders/:id - Delete a tender
+GET /api/tenders/invite/:invitation_code - Public endpoint for vendors to view tender via invitation link
+Step 2: Update Tenders Page UI
+Replace the "Tender management coming soon..." placeholder with the full interface:
+Page Header:
+Title: "Tenders"
+Subtitle: "Create and manage procurement tenders"
+Action button: "Create Tender" (primary blue button, top right)
+Empty State (when no tenders exist):
+Large document icon (centered, gray)
+Heading: "No tenders yet"
+Description: "Create your first tender to start receiving proposals from qualified vendors."
+"Create Tender" button (primary action)
+Tenders List View (when tenders exist):
+Display tenders in a table or card format with columns:
+Tender Title (bold, clickable)
+Status badge (color-coded: draft=gray, published=blue, closed=green, cancelled=red)
+Submission Deadline (formatted date)
+Budget Range (display the selected range)
+Number of Proposals (e.g., "5 proposals" or "No proposals yet")
+Actions: View, Edit, Copy Invitation Link, Delete icons
+Filters/Tabs (optional for MVP, can add later):
+All Tenders
+Published
+Draft
+Closed
+Step 3: Implement "Create Tender" Modal/Form
+When user clicks "Create Tender" button, open a modal or navigate to a form page:
+Form Structure (multi-step or single page):
+Section 1: Basic Information
+Form Progress Indicator at top: "Form Progress: 0%" (updates as fields are filled)
+Progress checklist showing: Tender title, Description, Deadline
+Field: Tender Title (required)
+Text input
+Placeholder: "e.g., Website Development for E-commerce Platform"
+Validation: At least 3 characters
+Helper text: "At least 3 characters"
+Field: Description (required)
+Textarea (large, expandable)
+Placeholder: "Provide detailed requirements, specifications, and expectations..."
+Character counter: "0/1000" (bottom right)
+Validation: Minimum 10 characters, maximum 1000 characters
+Field: Submission Deadline (required)
+Date and time picker
+Format: dd/mm/yyyy, --:-- --
+Validation: Must be a future date
+Helper text: "Must be a future date"
+Field: Estimated Budget (optional)
+Dropdown selector
+Options: "Under $10k", "$10k-$50k", "$50k-$100k", "$100k-$500k", "$500k+", "Not specified"
+Placeholder: "Select budget range"
+Section 2: Invitation System
+Heading: "Invitation System"
+Description text: "After creating this tender, you'll receive a unique invitation link to share with qualified vendors."
+Bullet points:
+"Share via email, messaging, or any preferred channel"
+"Vendors register and submit offers using the link"
+Form Actions (bottom):
+"Cancel" button (secondary, left)
+"Publish Tender" button (primary blue, right)
+Step 4: Generate Unique Invitation Links
+When a tender is created, automatically generate a unique invitation link:
+Invitation Link Format:
+Base URL: https://[your-app-domain]/tender/invite/[unique_code]
+Unique code: Generate a random alphanumeric string (8-12 characters, e.g., "a7k9m2px")
+Store the invitation code in the database with the tender
+After Tender Creation:
+Show success message: "Tender published successfully!"
+Display the invitation link in a prominent box with:
+Label: "Share this link with vendors"
+The full URL displayed in a copyable text field
+"Copy Link" button (copies to clipboard)
+Optional: "Share via Email" button
+Copy Link Functionality:
+When "Copy Link" is clicked, copy the URL to clipboard
+Show brief feedback: "Link copied!" (toast notification or button text change)
+Step 5: Tender Detail View & Management
+When user clicks on a tender from the list, show the tender detail page:
+Tender Detail Page Layout:
+Tender title (large heading)
+Status badge
+Key information in a grid:
+Deadline: [formatted date]
+Budget: [range]
+Created: [date]
+Proposals: [count]
+Sections:
+Description: Full tender description text
+Invitation Link: Display the link with "Copy Link" button
+Proposals: List of proposals received (can be placeholder for now: "Proposals management coming soon...")
+Actions (top right):
+Edit button (if status is draft)
+Close Tender button (if status is published)
+Delete button
+Status Management:
+Draft tenders can be edited and published
+Published tenders can be closed
+Closed tenders are read-only
+Technical Requirements:
+Data Persistence: Use the existing database to store tender data
+Unique Links: Each tender must have a unique, non-guessable invitation code
+Form Validation: Validate all required fields, date format, and character limits in real-time
+UI Consistency: Match the existing design system and styling
+Clipboard API: Use browser's Clipboard API for "Copy Link" functionality
+Progress Indicator: Update form progress percentage as fields are filled
+Status Updates: Allow status changes (draft→published, published→closed) with database updates
+Future Date Validation: Ensure deadline is always in the future when creating/editing
+Invitation Link Public Access (for future):
+Note: The public invitation page where vendors can view tender details and submit proposals will be implemented separately. For now, just generate and display the link.
+Build Order: Implement this step-by-step. Start by inspecting the existing code, then update the database schema, implement the tenders list view, create the tender form, add the invitation link generation, and finally implement tender detail view. Let me know when Step 1 is complete so I can checkpoint before moving to Step 2.

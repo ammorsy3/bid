@@ -47,7 +47,6 @@ export default function TenderDetails() {
   const [isSubmitOfferModalOpen, setIsSubmitOfferModalOpen] = useState(false);
 
   const canManage = activeCompany && ['owner', 'admin'].includes(activeCompany.role);
-  const isOwner = activeCompany && tender?.companyId === activeCompany.id;
 
   const { data: tender, isLoading } = useQuery<TenderWithCounts>({
     queryKey: ['/api/tenders', id],
@@ -72,6 +71,28 @@ export default function TenderDetails() {
     },
     enabled: !!user && !!id && canManage,
   });
+
+  // Check if current company has already submitted an offer
+  const { data: myOffer } = useQuery<Offer | null>({
+    queryKey: ['/api/tenders', id, 'my-offer'],
+    queryFn: async () => {
+      const response = await fetch(`/api/tenders/${id}/my-offer`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: !!user && !!id && !!activeCompany,
+  });
+
+  // Check ownership and eligibility for submission
+  const isOwner = tender?.companyId === activeCompany?.id;
+  const isTenderOpen = tender?.status === 'published';
+  const deadline = tender ? new Date(tender.deadline) : null;
+  const isExpired = deadline ? deadline.getTime() < Date.now() : true;
+  const hasSubmittedOffer = !!myOffer;
+  const companyVerified = activeCompany?.verificationStatus === 'verified';
+  const canSubmitOffer = !isOwner && isTenderOpen && !isExpired && !hasSubmittedOffer && companyVerified;
 
   const updateStatus = useMutation({
     mutationFn: async (status: string) => {
@@ -189,7 +210,6 @@ export default function TenderDetails() {
 
   const statusBadge = getStatusBadge(tender.status);
   const daysRemaining = Math.ceil((new Date(tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-  const isExpired = daysRemaining < 0;
   const invitationLink = `${window.location.origin}/invite/${tender.id}`;
 
   return (
@@ -295,7 +315,80 @@ export default function TenderDetails() {
               </CardContent>
             </Card>
 
-            {/* Invitation Link */}
+            {/* Submit Offer Section (for non-owner companies) */}
+            {!isOwner && activeCompany && (
+              <Card className={hasSubmittedOffer ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    {hasSubmittedOffer ? 'Offer Submitted' : 'Submit Your Offer'}
+                  </CardTitle>
+                  <CardDescription>
+                    {hasSubmittedOffer 
+                      ? 'You have already submitted an offer for this tender.' 
+                      : 'Submit your technical and financial proposal for this tender.'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {hasSubmittedOffer ? (
+                    <div className="text-center py-4">
+                      <Check className="h-12 w-12 mx-auto text-green-600 mb-3" />
+                      <p className="text-green-800 dark:text-green-200 font-medium">
+                        Your offer was submitted on {myOffer?.submittedAt ? formatDate(myOffer.submittedAt) : 'N/A'}
+                      </p>
+                    </div>
+                  ) : !companyVerified ? (
+                    <div className="space-y-3">
+                      <Alert className="bg-yellow-50 border-yellow-200">
+                        <AlertCircle className="h-4 w-4 text-yellow-600" />
+                        <AlertDescription className="text-yellow-800">
+                          Your company must be verified to submit offers. 
+                          {activeCompany?.verificationStatus === 'under_review' 
+                            ? ' Your verification is currently under review.' 
+                            : ' Please complete your company profile to request verification.'}
+                        </AlertDescription>
+                      </Alert>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setLocation('/company-onboarding')}
+                        data-testid="button-complete-profile"
+                      >
+                        Complete Company Profile
+                      </Button>
+                    </div>
+                  ) : isExpired ? (
+                    <div className="text-center py-4">
+                      <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-3" />
+                      <p className="text-red-600 font-medium">This tender has expired</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        The deadline for submissions has passed.
+                      </p>
+                    </div>
+                  ) : !isTenderOpen ? (
+                    <div className="text-center py-4">
+                      <AlertCircle className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                      <p className="text-muted-foreground font-medium">This tender is not accepting submissions</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        The tender status is: {tender.status}
+                      </p>
+                    </div>
+                  ) : (
+                    <Button
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      onClick={() => setIsSubmitOfferModalOpen(true)}
+                      data-testid="button-submit-offer"
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      Submit Offer
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Invitation Link (for owner only) */}
+            {isOwner && (
             <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -341,6 +434,7 @@ export default function TenderDetails() {
                 </div>
               </CardContent>
             </Card>
+            )}
 
             {/* Proposals Section */}
             {canManage && (
@@ -505,6 +599,29 @@ export default function TenderDetails() {
           </div>
         </div>
       </div>
+
+      {/* Submit Offer Modal */}
+      {tender && !isOwner && (
+        <SubmitOfferModal
+          isOpen={isSubmitOfferModalOpen}
+          onClose={() => {
+            setIsSubmitOfferModalOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['/api/tenders', id, 'my-offer'] });
+          }}
+          tender={{
+            id: tender.id,
+            title: tender.title,
+            description: tender.description || '',
+            deadline: tender.deadline,
+            budget: tender.budget,
+            duration: tender.duration
+          }}
+          requester={{
+            name: 'Company',
+            company: activeCompany?.name
+          }}
+        />
+      )}
     </div>
   );
 }

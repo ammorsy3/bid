@@ -785,7 +785,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           metadata: { searchQuery: searchQuery || null }
         });
 
-        res.json(vendors);
+        // Transform to flat format expected by frontend
+        const formattedVendors = vendors.map(v => ({
+          id: v.id,
+          company: v.profile?.displayName || v.vendorCompany.name,
+          category: v.vendorCompany.category || 'No category',
+          bio: v.profile?.bio || '',
+          email: '', // Contact email would come from user if needed
+          verificationStatus: v.vendorCompany.verificationStatus,
+          joinMethod: v.joinMethod,
+          joinedAt: v.addedAt
+        }));
+
+        res.json(formattedVendors);
       } catch (error) {
         console.error('Get vendors base error:', error);
         res.status(500).json({ message: "Server error" });

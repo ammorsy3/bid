@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -37,12 +37,30 @@ interface JoinRequest {
   };
 }
 
+interface TenderWithCounts {
+  id: string;
+  title: string;
+  description: string;
+  category: string | null;
+  deadline: string;
+  budget: string | null;
+  budgetRange: string | null;
+  status: string;
+  invitationToken: string;
+  createdAt: string;
+  offersCount: number;
+  invitedCount: number;
+}
+
 export default function Dashboard() {
   const { user, activeCompany, companies, logout } = useAuthStore();
   const [, setLocation] = useLocation();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
+  const [tenderSearchQuery, setTenderSearchQuery] = useState("");
+  const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
+  const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
   const { toast } = useToast();
 
   if (!user) {
@@ -84,6 +102,95 @@ export default function Dashboard() {
     },
     enabled: canManage
   });
+
+  // Fetch tenders
+  const { data: tenders = [], isLoading: loadingTenders } = useQuery<TenderWithCounts[]>({
+    queryKey: ['/api/tenders'],
+    queryFn: async () => {
+      const response = await fetch('/api/tenders', {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (!response.ok) throw new Error("Failed to fetch tenders");
+      return response.json();
+    },
+    enabled: canManage
+  });
+
+  // Filter tenders based on search and status
+  const filteredTenders = tenders.filter(tender => {
+    const matchesSearch = !tenderSearchQuery || 
+      tender.title.toLowerCase().includes(tenderSearchQuery.toLowerCase()) ||
+      (tender.description && tender.description.toLowerCase().includes(tenderSearchQuery.toLowerCase()));
+    const matchesFilter = tenderFilter === 'all' || tender.status === tenderFilter;
+    return matchesSearch && matchesFilter;
+  });
+
+  // Delete tender mutation
+  const deleteTender = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest('DELETE', `/api/tenders/${id}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
+      toast({
+        title: "Tender deleted",
+        description: "The tender has been removed",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to delete",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Copy invitation link
+  const copyInvitationLink = async (tender: TenderWithCounts) => {
+    const invitationLink = `${window.location.origin}/invite/${tender.invitationToken}`;
+    try {
+      await navigator.clipboard.writeText(invitationLink);
+      setCopiedLinkId(tender.id);
+      setTimeout(() => setCopiedLinkId(null), 2000);
+      toast({
+        title: "Copied!",
+        description: "Invitation link copied to clipboard",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy link",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Get status badge styling
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'published':
+        return { className: 'bg-blue-100 text-blue-800', label: 'Published' };
+      case 'draft':
+        return { className: 'bg-gray-100 text-gray-800', label: 'Draft' };
+      case 'closed':
+        return { className: 'bg-green-100 text-green-800', label: 'Closed' };
+      case 'cancelled':
+        return { className: 'bg-red-100 text-red-800', label: 'Cancelled' };
+      default:
+        return { className: 'bg-gray-100 text-gray-800', label: status };
+    }
+  };
+
+  // Format date
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
 
   // Approve join request mutation
   const approveRequest = useMutation({
@@ -281,18 +388,197 @@ export default function Dashboard() {
 
           {/* Tenders Tab */}
           {canManage && (
-            <TabsContent value="tenders">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Tenders</CardTitle>
-                  <CardDescription>
+            <TabsContent value="tenders" className="space-y-6">
+              {/* Header */}
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-2xl font-bold" data-testid="text-tenders-title">Tenders</h2>
+                  <p className="text-muted-foreground" data-testid="text-tenders-description">
                     Create and manage procurement tenders
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Tender management coming soon...</p>
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  data-testid="button-create-tender-header"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Tender
+                </Button>
+              </div>
+
+              {/* Filters */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search tenders by title or description..."
+                        value={tenderSearchQuery}
+                        onChange={(e) => setTenderSearchQuery(e.target.value)}
+                        className="pl-10"
+                        data-testid="input-tender-search"
+                      />
+                    </div>
+                    <Tabs value={tenderFilter} onValueChange={(v) => setTenderFilter(v as any)} className="w-full sm:w-auto">
+                      <TabsList className="grid grid-cols-4 w-full sm:w-auto">
+                        <TabsTrigger value="all" data-testid="filter-all">All</TabsTrigger>
+                        <TabsTrigger value="published" data-testid="filter-published">Published</TabsTrigger>
+                        <TabsTrigger value="draft" data-testid="filter-draft">Draft</TabsTrigger>
+                        <TabsTrigger value="closed" data-testid="filter-closed">Closed</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  </div>
                 </CardContent>
               </Card>
+
+              {/* Tenders List */}
+              {loadingTenders ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : filteredTenders.length === 0 ? (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-16">
+                    <FileText className="h-16 w-16 text-muted-foreground mb-4" />
+                    <h3 className="text-xl font-semibold mb-2" data-testid="text-no-tenders-title">
+                      {tenderSearchQuery || tenderFilter !== 'all' ? 'No tenders found' : 'No tenders yet'}
+                    </h3>
+                    <p className="text-muted-foreground text-center max-w-md mb-6" data-testid="text-no-tenders-description">
+                      {tenderSearchQuery || tenderFilter !== 'all'
+                        ? 'Try adjusting your search or filters'
+                        : 'Create your first tender to start receiving proposals from qualified vendors.'}
+                    </p>
+                    {!tenderSearchQuery && tenderFilter === 'all' && (
+                      <Button 
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        data-testid="button-create-first-tender"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Tender
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {filteredTenders.map((tender) => {
+                    const statusBadge = getStatusBadge(tender.status);
+                    const isDeadlineSoon = new Date(tender.deadline).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000;
+                    
+                    return (
+                      <Card 
+                        key={tender.id} 
+                        className="hover:shadow-lg transition-shadow"
+                        data-testid={`card-tender-${tender.id}`}
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h3 
+                                  className="text-lg font-semibold cursor-pointer hover:text-blue-600"
+                                  onClick={() => setLocation(`/tenders/${tender.id}`)}
+                                  data-testid={`text-tender-title-${tender.id}`}
+                                >
+                                  {tender.title}
+                                </h3>
+                                <Badge className={statusBadge.className} data-testid={`badge-status-${tender.id}`}>
+                                  {statusBadge.label}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground line-clamp-2" data-testid={`text-tender-description-${tender.id}`}>
+                                {tender.description}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Calendar className="h-4 w-4" />
+                              <span className={isDeadlineSoon ? 'text-red-600 font-medium' : ''}>
+                                {formatDate(tender.deadline)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Send className="h-4 w-4" />
+                              <span data-testid={`text-proposals-count-${tender.id}`}>
+                                {tender.offersCount} proposal{tender.offersCount !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Mail className="h-4 w-4" />
+                              <span>{tender.invitedCount} invited</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <FileText className="h-4 w-4" />
+                              <span>{tender.budgetRange || tender.budget || 'Not specified'}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setLocation(`/tenders/${tender.id}`)}
+                              data-testid={`button-view-${tender.id}`}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => copyInvitationLink(tender)}
+                              data-testid={`button-copy-link-${tender.id}`}
+                            >
+                              {copiedLinkId === tender.id ? (
+                                <>
+                                  <Check className="h-4 w-4 mr-2" />
+                                  Copied!
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="h-4 w-4 mr-2" />
+                                  Copy Link
+                                </>
+                              )}
+                            </Button>
+                            {tender.status === 'draft' && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => setLocation(`/tenders/${tender.id}/edit`)}
+                                data-testid={`button-edit-${tender.id}`}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </Button>
+                            )}
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => {
+                                if (confirm('Are you sure you want to delete this tender?')) {
+                                  deleteTender.mutate(tender.id);
+                                }
+                              }}
+                              disabled={deleteTender.isPending}
+                              data-testid={`button-delete-${tender.id}`}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
             </TabsContent>
           )}
 

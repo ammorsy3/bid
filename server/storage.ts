@@ -100,6 +100,7 @@ export interface IStorage {
   getOffersByTender(tenderId: string): Promise<(Offer & { company: Company; profile?: CompanyProfile })[]>;
   getOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender })[]>;
   getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null>;
+  getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile })[]>;
 
   // ============================================================================
   // INVITATION OPERATIONS
@@ -594,6 +595,29 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     return offer || null;
+  }
+
+  async getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile })[]> {
+    const results = await db
+      .select({
+        offer: offers,
+        tender: tenders,
+        company: companies,
+        profile: companyProfiles
+      })
+      .from(offers)
+      .innerJoin(tenders, eq(offers.tenderId, tenders.id))
+      .innerJoin(companies, eq(offers.companyId, companies.id))
+      .leftJoin(companyProfiles, eq(offers.companyId, companyProfiles.companyId))
+      .where(eq(tenders.companyId, companyId))
+      .orderBy(desc(offers.submittedAt));
+
+    return results.map(r => ({
+      ...r.offer,
+      tender: r.tender,
+      company: r.company,
+      profile: r.profile || undefined
+    }));
   }
 
   // ============================================================================

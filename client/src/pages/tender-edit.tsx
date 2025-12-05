@@ -4,17 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SmartInput, SmartTextarea } from "@/components/ui/smart-input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Send } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useEffect } from "react";
 import type { Tender } from "@shared/schema";
-import { getConstraints } from "@/lib/form-validation";
 
 const editTenderSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -98,8 +98,39 @@ export default function TenderEdit() {
     },
   });
 
+  const publishTenderMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('PATCH', `/api/tenders/${id}/status`, { status: 'published' });
+      if (!response.ok) {
+        const error = await response.json();
+        throw error;
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders', id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
+      toast({
+        title: "Published!",
+        description: "Tender is now live and accepting proposals",
+      });
+      setLocation(`/tenders/${id}`);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to publish tender",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: EditTenderForm) => {
     updateTenderMutation.mutate(data);
+  };
+
+  const handlePublish = () => {
+    publishTenderMutation.mutate();
   };
 
   const isOwner = tender?.companyId === activeCompany?.id;
@@ -189,11 +220,8 @@ export default function TenderEdit() {
                     <FormItem>
                       <FormLabel>Tender Title *</FormLabel>
                       <FormControl>
-                        <SmartInput 
+                        <Input 
                           placeholder="e.g., Website Development for E-commerce Platform" 
-                          error={form.formState.errors.title}
-                          isDirty={form.formState.dirtyFields.title}
-                          constraints={getConstraints('title', field.value)}
                           data-testid="input-title"
                           {...field} 
                         />
@@ -210,12 +238,10 @@ export default function TenderEdit() {
                     <FormItem>
                       <FormLabel>Description *</FormLabel>
                       <FormControl>
-                        <SmartTextarea 
+                        <Textarea 
                           rows={4}
                           maxLength={1000}
                           placeholder="Provide detailed requirements, specifications, and expectations..." 
-                          error={form.formState.errors.description}
-                          isDirty={form.formState.dirtyFields.description}
                           data-testid="input-description"
                           {...field} 
                         />
@@ -233,11 +259,8 @@ export default function TenderEdit() {
                       <FormItem>
                         <FormLabel>Submission Deadline *</FormLabel>
                         <FormControl>
-                          <SmartInput 
+                          <Input 
                             type="datetime-local"
-                            error={form.formState.errors.deadline}
-                            isDirty={form.formState.dirtyFields.deadline}
-                            constraints={getConstraints('deadline', field.value)}
                             data-testid="input-deadline"
                             {...field} 
                           />
@@ -272,34 +295,59 @@ export default function TenderEdit() {
                   />
                 </div>
 
-                <div className="flex gap-4 pt-4 border-t">
+                <div className="flex flex-col gap-4 pt-4 border-t">
+                  <div className="flex gap-4">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setLocation(`/tenders/${id}`)}
+                      className="flex-1"
+                      data-testid="button-cancel"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit"
+                      className="flex-1"
+                      disabled={updateTenderMutation.isPending}
+                      data-testid="button-save"
+                    >
+                      {updateTenderMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Draft
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
                   <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setLocation(`/tenders/${id}`)}
-                    className="flex-1"
-                    data-testid="button-cancel"
+                    type="button"
+                    onClick={handlePublish}
+                    className="w-full bg-success-600 hover:bg-success-700 text-white"
+                    disabled={publishTenderMutation.isPending || !form.formState.isValid}
+                    data-testid="button-publish"
                   >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit"
-                    className="flex-1 bg-primary-600 hover:bg-primary-700"
-                    disabled={updateTenderMutation.isPending}
-                    data-testid="button-save"
-                  >
-                    {updateTenderMutation.isPending ? (
+                    {publishTenderMutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Saving...
+                        Publishing...
                       </>
                     ) : (
                       <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Changes
+                        <Send className="h-4 w-4 mr-2" />
+                        Publish Tender
                       </>
                     )}
                   </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Publishing will make this tender visible and open for proposals
+                  </p>
                 </div>
               </form>
             </Form>

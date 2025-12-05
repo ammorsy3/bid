@@ -10,7 +10,7 @@ export interface Draft<T> {
   metadata: DraftMetadata;
 }
 
-const AUTOSAVE_DELAY = 3000; // 3 seconds
+const AUTOSAVE_DELAY = 1500; // 1.5 seconds for faster feedback
 
 export class DraftStorage {
   private static prefix = 'draft_';

@@ -103,12 +103,12 @@ export default function InvitationSignup() {
                   Get Started
                 </h3>
                 <div className="flex gap-4 justify-center">
-                  <Link href={`/login?redirect=/invite/${id}`}>
+                  <Link href={`/login?redirect=/tenders/${id}`}>
                     <Button variant="outline" className="min-w-24" data-testid="button-login">
                       Login
                     </Button>
                   </Link>
-                  <Link href={`/register?redirect=/invite/${id}`}>
+                  <Link href={`/register?redirect=/tenders/${id}`}>
                     <Button className="min-w-40 bg-blue-500 hover:bg-blue-600" data-testid="button-create-account">
                       Create a Bid Account
                     </Button>
@@ -199,12 +199,12 @@ export default function InvitationSignup() {
                   To submit an offer for this tender, you need to sign in or create a Bid account.
                 </p>
                 <div className="flex gap-4 justify-center">
-                  <Link href={`/login?redirect=/invite/${id}`}>
+                  <Link href={`/login?redirect=/tenders/${id}`}>
                     <Button variant="outline" className="min-w-32" data-testid="button-login">
                       Login
                     </Button>
                   </Link>
-                  <Link href={`/register?redirect=/invite/${id}`}>
+                  <Link href={`/register?redirect=/tenders/${id}`}>
                     <Button className="min-w-48 bg-blue-500 hover:bg-blue-600" data-testid="button-create-account">
                       Create a Bid Account
                     </Button>

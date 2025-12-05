@@ -37,14 +37,22 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      // Priority: invitation token > custom redirect > activeCompany check
-      if (invitationToken) {
-        setLocation(`/invite/${invitationToken}`);
-      } else if (redirectUrl) {
-        setLocation(decodeURIComponent(redirectUrl));
-      } else if (activeCompany) {
-        setLocation("/dashboard");
+      // If user has a company, go to redirect or dashboard
+      if (activeCompany) {
+        if (invitationToken) {
+          setLocation(`/invite/${invitationToken}`);
+        } else if (redirectUrl) {
+          setLocation(decodeURIComponent(redirectUrl));
+        } else {
+          setLocation("/dashboard");
+        }
       } else {
+        // User needs to create a company - store redirect for after onboarding
+        if (redirectUrl) {
+          localStorage.setItem('postOnboardingRedirect', decodeURIComponent(redirectUrl));
+        } else if (invitationToken) {
+          localStorage.setItem('postOnboardingRedirect', `/invite/${invitationToken}`);
+        }
         setLocation("/company-onboarding");
       }
     }

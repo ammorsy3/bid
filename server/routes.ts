@@ -733,9 +733,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Access denied" });
         }
 
-        // Only allow editing draft tenders
-        if (tender.status !== 'draft') {
-          return res.status(400).json({ message: "Can only edit draft tenders" });
+        // Only allow editing draft or published tenders (not closed/cancelled)
+        if (!['draft', 'published'].includes(tender.status)) {
+          return res.status(400).json({ message: "Cannot edit closed or cancelled tenders" });
         }
 
         const updates = createTenderSchema.partial().parse(req.body);
@@ -773,7 +773,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Validate status transitions
         const validTransitions: Record<string, string[]> = {
           'draft': ['published', 'cancelled'],
-          'published': ['closed', 'cancelled'],
+          'published': ['draft', 'closed', 'cancelled'],
           'closed': [],
           'cancelled': []
         };

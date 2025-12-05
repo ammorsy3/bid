@@ -127,7 +127,12 @@ export const tenders = pgTable("tenders", {
   currency: text("currency").default("USD"),
   
   duration: text("duration"),
+  projectTimeline: text("project_timeline"), // Timeline description (required for new tenders)
   status: text("status").notNull().default("draft"), // 'draft', 'published', 'closed', 'cancelled'
+  
+  // Advanced Options
+  voiceNoteUrl: text("voice_note_url"), // Recorded voice note about the project
+  videoUrl: text("video_url"), // Video link about the project
   
   // Invitation & Access
   invitationToken: varchar("invitation_token").notNull().unique(),

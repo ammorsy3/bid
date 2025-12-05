@@ -105,6 +105,7 @@ export default function Dashboard() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
+  const [selectedProposal, setSelectedProposal] = useState<IncomingOffer | null>(null);
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
@@ -842,7 +843,7 @@ export default function Dashboard() {
                                 <Button 
                                   variant="outline" 
                                   size="sm"
-                                  onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
+                                  onClick={() => setSelectedProposal(offer)}
                                   data-testid={`button-view-offer-${offer.id}`}
                                 >
                                   <Eye className="h-4 w-4 mr-1" />
@@ -1176,6 +1177,98 @@ export default function Dashboard() {
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)} 
       />
+
+      {/* Proposal Details Modal */}
+      <Dialog open={!!selectedProposal} onOpenChange={() => setSelectedProposal(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              {selectedProposal?.profile?.displayName || selectedProposal?.company.name}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedProposal?.company.category || 'No category'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedProposal && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Company Name</h4>
+                  <p className="text-sm">{selectedProposal.company.name}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Category</h4>
+                  <p className="text-sm">{selectedProposal.company.category || 'Not specified'}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Verification Status</h4>
+                  <Badge variant={selectedProposal.company.verificationStatus === 'verified' ? 'default' : 'secondary'}>
+                    {selectedProposal.company.verificationStatus === 'verified' ? 'Verified' : 'Under Review'}
+                  </Badge>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">For Tender</h4>
+                  <p className="text-sm font-medium">{selectedProposal.tender.title}</p>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">Proposal Details</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Submitted</span>
+                    <span>{new Date(selectedProposal.submittedAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}</span>
+                  </div>
+                  {selectedProposal.notes && (
+                    <div>
+                      <span className="text-sm text-muted-foreground">Notes:</span>
+                      <p className="text-sm mt-1">{selectedProposal.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                {selectedProposal.technicalFileUrl && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => viewAuthenticatedFile(selectedProposal.technicalFileUrl!)}
+                    data-testid="button-modal-tech-file"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Technical Proposal
+                  </Button>
+                )}
+                {selectedProposal.financialFileUrl && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => viewAuthenticatedFile(selectedProposal.financialFileUrl!)}
+                    data-testid="button-modal-fin-file"
+                  >
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Financial Proposal
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

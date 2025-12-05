@@ -70,6 +70,34 @@ interface MyOffer {
   };
 }
 
+interface IncomingOffer {
+  id: string;
+  tenderId: string;
+  companyId: string;
+  technicalFileUrl: string | null;
+  financialFileUrl: string | null;
+  notes: string | null;
+  submittedAt: string;
+  tender: {
+    id: string;
+    title: string;
+    description: string | null;
+    deadline: string;
+    budget: string | null;
+    status: string;
+  };
+  company: {
+    id: string;
+    name: string;
+    category: string | null;
+    verificationStatus: string;
+  };
+  profile?: {
+    displayName: string | null;
+    logoUrl: string | null;
+  };
+}
+
 export default function Dashboard() {
   const { user, activeCompany, companies, logout } = useAuthStore();
   const [, setLocation] = useLocation();
@@ -142,6 +170,18 @@ export default function Dashboard() {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
       if (!response.ok) throw new Error("Failed to fetch offers");
+      return response.json();
+    }
+  });
+
+  // Fetch incoming offers on our tenders
+  const { data: incomingOffers = [], isLoading: loadingIncomingOffers } = useQuery<IncomingOffer[]>({
+    queryKey: ['/api/my-tenders/offers'],
+    queryFn: async () => {
+      const response = await fetch('/api/my-tenders/offers', {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (!response.ok) throw new Error("Failed to fetch incoming offers");
       return response.json();
     }
   });
@@ -613,30 +653,42 @@ export default function Dashboard() {
           )}
 
           {/* Proposals Tab */}
-          <TabsContent value="proposals">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Send className="h-5 w-5" />
-                  My Proposals ({myOffers.length})
-                </CardTitle>
-                <CardDescription>
-                  View proposals you have submitted to tenders
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+          <TabsContent value="proposals" className="space-y-6">
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold" data-testid="text-proposals-title">Proposals</h2>
+              <p className="text-muted-foreground" data-testid="text-proposals-description">
+                Manage submitted and received proposals
+              </p>
+            </div>
+
+            <Tabs defaultValue="submitted" className="space-y-4">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="submitted" className="gap-2" data-testid="tab-submitted-proposals">
+                  <Send className="h-4 w-4" />
+                  Submitted ({myOffers.length})
+                </TabsTrigger>
+                <TabsTrigger value="received" className="gap-2" data-testid="tab-received-proposals">
+                  <Inbox className="h-4 w-4" />
+                  Received ({incomingOffers.length})
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Submitted Proposals Sub-Tab */}
+              <TabsContent value="submitted" className="space-y-4">
                 {loadingMyOffers ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                   </div>
                 ) : myOffers.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Send className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                    <p className="text-muted-foreground">You haven't submitted any proposals yet</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Browse published tenders to submit your proposals
-                    </p>
-                  </div>
+                  <Card>
+                    <CardContent className="flex flex-col items-center justify-center py-12">
+                      <Send className="h-12 w-12 text-muted-foreground mb-3" />
+                      <p className="text-muted-foreground">You haven't submitted any proposals yet</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Browse published tenders to submit your proposals
+                      </p>
+                    </CardContent>
+                  </Card>
                 ) : (
                   <div className="space-y-4">
                     {myOffers.map((offer) => {
@@ -713,8 +765,109 @@ export default function Dashboard() {
                     })}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </TabsContent>
+
+              {/* Received Proposals Sub-Tab */}
+              <TabsContent value="received" className="space-y-4">
+                {loadingIncomingOffers ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                ) : incomingOffers.length === 0 ? (
+                  <Card>
+                    <CardContent className="flex flex-col items-center justify-center py-12">
+                      <Inbox className="h-12 w-12 text-muted-foreground mb-3" />
+                      <p className="text-muted-foreground">No proposals received yet</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Proposals submitted to your tenders will appear here
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {incomingOffers.map((offer) => {
+                      const isExpired = new Date(offer.tender.deadline) < new Date();
+                      const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                      
+                      return (
+                        <Card key={offer.id} className="border" data-testid={`card-incoming-offer-${offer.id}`}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                                  <h4 className="font-medium">
+                                    {offer.profile?.displayName || offer.company.name}
+                                  </h4>
+                                  {offer.company.verificationStatus === 'verified' && (
+                                    <Badge variant="secondary" className="text-xs">Verified</Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  For: <span 
+                                    className="cursor-pointer hover:text-primary font-medium"
+                                    onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
+                                  >
+                                    {offer.tender.title}
+                                  </span>
+                                </p>
+                                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    Received {new Date(offer.submittedAt).toLocaleDateString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      year: 'numeric'
+                                    })}
+                                  </span>
+                                  <span className={`flex items-center gap-1 ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : ''}`}>
+                                    <Clock className="h-3 w-3" />
+                                    {isExpired ? 'Deadline passed' : `${daysRemaining} days left`}
+                                  </span>
+                                  {offer.company.category && (
+                                    <span className="text-muted-foreground">
+                                      {offer.company.category}
+                                    </span>
+                                  )}
+                                </div>
+                                {offer.notes && (
+                                  <p className="text-sm mt-2 text-muted-foreground italic">"{offer.notes}"</p>
+                                )}
+                              </div>
+                              <div className="flex gap-2 ml-4">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
+                                  data-testid={`button-view-offer-${offer.id}`}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
+                                </Button>
+                                {offer.technicalFileUrl && (
+                                  <Button variant="outline" size="sm" asChild>
+                                    <a href={offer.technicalFileUrl} target="_blank" rel="noopener noreferrer" title="Technical Proposal">
+                                      <FileText className="h-4 w-4" />
+                                    </a>
+                                  </Button>
+                                )}
+                                {offer.financialFileUrl && (
+                                  <Button variant="outline" size="sm" asChild>
+                                    <a href={offer.financialFileUrl} target="_blank" rel="noopener noreferrer" title="Financial Proposal">
+                                      <FileText className="h-4 w-4" />
+                                    </a>
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           {/* Vendors Base Tab */}

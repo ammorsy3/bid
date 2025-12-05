@@ -10,7 +10,7 @@ import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { ArrowLeft, Loader2, Save, Send } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Send, RotateCcw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect } from "react";
@@ -125,6 +125,32 @@ export default function TenderEdit() {
     },
   });
 
+  const revertToDraftMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('PATCH', `/api/tenders/${id}/status`, { status: 'draft' });
+      if (!response.ok) {
+        const error = await response.json();
+        throw error;
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders', id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
+      toast({
+        title: "Reverted to Draft",
+        description: "Tender is now in draft mode and no longer accepting proposals",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to revert tender to draft",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: EditTenderForm) => {
     updateTenderMutation.mutate(data);
   };
@@ -133,8 +159,14 @@ export default function TenderEdit() {
     publishTenderMutation.mutate();
   };
 
+  const handleRevertToDraft = () => {
+    revertToDraftMutation.mutate();
+  };
+
   const isOwner = tender?.companyId === activeCompany?.id;
-  const canEdit = isOwner && tender?.status === 'draft';
+  const canEdit = isOwner && ['draft', 'published'].includes(tender?.status || '');
+  const isDraft = tender?.status === 'draft';
+  const isPublished = tender?.status === 'published';
 
   if (isLoading) {
     return (
@@ -174,7 +206,7 @@ export default function TenderEdit() {
               <p className="text-muted-foreground">
                 {!isOwner 
                   ? "You don't have permission to edit this tender" 
-                  : "Only draft tenders can be edited"}
+                  : "Closed or cancelled tenders cannot be edited"}
               </p>
               <Button
                 variant="outline"
@@ -207,7 +239,8 @@ export default function TenderEdit() {
           <CardHeader>
             <CardTitle>Edit Tender</CardTitle>
             <CardDescription>
-              Update the details of your tender. Only draft tenders can be edited.
+              Update the details of your tender.
+              {isPublished && " This tender is currently published and accepting proposals."}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -320,34 +353,66 @@ export default function TenderEdit() {
                       ) : (
                         <>
                           <Save className="h-4 w-4 mr-2" />
-                          Save Draft
+                          Save Changes
                         </>
                       )}
                     </Button>
                   </div>
                   
-                  <Button 
-                    type="button"
-                    onClick={handlePublish}
-                    className="w-full bg-success-600 hover:bg-success-700 text-white"
-                    disabled={publishTenderMutation.isPending || !form.formState.isValid}
-                    data-testid="button-publish"
-                  >
-                    {publishTenderMutation.isPending ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Publishing...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4 mr-2" />
-                        Publish Tender
-                      </>
-                    )}
-                  </Button>
-                  <p className="text-xs text-muted-foreground text-center">
-                    Publishing will make this tender visible and open for proposals
-                  </p>
+                  {isDraft && (
+                    <>
+                      <Button 
+                        type="button"
+                        onClick={handlePublish}
+                        className="w-full bg-success-600 hover:bg-success-700 text-white"
+                        disabled={publishTenderMutation.isPending || !form.formState.isValid}
+                        data-testid="button-publish"
+                      >
+                        {publishTenderMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Publishing...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4 mr-2" />
+                            Publish Tender
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Publishing will make this tender visible and open for proposals
+                      </p>
+                    </>
+                  )}
+
+                  {isPublished && (
+                    <>
+                      <Button 
+                        type="button"
+                        onClick={handleRevertToDraft}
+                        variant="outline"
+                        className="w-full border-amber-500 text-amber-600 hover:bg-amber-50"
+                        disabled={revertToDraftMutation.isPending}
+                        data-testid="button-revert"
+                      >
+                        {revertToDraftMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Reverting...
+                          </>
+                        ) : (
+                          <>
+                            <RotateCcw className="h-4 w-4 mr-2" />
+                            Revert to Draft
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Reverting will unpublish this tender and stop accepting new proposals
+                      </p>
+                    </>
+                  )}
                 </div>
               </form>
             </Form>

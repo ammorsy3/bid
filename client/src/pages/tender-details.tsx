@@ -93,8 +93,8 @@ export default function TenderDetails() {
   const deadline = tender ? new Date(tender.deadline) : null;
   const isExpired = deadline ? deadline.getTime() < Date.now() : true;
   const hasSubmittedOffer = !!myOffer;
-  const companyVerified = activeCompany?.verificationStatus === 'verified';
-  const canSubmitOffer = !isOwner && isTenderOpen && !isExpired && !hasSubmittedOffer && companyVerified;
+  const companyCanSubmit = activeCompany?.verificationStatus === 'verified' || activeCompany?.verificationStatus === 'under_review';
+  const canSubmitOffer = !isOwner && isTenderOpen && !isExpired && !hasSubmittedOffer && companyCanSubmit;
 
   const updateStatus = useMutation({
     mutationFn: async (status: string) => {
@@ -340,15 +340,13 @@ export default function TenderDetails() {
                         Your offer was submitted on {myOffer?.submittedAt ? formatDate(myOffer.submittedAt) : 'N/A'}
                       </p>
                     </div>
-                  ) : !companyVerified ? (
+                  ) : !companyCanSubmit ? (
                     <div className="space-y-3">
                       <Alert className="bg-yellow-50 border-yellow-200">
                         <AlertCircle className="h-4 w-4 text-yellow-600" />
                         <AlertDescription className="text-yellow-800">
-                          Your company must be verified to submit offers. 
-                          {activeCompany?.verificationStatus === 'under_review' 
-                            ? ' Your verification is currently under review.' 
-                            : ' Please complete your company profile to request verification.'}
+                          Your company must complete its profile and submit for verification to submit offers.
+                          Please complete your company profile to request verification.
                         </AlertDescription>
                       </Alert>
                       <Button

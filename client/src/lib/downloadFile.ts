@@ -39,14 +39,20 @@ export async function viewAuthenticatedFile(fileUrl: string) {
       throw new Error("Authentication required");
     }
 
+    console.log("Fetching file:", fileUrl);
+    
     const response = await fetch(fileUrl, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
+    console.log("Response status:", response.status, response.statusText);
+
     if (!response.ok) {
-      throw new Error("Failed to fetch file");
+      const errorText = await response.text();
+      console.error("Error response:", errorText);
+      throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
     }
 
     const blob = await response.blob();

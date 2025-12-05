@@ -1224,14 +1224,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve protected objects with ACL check
   app.get("/objects/:objectPath(*)", authenticateToken, async (req: AuthRequest, res) => {
     const userId = req.auth!.userId;
+    const activeCompanyId = req.auth!.activeCompanyId;
     const objectStorageService = new ObjectStorageService();
     try {
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-      const canAccess = await objectStorageService.canAccessObjectEntity({
+      let canAccess = await objectStorageService.canAccessObjectEntity({
         objectFile,
         userId: userId,
         requestedPermission: ObjectPermission.READ,
       });
+      
+      // If standard ACL check fails, check if user's company owns a tender 
+      // that has a proposal with this file
+      if (!canAccess && activeCompanyId) {
+        const filePath = req.path;
+        const offerWithFile = await storage.getOfferByFileUrl(filePath);
+        if (offerWithFile) {
+          const tender = await storage.getTender(offerWithFile.tenderId);
+          if (tender && tender.companyId === activeCompanyId) {
+            canAccess = true;
+          }
+        }
+      }
+      
       if (!canAccess) {
         return res.sendStatus(403);
       }

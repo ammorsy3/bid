@@ -100,6 +100,7 @@ export interface IStorage {
   getOffersByTender(tenderId: string): Promise<(Offer & { company: Company; profile?: CompanyProfile })[]>;
   getOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender })[]>;
   getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null>;
+  getOfferByFileUrl(fileUrl: string): Promise<Offer | null>;
   getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile })[]>;
 
   // ============================================================================
@@ -592,6 +593,21 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(offers)
       .where(and(eq(offers.tenderId, tenderId), eq(offers.companyId, companyId)))
+      .limit(1);
+
+    return offer || null;
+  }
+
+  async getOfferByFileUrl(fileUrl: string): Promise<Offer | null> {
+    const [offer] = await db
+      .select()
+      .from(offers)
+      .where(
+        or(
+          eq(offers.technicalFileUrl, fileUrl),
+          eq(offers.financialFileUrl, fileUrl)
+        )
+      )
       .limit(1);
 
     return offer || null;

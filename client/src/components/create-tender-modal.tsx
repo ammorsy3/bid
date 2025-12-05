@@ -13,7 +13,7 @@ import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { Copy, Check, Mail, ExternalLink, Sparkles, Info } from "lucide-react";
+import { Copy, Check, Mail, ExternalLink, Sparkles, Info, ChevronDown, ChevronUp, Mic, Video } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import type { Tender } from "@shared/schema";
@@ -32,6 +32,9 @@ const createTenderSchema = z.object({
   }, "Must be a future date"),
   budget: z.string().optional(),
   duration: z.string().optional(),
+  projectTimeline: z.string().min(3, "Project timeline is required"),
+  voiceNoteUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  videoUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 });
 
 type CreateTenderForm = z.infer<typeof createTenderSchema>;
@@ -42,7 +45,7 @@ interface CreateTenderModalProps {
 }
 
 const FORM_ID = 'create-tender';
-const REQUIRED_FIELDS: (keyof CreateTenderForm)[] = ['title', 'description', 'deadline'];
+const REQUIRED_FIELDS: (keyof CreateTenderForm)[] = ['title', 'description', 'deadline', 'projectTimeline'];
 
 export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModalProps) {
   const { user } = useAuthStore();
@@ -54,6 +57,8 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
   const [showDraftPrompt, setShowDraftPrompt] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
 
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   const form = useForm<CreateTenderForm>({
     resolver: zodResolver(createTenderSchema),
     mode: 'onChange',
@@ -63,6 +68,9 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
       deadline: "",
       budget: "",
       duration: "",
+      projectTimeline: "",
+      voiceNoteUrl: "",
+      videoUrl: "",
     },
   });
 
@@ -357,6 +365,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 { label: 'Tender title', completed: !!formValues.title && !form.formState.errors.title },
                 { label: 'Description', completed: !!formValues.description && !form.formState.errors.description },
                 { label: 'Deadline', completed: !!formValues.deadline && !form.formState.errors.deadline },
+                { label: 'Timeline', completed: !!formValues.projectTimeline && !form.formState.errors.projectTimeline },
               ]}
             />
 
@@ -453,6 +462,95 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 )}
               />
             </div>
+
+            {/* Project Timeline */}
+            <FormField
+              control={form.control}
+              name="projectTimeline"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Project Timeline *</FormLabel>
+                  <FormControl>
+                    <SmartInput 
+                      placeholder="e.g., 3 months, Q1 2025, or 6-8 weeks" 
+                      error={form.formState.errors.projectTimeline}
+                      isDirty={form.formState.dirtyFields.projectTimeline}
+                      data-testid="input-project-timeline"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Advanced Options Toggle */}
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="w-full justify-between text-neutral-600 hover:text-neutral-900"
+              data-testid="button-toggle-advanced"
+            >
+              <span className="flex items-center gap-2">
+                {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                View Advanced Options
+              </span>
+              <span className="text-xs text-neutral-400">Optional</span>
+            </Button>
+
+            {/* Advanced Options Section */}
+            {showAdvanced && (
+              <div className="space-y-4 p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
+                <FormField
+                  control={form.control}
+                  name="voiceNoteUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-primary-600" />
+                        Voice Note URL
+                      </FormLabel>
+                      <FormControl>
+                        <SmartInput 
+                          placeholder="https://example.com/voice-note.mp3" 
+                          error={form.formState.errors.voiceNoteUrl}
+                          isDirty={form.formState.dirtyFields.voiceNoteUrl}
+                          data-testid="input-voice-note"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <p className="text-xs text-neutral-500">Add a link to a recorded voice note about your project</p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="videoUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Video className="h-4 w-4 text-primary-600" />
+                        Video Link
+                      </FormLabel>
+                      <FormControl>
+                        <SmartInput 
+                          placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..." 
+                          error={form.formState.errors.videoUrl}
+                          isDirty={form.formState.dirtyFields.videoUrl}
+                          data-testid="input-video-url"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <p className="text-xs text-neutral-500">Add a link to a video explaining your project</p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
               <h4 className="font-medium text-neutral-900 mb-2">Invitation System</h4>

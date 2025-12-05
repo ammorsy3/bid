@@ -57,9 +57,9 @@ interface DraftIndicatorProps {
 export function DraftIndicator({ lastSaved, isSaving, onLoadDraft, hasDraft }: DraftIndicatorProps) {
   if (isSaving) {
     return (
-      <div className="flex items-center gap-2 text-sm text-neutral-600">
-        <div className="h-2 w-2 bg-primary-600 rounded-full animate-pulse" />
-        <span>Saving draft...</span>
+      <div className="flex items-center gap-2 text-sm text-amber-600">
+        <div className="h-2 w-2 bg-amber-500 rounded-full animate-pulse" />
+        <span>Unsaved changes</span>
       </div>
     );
   }
@@ -69,7 +69,7 @@ export function DraftIndicator({ lastSaved, isSaving, onLoadDraft, hasDraft }: D
       <div className="flex items-center gap-2 text-sm text-success-600">
         <CheckCircle2 className="h-4 w-4" />
         <span>
-          Draft saved at {lastSaved.toLocaleTimeString('en-US', {
+          Auto-saved {lastSaved.toLocaleTimeString('en-US', {
             hour: 'numeric',
             minute: '2-digit',
           })}

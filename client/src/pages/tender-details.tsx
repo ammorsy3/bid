@@ -69,7 +69,7 @@ export default function TenderDetails() {
       if (!response.ok) throw new Error("Failed to fetch offers");
       return response.json();
     },
-    enabled: !!user && !!id && canManage,
+    enabled: !!user && !!id && !!canManage,
   });
 
   // Check if current company has already submitted an offer
@@ -156,8 +156,9 @@ export default function TenderDetails() {
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', { 
+  const formatDate = (dateStr: string | Date) => {
+    const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+    return date.toLocaleDateString('en-US', { 
       month: 'long', 
       day: 'numeric', 
       year: 'numeric' 
@@ -611,10 +612,8 @@ export default function TenderDetails() {
           tender={{
             id: tender.id,
             title: tender.title,
-            description: tender.description || '',
             deadline: tender.deadline,
-            budget: tender.budget,
-            duration: tender.duration
+            budget: tender.budget || undefined
           }}
           requester={{
             name: 'Company',

@@ -79,6 +79,48 @@ export default function InvitationSignup() {
   };
 
   const companyName = tender.profile?.displayName || tender.company.name;
+  const isPublished = tender.status === 'published';
+
+  // If tender is not published, show a different view
+  if (!isPublished) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-6">
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-2xl text-center" data-testid="text-not-published-title">
+                This Tender is still not published
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <p className="text-center text-muted-foreground text-sm">
+                The tender owner has not yet published this tender. Please check back later.
+              </p>
+              
+              {/* Get Started Section */}
+              <div className="pt-4 border-t">
+                <h3 className="text-lg font-semibold text-center mb-4" data-testid="text-get-started-title">
+                  Get Started
+                </h3>
+                <div className="flex gap-4 justify-center">
+                  <Link href={`/login?redirect=/invite/${id}`}>
+                    <Button variant="outline" className="min-w-24" data-testid="button-login">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link href={`/register?redirect=/invite/${id}`}>
+                    <Button className="min-w-40 bg-blue-500 hover:bg-blue-600" data-testid="button-create-account">
+                      Create a Bid Account
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -158,8 +200,8 @@ export default function InvitationSignup() {
                 </p>
                 <div className="flex gap-4 justify-center">
                   <Link href={`/login?redirect=/invite/${id}`}>
-                    <Button variant="outline" className="min-w-32" data-testid="button-sign-in">
-                      Sign In
+                    <Button variant="outline" className="min-w-32" data-testid="button-login">
+                      Login
                     </Button>
                   </Link>
                   <Link href={`/register?redirect=/invite/${id}`}>

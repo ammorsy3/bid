@@ -5,13 +5,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, Download } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Tender } from "@shared/schema";
 import SubmitOfferModal from "@/components/submit-offer-modal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { viewAuthenticatedFile } from "@/lib/downloadFile";
 
 interface TenderWithCounts extends Tender {
   offersCount: number;
@@ -498,19 +499,25 @@ export default function TenderDetails() {
                                   View Profile
                                 </Button>
                                 {offer.technicalFileUrl && (
-                                  <Button variant="outline" size="sm" asChild>
-                                    <a href={offer.technicalFileUrl} target="_blank" rel="noopener noreferrer">
-                                      <FileText className="h-4 w-4 mr-1" />
-                                      Technical
-                                    </a>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
+                                    data-testid={`button-tech-file-${offer.id}`}
+                                  >
+                                    <FileText className="h-4 w-4 mr-1" />
+                                    Technical
                                   </Button>
                                 )}
                                 {offer.financialFileUrl && (
-                                  <Button variant="outline" size="sm" asChild>
-                                    <a href={offer.financialFileUrl} target="_blank" rel="noopener noreferrer">
-                                      <DollarSign className="h-4 w-4 mr-1" />
-                                      Financial
-                                    </a>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
+                                    data-testid={`button-fin-file-${offer.id}`}
+                                  >
+                                    <DollarSign className="h-4 w-4 mr-1" />
+                                    Financial
                                   </Button>
                                 )}
                               </div>
@@ -699,19 +706,27 @@ export default function TenderDetails() {
 
               <div className="flex gap-2 pt-2">
                 {selectedOffer.technicalFileUrl && (
-                  <Button variant="outline" size="sm" className="flex-1" asChild>
-                    <a href={selectedOffer.technicalFileUrl} target="_blank" rel="noopener noreferrer">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Technical Proposal
-                    </a>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => viewAuthenticatedFile(selectedOffer.technicalFileUrl!)}
+                    data-testid="button-modal-tech-file"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Technical Proposal
                   </Button>
                 )}
                 {selectedOffer.financialFileUrl && (
-                  <Button variant="outline" size="sm" className="flex-1" asChild>
-                    <a href={selectedOffer.financialFileUrl} target="_blank" rel="noopener noreferrer">
-                      <DollarSign className="h-4 w-4 mr-2" />
-                      Financial Proposal
-                    </a>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => viewAuthenticatedFile(selectedOffer.financialFileUrl!)}
+                    data-testid="button-modal-fin-file"
+                  >
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Financial Proposal
                   </Button>
                 )}
               </div>

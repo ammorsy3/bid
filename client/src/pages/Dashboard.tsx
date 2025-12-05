@@ -546,7 +546,7 @@ export default function Dashboard() {
                                 </>
                               )}
                             </Button>
-                            {tender.status === 'draft' && (
+                            {['draft', 'published'].includes(tender.status) && (
                               <Button 
                                 variant="outline" 
                                 size="sm"

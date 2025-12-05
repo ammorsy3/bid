@@ -926,6 +926,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Get incoming offers on company's tenders
+  app.get("/api/my-tenders/offers",
+    authenticateToken,
+    requireCompanyContext,
+    async (req: AuthRequest, res) => {
+      try {
+        const offers = await storage.getIncomingOffersByCompany(req.auth!.activeCompanyId!);
+        res.json(offers);
+      } catch (error) {
+        console.error('Get incoming offers error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
   // ==========================================================================
   // VENDORS BASE ROUTES
   // ==========================================================================

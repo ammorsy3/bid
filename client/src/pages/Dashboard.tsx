@@ -52,6 +52,24 @@ interface TenderWithCounts {
   invitedCount: number;
 }
 
+interface MyOffer {
+  id: string;
+  tenderId: string;
+  companyId: string;
+  technicalFileUrl: string | null;
+  financialFileUrl: string | null;
+  notes: string | null;
+  submittedAt: string;
+  tender: {
+    id: string;
+    title: string;
+    description: string | null;
+    deadline: string;
+    budget: string | null;
+    status: string;
+  };
+}
+
 export default function Dashboard() {
   const { user, activeCompany, companies, logout } = useAuthStore();
   const [, setLocation] = useLocation();
@@ -114,6 +132,18 @@ export default function Dashboard() {
       return response.json();
     },
     enabled: canManage
+  });
+
+  // Fetch my submitted offers/proposals
+  const { data: myOffers = [], isLoading: loadingMyOffers } = useQuery<MyOffer[]>({
+    queryKey: ['/api/my-offers'],
+    queryFn: async () => {
+      const response = await fetch('/api/my-offers', {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (!response.ok) throw new Error("Failed to fetch offers");
+      return response.json();
+    }
   });
 
   // Filter tenders based on search and status
@@ -586,13 +616,103 @@ export default function Dashboard() {
           <TabsContent value="proposals">
             <Card>
               <CardHeader>
-                <CardTitle>Proposals</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Send className="h-5 w-5" />
+                  My Proposals ({myOffers.length})
+                </CardTitle>
                 <CardDescription>
-                  View and submit proposals to tenders
+                  View proposals you have submitted to tenders
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Proposal management coming soon...</p>
+                {loadingMyOffers ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                ) : myOffers.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Send className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground">You haven't submitted any proposals yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Browse published tenders to submit your proposals
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {myOffers.map((offer) => {
+                      const isExpired = new Date(offer.tender.deadline) < new Date();
+                      const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                      
+                      return (
+                        <Card key={offer.id} className="border" data-testid={`card-my-offer-${offer.id}`}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 
+                                    className="font-medium cursor-pointer hover:text-primary"
+                                    onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
+                                  >
+                                    {offer.tender.title}
+                                  </h4>
+                                  <Badge 
+                                    className={
+                                      offer.tender.status === 'published' 
+                                        ? 'bg-green-100 text-green-800' 
+                                        : offer.tender.status === 'closed'
+                                        ? 'bg-red-100 text-red-800'
+                                        : 'bg-gray-100 text-gray-800'
+                                    }
+                                  >
+                                    {offer.tender.status.charAt(0).toUpperCase() + offer.tender.status.slice(1)}
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground line-clamp-1">
+                                  {offer.tender.description || 'No description'}
+                                </p>
+                                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    Submitted {new Date(offer.submittedAt).toLocaleDateString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      year: 'numeric'
+                                    })}
+                                  </span>
+                                  <span className={`flex items-center gap-1 ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : ''}`}>
+                                    <Clock className="h-3 w-3" />
+                                    {isExpired ? 'Deadline passed' : `${daysRemaining} days left`}
+                                  </span>
+                                </div>
+                                {offer.notes && (
+                                  <p className="text-sm mt-2 text-muted-foreground italic">"{offer.notes}"</p>
+                                )}
+                              </div>
+                              <div className="flex gap-2 ml-4">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
+                                  data-testid={`button-view-tender-${offer.id}`}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
+                                </Button>
+                                {offer.technicalFileUrl && (
+                                  <Button variant="outline" size="sm" asChild>
+                                    <a href={offer.technicalFileUrl} target="_blank" rel="noopener noreferrer">
+                                      <FileText className="h-4 w-4" />
+                                    </a>
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

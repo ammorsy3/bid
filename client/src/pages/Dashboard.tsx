@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import CreateTenderModal from "@/components/create-tender-modal";
+import { viewAuthenticatedFile } from "@/lib/downloadFile";
 
 interface VendorProfile {
   id: string;
@@ -751,10 +752,13 @@ export default function Dashboard() {
                                   View
                                 </Button>
                                 {offer.technicalFileUrl && (
-                                  <Button variant="outline" size="sm" asChild>
-                                    <a href={offer.technicalFileUrl} target="_blank" rel="noopener noreferrer">
-                                      <FileText className="h-4 w-4" />
-                                    </a>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
+                                    title="Technical Proposal"
+                                  >
+                                    <FileText className="h-4 w-4" />
                                   </Button>
                                 )}
                               </div>
@@ -845,17 +849,23 @@ export default function Dashboard() {
                                   View
                                 </Button>
                                 {offer.technicalFileUrl && (
-                                  <Button variant="outline" size="sm" asChild>
-                                    <a href={offer.technicalFileUrl} target="_blank" rel="noopener noreferrer" title="Technical Proposal">
-                                      <FileText className="h-4 w-4" />
-                                    </a>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
+                                    title="Technical Proposal"
+                                  >
+                                    <FileText className="h-4 w-4" />
                                   </Button>
                                 )}
                                 {offer.financialFileUrl && (
-                                  <Button variant="outline" size="sm" asChild>
-                                    <a href={offer.financialFileUrl} target="_blank" rel="noopener noreferrer" title="Financial Proposal">
-                                      <FileText className="h-4 w-4" />
-                                    </a>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
+                                    title="Financial Proposal"
+                                  >
+                                    <DollarSign className="h-4 w-4" />
                                   </Button>
                                 )}
                               </div>

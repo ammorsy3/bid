@@ -834,10 +834,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Company not found" });
         }
 
-        // Check verification status
-        if (company.verificationStatus !== 'verified') {
+        // Check verification status - allow verified and under_review
+        if (company.verificationStatus !== 'verified' && company.verificationStatus !== 'under_review') {
           return res.status(403).json({ 
-            message: "Company must be verified to submit proposals",
+            message: "Company must complete profile and submit for verification to submit proposals",
             verificationStatus: company.verificationStatus
           });
         }

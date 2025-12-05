@@ -13,8 +13,9 @@ import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { Copy, Check, Mail, ExternalLink, Sparkles, Info, ChevronDown, ChevronUp, Mic, Video } from "lucide-react";
+import { Copy, Check, Mail, ExternalLink, Sparkles, Info, ChevronDown, ChevronUp, Video } from "lucide-react";
 import { useState, useEffect } from "react";
+import VoiceRecorder from "./voice-recorder";
 import { useLocation } from "wouter";
 import type { Tender } from "@shared/schema";
 import { useAutosave, DraftStorage } from "@/lib/autosave";
@@ -33,7 +34,7 @@ const createTenderSchema = z.object({
   budget: z.string().optional(),
   duration: z.string().optional(),
   projectTimeline: z.string().min(3, "Project timeline is required"),
-  voiceNoteUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  voiceNoteUrl: z.string().optional(),
   videoUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 });
 
@@ -501,54 +502,45 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
 
             {/* Advanced Options Section */}
             {showAdvanced && (
-              <div className="space-y-4 p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
-                <FormField
-                  control={form.control}
-                  name="voiceNoteUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Mic className="h-4 w-4 text-primary-600" />
-                        Voice Note URL
-                      </FormLabel>
-                      <FormControl>
-                        <SmartInput 
-                          placeholder="https://example.com/voice-note.mp3" 
-                          error={form.formState.errors.voiceNoteUrl}
-                          isDirty={form.formState.dirtyFields.voiceNoteUrl}
-                          data-testid="input-voice-note"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <p className="text-xs text-neutral-500">Add a link to a recorded voice note about your project</p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="space-y-6 p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
+                <div>
+                  <h4 className="font-medium text-neutral-900 mb-3">Voice Note</h4>
+                  <p className="text-sm text-neutral-600 mb-3">
+                    Record a voice message to explain your project in detail (max 5 minutes)
+                  </p>
+                  <VoiceRecorder
+                    onRecordingComplete={(url) => form.setValue('voiceNoteUrl', url)}
+                    onRecordingDeleted={() => form.setValue('voiceNoteUrl', '')}
+                    existingUrl={form.watch('voiceNoteUrl') || undefined}
+                    maxDurationSeconds={300}
+                  />
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="videoUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Video className="h-4 w-4 text-primary-600" />
-                        Video Link
-                      </FormLabel>
-                      <FormControl>
-                        <SmartInput 
-                          placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..." 
-                          error={form.formState.errors.videoUrl}
-                          isDirty={form.formState.dirtyFields.videoUrl}
-                          data-testid="input-video-url"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <p className="text-xs text-neutral-500">Add a link to a video explaining your project</p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="border-t pt-4">
+                  <FormField
+                    control={form.control}
+                    name="videoUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Video className="h-4 w-4 text-primary-600" />
+                          Video Link
+                        </FormLabel>
+                        <FormControl>
+                          <SmartInput 
+                            placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..." 
+                            error={form.formState.errors.videoUrl}
+                            isDirty={form.formState.dirtyFields.videoUrl}
+                            data-testid="input-video-url"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <p className="text-xs text-neutral-500">Add a link to a video explaining your project</p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             )}
 

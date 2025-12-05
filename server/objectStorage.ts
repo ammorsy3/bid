@@ -237,6 +237,55 @@ export class ObjectStorageService {
       requestedPermission: requestedPermission ?? ObjectPermission.READ,
     });
   }
+
+  // Upload a file buffer directly to object storage
+  async uploadFile({
+    buffer,
+    filename,
+    contentType,
+    aclPolicy,
+  }: {
+    buffer: Buffer;
+    filename: string;
+    contentType: string;
+    aclPolicy?: ObjectAclPolicy;
+  }): Promise<{ url: string; path: string }> {
+    const privateObjectDir = this.getPrivateObjectDir();
+    if (!privateObjectDir) {
+      throw new Error(
+        "PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' " +
+          "tool and set PRIVATE_OBJECT_DIR env var."
+      );
+    }
+
+    const objectId = randomUUID();
+    const extension = filename.split('.').pop() || '';
+    const objectName = extension ? `${objectId}.${extension}` : objectId;
+    const fullPath = `${privateObjectDir}/uploads/${objectName}`;
+
+    const { bucketName, objectName: finalObjectName } = parseObjectPath(fullPath);
+    const bucket = objectStorageClient.bucket(bucketName);
+    const file = bucket.file(finalObjectName);
+
+    // Upload the buffer
+    await file.save(buffer, {
+      contentType,
+      metadata: {
+        contentType,
+      },
+    });
+
+    // Set ACL policy if provided
+    if (aclPolicy) {
+      await setObjectAclPolicy(file, aclPolicy);
+    }
+
+    const normalizedPath = `/objects/uploads/${objectName}`;
+    return {
+      url: normalizedPath,
+      path: normalizedPath,
+    };
+  }
 }
 
 function parseObjectPath(path: string): {

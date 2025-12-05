@@ -170,13 +170,13 @@ export default function Dashboard() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'published':
-        return { className: 'bg-blue-100 text-blue-800', label: 'Published' };
+        return { className: 'bg-green-100 text-green-800', label: 'Published' };
       case 'draft':
         return { className: 'bg-gray-100 text-gray-800', label: 'Draft' };
       case 'closed':
-        return { className: 'bg-green-100 text-green-800', label: 'Closed' };
+        return { className: 'bg-red-100 text-red-800', label: 'Closed' };
       case 'cancelled':
-        return { className: 'bg-red-100 text-red-800', label: 'Cancelled' };
+        return { className: 'bg-orange-100 text-orange-800', label: 'Cancelled' };
       default:
         return { className: 'bg-gray-100 text-gray-800', label: status };
     }

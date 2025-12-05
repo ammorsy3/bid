@@ -509,6 +509,7 @@ export const insertOfferSchema = createInsertSchema(offers).omit({
 });
 
 export const createOfferSchema = insertOfferSchema.omit({
+  tenderId: true,
   companyId: true,
   createdBy: true,
   conditionalSubmission: true,

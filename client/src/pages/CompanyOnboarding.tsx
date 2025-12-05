@@ -10,6 +10,15 @@ import { useAuthStore } from "@/lib/auth";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 
+const getPostOnboardingRedirect = () => {
+  const redirect = localStorage.getItem('postOnboardingRedirect');
+  if (redirect) {
+    localStorage.removeItem('postOnboardingRedirect');
+    return redirect;
+  }
+  return '/dashboard';
+};
+
 export default function CompanyOnboarding() {
   const [, setLocation] = useLocation();
   const { user, token, activeCompany } = useAuthStore();
@@ -80,7 +89,7 @@ export default function CompanyOnboarding() {
 
         // Refresh auth to get updated company
         await useAuthStore.getState().checkAuth();
-        setLocation("/dashboard");
+        setLocation(getPostOnboardingRedirect());
       } else if (isEditingCompleted) {
         // Update company profile and company details (editing completed profile)
         const response = await apiRequest('PUT', `/api/companies/${activeCompany.id}/profile`, {
@@ -105,7 +114,7 @@ export default function CompanyOnboarding() {
 
         // Refresh auth to get updated company
         await useAuthStore.getState().checkAuth();
-        setLocation("/dashboard");
+        setLocation(getPostOnboardingRedirect());
       } else {
         // Create new company
         const response = await apiRequest('POST', '/api/companies', formData);
@@ -126,7 +135,7 @@ export default function CompanyOnboarding() {
           description: "Your company has been created and is pending verification."
         });
 
-        setLocation("/dashboard");
+        setLocation(getPostOnboardingRedirect());
       }
     } catch (error: any) {
       toast({

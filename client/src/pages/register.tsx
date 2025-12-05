@@ -41,14 +41,14 @@ export default function Register() {
 
   useEffect(() => {
     if (user) {
-      // Priority: invitation token > custom redirect > default company onboarding
-      if (invitationToken) {
-        setLocation(`/invite/${invitationToken}`);
-      } else if (redirectUrl) {
-        setLocation(decodeURIComponent(redirectUrl));
-      } else {
-        setLocation("/company-onboarding");
+      // Store redirect URL for after company onboarding
+      if (redirectUrl) {
+        localStorage.setItem('postOnboardingRedirect', decodeURIComponent(redirectUrl));
+      } else if (invitationToken) {
+        localStorage.setItem('postOnboardingRedirect', `/invite/${invitationToken}`);
       }
+      // Always go to company onboarding for new users
+      setLocation("/company-onboarding");
     }
   }, [user, setLocation, invitationToken, redirectUrl]);
 
@@ -59,14 +59,14 @@ export default function Register() {
         title: "Success!",
         description: "Account created successfully. Now let's set up your company!",
       });
-      // Priority: invitation token > custom redirect > default company onboarding
-      if (invitationToken) {
-        setLocation(`/invite/${invitationToken}`);
-      } else if (redirectUrl) {
-        setLocation(decodeURIComponent(redirectUrl));
-      } else {
-        setLocation("/company-onboarding");
+      // Store redirect URL for after company onboarding
+      if (redirectUrl) {
+        localStorage.setItem('postOnboardingRedirect', decodeURIComponent(redirectUrl));
+      } else if (invitationToken) {
+        localStorage.setItem('postOnboardingRedirect', `/invite/${invitationToken}`);
       }
+      // New users always go to company onboarding first
+      setLocation("/company-onboarding");
     } catch (error) {
       toast({
         title: "Error",

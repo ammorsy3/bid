@@ -10,6 +10,7 @@ import Register from "@/pages/register";
 import Dashboard from "@/pages/Dashboard";
 import CompanyOnboarding from "@/pages/CompanyOnboarding";
 import TenderDetails from "@/pages/tender-details";
+import TenderEdit from "@/pages/tender-edit";
 import TractionLink from "@/pages/TractionLink";
 import InvitationSignup from "@/pages/invitation-signup";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -92,6 +93,7 @@ function Router() {
       {/* Main dashboard (requires active company) */}
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/tenders/:id" component={TenderDetails} />
+      <Route path="/tenders/:id/edit" component={TenderEdit} />
       
       {/* Admin routes */}
       <Route path="/admin">

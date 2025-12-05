@@ -5,7 +5,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Tender } from "@shared/schema";
@@ -45,6 +46,7 @@ export default function TenderDetails() {
   const { toast } = useToast();
   const [copiedLink, setCopiedLink] = useState(false);
   const [isSubmitOfferModalOpen, setIsSubmitOfferModalOpen] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
 
   const canManage = activeCompany && ['owner', 'admin'].includes(activeCompany.role);
 
@@ -487,10 +489,20 @@ export default function TenderDetails() {
                                   <p className="text-sm mt-2">{offer.notes}</p>
                                 )}
                               </div>
-                              <div className="flex gap-2">
+                              <div className="flex flex-wrap gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => setSelectedOffer(offer)}
+                                  data-testid={`button-view-profile-${offer.id}`}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View Profile
+                                </Button>
                                 {offer.technicalFileUrl && (
                                   <Button variant="outline" size="sm" asChild>
                                     <a href={offer.technicalFileUrl} target="_blank" rel="noopener noreferrer">
+                                      <FileText className="h-4 w-4 mr-1" />
                                       Technical
                                     </a>
                                   </Button>
@@ -498,6 +510,7 @@ export default function TenderDetails() {
                                 {offer.financialFileUrl && (
                                   <Button variant="outline" size="sm" asChild>
                                     <a href={offer.financialFileUrl} target="_blank" rel="noopener noreferrer">
+                                      <DollarSign className="h-4 w-4 mr-1" />
                                       Financial
                                     </a>
                                   </Button>
@@ -621,6 +634,93 @@ export default function TenderDetails() {
           }}
         />
       )}
+
+      {/* View Company Profile Dialog */}
+      <Dialog open={!!selectedOffer} onOpenChange={(open) => !open && setSelectedOffer(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedOffer?.profile?.logoUrl && (
+                <img 
+                  src={selectedOffer.profile.logoUrl} 
+                  alt="" 
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              )}
+              {selectedOffer?.profile?.displayName || selectedOffer?.company.name}
+              {selectedOffer?.company.verificationStatus === 'verified' && (
+                <Badge variant="secondary" className="text-xs ml-2">Verified</Badge>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedOffer?.company.category || 'Company Profile'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedOffer && (
+            <div className="space-y-4">
+              {selectedOffer.profile?.bio && (
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">About</h4>
+                  <p className="text-sm">{selectedOffer.profile.bio}</p>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Company Name</h4>
+                  <p className="text-sm">{selectedOffer.company.name}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Category</h4>
+                  <p className="text-sm">{selectedOffer.company.category || 'Not specified'}</p>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">Proposal Details</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Submitted</span>
+                    <span>{new Date(selectedOffer.submittedAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}</span>
+                  </div>
+                  {selectedOffer.notes && (
+                    <div>
+                      <span className="text-sm text-muted-foreground">Notes:</span>
+                      <p className="text-sm mt-1">{selectedOffer.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                {selectedOffer.technicalFileUrl && (
+                  <Button variant="outline" size="sm" className="flex-1" asChild>
+                    <a href={selectedOffer.technicalFileUrl} target="_blank" rel="noopener noreferrer">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Technical Proposal
+                    </a>
+                  </Button>
+                )}
+                {selectedOffer.financialFileUrl && (
+                  <Button variant="outline" size="sm" className="flex-1" asChild>
+                    <a href={selectedOffer.financialFileUrl} target="_blank" rel="noopener noreferrer">
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      Financial Proposal
+                    </a>
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

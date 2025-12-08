@@ -61,6 +61,7 @@ interface MyOffer {
   financialFileUrl: string | null;
   notes: string | null;
   submittedAt: string;
+  status: 'pending' | 'accepted' | 'rejected';
   tender: {
     id: string;
     title: string;
@@ -722,7 +723,17 @@ export default function Dashboard() {
                       const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                       
                       return (
-                        <Card key={offer.id} className="border" data-testid={`card-my-offer-${offer.id}`}>
+                        <Card 
+                          key={offer.id} 
+                          className={`border ${
+                            offer.status === 'accepted' 
+                              ? 'border-green-300 bg-green-50 dark:bg-green-900/20' 
+                              : offer.status === 'rejected' 
+                                ? 'border-gray-300 bg-gray-50 dark:bg-gray-800/50 opacity-60' 
+                                : ''
+                          }`} 
+                          data-testid={`card-my-offer-${offer.id}`}
+                        >
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
@@ -744,6 +755,24 @@ export default function Dashboard() {
                                   >
                                     {offer.tender.status.charAt(0).toUpperCase() + offer.tender.status.slice(1)}
                                   </Badge>
+                                  {offer.status === 'accepted' && (
+                                    <Badge className="bg-green-100 text-green-800 text-xs">
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      Accepted
+                                    </Badge>
+                                  )}
+                                  {offer.status === 'rejected' && (
+                                    <Badge className="bg-gray-100 text-gray-600 text-xs">
+                                      <XCircle className="h-3 w-3 mr-1" />
+                                      Not Selected
+                                    </Badge>
+                                  )}
+                                  {offer.status === 'pending' && (
+                                    <Badge className="bg-yellow-100 text-yellow-800 text-xs">
+                                      <Clock className="h-3 w-3 mr-1" />
+                                      Pending Review
+                                    </Badge>
+                                  )}
                                 </div>
                                 <p className="text-sm text-muted-foreground line-clamp-1">
                                   {offer.tender.description || 'No description'}

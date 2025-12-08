@@ -730,31 +730,29 @@ export default function TenderDetails() {
 
             {/* Voice Note & Video - Shown to everyone */}
             {(tender.voiceNoteUrl || tender.videoUrl) && (
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  {tender.voiceNoteUrl && (
-                    <AudioPlayer src={tender.voiceNoteUrl} />
-                  )}
-                  {tender.videoUrl && (
-                    <div className="pt-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                        <Video className="h-4 w-4" />
-                        <span>Video Explanation</span>
-                      </div>
-                      <a 
-                        href={tender.videoUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-primary hover:underline"
-                        data-testid="link-video-sidebar"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Watch Video
-                      </a>
+              <div className="space-y-4">
+                {tender.voiceNoteUrl && (
+                  <AudioPlayer src={tender.voiceNoteUrl} />
+                )}
+                {tender.videoUrl && (
+                  <div className="pt-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                      <Video className="h-4 w-4" />
+                      <span>Video Explanation</span>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                    <a 
+                      href={tender.videoUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-primary hover:underline"
+                      data-testid="link-video-sidebar"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Watch Video
+                    </a>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Actions - Only visible to tender owner */}

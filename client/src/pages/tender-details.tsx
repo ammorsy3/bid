@@ -728,6 +728,41 @@ export default function TenderDetails() {
               </CardContent>
             </Card>
 
+            {/* Voice Note & Video - Shown to everyone */}
+            {(tender.voiceNoteUrl || tender.videoUrl) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mic className="h-5 w-5" />
+                    Voice Note
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {tender.voiceNoteUrl && (
+                    <AudioPlayer src={tender.voiceNoteUrl} />
+                  )}
+                  {tender.videoUrl && (
+                    <div className="pt-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                        <Video className="h-4 w-4" />
+                        <span>Video Explanation</span>
+                      </div>
+                      <a 
+                        href={tender.videoUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-primary hover:underline"
+                        data-testid="link-video-sidebar"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Watch Video
+                      </a>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Actions - Only visible to tender owner */}
             {isOwner && (
               <Card>

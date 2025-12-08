@@ -159,6 +159,11 @@ export const offers = pgTable("offers", {
   // Status Gates
   conditionalSubmission: boolean("conditional_submission").default(false).notNull(), // Was company unverified at submission?
   
+  // Proposal Status
+  status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'rejected'
+  decidedBy: varchar("decided_by").references(() => users.id),
+  decidedAt: timestamp("decided_at"),
+  
   submittedAt: timestamp("submitted_at").defaultNow().notNull(),
 });
 

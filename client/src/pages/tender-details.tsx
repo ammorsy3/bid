@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, Download, Mic, Video, Play, Pause } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -157,6 +157,7 @@ interface Offer {
   financialFileUrl: string | null;
   notes: string | null;
   submittedAt: string;
+  status: 'pending' | 'accepted' | 'rejected';
   company: {
     id: string;
     name: string;
@@ -263,6 +264,28 @@ export default function TenderDetails() {
     onError: (error: Error) => {
       toast({
         title: "Failed to delete",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  const updateOfferStatus = useMutation({
+    mutationFn: async ({ offerId, status }: { offerId: string; status: string }) => {
+      return await apiRequest('PATCH', `/api/offers/${offerId}/status`, { status });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders', id, 'offers'] });
+      toast({
+        title: variables.status === 'accepted' ? "Proposal Accepted" : "Proposal Ignored",
+        description: variables.status === 'accepted' 
+          ? "You've accepted this proposal. You can contact the vendor to proceed."
+          : "This proposal has been marked as ignored.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update proposal",
         description: error.message,
         variant: "destructive",
       });
@@ -634,16 +657,38 @@ export default function TenderDetails() {
                   ) : (
                     <div className="space-y-4">
                       {offers.map((offer, index) => (
-                        <Card key={offer.id} className="border" data-testid={`card-offer-${offer.id}`}>
+                        <Card 
+                          key={offer.id} 
+                          className={`border ${
+                            offer.status === 'accepted' 
+                              ? 'border-green-300 bg-green-50 dark:bg-green-900/20' 
+                              : offer.status === 'rejected' 
+                                ? 'border-gray-300 bg-gray-50 dark:bg-gray-800/50 opacity-60' 
+                                : ''
+                          }`} 
+                          data-testid={`card-offer-${offer.id}`}
+                        >
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between">
-                              <div>
+                              <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
                                   <h4 className="font-medium">
                                     {offer.profile?.displayName || offer.company.name}
                                   </h4>
                                   {offer.company.verificationStatus === 'verified' && (
                                     <Badge variant="secondary" className="text-xs">Verified</Badge>
+                                  )}
+                                  {offer.status === 'accepted' && (
+                                    <Badge className="bg-green-100 text-green-800 text-xs">
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      Accepted
+                                    </Badge>
+                                  )}
+                                  {offer.status === 'rejected' && (
+                                    <Badge className="bg-gray-100 text-gray-600 text-xs">
+                                      <XCircle className="h-3 w-3 mr-1" />
+                                      Ignored
+                                    </Badge>
                                   )}
                                 </div>
                                 <p className="text-sm text-muted-foreground">
@@ -656,36 +701,75 @@ export default function TenderDetails() {
                                   <p className="text-sm mt-2">{offer.notes}</p>
                                 )}
                               </div>
-                              <div className="flex flex-wrap gap-2">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => setSelectedOffer(offer)}
-                                  data-testid={`button-view-profile-${offer.id}`}
-                                >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  View Profile
-                                </Button>
-                                {offer.technicalFileUrl && (
+                              <div className="flex flex-col gap-2">
+                                <div className="flex flex-wrap gap-2">
                                   <Button 
                                     variant="outline" 
                                     size="sm"
-                                    onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
-                                    data-testid={`button-tech-file-${offer.id}`}
+                                    onClick={() => setSelectedOffer(offer)}
+                                    data-testid={`button-view-profile-${offer.id}`}
                                   >
-                                    <FileText className="h-4 w-4 mr-1" />
-                                    Technical
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View Profile
                                   </Button>
+                                  {offer.technicalFileUrl && (
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
+                                      data-testid={`button-tech-file-${offer.id}`}
+                                    >
+                                      <FileText className="h-4 w-4 mr-1" />
+                                      Technical
+                                    </Button>
+                                  )}
+                                  {offer.financialFileUrl && (
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
+                                      data-testid={`button-fin-file-${offer.id}`}
+                                    >
+                                      <DollarSign className="h-4 w-4 mr-1" />
+                                      Financial
+                                    </Button>
+                                  )}
+                                </div>
+                                {offer.status === 'pending' && (
+                                  <div className="flex gap-2 mt-2">
+                                    <Button 
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700 text-white"
+                                      onClick={() => updateOfferStatus.mutate({ offerId: offer.id, status: 'accepted' })}
+                                      disabled={updateOfferStatus.isPending}
+                                      data-testid={`button-accept-${offer.id}`}
+                                    >
+                                      <Check className="h-4 w-4 mr-1" />
+                                      Accept
+                                    </Button>
+                                    <Button 
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-gray-600 hover:bg-gray-100"
+                                      onClick={() => updateOfferStatus.mutate({ offerId: offer.id, status: 'rejected' })}
+                                      disabled={updateOfferStatus.isPending}
+                                      data-testid={`button-ignore-${offer.id}`}
+                                    >
+                                      <X className="h-4 w-4 mr-1" />
+                                      Ignore
+                                    </Button>
+                                  </div>
                                 )}
-                                {offer.financialFileUrl && (
+                                {offer.status !== 'pending' && (
                                   <Button 
-                                    variant="outline" 
+                                    variant="ghost"
                                     size="sm"
-                                    onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
-                                    data-testid={`button-fin-file-${offer.id}`}
+                                    className="text-xs text-muted-foreground"
+                                    onClick={() => updateOfferStatus.mutate({ offerId: offer.id, status: 'pending' })}
+                                    disabled={updateOfferStatus.isPending}
+                                    data-testid={`button-undo-${offer.id}`}
                                   >
-                                    <DollarSign className="h-4 w-4 mr-1" />
-                                    Financial
+                                    Undo Decision
                                   </Button>
                                 )}
                               </div>

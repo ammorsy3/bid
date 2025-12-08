@@ -103,6 +103,7 @@ export interface IStorage {
   getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null>;
   getOfferByFileUrl(fileUrl: string): Promise<Offer | null>;
   getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile })[]>;
+  updateOfferStatus(offerId: string, status: string, decidedBy: string): Promise<Offer>;
 
   // ============================================================================
   // INVITATION OPERATIONS
@@ -644,6 +645,19 @@ export class DatabaseStorage implements IStorage {
       company: r.company,
       profile: r.profile || undefined
     }));
+  }
+
+  async updateOfferStatus(offerId: string, status: string, decidedBy: string): Promise<Offer> {
+    const [updated] = await db
+      .update(offers)
+      .set({ 
+        status, 
+        decidedBy,
+        decidedAt: new Date()
+      })
+      .where(eq(offers.id, offerId))
+      .returning();
+    return updated;
   }
 
   // ============================================================================

@@ -67,7 +67,7 @@ export default function VoiceRecorder({
         }
       };
 
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { 
           type: mediaRecorder.mimeType 
         });
@@ -76,6 +76,9 @@ export default function VoiceRecorder({
         setAudioUrl(url);
         
         stream.getTracks().forEach(track => track.stop());
+        
+        // Auto-upload the recording
+        await uploadRecordingBlob(audioBlob);
       };
 
       mediaRecorder.start(1000);
@@ -156,9 +159,7 @@ export default function VoiceRecorder({
     onRecordingDeleted();
   };
 
-  const uploadRecording = async () => {
-    if (!audioBlob) return;
-
+  const uploadRecordingBlob = async (blob: Blob) => {
     setIsUploading(true);
     try {
       const token = localStorage.getItem("token");
@@ -182,9 +183,9 @@ export default function VoiceRecorder({
       const uploadResponse = await fetch(uploadURL, {
         method: 'PUT',
         headers: {
-          'Content-Type': audioBlob.type,
+          'Content-Type': blob.type,
         },
-        body: audioBlob,
+        body: blob,
       });
 
       if (!uploadResponse.ok) {
@@ -209,8 +210,8 @@ export default function VoiceRecorder({
       onRecordingComplete(objectPath);
       
       toast({
-        title: "Voice note uploaded",
-        description: "Your recording has been saved",
+        title: "Voice note saved",
+        description: "Your recording has been uploaded",
       });
     } catch (error) {
       console.error('Upload error:', error);
@@ -222,6 +223,11 @@ export default function VoiceRecorder({
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const uploadRecording = async () => {
+    if (!audioBlob) return;
+    await uploadRecordingBlob(audioBlob);
   };
 
   const progressPercent = (recordingTime / maxDurationSeconds) * 100;
@@ -304,10 +310,13 @@ export default function VoiceRecorder({
             <span className="text-sm font-medium text-neutral-700">
               Voice Note ({formatTime(recordingTime)})
             </span>
-            {audioBlob && (
-              <span className="text-xs text-neutral-500">
-                {(audioBlob.size / 1024).toFixed(1)} KB
+            {isUploading ? (
+              <span className="text-xs text-primary-600 flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Uploading...
               </span>
+            ) : (
+              <span className="text-xs text-green-600">✓ Saved</span>
             )}
           </div>
 
@@ -318,6 +327,7 @@ export default function VoiceRecorder({
               size="sm"
               onClick={playRecording}
               className="flex-1"
+              disabled={isUploading}
               data-testid="button-play-recording"
             >
               {isPlaying ? (
@@ -337,31 +347,13 @@ export default function VoiceRecorder({
               variant="outline"
               size="sm"
               onClick={deleteRecording}
+              disabled={isUploading}
               className="text-red-600 hover:text-red-700"
               data-testid="button-delete-recording"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-
-          {audioBlob && (
-            <Button
-              type="button"
-              onClick={uploadRecording}
-              disabled={isUploading}
-              className="w-full"
-              data-testid="button-upload-recording"
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                'Save Voice Note'
-              )}
-            </Button>
-          )}
         </div>
       )}
 

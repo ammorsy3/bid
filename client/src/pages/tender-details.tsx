@@ -98,7 +98,8 @@ function AudioPlayer({ src }: { src: string }) {
         {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
       </Button>
       <div className="flex-1">
-        <div className="h-2 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden cursor-pointer"
+        <div 
+          className="relative h-2 bg-gray-300 dark:bg-gray-600 rounded-full cursor-pointer"
           onClick={(e) => {
             if (!audioRef.current || !duration) return;
             const rect = e.currentTarget.getBoundingClientRect();
@@ -109,14 +110,21 @@ function AudioPlayer({ src }: { src: string }) {
           }}
         >
           <div 
-            className="h-full bg-primary rounded-full" 
+            className="absolute top-0 left-0 h-full bg-blue-500 rounded-full"
             style={{ 
               width: `${progress}%`,
               transition: isPlaying ? 'width 0.1s linear' : 'none'
             }}
           />
+          <div 
+            className="absolute top-1/2 -translate-y-1/2 h-4 w-4 bg-blue-600 rounded-full shadow-md border-2 border-white"
+            style={{ 
+              left: `calc(${progress}% - 8px)`,
+              transition: isPlaying ? 'left 0.1s linear' : 'none'
+            }}
+          />
         </div>
-        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+        <div className="flex justify-between text-xs text-muted-foreground mt-2">
           <span>{formatTime(currentTime)}</span>
           <span>{duration > 0 ? formatTime(duration) : '--:--'}</span>
         </div>

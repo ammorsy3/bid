@@ -10,6 +10,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import CreateTenderModal from "@/components/create-tender-modal";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
@@ -111,6 +112,7 @@ export default function Dashboard() {
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
+  const [proposalTenderFilter, setProposalTenderFilter] = useState<string>('all');
   const { toast } = useToast();
 
   if (!user) {
@@ -689,16 +691,35 @@ export default function Dashboard() {
             </div>
 
             <Tabs defaultValue="submitted" className="space-y-4">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="submitted" className="gap-2" data-testid="tab-submitted-proposals">
-                  <Send className="h-4 w-4" />
-                  Submitted ({myOffers.length})
-                </TabsTrigger>
-                <TabsTrigger value="received" className="gap-2" data-testid="tab-received-proposals">
-                  <Inbox className="h-4 w-4" />
-                  Received ({incomingOffers.length})
-                </TabsTrigger>
-              </TabsList>
+              <div className="flex items-center justify-between">
+                <TabsList className="grid w-full max-w-md grid-cols-2">
+                  <TabsTrigger value="submitted" className="gap-2" data-testid="tab-submitted-proposals">
+                    <Send className="h-4 w-4" />
+                    Submitted ({myOffers.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="received" className="gap-2" data-testid="tab-received-proposals">
+                    <Inbox className="h-4 w-4" />
+                    Received ({incomingOffers.length})
+                  </TabsTrigger>
+                </TabsList>
+                
+                {/* Tender Filter */}
+                <Select value={proposalTenderFilter} onValueChange={setProposalTenderFilter}>
+                  <SelectTrigger className="w-[200px]" data-testid="select-proposal-tender-filter">
+                    <SelectValue placeholder="Filter by tender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Tenders</SelectItem>
+                    {/* Get unique tenders from both submitted and received offers */}
+                    {Array.from(new Map<string, string>([
+                      ...myOffers.map(o => [o.tender.id, o.tender.title] as [string, string]),
+                      ...incomingOffers.map(o => [o.tender.id, o.tender.title] as [string, string])
+                    ])).map(([id, title]) => (
+                      <SelectItem key={id} value={id}>{title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Submitted Proposals Sub-Tab */}
               <TabsContent value="submitted" className="space-y-4">
@@ -718,7 +739,9 @@ export default function Dashboard() {
                   </Card>
                 ) : (
                   <div className="space-y-4">
-                    {myOffers.map((offer) => {
+                    {myOffers
+                      .filter(offer => proposalTenderFilter === 'all' || offer.tender.id === proposalTenderFilter)
+                      .map((offer) => {
                       const isExpired = new Date(offer.tender.deadline) < new Date();
                       const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                       
@@ -843,7 +866,9 @@ export default function Dashboard() {
                   </Card>
                 ) : (
                   <div className="space-y-4">
-                    {incomingOffers.map((offer) => {
+                    {incomingOffers
+                      .filter(offer => proposalTenderFilter === 'all' || offer.tender.id === proposalTenderFilter)
+                      .map((offer) => {
                       const isExpired = new Date(offer.tender.deadline) < new Date();
                       const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                       

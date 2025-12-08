@@ -47,8 +47,6 @@ export function getFieldIcon(state: FieldState): 'none' | 'check' | 'x' | 'loadi
       return 'check';
     case 'invalid':
       return 'x';
-    case 'typing':
-      return 'loading';
     default:
       return 'none';
   }

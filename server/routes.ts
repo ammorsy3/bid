@@ -945,6 +945,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Update offer status (accept/reject)
+  app.patch("/api/offers/:offerId/status",
+    authenticateToken,
+    requireCompanyContext,
+    async (req: AuthRequest, res) => {
+      try {
+        const { offerId } = req.params;
+        const { status } = req.body;
+        
+        if (!['accepted', 'rejected', 'pending'].includes(status)) {
+          return res.status(400).json({ message: "Invalid status. Must be 'accepted', 'rejected', or 'pending'" });
+        }
+        
+        // Get the offer with tender info to verify ownership
+        const offerResults = await storage.getIncomingOffersByCompany(req.auth!.activeCompanyId!);
+        const offer = offerResults.find(o => o.id === offerId);
+        
+        if (!offer) {
+          return res.status(404).json({ message: "Offer not found or you don't have access" });
+        }
+        
+        const updatedOffer = await storage.updateOfferStatus(offerId, status, req.auth!.userId);
+        
+        // Log event
+        await storage.logProductEvent({
+          eventType: status === 'accepted' ? 'proposal_accepted' : 'proposal_rejected',
+          companyId: req.auth!.activeCompanyId!,
+          userId: req.auth!.userId,
+          metadata: { offerId, tenderId: offer.tenderId, status }
+        });
+        
+        res.json(updatedOffer);
+      } catch (error) {
+        console.error('Update offer status error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
   // ==========================================================================
   // VENDORS BASE ROUTES
   // ==========================================================================

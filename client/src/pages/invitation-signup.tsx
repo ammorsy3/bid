@@ -99,6 +99,8 @@ function PublicAudioPlayer({ src }: { src: string }) {
     );
   }
 
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
   return (
     <div className="flex items-center gap-3 p-3 bg-gray-200 dark:bg-gray-700 rounded-lg" data-testid="audio-player">
       <Button
@@ -111,23 +113,39 @@ function PublicAudioPlayer({ src }: { src: string }) {
         {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
       </Button>
       <div className="flex-1">
-        <div className="h-2 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden">
+        <div className="h-2 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden cursor-pointer"
+          onClick={(e) => {
+            if (!audioRef.current || !duration) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const newTime = (clickX / rect.width) * duration;
+            audioRef.current.currentTime = newTime;
+            setCurrentTime(newTime);
+          }}
+        >
           <div 
-            className="h-full bg-primary transition-all" 
-            style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
+            className="h-full bg-primary rounded-full" 
+            style={{ 
+              width: `${progress}%`,
+              transition: isPlaying ? 'width 0.1s linear' : 'none'
+            }}
           />
         </div>
         <div className="flex justify-between text-xs text-muted-foreground mt-1">
           <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
+          <span>{duration > 0 ? formatTime(duration) : '--:--'}</span>
         </div>
       </div>
       <audio
         ref={audioRef}
         src={audioUrl}
+        preload="metadata"
         onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
         onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
-        onEnded={() => setIsPlaying(false)}
+        onEnded={() => {
+          setIsPlaying(false);
+          setCurrentTime(0);
+        }}
       />
     </div>
   );

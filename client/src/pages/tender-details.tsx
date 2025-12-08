@@ -731,13 +731,7 @@ export default function TenderDetails() {
             {/* Voice Note & Video - Shown to everyone */}
             {(tender.voiceNoteUrl || tender.videoUrl) && (
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Mic className="h-5 w-5" />
-                    Voice Note
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="p-6 space-y-4">
                   {tender.voiceNoteUrl && (
                     <AudioPlayer src={tender.voiceNoteUrl} />
                   )}

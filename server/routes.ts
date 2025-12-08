@@ -1238,14 +1238,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestedPermission: ObjectPermission.READ,
       });
       
+      const filePath = req.path;
+      
       // If standard ACL check fails, check if user's company owns a tender 
       // that has a proposal with this file
       if (!canAccess && activeCompanyId) {
-        const filePath = req.path;
         const offerWithFile = await storage.getOfferByFileUrl(filePath);
         if (offerWithFile) {
           const tender = await storage.getTender(offerWithFile.tenderId);
           if (tender && tender.companyId === activeCompanyId) {
+            canAccess = true;
+          }
+        }
+      }
+      
+      // Check if this is a voice note attached to a tender (any authenticated user can access)
+      if (!canAccess) {
+        const tenderWithVoice = await storage.getTenderByVoiceNoteUrl(filePath);
+        if (tenderWithVoice) {
+          // Allow access to published tender voice notes
+          if (tenderWithVoice.status === 'published') {
+            canAccess = true;
+          }
+          // Or if user's company owns the tender
+          if (activeCompanyId && tenderWithVoice.companyId === activeCompanyId) {
             canAccess = true;
           }
         }

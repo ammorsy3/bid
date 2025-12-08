@@ -85,6 +85,7 @@ export interface IStorage {
   // ============================================================================
   createTender(tender: InsertTender): Promise<Tender>;
   getTender(id: string): Promise<Tender | undefined>;
+  getTenderByVoiceNoteUrl(voiceNoteUrl: string): Promise<Tender | null>;
   getTenderWithProposalCount(id: string): Promise<(Tender & { proposalCount: number }) | undefined>;
   getTendersByCompany(companyId: string): Promise<Tender[]>;
   getTendersWithProposalCounts(companyId: string): Promise<(Tender & { proposalCount: number })[]>;
@@ -450,6 +451,15 @@ export class DatabaseStorage implements IStorage {
   async getTender(id: string): Promise<Tender | undefined> {
     const [tender] = await db.select().from(tenders).where(eq(tenders.id, id));
     return tender || undefined;
+  }
+
+  async getTenderByVoiceNoteUrl(voiceNoteUrl: string): Promise<Tender | null> {
+    const [tender] = await db
+      .select()
+      .from(tenders)
+      .where(eq(tenders.voiceNoteUrl, voiceNoteUrl))
+      .limit(1);
+    return tender || null;
   }
 
   async getTendersByCompany(companyId: string): Promise<Tender[]> {

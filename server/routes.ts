@@ -599,7 +599,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           companyId: req.auth!.activeCompanyId!,
           createdBy: req.auth!.userId,
           invitationToken,
-          allowConditionalSubmission: false
+          allowConditionalSubmission: false,
+          status: 'published'
         });
 
         res.json(tender);

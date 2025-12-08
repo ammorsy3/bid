@@ -116,12 +116,13 @@ function PublicAudioPlayer({ src }: { src: string }) {
         <div 
           className="relative h-2 bg-gray-300 dark:bg-gray-600 rounded-full cursor-pointer"
           onClick={(e) => {
-            if (!audioRef.current || !duration) return;
+            if (!audioRef.current || !duration || !isFinite(duration)) return;
             const rect = e.currentTarget.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const newTime = (clickX / rect.width) * duration;
-            audioRef.current.currentTime = newTime;
-            setCurrentTime(newTime);
+            if (!isFinite(newTime) || isNaN(newTime)) return;
+            audioRef.current.currentTime = Math.max(0, Math.min(newTime, duration));
+            setCurrentTime(Math.max(0, Math.min(newTime, duration)));
           }}
         >
           <div 

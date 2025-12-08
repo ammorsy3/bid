@@ -35,7 +35,6 @@ function PublicAudioPlayer({ src }: { src: string }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const loadAudio = async () => {
@@ -64,62 +63,6 @@ function PublicAudioPlayer({ src }: { src: string }) {
       if (audioUrl) URL.revokeObjectURL(audioUrl);
     };
   }, [src]);
-
-  // Set up audio event listeners after audioUrl is set
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !audioUrl) return;
-
-    const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-    };
-
-    const handleLoadedMetadata = () => {
-      if (audio.duration && isFinite(audio.duration)) {
-        setDuration(audio.duration);
-        setIsReady(true);
-      }
-    };
-
-    const handleDurationChange = () => {
-      if (audio.duration && isFinite(audio.duration)) {
-        setDuration(audio.duration);
-        setIsReady(true);
-      }
-    };
-
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
-    };
-
-    const handleCanPlay = () => {
-      if (audio.duration && isFinite(audio.duration)) {
-        setDuration(audio.duration);
-        setIsReady(true);
-      }
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('durationchange', handleDurationChange);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('canplay', handleCanPlay);
-
-    // Try to get duration if already loaded
-    if (audio.duration && isFinite(audio.duration)) {
-      setDuration(audio.duration);
-      setIsReady(true);
-    }
-
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('durationchange', handleDurationChange);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('canplay', handleCanPlay);
-    };
-  }, [audioUrl]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -205,7 +148,13 @@ function PublicAudioPlayer({ src }: { src: string }) {
       <audio
         ref={audioRef}
         src={audioUrl}
-        preload="auto"
+        preload="metadata"
+        onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
+        onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
+        onEnded={() => {
+          setIsPlaying(false);
+          setCurrentTime(0);
+        }}
       />
     </div>
   );

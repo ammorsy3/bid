@@ -607,8 +607,8 @@ export default function TenderDetails() {
             </Card>
             )}
 
-            {/* Proposals Section */}
-            {canManage && (
+            {/* Proposals Section - Only visible to tender owner */}
+            {isOwner && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -709,10 +709,12 @@ export default function TenderDetails() {
                 <CardTitle>Quick Stats</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Proposals</span>
-                  <span className="font-semibold">{offers.length}</span>
-                </div>
+                {isOwner && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Proposals</span>
+                    <span className="font-semibold">{offers.length}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Status</span>
                   <Badge className={statusBadge.className}>{statusBadge.label}</Badge>
@@ -726,8 +728,8 @@ export default function TenderDetails() {
               </CardContent>
             </Card>
 
-            {/* Actions */}
-            {canManage && (
+            {/* Actions - Only visible to tender owner */}
+            {isOwner && (
               <Card>
                 <CardHeader>
                   <CardTitle>Actions</CardTitle>

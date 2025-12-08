@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -79,6 +79,7 @@ interface IncomingOffer {
   financialFileUrl: string | null;
   notes: string | null;
   submittedAt: string;
+  status: 'pending' | 'accepted' | 'rejected';
   tender: {
     id: string;
     title: string;
@@ -303,6 +304,29 @@ export default function Dashboard() {
     onError: (error: Error) => {
       toast({
         title: "Failed to reject",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Update offer status mutation (accept/reject proposals)
+  const updateOfferStatus = useMutation({
+    mutationFn: async ({ offerId, status }: { offerId: string; status: string }) => {
+      return await apiRequest('PATCH', `/api/offers/${offerId}/status`, { status });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/my-tenders/offers'] });
+      toast({
+        title: variables.status === 'accepted' ? "Proposal Accepted" : "Proposal Ignored",
+        description: variables.status === 'accepted' 
+          ? "You've accepted this proposal. You can contact the vendor to proceed."
+          : "This proposal has been marked as ignored.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update proposal",
         description: error.message,
         variant: "destructive",
       });
@@ -795,7 +819,17 @@ export default function Dashboard() {
                       const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                       
                       return (
-                        <Card key={offer.id} className="border" data-testid={`card-incoming-offer-${offer.id}`}>
+                        <Card 
+                          key={offer.id} 
+                          className={`border ${
+                            offer.status === 'accepted' 
+                              ? 'border-green-300 bg-green-50 dark:bg-green-900/20' 
+                              : offer.status === 'rejected' 
+                                ? 'border-gray-300 bg-gray-50 dark:bg-gray-800/50 opacity-60' 
+                                : ''
+                          }`} 
+                          data-testid={`card-incoming-offer-${offer.id}`}
+                        >
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
@@ -806,6 +840,18 @@ export default function Dashboard() {
                                   </h4>
                                   {offer.company.verificationStatus === 'verified' && (
                                     <Badge variant="secondary" className="text-xs">Verified</Badge>
+                                  )}
+                                  {offer.status === 'accepted' && (
+                                    <Badge className="bg-green-100 text-green-800 text-xs">
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      Accepted
+                                    </Badge>
+                                  )}
+                                  {offer.status === 'rejected' && (
+                                    <Badge className="bg-gray-100 text-gray-600 text-xs">
+                                      <XCircle className="h-3 w-3 mr-1" />
+                                      Ignored
+                                    </Badge>
                                   )}
                                 </div>
                                 <p className="text-sm text-muted-foreground">
@@ -839,34 +885,73 @@ export default function Dashboard() {
                                   <p className="text-sm mt-2 text-muted-foreground italic">"{offer.notes}"</p>
                                 )}
                               </div>
-                              <div className="flex gap-2 ml-4">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => setSelectedProposal(offer)}
-                                  data-testid={`button-view-offer-${offer.id}`}
-                                >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  View
-                                </Button>
-                                {offer.technicalFileUrl && (
+                              <div className="flex flex-col gap-2 ml-4">
+                                <div className="flex gap-2">
                                   <Button 
                                     variant="outline" 
                                     size="sm"
-                                    onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
-                                    title="Technical Proposal"
+                                    onClick={() => setSelectedProposal(offer)}
+                                    data-testid={`button-view-offer-${offer.id}`}
                                   >
-                                    <FileText className="h-4 w-4" />
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View
                                   </Button>
+                                  {offer.technicalFileUrl && (
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
+                                      title="Technical Proposal"
+                                    >
+                                      <FileText className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                  {offer.financialFileUrl && (
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
+                                      title="Financial Proposal"
+                                    >
+                                      <DollarSign className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                                {offer.status === 'pending' && (
+                                  <div className="flex gap-2">
+                                    <Button 
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700 text-white"
+                                      onClick={() => updateOfferStatus.mutate({ offerId: offer.id, status: 'accepted' })}
+                                      disabled={updateOfferStatus.isPending}
+                                      data-testid={`button-accept-offer-${offer.id}`}
+                                    >
+                                      <Check className="h-4 w-4 mr-1" />
+                                      Accept
+                                    </Button>
+                                    <Button 
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-gray-600 hover:bg-gray-100"
+                                      onClick={() => updateOfferStatus.mutate({ offerId: offer.id, status: 'rejected' })}
+                                      disabled={updateOfferStatus.isPending}
+                                      data-testid={`button-ignore-offer-${offer.id}`}
+                                    >
+                                      <X className="h-4 w-4 mr-1" />
+                                      Ignore
+                                    </Button>
+                                  </div>
                                 )}
-                                {offer.financialFileUrl && (
+                                {offer.status !== 'pending' && (
                                   <Button 
-                                    variant="outline" 
+                                    variant="ghost"
                                     size="sm"
-                                    onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
-                                    title="Financial Proposal"
+                                    className="text-xs text-muted-foreground"
+                                    onClick={() => updateOfferStatus.mutate({ offerId: offer.id, status: 'pending' })}
+                                    disabled={updateOfferStatus.isPending}
+                                    data-testid={`button-undo-offer-${offer.id}`}
                                   >
-                                    <DollarSign className="h-4 w-4" />
+                                    Undo Decision
                                   </Button>
                                 )}
                               </div>

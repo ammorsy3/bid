@@ -703,6 +703,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         deadline: tender.deadline,
         duration: tender.duration,
         status: tender.status,
+        voiceNoteUrl: tender.voiceNoteUrl,
+        videoUrl: tender.videoUrl,
+        projectTimeline: tender.projectTimeline,
         company: company ? {
           id: company.id,
           name: company.name

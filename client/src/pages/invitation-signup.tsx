@@ -3,7 +3,8 @@ import { useParams, useLocation, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/lib/auth";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mic, Video, ExternalLink, Play, Pause, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 
 interface TenderInvite {
   id: string;
@@ -14,6 +15,9 @@ interface TenderInvite {
   deadline: string;
   duration: string | null;
   status: string;
+  voiceNoteUrl: string | null;
+  videoUrl: string | null;
+  projectTimeline: string | null;
   company: {
     id: string;
     name: string;
@@ -21,6 +25,111 @@ interface TenderInvite {
   profile?: {
     displayName: string | null;
   };
+}
+
+function PublicAudioPlayer({ src }: { src: string }) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadAudio = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const token = localStorage.getItem("token");
+        const headers: HeadersInit = {};
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        const response = await fetch(src, { headers });
+        if (!response.ok) throw new Error("Failed to load audio");
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        setAudioUrl(url);
+      } catch (err) {
+        setError("Voice note requires login to play");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadAudio();
+    return () => {
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+    };
+  }, [src]);
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const formatTime = (time: number) => {
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 p-3 bg-gray-200 dark:bg-gray-700 rounded-lg">
+        <Loader2 className="h-5 w-5 animate-spin" />
+        <span className="text-sm text-muted-foreground">Loading voice note...</span>
+      </div>
+    );
+  }
+
+  if (error || !audioUrl) {
+    return (
+      <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600">
+        <Mic className="h-5 w-5" />
+        <span className="text-sm">Voice note available - login to listen</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-3 p-3 bg-gray-200 dark:bg-gray-700 rounded-lg" data-testid="audio-player">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={togglePlay}
+        className="h-10 w-10 rounded-full bg-primary text-white hover:bg-primary/90"
+        data-testid="button-audio-play"
+      >
+        {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
+      </Button>
+      <div className="flex-1">
+        <div className="h-2 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-primary transition-all" 
+            style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
+          />
+        </div>
+        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
+        </div>
+      </div>
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
+        onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
+        onEnded={() => setIsPlaying(false)}
+      />
+    </div>
+  );
 }
 
 export default function InvitationSignup() {
@@ -134,12 +243,46 @@ export default function InvitationSignup() {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Tender Info Box */}
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
-              <h3 className="font-bold text-lg mb-1" data-testid="text-tender-title">{tender.title}</h3>
-              <p className="text-muted-foreground text-sm mb-4" data-testid="text-tender-description">
-                {tender.description}
-              </p>
-              <div className="grid grid-cols-3 gap-4 text-sm">
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 space-y-4">
+              <div>
+                <h3 className="font-bold text-lg mb-1" data-testid="text-tender-title">{tender.title}</h3>
+                <p className="text-muted-foreground text-sm" data-testid="text-tender-description">
+                  {tender.description}
+                </p>
+              </div>
+
+              {/* Voice Note & Video Link */}
+              {(tender.voiceNoteUrl || tender.videoUrl) && (
+                <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-medium text-muted-foreground">Additional Information</p>
+                  {tender.voiceNoteUrl && (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Mic className="h-3 w-3" />
+                        <span>Voice Note from Requester</span>
+                      </div>
+                      <PublicAudioPlayer src={tender.voiceNoteUrl} />
+                    </div>
+                  )}
+                  {tender.videoUrl && (
+                    <div className="flex items-center gap-2">
+                      <Video className="h-4 w-4 text-muted-foreground" />
+                      <a 
+                        href={tender.videoUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                        data-testid="link-video"
+                      >
+                        Watch Video Explanation
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-4 text-sm pt-2 border-t border-gray-200 dark:border-gray-700">
                 <div>
                   <span className="text-muted-foreground">Budget:</span>
                   <p className="font-medium" data-testid="text-budget">

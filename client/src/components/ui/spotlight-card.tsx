@@ -61,6 +61,33 @@ export const SpotlightCard = ({
       onMouseLeave={handleMouseLeave}
       className={`relative rounded-2xl border border-neutral-200 bg-white overflow-hidden ${className}`}
     >
+      {/* Static corner glow - top left */}
+      <div
+        className="pointer-events-none absolute -top-20 -left-20 w-40 h-40"
+        style={{
+          background: `radial-gradient(circle, hsl(${hue} ${saturation}% ${lightness}% / 0.25), transparent 70%)`,
+          filter: 'blur(20px)',
+        }}
+      />
+      
+      {/* Static corner glow - bottom left */}
+      <div
+        className="pointer-events-none absolute -bottom-20 -left-20 w-40 h-40"
+        style={{
+          background: `radial-gradient(circle, hsl(${hue} ${saturation}% ${lightness}% / 0.2), transparent 70%)`,
+          filter: 'blur(25px)',
+        }}
+      />
+      
+      {/* Static subtle edge glow - left side */}
+      <div
+        className="pointer-events-none absolute top-0 left-0 w-1 h-full"
+        style={{
+          background: `linear-gradient(to bottom, hsl(${hue} ${saturation}% ${lightness}% / 0.4), hsl(${hue} ${saturation}% ${lightness}% / 0.2) 50%, hsl(${hue} ${saturation}% ${lightness}% / 0.3))`,
+          boxShadow: `0 0 20px 5px hsl(${hue} ${saturation}% ${lightness}% / 0.15)`,
+        }}
+      />
+
       {/* Main spotlight glow - inner fill */}
       <div
         className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out"

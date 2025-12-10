@@ -197,7 +197,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: user.username,
           email: user.email,
           name: user.name,
-          isAdmin: user.isAdmin
+          isAdmin: user.isAdmin,
+          profilePictureUrl: user.profilePictureUrl,
+          jobTitle: user.jobTitle,
+          timezone: user.timezone,
+          linkedinUrl: user.linkedinUrl,
+          phoneNumber: user.phoneNumber
         },
         companies: [] // Empty - user needs to create or join
       });
@@ -248,7 +253,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: user.username,
           email: user.email,
           name: user.name,
-          isAdmin: user.isAdmin
+          isAdmin: user.isAdmin,
+          profilePictureUrl: user.profilePictureUrl,
+          jobTitle: user.jobTitle,
+          timezone: user.timezone,
+          linkedinUrl: user.linkedinUrl,
+          phoneNumber: user.phoneNumber
         },
         activeCompany: defaultCompany ? {
           id: defaultCompany.company.id,
@@ -301,7 +311,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: user.username,
           email: user.email,
           name: user.name,
-          isAdmin: user.isAdmin
+          isAdmin: user.isAdmin,
+          profilePictureUrl: user.profilePictureUrl,
+          jobTitle: user.jobTitle,
+          timezone: user.timezone,
+          linkedinUrl: user.linkedinUrl,
+          phoneNumber: user.phoneNumber
         },
         activeCompanyId: req.auth!.activeCompanyId,
         companies: userCompanies.map(uc => ({
@@ -329,10 +344,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // USER PROFILE ROUTES
   // ==========================================================================
 
-  // Update user profile (name)
+  // Update user profile (name and additional fields)
   app.patch("/api/user/profile", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const { name } = req.body;
+      const { name, jobTitle, timezone, linkedinUrl, phoneNumber } = req.body;
       
       if (!name || typeof name !== 'string') {
         return res.status(400).json({ message: "Name is required" });
@@ -343,7 +358,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      await storage.updateUser(req.auth!.userId, { name: name.trim() });
+      const updates: any = { name: name.trim() };
+      if (jobTitle !== undefined) updates.jobTitle = jobTitle || null;
+      if (timezone !== undefined) updates.timezone = timezone || null;
+      if (linkedinUrl !== undefined) updates.linkedinUrl = linkedinUrl || null;
+      if (phoneNumber !== undefined) updates.phoneNumber = phoneNumber || null;
+
+      await storage.updateUser(req.auth!.userId, updates);
 
       res.json({ message: "Profile updated successfully" });
     } catch (error) {
@@ -355,9 +376,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload user profile picture
   app.post("/api/user/profile-picture", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      // Profile pictures are not currently stored - return success
-      // Future: implement profile picture storage
-      res.json({ message: "Profile picture upload functionality coming soon" });
+      const objectStorage = ObjectStorageService.getInstance();
+      
+      // Handle multipart form data
+      const chunks: Buffer[] = [];
+      for await (const chunk of req) {
+        chunks.push(chunk);
+      }
+      const body = Buffer.concat(chunks);
+      
+      // Parse multipart form data
+      const boundary = req.headers['content-type']?.split('boundary=')[1];
+      if (!boundary) {
+        return res.status(400).json({ message: "Invalid request format" });
+      }
+      
+      // Simple multipart parser
+      const parts = body.toString('binary').split('--' + boundary);
+      let fileContent: Buffer | null = null;
+      let fileName = 'profile.jpg';
+      let contentType = 'image/jpeg';
+      
+      for (const part of parts) {
+        if (part.includes('filename=')) {
+          const filenameMatch = part.match(/filename="([^"]+)"/);
+          if (filenameMatch) fileName = filenameMatch[1];
+          
+          const contentTypeMatch = part.match(/Content-Type: ([^\r\n]+)/);
+          if (contentTypeMatch) contentType = contentTypeMatch[1].trim();
+          
+          const headerEnd = part.indexOf('\r\n\r\n');
+          if (headerEnd !== -1) {
+            const content = part.slice(headerEnd + 4);
+            const end = content.lastIndexOf('\r\n');
+            fileContent = Buffer.from(content.slice(0, end), 'binary');
+          }
+        }
+      }
+      
+      if (!fileContent) {
+        return res.status(400).json({ message: "No file provided" });
+      }
+      
+      // Upload to object storage
+      const objectPath = `public/profile-pictures/${req.auth!.userId}-${Date.now()}-${fileName}`;
+      await objectStorage.uploadObject(objectPath, fileContent, contentType);
+      
+      // Get public URL
+      const url = objectStorage.getPublicUrl(objectPath);
+      
+      // Update user profile with picture URL
+      await storage.updateUser(req.auth!.userId, { profilePictureUrl: url });
+      
+      res.json({ message: "Profile picture uploaded successfully", url });
     } catch (error) {
       console.error('Upload profile picture error:', error);
       res.status(500).json({ message: "Server error" });
@@ -397,9 +468,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload company logo
   app.post("/api/company/logo", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
     try {
-      // Company logos are not currently stored - return success
-      // Future: implement company logo storage
-      res.json({ message: "Company logo upload functionality coming soon" });
+      const companyId = req.auth!.activeCompanyId!;
+      const role = req.auth!.roleInCompany;
+      
+      if (role !== 'owner' && role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const objectStorage = ObjectStorageService.getInstance();
+      
+      // Handle multipart form data
+      const chunks: Buffer[] = [];
+      for await (const chunk of req) {
+        chunks.push(chunk);
+      }
+      const body = Buffer.concat(chunks);
+      
+      // Parse multipart form data
+      const boundary = req.headers['content-type']?.split('boundary=')[1];
+      if (!boundary) {
+        return res.status(400).json({ message: "Invalid request format" });
+      }
+      
+      // Simple multipart parser
+      const parts = body.toString('binary').split('--' + boundary);
+      let fileContent: Buffer | null = null;
+      let fileName = 'logo.jpg';
+      let contentType = 'image/jpeg';
+      
+      for (const part of parts) {
+        if (part.includes('filename=')) {
+          const filenameMatch = part.match(/filename="([^"]+)"/);
+          if (filenameMatch) fileName = filenameMatch[1];
+          
+          const contentTypeMatch = part.match(/Content-Type: ([^\r\n]+)/);
+          if (contentTypeMatch) contentType = contentTypeMatch[1].trim();
+          
+          const headerEnd = part.indexOf('\r\n\r\n');
+          if (headerEnd !== -1) {
+            const content = part.slice(headerEnd + 4);
+            const end = content.lastIndexOf('\r\n');
+            fileContent = Buffer.from(content.slice(0, end), 'binary');
+          }
+        }
+      }
+      
+      if (!fileContent) {
+        return res.status(400).json({ message: "No file provided" });
+      }
+      
+      // Upload to object storage
+      const objectPath = `public/company-logos/${companyId}-${Date.now()}-${fileName}`;
+      await objectStorage.uploadObject(objectPath, fileContent, contentType);
+      
+      // Get public URL
+      const url = objectStorage.getPublicUrl(objectPath);
+      
+      // Update company profile with logo URL
+      await storage.updateCompanyProfile(companyId, { logoUrl: url });
+      
+      res.json({ message: "Company logo uploaded successfully", url });
     } catch (error) {
       console.error('Upload company logo error:', error);
       res.status(500).json({ message: "Server error" });

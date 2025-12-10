@@ -16,6 +16,14 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(), // Platform admins (global, not tied to companies)
+  
+  // Profile fields
+  profilePictureUrl: text("profile_picture_url"),
+  jobTitle: text("job_title"),
+  timezone: text("timezone"),
+  linkedinUrl: text("linkedin_url"),
+  phoneNumber: text("phone_number"),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

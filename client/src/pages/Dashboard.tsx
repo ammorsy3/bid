@@ -437,19 +437,15 @@ export default function Dashboard() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="border-t">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton 
-                onClick={handleLogout}
-                tooltip="Logout"
-                data-testid="button-logout"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Logout</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+        <SidebarFooter className="border-t px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+              {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
+            </div>
+            <span className="text-sm font-medium truncate group-data-[collapsible=icon]:hidden">
+              {user.name || user.username}
+            </span>
+          </div>
         </SidebarFooter>
       </Sidebar>
 

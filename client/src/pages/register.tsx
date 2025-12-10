@@ -143,7 +143,7 @@ export default function Register() {
                 )}
               />
 
-              <NeonButton data-testid="button-submit" type="submit" variant="solid" className="w-full" disabled={isLoading}>
+              <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full" disabled={isLoading}>
                 {isLoading ? "Creating Account..." : "Create Account"}
               </NeonButton>
             </form>

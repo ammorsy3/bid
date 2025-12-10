@@ -483,7 +483,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </Button>
               <NeonButton 
                 type="submit"
-                variant="solid"
+                size="lg"
                 className="flex-1"
                 disabled={submitOfferMutation.isPending || progress < 100 || !canSubmitOffer}
                 data-testid="button-submit-offer"

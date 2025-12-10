@@ -14,12 +14,12 @@ export const CTA = () => {
         </p>
         <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/register">
-            <NeonButton variant="solid" size="lg" className="bg-white text-purple-600 hover:bg-gray-100 shadow-lg transform hover:scale-105" neon={false} data-testid="button-cta-signup">
+            <NeonButton size="lg" className="shadow-lg transform hover:scale-105" data-testid="button-cta-signup">
               Try Bid Now
             </NeonButton>
           </Link>
           <a href="#how-it-works">
-            <NeonButton variant="ghost" size="lg" className="text-white border-white hover:bg-white/10 shadow-lg transform hover:scale-105" data-testid="button-schedule-demo">
+            <NeonButton size="lg" className="shadow-lg transform hover:scale-105" data-testid="button-schedule-demo">
               Learn More
             </NeonButton>
           </a>

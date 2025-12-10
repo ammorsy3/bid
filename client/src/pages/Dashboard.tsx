@@ -25,7 +25,7 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription, PopoverBody, PopoverFooter } from "@/components/ui/popover";
@@ -157,7 +157,7 @@ function SidebarLogoToggle() {
 export default function Dashboard() {
   const { user, activeCompany, companies, logout } = useAuthStore();
   const [, setLocation] = useLocation();
-  const { t, isRtl } = useI18n();
+  const { t, isRtl, language, setLanguage } = useI18n();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
@@ -490,49 +490,141 @@ export default function Dashboard() {
                 </span>
               </button>
             </PopoverTrigger>
-            <PopoverContent side="top" align={isRtl ? "end" : "start"} className="w-64 mb-2">
-              <PopoverHeader>
+            <PopoverContent side="top" align={isRtl ? "end" : "start"} className="w-72 mb-2 p-0">
+              {/* User Header */}
+              <div className="p-4 border-b">
                 <div className="flex items-center gap-3">
                   {user.profilePictureUrl ? (
                     <img 
                       src={user.profilePictureUrl} 
                       alt={user.name || user.username}
-                      className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                      className="h-12 w-12 rounded-full object-cover flex-shrink-0"
                     />
                   ) : (
-                    <div className="h-10 w-10 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-                      {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
+                    <div className="h-12 w-12 rounded-full bg-[#4B5563] flex items-center justify-center text-white text-lg font-medium flex-shrink-0">
+                      {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 1) : user.username.slice(0, 1).toUpperCase()}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <PopoverTitle>{user.name || user.username}</PopoverTitle>
-                    <PopoverDescription className="text-xs truncate">{user.email}</PopoverDescription>
+                    <p className="font-semibold text-sm">{user.name || user.username}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8 text-[#E25E45] hover:text-[#E25E45] hover:bg-[#E25E45]/10" data-testid="button-logout">
-                    <LogOut className="h-4 w-4" />
-                  </Button>
                 </div>
-              </PopoverHeader>
-              <PopoverBody className="space-y-1 px-2 py-2">
-                <Button variant="ghost" className={`w-full ${isRtl ? 'justify-end flex-row-reverse' : 'justify-start'}`} size="sm" onClick={() => setLocation('/settings')} data-testid="menu-settings">
-                  <Settings className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                  {t('settings.accountSettings')}
-                </Button>
-                <Button variant="ghost" className={`w-full ${isRtl ? 'justify-end flex-row-reverse' : 'justify-start'}`} size="sm" data-testid="menu-billing">
-                  <CreditCard className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                  {t('settings.plansBilling')}
-                </Button>
-                <Button variant="ghost" className={`w-full ${isRtl ? 'justify-end flex-row-reverse' : 'justify-start'}`} size="sm" data-testid="menu-notifications">
-                  <Bell className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                  {t('settings.notifications')}
-                </Button>
-              </PopoverBody>
-              <PopoverFooter>
-                <Button variant="ghost" className={`w-full ${isRtl ? 'justify-end flex-row-reverse' : 'justify-start'}`} size="sm" data-testid="menu-feedback">
-                  <MessageSquare className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                  {t('settings.shareFeedback')}
-                </Button>
-              </PopoverFooter>
+              </div>
+
+              {/* Menu Items */}
+              <div className="py-2">
+                <button 
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                  data-testid="menu-invite"
+                >
+                  <Gift className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm flex-1">{t('settings.inviteFriend')}</span>
+                </button>
+
+                <button 
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                  data-testid="menu-notifications"
+                >
+                  <Bell className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm flex-1">{t('settings.notifications')}</span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </button>
+
+                <button 
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                  data-testid="menu-help"
+                >
+                  <HelpCircle className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm flex-1">{t('settings.helpCenter')}</span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </button>
+
+                <button 
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                  onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+                  data-testid="menu-language"
+                >
+                  <Globe className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm flex-1">{t('settings.language')}</span>
+                  <span className="text-xs text-muted-foreground">{language === 'en' ? 'English' : 'العربية'}</span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
+
+              {/* Theme Section */}
+              <div className="px-4 py-3 border-t">
+                <p className="text-sm font-medium mb-3">{t('settings.theme')}</p>
+                <div className="flex bg-muted rounded-lg p-1">
+                  <button
+                    onClick={() => {
+                      document.documentElement.classList.remove('dark');
+                      localStorage.setItem('theme', 'light');
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm transition-colors ${
+                      !document.documentElement.classList.contains('dark') 
+                        ? 'bg-background shadow-sm font-medium' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="theme-light"
+                  >
+                    <Sun className="h-4 w-4" />
+                    {t('settings.light')}
+                  </button>
+                  <button
+                    onClick={() => {
+                      document.documentElement.classList.add('dark');
+                      localStorage.setItem('theme', 'dark');
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm transition-colors ${
+                      document.documentElement.classList.contains('dark') 
+                        ? 'bg-background shadow-sm font-medium' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid="theme-dark"
+                  >
+                    <Moon className="h-4 w-4" />
+                    {t('settings.dark')}
+                  </button>
+                  <button
+                    onClick={() => {
+                      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                      if (prefersDark) {
+                        document.documentElement.classList.add('dark');
+                      } else {
+                        document.documentElement.classList.remove('dark');
+                      }
+                      localStorage.setItem('theme', 'system');
+                    }}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    data-testid="theme-system"
+                  >
+                    <Monitor className="h-4 w-4" />
+                    {t('settings.system')}
+                  </button>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="py-2 border-t">
+                <button 
+                  onClick={() => setLocation('/settings')}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                  data-testid="menu-settings"
+                >
+                  <Settings className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm">{t('settings.settings')}</span>
+                </button>
+
+                <button 
+                  onClick={handleLogout}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                  data-testid="button-logout"
+                >
+                  <LogOut className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm">{t('settings.logout')}</span>
+                </button>
+              </div>
             </PopoverContent>
           </Popover>
         </SidebarFooter>

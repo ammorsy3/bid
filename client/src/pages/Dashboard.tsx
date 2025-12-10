@@ -172,6 +172,9 @@ export default function Dashboard() {
     if (saved) return saved;
     return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
   });
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackType, setFeedbackType] = useState<'bug' | 'feedback' | 'feature'>('feedback');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
   const { toast } = useToast();
 
   if (!user) {
@@ -2088,6 +2091,118 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
       </SidebarInset>
+
+      {/* Floating Feedback Button */}
+      <div className="fixed bottom-6 left-6 z-50 group">
+        <button
+          onClick={() => setFeedbackOpen(true)}
+          className="h-12 w-12 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center hover:scale-105"
+          data-testid="button-floating-feedback"
+        >
+          <MessageSquare className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+        </button>
+        {/* Tooltip */}
+        <div className="absolute left-14 bottom-1/2 translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm px-3 py-2 rounded-lg whitespace-nowrap shadow-lg">
+            {t('settings.submitFeedback')}
+            <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-gray-900 dark:bg-gray-100 rotate-45" />
+          </div>
+        </div>
+      </div>
+
+      {/* Feedback Dialog */}
+      <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('settings.feedbackTitle')}</DialogTitle>
+            <DialogDescription>
+              {t('settings.feedbackDesc')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Feedback Type Selection */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t('settings.feedbackTypeLabel')}</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setFeedbackType('bug')}
+                  className={`flex-1 py-2 px-3 rounded-lg border text-sm transition-colors ${
+                    feedbackType === 'bug' 
+                      ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300' 
+                      : 'border-gray-200 dark:border-gray-700 hover:bg-accent'
+                  }`}
+                  data-testid="feedback-type-bug"
+                >
+                  🐛 {t('settings.bug')}
+                </button>
+                <button
+                  onClick={() => setFeedbackType('feedback')}
+                  className={`flex-1 py-2 px-3 rounded-lg border text-sm transition-colors ${
+                    feedbackType === 'feedback' 
+                      ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300' 
+                      : 'border-gray-200 dark:border-gray-700 hover:bg-accent'
+                  }`}
+                  data-testid="feedback-type-feedback"
+                >
+                  💬 {t('settings.feedbackOption')}
+                </button>
+                <button
+                  onClick={() => setFeedbackType('feature')}
+                  className={`flex-1 py-2 px-3 rounded-lg border text-sm transition-colors ${
+                    feedbackType === 'feature' 
+                      ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300' 
+                      : 'border-gray-200 dark:border-gray-700 hover:bg-accent'
+                  }`}
+                  data-testid="feedback-type-feature"
+                >
+                  ✨ {t('settings.feature')}
+                </button>
+              </div>
+            </div>
+
+            {/* Message Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t('settings.feedbackMessage')}</label>
+              <textarea
+                value={feedbackMessage}
+                onChange={(e) => setFeedbackMessage(e.target.value)}
+                placeholder={t('settings.feedbackPlaceholder')}
+                className="w-full min-h-[120px] px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                data-testid="input-feedback-message"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setFeedbackOpen(false);
+                setFeedbackMessage('');
+              }}
+              className="flex-1"
+              data-testid="button-cancel-feedback"
+            >
+              {t('settings.cancel')}
+            </Button>
+            <Button
+              onClick={() => {
+                toast({
+                  title: t('settings.feedbackSent'),
+                  description: t('settings.feedbackSentDesc'),
+                });
+                setFeedbackOpen(false);
+                setFeedbackMessage('');
+              }}
+              disabled={!feedbackMessage.trim()}
+              className="flex-1"
+              data-testid="button-submit-feedback"
+            >
+              {t('settings.submitButton')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }

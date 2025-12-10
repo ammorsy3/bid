@@ -19,7 +19,9 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription, PopoverBody, PopoverFooter } from "@/components/ui/popover";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -544,73 +546,317 @@ export default function Dashboard() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <Card>
-              <CardHeader className={isRtl ? 'text-right' : ''}>
-                <CardTitle>{t('dashboard.welcomeTitle')}</CardTitle>
-                <CardDescription>
-                  {t('dashboard.welcomeDesc')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card>
-                    <CardHeader className={`pb-3 ${isRtl ? 'text-right' : ''}`}>
-                      <CardTitle className="text-sm font-medium">{t('dashboard.companyStatus')}</CardTitle>
-                    </CardHeader>
-                    <CardContent className={isRtl ? 'text-right' : ''}>
-                      <div className="text-2xl font-bold">
-                        {activeCompany.verificationStatus === 'verified' ? t('dashboard.verified') : activeCompany.verificationStatus}
+            {/* Book a Demo Banner */}
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-100 dark:border-blue-900">
+              <CardContent className="py-4">
+                <div className={`flex items-center justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  <div className={`flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <div className={`flex items-center gap-1 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className="h-8 w-8 rounded-lg bg-orange-500 flex items-center justify-center">
+                        <Play className="h-4 w-4 text-white" />
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {activeCompany.onboardingState === 'completed' ? t('dashboard.profileComplete') : t('dashboard.setupInProgress')}
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className={`pb-3 ${isRtl ? 'text-right' : ''}`}>
-                      <CardTitle className="text-sm font-medium">{t('dashboard.yourRole')}</CardTitle>
-                    </CardHeader>
-                    <CardContent className={isRtl ? 'text-right' : ''}>
-                      <div className="text-2xl font-bold capitalize">
-                        {t(`dashboard.${activeCompany.role}`)}
+                      <div className="h-8 w-8 rounded-lg bg-blue-500 flex items-center justify-center -ml-2">
+                        <Video className="h-4 w-4 text-white" />
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {t('dashboard.inThisCompany')}
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className={`pb-3 ${isRtl ? 'text-right' : ''}`}>
-                      <CardTitle className="text-sm font-medium">{t('dashboard.quickActions')}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {canManage && (
-                        <Button 
-                          variant="outline" 
-                          className="w-full" 
-                          size="sm" 
-                          data-testid="button-create-tender"
-                          onClick={() => setIsCreateModalOpen(true)}
-                        >
-                          {t('dashboard.createTender')}
-                        </Button>
-                      )}
-                      <Button 
-                        variant="outline" 
-                        className="w-full" 
-                        size="sm" 
-                        data-testid="button-view-profile"
-                        onClick={() => setLocation('/company-onboarding')}
-                      >
-                        {t('dashboard.viewProfile')}
-                      </Button>
-                    </CardContent>
-                  </Card>
+                      <div className="h-8 w-8 rounded-lg bg-purple-500 flex items-center justify-center -ml-2">
+                        <Sparkles className="h-4 w-4 text-white" />
+                      </div>
+                    </div>
+                    <div className={isRtl ? 'text-right' : ''}>
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.bookDemoTitle')}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard.bookDemoDesc')}</p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700"
+                    data-testid="button-book-demo"
+                  >
+                    {t('dashboard.bookDemo')}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Get Started Section */}
+            <Card>
+              <CardHeader className={isRtl ? 'text-right' : ''}>
+                <CardTitle className="text-xl">{t('dashboard.getStartedTitle')}</CardTitle>
+                <CardDescription>{t('dashboard.getStartedDesc')}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Progress Bar */}
+                <div className="space-y-2">
+                  <div className={`flex items-center gap-2 text-sm ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <span className="font-medium text-[#E25E45]">0</span>
+                    <span className="text-muted-foreground">{t('dashboard.tasksCompleted')}</span>
+                  </div>
+                  <Progress value={0} className="h-2 bg-gray-100 dark:bg-gray-800" />
+                </div>
+
+                {/* Onboarding Tasks Accordion */}
+                <Accordion type="single" collapsible className="space-y-2">
+                  {/* Task 1: Create your first Tender */}
+                  <AccordionItem value="task-1" className="border rounded-lg px-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                    <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className="h-8 w-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                          <FileText className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                        </div>
+                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'}`}>{t('dashboard.task1Title')}</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      <div className={`flex gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className={`flex-1 space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                          <p className="text-sm text-muted-foreground">{t('dashboard.task1Desc')}</p>
+                          <Button 
+                            className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                            onClick={() => setIsCreateModalOpen(true)}
+                            data-testid="button-task-create-tender"
+                          >
+                            {t('dashboard.task1Action')}
+                          </Button>
+                        </div>
+                        <div className={`hidden md:block w-64 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg ${isRtl ? 'text-right' : ''}`}>
+                          <div className={`flex items-center gap-2 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <Sparkles className="h-4 w-4 text-blue-600" />
+                            <span className="font-medium text-sm text-blue-900 dark:text-blue-100">{t('dashboard.task1Tip')}</span>
+                          </div>
+                          <p className="text-xs text-blue-700 dark:text-blue-300">{t('dashboard.task1TipDesc')}</p>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  {/* Task 2: Complete Company Profile */}
+                  <AccordionItem value="task-2" className="border rounded-lg px-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                    <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                          <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'}`}>{t('dashboard.task2Title')}</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      <div className={`flex gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className={`flex-1 space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                          <p className="text-sm text-muted-foreground">{t('dashboard.task2Desc')}</p>
+                          <Button 
+                            className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                            onClick={() => setLocation('/company-onboarding')}
+                            data-testid="button-task-complete-profile"
+                          >
+                            {t('dashboard.task2Action')}
+                          </Button>
+                        </div>
+                        <div className={`hidden md:block w-64 p-4 bg-green-50 dark:bg-green-950/30 rounded-lg ${isRtl ? 'text-right' : ''}`}>
+                          <div className={`flex items-center gap-2 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <Sparkles className="h-4 w-4 text-green-600" />
+                            <span className="font-medium text-sm text-green-900 dark:text-green-100">{t('dashboard.task2Tip')}</span>
+                          </div>
+                          <p className="text-xs text-green-700 dark:text-green-300">{t('dashboard.task2TipDesc')}</p>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  {/* Task 3: Upload Profile Picture */}
+                  <AccordionItem value="task-3" className="border rounded-lg px-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                    <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                          <Image className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'}`}>{t('dashboard.task3Title')}</span>
+                        <Badge variant="secondary" className="text-xs">{t('dashboard.optional')}</Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      <div className={`flex gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className={`flex-1 space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                          <p className="text-sm text-muted-foreground">{t('dashboard.task3Desc')}</p>
+                          <Button 
+                            className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                            onClick={() => setLocation('/settings')}
+                            data-testid="button-task-upload-photo"
+                          >
+                            {t('dashboard.task3Action')}
+                          </Button>
+                        </div>
+                        <div className={`hidden md:block w-64 p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg ${isRtl ? 'text-right' : ''}`}>
+                          <div className={`flex items-center gap-2 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <Sparkles className="h-4 w-4 text-purple-600" />
+                            <span className="font-medium text-sm text-purple-900 dark:text-purple-100">{t('dashboard.task3Tip')}</span>
+                          </div>
+                          <p className="text-xs text-purple-700 dark:text-purple-300">{t('dashboard.task3TipDesc')}</p>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  {/* Task 4: Invite Vendors */}
+                  <AccordionItem value="task-4" className="border rounded-lg px-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                    <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className="h-8 w-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                          <Link2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        </div>
+                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'}`}>{t('dashboard.task4Title')}</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      <div className={`flex gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className={`flex-1 space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                          <p className="text-sm text-muted-foreground">{t('dashboard.task4Desc')}</p>
+                          <Button 
+                            className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                            onClick={() => setActiveTab('vendors')}
+                            data-testid="button-task-share-link"
+                          >
+                            {t('dashboard.task4Action')}
+                          </Button>
+                        </div>
+                        <div className={`hidden md:block w-64 p-4 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg ${isRtl ? 'text-right' : ''}`}>
+                          <div className={`flex items-center gap-2 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <Sparkles className="h-4 w-4 text-yellow-600" />
+                            <span className="font-medium text-sm text-yellow-900 dark:text-yellow-100">{t('dashboard.task4Tip')}</span>
+                          </div>
+                          <p className="text-xs text-yellow-700 dark:text-yellow-300">{t('dashboard.task4TipDesc')}</p>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  {/* Task 5: Review Proposals */}
+                  <AccordionItem value="task-5" className="border rounded-lg px-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                    <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className="h-8 w-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+                          <ClipboardList className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'}`}>{t('dashboard.task5Title')}</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      <div className={`flex gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className={`flex-1 space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                          <p className="text-sm text-muted-foreground">{t('dashboard.task5Desc')}</p>
+                          <Button 
+                            className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                            onClick={() => setActiveTab('proposals')}
+                            data-testid="button-task-view-proposals"
+                          >
+                            {t('dashboard.task5Action')}
+                          </Button>
+                        </div>
+                        <div className={`hidden md:block w-64 p-4 bg-indigo-50 dark:bg-indigo-950/30 rounded-lg ${isRtl ? 'text-right' : ''}`}>
+                          <div className={`flex items-center gap-2 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <Sparkles className="h-4 w-4 text-indigo-600" />
+                            <span className="font-medium text-sm text-indigo-900 dark:text-indigo-100">{t('dashboard.task5Tip')}</span>
+                          </div>
+                          <p className="text-xs text-indigo-700 dark:text-indigo-300">{t('dashboard.task5TipDesc')}</p>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  {/* Task 6: Explore Settings */}
+                  <AccordionItem value="task-6" className="border rounded-lg px-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                    <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className="h-8 w-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                          <Cog className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        </div>
+                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'}`}>{t('dashboard.task6Title')}</span>
+                        <Badge variant="secondary" className="text-xs">{t('dashboard.optional')}</Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      <div className={`flex gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className={`flex-1 space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                          <p className="text-sm text-muted-foreground">{t('dashboard.task6Desc')}</p>
+                          <Button 
+                            className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                            onClick={() => setLocation('/settings')}
+                            data-testid="button-task-go-settings"
+                          >
+                            {t('dashboard.task6Action')}
+                          </Button>
+                        </div>
+                        <div className={`hidden md:block w-64 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg ${isRtl ? 'text-right' : ''}`}>
+                          <div className={`flex items-center gap-2 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <Sparkles className="h-4 w-4 text-gray-600" />
+                            <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{t('dashboard.task6Tip')}</span>
+                          </div>
+                          <p className="text-xs text-gray-700 dark:text-gray-300">{t('dashboard.task6TipDesc')}</p>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </CardContent>
+            </Card>
+
+            {/* Quick Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className={`pb-3 ${isRtl ? 'text-right' : ''}`}>
+                  <CardTitle className="text-sm font-medium">{t('dashboard.companyStatus')}</CardTitle>
+                </CardHeader>
+                <CardContent className={isRtl ? 'text-right' : ''}>
+                  <div className="text-2xl font-bold">
+                    {activeCompany.verificationStatus === 'verified' ? t('dashboard.verified') : activeCompany.verificationStatus}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {activeCompany.onboardingState === 'completed' ? t('dashboard.profileComplete') : t('dashboard.setupInProgress')}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className={`pb-3 ${isRtl ? 'text-right' : ''}`}>
+                  <CardTitle className="text-sm font-medium">{t('dashboard.yourRole')}</CardTitle>
+                </CardHeader>
+                <CardContent className={isRtl ? 'text-right' : ''}>
+                  <div className="text-2xl font-bold capitalize">
+                    {t(`dashboard.${activeCompany.role}`)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t('dashboard.inThisCompany')}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className={`pb-3 ${isRtl ? 'text-right' : ''}`}>
+                  <CardTitle className="text-sm font-medium">{t('dashboard.quickActions')}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {canManage && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full" 
+                      size="sm" 
+                      data-testid="button-create-tender"
+                      onClick={() => setIsCreateModalOpen(true)}
+                    >
+                      {t('dashboard.createTender')}
+                    </Button>
+                  )}
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    size="sm" 
+                    data-testid="button-view-profile"
+                    onClick={() => setLocation('/company-onboarding')}
+                  >
+                    {t('dashboard.viewProfile')}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Tenders Tab */}

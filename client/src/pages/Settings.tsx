@@ -63,6 +63,18 @@ export default function Settings() {
   });
   const [gdprCompliant, setGdprCompliant] = useState(false);
 
+  // Log settings visit for onboarding task tracking
+  useEffect(() => {
+    const logSettingsVisit = async () => {
+      try {
+        await apiRequest('/api/onboarding-tasks/settings-visited', { method: 'POST' });
+      } catch (error) {
+        // Silently fail - this is just for tracking
+      }
+    };
+    logSettingsVisit();
+  }, []);
+
   // Apply theme when it changes
   useEffect(() => {
     localStorage.setItem('theme', theme);

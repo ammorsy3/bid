@@ -240,6 +240,28 @@ export default function Dashboard() {
     }
   });
 
+  // Fetch onboarding tasks status
+  interface OnboardingTasks {
+    hasTender: boolean;
+    hasCompletedProfile: boolean;
+    hasProfilePicture: boolean;
+    hasVendors: boolean;
+    hasReviewedProposal: boolean;
+    hasVisitedSettings: boolean;
+    completedCount: number;
+  }
+  
+  const { data: onboardingTasks } = useQuery<OnboardingTasks>({
+    queryKey: ['/api/onboarding-tasks'],
+    queryFn: async () => {
+      const response = await fetch('/api/onboarding-tasks', {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (!response.ok) throw new Error("Failed to fetch onboarding tasks");
+      return response.json();
+    }
+  });
+
   // Filter tenders based on search and status
   const filteredTenders = tenders.filter(tender => {
     const matchesSearch = !tenderSearchQuery || 
@@ -588,22 +610,27 @@ export default function Dashboard() {
                 {/* Progress Bar */}
                 <div className="space-y-2">
                   <div className={`flex items-center gap-2 text-sm ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <span className="font-medium text-[#E25E45]">0</span>
+                    <span className="font-medium text-[#E25E45]">{onboardingTasks?.completedCount ?? 0}</span>
                     <span className="text-muted-foreground">{t('dashboard.tasksCompleted')}</span>
                   </div>
-                  <Progress value={0} className="h-2 bg-gray-100 dark:bg-gray-800" />
+                  <Progress value={((onboardingTasks?.completedCount ?? 0) / 6) * 100} className="h-2 bg-gray-100 dark:bg-gray-800" />
                 </div>
 
                 {/* Onboarding Tasks Accordion */}
                 <Accordion type="single" collapsible className="space-y-2">
                   {/* Task 1: Create your first Tender */}
-                  <AccordionItem value="task-1" className="border rounded-lg px-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                  <AccordionItem value="task-1" className={`border rounded-lg px-4 transition-colors ${onboardingTasks?.hasTender ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'}`}>
                     <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
                       <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                        <div className="h-8 w-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                          <FileText className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${onboardingTasks?.hasTender ? 'bg-green-500' : 'bg-orange-100 dark:bg-orange-900/30'}`}>
+                          {onboardingTasks?.hasTender ? (
+                            <Check className="h-4 w-4 text-white" />
+                          ) : (
+                            <FileText className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                          )}
                         </div>
-                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'}`}>{t('dashboard.task1Title')}</span>
+                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasTender ? 'line-through text-muted-foreground' : ''}`}>{t('dashboard.task1Title')}</span>
+                        {onboardingTasks?.hasTender && <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs">{t('dashboard.completed')}</Badge>}
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="pb-4">
@@ -630,13 +657,18 @@ export default function Dashboard() {
                   </AccordionItem>
 
                   {/* Task 2: Complete Company Profile */}
-                  <AccordionItem value="task-2" className="border rounded-lg px-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                  <AccordionItem value="task-2" className={`border rounded-lg px-4 transition-colors ${onboardingTasks?.hasCompletedProfile ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'}`}>
                     <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
                       <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                        <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                          <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${onboardingTasks?.hasCompletedProfile ? 'bg-green-500' : 'bg-blue-100 dark:bg-blue-900/30'}`}>
+                          {onboardingTasks?.hasCompletedProfile ? (
+                            <Check className="h-4 w-4 text-white" />
+                          ) : (
+                            <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          )}
                         </div>
-                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'}`}>{t('dashboard.task2Title')}</span>
+                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasCompletedProfile ? 'line-through text-muted-foreground' : ''}`}>{t('dashboard.task2Title')}</span>
+                        {onboardingTasks?.hasCompletedProfile && <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs">{t('dashboard.completed')}</Badge>}
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="pb-4">
@@ -663,14 +695,22 @@ export default function Dashboard() {
                   </AccordionItem>
 
                   {/* Task 3: Upload Profile Picture */}
-                  <AccordionItem value="task-3" className="border rounded-lg px-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                  <AccordionItem value="task-3" className={`border rounded-lg px-4 transition-colors ${onboardingTasks?.hasProfilePicture ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'}`}>
                     <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
                       <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                        <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                          <Image className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${onboardingTasks?.hasProfilePicture ? 'bg-green-500' : 'bg-purple-100 dark:bg-purple-900/30'}`}>
+                          {onboardingTasks?.hasProfilePicture ? (
+                            <Check className="h-4 w-4 text-white" />
+                          ) : (
+                            <Image className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                          )}
                         </div>
-                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'}`}>{t('dashboard.task3Title')}</span>
-                        <Badge variant="secondary" className="text-xs">{t('dashboard.optional')}</Badge>
+                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasProfilePicture ? 'line-through text-muted-foreground' : ''}`}>{t('dashboard.task3Title')}</span>
+                        {onboardingTasks?.hasProfilePicture ? (
+                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs">{t('dashboard.completed')}</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">{t('dashboard.optional')}</Badge>
+                        )}
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="pb-4">
@@ -697,13 +737,18 @@ export default function Dashboard() {
                   </AccordionItem>
 
                   {/* Task 4: Invite Vendors */}
-                  <AccordionItem value="task-4" className="border rounded-lg px-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                  <AccordionItem value="task-4" className={`border rounded-lg px-4 transition-colors ${onboardingTasks?.hasVendors ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'}`}>
                     <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
                       <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                        <div className="h-8 w-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                          <Link2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${onboardingTasks?.hasVendors ? 'bg-green-500' : 'bg-green-100 dark:bg-green-900/30'}`}>
+                          {onboardingTasks?.hasVendors ? (
+                            <Check className="h-4 w-4 text-white" />
+                          ) : (
+                            <Link2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                          )}
                         </div>
-                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'}`}>{t('dashboard.task4Title')}</span>
+                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasVendors ? 'line-through text-muted-foreground' : ''}`}>{t('dashboard.task4Title')}</span>
+                        {onboardingTasks?.hasVendors && <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs">{t('dashboard.completed')}</Badge>}
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="pb-4">
@@ -730,13 +775,18 @@ export default function Dashboard() {
                   </AccordionItem>
 
                   {/* Task 5: Review Proposals */}
-                  <AccordionItem value="task-5" className="border rounded-lg px-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                  <AccordionItem value="task-5" className={`border rounded-lg px-4 transition-colors ${onboardingTasks?.hasReviewedProposal ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'}`}>
                     <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
                       <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                        <div className="h-8 w-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                          <ClipboardList className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${onboardingTasks?.hasReviewedProposal ? 'bg-green-500' : 'bg-indigo-100 dark:bg-indigo-900/30'}`}>
+                          {onboardingTasks?.hasReviewedProposal ? (
+                            <Check className="h-4 w-4 text-white" />
+                          ) : (
+                            <ClipboardList className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                          )}
                         </div>
-                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'}`}>{t('dashboard.task5Title')}</span>
+                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasReviewedProposal ? 'line-through text-muted-foreground' : ''}`}>{t('dashboard.task5Title')}</span>
+                        {onboardingTasks?.hasReviewedProposal && <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs">{t('dashboard.completed')}</Badge>}
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="pb-4">
@@ -763,14 +813,22 @@ export default function Dashboard() {
                   </AccordionItem>
 
                   {/* Task 6: Explore Settings */}
-                  <AccordionItem value="task-6" className="border rounded-lg px-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                  <AccordionItem value="task-6" className={`border rounded-lg px-4 transition-colors ${onboardingTasks?.hasVisitedSettings ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'}`}>
                     <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
                       <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                        <div className="h-8 w-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                          <Cog className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${onboardingTasks?.hasVisitedSettings ? 'bg-green-500' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                          {onboardingTasks?.hasVisitedSettings ? (
+                            <Check className="h-4 w-4 text-white" />
+                          ) : (
+                            <Cog className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                          )}
                         </div>
-                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'}`}>{t('dashboard.task6Title')}</span>
-                        <Badge variant="secondary" className="text-xs">{t('dashboard.optional')}</Badge>
+                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasVisitedSettings ? 'line-through text-muted-foreground' : ''}`}>{t('dashboard.task6Title')}</span>
+                        {onboardingTasks?.hasVisitedSettings ? (
+                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs">{t('dashboard.completed')}</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">{t('dashboard.optional')}</Badge>
+                        )}
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="pb-4">

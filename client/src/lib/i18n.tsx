@@ -166,6 +166,7 @@ const translations = {
       task6Tip: "Make it yours",
       task6TipDesc: "Personalize Bid to match your workflow.",
       optional: "Optional",
+      completed: "Completed",
     }
   },
   ar: {
@@ -331,6 +332,7 @@ const translations = {
       task6Tip: "اجعلها ملكك",
       task6TipDesc: "خصص Bid ليتناسب مع طريقة عملك.",
       optional: "اختياري",
+      completed: "مكتمل",
     }
   }
 };

@@ -503,6 +503,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ==========================================================================
+  // ONBOARDING ROUTES
+  // ==========================================================================
+
+  // Get onboarding tasks status
+  app.get("/api/onboarding-tasks", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const tasks = await storage.getOnboardingTasksStatus(
+        req.auth!.userId,
+        req.auth!.activeCompanyId!
+      );
+      res.json(tasks);
+    } catch (error) {
+      console.error('Get onboarding tasks error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Log settings visit event
+  app.post("/api/onboarding-tasks/settings-visited", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      // Check if already logged to avoid duplicates
+      const alreadyVisited = await storage.hasUserVisitedSettings(req.auth!.userId);
+      if (!alreadyVisited) {
+        await storage.logProductEvent({
+          eventType: 'settings_visited',
+          userId: req.auth!.userId,
+          companyId: req.auth!.activeCompanyId || undefined,
+          metadata: { timestamp: new Date().toISOString() }
+        });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Log settings visit error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ==========================================================================
   // COMPANY ROUTES
   // ==========================================================================
 

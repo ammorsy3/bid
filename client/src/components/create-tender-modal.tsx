@@ -335,10 +335,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               onLoadDraft={handleLoadDraft}
             />
           </div>
-          <p className="text-sm text-neutral-600 mt-2">
-            Press <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-300 rounded text-xs">Ctrl+Enter</kbd> to submit • <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-300 rounded text-xs">Esc</kbd> to close
-          </p>
-        </DialogHeader>
+          </DialogHeader>
 
         {showDraftPrompt && (
           <Alert className="bg-primary-50 border-primary-200">

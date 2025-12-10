@@ -982,7 +982,7 @@ export default function Dashboard() {
                                 <div className="flex-1">
                                   <div className="flex items-center gap-3 mb-2">
                                     <h3 
-                                      className="text-lg font-semibold cursor-pointer hover:text-blue-600"
+                                      className="text-xl font-bold text-neutral-900 cursor-pointer hover:text-blue-600"
                                       onClick={() => setLocation(`/tenders/${tender.id}`)}
                                       data-testid={`text-tender-title-${tender.id}`}
                                     >
@@ -992,30 +992,30 @@ export default function Dashboard() {
                                       {statusBadge.label}
                                     </Badge>
                                   </div>
-                                  <p className="text-sm text-muted-foreground line-clamp-2" data-testid={`text-tender-description-${tender.id}`}>
+                                  <p className="text-sm font-medium text-neutral-600 line-clamp-2" data-testid={`text-tender-description-${tender.id}`}>
                                     {tender.description}
                                   </p>
                                 </div>
                               </div>
                               
                               <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
-                                <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <Calendar className="h-4 w-4" />
-                                  <span className={isDeadlineSoon ? 'text-red-600 font-medium' : ''}>
+                                  <span className={isDeadlineSoon ? 'text-red-600 font-semibold' : ''}>
                                     {formatDate(tender.deadline)}
                                   </span>
                                 </div>
-                                <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <Send className="h-4 w-4" />
                                   <span data-testid={`text-proposals-count-${tender.id}`}>
                                     {tender.offersCount} {t('dashboard.offers')}
                                   </span>
                                 </div>
-                                <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <Mail className="h-4 w-4" />
                                   <span>{tender.invitedCount} {t('dashboard.invited')}</span>
                                 </div>
-                                <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <FileText className="h-4 w-4" />
                                   <span>{tender.budgetRange || tender.budget || t('dashboard.budget')}</span>
                                 </div>

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { NeonButton } from "@/components/ui/neon-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -113,9 +114,9 @@ export default function Login() {
                 )}
               />
 
-              <Button data-testid="button-submit" type="submit" className="w-full bg-primary-600 hover:bg-primary-700" disabled={isLoading}>
+              <NeonButton data-testid="button-submit" type="submit" variant="solid" className="w-full" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign In"}
-              </Button>
+              </NeonButton>
             </form>
           </Form>
           

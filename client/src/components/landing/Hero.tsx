@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { NeonButton } from "@/components/ui/neon-button";
 import { ShieldCheck, Globe, Cpu } from "lucide-react";
 
 export const Hero = () => {
@@ -17,14 +18,14 @@ export const Hero = () => {
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/register">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-opacity shadow-lg transform hover:scale-105" data-testid="button-hero-cta">
+                <NeonButton variant="solid" size="lg" className="shadow-lg transform hover:scale-105" data-testid="button-hero-cta">
                   Try Bid Now
-                </Button>
+                </NeonButton>
               </Link>
               <a href="#how-it-works">
-                <Button size="lg" variant="outline" className="shadow-lg transform hover:scale-105" data-testid="button-watch-demo">
+                <NeonButton variant="ghost" size="lg" className="shadow-lg transform hover:scale-105 border-gray-300" data-testid="button-watch-demo">
                   Watch Demo
-                </Button>
+                </NeonButton>
               </a>
             </div>
             <div className="mt-8 flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500">

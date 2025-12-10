@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { NeonButton } from "@/components/ui/neon-button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { SmartTextarea } from "@/components/ui/smart-input";
 import { FormProgress, DraftIndicator } from "@/components/ui/form-progress";
@@ -480,14 +481,15 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               >
                 Cancel
               </Button>
-              <Button 
+              <NeonButton 
                 type="submit"
-                className="flex-1 bg-primary-600 hover:bg-primary-700"
+                variant="solid"
+                className="flex-1"
                 disabled={submitOfferMutation.isPending || progress < 100 || !canSubmitOffer}
                 data-testid="button-submit-offer"
               >
                 {submitOfferMutation.isPending ? "Submitting..." : !canSubmitOffer ? "Verification Required" : "Submit Offer"}
-              </Button>
+              </NeonButton>
             </div>
           </form>
         </Form>

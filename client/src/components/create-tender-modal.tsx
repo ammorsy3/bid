@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { NeonButton } from "@/components/ui/neon-button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -618,14 +619,15 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               >
                 Cancel
               </Button>
-              <Button 
+              <NeonButton 
                 type="submit"
-                className="flex-1 bg-primary-600 hover:bg-primary-700"
+                variant="solid"
+                className="flex-1"
                 disabled={createTenderMutation.isPending || progress < 100}
                 data-testid="button-publish-tender"
               >
                 {createTenderMutation.isPending ? "Creating..." : "Publish Tender"}
-              </Button>
+              </NeonButton>
             </div>
           </form>
         </Form>

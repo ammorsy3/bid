@@ -395,7 +395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No file provided" });
       }
 
-      const objectStorage = ObjectStorageService.getInstance();
+      const objectStorage = new ObjectStorageService();
       
       // Upload to object storage
       const objectPath = `public/profile-pictures/${req.auth!.userId}-${Date.now()}-${file.originalname}`;
@@ -459,7 +459,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No file provided" });
       }
       
-      const objectStorage = ObjectStorageService.getInstance();
+      const objectStorage = new ObjectStorageService();
       
       // Upload to object storage
       const objectPath = `public/company-logos/${companyId}-${Date.now()}-${file.originalname}`;

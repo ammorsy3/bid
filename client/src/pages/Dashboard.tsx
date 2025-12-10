@@ -428,7 +428,7 @@ export default function Dashboard() {
                       onClick={() => setActiveTab(item.value)}
                       tooltip={item.label}
                       data-testid={`sidebar-${item.value}`}
-                      className={`py-3 text-base ${activeTab === item.value ? "bg-[#E25E45]/10 text-[#E25E45] hover:bg-[#E25E45]/20 hover:text-[#E25E45]" : ""}`}
+                      className="peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left outline-none ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 h-8 py-3 bg-[#E25E45]/10 text-[#E25E45] hover:bg-[#E25E45]/20 hover:text-[#E25E45] text-[19px]"
                     >
                       <item.icon className="h-5 w-5" />
                       <span className="text-base font-medium">{item.label}</span>
@@ -507,7 +507,6 @@ export default function Dashboard() {
           </Popover>
         </SidebarFooter>
       </Sidebar>
-
       <SidebarInset className="bg-gray-50 dark:bg-gray-900">
         {/* Header */}
         <header className={`flex h-14 items-center gap-4 border-b bg-white dark:bg-gray-800 px-6 ${isRtl ? 'flex-row-reverse' : ''}`}>

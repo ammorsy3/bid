@@ -5,8 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { SmartInput, SmartTextarea } from "@/components/ui/smart-input";
 import { FormProgress, DraftIndicator } from "@/components/ui/form-progress";
-import { JollyDatePicker } from "@/components/ui/date-picker";
-import { parseDate, today, getLocalTimeZone, CalendarDate } from "@internationalized/date";
+import { TimePicker } from "@/components/ui/time-picker";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -420,30 +419,29 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               <FormField
                 control={form.control}
                 name="deadline"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <JollyDatePicker
-                        label="Submission Deadline *"
-                        granularity="day"
-                        minValue={today(getLocalTimeZone())}
-                        value={field.value ? parseDate(field.value.split('T')[0]) : undefined}
-                        onChange={(date) => {
-                          if (date) {
-                            const isoDate = date.toString();
-                            field.onChange(isoDate);
-                            form.trigger('deadline');
-                          } else {
-                            field.onChange('');
-                          }
-                        }}
-                        onBlur={field.onBlur}
-                        data-testid="input-deadline"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const dateValue = field.value ? new Date(field.value) : undefined;
+                  return (
+                    <FormItem>
+                      <FormLabel>Submission Deadline *</FormLabel>
+                      <FormControl>
+                        <TimePicker
+                          date={dateValue}
+                          setDate={(date) => {
+                            if (date) {
+                              field.onChange(date.toISOString());
+                              form.trigger('deadline');
+                            } else {
+                              field.onChange('');
+                            }
+                          }}
+                          data-testid="input-deadline"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <FormField

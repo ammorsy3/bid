@@ -52,9 +52,8 @@ export default function TenderCard({ tender }: TenderCardProps) {
 
   return (
     <GlowCard 
-      customSize 
       glowColor={getGlowColor(tender.status)}
-      className="w-full !aspect-auto !grid-rows-none bg-white/80"
+      className="w-full bg-white/90 rounded-xl"
     >
       <div className="p-6 relative z-10">
         <div className="flex items-start justify-between mb-3">

@@ -286,6 +286,54 @@ export class ObjectStorageService {
       path: normalizedPath,
     };
   }
+
+  // Upload a file to public storage (for profile pictures, logos, etc.)
+  async uploadPublicFile({
+    buffer,
+    folder,
+    filename,
+    contentType,
+  }: {
+    buffer: Buffer;
+    folder: string;
+    filename: string;
+    contentType: string;
+  }): Promise<{ url: string; path: string }> {
+    const publicPaths = this.getPublicObjectSearchPaths();
+    if (publicPaths.length === 0) {
+      throw new Error("No public object storage paths configured");
+    }
+    
+    // Use the first public path as the upload destination
+    const publicPath = publicPaths[0];
+    
+    const objectId = randomUUID();
+    const extension = filename.split('.').pop() || '';
+    const objectName = extension ? `${objectId}.${extension}` : objectId;
+    const fullPath = `${publicPath}/${folder}/${objectName}`;
+
+    const { bucketName, objectName: finalObjectName } = parseObjectPath(fullPath);
+    const bucket = objectStorageClient.bucket(bucketName);
+    const file = bucket.file(finalObjectName);
+
+    // Upload the buffer
+    await file.save(buffer, {
+      contentType,
+      metadata: {
+        contentType,
+      },
+    });
+
+    // Set public visibility
+    await setObjectAclPolicy(file, { visibility: "public" });
+
+    // Return a URL that can be served through our objects endpoint
+    const normalizedPath = `/objects/${folder}/${objectName}`;
+    return {
+      url: normalizedPath,
+      path: normalizedPath,
+    };
+  }
 }
 
 function parseObjectPath(path: string): {

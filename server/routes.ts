@@ -395,22 +395,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No file provided" });
       }
 
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ message: "Invalid file type. Only jpg, jpeg, png, gif, webp are allowed." });
+      }
+
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        return res.status(400).json({ message: "File too large. Maximum size is 5MB." });
+      }
+
       const objectStorage = new ObjectStorageService();
       
-      // Upload to object storage
-      const objectPath = `public/profile-pictures/${req.auth!.userId}-${Date.now()}-${file.originalname}`;
-      await objectStorage.uploadObject(objectPath, file.buffer, file.mimetype);
-      
-      // Get public URL
-      const url = objectStorage.getPublicUrl(objectPath);
+      // Upload to public storage
+      const result = await objectStorage.uploadPublicFile({
+        buffer: file.buffer,
+        folder: 'profile-pictures',
+        filename: file.originalname,
+        contentType: file.mimetype,
+      });
       
       // Update user profile with picture URL
-      await storage.updateUser(req.auth!.userId, { profilePictureUrl: url });
+      await storage.updateUser(req.auth!.userId, { profilePictureUrl: result.url });
       
-      res.json({ message: "Profile picture uploaded successfully", url });
+      res.json({ message: "Profile picture uploaded successfully", url: result.url });
     } catch (error) {
       console.error('Upload profile picture error:', error);
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: "Failed to upload profile picture" });
     }
   });
 
@@ -458,23 +470,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!file) {
         return res.status(400).json({ message: "No file provided" });
       }
+
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ message: "Invalid file type. Only jpg, jpeg, png, gif, webp are allowed." });
+      }
+
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        return res.status(400).json({ message: "File too large. Maximum size is 5MB." });
+      }
       
       const objectStorage = new ObjectStorageService();
       
-      // Upload to object storage
-      const objectPath = `public/company-logos/${companyId}-${Date.now()}-${file.originalname}`;
-      await objectStorage.uploadObject(objectPath, file.buffer, file.mimetype);
-      
-      // Get public URL
-      const url = objectStorage.getPublicUrl(objectPath);
+      // Upload to public storage
+      const result = await objectStorage.uploadPublicFile({
+        buffer: file.buffer,
+        folder: 'company-logos',
+        filename: file.originalname,
+        contentType: file.mimetype,
+      });
       
       // Update company profile with logo URL
-      await storage.updateCompanyProfile(companyId, { logoUrl: url });
+      await storage.updateCompanyProfile(companyId, { logoUrl: result.url });
       
-      res.json({ message: "Company logo uploaded successfully", url });
+      res.json({ message: "Company logo uploaded successfully", url: result.url });
     } catch (error) {
       console.error('Upload company logo error:', error);
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: "Failed to upload company logo" });
     }
   });
 

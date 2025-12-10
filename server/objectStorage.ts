@@ -181,6 +181,36 @@ export class ObjectStorageService {
     return objectFile;
   }
 
+  // Get a public file (for profile pictures, logos, etc.)
+  async getPublicFile(objectPath: string): Promise<File> {
+    if (!objectPath.startsWith("/objects/")) {
+      throw new ObjectNotFoundError();
+    }
+
+    const parts = objectPath.slice(1).split("/");
+    if (parts.length < 2) {
+      throw new ObjectNotFoundError();
+    }
+
+    // Extract the path after /objects/
+    const entityId = parts.slice(1).join("/");
+    
+    // Try public search paths first
+    const publicPaths = this.getPublicObjectSearchPaths();
+    for (const publicPath of publicPaths) {
+      const objectEntityPath = `${publicPath}/${entityId}`;
+      const { bucketName, objectName } = parseObjectPath(objectEntityPath);
+      const bucket = objectStorageClient.bucket(bucketName);
+      const objectFile = bucket.file(objectName);
+      const [exists] = await objectFile.exists();
+      if (exists) {
+        return objectFile;
+      }
+    }
+    
+    throw new ObjectNotFoundError();
+  }
+
   normalizeObjectEntityPath(
     rawPath: string,
   ): string {

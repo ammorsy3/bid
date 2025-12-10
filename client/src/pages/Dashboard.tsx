@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Button } from "@/components/ui/button";
+import { ParticleButton } from "@/components/ui/particle-button";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -890,14 +891,16 @@ export default function Dashboard() {
                     {t('dashboard.tendersDesc')}
                   </p>
                 </div>
-                <Button 
-                  onClick={() => setIsCreateModalOpen(true)}
+                <ParticleButton 
+                  onSuccess={() => setIsCreateModalOpen(true)}
+                  successDuration={600}
+                  particleColor="bg-blue-400"
                   className="bg-blue-600 hover:bg-blue-700"
                   data-testid="button-create-tender-header"
                 >
                   <Plus className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                   {t('dashboard.newTender')}
-                </Button>
+                </ParticleButton>
               </div>
 
               {/* Filters */}

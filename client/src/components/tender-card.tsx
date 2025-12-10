@@ -1,6 +1,6 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { GlowCard } from "@/components/ui/glow-card";
 import { Calendar, Mail, Send, MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
@@ -15,71 +15,95 @@ interface TenderCardProps {
     status: string;
     invitedCount: number;
     offersCount: number;
+    budget?: string | null;
   };
 }
 
 export default function TenderCard({ tender }: TenderCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'published': return 'bg-blue-100 text-blue-800';
+      case 'published': return 'bg-green-100 text-green-800';
       case 'draft': return 'bg-gray-100 text-gray-800';
-      case 'closed': return 'bg-green-100 text-green-800';
+      case 'closed': return 'bg-orange-100 text-orange-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getUrgencyColor = (deadline: string) => {
-    const deadlineDate = new Date(deadline);
-    const now = new Date();
-    const diffTime = deadlineDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays <= 3) return 'text-error-600';
-    return 'text-neutral-900';
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'published': return 'Published';
+      case 'draft': return 'Draft';
+      case 'closed': return 'Closed';
+      case 'cancelled': return 'Cancelled';
+      default: return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+  };
+
+  const getGlowColor = (status: string): 'blue' | 'purple' | 'green' | 'red' | 'orange' => {
+    switch (status) {
+      case 'published': return 'blue';
+      case 'draft': return 'purple';
+      case 'closed': return 'orange';
+      case 'cancelled': return 'red';
+      default: return 'blue';
+    }
   };
 
   return (
-    <Card className="bg-white rounded-xl shadow-sm border border-neutral-200 hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">{tender.title}</h3>
-            <p className="text-sm text-neutral-600 line-clamp-2">{tender.description}</p>
-          </div>
+    <GlowCard 
+      customSize 
+      glowColor={getGlowColor(tender.status)}
+      className="w-full !aspect-auto !grid-rows-none bg-white/80"
+    >
+      <div className="p-6 relative z-10">
+        <div className="flex items-start justify-between mb-3">
+          <h3 className="text-lg font-semibold text-neutral-900">{tender.title}</h3>
           <Badge className={`${getStatusColor(tender.status)} text-xs font-medium px-2.5 py-0.5 rounded-full ml-3`}>
-            {tender.status}
+            {getStatusLabel(tender.status)}
           </Badge>
         </div>
         
-        <div className="space-y-3 mb-4">
-          <div className="flex items-center text-sm text-neutral-600">
-            <Calendar className="w-4 h-4 mr-2" />
-            <span>Deadline: <span className={`font-medium ${getUrgencyColor(tender.deadline)}`}>
-              {format(new Date(tender.deadline), 'MMM d, yyyy', { locale: enUS })}
-            </span></span>
+        <p className="text-sm text-neutral-600 line-clamp-2 mb-4">{tender.description}</p>
+        
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-neutral-600 mb-4">
+          <div className="flex items-center">
+            <Calendar className="w-4 h-4 mr-2 text-green-600" />
+            <span>{format(new Date(tender.deadline), 'MMM d, yyyy', { locale: enUS })}</span>
           </div>
-          <div className="flex items-center text-sm text-neutral-600">
-            <Mail className="w-4 h-4 mr-2" />
-            <span><span className="font-medium">{tender.invitedCount}</span> vendors invited</span>
-          </div>
-          <div className="flex items-center text-sm text-neutral-600">
+          <div className="flex items-center">
             <Send className="w-4 h-4 mr-2" />
-            <span><span className="font-medium text-primary-600">{tender.offersCount}</span> offers received</span>
+            <span>{tender.offersCount} offers</span>
           </div>
+          <div className="flex items-center">
+            <Mail className="w-4 h-4 mr-2" />
+            <span>{tender.invitedCount} invited</span>
+          </div>
+          {tender.budget && (
+            <div className="flex items-center">
+              <span className="text-neutral-500 mr-1">$</span>
+              <span>{tender.budget}</span>
+            </div>
+          )}
         </div>
 
-        <div className="flex space-x-2">
-          <Button asChild className="flex-1 bg-primary-600 hover:bg-primary-700 text-white">
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm" className="text-neutral-700">
             <Link href={`/tenders/${tender.id}`}>
-              View Details
+              View
             </Link>
           </Button>
-          <Button variant="ghost" size="sm" className="px-4 py-2 text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100">
-            <MoreHorizontal className="h-4 w-4" />
+          <Button variant="outline" size="sm" className="text-neutral-700">
+            Copy Link
+          </Button>
+          <Button variant="outline" size="sm" className="text-neutral-700">
+            Edit
+          </Button>
+          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+            Delete
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </GlowCard>
   );
 }

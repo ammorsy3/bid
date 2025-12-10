@@ -1070,7 +1070,7 @@ export default function Dashboard() {
                       })}
                     </div>
                   </ScrollArea>
-                  <ProgressiveBlur position="bottom" height="30%" />
+                  <ProgressiveBlur position="bottom" height="21%" />
                 </div>
               )}
             </TabsContent>
@@ -1222,7 +1222,7 @@ export default function Dashboard() {
                         })}
                       </div>
                     </ScrollArea>
-                    <ProgressiveBlur position="bottom" height="30%" />
+                    <ProgressiveBlur position="bottom" height="21%" />
                   </div>
                 )}
               </TabsContent>
@@ -1395,7 +1395,7 @@ export default function Dashboard() {
                         })}
                       </div>
                     </ScrollArea>
-                    <ProgressiveBlur position="bottom" height="30%" />
+                    <ProgressiveBlur position="bottom" height="21%" />
                   </div>
                 )}
               </TabsContent>

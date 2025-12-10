@@ -18,7 +18,8 @@ import {
   SidebarTrigger,
   useSidebar
 } from "@/components/ui/sidebar";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare } from "lucide-react";
+import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription, PopoverBody, PopoverFooter } from "@/components/ui/popover";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -438,14 +439,54 @@ export default function Dashboard() {
         </SidebarContent>
 
         <SidebarFooter className="border-t px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-              {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
-            </div>
-            <span className="text-sm font-medium truncate group-data-[collapsible=icon]:hidden">
-              {user.name || user.username}
-            </span>
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="flex items-center gap-3 w-full hover:bg-accent rounded-md p-1 -m-1 transition-colors" data-testid="button-user-menu">
+                <div className="h-8 w-8 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                  {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
+                </div>
+                <span className="text-sm font-medium truncate group-data-[collapsible=icon]:hidden">
+                  {user.name || user.username}
+                </span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent side="top" align="start" className="w-64 mb-2">
+              <PopoverHeader>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                    {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <PopoverTitle>{user.name || user.username}</PopoverTitle>
+                    <PopoverDescription className="text-xs truncate">{user.email}</PopoverDescription>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8 text-[#E25E45] hover:text-[#E25E45] hover:bg-[#E25E45]/10" data-testid="button-logout">
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
+              </PopoverHeader>
+              <PopoverBody className="space-y-1 px-2 py-2">
+                <Button variant="ghost" className="w-full justify-start" size="sm" data-testid="menu-settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" size="sm" data-testid="menu-billing">
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Plans & Billing
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" size="sm" data-testid="menu-notifications">
+                  <Bell className="mr-2 h-4 w-4" />
+                  Notifications
+                </Button>
+              </PopoverBody>
+              <PopoverFooter>
+                <Button variant="ghost" className="w-full justify-start" size="sm" data-testid="menu-feedback">
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Share Feedback
+                </Button>
+              </PopoverFooter>
+            </PopoverContent>
+          </Popover>
         </SidebarFooter>
       </Sidebar>
 

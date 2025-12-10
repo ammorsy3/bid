@@ -58,6 +58,9 @@ const translations = {
       gettingStarted: "Getting Started",
       faqs: "FAQs",
       contactSupport: "Contact Support",
+      noNotifications: "No new notifications",
+      newProposal: "New Proposal Received",
+      viewAllNotifications: "View all notifications",
     },
     dashboard: {
       overview: "Overview",
@@ -234,6 +237,9 @@ const translations = {
       gettingStarted: "البدء",
       faqs: "الأسئلة الشائعة",
       contactSupport: "تواصل مع الدعم",
+      noNotifications: "لا توجد إشعارات جديدة",
+      newProposal: "تم استلام عرض جديد",
+      viewAllNotifications: "عرض جميع الإشعارات",
     },
     dashboard: {
       overview: "نظرة عامة",

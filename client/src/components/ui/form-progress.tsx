@@ -13,9 +13,7 @@ export function FormProgress({ progress, showPercentage = true, steps }: FormPro
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-neutral-700">
-          Form Progress
-        </span>
+        <span className="text-sm font-medium text-neutral-700">Progress</span>
         {showPercentage && (
           <span className="text-sm font-semibold text-neutral-900">
             {progress}%

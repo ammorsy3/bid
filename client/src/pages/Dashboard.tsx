@@ -613,7 +613,7 @@ export default function Dashboard() {
                     <span className="font-medium text-[#E25E45]">{onboardingTasks?.completedCount ?? 0}</span>
                     <span className="text-muted-foreground">{t('dashboard.tasksCompleted')}</span>
                   </div>
-                  <Progress value={((onboardingTasks?.completedCount ?? 0) / 6) * 100} className="h-2 bg-gray-100 dark:bg-gray-800" />
+                  <Progress value={((onboardingTasks?.completedCount ?? 0) / 5) * 100} className="h-2 bg-gray-100 dark:bg-gray-800" />
                 </div>
 
                 {/* Onboarding Tasks Accordion */}
@@ -807,48 +807,6 @@ export default function Dashboard() {
                             <span className="font-medium text-sm text-indigo-900 dark:text-indigo-100">{t('dashboard.task5Tip')}</span>
                           </div>
                           <p className="text-xs text-indigo-700 dark:text-indigo-300">{t('dashboard.task5TipDesc')}</p>
-                        </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  {/* Task 6: Explore Settings */}
-                  <AccordionItem value="task-6" className={`border rounded-lg px-4 transition-colors ${onboardingTasks?.hasVisitedSettings ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'}`}>
-                    <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                      <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${onboardingTasks?.hasVisitedSettings ? 'bg-green-500' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                          {onboardingTasks?.hasVisitedSettings ? (
-                            <Check className="h-4 w-4 text-white" />
-                          ) : (
-                            <Cog className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                          )}
-                        </div>
-                        <span className={`font-medium ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasVisitedSettings ? 'line-through text-muted-foreground' : ''}`}>{t('dashboard.task6Title')}</span>
-                        {onboardingTasks?.hasVisitedSettings ? (
-                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs">{t('dashboard.completed')}</Badge>
-                        ) : (
-                          <Badge variant="secondary" className="text-xs">{t('dashboard.optional')}</Badge>
-                        )}
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-4">
-                      <div className={`flex gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                        <div className={`flex-1 space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                          <p className="text-sm text-muted-foreground">{t('dashboard.task6Desc')}</p>
-                          <Button 
-                            className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
-                            onClick={() => setLocation('/settings')}
-                            data-testid="button-task-go-settings"
-                          >
-                            {t('dashboard.task6Action')}
-                          </Button>
-                        </div>
-                        <div className={`hidden md:block w-64 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg ${isRtl ? 'text-right' : ''}`}>
-                          <div className={`flex items-center gap-2 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <Sparkles className="h-4 w-4 text-gray-600" />
-                            <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{t('dashboard.task6Tip')}</span>
-                          </div>
-                          <p className="text-xs text-gray-700 dark:text-gray-300">{t('dashboard.task6TipDesc')}</p>
                         </div>
                       </div>
                     </AccordionContent>

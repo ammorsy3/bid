@@ -575,7 +575,7 @@ export default function Dashboard() {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             {/* Book a Demo Banner */}
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-100 dark:border-blue-900">
+            <Card className="bg-gradient-to-b from-blue-100/80 via-blue-50/50 to-white dark:from-blue-900/40 dark:via-blue-950/20 dark:to-background border-blue-100/50 dark:border-blue-900/50">
               <CardContent className="py-4">
                 <div className={`flex items-center justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
                   <div className={`flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>

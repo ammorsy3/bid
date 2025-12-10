@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Upload, User, Building2, Loader2, Linkedin, Phone, Clock, Briefcase } from "lucide-react";
+import { X, Upload, User, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -22,6 +23,15 @@ const TIMEZONES = [
   { value: "America/New_York", label: "New York (GMT-5)" },
   { value: "America/Los_Angeles", label: "Los Angeles (GMT-8)" },
 ];
+
+const LANGUAGES = [
+  { value: "en", label: "English" },
+  { value: "ar", label: "Arabic" },
+  { value: "fr", label: "French" },
+  { value: "es", label: "Spanish" },
+];
+
+type ThemeOption = "light" | "dark" | "system";
 
 type SettingsTab = "account" | "company";
 
@@ -46,6 +56,10 @@ export default function Settings() {
   const [companyBio, setCompanyBio] = useState(activeCompany?.profile?.bio || '');
   const [companyLogo, setCompanyLogo] = useState<File | null>(null);
   const [companyLogoPreview, setCompanyLogoPreview] = useState<string | null>(activeCompany?.profile?.logoUrl || null);
+
+  const [theme, setTheme] = useState<ThemeOption>("light");
+  const [language, setLanguage] = useState("en");
+  const [gdprCompliant, setGdprCompliant] = useState(false);
 
   if (!user) {
     setLocation("/login");
@@ -450,6 +464,124 @@ export default function Settings() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Appearance Section */}
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold">Appearance</h2>
+                <Card>
+                  <CardContent className="pt-6 space-y-6">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <Label>Theme</Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Change the appearance of the platform.
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setTheme("light")}
+                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all ${
+                            theme === "light" 
+                              ? "ring-2 ring-[#E25E45]" 
+                              : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                          }`}
+                          data-testid="theme-light"
+                        >
+                          {theme === "light" && (
+                            <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-0.5">
+                              <Check className="h-3 w-3 text-white" />
+                            </div>
+                          )}
+                          <div className="w-14 h-10 bg-white border-2 border-gray-200 rounded-md flex items-center justify-center text-gray-700 font-semibold">
+                            Aa
+                          </div>
+                          <span className="text-xs text-muted-foreground">Light</span>
+                        </button>
+                        <button
+                          onClick={() => setTheme("dark")}
+                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all ${
+                            theme === "dark" 
+                              ? "ring-2 ring-[#E25E45]" 
+                              : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                          }`}
+                          data-testid="theme-dark"
+                        >
+                          {theme === "dark" && (
+                            <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-0.5">
+                              <Check className="h-3 w-3 text-white" />
+                            </div>
+                          )}
+                          <div className="w-14 h-10 bg-gray-800 border-2 border-gray-600 rounded-md flex items-center justify-center text-white font-semibold">
+                            Aa
+                          </div>
+                          <span className="text-xs text-muted-foreground">Dark</span>
+                        </button>
+                        <button
+                          onClick={() => setTheme("system")}
+                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all ${
+                            theme === "system" 
+                              ? "ring-2 ring-[#E25E45]" 
+                              : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                          }`}
+                          data-testid="theme-system"
+                        >
+                          {theme === "system" && (
+                            <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-0.5">
+                              <Check className="h-3 w-3 text-white" />
+                            </div>
+                          )}
+                          <div className="w-14 h-10 bg-gradient-to-r from-white to-gray-800 border-2 border-gray-300 rounded-md flex items-center justify-center">
+                            <span className="text-gray-700 font-semibold text-xs">Aa</span>
+                            <span className="text-white font-semibold text-xs">Aa</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">System</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <Label>Language</Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Change the language of the product.
+                        </p>
+                      </div>
+                      <Select value={language} onValueChange={setLanguage}>
+                        <SelectTrigger className="w-40" data-testid="select-language">
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {LANGUAGES.map((lang) => (
+                            <SelectItem key={lang.value} value={lang.value}>
+                              {lang.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* GDPR Section */}
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold">GDPR</h2>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-3">
+                      <Checkbox 
+                        id="gdpr" 
+                        checked={gdprCompliant}
+                        onCheckedChange={(checked) => setGdprCompliant(checked as boolean)}
+                        data-testid="checkbox-gdpr"
+                      />
+                      <Label htmlFor="gdpr" className="text-sm font-normal cursor-pointer leading-relaxed">
+                        I am compliant with local privacy laws when managing my prospects' data.
+                      </Label>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
 

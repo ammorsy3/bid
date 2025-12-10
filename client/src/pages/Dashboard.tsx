@@ -478,7 +478,21 @@ export default function Dashboard() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="border-t px-4 py-4">
+        <SidebarFooter className="border-t px-4 py-4 space-y-3">
+          {/* Feedback Button */}
+          <button
+            onClick={() => setFeedbackOpen(true)}
+            className={`w-full flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors group ${isRtl ? 'flex-row-reverse' : ''}`}
+            data-testid="button-sidebar-feedback"
+          >
+            <div className="h-8 w-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+              <MessageSquare className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            </div>
+            <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors group-data-[collapsible=icon]:hidden">
+              {t('settings.submitFeedback')}
+            </span>
+          </button>
+
           <Popover>
             <PopoverTrigger asChild>
               <button className={`flex items-center gap-3 w-full hover:bg-accent rounded-md p-1 -m-1 transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`} data-testid="button-user-menu">
@@ -2091,24 +2105,6 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
       </SidebarInset>
-
-      {/* Floating Feedback Button */}
-      <div className="fixed bottom-6 left-6 z-50 group">
-        <button
-          onClick={() => setFeedbackOpen(true)}
-          className="h-12 w-12 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center hover:scale-105"
-          data-testid="button-floating-feedback"
-        >
-          <MessageSquare className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-        </button>
-        {/* Tooltip */}
-        <div className="absolute left-14 bottom-1/2 translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-          <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm px-3 py-2 rounded-lg whitespace-nowrap shadow-lg">
-            {t('settings.submitFeedback')}
-            <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-gray-900 dark:bg-gray-100 rotate-45" />
-          </div>
-        </div>
-      </div>
 
       {/* Feedback Dialog */}
       <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>

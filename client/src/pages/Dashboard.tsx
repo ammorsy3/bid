@@ -525,21 +525,61 @@ export default function Dashboard() {
                       className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
                       data-testid="menu-notifications"
                     >
-                      <Bell className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <div className="relative">
+                        <Bell className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                        {incomingOffers.filter(o => o.status === 'pending').length > 0 && (
+                          <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                            {incomingOffers.filter(o => o.status === 'pending').length}
+                          </span>
+                        )}
+                      </div>
                       <span className="text-sm text-left flex-1">{t('settings.notifications')}</span>
                       <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent side="right" align="start" className="w-48 p-1">
-                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
-                      {t('settings.allNotifications')}
-                    </button>
-                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
-                      {t('settings.emailNotifications')}
-                    </button>
-                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
-                      {t('settings.pushNotifications')}
-                    </button>
+                  <PopoverContent side="right" align="start" className="w-72 p-0">
+                    <div className="p-3 border-b">
+                      <p className="font-medium text-sm">{t('settings.notifications')}</p>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {incomingOffers.filter(o => o.status === 'pending').length === 0 ? (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          {t('settings.noNotifications')}
+                        </div>
+                      ) : (
+                        incomingOffers.filter(o => o.status === 'pending').slice(0, 5).map((offer) => (
+                          <button
+                            key={offer.id}
+                            onClick={() => {
+                              setActiveTab('proposals');
+                              setSelectedProposal(offer);
+                            }}
+                            className="w-full flex items-start gap-3 p-3 hover:bg-accent transition-colors text-left border-b last:border-b-0"
+                          >
+                            <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                              <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{t('settings.newProposal')}</p>
+                              <p className="text-xs text-muted-foreground truncate">{offer.tender?.title}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {new Date(offer.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </p>
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                    {incomingOffers.filter(o => o.status === 'pending').length > 0 && (
+                      <div className="p-2 border-t">
+                        <button 
+                          onClick={() => setActiveTab('proposals')}
+                          className="w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:underline py-1"
+                        >
+                          {t('settings.viewAllNotifications')}
+                        </button>
+                      </div>
+                    )}
                   </PopoverContent>
                 </Popover>
 

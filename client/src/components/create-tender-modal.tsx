@@ -12,7 +12,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, add } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { motion } from "framer-motion";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,7 +21,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { Copy, Check, Mail, ExternalLink, Sparkles, Info, ChevronDown, ChevronUp, Video } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import VoiceRecorder from "./voice-recorder";
 import { useLocation } from "wouter";
 import type { Tender } from "@shared/schema";
@@ -327,137 +326,34 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
     );
   }
   
-  const [isHovered, setIsHovered] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (cardRef.current) {
-      const rect = cardRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left - rect.width / 2;
-      const y = e.clientY - rect.top - rect.height / 2;
-      setMousePosition({ x, y });
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 border-0 bg-transparent shadow-none">
-        <motion.div
-          ref={cardRef}
-          className="relative rounded-[24px] overflow-hidden"
-          style={{
-            backgroundColor: "#0e131f",
-            boxShadow: isHovered 
-              ? "0 -10px 100px 10px rgba(78, 99, 255, 0.3), 0 0 10px 0 rgba(0, 0, 0, 0.5)"
-              : "0 -10px 80px 5px rgba(78, 99, 255, 0.2), 0 0 10px 0 rgba(0, 0, 0, 0.4)",
-          }}
-          initial={{ y: 0, scale: 0.95, opacity: 0 }}
-          animate={{
-            y: 0,
-            scale: 1,
-            opacity: 1,
-          }}
-          transition={{
-            type: "spring",
-            stiffness: 300,
-            damping: 25
-          }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          onMouseMove={handleMouseMove}
-        >
-          {/* Glass reflection overlay */}
-          <motion.div
-            className="absolute inset-0 z-10 pointer-events-none"
-            style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 80%, rgba(255,255,255,0.03) 100%)",
-            }}
-            animate={{
-              opacity: isHovered ? 0.8 : 0.5,
-            }}
-          />
-
-          {/* Purple/blue glow effect */}
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 h-2/3 z-0 pointer-events-none"
-            style={{
-              background: `
-                radial-gradient(ellipse at bottom right, rgba(172, 92, 255, 0.5) -10%, rgba(79, 70, 229, 0) 70%),
-                radial-gradient(ellipse at bottom left, rgba(56, 189, 248, 0.5) -10%, rgba(79, 70, 229, 0) 70%)
-              `,
-              filter: "blur(50px)",
-            }}
-            animate={{
-              opacity: isHovered ? 0.9 : 0.7,
-            }}
-          />
-
-          {/* Central purple glow */}
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 h-1/2 z-0 pointer-events-none"
-            style={{
-              background: "radial-gradient(circle at bottom center, rgba(161, 58, 229, 0.5) -20%, rgba(79, 70, 229, 0) 60%)",
-              filter: "blur(45px)",
-            }}
-            animate={{
-              opacity: isHovered ? 0.85 : 0.6,
-            }}
-          />
-
-          {/* Bottom border glow */}
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 h-[2px] z-20 pointer-events-none"
-            style={{
-              background: "linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0.05) 100%)",
-            }}
-            animate={{
-              boxShadow: isHovered
-                ? "0 0 20px 4px rgba(172, 92, 255, 0.8), 0 0 30px 6px rgba(138, 58, 185, 0.6)"
-                : "0 0 15px 3px rgba(172, 92, 255, 0.6), 0 0 25px 5px rgba(138, 58, 185, 0.4)",
-            }}
-          />
-
-          {/* Main content area */}
-          <div className="relative z-10 p-6">
-            <DialogHeader>
-              <div className="flex items-center justify-between">
-                <DialogTitle className="text-2xl font-semibold text-white flex items-center gap-2">
-                  <motion.div
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{
-                      background: "linear-gradient(225deg, #171c2c 0%, #121624 100%)",
-                      boxShadow: "inset 1px 1px 3px rgba(255, 255, 255, 0.1), inset -2px -2px 4px rgba(0, 0, 0, 0.4)",
-                    }}
-                    animate={{
-                      boxShadow: isHovered 
-                        ? "inset 2px 2px 5px rgba(255, 255, 255, 0.15), inset -2px -2px 5px rgba(0, 0, 0, 0.5)"
-                        : "inset 1px 1px 3px rgba(255, 255, 255, 0.1), inset -2px -2px 4px rgba(0, 0, 0, 0.4)",
-                    }}
-                  >
-                    <Sparkles className="h-5 w-5 text-purple-400" />
-                  </motion.div>
-                  Create New Tender
-                </DialogTitle>
-                <DraftIndicator 
-                  lastSaved={lastSaved}
-                  isSaving={isSaving}
-                  hasDraft={hasDraft}
-                  onLoadDraft={handleLoadDraft}
-                />
-              </div>
-            </DialogHeader>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-2xl font-semibold text-neutral-900 flex items-center gap-2">
+              <Sparkles className="h-6 w-6 text-primary-600" />
+              Create New Tender
+            </DialogTitle>
+            <DraftIndicator 
+              lastSaved={lastSaved}
+              isSaving={isSaving}
+              hasDraft={hasDraft}
+              onLoadDraft={handleLoadDraft}
+            />
+          </div>
+        </DialogHeader>
 
         {showDraftPrompt && (
-          <Alert className="bg-purple-500/20 border-purple-500/30">
-            <Info className="h-4 w-4 text-purple-400" />
+          <Alert className="bg-primary-50 border-primary-200">
+            <Info className="h-4 w-4 text-primary-600" />
             <AlertDescription className="flex items-center justify-between">
-              <span className="text-white">You have an unsaved draft from earlier</span>
+              <span className="text-primary-900">You have an unsaved draft from earlier</span>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={handleDiscardDraft} className="bg-white/5 border-white/20 text-white hover:bg-white/10">
+                <Button size="sm" variant="outline" onClick={handleDiscardDraft}>
                   Discard
                 </Button>
-                <Button size="sm" onClick={handleLoadDraft} className="bg-purple-600 hover:bg-purple-700 text-white">
+                <Button size="sm" onClick={handleLoadDraft} className="bg-primary-600 hover:bg-primary-700">
                   Load Draft
                 </Button>
               </div>
@@ -485,7 +381,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white/90">Tender Title *</FormLabel>
+                    <FormLabel>Tender Title *</FormLabel>
                     <FormControl>
                       <SmartInput 
                         placeholder="e.g., Website Development for E-commerce Platform" 
@@ -493,7 +389,6 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                         isDirty={form.formState.dirtyFields.title}
                         constraints={getConstraints('title', field.value)}
                         data-testid="input-title"
-                        className="bg-white/5 border-white/20 text-white placeholder:text-white/40 focus:border-purple-500/50"
                         {...field} 
                       />
                     </FormControl>
@@ -507,7 +402,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white/90">Description *</FormLabel>
+                    <FormLabel>Description *</FormLabel>
                     <FormControl>
                       <SmartTextarea 
                         rows={4}
@@ -516,7 +411,6 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                         error={form.formState.errors.description}
                         isDirty={form.formState.dirtyFields.description}
                         data-testid="input-description"
-                        className="bg-white/5 border-white/20 text-white placeholder:text-white/40 focus:border-purple-500/50"
                         {...field} 
                       />
                     </FormControl>
@@ -559,15 +453,15 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
 
                   return (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="text-white/90">Submission Deadline *</FormLabel>
+                      <FormLabel>Submission Deadline *</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
                               variant="outline"
                               className={cn(
-                                "w-full justify-start text-left font-normal bg-white/5 border-white/20 text-white hover:bg-white/10",
-                                !dateValue && "text-white/40"
+                                "w-full justify-start text-left font-normal",
+                                !dateValue && "text-muted-foreground"
                               )}
                               data-testid="input-deadline"
                             >
@@ -600,10 +494,10 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 name="budget"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white/90">Estimated Budget</FormLabel>
+                    <FormLabel>Estimated Budget</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger data-testid="select-budget" className="bg-white/5 border-white/20 text-white">
+                        <SelectTrigger data-testid="select-budget">
                           <SelectValue placeholder="Select budget range" />
                         </SelectTrigger>
                       </FormControl>
@@ -626,14 +520,13 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               name="projectTimeline"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white/90">Project Timeline *</FormLabel>
+                  <FormLabel>Project Timeline *</FormLabel>
                   <FormControl>
                     <SmartInput 
                       placeholder="e.g., 3 months, Q1 2025, or 6-8 weeks" 
                       error={form.formState.errors.projectTimeline}
                       isDirty={form.formState.dirtyFields.projectTimeline}
                       data-testid="input-project-timeline"
-                      className="bg-white/5 border-white/20 text-white placeholder:text-white/40 focus:border-purple-500/50"
                       {...field} 
                     />
                   </FormControl>
@@ -647,22 +540,22 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               type="button"
               variant="ghost"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="w-full justify-between text-white/70 hover:text-white hover:bg-white/5"
+              className="w-full justify-between text-neutral-600 hover:text-neutral-900"
               data-testid="button-toggle-advanced"
             >
               <span className="flex items-center gap-2">
                 {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 View Advanced Options
               </span>
-              <span className="text-xs text-white/40">Optional</span>
+              <span className="text-xs text-neutral-400">Optional</span>
             </Button>
 
             {/* Advanced Options Section */}
             {showAdvanced && (
-              <div className="space-y-6 p-4 bg-white/5 border border-white/10 rounded-lg">
+              <div className="space-y-6 p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
                 <div>
-                  <h4 className="font-medium text-white mb-3">Voice Note</h4>
-                  <p className="text-sm text-white/60 mb-3">
+                  <h4 className="font-medium text-neutral-900 mb-3">Voice Note</h4>
+                  <p className="text-sm text-neutral-600 mb-3">
                     Record a voice message to explain your project in detail (max 5 minutes)
                   </p>
                   <VoiceRecorder
@@ -673,14 +566,14 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                   />
                 </div>
 
-                <div className="border-t border-white/10 pt-4">
+                <div className="border-t pt-4">
                   <FormField
                     control={form.control}
                     name="videoUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2 text-white/90">
-                          <Video className="h-4 w-4 text-purple-400" />
+                        <FormLabel className="flex items-center gap-2">
+                          <Video className="h-4 w-4 text-primary-600" />
                           Video Link
                         </FormLabel>
                         <FormControl>
@@ -689,11 +582,10 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                             error={form.formState.errors.videoUrl}
                             isDirty={form.formState.dirtyFields.videoUrl}
                             data-testid="input-video-url"
-                            className="bg-white/5 border-white/20 text-white placeholder:text-white/40 focus:border-purple-500/50"
                             {...field} 
                           />
                         </FormControl>
-                        <p className="text-xs text-white/50">Add a link to a video explaining your project</p>
+                        <p className="text-xs text-neutral-500">Add a link to a video explaining your project</p>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -702,27 +594,27 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               </div>
             )}
 
-            <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
-              <h4 className="font-medium text-white mb-2">Invitation System</h4>
-              <p className="text-sm text-white/70 mb-3">
+            <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
+              <h4 className="font-medium text-neutral-900 mb-2">Invitation System</h4>
+              <p className="text-sm text-neutral-600 mb-3">
                 After creating this tender, you'll receive a unique invitation link to share with qualified vendors.
               </p>
-              <div className="flex items-center space-x-2 text-xs text-white/50">
+              <div className="flex items-center space-x-2 text-xs text-neutral-500">
                 <span>•</span>
                 <span>Share via email, messaging, or any preferred channel</span>
               </div>
-              <div className="flex items-center space-x-2 text-xs text-white/50 mt-1">
+              <div className="flex items-center space-x-2 text-xs text-neutral-500 mt-1">
                 <span>•</span>
                 <span>Vendors register and submit offers using the link</span>
               </div>
             </div>
 
-            <div className="flex space-x-4 pt-4 border-t border-white/10">
+            <div className="flex space-x-4 pt-4 border-t border-neutral-200">
               <Button 
                 type="button" 
                 variant="outline" 
                 onClick={handleClose} 
-                className="flex-1 bg-white/5 border-white/20 text-white hover:bg-white/10"
+                className="flex-1"
                 data-testid="button-cancel"
               >
                 Cancel
@@ -739,8 +631,6 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
             </div>
           </form>
         </Form>
-          </div>
-        </motion.div>
       </DialogContent>
     </Dialog>
   );

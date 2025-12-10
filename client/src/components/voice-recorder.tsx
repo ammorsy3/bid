@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Mic, Square, Play, Pause, Trash2, Loader2 } from "lucide-react";
+import { Mic, Play, Pause, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface VoiceRecorderProps {
   onRecordingComplete: (url: string) => void;
@@ -19,18 +19,24 @@ export default function VoiceRecorder({
 }: VoiceRecorderProps) {
   const { toast } = useToast();
   const [isRecording, setIsRecording] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioUrl, setAudioUrl] = useState<string | null>(existingUrl || null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  const visualizerBars = 48;
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -47,7 +53,7 @@ export default function VoiceRecorder({
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   const startRecording = async () => {
@@ -112,7 +118,6 @@ export default function VoiceRecorder({
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      setIsPaused(false);
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -120,20 +125,11 @@ export default function VoiceRecorder({
     }
   };
 
-  const pauseRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      if (isPaused) {
-        mediaRecorderRef.current.resume();
-        timerRef.current = setInterval(() => {
-          setRecordingTime((prev) => prev + 1);
-        }, 1000);
-      } else {
-        mediaRecorderRef.current.pause();
-        if (timerRef.current) {
-          clearInterval(timerRef.current);
-        }
-      }
-      setIsPaused(!isPaused);
+  const handleClick = () => {
+    if (isRecording) {
+      stopRecording();
+    } else if (!audioUrl) {
+      startRecording();
     }
   };
 
@@ -225,13 +221,6 @@ export default function VoiceRecorder({
     }
   };
 
-  const uploadRecording = async () => {
-    if (!audioBlob) return;
-    await uploadRecordingBlob(audioBlob);
-  };
-
-  const progressPercent = (recordingTime / maxDurationSeconds) * 100;
-
   return (
     <div className="space-y-3">
       <audio
@@ -241,73 +230,76 @@ export default function VoiceRecorder({
         className="hidden"
       />
 
-      {!audioUrl && !isRecording && (
-        <Button
-          type="button"
-          variant="outline"
-          onClick={startRecording}
-          className="w-full gap-2"
-          data-testid="button-start-recording"
-        >
-          <Mic className="h-4 w-4 text-red-500" />
-          Start Recording
-        </Button>
-      )}
-
-      {isRecording && (
-        <div className="space-y-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-              <span className="font-medium text-red-700">Recording</span>
-            </div>
-            <span className="text-sm font-mono text-red-600">
-              {formatTime(recordingTime)} / {formatTime(maxDurationSeconds)}
-            </span>
-          </div>
-
-          <Progress value={progressPercent} className="h-2" />
-
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={pauseRecording}
-              className="flex-1"
-              data-testid="button-pause-recording"
-            >
-              {isPaused ? (
-                <>
-                  <Mic className="h-4 w-4 mr-1" />
-                  Resume
-                </>
-              ) : (
-                <>
-                  <Pause className="h-4 w-4 mr-1" />
-                  Pause
-                </>
+      {/* Recording / Idle State with Animated Visualizer */}
+      {!audioUrl && (
+        <div className="w-full py-4">
+          <div className="relative max-w-xl w-full mx-auto flex items-center flex-col gap-2">
+            <button
+              className={cn(
+                "group w-16 h-16 rounded-xl flex items-center justify-center transition-colors",
+                isRecording
+                  ? "bg-none"
+                  : "bg-none hover:bg-black/10 dark:hover:bg-white/10"
               )}
-            </Button>
-            <Button
               type="button"
-              variant="destructive"
-              size="sm"
-              onClick={stopRecording}
-              className="flex-1"
-              data-testid="button-stop-recording"
+              onClick={handleClick}
+              data-testid="button-start-recording"
             >
-              <Square className="h-4 w-4 mr-1" />
-              Stop
-            </Button>
+              {isRecording ? (
+                <div
+                  className="w-6 h-6 rounded-sm animate-spin bg-red-500 cursor-pointer pointer-events-auto"
+                  style={{ animationDuration: "3s" }}
+                />
+              ) : (
+                <Mic className="w-6 h-6 text-black/70 dark:text-white/70" />
+              )}
+            </button>
+
+            <span
+              className={cn(
+                "font-mono text-sm transition-opacity duration-300",
+                isRecording
+                  ? "text-black/70 dark:text-white/70"
+                  : "text-black/30 dark:text-white/30"
+              )}
+            >
+              {formatTime(recordingTime)}
+            </span>
+
+            <div className="h-4 w-64 flex items-center justify-center gap-0.5">
+              {[...Array(visualizerBars)].map((_, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "w-0.5 rounded-full transition-all duration-300",
+                    isRecording
+                      ? "bg-red-500/50 dark:bg-red-400/50 animate-pulse"
+                      : "bg-black/10 dark:bg-white/10 h-1"
+                  )}
+                  style={
+                    isRecording && isClient
+                      ? {
+                          height: `${20 + Math.random() * 80}%`,
+                          animationDelay: `${i * 0.05}s`,
+                        }
+                      : undefined
+                  }
+                />
+              ))}
+            </div>
+
+            <p className="h-4 text-xs text-black/70 dark:text-white/70">
+              {isRecording ? "Recording... Click to stop" : "Click to speak"}
+            </p>
           </div>
         </div>
       )}
 
+      {/* Playback State */}
       {audioUrl && !isRecording && (
-        <div className="space-y-3 p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
+        <div className="space-y-3 p-4 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-neutral-700">
+            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
               Voice Note ({formatTime(recordingTime)})
             </span>
             {isUploading ? (
@@ -357,7 +349,7 @@ export default function VoiceRecorder({
         </div>
       )}
 
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-neutral-500 text-center">
         Maximum recording duration: {formatTime(maxDurationSeconds)}
       </p>
     </div>

@@ -621,7 +621,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               </Button>
               <NeonButton 
                 type="submit"
-                variant="solid"
+                size="lg"
                 className="flex-1"
                 disabled={createTenderMutation.isPending || progress < 100}
                 data-testid="button-publish-tender"

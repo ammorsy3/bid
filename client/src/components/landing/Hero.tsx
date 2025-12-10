@@ -18,12 +18,12 @@ export const Hero = () => {
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/register">
-                <NeonButton variant="solid" size="lg" className="shadow-lg transform hover:scale-105" data-testid="button-hero-cta">
+                <NeonButton size="lg" className="shadow-lg transform hover:scale-105" data-testid="button-hero-cta">
                   Try Bid Now
                 </NeonButton>
               </Link>
               <a href="#how-it-works">
-                <NeonButton variant="ghost" size="lg" className="shadow-lg transform hover:scale-105 border-gray-300" data-testid="button-watch-demo">
+                <NeonButton size="lg" className="shadow-lg transform hover:scale-105" data-testid="button-watch-demo">
                   Watch Demo
                 </NeonButton>
               </a>

@@ -6,50 +6,26 @@ import {
   DatePickerProps as AriaDatePickerProps,
   DateValue as AriaDateValue,
   Dialog as AriaDialog,
-  DialogProps as AriaDialogProps,
-  PopoverProps as AriaPopoverProps,
-  ValidationResult as AriaValidationResult,
-  composeRenderProps,
-  Text,
   Button as AriaButton,
+  Group as AriaGroup,
+  Popover as AriaPopover,
+  Calendar as AriaCalendar,
+  CalendarGrid as AriaCalendarGrid,
+  CalendarGridBody as AriaCalendarGridBody,
+  CalendarGridHeader as AriaCalendarGridHeader,
+  CalendarHeaderCell as AriaCalendarHeaderCell,
+  CalendarCell as AriaCalendarCell,
+  Heading as AriaHeading,
+  DateInput as AriaDateInput,
+  DateSegment as AriaDateSegment,
+  Label as AriaLabel,
+  ValidationResult as AriaValidationResult,
+  Text,
 } from "react-aria-components"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
-import {
-  Calendar,
-  CalendarCell,
-  CalendarGrid,
-  CalendarGridBody,
-  CalendarGridHeader,
-  CalendarHeaderCell,
-  CalendarHeading,
-} from "@/components/ui/aria-calendar"
-import { DateInput, DateSegment } from "@/components/ui/datefield"
-import { FieldError, FieldGroup, Label } from "./field"
-import { Popover } from "@/components/ui/aria-popover"
-
-const DatePicker = AriaDatePicker
-
-const DatePickerContent = ({
-  className,
-  popoverClassName,
-  ...props
-}: AriaDialogProps & { popoverClassName?: AriaPopoverProps["className"] }) => (
-  <Popover
-    className={composeRenderProps(popoverClassName, (className) =>
-      cn("w-auto p-3", className)
-    )}
-  >
-    <AriaDialog
-      className={cn(
-        "flex w-full flex-col space-y-4 outline-none sm:flex-row sm:space-x-4 sm:space-y-0",
-        className
-      )}
-      {...props}
-    />
-  </Popover>
-)
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 
 interface JollyDatePickerProps<T extends AriaDateValue>
   extends AriaDatePickerProps<T> {
@@ -66,48 +42,99 @@ function JollyDatePicker<T extends AriaDateValue>({
   ...props
 }: JollyDatePickerProps<T>) {
   return (
-    <DatePicker
-      className={composeRenderProps(className, (className) =>
-        cn("group flex flex-col gap-2", className)
-      )}
+    <AriaDatePicker
+      className={cn("group flex flex-col gap-2", className)}
       {...props}
     >
-      {label && <Label>{label}</Label>}
-      <FieldGroup>
-        <DateInput className="flex-1" variant="ghost">
-          {(segment) => <DateSegment segment={segment} />}
-        </DateInput>
+      {label && (
+        <AriaLabel className="text-sm font-medium leading-none">
+          {label}
+        </AriaLabel>
+      )}
+      <AriaGroup className="flex h-10 items-center overflow-hidden rounded-md border border-input bg-background px-3 ring-offset-background data-[focus-within]:outline-none data-[focus-within]:ring-2 data-[focus-within]:ring-ring data-[focus-within]:ring-offset-2">
+        <AriaDateInput className="flex flex-1">
+          {(segment) => (
+            <AriaDateSegment
+              segment={segment}
+              className={cn(
+                "inline rounded p-0.5 caret-transparent outline-none",
+                "data-[focused]:bg-accent data-[focused]:text-accent-foreground",
+                "data-[placeholder]:text-muted-foreground",
+                "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+              )}
+            />
+          )}
+        </AriaDateInput>
         <AriaButton
           className={cn(
             buttonVariants({ variant: "ghost", size: "icon" }),
-            "mr-1 size-6 data-[focus-visible]:ring-offset-0"
+            "ml-2 size-6"
           )}
         >
-          <CalendarIcon aria-hidden className="size-4" />
+          <CalendarIcon className="size-4" />
         </AriaButton>
-      </FieldGroup>
+      </AriaGroup>
       {description && (
         <Text className="text-sm text-muted-foreground" slot="description">
           {description}
         </Text>
       )}
-      <FieldError>{errorMessage}</FieldError>
-      <DatePickerContent>
-        <Calendar>
-          <CalendarHeading />
-          <CalendarGrid>
-            <CalendarGridHeader>
-              {(day) => <CalendarHeaderCell>{day}</CalendarHeaderCell>}
-            </CalendarGridHeader>
-            <CalendarGridBody>
-              {(date) => <CalendarCell date={date} />}
-            </CalendarGridBody>
-          </CalendarGrid>
-        </Calendar>
-      </DatePickerContent>
-    </DatePicker>
+      <AriaPopover className="z-50 rounded-md border bg-popover p-3 text-popover-foreground shadow-md outline-none data-[entering]:animate-in data-[exiting]:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[exiting]:zoom-out-95 data-[entering]:zoom-in-95">
+        <AriaDialog className="outline-none">
+          <AriaCalendar className="w-fit">
+            <header className="flex w-full items-center gap-1 px-1 pb-4">
+              <AriaButton
+                slot="previous"
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "size-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+                )}
+              >
+                <ChevronLeftIcon className="size-4" />
+              </AriaButton>
+              <AriaHeading className="grow text-center text-sm font-medium" />
+              <AriaButton
+                slot="next"
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "size-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+                )}
+              >
+                <ChevronRightIcon className="size-4" />
+              </AriaButton>
+            </header>
+            <AriaCalendarGrid className="w-full border-collapse space-y-1">
+              <AriaCalendarGridHeader>
+                {(day) => (
+                  <AriaCalendarHeaderCell className="w-9 rounded-md text-[0.8rem] font-normal text-muted-foreground">
+                    {day}
+                  </AriaCalendarHeaderCell>
+                )}
+              </AriaCalendarGridHeader>
+              <AriaCalendarGridBody className="[&>tr>td]:p-0">
+                {(date) => (
+                  <AriaCalendarCell
+                    date={date}
+                    className={cn(
+                      buttonVariants({ variant: "ghost" }),
+                      "relative flex size-9 items-center justify-center p-0 text-sm font-normal cursor-pointer",
+                      "data-[selected]:bg-primary data-[selected]:text-primary-foreground",
+                      "data-[today]:bg-accent data-[today]:text-accent-foreground",
+                      "data-[outside-month]:text-muted-foreground data-[outside-month]:opacity-50",
+                      "data-[disabled]:text-muted-foreground data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed",
+                      "data-[unavailable]:text-destructive data-[unavailable]:line-through",
+                      "hover:bg-accent hover:text-accent-foreground"
+                    )}
+                  />
+                )}
+              </AriaCalendarGridBody>
+            </AriaCalendarGrid>
+          </AriaCalendar>
+        </AriaDialog>
+      </AriaPopover>
+    </AriaDatePicker>
   )
 }
 
-export { DatePicker, DatePickerContent, JollyDatePicker }
+export { JollyDatePicker }
 export type { JollyDatePickerProps }

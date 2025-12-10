@@ -387,6 +387,7 @@ export default function Dashboard() {
                 {activeCompany.role} • {activeCompany.verificationStatus}
               </p>
             </div>
+            <SidebarTrigger className="ml-auto flex-shrink-0" />
           </div>
         </SidebarHeader>
         
@@ -401,6 +402,7 @@ export default function Dashboard() {
                       onClick={() => setActiveTab(item.value)}
                       tooltip={item.label}
                       data-testid={`sidebar-${item.value}`}
+                      className={activeTab === item.value ? "bg-[#E25E45]/10 text-[#E25E45] hover:bg-[#E25E45]/20 hover:text-[#E25E45]" : ""}
                     >
                       <item.icon className="h-4 w-4" />
                       <span>{item.label}</span>
@@ -431,7 +433,6 @@ export default function Dashboard() {
       <SidebarInset className="bg-gray-50 dark:bg-gray-900">
         {/* Header */}
         <header className="flex h-14 items-center gap-4 border-b bg-white dark:bg-gray-800 px-6">
-          <SidebarTrigger />
           <div className="flex-1">
             <h1 className="text-lg font-semibold">
               {sidebarItems.find(item => item.value === activeTab)?.label || 'Dashboard'}

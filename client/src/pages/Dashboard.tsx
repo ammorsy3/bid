@@ -167,6 +167,11 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved;
+    return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+  });
   const { toast } = useToast();
 
   if (!user) {
@@ -560,9 +565,10 @@ export default function Dashboard() {
                     onClick={() => {
                       document.documentElement.classList.remove('dark');
                       localStorage.setItem('theme', 'light');
+                      setCurrentTheme('light');
                     }}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm transition-colors ${
-                      !document.documentElement.classList.contains('dark') 
+                      currentTheme === 'light'
                         ? 'bg-background shadow-sm font-medium' 
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
@@ -575,9 +581,10 @@ export default function Dashboard() {
                     onClick={() => {
                       document.documentElement.classList.add('dark');
                       localStorage.setItem('theme', 'dark');
+                      setCurrentTheme('dark');
                     }}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm transition-colors ${
-                      document.documentElement.classList.contains('dark') 
+                      currentTheme === 'dark'
                         ? 'bg-background shadow-sm font-medium' 
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
@@ -595,8 +602,13 @@ export default function Dashboard() {
                         document.documentElement.classList.remove('dark');
                       }
                       localStorage.setItem('theme', 'system');
+                      setCurrentTheme('system');
                     }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm transition-colors ${
+                      currentTheme === 'system'
+                        ? 'bg-background shadow-sm font-medium' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
                     data-testid="theme-system"
                   >
                     <Monitor className="h-4 w-4" />

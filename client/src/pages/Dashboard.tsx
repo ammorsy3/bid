@@ -318,10 +318,14 @@ export default function Dashboard() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/my-tenders/offers'] });
+      // When accepting, vendor is automatically added to base - refresh that list too
+      if (variables.status === 'accepted') {
+        queryClient.invalidateQueries({ queryKey: ['/api/vendors-base'] });
+      }
       toast({
         title: variables.status === 'accepted' ? "Proposal Accepted" : "Proposal Ignored",
         description: variables.status === 'accepted' 
-          ? "You've accepted this proposal. You can contact the vendor to proceed."
+          ? "Vendor has been added to your Vendors Base."
           : "This proposal has been marked as ignored.",
       });
     },

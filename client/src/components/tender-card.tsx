@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { GlowCard } from "@/components/ui/glow-card";
-import { Calendar, Mail, Send, MoreHorizontal } from "lucide-react";
+import { GlowCard } from "@/components/ui/spotlight-card";
+import { Calendar, Mail, Send } from "lucide-react";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import { Link } from "wouter";
@@ -52,8 +52,9 @@ export default function TenderCard({ tender }: TenderCardProps) {
 
   return (
     <GlowCard 
+      customSize
       glowColor={getGlowColor(tender.status)}
-      className="w-full bg-white/90 rounded-xl"
+      className="w-full !aspect-auto bg-white/80"
     >
       <div className="p-6 relative z-10">
         <div className="flex items-start justify-between mb-3">

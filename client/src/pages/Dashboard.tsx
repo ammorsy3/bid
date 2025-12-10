@@ -2,6 +2,7 @@ import { useAuthStore } from "@/lib/auth";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Sidebar, 
@@ -589,13 +590,11 @@ export default function Dashboard() {
                       <p className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard.bookDemoDesc')}</p>
                     </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700"
+                  <RainbowButton
                     data-testid="button-book-demo"
                   >
                     {t('dashboard.bookDemo')}
-                  </Button>
+                  </RainbowButton>
                 </div>
               </CardContent>
             </Card>

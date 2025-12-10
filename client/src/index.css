@@ -24,6 +24,13 @@
   --ring: hsl(240, 10%, 3.9%);
   --radius: 0.5rem;
   
+  /* Rainbow button colors */
+  --color-1: 0, 100%, 50%;
+  --color-2: 60, 100%, 50%;
+  --color-3: 120, 100%, 50%;
+  --color-4: 240, 100%, 50%;
+  --color-5: 300, 100%, 50%;
+  
   /* Custom colors based on design */
   --primary-50: hsl(207, 100%, 97%);
   --primary-100: hsl(207, 94%, 89%);
@@ -156,4 +163,17 @@
 
 .animate-ticker-scroll {
   animation: ticker-scroll 30s linear infinite;
+}
+
+@keyframes rainbow {
+  0% {
+    background-position: 0%;
+  }
+  100% {
+    background-position: 200%;
+  }
+}
+
+.animate-rainbow {
+  animation: rainbow 3s linear infinite;
 }

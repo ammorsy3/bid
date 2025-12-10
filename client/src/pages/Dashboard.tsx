@@ -420,7 +420,7 @@ export default function Dashboard() {
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="space-y-2">
                 {sidebarItems.filter(item => item.show).map((item) => (
                   <SidebarMenuItem key={item.value}>
                     <SidebarMenuButton 

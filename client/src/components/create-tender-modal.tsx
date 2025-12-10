@@ -5,7 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { SmartInput, SmartTextarea } from "@/components/ui/smart-input";
 import { FormProgress, DraftIndicator } from "@/components/ui/form-progress";
-import { JollyDatePicker } from "@/components/ui/date-picker";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +22,6 @@ import { useAutosave, DraftStorage } from "@/lib/autosave";
 import { calculateFormProgress, getConstraints } from "@/lib/form-validation";
 import { useFormKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
 
 const createTenderSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -64,7 +62,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
 
   const form = useForm<CreateTenderForm>({
     resolver: zodResolver(createTenderSchema),
-    mode: 'onTouched',
+    mode: 'onChange',
     defaultValues: {
       title: "",
       description: "",
@@ -420,43 +418,22 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               <FormField
                 control={form.control}
                 name="deadline"
-                render={({ field }) => {
-                  const parseValue = () => {
-                    if (!field.value) return undefined;
-                    try {
-                      const date = new Date(field.value);
-                      if (isNaN(date.getTime())) return undefined;
-                      return new CalendarDate(
-                        date.getFullYear(),
-                        date.getMonth() + 1,
-                        date.getDate()
-                      );
-                    } catch {
-                      return undefined;
-                    }
-                  };
-
-                  return (
-                    <FormItem>
-                      <JollyDatePicker
-                        label="Submission Deadline *"
-                        value={parseValue()}
-                        onChange={(value: CalendarDate | null) => {
-                          if (!value) {
-                            field.onChange("");
-                            return;
-                          }
-                          const date = new Date(value.year, value.month - 1, value.day, 12, 0);
-                          field.onChange(date.toISOString());
-                        }}
-                        minValue={today(getLocalTimeZone()).add({ days: 1 })}
-                        granularity="day"
-                        errorMessage={form.formState.errors.deadline?.message}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Submission Deadline *</FormLabel>
+                    <FormControl>
+                      <SmartInput 
+                        type="datetime-local"
+                        error={form.formState.errors.deadline}
+                        isDirty={form.formState.dirtyFields.deadline}
+                        constraints={getConstraints('deadline', field.value)}
                         data-testid="input-deadline"
+                        {...field} 
                       />
-                    </FormItem>
-                  );
-                }}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
 
               <FormField

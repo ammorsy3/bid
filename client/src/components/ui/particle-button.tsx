@@ -10,12 +10,10 @@ interface ParticleButtonProps extends ButtonProps {
     particleColor?: string;
 }
 
-function SuccessParticles({
+function Sparkles({
     buttonRef,
-    color = "bg-blue-400",
 }: {
     buttonRef: React.RefObject<HTMLButtonElement>;
-    color?: string;
 }) {
     const rect = buttonRef.current?.getBoundingClientRect();
     if (!rect) return null;
@@ -23,19 +21,18 @@ function SuccessParticles({
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
-    const particleCount = 20;
-    const particles = [...Array(particleCount)].map((_, i) => {
-        const angle = (360 / particleCount) * i + Math.random() * 20;
-        const velocity = 80 + Math.random() * 100;
+    const particles = [...Array(6)].map((_, i) => {
+        const angle = (360 / 6) * i + Math.random() * 30 - 15;
+        const velocity = 40 + Math.random() * 30;
         const rad = (angle * Math.PI) / 180;
-        const size = 8 + Math.random() * 8;
+        const size = 3 + Math.random() * 3;
         
         return {
             id: i,
             x: Math.cos(rad) * velocity,
-            y: Math.sin(rad) * velocity,
+            y: Math.sin(rad) * velocity - 20,
             size,
-            delay: Math.random() * 0.15,
+            delay: i * 0.03,
         };
     });
 
@@ -44,93 +41,61 @@ function SuccessParticles({
             {particles.map((particle) => (
                 <motion.div
                     key={particle.id}
-                    className={cn(
-                        "fixed rounded-full pointer-events-none",
-                        color
-                    )}
+                    className="fixed rounded-full pointer-events-none"
                     style={{ 
                         left: centerX, 
                         top: centerY,
                         width: particle.size,
                         height: particle.size,
-                        boxShadow: `0 0 12px 4px currentColor`,
+                        background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(147,197,253,0.8))',
+                        filter: 'blur(0.5px)',
                         zIndex: 9999,
                     }}
                     initial={{
                         scale: 0,
                         x: 0,
                         y: 0,
-                        opacity: 1,
+                        opacity: 0,
                     }}
                     animate={{
-                        scale: [0, 1.5, 1, 0.5],
-                        x: [0, particle.x * 0.3, particle.x * 0.7, particle.x],
-                        y: [0, particle.y * 0.3, particle.y * 0.7, particle.y],
-                        opacity: [1, 1, 0.8, 0],
+                        scale: [0, 1.2, 1, 0],
+                        x: [0, particle.x],
+                        y: [0, particle.y],
+                        opacity: [0, 1, 0.8, 0],
                     }}
                     transition={{
-                        duration: 1.2,
+                        duration: 0.65,
                         delay: particle.delay,
                         ease: [0.25, 0.46, 0.45, 0.94],
                     }}
                 />
             ))}
             
-            {/* Central ripple effect */}
+            {/* Soft glow */}
             <motion.div
-                className="fixed rounded-full pointer-events-none border-4 border-blue-400"
+                className="fixed rounded-full pointer-events-none"
                 style={{ 
                     left: centerX, 
                     top: centerY,
-                    translateX: '-50%',
-                    translateY: '-50%',
+                    background: 'radial-gradient(circle, rgba(147,197,253,0.3) 0%, transparent 70%)',
                     zIndex: 9998,
                 }}
                 initial={{
                     width: 20,
                     height: 20,
-                    opacity: 0.8,
+                    opacity: 0.5,
                     x: '-50%',
                     y: '-50%',
                 }}
                 animate={{
-                    width: 150,
-                    height: 150,
+                    width: 90,
+                    height: 90,
                     opacity: 0,
                     x: '-50%',
                     y: '-50%',
                 }}
                 transition={{
-                    duration: 0.8,
-                    ease: "easeOut",
-                }}
-            />
-            
-            {/* Secondary smaller ripple */}
-            <motion.div
-                className="fixed rounded-full pointer-events-none border-2 border-blue-300"
-                style={{ 
-                    left: centerX, 
-                    top: centerY,
-                    zIndex: 9998,
-                }}
-                initial={{
-                    width: 10,
-                    height: 10,
-                    opacity: 0.6,
-                    x: '-50%',
-                    y: '-50%',
-                }}
-                animate={{
-                    width: 100,
-                    height: 100,
-                    opacity: 0,
-                    x: '-50%',
-                    y: '-50%',
-                }}
-                transition={{
-                    duration: 0.6,
-                    delay: 0.1,
+                    duration: 0.35,
                     ease: "easeOut",
                 }}
             />
@@ -142,7 +107,7 @@ function ParticleButton({
     children,
     onClick,
     onSuccess,
-    successDuration = 1200,
+    successDuration = 700,
     particleColor = "bg-blue-400",
     className,
     ...props
@@ -160,7 +125,7 @@ function ParticleButton({
             if (onClick) {
                 onClick(e);
             }
-        }, 400);
+        }, 300);
 
         setTimeout(() => {
             setShowParticles(false);
@@ -169,7 +134,7 @@ function ParticleButton({
 
     return (
         <>
-            {showParticles && <SuccessParticles buttonRef={buttonRef} color={particleColor} />}
+            {showParticles && <Sparkles buttonRef={buttonRef} />}
             <Button
                 ref={buttonRef}
                 onClick={handleClick}
@@ -182,9 +147,9 @@ function ParticleButton({
                 <motion.span
                     className="flex items-center gap-2"
                     animate={showParticles ? { 
-                        scale: [1, 0.92, 1.05, 1],
+                        scale: [1, 0.96, 1.02, 1],
                     } : {}}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
                 >
                     {children}
                 </motion.span>

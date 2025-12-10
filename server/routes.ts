@@ -1457,6 +1457,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // OBJECT STORAGE ROUTES
   // ==========================================================================
 
+  // Serve PUBLIC objects (profile pictures, company logos) - NO authentication required
+  app.get("/objects/profile-pictures/:filename", async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = `/objects/profile-pictures/${req.params.filename}`;
+      const objectFile = await objectStorageService.getPublicFile(objectPath);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error serving public profile picture:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  app.get("/objects/company-logos/:filename", async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = `/objects/company-logos/${req.params.filename}`;
+      const objectFile = await objectStorageService.getPublicFile(objectPath);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error serving public company logo:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
   // Get upload URL
   app.post("/api/objects/upload", authenticateToken, async (req: AuthRequest, res) => {
     try {

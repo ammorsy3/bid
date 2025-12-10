@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { GlowCard } from "@/components/ui/spotlight-card";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Calendar, Mail, Send } from "lucide-react";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
@@ -40,21 +40,20 @@ export default function TenderCard({ tender }: TenderCardProps) {
     }
   };
 
-  const getGlowColor = (status: string): 'blue' | 'purple' | 'green' | 'red' | 'orange' => {
+  const getSpotlightColor = (status: string): string => {
     switch (status) {
-      case 'published': return 'blue';
-      case 'draft': return 'purple';
-      case 'closed': return 'orange';
-      case 'cancelled': return 'red';
-      default: return 'blue';
+      case 'published': return '#22c55e30'; // green
+      case 'draft': return '#8b5cf630'; // purple
+      case 'closed': return '#f9731630'; // orange
+      case 'cancelled': return '#ef444430'; // red
+      default: return '#6366f130'; // indigo
     }
   };
 
   return (
-    <GlowCard 
-      customSize
-      glowColor={getGlowColor(tender.status)}
-      className="w-full !aspect-auto bg-white/80"
+    <SpotlightCard 
+      spotlightColor={getSpotlightColor(tender.status)}
+      className="w-full"
     >
       <div className="p-6 relative z-10">
         <div className="flex items-start justify-between mb-3">
@@ -104,6 +103,6 @@ export default function TenderCard({ tender }: TenderCardProps) {
           </Button>
         </div>
       </div>
-    </GlowCard>
+    </SpotlightCard>
   );
 }

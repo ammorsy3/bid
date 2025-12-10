@@ -430,9 +430,14 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                         value={field.value ? parseDate(field.value.split('T')[0]) : undefined}
                         onChange={(date) => {
                           if (date) {
-                            field.onChange(date.toString());
+                            const isoDate = date.toString();
+                            field.onChange(isoDate);
+                            form.trigger('deadline');
+                          } else {
+                            field.onChange('');
                           }
                         }}
+                        onBlur={field.onBlur}
                         data-testid="input-deadline"
                       />
                     </FormControl>

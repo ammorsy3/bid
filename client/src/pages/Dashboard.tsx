@@ -18,6 +18,7 @@ import {
   SidebarTrigger,
   useSidebar
 } from "@/components/ui/sidebar";
+import { useI18n } from "@/lib/i18n";
 import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription, PopoverBody, PopoverFooter } from "@/components/ui/popover";
 import { useState } from "react";
@@ -148,6 +149,7 @@ function SidebarLogoToggle() {
 export default function Dashboard() {
   const { user, activeCompany, companies, logout } = useAuthStore();
   const [, setLocation] = useLocation();
+  const { isRtl } = useI18n();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
@@ -398,11 +400,11 @@ export default function Dashboard() {
 
   return (
     <SidebarProvider>
-      <Sidebar collapsible="icon" className="border-r">
+      <Sidebar collapsible="icon" side={isRtl ? "right" : "left"} className={isRtl ? "border-l" : "border-r"}>
         <SidebarHeader className="border-b px-4 py-4">
-          <div className="flex items-center gap-3">
+          <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
             <SidebarLogoToggle />
-            <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
+            <div className={`flex-1 min-w-0 group-data-[collapsible=icon]:hidden ${isRtl ? 'text-right' : ''}`}>
               <h2 className="font-semibold text-sm truncate">
                 {activeCompany.profile?.displayName || activeCompany.name}
               </h2>
@@ -411,7 +413,7 @@ export default function Dashboard() {
               </p>
             </div>
             {/* Show toggle button only when expanded */}
-            <SidebarTrigger className="ml-auto flex-shrink-0 group-data-[collapsible=icon]:hidden" />
+            <SidebarTrigger className={`${isRtl ? 'mr-auto' : 'ml-auto'} flex-shrink-0 group-data-[collapsible=icon]:hidden`} />
           </div>
         </SidebarHeader>
         
@@ -441,7 +443,7 @@ export default function Dashboard() {
         <SidebarFooter className="border-t px-4 py-4">
           <Popover>
             <PopoverTrigger asChild>
-              <button className="flex items-center gap-3 w-full hover:bg-accent rounded-md p-1 -m-1 transition-colors" data-testid="button-user-menu">
+              <button className={`flex items-center gap-3 w-full hover:bg-accent rounded-md p-1 -m-1 transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`} data-testid="button-user-menu">
                 {user.profilePictureUrl ? (
                   <img 
                     src={user.profilePictureUrl} 
@@ -458,7 +460,7 @@ export default function Dashboard() {
                 </span>
               </button>
             </PopoverTrigger>
-            <PopoverContent side="top" align="start" className="w-64 mb-2">
+            <PopoverContent side="top" align={isRtl ? "end" : "start"} className="w-64 mb-2">
               <PopoverHeader>
                 <div className="flex items-center gap-3">
                   {user.profilePictureUrl ? (

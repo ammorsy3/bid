@@ -519,14 +519,6 @@ export default function Dashboard() {
 
               {/* Menu Items */}
               <div className="py-2">
-                <button 
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
-                  data-testid="menu-invite"
-                >
-                  <Gift className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                  <span className="text-sm text-left flex-1">{t('settings.inviteFriend')}</span>
-                </button>
-
                 <Popover>
                   <PopoverTrigger asChild>
                     <button 

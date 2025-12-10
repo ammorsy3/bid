@@ -960,13 +960,13 @@ export default function Dashboard() {
                       {filteredTenders.map((tender) => {
                         const statusBadge = getStatusBadge(tender.status);
                         const isDeadlineSoon = new Date(tender.deadline).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000;
-                        const getSpotlightColor = (status: string) => {
+                        const getSpotlightColor = (status: string): 'blue' | 'purple' | 'green' | 'red' | 'orange' => {
                           switch (status) {
-                            case 'published': return '#22c55e40';
-                            case 'draft': return '#8b5cf640';
-                            case 'closed': return '#f9731640';
-                            case 'cancelled': return '#ef444440';
-                            default: return '#6366f140';
+                            case 'published': return 'green';
+                            case 'draft': return 'purple';
+                            case 'closed': return 'orange';
+                            case 'cancelled': return 'red';
+                            default: return 'blue';
                           }
                         };
                         

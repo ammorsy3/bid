@@ -3,13 +3,21 @@ import { useRef, useState } from "react";
 interface SpotlightCardProps {
   children: React.ReactNode;
   className?: string;
-  spotlightColor?: string;
+  spotlightColor?: 'blue' | 'purple' | 'green' | 'red' | 'orange';
 }
+
+const colorMap = {
+  blue: { hue: 220, saturation: 100, lightness: 60 },
+  purple: { hue: 280, saturation: 100, lightness: 60 },
+  green: { hue: 140, saturation: 80, lightness: 50 },
+  red: { hue: 0, saturation: 100, lightness: 60 },
+  orange: { hue: 30, saturation: 100, lightness: 55 }
+};
 
 export const SpotlightCard = ({
   children,
   className = "",
-  spotlightColor = "#6366f130",
+  spotlightColor = "blue",
 }: SpotlightCardProps) => {
   const divRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -25,7 +33,7 @@ export const SpotlightCard = ({
 
   const handleFocus = () => {
     setIsFocused(true);
-    setOpacity(0.6);
+    setOpacity(1);
   };
 
   const handleBlur = () => {
@@ -34,12 +42,14 @@ export const SpotlightCard = ({
   };
 
   const handleMouseEnter = () => {
-    setOpacity(0.6);
+    setOpacity(1);
   };
 
   const handleMouseLeave = () => {
     setOpacity(0);
   };
+
+  const { hue, saturation, lightness } = colorMap[spotlightColor];
 
   return (
     <div
@@ -51,13 +61,44 @@ export const SpotlightCard = ({
       onMouseLeave={handleMouseLeave}
       className={`relative rounded-2xl border border-neutral-200 bg-white overflow-hidden ${className}`}
     >
+      {/* Main spotlight glow - inner fill */}
       <div
-        className="pointer-events-none absolute inset-0 transition-opacity duration-500 ease-in-out"
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out"
         style={{
-          opacity,
-          background: `radial-gradient(circle at ${position.x}px ${position.y}px, ${spotlightColor}, transparent 80%)`,
+          opacity: opacity * 0.15,
+          background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, hsl(${hue} ${saturation}% ${lightness}%), transparent 40%)`,
         }}
       />
+      
+      {/* Neon border glow effect */}
+      <div
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out"
+        style={{
+          opacity,
+          background: `radial-gradient(400px circle at ${position.x}px ${position.y}px, hsl(${hue} ${saturation}% ${lightness}% / 0.4), transparent 40%)`,
+          filter: 'brightness(1.5)',
+        }}
+      />
+      
+      {/* Bright center highlight */}
+      <div
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out"
+        style={{
+          opacity: opacity * 0.8,
+          background: `radial-gradient(200px circle at ${position.x}px ${position.y}px, hsl(${hue} ${saturation}% 80% / 0.3), transparent 50%)`,
+          filter: 'brightness(2)',
+        }}
+      />
+      
+      {/* White hot center */}
+      <div
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out"
+        style={{
+          opacity: opacity * 0.6,
+          background: `radial-gradient(100px circle at ${position.x}px ${position.y}px, hsl(0 0% 100% / 0.4), transparent 50%)`,
+        }}
+      />
+      
       {children}
     </div>
   );

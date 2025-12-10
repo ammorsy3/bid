@@ -40,13 +40,13 @@ export default function TenderCard({ tender }: TenderCardProps) {
     }
   };
 
-  const getSpotlightColor = (status: string): string => {
+  const getSpotlightColor = (status: string): 'blue' | 'purple' | 'green' | 'red' | 'orange' => {
     switch (status) {
-      case 'published': return '#22c55e30'; // green
-      case 'draft': return '#8b5cf630'; // purple
-      case 'closed': return '#f9731630'; // orange
-      case 'cancelled': return '#ef444430'; // red
-      default: return '#6366f130'; // indigo
+      case 'published': return 'green';
+      case 'draft': return 'purple';
+      case 'closed': return 'orange';
+      case 'cancelled': return 'red';
+      default: return 'blue';
     }
   };
 

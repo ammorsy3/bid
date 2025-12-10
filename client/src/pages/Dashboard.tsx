@@ -805,12 +805,12 @@ export default function Dashboard() {
                 {/* Progress Bar */}
                 <div className="space-y-2">
                   <div className={`flex items-center gap-2 text-sm ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <span className="font-medium text-[#E25E45]">{onboardingTasks?.completedCount ?? 0}</span>
+                    <span className="font-medium text-[#E25E45]">{Math.min(onboardingTasks?.completedCount ?? 0, 5)}</span>
                     <span className="text-muted-foreground">{t('dashboard.tasksCompleted')}</span>
                   </div>
-                  <Progress value={((onboardingTasks?.completedCount ?? 0) / 5) * 100} className="h-2 bg-gray-100 dark:bg-gray-800" />
+                  <Progress value={(Math.min(onboardingTasks?.completedCount ?? 0, 5) / 5) * 100} className="h-2 bg-gray-100 dark:bg-gray-800" />
                 </div>
-                <p className={`text-xs text-muted-foreground ${isRtl ? 'text-right' : ''}`}>{onboardingTasks?.completedCount ?? 0} of 5 tasks completed</p>
+                <p className={`text-xs text-muted-foreground ${isRtl ? 'text-right' : ''}`}>{Math.min(onboardingTasks?.completedCount ?? 0, 5)} of 5 tasks completed</p>
 
                 {/* Onboarding Tasks Accordion */}
                 <Accordion type="single" collapsible className="space-y-2">

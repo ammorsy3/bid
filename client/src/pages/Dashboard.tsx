@@ -3,7 +3,21 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X } from "lucide-react";
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarFooter, 
+  SidebarGroup, 
+  SidebarGroupContent, 
+  SidebarHeader, 
+  SidebarMenu, 
+  SidebarMenuButton, 
+  SidebarMenuItem, 
+  SidebarProvider, 
+  SidebarInset,
+  SidebarTrigger
+} from "@/components/ui/sidebar";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -117,6 +131,7 @@ export default function Dashboard() {
   const [selectedProposal, setSelectedProposal] = useState<IncomingOffer | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<VendorProfile | null>(null);
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -351,78 +366,102 @@ export default function Dashboard() {
     setLocation("/");
   };
 
+  const sidebarItems = [
+    { value: "overview", label: "Overview", icon: LayoutDashboard, show: true },
+    { value: "tenders", label: "Tenders", icon: FileText, show: canManage },
+    { value: "proposals", label: "Proposals", icon: Inbox, show: true },
+    { value: "vendors", label: "Vendors Base", icon: Users, show: canManage },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <Building2 className="h-8 w-8 text-blue-600" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {activeCompany.profile?.displayName || activeCompany.name}
-                </h1>
-                <p className="text-sm text-gray-500">
-                  {activeCompany.role} • {activeCompany.verificationStatus}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              {companies.length > 1 && (
-                <div className="text-sm text-gray-500">
-                  {companies.length} companies
-                </div>
-              )}
-              <Button variant="outline" onClick={handleLogout} data-testid="button-logout">
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
+    <SidebarProvider>
+      <Sidebar collapsible="icon" className="border-r">
+        <SidebarHeader className="border-b px-4 py-4">
+          <div className="flex items-center gap-3">
+            <Building2 className="h-6 w-6 text-primary flex-shrink-0" />
+            <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
+              <h2 className="font-semibold text-sm truncate">
+                {activeCompany.profile?.displayName || activeCompany.name}
+              </h2>
+              <p className="text-xs text-muted-foreground truncate">
+                {activeCompany.role} • {activeCompany.verificationStatus}
+              </p>
             </div>
           </div>
-        </div>
-      </header>
+        </SidebarHeader>
+        
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {sidebarItems.filter(item => item.show).map((item) => (
+                  <SidebarMenuItem key={item.value}>
+                    <SidebarMenuButton 
+                      isActive={activeTab === item.value}
+                      onClick={() => setActiveTab(item.value)}
+                      tooltip={item.label}
+                      data-testid={`sidebar-${item.value}`}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Verification Status Banner */}
-        {activeCompany.verificationStatus !== 'verified' && (
-          <Card className="mb-6 border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20">
-            <CardHeader>
-              <CardTitle className="text-yellow-900 dark:text-yellow-100">
-                Company Verification Pending
-              </CardTitle>
-              <CardDescription className="text-yellow-800 dark:text-yellow-200">
-                Your company is under review. You can browse but some features are restricted until verified.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        )}
+        <SidebarFooter className="border-t">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton 
+                onClick={handleLogout}
+                tooltip="Logout"
+                data-testid="button-logout"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
 
-        {/* Dashboard Tabs */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview" data-testid="tab-overview">
-              <Building2 className="h-4 w-4 mr-2" />
-              Overview
-            </TabsTrigger>
-            {canManage && (
-              <TabsTrigger value="tenders" data-testid="tab-tenders">
-                <FileText className="h-4 w-4 mr-2" />
-                Tenders
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="proposals" data-testid="tab-proposals">
-              <Inbox className="h-4 w-4 mr-2" />
-              Proposals
-            </TabsTrigger>
-            {canManage && (
-              <TabsTrigger value="vendors" data-testid="tab-vendors">
-                <Users className="h-4 w-4 mr-2" />
-                Vendors Base
-              </TabsTrigger>
-            )}
-          </TabsList>
+      <SidebarInset className="bg-gray-50 dark:bg-gray-900">
+        {/* Header */}
+        <header className="flex h-14 items-center gap-4 border-b bg-white dark:bg-gray-800 px-6">
+          <SidebarTrigger />
+          <div className="flex-1">
+            <h1 className="text-lg font-semibold">
+              {sidebarItems.find(item => item.value === activeTab)?.label || 'Dashboard'}
+            </h1>
+          </div>
+          {companies.length > 1 && (
+            <div className="text-sm text-muted-foreground">
+              {companies.length} companies
+            </div>
+          )}
+        </header>
+
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto p-6">
+          {/* Verification Status Banner */}
+          {activeCompany.verificationStatus !== 'verified' && (
+            <Card className="mb-6 border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20">
+              <CardHeader>
+                <CardTitle className="text-yellow-900 dark:text-yellow-100">
+                  Company Verification Pending
+                </CardTitle>
+                <CardDescription className="text-yellow-800 dark:text-yellow-200">
+                  Your company is under review. You can browse but some features are restricted until verified.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          )}
+
+          {/* Dashboard Content */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
@@ -1306,10 +1345,10 @@ export default function Dashboard() {
               </Tabs>
             </TabsContent>
           )}
-        </Tabs>
-      </main>
+          </Tabs>
+        </main>
 
-      {/* Create Tender Modal */}
+        {/* Create Tender Modal */}
       <CreateTenderModal 
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)} 
@@ -1499,6 +1538,7 @@ export default function Dashboard() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

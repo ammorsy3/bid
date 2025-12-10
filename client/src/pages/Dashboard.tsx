@@ -6,6 +6,7 @@ import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProgressiveBlur } from "@/components/ui/progressive-blur";
+import { AnimatedCopyButton } from "@/components/ui/animated-copy-button";
 import { 
   Sidebar, 
   SidebarContent, 
@@ -1019,24 +1020,13 @@ export default function Dashboard() {
                                   <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                                   {t('dashboard.view')}
                                 </Button>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => copyInvitationLink(tender)}
+                                <AnimatedCopyButton
+                                  text={`${window.location.origin}/invite/${tender.id}`}
+                                  isRtl={isRtl}
                                   data-testid={`button-copy-link-${tender.id}`}
                                 >
-                                  {copiedLinkId === tender.id ? (
-                                    <>
-                                      <Check className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                                      {t('dashboard.linkCopied')}
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Copy className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                                      {t('dashboard.copyLink')}
-                                    </>
-                                  )}
-                                </Button>
+                                  {t('dashboard.copyLink')}
+                                </AnimatedCopyButton>
                                 {['draft', 'published'].includes(tender.status) && (
                                   <Button 
                                     variant="outline" 

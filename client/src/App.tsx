@@ -20,6 +20,7 @@ import AdminAwards from "@/pages/AdminAwards";
 import AdminAuditLogs from "@/pages/AdminAuditLogs";
 import AdminUsers from "@/pages/AdminUsers";
 import AdminLayout from "@/components/AdminLayout";
+import Settings from "@/pages/Settings";
 import { useAuthStore } from "@/lib/auth";
 import { useEffect } from "react";
 
@@ -92,6 +93,7 @@ function Router() {
       
       {/* Main dashboard (requires active company) */}
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/settings" component={Settings} />
       <Route path="/tenders/:id" component={TenderDetails} />
       <Route path="/tenders/:id/edit" component={TenderEdit} />
       

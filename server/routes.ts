@@ -326,6 +326,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ==========================================================================
+  // USER PROFILE ROUTES
+  // ==========================================================================
+
+  // Update user profile (name)
+  app.patch("/api/user/profile", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { name } = req.body;
+      
+      if (!name || typeof name !== 'string') {
+        return res.status(400).json({ message: "Name is required" });
+      }
+
+      const user = await storage.getUser(req.auth!.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      await storage.updateUser(req.auth!.userId, { name: name.trim() });
+
+      res.json({ message: "Profile updated successfully" });
+    } catch (error) {
+      console.error('Update user profile error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Upload user profile picture
+  app.post("/api/user/profile-picture", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      // Profile pictures are not currently stored - return success
+      // Future: implement profile picture storage
+      res.json({ message: "Profile picture upload functionality coming soon" });
+    } catch (error) {
+      console.error('Upload profile picture error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Update company profile (active company from auth context)
+  app.patch("/api/company/profile", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const companyId = req.auth!.activeCompanyId!;
+      const { displayName, bio } = req.body;
+
+      // Verify user has admin access
+      const role = req.auth!.roleInCompany;
+      if (role !== 'owner' && role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Update profile
+      const profile = await storage.getCompanyProfile(companyId);
+      if (!profile) {
+        return res.status(404).json({ message: "Company profile not found" });
+      }
+
+      await storage.updateCompanyProfile(companyId, {
+        displayName: displayName || profile.displayName,
+        bio: bio !== undefined ? bio : profile.bio
+      });
+
+      res.json({ message: "Company profile updated successfully" });
+    } catch (error) {
+      console.error('Update company profile error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Upload company logo
+  app.post("/api/company/logo", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      // Company logos are not currently stored - return success
+      // Future: implement company logo storage
+      res.json({ message: "Company logo upload functionality coming soon" });
+    } catch (error) {
+      console.error('Upload company logo error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ==========================================================================
   // COMPANY ROUTES
   // ==========================================================================
 

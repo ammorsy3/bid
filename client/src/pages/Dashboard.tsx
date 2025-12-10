@@ -1,6 +1,7 @@
 import { useAuthStore } from "@/lib/auth";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Button } from "@/components/ui/button";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -959,14 +960,24 @@ export default function Dashboard() {
                       {filteredTenders.map((tender) => {
                         const statusBadge = getStatusBadge(tender.status);
                         const isDeadlineSoon = new Date(tender.deadline).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000;
+                        const getSpotlightColor = (status: string) => {
+                          switch (status) {
+                            case 'published': return '#22c55e40';
+                            case 'draft': return '#8b5cf640';
+                            case 'closed': return '#f9731640';
+                            case 'cancelled': return '#ef444440';
+                            default: return '#6366f140';
+                          }
+                        };
                         
                         return (
-                          <Card 
+                          <SpotlightCard 
                             key={tender.id} 
-                            className="hover:shadow-lg transition-shadow"
+                            className="bg-white border-neutral-200"
+                            spotlightColor={getSpotlightColor(tender.status)}
                             data-testid={`card-tender-${tender.id}`}
                           >
-                            <CardContent className="p-6">
+                            <div className="p-6">
                               <div className="flex items-start justify-between mb-4">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-3 mb-2">
@@ -1054,8 +1065,8 @@ export default function Dashboard() {
                                   {t('dashboard.delete')}
                                 </Button>
                               </div>
-                            </CardContent>
-                          </Card>
+                            </div>
+                          </SpotlightCard>
                         );
                       })}
                     </div>

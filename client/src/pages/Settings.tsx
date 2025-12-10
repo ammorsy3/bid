@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Upload, User, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -26,9 +26,7 @@ const TIMEZONES = [
 
 const LANGUAGES = [
   { value: "en", label: "English" },
-  { value: "ar", label: "Arabic" },
-  { value: "fr", label: "French" },
-  { value: "es", label: "Spanish" },
+  { value: "ar", label: "العربية" },
 ];
 
 type ThemeOption = "light" | "dark" | "system";
@@ -57,9 +55,105 @@ export default function Settings() {
   const [companyLogo, setCompanyLogo] = useState<File | null>(null);
   const [companyLogoPreview, setCompanyLogoPreview] = useState<string | null>(activeCompany?.profile?.logoUrl || null);
 
-  const [theme, setTheme] = useState<ThemeOption>("light");
-  const [language, setLanguage] = useState("en");
+  const [theme, setTheme] = useState<ThemeOption>(() => {
+    const saved = localStorage.getItem('theme');
+    return (saved as ThemeOption) || "light";
+  });
+  const [language, setLanguage] = useState(() => {
+    const saved = localStorage.getItem('language');
+    return saved || "en";
+  });
   const [gdprCompliant, setGdprCompliant] = useState(false);
+
+  // Apply theme when it changes
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+    const root = document.documentElement;
+    
+    if (theme === "dark") {
+      root.classList.add('dark');
+    } else if (theme === "light") {
+      root.classList.remove('dark');
+    } else {
+      // System preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+    }
+  }, [theme]);
+
+  // Apply language when it changes
+  useEffect(() => {
+    localStorage.setItem('language', language);
+    const root = document.documentElement;
+    
+    if (language === "ar") {
+      root.dir = "rtl";
+      root.lang = "ar";
+    } else {
+      root.dir = "ltr";
+      root.lang = "en";
+    }
+  }, [language]);
+
+  // Auto-save personal info with debounce
+  const autoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
+  
+  const autoSavePersonalInfo = useCallback(() => {
+    if (autoSaveTimeout.current) {
+      clearTimeout(autoSaveTimeout.current);
+    }
+    autoSaveTimeout.current = setTimeout(() => {
+      const fullName = `${firstName} ${lastName}`.trim();
+      if (fullName) {
+        updateUserMutation.mutate({ 
+          name: fullName,
+          jobTitle: jobTitle || undefined,
+          timezone: timezone || undefined,
+          linkedinUrl: linkedinUrl || undefined,
+          phoneNumber: phoneNumber || undefined,
+        });
+      }
+    }, 1000);
+  }, [firstName, lastName, jobTitle, timezone, linkedinUrl, phoneNumber]);
+
+  useEffect(() => {
+    autoSavePersonalInfo();
+    return () => {
+      if (autoSaveTimeout.current) {
+        clearTimeout(autoSaveTimeout.current);
+      }
+    };
+  }, [firstName, lastName, jobTitle, timezone, linkedinUrl, phoneNumber]);
+
+  // Auto-save company info with debounce
+  const autoSaveCompanyTimeout = useRef<NodeJS.Timeout | null>(null);
+  
+  const autoSaveCompanyInfo = useCallback(() => {
+    if (autoSaveCompanyTimeout.current) {
+      clearTimeout(autoSaveCompanyTimeout.current);
+    }
+    autoSaveCompanyTimeout.current = setTimeout(() => {
+      if (companyDisplayName) {
+        updateCompanyMutation.mutate({
+          displayName: companyDisplayName,
+          bio: companyBio,
+        });
+      }
+    }, 1000);
+  }, [companyDisplayName, companyBio]);
+
+  useEffect(() => {
+    autoSaveCompanyInfo();
+    return () => {
+      if (autoSaveCompanyTimeout.current) {
+        clearTimeout(autoSaveCompanyTimeout.current);
+      }
+    };
+  }, [companyDisplayName, companyBio]);
 
   if (!user) {
     setLocation("/login");
@@ -452,16 +546,6 @@ export default function Settings() {
                     </Select>
                   </div>
 
-                  <div className="flex justify-end pt-4">
-                    <Button 
-                      onClick={handleSavePersonalInfo}
-                      disabled={isPersonalSaving}
-                      data-testid="button-save-personal"
-                    >
-                      {isPersonalSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Save Changes
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
 
@@ -685,16 +769,6 @@ export default function Settings() {
                     />
                   </div>
 
-                  <div className="flex justify-end pt-4">
-                    <Button 
-                      onClick={handleSaveCompanyInfo}
-                      disabled={isCompanySaving}
-                      data-testid="button-save-company"
-                    >
-                      {isCompanySaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Save Changes
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
             </div>

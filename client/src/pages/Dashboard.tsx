@@ -149,7 +149,7 @@ function SidebarLogoToggle() {
 export default function Dashboard() {
   const { user, activeCompany, companies, logout } = useAuthStore();
   const [, setLocation] = useLocation();
-  const { isRtl } = useI18n();
+  const { t, isRtl } = useI18n();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
@@ -392,10 +392,10 @@ export default function Dashboard() {
   };
 
   const sidebarItems = [
-    { value: "overview", label: "Overview", icon: LayoutDashboard, show: true },
-    { value: "tenders", label: "Tenders", icon: FileText, show: canManage },
-    { value: "proposals", label: "Proposals", icon: Inbox, show: true },
-    { value: "vendors", label: "Vendors Base", icon: Users, show: canManage },
+    { value: "overview", label: t('dashboard.overview'), icon: LayoutDashboard, show: true },
+    { value: "tenders", label: t('dashboard.tenders'), icon: FileText, show: canManage },
+    { value: "proposals", label: t('dashboard.proposals'), icon: Inbox, show: true },
+    { value: "vendors", label: t('dashboard.vendorsBase'), icon: Users, show: canManage },
   ];
 
   return (
@@ -484,23 +484,23 @@ export default function Dashboard() {
                 </div>
               </PopoverHeader>
               <PopoverBody className="space-y-1 px-2 py-2">
-                <Button variant="ghost" className="w-full justify-start" size="sm" onClick={() => setLocation('/settings')} data-testid="menu-settings">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
+                <Button variant="ghost" className={`w-full ${isRtl ? 'justify-end flex-row-reverse' : 'justify-start'}`} size="sm" onClick={() => setLocation('/settings')} data-testid="menu-settings">
+                  <Settings className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                  {t('settings.accountSettings')}
                 </Button>
-                <Button variant="ghost" className="w-full justify-start" size="sm" data-testid="menu-billing">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Plans & Billing
+                <Button variant="ghost" className={`w-full ${isRtl ? 'justify-end flex-row-reverse' : 'justify-start'}`} size="sm" data-testid="menu-billing">
+                  <CreditCard className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                  {t('settings.plansBilling')}
                 </Button>
-                <Button variant="ghost" className="w-full justify-start" size="sm" data-testid="menu-notifications">
-                  <Bell className="mr-2 h-4 w-4" />
-                  Notifications
+                <Button variant="ghost" className={`w-full ${isRtl ? 'justify-end flex-row-reverse' : 'justify-start'}`} size="sm" data-testid="menu-notifications">
+                  <Bell className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                  {t('settings.notifications')}
                 </Button>
               </PopoverBody>
               <PopoverFooter>
-                <Button variant="ghost" className="w-full justify-start" size="sm" data-testid="menu-feedback">
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  Share Feedback
+                <Button variant="ghost" className={`w-full ${isRtl ? 'justify-end flex-row-reverse' : 'justify-start'}`} size="sm" data-testid="menu-feedback">
+                  <MessageSquare className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                  {t('settings.shareFeedback')}
                 </Button>
               </PopoverFooter>
             </PopoverContent>
@@ -510,15 +510,15 @@ export default function Dashboard() {
 
       <SidebarInset className="bg-gray-50 dark:bg-gray-900">
         {/* Header */}
-        <header className="flex h-14 items-center gap-4 border-b bg-white dark:bg-gray-800 px-6">
-          <div className="flex-1">
+        <header className={`flex h-14 items-center gap-4 border-b bg-white dark:bg-gray-800 px-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
+          <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
             <h1 className="text-lg font-semibold">
-              {sidebarItems.find(item => item.value === activeTab)?.label || 'Dashboard'}
+              {sidebarItems.find(item => item.value === activeTab)?.label || t('dashboard.overview')}
             </h1>
           </div>
           {companies.length > 1 && (
             <div className="text-sm text-muted-foreground">
-              {companies.length} companies
+              {companies.length} {t('dashboard.companies')}
             </div>
           )}
         </header>
@@ -529,11 +529,11 @@ export default function Dashboard() {
           {activeCompany.verificationStatus !== 'verified' && (
             <Card className="mb-6 border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20">
               <CardHeader>
-                <CardTitle className="text-yellow-900 dark:text-yellow-100">
-                  Company Verification Pending
+                <CardTitle className={`text-yellow-900 dark:text-yellow-100 ${isRtl ? 'text-right' : ''}`}>
+                  {t('dashboard.verificationPending')}
                 </CardTitle>
-                <CardDescription className="text-yellow-800 dark:text-yellow-200">
-                  Your company is under review. You can browse but some features are restricted until verified.
+                <CardDescription className={`text-yellow-800 dark:text-yellow-200 ${isRtl ? 'text-right' : ''}`}>
+                  {t('dashboard.verificationPendingDesc')}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -545,45 +545,45 @@ export default function Dashboard() {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Welcome to Your Dashboard</CardTitle>
+              <CardHeader className={isRtl ? 'text-right' : ''}>
+                <CardTitle>{t('dashboard.welcomeTitle')}</CardTitle>
                 <CardDescription>
-                  Manage tenders, proposals, and your vendor network all in one place.
+                  {t('dashboard.welcomeDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm font-medium">Company Status</CardTitle>
+                    <CardHeader className={`pb-3 ${isRtl ? 'text-right' : ''}`}>
+                      <CardTitle className="text-sm font-medium">{t('dashboard.companyStatus')}</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className={isRtl ? 'text-right' : ''}>
                       <div className="text-2xl font-bold">
-                        {activeCompany.verificationStatus}
+                        {activeCompany.verificationStatus === 'verified' ? t('dashboard.verified') : activeCompany.verificationStatus}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {activeCompany.onboardingState === 'completed' ? 'Profile complete' : 'Setup in progress'}
+                        {activeCompany.onboardingState === 'completed' ? t('dashboard.profileComplete') : t('dashboard.setupInProgress')}
                       </p>
                     </CardContent>
                   </Card>
 
                   <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm font-medium">Your Role</CardTitle>
+                    <CardHeader className={`pb-3 ${isRtl ? 'text-right' : ''}`}>
+                      <CardTitle className="text-sm font-medium">{t('dashboard.yourRole')}</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className={isRtl ? 'text-right' : ''}>
                       <div className="text-2xl font-bold capitalize">
-                        {activeCompany.role}
+                        {t(`dashboard.${activeCompany.role}`)}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        in this company
+                        {t('dashboard.inThisCompany')}
                       </p>
                     </CardContent>
                   </Card>
 
                   <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
+                    <CardHeader className={`pb-3 ${isRtl ? 'text-right' : ''}`}>
+                      <CardTitle className="text-sm font-medium">{t('dashboard.quickActions')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       {canManage && (
@@ -594,7 +594,7 @@ export default function Dashboard() {
                           data-testid="button-create-tender"
                           onClick={() => setIsCreateModalOpen(true)}
                         >
-                          Create Tender
+                          {t('dashboard.createTender')}
                         </Button>
                       )}
                       <Button 
@@ -604,7 +604,7 @@ export default function Dashboard() {
                         data-testid="button-view-profile"
                         onClick={() => setLocation('/company-onboarding')}
                       >
-                        View Profile
+                        {t('dashboard.viewProfile')}
                       </Button>
                     </CardContent>
                   </Card>
@@ -617,11 +617,11 @@ export default function Dashboard() {
           {canManage && (
             <TabsContent value="tenders" className="space-y-6">
               {/* Header */}
-              <div className="flex justify-between items-start">
-                <div>
-                  <h2 className="text-2xl font-bold" data-testid="text-tenders-title">Tenders</h2>
+              <div className={`flex justify-between items-start ${isRtl ? 'flex-row-reverse' : ''}`}>
+                <div className={isRtl ? 'text-right' : ''}>
+                  <h2 className="text-2xl font-bold" data-testid="text-tenders-title">{t('dashboard.tendersTitle')}</h2>
                   <p className="text-muted-foreground" data-testid="text-tenders-description">
-                    Create and manage procurement tenders
+                    {t('dashboard.tendersDesc')}
                   </p>
                 </div>
                 <Button 
@@ -629,31 +629,31 @@ export default function Dashboard() {
                   className="bg-blue-600 hover:bg-blue-700"
                   data-testid="button-create-tender-header"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Tender
+                  <Plus className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                  {t('dashboard.newTender')}
                 </Button>
               </div>
 
               {/* Filters */}
               <Card>
                 <CardContent className="pt-6">
-                  <div className="flex flex-col sm:flex-row gap-4">
+                  <div className={`flex flex-col sm:flex-row gap-4 ${isRtl ? 'sm:flex-row-reverse' : ''}`}>
                     <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Search className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground`} />
                       <Input
-                        placeholder="Search tenders by title or description..."
+                        placeholder={t('dashboard.searchTenders')}
                         value={tenderSearchQuery}
                         onChange={(e) => setTenderSearchQuery(e.target.value)}
-                        className="pl-10"
+                        className={isRtl ? 'pr-10 text-right' : 'pl-10'}
                         data-testid="input-tender-search"
                       />
                     </div>
                     <Tabs value={tenderFilter} onValueChange={(v) => setTenderFilter(v as any)} className="w-full sm:w-auto">
                       <TabsList className="grid grid-cols-4 w-full sm:w-auto">
-                        <TabsTrigger value="all" data-testid="filter-all">All</TabsTrigger>
-                        <TabsTrigger value="published" data-testid="filter-published">Published</TabsTrigger>
-                        <TabsTrigger value="draft" data-testid="filter-draft">Draft</TabsTrigger>
-                        <TabsTrigger value="closed" data-testid="filter-closed">Closed</TabsTrigger>
+                        <TabsTrigger value="all" data-testid="filter-all">{t('dashboard.all')}</TabsTrigger>
+                        <TabsTrigger value="published" data-testid="filter-published">{t('dashboard.published')}</TabsTrigger>
+                        <TabsTrigger value="draft" data-testid="filter-draft">{t('dashboard.draft')}</TabsTrigger>
+                        <TabsTrigger value="closed" data-testid="filter-closed">{t('dashboard.closed')}</TabsTrigger>
                       </TabsList>
                     </Tabs>
                   </div>
@@ -670,12 +670,10 @@ export default function Dashboard() {
                   <CardContent className="flex flex-col items-center justify-center py-16">
                     <FileText className="h-16 w-16 text-muted-foreground mb-4" />
                     <h3 className="text-xl font-semibold mb-2" data-testid="text-no-tenders-title">
-                      {tenderSearchQuery || tenderFilter !== 'all' ? 'No tenders found' : 'No tenders yet'}
+                      {t('dashboard.noTenders')}
                     </h3>
                     <p className="text-muted-foreground text-center max-w-md mb-6" data-testid="text-no-tenders-description">
-                      {tenderSearchQuery || tenderFilter !== 'all'
-                        ? 'Try adjusting your search or filters'
-                        : 'Create your first tender to start receiving proposals from qualified vendors.'}
+                      {t('dashboard.noTendersDesc')}
                     </p>
                     {!tenderSearchQuery && tenderFilter === 'all' && (
                       <Button 
@@ -683,8 +681,8 @@ export default function Dashboard() {
                         className="bg-blue-600 hover:bg-blue-700"
                         data-testid="button-create-first-tender"
                       >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Tender
+                        <Plus className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                        {t('dashboard.createTender')}
                       </Button>
                     )}
                   </CardContent>
@@ -722,38 +720,38 @@ export default function Dashboard() {
                             </div>
                           </div>
                           
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
-                            <div className="flex items-center gap-2 text-muted-foreground">
+                          <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
+                            <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
                               <Calendar className="h-4 w-4" />
                               <span className={isDeadlineSoon ? 'text-red-600 font-medium' : ''}>
                                 {formatDate(tender.deadline)}
                               </span>
                             </div>
-                            <div className="flex items-center gap-2 text-muted-foreground">
+                            <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
                               <Send className="h-4 w-4" />
                               <span data-testid={`text-proposals-count-${tender.id}`}>
-                                {tender.offersCount} proposal{tender.offersCount !== 1 ? 's' : ''}
+                                {tender.offersCount} {t('dashboard.offers')}
                               </span>
                             </div>
-                            <div className="flex items-center gap-2 text-muted-foreground">
+                            <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
                               <Mail className="h-4 w-4" />
-                              <span>{tender.invitedCount} invited</span>
+                              <span>{tender.invitedCount} {t('dashboard.invited')}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-muted-foreground">
+                            <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
                               <FileText className="h-4 w-4" />
-                              <span>{tender.budgetRange || tender.budget || 'Not specified'}</span>
+                              <span>{tender.budgetRange || tender.budget || t('dashboard.budget')}</span>
                             </div>
                           </div>
                           
-                          <div className="flex flex-wrap gap-2">
+                          <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <Button 
                               variant="outline" 
                               size="sm"
                               onClick={() => setLocation(`/tenders/${tender.id}`)}
                               data-testid={`button-view-${tender.id}`}
                             >
-                              <Eye className="h-4 w-4 mr-2" />
-                              View
+                              <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                              {t('dashboard.view')}
                             </Button>
                             <Button 
                               variant="outline" 
@@ -763,13 +761,13 @@ export default function Dashboard() {
                             >
                               {copiedLinkId === tender.id ? (
                                 <>
-                                  <Check className="h-4 w-4 mr-2" />
-                                  Copied!
+                                  <Check className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  {t('dashboard.linkCopied')}
                                 </>
                               ) : (
                                 <>
-                                  <Copy className="h-4 w-4 mr-2" />
-                                  Copy Link
+                                  <Copy className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  {t('dashboard.copyLink')}
                                 </>
                               )}
                             </Button>
@@ -780,8 +778,8 @@ export default function Dashboard() {
                                 onClick={() => setLocation(`/tenders/${tender.id}/edit`)}
                                 data-testid={`button-edit-${tender.id}`}
                               >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
+                                <Edit className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                {t('dashboard.edit')}
                               </Button>
                             )}
                             <Button 
@@ -796,8 +794,8 @@ export default function Dashboard() {
                               disabled={deleteTender.isPending}
                               data-testid={`button-delete-${tender.id}`}
                             >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
+                              <Trash2 className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                              {t('dashboard.delete')}
                             </Button>
                           </div>
                         </CardContent>
@@ -811,10 +809,10 @@ export default function Dashboard() {
 
           {/* Proposals Tab */}
           <TabsContent value="proposals" className="space-y-6">
-            <div className="mb-4">
-              <h2 className="text-2xl font-bold" data-testid="text-proposals-title">Proposals</h2>
+            <div className={`mb-4 ${isRtl ? 'text-right' : ''}`}>
+              <h2 className="text-2xl font-bold" data-testid="text-proposals-title">{t('dashboard.proposalsTitle')}</h2>
               <p className="text-muted-foreground" data-testid="text-proposals-description">
-                Manage submitted and received proposals
+                {t('dashboard.proposalsDesc')}
               </p>
             </div>
 
@@ -822,11 +820,11 @@ export default function Dashboard() {
               <TabsList className="grid w-full max-w-md grid-cols-2">
                 <TabsTrigger value="submitted" className="gap-2" data-testid="tab-submitted-proposals">
                   <Send className="h-4 w-4" />
-                  Submitted ({myOffers.length})
+                  {t('dashboard.myProposals')} ({myOffers.length})
                 </TabsTrigger>
                 <TabsTrigger value="received" className="gap-2" data-testid="tab-received-proposals">
                   <Inbox className="h-4 w-4" />
-                  Received ({incomingOffers.length})
+                  {t('dashboard.incomingOffers')} ({incomingOffers.length})
                 </TabsTrigger>
               </TabsList>
 
@@ -840,9 +838,9 @@ export default function Dashboard() {
                   <Card>
                     <CardContent className="flex flex-col items-center justify-center py-12">
                       <Send className="h-12 w-12 text-muted-foreground mb-3" />
-                      <p className="text-muted-foreground">You haven't submitted any proposals yet</p>
+                      <p className="text-muted-foreground">{t('dashboard.noProposals')}</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Browse published tenders to submit your proposals
+                        {t('dashboard.noProposalsDesc')}
                       </p>
                     </CardContent>
                   </Card>
@@ -887,20 +885,20 @@ export default function Dashboard() {
                                   </Badge>
                                   {offer.status === 'accepted' && (
                                     <Badge className="bg-green-100 text-green-800 text-xs">
-                                      <CheckCircle className="h-3 w-3 mr-1" />
-                                      Accepted
+                                      <CheckCircle className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                      {t('dashboard.accepted')}
                                     </Badge>
                                   )}
                                   {offer.status === 'rejected' && (
                                     <Badge className="bg-gray-100 text-gray-600 text-xs">
-                                      <XCircle className="h-3 w-3 mr-1" />
-                                      Not Selected
+                                      <XCircle className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                      {t('dashboard.rejected')}
                                     </Badge>
                                   )}
                                   {offer.status === 'pending' && (
                                     <Badge className="bg-yellow-100 text-yellow-800 text-xs">
-                                      <Clock className="h-3 w-3 mr-1" />
-                                      Pending Review
+                                      <Clock className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                      {t('dashboard.pending')}
                                     </Badge>
                                   )}
                                 </div>
@@ -925,15 +923,15 @@ export default function Dashboard() {
                                   <p className="text-sm mt-2 text-muted-foreground italic">"{offer.notes}"</p>
                                 )}
                               </div>
-                              <div className="flex gap-2 ml-4">
+                              <div className={`flex gap-2 ${isRtl ? 'mr-4' : 'ml-4'}`}>
                                 <Button 
                                   variant="outline" 
                                   size="sm"
                                   onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
                                   data-testid={`button-view-tender-${offer.id}`}
                                 >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  View
+                                  <Eye className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                  {t('dashboard.viewTender')}
                                 </Button>
                                 {offer.technicalFileUrl && (
                                   <Button 
@@ -965,9 +963,9 @@ export default function Dashboard() {
                   <Card>
                     <CardContent className="flex flex-col items-center justify-center py-12">
                       <Inbox className="h-12 w-12 text-muted-foreground mb-3" />
-                      <p className="text-muted-foreground">No proposals received yet</p>
+                      <p className="text-muted-foreground">{t('dashboard.noIncomingOffers')}</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Proposals submitted to your tenders will appear here
+                        {t('dashboard.noIncomingOffersDesc')}
                       </p>
                     </CardContent>
                   </Card>
@@ -998,18 +996,18 @@ export default function Dashboard() {
                                     {offer.profile?.displayName || offer.company.name}
                                   </h4>
                                   {offer.company.verificationStatus === 'verified' && (
-                                    <Badge variant="secondary" className="text-xs">Verified</Badge>
+                                    <Badge variant="secondary" className="text-xs">{t('dashboard.verified')}</Badge>
                                   )}
                                   {offer.status === 'accepted' && (
                                     <Badge className="bg-green-100 text-green-800 text-xs">
-                                      <CheckCircle className="h-3 w-3 mr-1" />
-                                      Accepted
+                                      <CheckCircle className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                      {t('dashboard.accepted')}
                                     </Badge>
                                   )}
                                   {offer.status === 'rejected' && (
                                     <Badge className="bg-gray-100 text-gray-600 text-xs">
-                                      <XCircle className="h-3 w-3 mr-1" />
-                                      Ignored
+                                      <XCircle className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                      {t('dashboard.rejected')}
                                     </Badge>
                                   )}
                                 </div>
@@ -1077,7 +1075,7 @@ export default function Dashboard() {
                                   )}
                                 </div>
                                 {offer.status === 'pending' && (
-                                  <div className="flex gap-2">
+                                  <div className={`flex gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
                                     <Button 
                                       size="sm"
                                       className="bg-green-600 hover:bg-green-700 text-white"
@@ -1085,8 +1083,8 @@ export default function Dashboard() {
                                       disabled={updateOfferStatus.isPending}
                                       data-testid={`button-accept-offer-${offer.id}`}
                                     >
-                                      <Check className="h-4 w-4 mr-1" />
-                                      Accept
+                                      <Check className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                      {t('dashboard.accept')}
                                     </Button>
                                     <Button 
                                       variant="outline"
@@ -1096,8 +1094,8 @@ export default function Dashboard() {
                                       disabled={updateOfferStatus.isPending}
                                       data-testid={`button-ignore-offer-${offer.id}`}
                                     >
-                                      <X className="h-4 w-4 mr-1" />
-                                      Ignore
+                                      <X className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                      {t('dashboard.ignore')}
                                     </Button>
                                   </div>
                                 )}
@@ -1128,10 +1126,10 @@ export default function Dashboard() {
           {/* Vendors Base Tab */}
           {canManage && (
             <TabsContent value="vendors" className="space-y-6">
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold" data-testid="text-vendors-title">Vendors Base</h2>
+              <div className={`mb-4 ${isRtl ? 'text-right' : ''}`}>
+                <h2 className="text-2xl font-bold" data-testid="text-vendors-title">{t('dashboard.vendorsBaseTitle')}</h2>
                 <p className="text-muted-foreground" data-testid="text-vendors-description">
-                  Manage your approved vendors and review new applications
+                  {t('dashboard.vendorsBaseDesc')}
                 </p>
               </div>
 
@@ -1139,13 +1137,13 @@ export default function Dashboard() {
                 <TabsList className="grid w-full max-w-md grid-cols-2">
                   <TabsTrigger value="vendors-list" className="gap-2" data-testid="tab-vendors-list">
                     <Users className="h-4 w-4" />
-                    Vendors ({vendors.length})
+                    {t('dashboard.vendorsBase')} ({vendors.length})
                   </TabsTrigger>
                   <TabsTrigger value="join-requests" className="gap-2" data-testid="tab-join-requests">
                     <UserPlus className="h-4 w-4" />
-                    Join Requests
+                    {t('dashboard.pendingRequests')}
                     {pendingRequests.length > 0 && (
-                      <Badge variant="destructive" className="ml-2" data-testid="badge-pending-count">
+                      <Badge variant="destructive" className={isRtl ? 'mr-2' : 'ml-2'} data-testid="badge-pending-count">
                         {pendingRequests.length}
                       </Badge>
                     )}
@@ -1158,12 +1156,12 @@ export default function Dashboard() {
                   <Card>
                     <CardContent className="pt-6">
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Search className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground`} />
                         <Input
-                          placeholder="Search vendors by name, company, or category..."
+                          placeholder={t('dashboard.searchVendors')}
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-10"
+                          className={isRtl ? 'pr-10 text-right' : 'pl-10'}
                           data-testid="input-vendor-search"
                         />
                       </div>
@@ -1180,12 +1178,10 @@ export default function Dashboard() {
                       <CardContent className="flex flex-col items-center justify-center py-16">
                         <Users className="h-16 w-16 text-muted-foreground mb-4" />
                         <h3 className="text-xl font-semibold mb-2" data-testid="text-empty-vendors-title">
-                          {searchQuery ? "No vendors found" : "No vendors yet"}
+                          {t('dashboard.noVendors')}
                         </h3>
                         <p className="text-muted-foreground text-center max-w-md" data-testid="text-empty-vendors-description">
-                          {searchQuery 
-                            ? "Try adjusting your search terms" 
-                            : "Your approved vendors will appear here. Invite vendors or review join requests to build your base."}
+                          {t('dashboard.noVendorsDesc')}
                         </p>
                       </CardContent>
                     </Card>
@@ -1207,7 +1203,7 @@ export default function Dashboard() {
                                     {vendor.verificationStatus === 'verified' && (
                                       <Badge variant="secondary" className="gap-1" data-testid={`badge-verified-${vendor.id}`}>
                                         <CheckCircle className="h-3 w-3" />
-                                        Verified
+                                        {t('dashboard.verified')}
                                       </Badge>
                                     )}
                                   </div>
@@ -1229,8 +1225,8 @@ export default function Dashboard() {
                                   onClick={() => setSelectedVendor(vendor)}
                                   data-testid={`button-view-vendor-${vendor.id}`}
                                 >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  View
+                                  <Eye className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                  {t('dashboard.view')}
                                 </Button>
                               </div>
                             </div>
@@ -1261,19 +1257,19 @@ export default function Dashboard() {
                       <CardContent className="flex flex-col items-center justify-center py-16">
                         <UserPlus className="h-12 w-12 text-muted-foreground mb-3" />
                         <p className="text-muted-foreground" data-testid="text-no-requests">
-                          No pending requests
+                          {t('dashboard.noPendingRequests')}
                         </p>
                       </CardContent>
                     </Card>
                   ) : (
                     <Card className="border-2 border-primary/20 bg-primary/5">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2" data-testid="text-pending-title">
+                      <CardHeader className={isRtl ? 'text-right' : ''}>
+                        <CardTitle className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`} data-testid="text-pending-title">
                           <UserPlus className="h-5 w-5" />
-                          Pending Requests ({pendingRequests.length})
+                          {t('dashboard.pendingRequests')} ({pendingRequests.length})
                         </CardTitle>
                         <CardDescription>
-                          Review and approve vendor applications to add them to your base
+                          {t('dashboard.vendorsBaseDesc')}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-3">
@@ -1367,7 +1363,7 @@ export default function Dashboard() {
                                               </Badge>
                                             </div>
                                           </div>
-                                          <div className="flex gap-3 pt-4">
+                                          <div className={`flex gap-3 pt-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
                                             <Button
                                               onClick={() => approveRequest.mutate(selectedRequest.id)}
                                               disabled={approveRequest.isPending || rejectRequest.isPending}
@@ -1375,11 +1371,11 @@ export default function Dashboard() {
                                               data-testid="button-approve"
                                             >
                                               {approveRequest.isPending ? (
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-2' : 'mr-2'}`} />
                                               ) : (
-                                                <CheckCircle className="mr-2 h-4 w-4" />
+                                                <CheckCircle className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                                               )}
-                                              Approve
+                                              {t('dashboard.approve')}
                                             </Button>
                                             <Button
                                               onClick={() => rejectRequest.mutate(selectedRequest.id)}
@@ -1389,11 +1385,11 @@ export default function Dashboard() {
                                               data-testid="button-reject"
                                             >
                                               {rejectRequest.isPending ? (
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-2' : 'mr-2'}`} />
                                               ) : (
-                                                <XCircle className="mr-2 h-4 w-4" />
+                                                <XCircle className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                                               )}
-                                              Reject
+                                              {t('dashboard.reject')}
                                             </Button>
                                           </div>
                                         </div>

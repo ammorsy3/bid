@@ -132,8 +132,8 @@ const translations = {
       bookDemoDesc: "See how to kickstart Bid successfully, achieve top results fast, & get the value for money.",
       bookDemo: "Book a demo",
       getStartedTitle: "Get started & streamline sourcing with Bid",
-      getStartedDesc: "6 steps to configure and launch successful procurement.",
-      tasksCompleted: "of 6 tasks completed",
+      getStartedDesc: "5 steps to configure and launch successful procurement.",
+      tasksCompleted: "of 5 tasks completed",
       // Onboarding tasks
       task1Title: "Create your first Tender",
       task1Desc: "Set up tenders with detailed requirements and invite qualified vendors to submit proposals.",
@@ -298,8 +298,8 @@ const translations = {
       bookDemoDesc: "اكتشف كيفية البدء بنجاح مع Bid وتحقيق أفضل النتائج بسرعة والحصول على أقصى قيمة.",
       bookDemo: "احجز عرضاً",
       getStartedTitle: "ابدأ الآن وسهّل عمليات الشراء مع Bid",
-      getStartedDesc: "6 خطوات لإعداد وإطلاق عمليات شراء ناجحة.",
-      tasksCompleted: "من 6 مهام مكتملة",
+      getStartedDesc: "5 خطوات لإعداد وإطلاق عمليات شراء ناجحة.",
+      tasksCompleted: "من 5 مهام مكتملة",
       // Onboarding tasks
       task1Title: "أنشئ أول مناقصة لك",
       task1Desc: "قم بإعداد مناقصات بمتطلبات تفصيلية ودعوة موردين مؤهلين لتقديم عروضهم.",

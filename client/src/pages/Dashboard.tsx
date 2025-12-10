@@ -952,120 +952,125 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-4">
-                  {filteredTenders.map((tender) => {
-                    const statusBadge = getStatusBadge(tender.status);
-                    const isDeadlineSoon = new Date(tender.deadline).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000;
-                    
-                    return (
-                      <Card 
-                        key={tender.id} 
-                        className="hover:shadow-lg transition-shadow"
-                        data-testid={`card-tender-${tender.id}`}
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <h3 
-                                  className="text-lg font-semibold cursor-pointer hover:text-blue-600"
-                                  onClick={() => setLocation(`/tenders/${tender.id}`)}
-                                  data-testid={`text-tender-title-${tender.id}`}
-                                >
-                                  {tender.title}
-                                </h3>
-                                <Badge className={statusBadge.className} data-testid={`badge-status-${tender.id}`}>
-                                  {statusBadge.label}
-                                </Badge>
+                <div className="relative w-full h-[600px] border rounded-lg">
+                  <ScrollArea className="h-full">
+                    <div className="space-y-4 p-4">
+                      {filteredTenders.map((tender) => {
+                        const statusBadge = getStatusBadge(tender.status);
+                        const isDeadlineSoon = new Date(tender.deadline).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000;
+                        
+                        return (
+                          <Card 
+                            key={tender.id} 
+                            className="hover:shadow-lg transition-shadow"
+                            data-testid={`card-tender-${tender.id}`}
+                          >
+                            <CardContent className="p-6">
+                              <div className="flex items-start justify-between mb-4">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <h3 
+                                      className="text-lg font-semibold cursor-pointer hover:text-blue-600"
+                                      onClick={() => setLocation(`/tenders/${tender.id}`)}
+                                      data-testid={`text-tender-title-${tender.id}`}
+                                    >
+                                      {tender.title}
+                                    </h3>
+                                    <Badge className={statusBadge.className} data-testid={`badge-status-${tender.id}`}>
+                                      {statusBadge.label}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground line-clamp-2" data-testid={`text-tender-description-${tender.id}`}>
+                                    {tender.description}
+                                  </p>
+                                </div>
                               </div>
-                              <p className="text-sm text-muted-foreground line-clamp-2" data-testid={`text-tender-description-${tender.id}`}>
-                                {tender.description}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
-                            <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
-                              <Calendar className="h-4 w-4" />
-                              <span className={isDeadlineSoon ? 'text-red-600 font-medium' : ''}>
-                                {formatDate(tender.deadline)}
-                              </span>
-                            </div>
-                            <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
-                              <Send className="h-4 w-4" />
-                              <span data-testid={`text-proposals-count-${tender.id}`}>
-                                {tender.offersCount} {t('dashboard.offers')}
-                              </span>
-                            </div>
-                            <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
-                              <Mail className="h-4 w-4" />
-                              <span>{tender.invitedCount} {t('dashboard.invited')}</span>
-                            </div>
-                            <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
-                              <FileText className="h-4 w-4" />
-                              <span>{tender.budgetRange || tender.budget || t('dashboard.budget')}</span>
-                            </div>
-                          </div>
-                          
-                          <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => setLocation(`/tenders/${tender.id}`)}
-                              data-testid={`button-view-${tender.id}`}
-                            >
-                              <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                              {t('dashboard.view')}
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => copyInvitationLink(tender)}
-                              data-testid={`button-copy-link-${tender.id}`}
-                            >
-                              {copiedLinkId === tender.id ? (
-                                <>
-                                  <Check className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                                  {t('dashboard.linkCopied')}
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                                  {t('dashboard.copyLink')}
-                                </>
-                              )}
-                            </Button>
-                            {['draft', 'published'].includes(tender.status) && (
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => setLocation(`/tenders/${tender.id}/edit`)}
-                                data-testid={`button-edit-${tender.id}`}
-                              >
-                                <Edit className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                                {t('dashboard.edit')}
-                              </Button>
-                            )}
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => {
-                                if (confirm('Are you sure you want to delete this tender?')) {
-                                  deleteTender.mutate(tender.id);
-                                }
-                              }}
-                              disabled={deleteTender.isPending}
-                              data-testid={`button-delete-${tender.id}`}
-                            >
-                              <Trash2 className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                              {t('dashboard.delete')}
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                              
+                              <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                  <Calendar className="h-4 w-4" />
+                                  <span className={isDeadlineSoon ? 'text-red-600 font-medium' : ''}>
+                                    {formatDate(tender.deadline)}
+                                  </span>
+                                </div>
+                                <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                  <Send className="h-4 w-4" />
+                                  <span data-testid={`text-proposals-count-${tender.id}`}>
+                                    {tender.offersCount} {t('dashboard.offers')}
+                                  </span>
+                                </div>
+                                <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                  <Mail className="h-4 w-4" />
+                                  <span>{tender.invitedCount} {t('dashboard.invited')}</span>
+                                </div>
+                                <div className={`flex items-center gap-2 text-muted-foreground ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                  <FileText className="h-4 w-4" />
+                                  <span>{tender.budgetRange || tender.budget || t('dashboard.budget')}</span>
+                                </div>
+                              </div>
+                              
+                              <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => setLocation(`/tenders/${tender.id}`)}
+                                  data-testid={`button-view-${tender.id}`}
+                                >
+                                  <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  {t('dashboard.view')}
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => copyInvitationLink(tender)}
+                                  data-testid={`button-copy-link-${tender.id}`}
+                                >
+                                  {copiedLinkId === tender.id ? (
+                                    <>
+                                      <Check className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                      {t('dashboard.linkCopied')}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                      {t('dashboard.copyLink')}
+                                    </>
+                                  )}
+                                </Button>
+                                {['draft', 'published'].includes(tender.status) && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => setLocation(`/tenders/${tender.id}/edit`)}
+                                    data-testid={`button-edit-${tender.id}`}
+                                  >
+                                    <Edit className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                    {t('dashboard.edit')}
+                                  </Button>
+                                )}
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => {
+                                    if (confirm('Are you sure you want to delete this tender?')) {
+                                      deleteTender.mutate(tender.id);
+                                    }
+                                  }}
+                                  disabled={deleteTender.isPending}
+                                  data-testid={`button-delete-${tender.id}`}
+                                >
+                                  <Trash2 className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  {t('dashboard.delete')}
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                  <ProgressiveBlur position="bottom" height="30%" />
                 </div>
               )}
             </TabsContent>

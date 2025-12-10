@@ -442,9 +442,17 @@ export default function Dashboard() {
           <Popover>
             <PopoverTrigger asChild>
               <button className="flex items-center gap-3 w-full hover:bg-accent rounded-md p-1 -m-1 transition-colors" data-testid="button-user-menu">
-                <div className="h-8 w-8 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-                  {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
-                </div>
+                {user.profilePictureUrl ? (
+                  <img 
+                    src={user.profilePictureUrl} 
+                    alt={user.name || user.username}
+                    className="h-8 w-8 rounded-full object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="h-8 w-8 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                    {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
                 <span className="text-sm font-medium truncate group-data-[collapsible=icon]:hidden">
                   {user.name || user.username}
                 </span>
@@ -453,9 +461,17 @@ export default function Dashboard() {
             <PopoverContent side="top" align="start" className="w-64 mb-2">
               <PopoverHeader>
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-                    {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
-                  </div>
+                  {user.profilePictureUrl ? (
+                    <img 
+                      src={user.profilePictureUrl} 
+                      alt={user.name || user.username}
+                      className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                      {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <PopoverTitle>{user.name || user.username}</PopoverTitle>
                     <PopoverDescription className="text-xs truncate">{user.email}</PopoverDescription>

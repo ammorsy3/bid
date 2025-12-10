@@ -48,6 +48,10 @@ const translations = {
       plansBilling: "Plans & Billing",
       notifications: "Notifications",
       shareFeedback: "Share Feedback",
+      inviteFriend: "Invite a Friend & Earn",
+      helpCenter: "Help Center",
+      settings: "Settings",
+      logout: "Logout",
     },
     dashboard: {
       overview: "Overview",
@@ -214,6 +218,10 @@ const translations = {
       plansBilling: "الخطط والفوترة",
       notifications: "الإشعارات",
       shareFeedback: "شارك رأيك",
+      inviteFriend: "ادعُ صديقًا واكسب",
+      helpCenter: "مركز المساعدة",
+      settings: "الإعدادات",
+      logout: "تسجيل الخروج",
     },
     dashboard: {
       overview: "نظرة عامة",

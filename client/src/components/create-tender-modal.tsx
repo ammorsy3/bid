@@ -5,6 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { SmartInput, SmartTextarea } from "@/components/ui/smart-input";
 import { FormProgress, DraftIndicator } from "@/components/ui/form-progress";
+import { JollyDatePicker } from "@/components/ui/date-picker";
+import { parseDate, CalendarDate, today, getLocalTimeZone } from "@internationalized/date";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -420,15 +422,18 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 name="deadline"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Submission Deadline *</FormLabel>
                     <FormControl>
-                      <SmartInput 
-                        type="datetime-local"
-                        error={form.formState.errors.deadline}
-                        isDirty={form.formState.dirtyFields.deadline}
-                        constraints={getConstraints('deadline', field.value)}
+                      <JollyDatePicker
+                        label="Submission Deadline *"
+                        granularity="day"
+                        minValue={today(getLocalTimeZone())}
+                        value={field.value ? parseDate(field.value.split('T')[0]) : undefined}
+                        onChange={(date) => {
+                          if (date) {
+                            field.onChange(date.toString());
+                          }
+                        }}
                         data-testid="input-deadline"
-                        {...field} 
                       />
                     </FormControl>
                     <FormMessage />

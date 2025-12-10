@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import multer from "multer";
 import { 
   registerUserSchema,
   createCompanySchema,
@@ -13,6 +14,19 @@ import {
 } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
+
+// Configure multer for file uploads (memory storage)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -374,53 +388,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload user profile picture
-  app.post("/api/user/profile-picture", authenticateToken, async (req: AuthRequest, res) => {
+  app.post("/api/user/profile-picture", authenticateToken, upload.single('file'), async (req: AuthRequest, res) => {
     try {
-      const objectStorage = ObjectStorageService.getInstance();
-      
-      // Handle multipart form data
-      const chunks: Buffer[] = [];
-      for await (const chunk of req) {
-        chunks.push(chunk);
-      }
-      const body = Buffer.concat(chunks);
-      
-      // Parse multipart form data
-      const boundary = req.headers['content-type']?.split('boundary=')[1];
-      if (!boundary) {
-        return res.status(400).json({ message: "Invalid request format" });
-      }
-      
-      // Simple multipart parser
-      const parts = body.toString('binary').split('--' + boundary);
-      let fileContent: Buffer | null = null;
-      let fileName = 'profile.jpg';
-      let contentType = 'image/jpeg';
-      
-      for (const part of parts) {
-        if (part.includes('filename=')) {
-          const filenameMatch = part.match(/filename="([^"]+)"/);
-          if (filenameMatch) fileName = filenameMatch[1];
-          
-          const contentTypeMatch = part.match(/Content-Type: ([^\r\n]+)/);
-          if (contentTypeMatch) contentType = contentTypeMatch[1].trim();
-          
-          const headerEnd = part.indexOf('\r\n\r\n');
-          if (headerEnd !== -1) {
-            const content = part.slice(headerEnd + 4);
-            const end = content.lastIndexOf('\r\n');
-            fileContent = Buffer.from(content.slice(0, end), 'binary');
-          }
-        }
-      }
-      
-      if (!fileContent) {
+      const file = (req as any).file;
+      if (!file) {
         return res.status(400).json({ message: "No file provided" });
       }
+
+      const objectStorage = ObjectStorageService.getInstance();
       
       // Upload to object storage
-      const objectPath = `public/profile-pictures/${req.auth!.userId}-${Date.now()}-${fileName}`;
-      await objectStorage.uploadObject(objectPath, fileContent, contentType);
+      const objectPath = `public/profile-pictures/${req.auth!.userId}-${Date.now()}-${file.originalname}`;
+      await objectStorage.uploadObject(objectPath, file.buffer, file.mimetype);
       
       // Get public URL
       const url = objectStorage.getPublicUrl(objectPath);
@@ -466,7 +445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload company logo
-  app.post("/api/company/logo", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+  app.post("/api/company/logo", authenticateToken, requireCompanyContext, upload.single('file'), async (req: AuthRequest, res) => {
     try {
       const companyId = req.auth!.activeCompanyId!;
       const role = req.auth!.roleInCompany;
@@ -474,52 +453,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (role !== 'owner' && role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
-      const objectStorage = ObjectStorageService.getInstance();
-      
-      // Handle multipart form data
-      const chunks: Buffer[] = [];
-      for await (const chunk of req) {
-        chunks.push(chunk);
-      }
-      const body = Buffer.concat(chunks);
-      
-      // Parse multipart form data
-      const boundary = req.headers['content-type']?.split('boundary=')[1];
-      if (!boundary) {
-        return res.status(400).json({ message: "Invalid request format" });
-      }
-      
-      // Simple multipart parser
-      const parts = body.toString('binary').split('--' + boundary);
-      let fileContent: Buffer | null = null;
-      let fileName = 'logo.jpg';
-      let contentType = 'image/jpeg';
-      
-      for (const part of parts) {
-        if (part.includes('filename=')) {
-          const filenameMatch = part.match(/filename="([^"]+)"/);
-          if (filenameMatch) fileName = filenameMatch[1];
-          
-          const contentTypeMatch = part.match(/Content-Type: ([^\r\n]+)/);
-          if (contentTypeMatch) contentType = contentTypeMatch[1].trim();
-          
-          const headerEnd = part.indexOf('\r\n\r\n');
-          if (headerEnd !== -1) {
-            const content = part.slice(headerEnd + 4);
-            const end = content.lastIndexOf('\r\n');
-            fileContent = Buffer.from(content.slice(0, end), 'binary');
-          }
-        }
-      }
-      
-      if (!fileContent) {
+
+      const file = (req as any).file;
+      if (!file) {
         return res.status(400).json({ message: "No file provided" });
       }
       
+      const objectStorage = ObjectStorageService.getInstance();
+      
       // Upload to object storage
-      const objectPath = `public/company-logos/${companyId}-${Date.now()}-${fileName}`;
-      await objectStorage.uploadObject(objectPath, fileContent, contentType);
+      const objectPath = `public/company-logos/${companyId}-${Date.now()}-${file.originalname}`;
+      await objectStorage.uploadObject(objectPath, file.buffer, file.mimetype);
       
       // Get public URL
       const url = objectStorage.getPublicUrl(objectPath);

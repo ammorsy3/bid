@@ -1,11 +1,16 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { SmartInput, SmartTextarea } from "@/components/ui/smart-input";
 import { FormProgress, DraftIndicator } from "@/components/ui/form-progress";
-import { SimpleDatePicker } from "@/components/ui/date-time-picker";
+import { TimePicker } from "@/components/ui/datetime-picker";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, add } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -419,26 +424,68 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               <FormField
                 control={form.control}
                 name="deadline"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <SimpleDatePicker
-                        label="Submission Deadline *"
-                        minDate={new Date()}
-                        date={field.value ? new Date(field.value) : undefined}
-                        setDate={(date) => {
-                          if (date) {
-                            field.onChange(date.toISOString());
-                            form.trigger('deadline');
-                          } else {
-                            field.onChange('');
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const dateValue = field.value ? new Date(field.value) : undefined;
+                  
+                  const handleSelect = (newDay: Date | undefined) => {
+                    if (!newDay) return;
+                    if (!dateValue) {
+                      field.onChange(newDay.toISOString());
+                      form.trigger('deadline');
+                      return;
+                    }
+                    const diff = newDay.getTime() - dateValue.getTime();
+                    const diffInDays = diff / (1000 * 60 * 60 * 24);
+                    const newDateFull = add(dateValue, { days: Math.ceil(diffInDays) });
+                    field.onChange(newDateFull.toISOString());
+                    form.trigger('deadline');
+                  };
+
+                  const setDate = (date: Date | undefined) => {
+                    if (date) {
+                      field.onChange(date.toISOString());
+                      form.trigger('deadline');
+                    } else {
+                      field.onChange('');
+                    }
+                  };
+
+                  return (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Submission Deadline *</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !dateValue && "text-muted-foreground"
+                              )}
+                              data-testid="input-deadline"
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {dateValue ? format(dateValue, "PPP HH:mm:ss") : <span>Pick a date</span>}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={dateValue}
+                            onSelect={handleSelect}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                          />
+                          <div className="p-3 border-t border-border">
+                            <TimePicker setDate={setDate} date={dateValue} />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <FormField

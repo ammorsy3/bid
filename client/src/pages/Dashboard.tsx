@@ -810,7 +810,7 @@ export default function Dashboard() {
                   </div>
                   <Progress value={((onboardingTasks?.completedCount ?? 0) / 5) * 100} className="h-2 bg-gray-100 dark:bg-gray-800" />
                 </div>
-                <p className={`text-xs text-muted-foreground ${isRtl ? 'text-right' : ''}`}>{Math.min(onboardingTasks?.completedCount ?? 0, 5)} of 5 tasks completed</p>
+                <p className={`text-xs text-muted-foreground ${isRtl ? 'text-right' : ''}`}>{onboardingTasks?.completedCount ?? 0} of 5 tasks completed</p>
 
                 {/* Onboarding Tasks Accordion */}
                 <Accordion type="single" collapsible className="space-y-2">

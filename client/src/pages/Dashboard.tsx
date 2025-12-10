@@ -15,7 +15,8 @@ import {
   SidebarMenuItem, 
   SidebarProvider, 
   SidebarInset,
-  SidebarTrigger
+  SidebarTrigger,
+  useSidebar
 } from "@/components/ui/sidebar";
 import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
@@ -120,6 +121,27 @@ interface IncomingOffer {
     displayName: string | null;
     logoUrl: string | null;
   };
+}
+
+// Component for sidebar header with logo/toggle swap on hover when collapsed
+function SidebarLogoToggle() {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <div 
+      className="relative flex-shrink-0"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {isCollapsed && isHovered ? (
+        <SidebarTrigger className="h-6 w-6" />
+      ) : (
+        <Building2 className="h-6 w-6 text-primary" />
+      )}
+    </div>
+  );
 }
 
 export default function Dashboard() {
@@ -378,7 +400,7 @@ export default function Dashboard() {
       <Sidebar collapsible="icon" className="border-r">
         <SidebarHeader className="border-b px-4 py-4">
           <div className="flex items-center gap-3">
-            <Building2 className="h-6 w-6 text-primary flex-shrink-0" />
+            <SidebarLogoToggle />
             <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
               <h2 className="font-semibold text-sm truncate">
                 {activeCompany.profile?.displayName || activeCompany.name}
@@ -387,7 +409,8 @@ export default function Dashboard() {
                 {activeCompany.role} • {activeCompany.verificationStatus}
               </p>
             </div>
-            <SidebarTrigger className="ml-auto flex-shrink-0" />
+            {/* Show toggle button only when expanded */}
+            <SidebarTrigger className="ml-auto flex-shrink-0 group-data-[collapsible=icon]:hidden" />
           </div>
         </SidebarHeader>
         

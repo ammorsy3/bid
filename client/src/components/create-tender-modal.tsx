@@ -64,7 +64,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
 
   const form = useForm<CreateTenderForm>({
     resolver: zodResolver(createTenderSchema),
-    mode: 'onChange',
+    mode: 'onTouched',
     defaultValues: {
       title: "",
       description: "",

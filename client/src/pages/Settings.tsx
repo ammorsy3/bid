@@ -67,7 +67,7 @@ export default function Settings() {
   useEffect(() => {
     const logSettingsVisit = async () => {
       try {
-        await apiRequest('/api/onboarding-tasks/settings-visited', { method: 'POST' });
+        await apiRequest('POST', '/api/onboarding-tasks/settings-visited');
       } catch (error) {
         // Silently fail - this is just for tracking
       }

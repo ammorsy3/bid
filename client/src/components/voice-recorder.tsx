@@ -223,12 +223,17 @@ export default function VoiceRecorder({
 
   return (
     <div className="space-y-3">
-      <audio
-        ref={audioRef}
-        src={audioUrl || undefined}
-        onEnded={() => setIsPlaying(false)}
-        className="hidden"
-      />
+      {audioUrl && (
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          onEnded={() => setIsPlaying(false)}
+          onError={(e) => {
+            console.error('Audio playback error:', e);
+          }}
+          className="hidden"
+        />
+      )}
 
       {/* Recording / Idle State with Animated Visualizer */}
       {!audioUrl && (

@@ -126,7 +126,10 @@ export const SpotlightCard = ({
         }}
       />
       
-      {children}
+      {/* Content wrapper with higher z-index */}
+      <div className="relative z-10">
+        {children}
+      </div>
     </div>
   );
 };

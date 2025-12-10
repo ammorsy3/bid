@@ -59,74 +59,63 @@ export const SpotlightCard = ({
       onBlur={handleBlur}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`relative rounded-2xl border border-neutral-200 bg-white overflow-hidden ${className}`}
+      className={`relative isolate rounded-2xl border border-neutral-200 bg-white overflow-hidden ${className}`}
     >
       {/* Static corner glow - top left */}
       <div
-        className="pointer-events-none absolute -top-20 -left-20 w-40 h-40"
+        className="pointer-events-none absolute -top-16 -left-16 w-32 h-32 z-0"
         style={{
-          background: `radial-gradient(circle, hsl(${hue} ${saturation}% ${lightness}% / 0.25), transparent 70%)`,
-          filter: 'blur(20px)',
+          background: `radial-gradient(circle, hsl(${hue} ${saturation}% ${lightness}% / 0.2), transparent 70%)`,
+          filter: 'blur(15px)',
         }}
       />
       
       {/* Static corner glow - bottom left */}
       <div
-        className="pointer-events-none absolute -bottom-20 -left-20 w-40 h-40"
+        className="pointer-events-none absolute -bottom-16 -left-16 w-32 h-32 z-0"
         style={{
-          background: `radial-gradient(circle, hsl(${hue} ${saturation}% ${lightness}% / 0.2), transparent 70%)`,
-          filter: 'blur(25px)',
+          background: `radial-gradient(circle, hsl(${hue} ${saturation}% ${lightness}% / 0.15), transparent 70%)`,
+          filter: 'blur(20px)',
         }}
       />
       
       {/* Static subtle edge glow - left side */}
       <div
-        className="pointer-events-none absolute top-0 left-0 w-1 h-full"
+        className="pointer-events-none absolute top-0 left-0 w-0.5 h-full z-0"
         style={{
-          background: `linear-gradient(to bottom, hsl(${hue} ${saturation}% ${lightness}% / 0.4), hsl(${hue} ${saturation}% ${lightness}% / 0.2) 50%, hsl(${hue} ${saturation}% ${lightness}% / 0.3))`,
-          boxShadow: `0 0 20px 5px hsl(${hue} ${saturation}% ${lightness}% / 0.15)`,
+          background: `linear-gradient(to bottom, hsl(${hue} ${saturation}% ${lightness}% / 0.3), hsl(${hue} ${saturation}% ${lightness}% / 0.15) 50%, hsl(${hue} ${saturation}% ${lightness}% / 0.25))`,
+          boxShadow: `0 0 15px 3px hsl(${hue} ${saturation}% ${lightness}% / 0.1)`,
         }}
       />
 
       {/* Main spotlight glow - inner fill */}
       <div
-        className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out"
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out z-0"
         style={{
-          opacity: opacity * 0.15,
-          background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, hsl(${hue} ${saturation}% ${lightness}%), transparent 40%)`,
+          opacity: opacity * 0.1,
+          background: `radial-gradient(500px circle at ${position.x}px ${position.y}px, hsl(${hue} ${saturation}% ${lightness}%), transparent 40%)`,
         }}
       />
       
       {/* Neon border glow effect */}
       <div
-        className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out"
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out z-0"
         style={{
-          opacity,
-          background: `radial-gradient(400px circle at ${position.x}px ${position.y}px, hsl(${hue} ${saturation}% ${lightness}% / 0.4), transparent 40%)`,
-          filter: 'brightness(1.5)',
+          opacity: opacity * 0.25,
+          background: `radial-gradient(300px circle at ${position.x}px ${position.y}px, hsl(${hue} ${saturation}% ${lightness}% / 0.3), transparent 40%)`,
         }}
       />
       
       {/* Bright center highlight */}
       <div
-        className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out"
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out z-0"
         style={{
-          opacity: opacity * 0.8,
-          background: `radial-gradient(200px circle at ${position.x}px ${position.y}px, hsl(${hue} ${saturation}% 80% / 0.3), transparent 50%)`,
-          filter: 'brightness(2)',
+          opacity: opacity * 0.4,
+          background: `radial-gradient(150px circle at ${position.x}px ${position.y}px, hsl(${hue} ${saturation}% 75% / 0.2), transparent 50%)`,
         }}
       />
       
-      {/* White hot center */}
-      <div
-        className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out"
-        style={{
-          opacity: opacity * 0.6,
-          background: `radial-gradient(100px circle at ${position.x}px ${position.y}px, hsl(0 0% 100% / 0.4), transparent 50%)`,
-        }}
-      />
-      
-      {/* Content wrapper with higher z-index */}
+      {/* Content wrapper - above all glow effects */}
       <div className="relative z-10">
         {children}
       </div>

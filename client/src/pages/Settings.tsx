@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Upload, User, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor } from "lucide-react";
+import { X, Upload, User, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -339,13 +339,21 @@ export default function Settings() {
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-sm text-muted-foreground">{t('settings.accountSettings')}</h2>
             <Button 
-              variant="ghost" 
-              size="icon"
-              className="h-8 w-8"
+              className="group relative overflow-hidden h-8"
               onClick={() => setLocation('/dashboard')}
               data-testid="button-close-settings"
             >
-              <X className="h-4 w-4" />
+              <span className="w-12 translate-x-2 transition-opacity duration-500 group-hover:opacity-0 text-sm">
+                Back
+              </span>
+              <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
+                <ArrowLeft
+                  className="opacity-60"
+                  size={16}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              </i>
             </Button>
           </div>
         </div>

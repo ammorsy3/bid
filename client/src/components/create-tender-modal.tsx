@@ -5,8 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { SmartInput, SmartTextarea } from "@/components/ui/smart-input";
 import { FormProgress, DraftIndicator } from "@/components/ui/form-progress";
-import { JollyDatePicker } from "@/components/ui/date-picker";
-import { parseDate, today, getLocalTimeZone, CalendarDate } from "@internationalized/date";
+import { SimpleDatePicker } from "@/components/ui/date-time-picker";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -423,22 +422,18 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <JollyDatePicker
+                      <SimpleDatePicker
                         label="Submission Deadline *"
-                        granularity="day"
-                        minValue={today(getLocalTimeZone())}
-                        value={field.value ? parseDate(field.value.split('T')[0]) : undefined}
-                        onChange={(date) => {
+                        minDate={new Date()}
+                        date={field.value ? new Date(field.value) : undefined}
+                        setDate={(date) => {
                           if (date) {
-                            const isoDate = date.toString();
-                            field.onChange(isoDate);
+                            field.onChange(date.toISOString());
                             form.trigger('deadline');
                           } else {
                             field.onChange('');
                           }
                         }}
-                        onBlur={field.onBlur}
-                        data-testid="input-deadline"
                       />
                     </FormControl>
                     <FormMessage />

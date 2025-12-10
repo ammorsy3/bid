@@ -20,7 +20,7 @@ import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { Copy, Check, Mail, ExternalLink, Sparkles, Info, ChevronDown, ChevronUp, Video } from "lucide-react";
+import { Copy, Check, Mail, ExternalLink, Sparkles, Info, Video } from "lucide-react";
 import { useState, useEffect } from "react";
 import VoiceRecorder from "./voice-recorder";
 import { useLocation } from "wouter";
@@ -64,8 +64,6 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
   const [invitationCopied, setInvitationCopied] = useState(false);
   const [showDraftPrompt, setShowDraftPrompt] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
-
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const form = useForm<CreateTenderForm>({
     resolver: zodResolver(createTenderSchema),
@@ -535,64 +533,44 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               )}
             />
 
-            {/* Advanced Options Toggle */}
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="w-full justify-between text-neutral-600 hover:text-neutral-900"
-              data-testid="button-toggle-advanced"
-            >
-              <span className="flex items-center gap-2">
-                {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                View Advanced Options
-              </span>
-              <span className="text-xs text-neutral-400">Optional</span>
-            </Button>
+            {/* Voice Note (Optional) */}
+            <div>
+              <h4 className="font-medium text-neutral-900 mb-2">Voice Note <span className="text-xs text-neutral-400 font-normal">(Optional)</span></h4>
+              <p className="text-sm text-neutral-600 mb-3">
+                Record a voice message to explain your project in detail (max 5 minutes)
+              </p>
+              <VoiceRecorder
+                onRecordingComplete={(url) => form.setValue('voiceNoteUrl', url)}
+                onRecordingDeleted={() => form.setValue('voiceNoteUrl', '')}
+                existingUrl={form.watch('voiceNoteUrl') || undefined}
+                maxDurationSeconds={300}
+              />
+            </div>
 
-            {/* Advanced Options Section */}
-            {showAdvanced && (
-              <div className="space-y-6 p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
-                <div>
-                  <h4 className="font-medium text-neutral-900 mb-3">Voice Note</h4>
-                  <p className="text-sm text-neutral-600 mb-3">
-                    Record a voice message to explain your project in detail (max 5 minutes)
-                  </p>
-                  <VoiceRecorder
-                    onRecordingComplete={(url) => form.setValue('voiceNoteUrl', url)}
-                    onRecordingDeleted={() => form.setValue('voiceNoteUrl', '')}
-                    existingUrl={form.watch('voiceNoteUrl') || undefined}
-                    maxDurationSeconds={300}
-                  />
-                </div>
-
-                <div className="border-t pt-4">
-                  <FormField
-                    control={form.control}
-                    name="videoUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Video className="h-4 w-4 text-primary-600" />
-                          Video Link
-                        </FormLabel>
-                        <FormControl>
-                          <SmartInput 
-                            placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..." 
-                            error={form.formState.errors.videoUrl}
-                            isDirty={form.formState.dirtyFields.videoUrl}
-                            data-testid="input-video-url"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <p className="text-xs text-neutral-500">Add a link to a video explaining your project</p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            )}
+            {/* Video URL (Optional) */}
+            <FormField
+              control={form.control}
+              name="videoUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Video className="h-4 w-4 text-primary-600" />
+                    Video Link <span className="text-xs text-neutral-400 font-normal">(Optional)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <SmartInput 
+                      placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..." 
+                      error={form.formState.errors.videoUrl}
+                      isDirty={form.formState.dirtyFields.videoUrl}
+                      data-testid="input-video-url"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <p className="text-xs text-neutral-500">Add a link to a video explaining your project</p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
               <h4 className="font-medium text-neutral-900 mb-2">Invitation System</h4>

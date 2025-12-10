@@ -971,6 +971,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // When accepting a proposal, automatically add the vendor to the Vendors Base
         if (status === 'accepted') {
           const isAlreadyInBase = await storage.isVendorInBase(req.auth!.activeCompanyId!, offer.companyId);
+          
           if (!isAlreadyInBase) {
             await storage.addVendorToBase({
               requesterCompanyId: req.auth!.activeCompanyId!,

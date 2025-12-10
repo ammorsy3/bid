@@ -523,27 +523,57 @@ export default function Dashboard() {
                   className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
                   data-testid="menu-invite"
                 >
-                  <Gift className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm flex-1">{t('settings.inviteFriend')}</span>
+                  <Gift className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm text-left flex-1">{t('settings.inviteFriend')}</span>
                 </button>
 
-                <button 
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
-                  data-testid="menu-notifications"
-                >
-                  <Bell className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm flex-1">{t('settings.notifications')}</span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button 
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                      data-testid="menu-notifications"
+                    >
+                      <Bell className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm text-left flex-1">{t('settings.notifications')}</span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="right" align="start" className="w-48 p-1">
+                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
+                      {t('settings.allNotifications')}
+                    </button>
+                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
+                      {t('settings.emailNotifications')}
+                    </button>
+                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
+                      {t('settings.pushNotifications')}
+                    </button>
+                  </PopoverContent>
+                </Popover>
 
-                <button 
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
-                  data-testid="menu-help"
-                >
-                  <HelpCircle className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm flex-1">{t('settings.helpCenter')}</span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button 
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                      data-testid="menu-help"
+                    >
+                      <HelpCircle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm text-left flex-1">{t('settings.helpCenter')}</span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="right" align="start" className="w-48 p-1">
+                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
+                      {t('settings.gettingStarted')}
+                    </button>
+                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
+                      {t('settings.faqs')}
+                    </button>
+                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
+                      {t('settings.contactSupport')}
+                    </button>
+                  </PopoverContent>
+                </Popover>
 
                 <Popover>
                   <PopoverTrigger asChild>
@@ -551,10 +581,10 @@ export default function Dashboard() {
                       className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
                       data-testid="menu-language"
                     >
-                      <Globe className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-sm flex-1">{t('settings.language')}</span>
+                      <Globe className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm text-left flex-1">{t('settings.language')}</span>
                       <span className="text-xs text-muted-foreground">{language === 'en' ? 'English' : 'العربية'}</span>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent side="right" align="start" className="w-40 p-1">

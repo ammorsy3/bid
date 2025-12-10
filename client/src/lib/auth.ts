@@ -12,6 +12,11 @@ interface User {
   email: string;
   name: string;
   isAdmin: boolean;
+  profilePictureUrl: string | null;
+  jobTitle: string | null;
+  timezone: string | null;
+  linkedinUrl: string | null;
+  phoneNumber: string | null;
 }
 
 interface CompanyProfile {

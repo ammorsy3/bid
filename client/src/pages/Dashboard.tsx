@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ProgressiveBlur } from "@/components/ui/progressive-blur";
 import { 
   Sidebar, 
   SidebarContent, 
@@ -1107,12 +1109,14 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="space-y-4">
-                    {myOffers.map((offer) => {
-                      const isExpired = new Date(offer.tender.deadline) < new Date();
-                      const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                      
-                      return (
+                  <div className="relative w-full h-[600px] border rounded-lg">
+                    <ScrollArea className="h-full">
+                      <div className="space-y-4 p-4">
+                        {myOffers.map((offer) => {
+                          const isExpired = new Date(offer.tender.deadline) < new Date();
+                          const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                          
+                          return (
                         <Card 
                           key={offer.id} 
                           className={`border ${
@@ -1209,8 +1213,11 @@ export default function Dashboard() {
                             </div>
                           </CardContent>
                         </Card>
-                      );
-                    })}
+                          );
+                        })}
+                      </div>
+                    </ScrollArea>
+                    <ProgressiveBlur position="bottom" height="30%" />
                   </div>
                 )}
               </TabsContent>
@@ -1232,8 +1239,10 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="space-y-4">
-                    {incomingOffers.map((offer) => {
+                  <div className="relative w-full h-[600px] border rounded-lg">
+                    <ScrollArea className="h-full">
+                      <div className="space-y-4 p-4">
+                        {incomingOffers.map((offer) => {
                       const isExpired = new Date(offer.tender.deadline) < new Date();
                       const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                       
@@ -1377,8 +1386,11 @@ export default function Dashboard() {
                             </div>
                           </CardContent>
                         </Card>
-                      );
-                    })}
+                        );
+                        })}
+                      </div>
+                    </ScrollArea>
+                    <ProgressiveBlur position="bottom" height="30%" />
                   </div>
                 )}
               </TabsContent>

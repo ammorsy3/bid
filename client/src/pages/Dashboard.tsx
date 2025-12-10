@@ -545,16 +545,41 @@ export default function Dashboard() {
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </button>
 
-                <button 
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
-                  onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
-                  data-testid="menu-language"
-                >
-                  <Globe className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm flex-1">{t('settings.language')}</span>
-                  <span className="text-xs text-muted-foreground">{language === 'en' ? 'English' : 'العربية'}</span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button 
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                      data-testid="menu-language"
+                    >
+                      <Globe className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm flex-1">{t('settings.language')}</span>
+                      <span className="text-xs text-muted-foreground">{language === 'en' ? 'English' : 'العربية'}</span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="right" align="start" className="w-40 p-1">
+                    <button
+                      onClick={() => setLanguage('en')}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+                        language === 'en' ? 'bg-accent font-medium' : 'hover:bg-accent'
+                      }`}
+                      data-testid="lang-english"
+                    >
+                      {language === 'en' && <Check className="h-4 w-4" />}
+                      <span className={language !== 'en' ? 'ml-6' : ''}>English</span>
+                    </button>
+                    <button
+                      onClick={() => setLanguage('ar')}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+                        language === 'ar' ? 'bg-accent font-medium' : 'hover:bg-accent'
+                      }`}
+                      data-testid="lang-arabic"
+                    >
+                      {language === 'ar' && <Check className="h-4 w-4" />}
+                      <span className={language !== 'ar' ? 'ml-6' : ''}>العربية</span>
+                    </button>
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Theme Section */}

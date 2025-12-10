@@ -12,6 +12,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n, type Language } from "@/lib/i18n";
 
 const TIMEZONES = [
   { value: "Asia/Riyadh", label: "Riyadh (GMT+3)" },
@@ -37,6 +38,7 @@ export default function Settings() {
   const { user, activeCompany, checkAuth } = useAuthStore();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { t, language, setLanguage, isRtl } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const companyLogoInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<SettingsTab>("account");
@@ -59,10 +61,6 @@ export default function Settings() {
     const saved = localStorage.getItem('theme');
     return (saved as ThemeOption) || "light";
   });
-  const [language, setLanguage] = useState(() => {
-    const saved = localStorage.getItem('language');
-    return saved || "en";
-  });
   const [gdprCompliant, setGdprCompliant] = useState(false);
 
   // Apply theme when it changes
@@ -84,20 +82,6 @@ export default function Settings() {
       }
     }
   }, [theme]);
-
-  // Apply language when it changes
-  useEffect(() => {
-    localStorage.setItem('language', language);
-    const root = document.documentElement;
-    
-    if (language === "ar") {
-      root.dir = "rtl";
-      root.lang = "ar";
-    } else {
-      root.dir = "ltr";
-      root.lang = "en";
-    }
-  }, [language]);
 
   // Auto-save personal info with debounce
   const autoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -336,12 +320,12 @@ export default function Settings() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
-      {/* Left Sidebar */}
-      <div className="w-64 bg-white dark:bg-gray-800 border-r flex flex-col">
+    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 flex ${isRtl ? 'flex-row-reverse' : ''}`}>
+      {/* Sidebar - Left for LTR, Right for RTL */}
+      <div className={`w-64 bg-white dark:bg-gray-800 flex flex-col ${isRtl ? 'border-l' : 'border-r'}`}>
         <div className="p-4 border-b">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-sm text-muted-foreground">Account settings</h2>
+            <h2 className="font-semibold text-sm text-muted-foreground">{t('settings.accountSettings')}</h2>
             <Button 
               variant="ghost" 
               size="icon"
@@ -359,7 +343,7 @@ export default function Settings() {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-left transition-colors ${
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${isRtl ? 'text-right' : 'text-left'} ${
                 activeTab === item.id 
                   ? 'bg-[#E25E45]/10 text-[#E25E45]' 
                   : 'hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -387,14 +371,14 @@ export default function Settings() {
           {activeTab === "account" && (
             <div className="space-y-8">
               <div>
-                <h1 className="text-2xl font-bold">Account settings</h1>
-                <p className="text-muted-foreground mt-1">Personal information</p>
+                <h1 className="text-2xl font-bold">{t('settings.accountSettings')}</h1>
+                <p className="text-muted-foreground mt-1">{t('settings.personalInfo')}</p>
               </div>
 
               {/* Profile Picture */}
               <Card>
                 <CardContent className="pt-6">
-                  <div className="flex items-center gap-6">
+                  <div className={`flex items-center gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
                     <div className="relative">
                       {profilePicturePreview ? (
                         <img 
@@ -413,7 +397,7 @@ export default function Settings() {
                         </div>
                       )}
                     </div>
-                    <div>
+                    <div className={isRtl ? 'text-right' : ''}>
                       <input
                         ref={fileInputRef}
                         type="file"
@@ -428,11 +412,11 @@ export default function Settings() {
                         disabled={uploadProfilePictureMutation.isPending}
                         data-testid="button-upload-picture"
                       >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload a picture
+                        <Upload className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                        {t('settings.uploadPicture')}
                       </Button>
                       <p className="text-xs text-muted-foreground mt-2">
-                        JPG, PNG or GIF. Max 5MB.
+                        {t('settings.pictureHelper')}
                       </p>
                     </div>
                   </div>
@@ -444,37 +428,35 @@ export default function Settings() {
                 <CardContent className="pt-6 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName">First name</Label>
+                      <Label htmlFor="firstName">{t('settings.firstName')}</Label>
                       <p className="text-xs text-muted-foreground">
-                        The name others in your team will see you as.
+                        {t('settings.firstNameHelper')}
                       </p>
                       <Input
                         id="firstName"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="Enter your first name"
                         data-testid="input-first-name"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName">Last name</Label>
+                      <Label htmlFor="lastName">{t('settings.lastName')}</Label>
                       <p className="text-xs text-muted-foreground">
-                        The name others in your team will see you as.
+                        {t('settings.lastNameHelper')}
                       </p>
                       <Input
                         id="lastName"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
-                        placeholder="Enter your last name"
                         data-testid="input-last-name"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">Log in email</Label>
+                    <Label htmlFor="email">{t('settings.loginEmail')}</Label>
                     <p className="text-xs text-muted-foreground">
-                      Your account email for connection, information & notifications
+                      {t('settings.emailHelper')}
                     </p>
                     <Input
                       id="email"
@@ -486,37 +468,37 @@ export default function Settings() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="jobTitle">Job title</Label>
+                    <Label htmlFor="jobTitle">{t('settings.jobTitle')}</Label>
                     <p className="text-xs text-muted-foreground">
-                      Your job title, can be shared with vendors and partners.
+                      {t('settings.jobTitleHelper')}
                     </p>
                     <Input
                       id="jobTitle"
                       value={jobTitle}
                       onChange={(e) => setJobTitle(e.target.value)}
-                      placeholder="e.g. CEO, Sales, Product designer, etc."
+                      placeholder={t('settings.jobTitlePlaceholder')}
                       data-testid="input-job-title"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phoneNumber">Phone number</Label>
+                    <Label htmlFor="phoneNumber">{t('settings.phoneNumber')}</Label>
                     <p className="text-xs text-muted-foreground">
-                      Your contact number for business communications.
+                      {t('settings.phoneHelper')}
                     </p>
                     <Input
                       id="phoneNumber"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="e.g. +966 50 123 4567"
+                      placeholder="+966 50 123 4567"
                       data-testid="input-phone"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
+                    <Label htmlFor="linkedinUrl">{t('settings.linkedinUrl')}</Label>
                     <p className="text-xs text-muted-foreground">
-                      Your LinkedIn profile URL for networking.
+                      {t('settings.linkedinHelper')}
                     </p>
                     <Input
                       id="linkedinUrl"
@@ -528,13 +510,13 @@ export default function Settings() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="timezone">Timezone</Label>
+                    <Label htmlFor="timezone">{t('settings.timezone')}</Label>
                     <p className="text-xs text-muted-foreground">
-                      Your timezone, can be used for scheduling meetings.
+                      {t('settings.timezoneHelper')}
                     </p>
                     <Select value={timezone} onValueChange={setTimezone}>
                       <SelectTrigger data-testid="select-timezone">
-                        <SelectValue placeholder="Choose your timezone" />
+                        <SelectValue placeholder={t('settings.chooseTimezone')} />
                       </SelectTrigger>
                       <SelectContent>
                         {TIMEZONES.map((tz) => (
@@ -551,14 +533,14 @@ export default function Settings() {
 
               {/* Appearance Section */}
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Appearance</h2>
+                <h2 className="text-lg font-semibold">{t('settings.appearance')}</h2>
                 <Card>
                   <CardContent className="pt-6 space-y-6">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <Label>Theme</Label>
+                    <div className={`flex items-start justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className={isRtl ? 'text-right' : ''}>
+                        <Label>{t('settings.theme')}</Label>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Change the appearance of the platform.
+                          {t('settings.themeHelper')}
                         </p>
                       </div>
                       <div className="flex gap-3">
@@ -572,14 +554,14 @@ export default function Settings() {
                           data-testid="theme-light"
                         >
                           {theme === "light" && (
-                            <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-0.5">
+                            <div className={`absolute -top-1 ${isRtl ? '-left-1' : '-right-1'} bg-green-500 rounded-full p-0.5`}>
                               <Check className="h-3 w-3 text-white" />
                             </div>
                           )}
                           <div className="w-14 h-10 bg-white border-2 border-gray-200 rounded-md flex items-center justify-center text-gray-700 font-semibold">
                             Aa
                           </div>
-                          <span className="text-xs text-muted-foreground">Light</span>
+                          <span className="text-xs text-muted-foreground">{t('settings.light')}</span>
                         </button>
                         <button
                           onClick={() => setTheme("dark")}
@@ -591,14 +573,14 @@ export default function Settings() {
                           data-testid="theme-dark"
                         >
                           {theme === "dark" && (
-                            <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-0.5">
+                            <div className={`absolute -top-1 ${isRtl ? '-left-1' : '-right-1'} bg-green-500 rounded-full p-0.5`}>
                               <Check className="h-3 w-3 text-white" />
                             </div>
                           )}
                           <div className="w-14 h-10 bg-gray-800 border-2 border-gray-600 rounded-md flex items-center justify-center text-white font-semibold">
                             Aa
                           </div>
-                          <span className="text-xs text-muted-foreground">Dark</span>
+                          <span className="text-xs text-muted-foreground">{t('settings.dark')}</span>
                         </button>
                         <button
                           onClick={() => setTheme("system")}
@@ -610,7 +592,7 @@ export default function Settings() {
                           data-testid="theme-system"
                         >
                           {theme === "system" && (
-                            <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-0.5">
+                            <div className={`absolute -top-1 ${isRtl ? '-left-1' : '-right-1'} bg-green-500 rounded-full p-0.5`}>
                               <Check className="h-3 w-3 text-white" />
                             </div>
                           )}
@@ -618,21 +600,21 @@ export default function Settings() {
                             <span className="text-gray-700 font-semibold text-xs">Aa</span>
                             <span className="text-white font-semibold text-xs">Aa</span>
                           </div>
-                          <span className="text-xs text-muted-foreground">System</span>
+                          <span className="text-xs text-muted-foreground">{t('settings.system')}</span>
                         </button>
                       </div>
                     </div>
 
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <Label>Language</Label>
+                    <div className={`flex items-start justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className={isRtl ? 'text-right' : ''}>
+                        <Label>{t('settings.language')}</Label>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Change the language of the product.
+                          {t('settings.languageHelper')}
                         </p>
                       </div>
-                      <Select value={language} onValueChange={setLanguage}>
+                      <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
                         <SelectTrigger className="w-40" data-testid="select-language">
-                          <SelectValue placeholder="Select language" />
+                          <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           {LANGUAGES.map((lang) => (
@@ -649,18 +631,18 @@ export default function Settings() {
 
               {/* GDPR Section */}
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold">GDPR</h2>
+                <h2 className="text-lg font-semibold">{t('settings.gdpr')}</h2>
                 <Card>
                   <CardContent className="pt-6">
-                    <div className="flex items-start gap-3">
+                    <div className={`flex items-start gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                       <Checkbox 
                         id="gdpr" 
                         checked={gdprCompliant}
                         onCheckedChange={(checked) => setGdprCompliant(checked as boolean)}
                         data-testid="checkbox-gdpr"
                       />
-                      <Label htmlFor="gdpr" className="text-sm font-normal cursor-pointer leading-relaxed">
-                        I am compliant with local privacy laws when managing my prospects' data.
+                      <Label htmlFor="gdpr" className={`text-sm font-normal cursor-pointer leading-relaxed ${isRtl ? 'text-right' : ''}`}>
+                        {t('settings.gdprCheckbox')}
                       </Label>
                     </div>
                   </CardContent>
@@ -672,14 +654,14 @@ export default function Settings() {
           {activeTab === "company" && (
             <div className="space-y-8">
               <div>
-                <h1 className="text-2xl font-bold">Team settings</h1>
+                <h1 className="text-2xl font-bold">{t('settings.teamSettings')}</h1>
                 <p className="text-muted-foreground mt-1">{activeCompany.name}</p>
               </div>
 
               {/* Company Logo */}
               <Card>
                 <CardContent className="pt-6">
-                  <div className="flex items-center gap-6">
+                  <div className={`flex items-center gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
                     <div className="relative">
                       {companyLogoPreview ? (
                         <img 
@@ -698,7 +680,7 @@ export default function Settings() {
                         </div>
                       )}
                     </div>
-                    <div>
+                    <div className={isRtl ? 'text-right' : ''}>
                       <input
                         ref={companyLogoInputRef}
                         type="file"
@@ -713,11 +695,11 @@ export default function Settings() {
                         disabled={uploadCompanyLogoMutation.isPending}
                         data-testid="button-upload-logo"
                       >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload company logo
+                        <Upload className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                        {t('settings.companyLogo')}
                       </Button>
                       <p className="text-xs text-muted-foreground mt-2">
-                        JPG, PNG or GIF. Max 5MB. Square format recommended.
+                        {t('settings.companyLogoHelper')}
                       </p>
                     </div>
                   </div>
@@ -728,38 +710,37 @@ export default function Settings() {
               <Card>
                 <CardContent className="pt-6 space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="companyDisplayName">Display Name</Label>
+                    <Label htmlFor="companyDisplayName">{t('settings.displayName')}</Label>
                     <p className="text-xs text-muted-foreground">
-                      The public name that vendors and partners will see.
+                      {t('settings.displayNameHelper')}
                     </p>
                     <Input
                       id="companyDisplayName"
                       value={companyDisplayName}
                       onChange={(e) => setCompanyDisplayName(e.target.value)}
-                      placeholder="Enter company display name"
                       data-testid="input-company-name"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="companyBio">Company Bio</Label>
+                    <Label htmlFor="companyBio">{t('settings.companyBio')}</Label>
                     <p className="text-xs text-muted-foreground">
-                      A brief description of your company.
+                      {t('settings.companyBioHelper')}
                     </p>
                     <Textarea
                       id="companyBio"
                       value={companyBio}
                       onChange={(e) => setCompanyBio(e.target.value)}
-                      placeholder="Tell us about your company..."
+                      placeholder={t('settings.companyBioPlaceholder')}
                       rows={4}
                       data-testid="input-company-bio"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Company Slug</Label>
+                    <Label>{t('settings.companySlug')}</Label>
                     <p className="text-xs text-muted-foreground">
-                      Your company's unique identifier for URLs.
+                      {t('settings.companySlugHelper')}
                     </p>
                     <Input
                       value={activeCompany.slug || ''}

@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { SmartInput, SmartTextarea } from "@/components/ui/smart-input";
 import { FormProgress, DraftIndicator } from "@/components/ui/form-progress";
+import { JollyDatePicker } from "@/components/ui/date-picker";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { Copy, Check, Mail, ExternalLink, Sparkles, Info, ChevronDown, ChevronUp, Video } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import VoiceRecorder from "./voice-recorder";
 import { useLocation } from "wouter";
 import type { Tender } from "@shared/schema";
@@ -22,6 +23,7 @@ import { useAutosave, DraftStorage } from "@/lib/autosave";
 import { calculateFormProgress, getConstraints } from "@/lib/form-validation";
 import { useFormKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { parseDateTime, CalendarDateTime, getLocalTimeZone, today } from "@internationalized/date";
 
 const createTenderSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -418,22 +420,55 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               <FormField
                 control={form.control}
                 name="deadline"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Submission Deadline *</FormLabel>
-                    <FormControl>
-                      <SmartInput 
-                        type="datetime-local"
-                        error={form.formState.errors.deadline}
-                        isDirty={form.formState.dirtyFields.deadline}
-                        constraints={getConstraints('deadline', field.value)}
+                render={({ field }) => {
+                  const dateValue = useMemo(() => {
+                    if (!field.value) return undefined;
+                    try {
+                      const date = new Date(field.value);
+                      if (isNaN(date.getTime())) return undefined;
+                      return new CalendarDateTime(
+                        date.getFullYear(),
+                        date.getMonth() + 1,
+                        date.getDate(),
+                        date.getHours(),
+                        date.getMinutes()
+                      );
+                    } catch {
+                      return undefined;
+                    }
+                  }, [field.value]);
+
+                  const handleDateChange = (value: CalendarDateTime | null) => {
+                    if (!value) {
+                      field.onChange("");
+                      return;
+                    }
+                    const date = new Date(
+                      value.year,
+                      value.month - 1,
+                      value.day,
+                      value.hour || 0,
+                      value.minute || 0
+                    );
+                    field.onChange(date.toISOString());
+                  };
+
+                  const minDate = today(getLocalTimeZone()).add({ days: 1 });
+
+                  return (
+                    <FormItem>
+                      <JollyDatePicker
+                        label="Submission Deadline *"
+                        value={dateValue}
+                        onChange={handleDateChange}
+                        minValue={minDate}
+                        granularity="day"
+                        errorMessage={form.formState.errors.deadline?.message}
                         data-testid="input-deadline"
-                        {...field} 
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                    </FormItem>
+                  );
+                }}
               />
 
               <FormField

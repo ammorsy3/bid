@@ -428,10 +428,10 @@ export default function Dashboard() {
                       onClick={() => setActiveTab(item.value)}
                       tooltip={item.label}
                       data-testid={`sidebar-${item.value}`}
-                      className={`py-3 text-base ${activeTab === item.value ? "bg-[#E25E45]/10 text-[#E25E45] hover:bg-[#E25E45]/20 hover:text-[#E25E45]" : ""}`}
+                      className={`py-3 text-base rounded-lg ${activeTab === item.value ? "bg-[#E25E45]/15 text-[#E25E45] hover:bg-[#E25E45]/20 hover:text-[#E25E45]" : "hover:bg-muted"}`}
                     >
-                      <item.icon className="h-5 w-5" />
-                      <span className="text-base font-medium">{item.label}</span>
+                      <item.icon className={`h-5 w-5 ${activeTab === item.value ? "text-[#E25E45]" : ""}`} />
+                      <span className={`text-base font-medium ${activeTab === item.value ? "text-[#E25E45]" : ""}`}>{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}

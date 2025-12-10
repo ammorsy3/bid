@@ -466,7 +466,7 @@ export default function Dashboard() {
                 </div>
               </PopoverHeader>
               <PopoverBody className="space-y-1 px-2 py-2">
-                <Button variant="ghost" className="w-full justify-start" size="sm" data-testid="menu-settings">
+                <Button variant="ghost" className="w-full justify-start" size="sm" onClick={() => setLocation('/settings')} data-testid="menu-settings">
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </Button>

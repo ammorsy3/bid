@@ -1,0 +1,1127 @@
+Build this as my initial prototype
+
+Copy-paste this component to /components/ui folder:
+```tsx
+datetime-picker.tsx
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import React from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+// Types
+export type TimePickerType = "minutes" | "seconds" | "hours" | "12hours";
+export type Period = "AM" | "PM";
+
+// Utility functions
+export function isValidHour(value: string) {
+  return /^(0[0-9]|1[0-9]|2[0-3])$/.test(value);
+}
+
+export function isValid12Hour(value: string) {
+  return /^(0[1-9]|1[0-2])$/.test(value);
+}
+
+export function isValidMinuteOrSecond(value: string) {
+  return /^[0-5][0-9]$/.test(value);
+}
+
+type GetValidNumberConfig = { max: number; min?: number; loop?: boolean };
+
+export function getValidNumber(
+  value: string,
+  { max, min = 0, loop = false }: GetValidNumberConfig
+) {
+  let numericValue = parseInt(value, 10);
+
+  if (!isNaN(numericValue)) {
+    if (!loop) {
+      if (numericValue > max) numericValue = max;
+      if (numericValue < min) numericValue = min;
+    } else {
+      if (numericValue > max) numericValue = min;
+      if (numericValue < min) numericValue = max;
+    }
+    return numericValue.toString().padStart(2, "0");
+  }
+
+  return "00";
+}
+
+export function getValidHour(value: string) {
+  if (isValidHour(value)) return value;
+  return getValidNumber(value, { max: 23 });
+}
+
+export function getValid12Hour(value: string) {
+  if (isValid12Hour(value)) return value;
+  return getValidNumber(value, { min: 1, max: 12 });
+}
+
+export function getValidMinuteOrSecond(value: string) {
+  if (isValidMinuteOrSecond(value)) return value;
+  return getValidNumber(value, { max: 59 });
+}
+
+type GetValidArrowNumberConfig = {
+  min: number;
+  max: number;
+  step: number;
+};
+
+export function getValidArrowNumber(
+  value: string,
+  { min, max, step }: GetValidArrowNumberConfig
+) {
+  let numericValue = parseInt(value, 10);
+  if (!isNaN(numericValue)) {
+    numericValue += step;
+    return getValidNumber(String(numericValue), { min, max, loop: true });
+  }
+  return "00";
+}
+
+export function getValidArrowHour(value: string, step: number) {
+  return getValidArrowNumber(value, { min: 0, max: 23, step });
+}
+
+export function getValidArrow12Hour(value: string, step: number) {
+  return getValidArrowNumber(value, { min: 1, max: 12, step });
+}
+
+export function getValidArrowMinuteOrSecond(value: string, step: number) {
+  return getValidArrowNumber(value, { min: 0, max: 59, step });
+}
+
+export function setMinutes(date: Date, value: string) {
+  const minutes = getValidMinuteOrSecond(value);
+  date.setMinutes(parseInt(minutes, 10));
+  return date;
+}
+
+export function setSeconds(date: Date, value: string) {
+  const seconds = getValidMinuteOrSecond(value);
+  date.setSeconds(parseInt(seconds, 10));
+  return date;
+}
+
+export function setHours(date: Date, value: string) {
+  const hours = getValidHour(value);
+  date.setHours(parseInt(hours, 10));
+  return date;
+}
+
+export function set12Hours(date: Date, value: string, period: Period) {
+  const hours = parseInt(getValid12Hour(value), 10);
+  const convertedHours = convert12HourTo24Hour(hours, period);
+  date.setHours(convertedHours);
+  return date;
+}
+
+export function setDateByType(
+  date: Date,
+  value: string,
+  type: TimePickerType,
+  period?: Period
+) {
+  switch (type) {
+    case "minutes":
+      return setMinutes(date, value);
+    case "seconds":
+      return setSeconds(date, value);
+    case "hours":
+      return setHours(date, value);
+    case "12hours": {
+      if (!period) return date;
+      return set12Hours(date, value, period);
+    }
+    default:
+      return date;
+  }
+}
+
+export function getDateByType(date: Date, type: TimePickerType) {
+  switch (type) {
+    case "minutes":
+      return getValidMinuteOrSecond(String(date.getMinutes()));
+    case "seconds":
+      return getValidMinuteOrSecond(String(date.getSeconds()));
+    case "hours":
+      return getValidHour(String(date.getHours()));
+    case "12hours":
+      const hours = display12HourValue(date.getHours());
+      return getValid12Hour(String(hours));
+    default:
+      return "00";
+  }
+}
+
+export function getArrowByType(
+  value: string,
+  step: number,
+  type: TimePickerType
+) {
+  switch (type) {
+    case "minutes":
+      return getValidArrowMinuteOrSecond(value, step);
+    case "seconds":
+      return getValidArrowMinuteOrSecond(value, step);
+    case "hours":
+      return getValidArrowHour(value, step);
+    case "12hours":
+      return getValidArrow12Hour(value, step);
+    default:
+      return "00";
+  }
+}
+
+export function convert12HourTo24Hour(hour: number, period: Period) {
+  if (period === "PM") {
+    if (hour <= 11) {
+      return hour + 12;
+    } else {
+      return hour;
+    }
+  } else if (period === "AM") {
+    if (hour === 12) return 0;
+    return hour;
+  }
+  return hour;
+}
+
+export function display12HourValue(hours: number) {
+  if (hours === 0 || hours === 12) return "12";
+  if (hours >= 22) return `${hours - 12}`;
+  if (hours % 12 > 9) return `${hours}`;
+  return `0${hours % 12}`;
+}
+
+// TimePickerInput Component
+export interface TimePickerInputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  picker: TimePickerType;
+  date: Date | undefined;
+  setDate: (date: Date | undefined) => void;
+  period?: Period;
+  onRightFocus?: () => void;
+  onLeftFocus?: () => void;
+}
+
+export const TimePickerInput = React.forwardRef<HTMLInputElement, TimePickerInputProps>(
+  (
+    {
+      className,
+      type = "tel",
+      value,
+      id,
+      name,
+      date = new Date(new Date().setHours(0, 0, 0, 0)),
+      setDate,
+      onChange,
+      onKeyDown,
+      picker,
+      period,
+      onLeftFocus,
+      onRightFocus,
+      ...props
+    },
+    ref
+  ) => {
+    const [flag, setFlag] = React.useState<boolean>(false);
+    const [prevIntKey, setPrevIntKey] = React.useState<string>("0");
+
+    React.useEffect(() => {
+      if (flag) {
+        const timer = setTimeout(() => {
+          setFlag(false);
+        }, 2000);
+
+        return () => clearTimeout(timer);
+      }
+    }, [flag]);
+
+    const calculatedValue = React.useMemo(() => {
+      return getDateByType(date, picker);
+    }, [date, picker]);
+
+    const calculateNewValue = (key: string) => {
+      if (picker === "12hours") {
+        if (flag && calculatedValue.slice(1, 2) === "1" && prevIntKey === "0")
+          return "0" + key;
+      }
+
+      return !flag ? "0" + key : calculatedValue.slice(1, 2) + key;
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Tab") return;
+      e.preventDefault();
+      if (e.key === "ArrowRight") onRightFocus?.();
+      if (e.key === "ArrowLeft") onLeftFocus?.();
+      if (["ArrowUp", "ArrowDown"].includes(e.key)) {
+        const step = e.key === "ArrowUp" ? 1 : -1;
+        const newValue = getArrowByType(calculatedValue, step, picker);
+        if (flag) setFlag(false);
+        const tempDate = new Date(date);
+        setDate(setDateByType(tempDate, newValue, picker, period));
+      }
+      if (e.key >= "0" && e.key <= "9") {
+        if (picker === "12hours") setPrevIntKey(e.key);
+
+        const newValue = calculateNewValue(e.key);
+        if (flag) onRightFocus?.();
+        setFlag((prev) => !prev);
+        const tempDate = new Date(date);
+        setDate(setDateByType(tempDate, newValue, picker, period));
+      }
+    };
+
+    return (
+      <Input
+        ref={ref}
+        id={id || picker}
+        name={name || picker}
+        className={cn(
+          "w-[48px] text-center font-mono text-base tabular-nums caret-transparent focus:bg-accent focus:text-accent-foreground [&::-webkit-inner-spin-button]:appearance-none",
+          className
+        )}
+        value={value || calculatedValue}
+        onChange={(e) => {
+          e.preventDefault();
+          onChange?.(e);
+        }}
+        type={type}
+        inputMode="decimal"
+        onKeyDown={(e) => {
+          onKeyDown?.(e);
+          handleKeyDown(e);
+        }}
+        {...props}
+      />
+    );
+  }
+);
+
+TimePickerInput.displayName = "TimePickerInput";
+
+// TimePeriodSelect Component
+export interface PeriodSelectorProps {
+  period: Period;
+  setPeriod: (m: Period) => void;
+  date: Date | undefined;
+  setDate: (date: Date | undefined) => void;
+  onRightFocus?: () => void;
+  onLeftFocus?: () => void;
+}
+
+export const TimePeriodSelect = React.forwardRef<HTMLButtonElement, PeriodSelectorProps>(
+  ({ period, setPeriod, date, setDate, onLeftFocus, onRightFocus }, ref) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (e.key === "ArrowRight") onRightFocus?.();
+      if (e.key === "ArrowLeft") onLeftFocus?.();
+    };
+
+    const handleValueChange = (value: Period) => {
+      setPeriod(value);
+
+      if (date) {
+        const tempDate = new Date(date);
+        const hours = display12HourValue(date.getHours());
+        setDate(setDateByType(tempDate, hours.toString(), "12hours", period === "AM" ? "PM" : "AM"));
+      }
+    };
+
+    return (
+      <div className="flex h-10 items-center">
+        <Select value={period} onValueChange={(value: Period) => handleValueChange(value)}>
+          <SelectTrigger ref={ref} className="w-[65px] focus:bg-accent focus:text-accent-foreground" onKeyDown={handleKeyDown}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="AM">AM</SelectItem>
+            <SelectItem value="PM">PM</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  }
+);
+
+TimePeriodSelect.displayName = "TimePeriodSelect";
+
+// TimePicker Component
+interface TimePickerProps {
+  date: Date | undefined;
+  setDate: (date: Date | undefined) => void;
+}
+
+export function TimePicker({ date, setDate }: TimePickerProps) {
+  const [period, setPeriod] = React.useState<Period>("PM");
+
+  const minuteRef = React.useRef<HTMLInputElement>(null);
+  const hourRef = React.useRef<HTMLInputElement>(null);
+  const secondRef = React.useRef<HTMLInputElement>(null);
+  const periodRef = React.useRef<HTMLButtonElement>(null);
+
+  return (
+    <div className="flex items-end gap-2">
+      <div className="grid gap-1 text-center">
+        <Label htmlFor="hours" className="text-xs">
+          Hours
+        </Label>
+        <TimePickerInput
+          picker="12hours"
+          period={period}
+          date={date}
+          setDate={setDate}
+          ref={hourRef}
+          onRightFocus={() => minuteRef.current?.focus()}
+        />
+      </div>
+      <div className="grid gap-1 text-center">
+        <Label htmlFor="minutes" className="text-xs">
+          Minutes
+        </Label>
+        <TimePickerInput
+          picker="minutes"
+          id="minutes12"
+          date={date}
+          setDate={setDate}
+          ref={minuteRef}
+          onLeftFocus={() => hourRef.current?.focus()}
+          onRightFocus={() => secondRef.current?.focus()}
+        />
+      </div>
+      <div className="grid gap-1 text-center">
+        <Label htmlFor="seconds" className="text-xs">
+          Seconds
+        </Label>
+        <TimePickerInput
+          picker="seconds"
+          id="seconds12"
+          date={date}
+          setDate={setDate}
+          ref={secondRef}
+          onLeftFocus={() => minuteRef.current?.focus()}
+          onRightFocus={() => periodRef.current?.focus()}
+        />
+      </div>
+      <div className="grid gap-1 text-center">
+        <Label htmlFor="period" className="text-xs">
+          Period
+        </Label>
+        <TimePeriodSelect
+          period={period}
+          setPeriod={setPeriod}
+          date={date}
+          setDate={setDate}
+          ref={periodRef}
+          onLeftFocus={() => secondRef.current?.focus()}
+        />
+      </div>
+    </div>
+  );
+}
+
+demo.tsx
+"use client";
+
+import * as React from "react";
+import { format, add } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { cn } from "@/lib/utils";
+import { TimePicker } from "@/components/ui/datetime-picker";
+
+// Basic DateTimePicker Demo
+export function DateTimePicker() {
+  const [date, setDate] = React.useState<Date>();
+
+  const handleSelect = (newDay: Date | undefined) => {
+    if (!newDay) return;
+    if (!date) {
+      setDate(newDay);
+      return;
+    }
+    const diff = newDay.getTime() - date.getTime();
+    const diffInDays = diff / (1000 * 60 * 60 * 24);
+    const newDateFull = add(date, { days: Math.ceil(diffInDays) });
+    setDate(newDateFull);
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant={"outline"}
+          className={cn(
+            "w-[280px] justify-start text-left font-normal",
+            !date && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {date ? format(date, "PPP HH:mm:ss") : <span>Pick a date</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={(d) => handleSelect(d)}
+          initialFocus
+        />
+        <div className="p-3 border-t border-border">
+          <TimePicker setDate={setDate} date={date} />
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// Form Demo
+export function DateTimePickerForm() {
+  const [selectedDate, setSelectedDate] = React.useState<Date>();
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    console.log("Submitted date:", selectedDate);
+  }
+
+  return (
+    <form
+      className="flex items-end gap-4 justify-center"
+      onSubmit={handleSubmit}
+    >
+      <div className="flex flex-col">
+        <label className="text-left text-sm mb-2">DateTime</label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-[280px] justify-start text-left font-normal",
+                !selectedDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {selectedDate ? (
+                format(selectedDate, "PPP HH:mm:ss")
+              ) : (
+                <span>Pick a date</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              initialFocus
+            />
+            <div className="p-3 border-t border-border">
+              <TimePicker
+                setDate={setSelectedDate}
+                date={selectedDate}
+              />
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+      <Button type="submit">Submit</Button>
+    </form>
+  );
+}
+
+// Simple TimePicker Demo
+export function TimePickerDemo({ date, setDate }: { date: Date | undefined; setDate: (date: Date | undefined) => void }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <TimePicker date={date} setDate={setDate} />
+    </div>
+  );
+}
+```
+
+Copy-paste these files for dependencies:
+```tsx
+shadcn/input
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(
+          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Input.displayName = "Input"
+
+export { Input }
+
+```
+```tsx
+shadcn/label
+"use client"
+
+import * as React from "react"
+import * as LabelPrimitive from "@radix-ui/react-label"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const labelVariants = cva(
+  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+)
+
+const Label = React.forwardRef<
+  React.ElementRef<typeof LabelPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
+    VariantProps<typeof labelVariants>
+>(({ className, ...props }, ref) => (
+  <LabelPrimitive.Root
+    ref={ref}
+    className={cn(labelVariants(), className)}
+    {...props}
+  />
+))
+Label.displayName = LabelPrimitive.Root.displayName
+
+export { Label }
+
+```
+```tsx
+shadcn/select
+"use client"
+
+import * as React from "react"
+import * as SelectPrimitive from "@radix-ui/react-select"
+import { Check, ChevronDown, ChevronUp } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+const Select = SelectPrimitive.Root
+
+const SelectGroup = SelectPrimitive.Group
+
+const SelectValue = SelectPrimitive.Value
+
+const SelectTrigger = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      className,
+    )}
+    {...props}
+  >
+    {children}
+    <SelectPrimitive.Icon asChild>
+      <ChevronDown className="h-4 w-4 opacity-50" />
+    </SelectPrimitive.Icon>
+  </SelectPrimitive.Trigger>
+))
+SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
+
+const SelectScrollUpButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollUpButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1",
+      className,
+    )}
+    {...props}
+  >
+    <ChevronUp className="h-4 w-4" />
+  </SelectPrimitive.ScrollUpButton>
+))
+SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName
+
+const SelectScrollDownButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollDownButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1",
+      className,
+    )}
+    {...props}
+  >
+    <ChevronDown className="h-4 w-4" />
+  </SelectPrimitive.ScrollDownButton>
+))
+SelectScrollDownButton.displayName =
+  SelectPrimitive.ScrollDownButton.displayName
+
+const SelectContent = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
+>(({ className, children, position = "popper", ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        position === "popper" &&
+          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+        className,
+      )}
+      position={position}
+      {...props}
+    >
+      <SelectScrollUpButton />
+      <SelectPrimitive.Viewport
+        className={cn(
+          "p-1",
+          position === "popper" &&
+            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
+        )}
+      >
+        {children}
+      </SelectPrimitive.Viewport>
+      <SelectScrollDownButton />
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+))
+SelectContent.displayName = SelectPrimitive.Content.displayName
+
+const SelectLabel = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
+    {...props}
+  />
+))
+SelectLabel.displayName = SelectPrimitive.Label.displayName
+
+const SelectItem = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className,
+    )}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <SelectPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </SelectPrimitive.ItemIndicator>
+    </span>
+
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+  </SelectPrimitive.Item>
+))
+SelectItem.displayName = SelectPrimitive.Item.displayName
+
+const SelectSeparator = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-muted", className)}
+    {...props}
+  />
+))
+SelectSeparator.displayName = SelectPrimitive.Separator.displayName
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+}
+
+```
+```tsx
+shadcn/button
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  },
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+```
+```tsx
+shadcn/calendar
+"use client"
+
+import * as React from "react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { DayPicker } from "react-day-picker"
+
+import { cn } from "@/lib/utils"
+import { buttonVariants } from "@/components/ui/button"
+
+export type CalendarProps = React.ComponentProps<typeof DayPicker>
+
+function Calendar({
+  className,
+  classNames,
+  showOutsideDays = true,
+  ...props
+}: CalendarProps) {
+  return (
+    <DayPicker
+      showOutsideDays={showOutsideDays}
+      className={cn("p-3", className)}
+      classNames={{
+        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+        month: "space-y-4",
+        caption: "flex justify-center pt-1 relative items-center",
+        caption_label: "text-sm font-medium",
+        nav: "space-x-1 flex items-center",
+        nav_button: cn(
+          buttonVariants({ variant: "outline" }),
+          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+        ),
+        nav_button_previous: "absolute left-1",
+        nav_button_next: "absolute right-1",
+        table: "w-full border-collapse space-y-1",
+        head_row: "flex",
+        head_cell:
+          "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+        row: "flex w-full mt-2",
+        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+        day: cn(
+          buttonVariants({ variant: "ghost" }),
+          "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
+        ),
+        day_range_end: "day-range-end",
+        day_selected:
+          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+        day_today: "bg-accent text-accent-foreground",
+        day_outside:
+          "day-outside text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
+        day_disabled: "text-muted-foreground opacity-50",
+        day_range_middle:
+          "aria-selected:bg-accent aria-selected:text-accent-foreground",
+        day_hidden: "invisible",
+        ...classNames,
+      }}
+      components={{
+        IconLeft: ({ className, ...props }) => (
+          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
+        ),
+        IconRight: ({ className, ...props }) => (
+          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
+        ),
+      }}
+      {...props}
+    />
+  )
+}
+Calendar.displayName = "Calendar"
+
+export { Calendar }
+
+```
+```tsx
+shadcn/form
+"use client"
+
+import * as React from "react"
+import * as LabelPrimitive from "@radix-ui/react-label"
+import { Slot } from "@radix-ui/react-slot"
+import {
+  Controller,
+  ControllerProps,
+  FieldPath,
+  FieldValues,
+  FormProvider,
+  useFormContext,
+} from "react-hook-form"
+
+import { cn } from "@/lib/utils"
+import { Label } from "@/components/ui/label"
+
+const Form = FormProvider
+
+type FormFieldContextValue<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+> = {
+  name: TName
+}
+
+const FormFieldContext = React.createContext<FormFieldContextValue>(
+  {} as FormFieldContextValue
+)
+
+const FormField = <
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+>({
+  ...props
+}: ControllerProps<TFieldValues, TName>) => {
+  return (
+    <FormFieldContext.Provider value={{ name: props.name }}>
+      <Controller {...props} />
+    </FormFieldContext.Provider>
+  )
+}
+
+const useFormField = () => {
+  const fieldContext = React.useContext(FormFieldContext)
+  const itemContext = React.useContext(FormItemContext)
+  const { getFieldState, formState } = useFormContext()
+
+  const fieldState = getFieldState(fieldContext.name, formState)
+
+  if (!fieldContext) {
+    throw new Error("useFormField should be used within <FormField>")
+  }
+
+  const { id } = itemContext
+
+  return {
+    id,
+    name: fieldContext.name,
+    formItemId: `${id}-form-item`,
+    formDescriptionId: `${id}-form-item-description`,
+    formMessageId: `${id}-form-item-message`,
+    ...fieldState,
+  }
+}
+
+type FormItemContextValue = {
+  id: string
+}
+
+const FormItemContext = React.createContext<FormItemContextValue>(
+  {} as FormItemContextValue
+)
+
+const FormItem = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  const id = React.useId()
+
+  return (
+    <FormItemContext.Provider value={{ id }}>
+      <div ref={ref} className={cn("space-y-2", className)} {...props} />
+    </FormItemContext.Provider>
+  )
+})
+FormItem.displayName = "FormItem"
+
+const FormLabel = React.forwardRef<
+  React.ElementRef<typeof LabelPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
+>(({ className, ...props }, ref) => {
+  const { error, formItemId } = useFormField()
+
+  return (
+    <Label
+      ref={ref}
+      className={cn(error && "text-destructive", className)}
+      htmlFor={formItemId}
+      {...props}
+    />
+  )
+})
+FormLabel.displayName = "FormLabel"
+
+const FormControl = React.forwardRef<
+  React.ElementRef<typeof Slot>,
+  React.ComponentPropsWithoutRef<typeof Slot>
+>(({ ...props }, ref) => {
+  const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
+
+  return (
+    <Slot
+      ref={ref}
+      id={formItemId}
+      aria-describedby={
+        !error
+          ? `${formDescriptionId}`
+          : `${formDescriptionId} ${formMessageId}`
+      }
+      aria-invalid={!!error}
+      {...props}
+    />
+  )
+})
+FormControl.displayName = "FormControl"
+
+const FormDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => {
+  const { formDescriptionId } = useFormField()
+
+  return (
+    <p
+      ref={ref}
+      id={formDescriptionId}
+      className={cn("text-sm text-muted-foreground", className)}
+      {...props}
+    />
+  )
+})
+FormDescription.displayName = "FormDescription"
+
+const FormMessage = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, children, ...props }, ref) => {
+  const { error, formMessageId } = useFormField()
+  const body = error ? String(error?.message) : children
+
+  if (!body) {
+    return null
+  }
+
+  return (
+    <p
+      ref={ref}
+      id={formMessageId}
+      className={cn("text-sm font-medium text-destructive", className)}
+      {...props}
+    >
+      {body}
+    </p>
+  )
+})
+FormMessage.displayName = "FormMessage"
+
+export {
+  useFormField,
+  Form,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+  FormField,
+}
+
+```
+```tsx
+shadcn/popover
+"use client"
+
+import * as React from "react"
+import * as PopoverPrimitive from "@radix-ui/react-popover"
+
+import { cn } from "@/lib/utils"
+
+const Popover = PopoverPrimitive.Root
+
+const PopoverTrigger = PopoverPrimitive.Trigger
+
+const PopoverContent = React.forwardRef<
+  React.ElementRef<typeof PopoverPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
+>(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
+  <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Content
+      ref={ref}
+      align={align}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        className
+      )}
+      {...props}
+    />
+  </PopoverPrimitive.Portal>
+))
+PopoverContent.displayName = PopoverPrimitive.Content.displayName
+
+export { Popover, PopoverTrigger, PopoverContent }
+
+```
+
+Install these NPM dependencies:
+```bash
+@radix-ui/react-label, class-variance-authority, lucide-react, @radix-ui/react-select, @radix-ui/react-slot, date-fns, react-day-picker, react-hook-form, @radix-ui/react-popover
+```

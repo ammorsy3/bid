@@ -16,12 +16,19 @@ import { viewAuthenticatedFile } from "@/lib/downloadFile";
 
 interface VendorProfile {
   id: string;
+  companyId: string;
   company: string;
+  legalName: string | null;
   category: string;
+  city: string | null;
+  crNumber: string | null;
+  vatNumber: string | null;
   bio: string;
+  logoUrl: string | null;
   email: string;
   verificationStatus: string;
   joinMethod: string;
+  joinedAt: string;
 }
 
 interface JoinRequest {
@@ -108,6 +115,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
   const [selectedProposal, setSelectedProposal] = useState<IncomingOffer | null>(null);
+  const [selectedVendor, setSelectedVendor] = useState<VendorProfile | null>(null);
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
@@ -1090,12 +1098,23 @@ export default function Dashboard() {
                                   </CardDescription>
                                 </div>
                               </div>
-                              <Badge 
-                                variant={vendor.joinMethod === 'invitation' ? 'default' : 'outline'}
-                                data-testid={`badge-join-method-${vendor.id}`}
-                              >
-                                {vendor.joinMethod === 'invitation' ? 'Invited' : 'Applied'}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  variant={vendor.joinMethod === 'invitation' ? 'default' : 'outline'}
+                                  data-testid={`badge-join-method-${vendor.id}`}
+                                >
+                                  {vendor.joinMethod === 'invitation' ? 'Invited' : vendor.joinMethod === 'proposal_accepted' ? 'Proposal' : 'Applied'}
+                                </Badge>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setSelectedVendor(vendor)}
+                                  data-testid={`button-view-vendor-${vendor.id}`}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
+                                </Button>
+                              </div>
                             </div>
                           </CardHeader>
                           <CardContent className="space-y-3">
@@ -1104,12 +1123,12 @@ export default function Dashboard() {
                                 {vendor.bio}
                               </p>
                             )}
-                            <div className="flex flex-wrap gap-4 text-sm">
-                              <div className="flex items-center gap-2">
-                                <Mail className="h-4 w-4 text-muted-foreground" />
-                                <span data-testid={`text-vendor-email-${vendor.id}`}>{vendor.email}</span>
+                            {vendor.city && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Building2 className="h-4 w-4" />
+                                <span>{vendor.city}</span>
                               </div>
-                            </div>
+                            )}
                           </CardContent>
                         </Card>
                       ))}
@@ -1382,6 +1401,99 @@ export default function Dashboard() {
                     Financial Proposal
                   </Button>
                 )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Vendor Details Modal */}
+      <Dialog open={!!selectedVendor} onOpenChange={() => setSelectedVendor(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedVendor?.logoUrl ? (
+                <img 
+                  src={selectedVendor.logoUrl} 
+                  alt={selectedVendor.company} 
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <Building2 className="h-6 w-6 text-primary" />
+              )}
+              {selectedVendor?.company}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedVendor?.category}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedVendor && (
+            <div className="space-y-4">
+              {/* Verification Status */}
+              <div className="flex items-center gap-2">
+                {selectedVendor.verificationStatus === 'verified' ? (
+                  <Badge className="bg-green-100 text-green-800">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Verified Company
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">
+                    <Clock className="h-3 w-3 mr-1" />
+                    Under Review
+                  </Badge>
+                )}
+                <Badge variant="outline">
+                  {selectedVendor.joinMethod === 'invitation' ? 'Invited' : selectedVendor.joinMethod === 'proposal_accepted' ? 'Via Proposal' : 'Applied via Traction'}
+                </Badge>
+              </div>
+
+              {/* Bio */}
+              {selectedVendor.bio && (
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">About</h4>
+                  <p className="text-sm">{selectedVendor.bio}</p>
+                </div>
+              )}
+
+              {/* Company Details */}
+              <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                {selectedVendor.legalName && (
+                  <div>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-1">Legal Name</h4>
+                    <p className="text-sm">{selectedVendor.legalName}</p>
+                  </div>
+                )}
+                {selectedVendor.city && (
+                  <div>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-1">City</h4>
+                    <p className="text-sm">{selectedVendor.city}</p>
+                  </div>
+                )}
+                {selectedVendor.crNumber && (
+                  <div>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-1">CR Number</h4>
+                    <p className="text-sm font-mono">{selectedVendor.crNumber}</p>
+                  </div>
+                )}
+                {selectedVendor.vatNumber && (
+                  <div>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-1">VAT Number</h4>
+                    <p className="text-sm font-mono">{selectedVendor.vatNumber}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Joined Date */}
+              <div className="border-t pt-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Added to Vendors Base</span>
+                  <span>{new Date(selectedVendor.joinedAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}</span>
+                </div>
               </div>
             </div>
           )}

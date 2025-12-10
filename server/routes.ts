@@ -1030,9 +1030,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Transform to flat format expected by frontend
         const formattedVendors = vendors.map(v => ({
           id: v.id,
+          companyId: v.vendorCompanyId,
           company: v.profile?.displayName || v.vendorCompany.name,
+          legalName: v.vendorCompany.legalName,
           category: v.vendorCompany.category || 'No category',
+          city: v.vendorCompany.city,
+          crNumber: v.vendorCompany.crNumber,
+          vatNumber: v.vendorCompany.vatNumber,
           bio: v.profile?.bio || '',
+          logoUrl: v.profile?.logoUrl || null,
           email: '', // Contact email would come from user if needed
           verificationStatus: v.vendorCompany.verificationStatus,
           joinMethod: v.joinMethod,

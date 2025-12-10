@@ -9,13 +9,12 @@ import {
   DialogProps as AriaDialogProps,
   PopoverProps as AriaPopoverProps,
   ValidationResult as AriaValidationResult,
+  Button as AriaButton,
   composeRenderProps,
   Text,
 } from "react-aria-components"
 
 import { cn } from "@/lib/utils"
-
-import { Button } from "@/components/ui/button"
 import {
   Calendar,
   CalendarCell,
@@ -78,13 +77,11 @@ function JollyDatePicker<T extends AriaDateValue>({
       <Label>{label}</Label>
       <FieldGroup>
         <DateInput className="flex-1" variant="ghost" />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="mr-1 size-6 data-[focus-visible]:ring-offset-0"
+        <AriaButton
+          className="mr-1 size-6 rounded-md p-0.5 data-[hovered]:bg-accent data-[hovered]:text-accent-foreground data-[focus-visible]:outline-none data-[focus-visible]:ring-2 data-[focus-visible]:ring-ring data-[focus-visible]:ring-offset-0"
         >
           <CalendarIcon aria-hidden className="size-4" />
-        </Button>
+        </AriaButton>
       </FieldGroup>
       {description && (
         <Text className="text-sm text-muted-foreground" slot="description">
@@ -138,13 +135,11 @@ function JollyDateRangePicker<T extends AriaDateValue>({
         </span>
         <DateInput className="flex-1" variant="ghost" slot={"end"} />
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="mr-1 size-6 data-[focus-visible]:ring-offset-0"
+        <AriaButton
+          className="mr-1 size-6 rounded-md p-0.5 data-[hovered]:bg-accent data-[hovered]:text-accent-foreground data-[focus-visible]:outline-none data-[focus-visible]:ring-2 data-[focus-visible]:ring-ring data-[focus-visible]:ring-offset-0"
         >
           <CalendarIcon aria-hidden className="size-4" />
-        </Button>
+        </AriaButton>
       </FieldGroup>
       {description && (
         <Text className="text-sm text-muted-foreground" slot="description">

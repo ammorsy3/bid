@@ -306,8 +306,8 @@ export default function CreateTender() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
       <div className="max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <img src={logoPath} alt="Bid" className="h-10" />
+        <div className="flex items-center justify-between mb-6 -ml-4">
+          <img src={logoPath} alt="Bid" className="h-16" />
           <Button
             variant="ghost"
             onClick={() => navigate('/dashboard')}

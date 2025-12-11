@@ -55,8 +55,11 @@ export default function TenderDescriptionStep() {
         title: draft.title || "Untitled Tender",
         description: description.trim(),
         category: draft.skills?.[0] || "Other",
+        skills: draft.skills || [],
+        scope: draft.scope || undefined,
         deadline: draft.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         duration: draft.duration || "1-3 months",
+        pricingModel: draft.budgetType || "fixed",
         budgetRange: draft.budgetType === "fixed" 
           ? (parseFloat(draft.budget) < 500 ? "Under $500" 
              : parseFloat(draft.budget) < 2000 ? "$500-$2,000" 
@@ -64,6 +67,7 @@ export default function TenderDescriptionStep() {
              : "$10,000+")
           : "Not specified",
         budget: draft.budget || "",
+        milestones: draft.milestones || undefined,
         voiceNoteUrl: voiceNoteUrl || undefined,
         videoUrl: videoUrl.trim() || undefined,
         projectTimeline: draft.duration || "1-3 months",

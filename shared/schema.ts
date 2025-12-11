@@ -127,12 +127,18 @@ export const tenders = pgTable("tenders", {
   category: text("category"), // IT Services, Logistics, Construction, Consulting, Manufacturing, Other
   deadline: text("deadline").notNull(),
   
+  // Skills & Scope
+  skills: text("skills").array(), // Required skills for the project
+  scope: text("scope"), // 'large', 'medium', 'small'
+  
   // Budget Fields
   budget: text("budget"), // Legacy field for backwards compatibility
   budgetRange: text("budget_range"), // "Under $10k", "$10k-$50k", "$50k-$100k", "$100k-$500k", "$500k+", "Not specified"
   budgetMin: integer("budget_min"), // Optional minimum
   budgetMax: integer("budget_max"), // Optional maximum
   currency: text("currency").default("USD"),
+  pricingModel: text("pricing_model"), // 'fixed' or 'milestone'
+  milestones: jsonb("milestones"), // Array of {name, amount} for milestone-based pricing
   
   duration: text("duration"),
   projectTimeline: text("project_timeline"), // Timeline description (required for new tenders)

@@ -1,14 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight, Sparkles, Video } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Video, Loader2 } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useState, useMemo } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import VoiceRecorder from "@/components/voice-recorder";
 import { SmartInput } from "@/components/ui/smart-input";
+import { useToast } from "@/hooks/use-toast";
 
 export default function TenderDescriptionStep() {
   const [, navigate] = useLocation();
+  const { toast } = useToast();
   const [description, setDescription] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [voiceNoteUrl, setVoiceNoteUrl] = useState("");
@@ -21,17 +25,49 @@ export default function TenderDescriptionStep() {
     }
   }, []);
 
-  const handleNext = () => {
-    if (description.trim()) {
-      const updated = {
-        ...draft,
-        description: description.trim(),
-        videoUrl: videoUrl.trim(),
-        voiceNoteUrl,
-      };
-      localStorage.setItem("tenderDraft", JSON.stringify(updated));
-      // Navigate to review or submit page
+  const submitTender = useMutation({
+    mutationFn: async (tenderData: any) => {
+      const response = await apiRequest("POST", "/api/tenders", tenderData);
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      localStorage.removeItem("tenderDraft");
+      toast({
+        title: "Tender created!",
+        description: "Your tender has been published successfully.",
+      });
       navigate("/dashboard");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to create tender",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = () => {
+    if (description.trim()) {
+      const tenderData = {
+        title: draft.title || "Untitled Tender",
+        description: description.trim(),
+        category: draft.skills?.[0] || "Other",
+        deadline: draft.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        duration: draft.duration || "1-3 months",
+        budgetRange: draft.budgetType === "fixed" 
+          ? (parseFloat(draft.budget) < 500 ? "Under $500" 
+             : parseFloat(draft.budget) < 2000 ? "$500-$2,000" 
+             : parseFloat(draft.budget) < 10000 ? "$2,000-$10,000" 
+             : "$10,000+")
+          : "Not specified",
+        budget: draft.budget || "",
+        voiceNoteUrl: voiceNoteUrl || undefined,
+        videoUrl: videoUrl.trim() || undefined,
+        projectTimeline: draft.duration || "1-3 months",
+      };
+      
+      submitTender.mutate(tenderData);
     }
   };
 
@@ -55,6 +91,7 @@ export default function TenderDescriptionStep() {
           />
           <Button
             onClick={handleBack}
+            disabled={submitTender.isPending}
             className="group relative overflow-hidden"
             data-testid="button-back"
           >
@@ -129,7 +166,8 @@ A supportive and collaborative team environment."
                     onChange={(e) => setDescription(e.target.value)}
                     maxLength={maxCharacters}
                     rows={8}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none"
+                    disabled={submitTender.isPending}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none disabled:opacity-50"
                     data-testid="input-description"
                   />
                   <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
@@ -167,6 +205,7 @@ A supportive and collaborative team environment."
                     placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
                     value={videoUrl}
                     onChange={(e) => setVideoUrl(e.target.value)}
+                    disabled={submitTender.isPending}
                     data-testid="input-video-url"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -180,19 +219,29 @@ A supportive and collaborative team environment."
                     type="button"
                     variant="outline"
                     onClick={handleBack}
+                    disabled={submitTender.isPending}
                     className="flex-1"
                     data-testid="button-cancel"
                   >
                     Back
                   </Button>
                   <Button
-                    onClick={handleNext}
-                    disabled={!isFormValid}
+                    onClick={handleSubmit}
+                    disabled={!isFormValid || submitTender.isPending}
                     className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
                     data-testid="button-next"
                   >
-                    Submit Tender
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                    {submitTender.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        Submit Tender
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>

@@ -25,7 +25,7 @@ interface TractionLinkData {
 }
 
 export default function TractionLink() {
-  const [, params] = useRoute("/r/:slug");
+  const [, params] = useRoute("/traction/:slug");
   const [, navigate] = useLocation();
   const slug = params?.slug;
   const { toast } = useToast();
@@ -81,10 +81,8 @@ export default function TractionLink() {
     );
   }
 
-  // Determine vendor status and what action to show
-  const isVendor = user?.role === "vendor";
-  const hasProfile = user?.verificationStatus && user.verificationStatus !== 'not_verified';
-  const isRequester = user?.role === "requester";
+  // Determine if user is logged in and can apply
+  const isLoggedIn = !!user;
 
   // Success state - shown after joining
   if (joinBase.isSuccess) {
@@ -196,26 +194,15 @@ export default function TractionLink() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* If user is a requester */}
-            {isRequester && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Requester Account</AlertTitle>
-                <AlertDescription>
-                  This link is for vendors. You're logged in as a requester.
-                </AlertDescription>
-              </Alert>
-            )}
-
             {/* If not logged in */}
-            {!user && (
+            {!isLoggedIn && (
               <>
                 <p className="text-sm text-muted-foreground">
-                  To join this Vendors Base, you need a vendor account. Sign in or create one to continue.
+                  To join this Vendors Base, you need an account. Sign in or create one to continue.
                 </p>
                 <div className="flex gap-3">
                   <Button
-                    onClick={() => navigate("/login?redirect=" + encodeURIComponent(`/r/${slug}`))}
+                    onClick={() => navigate("/login?redirect=" + encodeURIComponent(`/traction/${slug}`))}
                     size="lg"
                     variant="outline"
                     className="flex-1"
@@ -225,46 +212,25 @@ export default function TractionLink() {
                     Sign In
                   </Button>
                   <Button
-                    onClick={() => navigate("/vendor-onboarding?redirect=" + encodeURIComponent(`/r/${slug}`))}
+                    onClick={() => navigate("/signup?redirect=" + encodeURIComponent(`/traction/${slug}`))}
                     size="lg"
                     className="flex-1"
                     data-testid="button-register"
                   >
                     <UserPlus className="mr-2 h-4 w-4" />
-                    Create Vendor Account
+                    Create Account
                   </Button>
                 </div>
               </>
             )}
 
-            {/* If logged in as vendor but no profile */}
-            {isVendor && !hasProfile && (
-              <>
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Profile Required</AlertTitle>
-                  <AlertDescription>
-                    Please complete your vendor profile before joining any Vendors Base.
-                  </AlertDescription>
-                </Alert>
-                <Button
-                  onClick={() => navigate("/vendor-prequalification")}
-                  size="lg"
-                  className="w-full"
-                  data-testid="button-complete-profile"
-                >
-                  Complete Your Profile
-                </Button>
-              </>
-            )}
-
-            {/* If logged in as vendor with profile - ONE CLICK JOIN */}
-            {isVendor && hasProfile && (
+            {/* If logged in - ONE CLICK JOIN */}
+            {isLoggedIn && (
               <>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <p className="text-sm text-blue-900">
                     <strong>Ready to join!</strong> Click the button below to send your request. 
-                    We'll use your existing profile information.
+                    Your company profile will be shared with {data.profile.companyName}.
                   </p>
                 </div>
                 <Button
@@ -287,7 +253,7 @@ export default function TractionLink() {
                   )}
                 </Button>
                 <p className="text-xs text-center text-muted-foreground">
-                  Your company name, contact details, and expertise from your profile will be shared with {data.profile.companyName}
+                  Your company details will be shared with {data.profile.companyName}
                 </p>
               </>
             )}

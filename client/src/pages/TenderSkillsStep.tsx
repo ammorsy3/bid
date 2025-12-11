@@ -247,6 +247,7 @@ export default function TenderSkillsStep() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [customSkill, setCustomSkill] = useState("");
+  const [showCustomInput, setShowCustomInput] = useState(false);
 
   // Get draft to find out the job title for category suggestions
   const draft = useMemo(() => {
@@ -290,11 +291,11 @@ export default function TenderSkillsStep() {
   };
 
   const handleAddCustomSkill = () => {
-    const skillToAdd = (customSkill || searchTerm).trim();
+    const skillToAdd = customSkill.trim();
     if (skillToAdd && !selectedSkills.includes(skillToAdd)) {
       setSelectedSkills([...selectedSkills, skillToAdd]);
       setCustomSkill("");
-      setSearchTerm("");
+      setShowCustomInput(false);
     }
   };
 
@@ -394,14 +395,23 @@ export default function TenderSkillsStep() {
 
                   {/* Search Bar */}
                   <div className="space-y-3">
-                    <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                      Search skills or add your own
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                        Search skills
+                      </label>
+                      <button
+                        onClick={() => setShowCustomInput(!showCustomInput)}
+                        className="text-xs font-medium text-[#E25E45] hover:underline"
+                        data-testid="button-toggle-custom-input"
+                      >
+                        {showCustomInput ? "Cancel" : "Add custom skill"}
+                      </button>
+                    </div>
                     <div className="relative">
                       <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Search or type a new skill..."
+                        placeholder="Search skills..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
@@ -445,16 +455,16 @@ export default function TenderSkillsStep() {
                   </div>
 
                   {/* Custom Skill Input */}
-                  {searchTerm && !SKILLS_DATABASE.includes(searchTerm) && (
+                  {showCustomInput && (
                     <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
                       <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                        Add custom skill
+                        Enter custom skill name
                       </label>
                       <div className="flex gap-2">
                         <input
                           type="text"
-                          placeholder="Enter custom skill name"
-                          value={customSkill || searchTerm}
+                          placeholder="Type a skill name..."
+                          value={customSkill}
                           onChange={(e) => setCustomSkill(e.target.value)}
                           onKeyPress={(e) => {
                             if (e.key === 'Enter') {

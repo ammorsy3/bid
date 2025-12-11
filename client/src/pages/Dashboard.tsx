@@ -165,6 +165,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
+  const [viewedNotifications, setViewedNotifications] = useState<Set<string>>(new Set());
   const [currentTheme, setCurrentTheme] = useState(() => {
     const saved = localStorage.getItem('theme');
     if (saved) return saved;
@@ -542,9 +543,9 @@ export default function Dashboard() {
                     >
                       <div className="relative">
                         <Bell className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                        {incomingOffers.filter(o => o.status === 'pending').length > 0 && (
+                        {incomingOffers.filter(o => o.status === 'pending' && !viewedNotifications.has(o.id)).length > 0 && (
                           <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                            {incomingOffers.filter(o => o.status === 'pending').length}
+                            {incomingOffers.filter(o => o.status === 'pending' && !viewedNotifications.has(o.id)).length}
                           </span>
                         )}
                       </div>
@@ -568,6 +569,7 @@ export default function Dashboard() {
                             onClick={() => {
                               setActiveTab('proposals');
                               setSelectedProposal(offer);
+                              setViewedNotifications(prev => new Set([...prev, offer.id]));
                             }}
                             className="w-full flex items-start gap-3 p-3 hover:bg-accent transition-colors text-left border-b last:border-b-0"
                           >
@@ -585,7 +587,7 @@ export default function Dashboard() {
                         ))
                       )}
                     </div>
-                    {incomingOffers.filter(o => o.status === 'pending').length > 0 && (
+                    {incomingOffers.filter(o => o.status === 'pending' && !viewedNotifications.has(o.id)).length > 0 && (
                       <div className="p-2 border-t">
                         <button 
                           onClick={() => setActiveTab('proposals')}

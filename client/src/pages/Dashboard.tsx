@@ -477,17 +477,27 @@ export default function Dashboard() {
           <Popover>
             <PopoverTrigger asChild>
               <button className={`flex items-center gap-3 w-full hover:bg-accent rounded-md p-1 -m-1 transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`} data-testid="button-user-menu">
-                {user.profilePictureUrl ? (
-                  <img 
-                    src={user.profilePictureUrl} 
-                    alt={user.name || user.username}
-                    className="h-8 w-8 rounded-full object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <div className="h-8 w-8 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-                    {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
-                  </div>
-                )}
+                <div className="relative flex-shrink-0">
+                  {user.profilePictureUrl ? (
+                    <img 
+                      src={user.profilePictureUrl} 
+                      alt={user.name || user.username}
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-sm font-medium">
+                      {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  {activeCompany.verificationStatus !== 'verified' && (
+                    <div 
+                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-yellow-500 flex items-center justify-center"
+                      title={t('dashboard.verificationPending')}
+                    >
+                      <Clock className="h-2.5 w-2.5 text-white" />
+                    </div>
+                  )}
+                </div>
                 <span className="text-sm font-medium truncate group-data-[collapsible=icon]:hidden">
                   {user.name || user.username}
                 </span>
@@ -744,20 +754,6 @@ export default function Dashboard() {
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto p-6">
-          {/* Verification Status Banner */}
-          {activeCompany.verificationStatus !== 'verified' && (
-            <Card className="mb-6 border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20">
-              <CardHeader>
-                <CardTitle className={`text-yellow-900 dark:text-yellow-100 ${isRtl ? 'text-right' : ''}`}>
-                  {t('dashboard.verificationPending')}
-                </CardTitle>
-                <CardDescription className={`text-yellow-800 dark:text-yellow-200 ${isRtl ? 'text-right' : ''}`}>
-                  {t('dashboard.verificationPendingDesc')}
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          )}
-
           {/* Dashboard Content */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 

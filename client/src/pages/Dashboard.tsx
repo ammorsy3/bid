@@ -489,7 +489,14 @@ export default function Dashboard() {
                       {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
                     </div>
                   )}
-                  {activeCompany.verificationStatus !== 'verified' && (
+                  {activeCompany.verificationStatus === 'verified' ? (
+                    <div 
+                      className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center border-2 border-white dark:border-gray-800"
+                      title={t('dashboard.verified')}
+                    >
+                      <Check className="h-3 w-3 text-white" />
+                    </div>
+                  ) : (
                     <div 
                       className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-yellow-500 flex items-center justify-center"
                       title={t('dashboard.verificationPending')}

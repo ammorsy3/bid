@@ -27,6 +27,7 @@ import { useAutosave, DraftStorage } from "@/lib/autosave";
 import { calculateFormProgress, getConstraints } from "@/lib/form-validation";
 import { useFormKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AILoader } from "@/components/ui/ai-loader";
 
 const createTenderSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -103,6 +104,7 @@ export default function CreateTender() {
   const [showDraftPrompt, setShowDraftPrompt] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAILoader, setShowAILoader] = useState(false);
 
   // Fetch tenders to check if user has created any
   const { data: tenders = [] } = useQuery<Tender[]>({
@@ -315,8 +317,10 @@ export default function CreateTender() {
   // Welcome Screen
   if (!showForm) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-        <div className="max-w-md">
+      <>
+        {showAILoader && <AILoader text="Generating" size={180} />}
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+          <div className="max-w-md">
           <div className="text-center space-y-8">
             <img src={logoPath} alt="Bid" className="h-40 mx-auto cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
             
@@ -336,7 +340,13 @@ export default function CreateTender() {
 
             <div className="space-y-3 pt-4">
               <Button 
-                onClick={() => setShowForm(true)}
+                onClick={() => {
+                  setShowAILoader(true);
+                  setTimeout(() => {
+                    setShowAILoader(false);
+                    setShowForm(true);
+                  }, 2000);
+                }}
                 size="lg"
                 className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white font-semibold text-base py-6"
                 data-testid="button-get-started-ai"
@@ -361,6 +371,7 @@ export default function CreateTender() {
           </div>
         </div>
       </div>
+      </>
     );
   }
 

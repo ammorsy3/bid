@@ -563,7 +563,9 @@ export default function Dashboard() {
                           {t('settings.noNotifications')}
                         </div>
                       ) : (
-                        incomingOffers.filter(o => o.status === 'pending').slice(0, 5).map((offer) => (
+                        incomingOffers.filter(o => o.status === 'pending').slice(0, 5).map((offer) => {
+                          const isViewed = viewedNotifications.has(offer.id);
+                          return (
                           <button
                             key={offer.id}
                             onClick={() => {
@@ -571,20 +573,29 @@ export default function Dashboard() {
                               setSelectedProposal(offer);
                               setViewedNotifications(prev => new Set([...prev, offer.id]));
                             }}
-                            className="w-full flex items-start gap-3 p-3 hover:bg-accent transition-colors text-left border-b last:border-b-0"
+                            className={`w-full flex items-start gap-3 p-3 transition-colors text-left border-b last:border-b-0 ${
+                              isViewed 
+                                ? 'hover:bg-accent opacity-60' 
+                                : 'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 font-medium'
+                            }`}
                           >
-                            <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                              <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                              isViewed 
+                                ? 'bg-blue-100 dark:bg-blue-900/30' 
+                                : 'bg-blue-200 dark:bg-blue-800/50'
+                            }`}>
+                              <FileText className={`h-4 w-4 ${isViewed ? 'text-blue-600 dark:text-blue-400' : 'text-blue-700 dark:text-blue-300'}`} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{t('settings.newProposal')}</p>
-                              <p className="text-xs text-muted-foreground truncate">{offer.tender?.title}</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">
+                              <p className={`text-sm truncate ${isViewed ? '' : 'font-semibold'}`}>{t('settings.newProposal')}</p>
+                              <p className={`text-xs truncate ${isViewed ? 'text-muted-foreground' : 'text-muted-foreground font-medium'}`}>{offer.tender?.title}</p>
+                              <p className={`text-xs mt-0.5 ${isViewed ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
                                 {new Date(offer.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </p>
                             </div>
                           </button>
-                        ))
+                          );
+                        })
                       )}
                     </div>
                     {incomingOffers.filter(o => o.status === 'pending' && !viewedNotifications.has(o.id)).length > 0 && (

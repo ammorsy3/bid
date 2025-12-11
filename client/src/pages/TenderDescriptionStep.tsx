@@ -5,7 +5,7 @@ import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-prev
 import { useLocation } from "wouter";
 import { useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import VoiceRecorder from "@/components/voice-recorder";
 import { SmartInput } from "@/components/ui/smart-input";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +32,8 @@ export default function TenderDescriptionStep() {
     },
     onSuccess: (data) => {
       localStorage.removeItem("tenderDraft");
+      // Invalidate tenders list so it shows the newly created tender
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
       navigate(`/tenders/invite/${data.id}`);
     },
     onError: (error: Error) => {

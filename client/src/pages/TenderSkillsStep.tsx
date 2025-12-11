@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FloatingPathsBackground } from "@/components/ui/floating-paths-bg";
 import { ArrowLeft, ArrowRight, X, Search } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
@@ -317,10 +316,9 @@ export default function TenderSkillsStep() {
   const isFormValid = selectedSkills.length >= 1;
 
   return (
-    <FloatingPathsBackground>
-      <div className="py-8 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+    <div className="py-8 px-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
             <img
               src={logoPath}
               alt="Bid"
@@ -344,11 +342,11 @@ export default function TenderSkillsStep() {
                 />
               </i>
             </Button>
-          </div>
+        </div>
 
-          <div className="grid grid-cols-3 gap-8">
-            {/* Left Section - Headline and Explanation */}
-            <div className="col-span-1">
+        <div className="grid grid-cols-3 gap-8">
+          {/* Left Section - Headline and Explanation */}
+          <div className="col-span-1">
               <div className="space-y-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   2 / 5
@@ -360,10 +358,10 @@ export default function TenderSkillsStep() {
                   Add 3-5 relevant skills to attract the right candidates.
                 </p>
               </div>
-            </div>
+          </div>
 
-            {/* Right Section - Skills Selector */}
-            <div className="col-span-2">
+          {/* Right Section - Skills Selector */}
+          <div className="col-span-2">
               <Card className="border-0 shadow-xl overflow-hidden">
                 <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
 
@@ -500,11 +498,10 @@ export default function TenderSkillsStep() {
                     </Button>
                   </div>
                 </div>
-              </Card>
-            </div>
+            </Card>
           </div>
         </div>
       </div>
-    </FloatingPathsBackground>
+    </div>
   );
 }

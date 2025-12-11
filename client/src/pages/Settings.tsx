@@ -675,7 +675,24 @@ export default function Settings() {
             <div className="space-y-8">
               <div>
                 <h1 className="text-2xl font-bold">{t('settings.teamSettings')}</h1>
-                <p className="text-muted-foreground mt-1">{activeCompany.name}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-muted-foreground">{activeCompany.name}</p>
+                  {activeCompany.verificationStatus === 'verified' ? (
+                    <div 
+                      className="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center"
+                      title={t('dashboard.verified')}
+                    >
+                      <Check className="h-3 w-3 text-white" />
+                    </div>
+                  ) : (
+                    <div 
+                      className="h-5 w-5 rounded-full bg-yellow-500 flex items-center justify-center"
+                      title={t('dashboard.verificationPending')}
+                    >
+                      <Clock className="h-3 w-3 text-white" />
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Company Logo */}

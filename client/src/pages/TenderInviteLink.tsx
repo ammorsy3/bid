@@ -340,7 +340,30 @@ export default function TenderInviteLink() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <AudioPlayer src={tender.voiceNoteUrl} />
+              {user ? (
+                <AudioPlayer src={tender.voiceNoteUrl} />
+              ) : (
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <Play className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Voice note available</p>
+                      <p className="text-sm text-gray-500">Log in to listen to the requester's voice note</p>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => {
+                      localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`);
+                      navigate("/login");
+                    }}
+                    data-testid="button-login-voice"
+                  >
+                    Login to Listen
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

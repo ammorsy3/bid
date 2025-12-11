@@ -68,8 +68,12 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     queryKey: ['/api/my-offers', tender.id],
     enabled: isOpen && !!user && !!activeCompany,
     queryFn: async () => {
-      const res = await fetch('/api/my-offers');
-      if (!res.ok) throw new Error('Failed to fetch offers');
+      const token = localStorage.getItem('token');
+      if (!token) return [];
+      const res = await fetch('/api/my-offers', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) return [];
       const offers = await res.json();
       return offers.filter((offer: any) => offer.tenderId === tender.id);
     },
@@ -161,12 +165,16 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
       form.reset();
       setUploadedFiles({});
     },
-    onError: () => {
+    onError: (error: any) => {
+      const message = error?.message || "Failed to submit offer";
       toast({
-        title: "Error",
-        description: "Failed to submit offer",
+        title: message.includes("already submitted") ? "Already Submitted" : "Error",
+        description: message,
         variant: "destructive",
       });
+      if (message.includes("already submitted")) {
+        queryClient.invalidateQueries({ queryKey: ['/api/my-offers', tender.id] });
+      }
     },
   });
 

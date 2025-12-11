@@ -1061,6 +1061,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
+        // Check for existing offer from this company for this tender
+        const existingOffer = await storage.getOfferByTenderAndCompany(
+          req.params.id,
+          req.auth!.activeCompanyId!
+        );
+        if (existingOffer) {
+          return res.status(409).json({ 
+            message: "You have already submitted an offer for this tender",
+            existingOfferId: existingOffer.id
+          });
+        }
+
         const offerData = createOfferSchema.parse(req.body);
 
         const offer = await storage.createOffer({

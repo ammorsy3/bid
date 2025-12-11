@@ -306,7 +306,7 @@ export default function TenderSkillsStep() {
         skills: selectedSkills,
       };
       localStorage.setItem("tenderDraft", JSON.stringify(updated));
-      navigate("/tenders/timeline");
+      navigate("/tenders/scope");
     }
   };
 

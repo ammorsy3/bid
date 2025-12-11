@@ -17,9 +17,14 @@ export default function TenderInviteLink() {
   const { toast } = useToast();
 
   const { data: tender, isLoading, error } = useQuery({
-    queryKey: ['/api/tenders', tenderId],
+    queryKey: ['/api/tenders', tenderId, 'invite'],
     enabled: !!tenderId,
     retry: false,
+    queryFn: async () => {
+      const res = await fetch(`/api/tenders/${tenderId}/invite`);
+      if (!res.ok) throw new Error('Failed to fetch tender');
+      return res.json();
+    },
   } as any);
 
   const inviteLink = tender && tenderId

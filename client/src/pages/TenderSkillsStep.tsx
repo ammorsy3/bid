@@ -291,9 +291,11 @@ export default function TenderSkillsStep() {
   };
 
   const handleAddCustomSkill = () => {
-    if (customSkill.trim() && !selectedSkills.includes(customSkill)) {
-      setSelectedSkills([...selectedSkills, customSkill]);
+    const skillToAdd = (customSkill || searchTerm).trim();
+    if (skillToAdd && !selectedSkills.includes(skillToAdd)) {
+      setSelectedSkills([...selectedSkills, skillToAdd]);
       setCustomSkill("");
+      setSearchTerm("");
     }
   };
 
@@ -453,10 +455,17 @@ export default function TenderSkillsStep() {
                       <div className="flex gap-2">
                         <input
                           type="text"
+                          placeholder="Enter custom skill name"
                           value={customSkill || searchTerm}
                           onChange={(e) => setCustomSkill(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleAddCustomSkill();
+                            }
+                          }}
                           className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
                           data-testid="input-custom-skill"
+                          autoFocus
                         />
                         <Button
                           onClick={handleAddCustomSkill}

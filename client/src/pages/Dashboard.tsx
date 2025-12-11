@@ -112,6 +112,7 @@ interface IncomingOffer {
   notes: string | null;
   submittedAt: string;
   status: 'pending' | 'accepted' | 'rejected';
+  isViewed: boolean;
   tender: {
     id: string;
     title: string;
@@ -165,7 +166,6 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
-  const [viewedNotifications, setViewedNotifications] = useState<Set<string>>(new Set());
   const [currentTheme, setCurrentTheme] = useState(() => {
     const saved = localStorage.getItem('theme');
     if (saved) return saved;
@@ -393,6 +393,15 @@ export default function Dashboard() {
     }
   });
 
+  const markOfferViewed = useMutation({
+    mutationFn: async (offerId: string) => {
+      return await apiRequest('POST', `/api/offers/${offerId}/view`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/my-tenders/offers'] });
+    }
+  });
+
   // Update offer status mutation (accept/reject proposals)
   const updateOfferStatus = useMutation({
     mutationFn: async ({ offerId, status }: { offerId: string; status: string }) => {
@@ -543,9 +552,9 @@ export default function Dashboard() {
                     >
                       <div className="relative">
                         <Bell className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                        {incomingOffers.filter(o => o.status === 'pending' && !viewedNotifications.has(o.id)).length > 0 && (
+                        {incomingOffers.filter(o => o.status === 'pending' && !o.isViewed).length > 0 && (
                           <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                            {incomingOffers.filter(o => o.status === 'pending' && !viewedNotifications.has(o.id)).length}
+                            {incomingOffers.filter(o => o.status === 'pending' && !o.isViewed).length}
                           </span>
                         )}
                       </div>
@@ -563,42 +572,41 @@ export default function Dashboard() {
                           {t('settings.noNotifications')}
                         </div>
                       ) : (
-                        incomingOffers.filter(o => o.status === 'pending').slice(0, 5).map((offer) => {
-                          const isViewed = viewedNotifications.has(offer.id);
-                          return (
+                        incomingOffers.filter(o => o.status === 'pending').slice(0, 5).map((offer) => (
                           <button
                             key={offer.id}
                             onClick={() => {
                               setActiveTab('proposals');
                               setSelectedProposal(offer);
-                              setViewedNotifications(prev => new Set([...prev, offer.id]));
+                              if (!offer.isViewed) {
+                                markOfferViewed.mutate(offer.id);
+                              }
                             }}
                             className={`w-full flex items-start gap-3 p-3 transition-colors text-left border-b last:border-b-0 ${
-                              isViewed 
+                              offer.isViewed 
                                 ? 'hover:bg-accent opacity-60' 
                                 : 'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 font-medium'
                             }`}
                           >
                             <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                              isViewed 
+                              offer.isViewed 
                                 ? 'bg-blue-100 dark:bg-blue-900/30' 
                                 : 'bg-blue-200 dark:bg-blue-800/50'
                             }`}>
-                              <FileText className={`h-4 w-4 ${isViewed ? 'text-blue-600 dark:text-blue-400' : 'text-blue-700 dark:text-blue-300'}`} />
+                              <FileText className={`h-4 w-4 ${offer.isViewed ? 'text-blue-600 dark:text-blue-400' : 'text-blue-700 dark:text-blue-300'}`} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className={`text-sm truncate ${isViewed ? '' : 'font-semibold'}`}>{t('settings.newProposal')}</p>
-                              <p className={`text-xs truncate ${isViewed ? 'text-muted-foreground' : 'text-muted-foreground font-medium'}`}>{offer.tender?.title}</p>
-                              <p className={`text-xs mt-0.5 ${isViewed ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
+                              <p className={`text-sm truncate ${offer.isViewed ? '' : 'font-semibold'}`}>{t('settings.newProposal')}</p>
+                              <p className={`text-xs truncate ${offer.isViewed ? 'text-muted-foreground' : 'text-muted-foreground font-medium'}`}>{offer.tender?.title}</p>
+                              <p className={`text-xs mt-0.5 ${offer.isViewed ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
                                 {new Date(offer.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </p>
                             </div>
                           </button>
-                          );
-                        })
+                        ))
                       )}
                     </div>
-                    {incomingOffers.filter(o => o.status === 'pending' && !viewedNotifications.has(o.id)).length > 0 && (
+                    {incomingOffers.filter(o => o.status === 'pending' && !o.isViewed).length > 0 && (
                       <div className="p-2 border-t">
                         <button 
                           onClick={() => setActiveTab('proposals')}

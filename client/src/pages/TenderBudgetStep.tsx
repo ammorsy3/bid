@@ -56,7 +56,7 @@ export default function TenderBudgetStep() {
         budget: fixedPrice,
       };
       localStorage.setItem("tenderDraft", JSON.stringify(updated));
-      navigate("/tenders/description");
+      navigate("/tenders/new/description");
     } else if (budgetType === "milestone" && milestones.length > 0) {
       const updated = {
         ...draft,
@@ -67,12 +67,12 @@ export default function TenderBudgetStep() {
         })),
       };
       localStorage.setItem("tenderDraft", JSON.stringify(updated));
-      navigate("/tenders/description");
+      navigate("/tenders/new/description");
     }
   };
 
   const handleBack = () => {
-    navigate("/tenders/scope");
+    navigate("/tenders/new/scope");
   };
 
   const isFormValid =

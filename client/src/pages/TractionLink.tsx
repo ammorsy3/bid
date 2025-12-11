@@ -33,7 +33,7 @@ export default function TractionLink() {
 
   // Fetch traction link data
   const { data, isLoading, error } = useQuery<TractionLinkData>({
-    queryKey: [`/api/r/${slug}`],
+    queryKey: ['/api/r', slug],
     enabled: !!slug
   });
 

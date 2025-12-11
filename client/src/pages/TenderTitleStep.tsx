@@ -25,12 +25,12 @@ export default function TenderTitleStep() {
           title: title.trim(),
         })
       );
-      navigate("/tenders/skills");
+      navigate("/tenders/new/skills");
     }
   };
 
   const handleBack = () => {
-    navigate("/tenders/new");
+    navigate("/dashboard");
   };
 
   const isFormValid = title.trim().length > 0;

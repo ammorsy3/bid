@@ -36,7 +36,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import CreateTenderModal from "@/components/create-tender-modal";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 
 interface VendorProfile {
@@ -158,8 +157,7 @@ export default function Dashboard() {
   const { user, activeCompany, companies, logout } = useAuthStore();
   const [, setLocation] = useLocation();
   const { t, isRtl, language, setLanguage } = useI18n();
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
   const [selectedProposal, setSelectedProposal] = useState<IncomingOffer | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<VendorProfile | null>(null);
@@ -835,7 +833,7 @@ export default function Dashboard() {
                           <p className="text-sm text-muted-foreground">{t('dashboard.task1Desc')}</p>
                           <Button 
                             className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
-                            onClick={() => setIsCreateModalOpen(true)}
+                            onClick={() => setLocation('/tenders/new')}
                             data-testid="button-task-create-tender"
                           >
                             {t('dashboard.task1Action')}
@@ -1052,7 +1050,7 @@ export default function Dashboard() {
                       className="w-full" 
                       size="sm" 
                       data-testid="button-create-tender"
-                      onClick={() => setIsCreateModalOpen(true)}
+                      onClick={() => setLocation('/tenders/new')}
                     >
                       {t('dashboard.createTender')}
                     </Button>
@@ -1083,7 +1081,7 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <ParticleButton 
-                  onSuccess={() => setIsCreateModalOpen(true)}
+                  onSuccess={() => setLocation('/tenders/new')}
                   successDuration={600}
                   particleColor="bg-blue-400"
                   className="bg-blue-600 hover:bg-blue-700"
@@ -1137,7 +1135,7 @@ export default function Dashboard() {
                     </p>
                     {!tenderSearchQuery && tenderFilter === 'all' && (
                       <Button 
-                        onClick={() => setIsCreateModalOpen(true)}
+                        onClick={() => setLocation('/tenders/new')}
                         className="bg-blue-600 hover:bg-blue-700"
                         data-testid="button-create-first-tender"
                       >
@@ -1896,12 +1894,6 @@ export default function Dashboard() {
           )}
           </Tabs>
         </main>
-
-        {/* Create Tender Modal */}
-      <CreateTenderModal 
-        isOpen={isCreateModalOpen} 
-        onClose={() => setIsCreateModalOpen(false)} 
-      />
 
       {/* Proposal Details Modal */}
       <Dialog open={!!selectedProposal} onOpenChange={() => setSelectedProposal(null)}>

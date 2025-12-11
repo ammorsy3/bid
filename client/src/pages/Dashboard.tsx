@@ -1033,7 +1033,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent className={isRtl ? 'text-right' : ''}>
                   <div className="text-2xl font-bold">
-                    {activeCompany.verificationStatus === 'verified' ? t('dashboard.verified') : activeCompany.verificationStatus}
+                    {activeCompany.verificationStatus === 'verified' ? t('dashboard.verified') : activeCompany.verificationStatus === 'under_review' ? 'Under Review' : activeCompany.verificationStatus}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {activeCompany.onboardingState === 'completed' ? t('dashboard.profileComplete') : t('dashboard.setupInProgress')}

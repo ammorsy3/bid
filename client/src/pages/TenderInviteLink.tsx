@@ -45,7 +45,12 @@ function AudioPlayer({ src }: { src: string }) {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch(src);
+        const token = localStorage.getItem("token");
+        const headers: HeadersInit = {};
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        const response = await fetch(src, { headers });
         if (!response.ok) throw new Error("Failed to load audio");
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);

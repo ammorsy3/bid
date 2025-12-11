@@ -84,7 +84,7 @@ export default function TenderScopeStep() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-3 gap-8">
           {/* Left Section - Headline and Explanation */}
           <div className="col-span-1">
             <div className="space-y-4">
@@ -105,7 +105,7 @@ export default function TenderScopeStep() {
             <Card className="border-0 shadow-xl overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
 
-              <div className="p-8">
+              <div className="p-8 space-y-6">
                 {/* Scope Options */}
                 <div className="space-y-4">
                   {SCOPE_OPTIONS.map((option) => (
@@ -134,31 +134,31 @@ export default function TenderScopeStep() {
                     </label>
                   ))}
                 </div>
+
+                {/* Navigation Buttons */}
+                <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBack}
+                    className="flex-1"
+                    data-testid="button-cancel"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={handleNext}
+                    disabled={!isFormValid}
+                    className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
+                    data-testid="button-next"
+                  >
+                    Next
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
               </div>
             </Card>
           </div>
-        </div>
-
-        {/* Navigation Buttons - Bottom */}
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleBack}
-            className="flex-1"
-            data-testid="button-cancel"
-          >
-            Back
-          </Button>
-          <Button
-            onClick={handleNext}
-            disabled={!isFormValid}
-            className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
-            data-testid="button-next"
-          >
-            Next
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
         </div>
       </div>
     </div>

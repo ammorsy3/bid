@@ -452,7 +452,7 @@ export default function Dashboard() {
                 {activeCompany.profile?.displayName || activeCompany.name}
               </h2>
               <p className="text-xs text-muted-foreground truncate">
-                {activeCompany.role} • {activeCompany.verificationStatus}
+                {activeCompany.role.charAt(0).toUpperCase() + activeCompany.role.slice(1)} • {activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
               </p>
             </div>
             {/* Show toggle button only when expanded */}

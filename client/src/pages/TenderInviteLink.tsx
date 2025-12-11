@@ -1,47 +1,159 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Copy, CheckCircle2, Share2, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Calendar, DollarSign, Clock, Building2, ArrowLeft, Send, FileText, Video, Play, Pause, AlertCircle } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthStore } from "@/lib/auth";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
-import type { Tender } from "@shared/schema";
+import SubmitOfferModal from "@/components/submit-offer-modal";
+
+interface TenderInvite {
+  id: string;
+  title: string;
+  description: string;
+  deadline: string;
+  status: string;
+  budgetRange?: string;
+  budget?: string;
+  duration?: string;
+  projectTimeline?: string;
+  voiceNoteUrl?: string;
+  videoUrl?: string;
+  company?: {
+    id: string;
+    name: string;
+  };
+  profile?: {
+    displayName?: string;
+  };
+}
+
+function AudioPlayer({ src }: { src: string }) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadAudio = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(src);
+        if (!response.ok) throw new Error("Failed to load audio");
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        setAudioUrl(url);
+      } catch (err) {
+        setError("Failed to load voice note");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadAudio();
+    return () => {
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+    };
+  }, [src]);
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const formatTime = (time: number) => {
+    if (!isFinite(time) || isNaN(time)) return '00:00';
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 p-3 bg-gray-100 rounded-lg">
+        <Loader2 className="h-5 w-5 animate-spin" />
+        <span className="text-sm text-muted-foreground">Loading voice note...</span>
+      </div>
+    );
+  }
+
+  if (error || !audioUrl) {
+    return (
+      <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg text-red-600">
+        <AlertCircle className="h-5 w-5" />
+        <span className="text-sm">{error || "Failed to load voice note"}</span>
+      </div>
+    );
+  }
+
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  return (
+    <div className="flex items-center gap-3 p-3 bg-gray-100 rounded-lg">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={togglePlay}
+        className="h-10 w-10 rounded-full bg-primary text-white hover:bg-primary/90"
+      >
+        {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
+      </Button>
+      <div className="flex-1">
+        <div className="relative h-2 bg-gray-300 rounded-full cursor-pointer">
+          <div 
+            className="absolute top-0 left-0 h-full bg-blue-500 rounded-full"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
+        </div>
+      </div>
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
+        onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
+        onEnded={() => setIsPlaying(false)}
+      />
+    </div>
+  );
+}
 
 export default function TenderInviteLink() {
   const [, params] = useRoute("/invite/:id");
   const [, navigate] = useLocation();
   const tenderId = params?.id;
-  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuthStore();
+  const [showOfferModal, setShowOfferModal] = useState(false);
 
-  const { data: tender, isLoading, error } = useQuery({
+  const { data: tender, isLoading, error } = useQuery<TenderInvite>({
     queryKey: ['/api/tenders', tenderId, 'invite'],
     enabled: !!tenderId,
     retry: false,
     queryFn: async () => {
       const res = await fetch(`/api/tenders/${tenderId}/invite`);
-      if (!res.ok) throw new Error('Failed to fetch tender');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch tender');
+      }
       return res.json();
     },
-  } as any);
-
-  const inviteLink = tender && tenderId
-    ? `${window.location.origin}/tenders/${tenderId}`
-    : "";
-
-  const handleCopyLink = () => {
-    if (inviteLink) {
-      navigator.clipboard.writeText(inviteLink);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      toast({
-        title: "Copied!",
-        description: "Invite link copied to clipboard",
-      });
-    }
-  };
+  });
 
   if (!tenderId) {
     return (
@@ -52,8 +164,8 @@ export default function TenderInviteLink() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-4">No tender ID provided.</p>
-            <Button onClick={() => navigate("/dashboard")} className="w-full">
-              Back to Dashboard
+            <Button onClick={() => navigate("/")} className="w-full">
+              Go to Home
             </Button>
           </CardContent>
         </Card>
@@ -75,13 +187,13 @@ export default function TenderInviteLink() {
         <Card className="max-w-md w-full">
           <CardHeader>
             <CardTitle className="text-destructive">Tender Not Found</CardTitle>
+            <CardDescription>
+              {(error as any)?.message || "The tender you're looking for doesn't exist or is no longer available."}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              {error ? (error as any).message : "The tender could not be loaded."}
-            </p>
-            <Button onClick={() => navigate("/dashboard")} className="w-full">
-              Back to Dashboard
+            <Button onClick={() => navigate("/")} className="w-full">
+              Go to Home
             </Button>
           </CardContent>
         </Card>
@@ -89,153 +201,214 @@ export default function TenderInviteLink() {
     );
   }
 
+  const isDeadlinePassed = new Date(tender.deadline) < new Date();
+  const daysRemaining = Math.ceil((new Date(tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+
+  const handleSubmitOffer = () => {
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please login or create an account to submit a proposal.",
+      });
+      localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`);
+      navigate("/login");
+      return;
+    }
+    setShowOfferModal(true);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header with logo */}
-        <div className="flex justify-center mb-12">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Header */}
+      <header className="bg-white border-b sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <img
             src={logoPath}
             alt="Bid"
-            className="h-16 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate("/dashboard")}
+            className="h-12 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate("/")}
           />
-        </div>
-
-        {/* Success Message */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <CheckCircle2 className="h-16 w-16 text-green-500" data-testid="icon-success" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Tender Created!</h1>
-          <p className="text-lg text-gray-600">
-            Your tender "{tender.title}" has been published successfully.
-          </p>
-        </div>
-
-        {/* Tender Details Card */}
-        <Card className="mb-8 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
-            <CardTitle className="text-xl">{tender.title}</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-semibold text-gray-600">Deadline</p>
-                <p className="text-gray-900">{new Date(tender.deadline).toLocaleDateString()}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-600">Status</p>
-                <Badge className="mt-1">{tender.status}</Badge>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-600">Budget Range</p>
-                <p className="text-gray-900">{tender.budgetRange || "Not specified"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-600">Duration</p>
-                <p className="text-gray-900">{tender.duration || tender.projectTimeline}</p>
-              </div>
-            </div>
-            <div className="border-t pt-4">
-              <p className="text-sm font-semibold text-gray-600 mb-2">Description</p>
-              <p className="text-gray-700 line-clamp-3">{tender.description}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Invite Link Section */}
-        <Card className="mb-8 border-2 border-blue-200 bg-blue-50 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-lg text-blue-900">Share Your Tender</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-gray-700">
-              Share this link with vendors who should be invited to submit proposals:
-            </p>
-            
+          {!user ? (
             <div className="flex gap-2">
-              <div className="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-3 flex items-center font-mono text-sm text-gray-700 break-all">
-                {inviteLink}
-              </div>
-              <Button
-                onClick={handleCopyLink}
-                variant={copied ? "default" : "outline"}
-                className="shrink-0"
-                data-testid="button-copy-link"
-              >
-                {copied ? (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy
-                  </>
-                )}
+              <Button variant="outline" onClick={() => navigate("/login")} data-testid="button-login">
+                Login
+              </Button>
+              <Button onClick={() => navigate("/signup")} data-testid="button-signup">
+                Sign Up
               </Button>
             </div>
+          ) : (
+            <Button variant="outline" onClick={() => navigate("/dashboard")} data-testid="button-dashboard">
+              Dashboard
+            </Button>
+          )}
+        </div>
+      </header>
 
-            <div className="space-y-2 pt-4">
-              <Button
-                onClick={() => window.open(inviteLink, "_blank")}
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                data-testid="button-view-link"
+      {/* Main Content */}
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        {/* Tender Header */}
+        <div className="mb-8">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2" data-testid="text-tender-title">
+                {tender.title}
+              </h1>
+              {tender.company && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Building2 className="h-4 w-4" />
+                  <span>{tender.profile?.displayName || tender.company.name}</span>
+                </div>
+              )}
+            </div>
+            <Badge 
+              className={tender.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
+              data-testid="badge-status"
+            >
+              {tender.status === 'published' ? 'Open' : tender.status}
+            </Badge>
+          </div>
+
+          {/* Key Details Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <Card className="p-4">
+              <div className="flex items-center gap-2 text-gray-600 mb-1">
+                <Calendar className="h-4 w-4" />
+                <span className="text-sm font-medium">Deadline</span>
+              </div>
+              <p className={`font-semibold ${isDeadlinePassed ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-gray-900'}`}>
+                {new Date(tender.deadline).toLocaleDateString()}
+              </p>
+              {!isDeadlinePassed && (
+                <p className="text-xs text-gray-500">{daysRemaining} days left</p>
+              )}
+            </Card>
+            <Card className="p-4">
+              <div className="flex items-center gap-2 text-gray-600 mb-1">
+                <DollarSign className="h-4 w-4" />
+                <span className="text-sm font-medium">Budget</span>
+              </div>
+              <p className="font-semibold text-gray-900">
+                {tender.budgetRange || tender.budget || "Not specified"}
+              </p>
+            </Card>
+            <Card className="p-4">
+              <div className="flex items-center gap-2 text-gray-600 mb-1">
+                <Clock className="h-4 w-4" />
+                <span className="text-sm font-medium">Duration</span>
+              </div>
+              <p className="font-semibold text-gray-900">
+                {tender.duration || tender.projectTimeline || "Not specified"}
+              </p>
+            </Card>
+            <Card className="p-4">
+              <div className="flex items-center gap-2 text-gray-600 mb-1">
+                <FileText className="h-4 w-4" />
+                <span className="text-sm font-medium">Status</span>
+              </div>
+              <p className="font-semibold text-gray-900">
+                {isDeadlinePassed ? 'Closed' : 'Accepting Proposals'}
+              </p>
+            </Card>
+          </div>
+        </div>
+
+        {/* Description Card */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Project Description</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-700 whitespace-pre-wrap" data-testid="text-description">
+              {tender.description}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Voice Note */}
+        {tender.voiceNoteUrl && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Play className="h-5 w-5" />
+                Voice Note from Requester
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AudioPlayer src={tender.voiceNoteUrl} />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Video Link */}
+        {tender.videoUrl && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Video className="h-5 w-5" />
+                Project Video
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <a 
+                href={tender.videoUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline flex items-center gap-2"
               >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Preview Tender Link
-              </Button>
+                <Video className="h-4 w-4" />
+                Watch project video
+              </a>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Submit Offer CTA */}
+        <Card className="border-2 border-primary/20 bg-primary/5">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  Interested in this project?
+                </h3>
+                <p className="text-gray-600">
+                  {isDeadlinePassed 
+                    ? "This tender is no longer accepting proposals."
+                    : "Submit your proposal to be considered for this project."}
+                </p>
+              </div>
               <Button
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: tender.title,
-                      text: `Check out this tender: ${tender.title}`,
-                      url: inviteLink,
-                    });
-                  } else {
-                    handleCopyLink();
-                  }
-                }}
-                variant="outline"
-                className="w-full"
-                data-testid="button-share"
+                size="lg"
+                onClick={handleSubmitOffer}
+                disabled={isDeadlinePassed || tender.status !== 'published'}
+                className="bg-[#E25E45] hover:bg-[#d54d35] text-white font-semibold px-8"
+                data-testid="button-submit-proposal"
               >
-                <Share2 className="h-4 w-4 mr-2" />
-                Share Link
+                <Send className="h-5 w-5 mr-2" />
+                Submit Proposal
               </Button>
             </div>
           </CardContent>
         </Card>
+      </main>
 
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <Button
-            onClick={() => navigate("/dashboard")}
-            className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white font-semibold py-6"
-            data-testid="button-go-dashboard"
-          >
-            Go to Dashboard
-          </Button>
-          <Button
-            onClick={() => navigate("/tenders/new")}
-            variant="outline"
-            className="w-full font-semibold py-6"
-            data-testid="button-create-another"
-          >
-            Create Another Tender
-          </Button>
-        </div>
-
-        {/* Help Text */}
-        <div className="mt-8 p-4 bg-white rounded-lg border border-gray-200">
-          <p className="text-sm text-gray-600">
-            💡 <strong>Tip:</strong> Vendors will use this link to view your tender details and submit proposals. You can share it via email, messaging apps, or directly with your network.
-          </p>
-        </div>
-      </div>
+      {/* Submit Offer Modal */}
+      {showOfferModal && tender && (
+        <SubmitOfferModal
+          isOpen={showOfferModal}
+          onClose={() => setShowOfferModal(false)}
+          tender={{
+            id: tenderId,
+            title: tender.title,
+            deadline: tender.deadline,
+            budget: tender.budgetRange || tender.budget,
+          }}
+          requester={{
+            name: tender.profile?.displayName || tender.company?.name || "Unknown",
+            company: tender.company?.name,
+          }}
+        />
+      )}
     </div>
   );
 }

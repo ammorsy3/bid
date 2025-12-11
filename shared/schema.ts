@@ -175,6 +175,14 @@ export const offers = pgTable("offers", {
   submittedAt: timestamp("submitted_at").defaultNow().notNull(),
 });
 
+// Offer Views - Track which users have viewed each notification/offer
+export const offerViews = pgTable("offer_views", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  offerId: varchar("offer_id").notNull().references(() => offers.id),
+  viewerId: varchar("viewer_id").notNull().references(() => users.id), // User who viewed the notification
+  viewedAt: timestamp("viewed_at").defaultNow().notNull(),
+});
+
 // Invitations - Tender invitations to specific vendors
 export const invitations = pgTable("invitations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -533,6 +541,12 @@ export const createOfferSchema = insertOfferSchema.omit({
   conditionalSubmission: true,
 });
 
+// Offer View schemas
+export const insertOfferViewSchema = createInsertSchema(offerViews).omit({
+  id: true,
+  viewedAt: true,
+});
+
 // Other domain schemas
 export const insertInvitationSchema = createInsertSchema(invitations).omit({
   id: true,
@@ -600,6 +614,9 @@ export type CreateTender = z.infer<typeof createTenderSchema>;
 export type Offer = typeof offers.$inferSelect;
 export type InsertOffer = z.infer<typeof insertOfferSchema>;
 export type CreateOffer = z.infer<typeof createOfferSchema>;
+
+export type OfferView = typeof offerViews.$inferSelect;
+export type InsertOfferView = z.infer<typeof insertOfferViewSchema>;
 
 export type Invitation = typeof invitations.$inferSelect;
 export type InsertInvitation = z.infer<typeof insertInvitationSchema>;

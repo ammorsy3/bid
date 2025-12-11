@@ -7,7 +7,7 @@ import { FormProgress, DraftIndicator } from "@/components/ui/form-progress";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -52,7 +52,7 @@ const REQUIRED_FIELDS: (keyof SubmitOfferForm)[] = ['technicalFileUrl', 'financi
 export default function SubmitOfferModal({ isOpen, onClose, tender, requester }: SubmitOfferModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { activeCompany } = useAuthStore();
+  const { activeCompany, user } = useAuthStore();
   const [, navigate] = useLocation();
   const [hasDraft, setHasDraft] = useState(false);
   const [showDraftPrompt, setShowDraftPrompt] = useState(false);
@@ -62,6 +62,20 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   }>({});
 
   const FORM_ID = `${FORM_ID_PREFIX}${tender.id}`;
+  
+  // Check if user already submitted an offer for this tender
+  const { data: existingOffers } = useQuery({
+    queryKey: ['/api/my-offers', tender.id],
+    enabled: isOpen && !!user && !!activeCompany,
+    queryFn: async () => {
+      const res = await fetch('/api/my-offers');
+      if (!res.ok) throw new Error('Failed to fetch offers');
+      const offers = await res.json();
+      return offers.filter((offer: any) => offer.tenderId === tender.id);
+    },
+  });
+
+  const hasExistingOffer = existingOffers && existingOffers.length > 0;
   
   // Check verification status - allow both verified and under_review to submit
   const verificationStatus = activeCompany?.verificationStatus || 'not_verified';
@@ -261,7 +275,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
           </p>
         </DialogHeader>
 
-        {showDraftPrompt && (
+        {showDraftPrompt && !hasExistingOffer && (
           <Alert className="bg-primary-50 border-primary-200">
             <Sparkles className="h-4 w-4 text-primary-600" />
             <AlertDescription className="flex items-center justify-between">
@@ -277,8 +291,22 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
             </AlertDescription>
           </Alert>
         )}
-        
-        <Form {...form}>
+
+        {hasExistingOffer ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success-100 mb-4">
+              <Check className="h-8 w-8 text-success-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">Already Submitted</h3>
+            <p className="text-center text-neutral-600 mb-6">
+              Your offer for this tender has already been submitted. You cannot submit multiple offers for the same tender.
+            </p>
+            <Button variant="outline" onClick={handleClose} className="w-full sm:w-auto">
+              Close
+            </Button>
+          </div>
+        ) : (
+          <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Progress & Deadline */}
             <div className="flex items-center justify-between gap-4">
@@ -493,6 +521,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
             </div>
           </form>
         </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

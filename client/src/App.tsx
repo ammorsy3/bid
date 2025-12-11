@@ -39,7 +39,7 @@ export default function App() {
           <Route path="/tenders/new/scope" component={TenderScopeStep} />
           <Route path="/tenders/new/budget" component={TenderBudgetStep} />
           <Route path="/tenders/new/description" component={TenderDescriptionStep} />
-          <Route path="/tenders/invite/:id" component={TenderInviteLink} />
+          <Route path="/invite/:id" component={TenderInviteLink} />
           <Route path="/tenders/:id/edit" component={TenderEditPage} />
           <Route path="/tenders/:id" component={TenderDetails} />
           <Route path="/traction/:slug" component={TractionLink} />

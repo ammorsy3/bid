@@ -10,7 +10,7 @@ import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-prev
 import type { Tender } from "@shared/schema";
 
 export default function TenderInviteLink() {
-  const [, params] = useRoute("/tenders/invite/:id");
+  const [, params] = useRoute("/invite/:id");
   const [, navigate] = useLocation();
   const tenderId = params?.id;
   const [copied, setCopied] = useState(false);

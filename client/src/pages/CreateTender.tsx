@@ -9,6 +9,7 @@ import { TimePicker } from "@/components/ui/datetime-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FloatingPathsBackground } from "@/components/ui/floating-paths-bg";
+import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { format, add } from "date-fns";
 import { Calendar as CalendarIcon, ArrowLeft, Copy, Check, Mail, ExternalLink, Sparkles, Info, ChevronDown, ChevronUp, Video, Zap } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
@@ -316,8 +317,16 @@ export default function CreateTender() {
   // Welcome Screen
   if (!showForm) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-        <div className="max-w-md">
+      <div className="relative min-h-screen bg-white dark:bg-neutral-950 overflow-hidden flex items-center justify-center p-4">
+        <FlickeringGrid 
+          className="absolute inset-0"
+          squareSize={4}
+          gridGap={6}
+          flickerChance={0.3}
+          maxOpacity={0.3}
+          color={`rgb(${226}, ${94}, ${69})`}
+        />
+        <div className="relative z-10 max-w-md">
           <div className="text-center space-y-8">
             <img src={logoPath} alt="Bid" className="h-40 mx-auto cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
             

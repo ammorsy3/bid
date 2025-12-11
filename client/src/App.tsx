@@ -14,6 +14,7 @@ import TenderDetails from "@/pages/tender-details";
 import TenderEdit from "@/pages/tender-edit";
 import CreateTender from "@/pages/CreateTender";
 import TenderTitleStep from "@/pages/TenderTitleStep";
+import TenderSkillsStep from "@/pages/TenderSkillsStep";
 import TractionLink from "@/pages/TractionLink";
 import InvitationSignup from "@/pages/invitation-signup";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -99,6 +100,7 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/tenders/new" component={CreateTender} />
       <Route path="/tenders/title" component={TenderTitleStep} />
+      <Route path="/tenders/skills" component={TenderSkillsStep} />
       <Route path="/tenders/:id" component={TenderDetails} />
       <Route path="/tenders/:id/edit" component={TenderEdit} />
       

@@ -15,19 +15,17 @@ const EXAMPLE_TITLES = [
 export default function TenderTitleStep() {
   const [, navigate] = useLocation();
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
 
   const handleNext = () => {
-    if (title.trim() && description.trim()) {
+    if (title.trim()) {
       // Store in localStorage or pass via state
       localStorage.setItem(
         "tenderDraft",
         JSON.stringify({
           title: title.trim(),
-          description: description.trim(),
         })
       );
-      navigate("/tenders/description");
+      navigate("/tenders/skills");
     }
   };
 
@@ -35,7 +33,7 @@ export default function TenderTitleStep() {
     navigate("/tenders/new");
   };
 
-  const isFormValid = title.trim().length > 0 && description.trim().length > 0;
+  const isFormValid = title.trim().length > 0;
 
   return (
     <FloatingPathsBackground>
@@ -105,23 +103,6 @@ export default function TenderTitleStep() {
                     />
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       Keep it clear and specific (5-10 words)
-                    </p>
-                  </div>
-
-                  {/* Description Input */}
-                  <div className="space-y-3">
-                    <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                      What's the project about?
-                    </label>
-                    <textarea
-                      placeholder="Describe the project in a few sentences..."
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      className="w-full px-4 py-3 min-h-[120px] resize-none border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
-                      data-testid="input-description"
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      At least 3 characters
                     </p>
                   </div>
 

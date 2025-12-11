@@ -339,20 +339,19 @@ export default function CreateTender() {
                 onClick={() => setShowForm(true)}
                 size="lg"
                 className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white font-semibold text-base py-6"
-                data-testid="button-get-started"
+                data-testid="button-get-started-ai"
               >
                 <Sparkles className="h-5 w-5 mr-2" />
-                {tenders.length > 0 ? 'Create Your Tender' : 'Create Your First Tender'}
+                Get Started using AI
               </Button>
               <Button 
-                variant="ghost"
+                variant="outline"
                 size="lg"
-                onClick={() => navigate('/dashboard')}
-                className="w-full text-gray-600 dark:text-gray-400 font-semibold text-base py-6"
-                data-testid="button-cancel"
+                onClick={() => setShowForm(true)}
+                className="w-full font-semibold text-base py-6"
+                data-testid="button-without-ai"
               >
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Back to Dashboard
+                I'll do it without AI
               </Button>
             </div>
 

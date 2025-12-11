@@ -14,7 +14,7 @@ import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-prev
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -105,7 +105,7 @@ export default function CreateTender() {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Fetch tenders to check if user has created any
-  const { data: tenders = [] } = useQuery({
+  const { data: tenders = [] } = useQuery<Tender[]>({
     queryKey: ['/api/tenders'],
     enabled: !!activeCompany,
   });

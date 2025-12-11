@@ -5,6 +5,7 @@ import {
   userCompanies,
   tenders,
   offers,
+  offerViews,
   invitations,
   vendorsBase,
   joinRequests,
@@ -24,6 +25,8 @@ import {
   type InsertTender,
   type Offer,
   type InsertOffer,
+  type OfferView,
+  type InsertOfferView,
   type Invitation,
   type InsertInvitation,
   type VendorBase,
@@ -103,7 +106,10 @@ export interface IStorage {
   getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null>;
   getOfferByFileUrl(fileUrl: string): Promise<Offer | null>;
   getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile })[]>;
+  getIncomingOffersByCompanyWithViews(companyId: string, viewerId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile; isViewed: boolean })[]>;
   updateOfferStatus(offerId: string, status: string, decidedBy: string): Promise<Offer>;
+  markOfferViewed(offerId: string, viewerId: string): Promise<void>;
+  getViewedOfferIds(viewerId: string): Promise<string[]>;
 
   // ============================================================================
   // INVITATION OPERATIONS
@@ -672,6 +678,62 @@ export class DatabaseStorage implements IStorage {
       .where(eq(offers.id, offerId))
       .returning();
     return updated;
+  }
+
+  async getIncomingOffersByCompanyWithViews(companyId: string, viewerId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile; isViewed: boolean })[]> {
+    const results = await db
+      .select({
+        offer: offers,
+        tender: tenders,
+        company: companies,
+        profile: companyProfiles,
+        view: offerViews
+      })
+      .from(offers)
+      .innerJoin(tenders, eq(offers.tenderId, tenders.id))
+      .innerJoin(companies, eq(offers.companyId, companies.id))
+      .leftJoin(companyProfiles, eq(offers.companyId, companyProfiles.companyId))
+      .leftJoin(offerViews, and(
+        eq(offerViews.offerId, offers.id),
+        eq(offerViews.viewerId, viewerId)
+      ))
+      .where(eq(tenders.companyId, companyId))
+      .orderBy(desc(offers.submittedAt));
+
+    return results.map(r => ({
+      ...r.offer,
+      tender: r.tender,
+      company: r.company,
+      profile: r.profile || undefined,
+      isViewed: r.view !== null
+    }));
+  }
+
+  async markOfferViewed(offerId: string, viewerId: string): Promise<void> {
+    const existingView = await db
+      .select()
+      .from(offerViews)
+      .where(and(
+        eq(offerViews.offerId, offerId),
+        eq(offerViews.viewerId, viewerId)
+      ))
+      .limit(1);
+    
+    if (existingView.length === 0) {
+      await db.insert(offerViews).values({
+        offerId,
+        viewerId
+      });
+    }
+  }
+
+  async getViewedOfferIds(viewerId: string): Promise<string[]> {
+    const views = await db
+      .select({ offerId: offerViews.offerId })
+      .from(offerViews)
+      .where(eq(offerViews.viewerId, viewerId));
+    
+    return views.map(v => v.offerId);
   }
 
   // ============================================================================

@@ -16,12 +16,13 @@ export default function TenderInviteLink() {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  const { data: tender, isLoading } = useQuery<Tender>({
+  const { data: tender, isLoading, error } = useQuery({
     queryKey: ['/api/tenders', tenderId],
     enabled: !!tenderId,
-  });
+    retry: false,
+  } as any);
 
-  const inviteLink = tender
+  const inviteLink = tender && tenderId
     ? `${window.location.origin}/tenders/${tenderId}`
     : "";
 
@@ -37,6 +38,24 @@ export default function TenderInviteLink() {
     }
   };
 
+  if (!tenderId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle className="text-destructive">Invalid Link</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-4">No tender ID provided.</p>
+            <Button onClick={() => navigate("/dashboard")} className="w-full">
+              Back to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -45,7 +64,7 @@ export default function TenderInviteLink() {
     );
   }
 
-  if (!tender) {
+  if (error || !tender) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
         <Card className="max-w-md w-full">
@@ -53,6 +72,9 @@ export default function TenderInviteLink() {
             <CardTitle className="text-destructive">Tender Not Found</CardTitle>
           </CardHeader>
           <CardContent>
+            <p className="text-sm text-gray-600 mb-4">
+              {error ? (error as any).message : "The tender could not be loaded."}
+            </p>
             <Button onClick={() => navigate("/dashboard")} className="w-full">
               Back to Dashboard
             </Button>

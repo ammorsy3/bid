@@ -345,9 +345,9 @@ export default function TenderSkillsStep() {
             </Button>
         </div>
 
-        <div className="grid grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 gap-8">
           {/* Left Section - Headline and Explanation */}
-          <div className="col-span-1">
+          <div>
               <div className="space-y-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   2 / 5
@@ -362,7 +362,7 @@ export default function TenderSkillsStep() {
           </div>
 
           {/* Right Section - Skills Selector */}
-          <div className="col-span-2">
+          <div>
               <Card className="border-0 shadow-xl overflow-hidden">
                 <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
 

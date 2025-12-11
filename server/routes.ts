@@ -1157,16 +1157,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  // Get incoming offers on company's tenders
+  // Get incoming offers on company's tenders (with view status)
   app.get("/api/my-tenders/offers",
     authenticateToken,
     requireCompanyContext,
     async (req: AuthRequest, res) => {
       try {
-        const offers = await storage.getIncomingOffersByCompany(req.auth!.activeCompanyId!);
+        const offers = await storage.getIncomingOffersByCompanyWithViews(
+          req.auth!.activeCompanyId!,
+          req.auth!.userId
+        );
         res.json(offers);
       } catch (error) {
         console.error('Get incoming offers error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  // Mark an offer as viewed
+  app.post("/api/offers/:offerId/view",
+    authenticateToken,
+    requireCompanyContext,
+    async (req: AuthRequest, res) => {
+      try {
+        const { offerId } = req.params;
+        
+        // Verify this offer belongs to a tender owned by the user's company
+        const incomingOffers = await storage.getIncomingOffersByCompany(req.auth!.activeCompanyId!);
+        const hasAccess = incomingOffers.some(o => o.id === offerId);
+        
+        if (!hasAccess) {
+          return res.status(403).json({ message: "You don't have access to this offer" });
+        }
+        
+        await storage.markOfferViewed(offerId, req.auth!.userId);
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Mark offer viewed error:', error);
         res.status(500).json({ message: "Server error" });
       }
     }

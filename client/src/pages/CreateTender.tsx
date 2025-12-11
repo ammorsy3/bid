@@ -308,14 +308,22 @@ export default function CreateTender() {
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-6 -ml-4">
           <img src={logoPath} alt="Bid" className="h-16" />
-          <Button
-            variant="ghost"
+          <Button 
             onClick={() => navigate('/dashboard')}
-            className="text-muted-foreground hover:text-foreground"
+            className="group relative overflow-hidden"
             data-testid="button-back"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
+              Back
+            </span>
+            <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
+              <ArrowLeft
+                className="opacity-60"
+                size={16}
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+            </i>
           </Button>
         </div>
 

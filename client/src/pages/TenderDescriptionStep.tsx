@@ -32,11 +32,7 @@ export default function TenderDescriptionStep() {
     },
     onSuccess: (data) => {
       localStorage.removeItem("tenderDraft");
-      toast({
-        title: "Tender created!",
-        description: "Your tender has been published successfully.",
-      });
-      navigate("/dashboard");
+      navigate(`/tenders/invite/${data.id}`);
     },
     onError: (error: Error) => {
       toast({

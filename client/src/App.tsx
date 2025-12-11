@@ -16,6 +16,7 @@ import TenderSkillsStep from "@/pages/TenderSkillsStep";
 import TenderScopeStep from "@/pages/TenderScopeStep";
 import TenderBudgetStep from "@/pages/TenderBudgetStep";
 import TenderDescriptionStep from "@/pages/TenderDescriptionStep";
+import TenderInviteLink from "@/pages/TenderInviteLink";
 import TractionLink from "@/pages/TractionLink";
 import Landing from "@/pages/Landing";
 
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/tenders/new/scope" component={TenderScopeStep} />
           <Route path="/tenders/new/budget" component={TenderBudgetStep} />
           <Route path="/tenders/new/description" component={TenderDescriptionStep} />
+          <Route path="/tenders/invite/:id" component={TenderInviteLink} />
           <Route path="/tenders/:id" component={TenderDetails} />
           <Route path="/traction/:slug" component={TractionLink} />
           <Toaster />

@@ -10,6 +10,11 @@ import { useAuthStore } from "@/lib/auth";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import SubmitOfferModal from "@/components/submit-offer-modal";
 
+interface Milestone {
+  name: string;
+  amount: string;
+}
+
 interface TenderInvite {
   id: string;
   title: string;
@@ -20,6 +25,10 @@ interface TenderInvite {
   budget?: string;
   duration?: string;
   projectTimeline?: string;
+  skills?: string[];
+  scope?: string;
+  pricingModel?: string;
+  milestones?: Milestone[];
   voiceNoteUrl?: string;
   videoUrl?: string;
   company?: {
@@ -329,6 +338,74 @@ export default function TenderInviteLink() {
             </p>
           </CardContent>
         </Card>
+
+        {/* Skills & Scope Section */}
+        {(tender.skills && tender.skills.length > 0) || tender.scope || tender.pricingModel ? (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Project Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Skills */}
+              {tender.skills && tender.skills.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">Required Skills</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {tender.skills.map((skill, index) => (
+                      <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-800" data-testid={`badge-skill-${index}`}>
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Scope */}
+              {tender.scope && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">Project Scope</h4>
+                  <Badge variant="outline" className="capitalize" data-testid="badge-scope">
+                    {tender.scope === 'large' ? 'Large - Complex initiative' : 
+                     tender.scope === 'medium' ? 'Medium - Well-defined project' : 
+                     tender.scope === 'small' ? 'Small - Quick task' : tender.scope}
+                  </Badge>
+                </div>
+              )}
+
+              {/* Pricing Model */}
+              {tender.pricingModel && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">Pricing Model</h4>
+                  <Badge variant="outline" className="capitalize" data-testid="badge-pricing-model">
+                    {tender.pricingModel === 'fixed' ? 'Fixed Price' : 
+                     tender.pricingModel === 'milestone' ? 'Milestone-based' : tender.pricingModel}
+                  </Badge>
+                </div>
+              )}
+
+              {/* Milestones */}
+              {tender.pricingModel === 'milestone' && tender.milestones && tender.milestones.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">Project Milestones</h4>
+                  <div className="space-y-2">
+                    {tender.milestones.map((milestone, index) => (
+                      <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg" data-testid={`milestone-${index}`}>
+                        <span className="font-medium text-gray-800">{milestone.name}</span>
+                        <span className="text-gray-600">${milestone.amount}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between items-center p-3 bg-[#E25E45]/10 rounded-lg font-semibold">
+                      <span className="text-gray-800">Total</span>
+                      <span className="text-[#E25E45]">
+                        ${tender.milestones.reduce((sum, m) => sum + parseFloat(m.amount || '0'), 0).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ) : null}
 
         {/* Voice Note */}
         {tender.voiceNoteUrl && (

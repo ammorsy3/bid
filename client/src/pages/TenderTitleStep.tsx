@@ -65,7 +65,7 @@ export default function TenderTitleStep() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-3 gap-8">
             {/* Left Section - Headline and Explanation */}
             <div className="col-span-1">
               <div className="space-y-4">
@@ -125,31 +125,31 @@ export default function TenderTitleStep() {
                       ))}
                     </ul>
                   </div>
+
+                  {/* Navigation Buttons */}
+                  <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleBack}
+                      className="flex-1"
+                      data-testid="button-cancel"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleNext}
+                      disabled={!isFormValid}
+                      className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
+                      data-testid="button-next"
+                    >
+                      Next
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </div>
                 </div>
               </Card>
             </div>
-          </div>
-
-          {/* Navigation Buttons - Bottom */}
-          <div className="flex gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleBack}
-              className="flex-1"
-              data-testid="button-cancel"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleNext}
-              disabled={!isFormValid}
-              className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
-              data-testid="button-next"
-            >
-              Next
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
           </div>
         </div>
       </div>

@@ -346,7 +346,7 @@ export default function CreateTender() {
 
             <div className="space-y-3 pt-4">
               <Button 
-                onClick={() => setShowForm(true)}
+                onClick={() => navigate('/tenders/title')}
                 size="lg"
                 className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white font-semibold text-base py-6"
                 data-testid="button-get-started-ai"
@@ -357,7 +357,7 @@ export default function CreateTender() {
               <Button 
                 variant="outline"
                 size="lg"
-                onClick={() => setShowForm(true)}
+                onClick={() => navigate('/tenders/title')}
                 className="w-full font-semibold text-base py-6"
                 data-testid="button-without-ai"
               >

@@ -69,6 +69,11 @@ interface JoinRequest {
   };
 }
 
+interface Milestone {
+  name: string;
+  amount: string;
+}
+
 interface TenderWithCounts {
   id: string;
   title: string;
@@ -82,6 +87,10 @@ interface TenderWithCounts {
   createdAt: string;
   offersCount: number;
   invitedCount: number;
+  skills?: string[];
+  scope?: string;
+  pricingModel?: string;
+  milestones?: Milestone[];
 }
 
 interface MyOffer {
@@ -1236,6 +1245,38 @@ export default function Dashboard() {
                                   <span>{tender.budgetRange || tender.budget || t('dashboard.budget')}</span>
                                 </div>
                               </div>
+
+                              {/* Project Details Section */}
+                              {(tender.skills || tender.scope || tender.pricingModel) && (
+                                <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                  <div className="flex flex-wrap gap-2">
+                                    {/* Skills */}
+                                    {tender.skills && tender.skills.length > 0 && (
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {tender.skills.map((skill, idx) => (
+                                          <Badge key={idx} variant="secondary" className="bg-blue-100 text-blue-800 text-xs" data-testid={`badge-skill-dashboard-${tender.id}-${idx}`}>
+                                            {skill}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    )}
+                                    
+                                    {/* Scope */}
+                                    {tender.scope && (
+                                      <Badge variant="outline" className="text-xs capitalize" data-testid={`badge-scope-${tender.id}`}>
+                                        {tender.scope === 'large' ? 'Large' : tender.scope === 'medium' ? 'Medium' : tender.scope === 'small' ? 'Small' : tender.scope}
+                                      </Badge>
+                                    )}
+                                    
+                                    {/* Pricing Model */}
+                                    {tender.pricingModel && (
+                                      <Badge variant="outline" className="text-xs capitalize" data-testid={`badge-pricing-model-${tender.id}`}>
+                                        {tender.pricingModel === 'fixed' ? 'Fixed Price' : tender.pricingModel === 'milestone' ? 'Milestone' : tender.pricingModel}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                               
                               <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
                                 <Button 

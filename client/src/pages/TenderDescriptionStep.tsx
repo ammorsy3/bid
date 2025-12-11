@@ -34,7 +34,7 @@ export default function TenderDescriptionStep() {
       localStorage.removeItem("tenderDraft");
       // Invalidate tenders list so it shows the newly created tender
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
-      navigate(`/tenders/invite/${data.id}`);
+      navigate(`/invite/${data.id}`);
     },
     onError: (error: Error) => {
       toast({

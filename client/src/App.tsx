@@ -20,6 +20,7 @@ import TenderDescriptionStep from "@/pages/TenderDescriptionStep";
 import TenderInviteLink from "@/pages/TenderInviteLink";
 import TractionLink from "@/pages/TractionLink";
 import Landing from "@/pages/Landing";
+import Settings from "@/pages/Settings";
 
 export default function App() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="/tenders/:id/edit" component={TenderEditPage} />
           <Route path="/tenders/:id" component={TenderDetails} />
           <Route path="/traction/:slug" component={TractionLink} />
+          <Route path="/settings" component={Settings} />
           <Toaster />
         </Router>
       </I18nProvider>

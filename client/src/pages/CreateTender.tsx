@@ -8,6 +8,7 @@ import { FormProgress } from "@/components/ui/form-progress";
 import { TimePicker } from "@/components/ui/datetime-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { FloatingPathsBackground } from "@/components/ui/floating-paths-bg";
 import { format, add } from "date-fns";
 import { Calendar as CalendarIcon, ArrowLeft, Copy, Check, Mail, ExternalLink, Sparkles, Info, ChevronDown, ChevronUp, Video, Zap } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
@@ -366,8 +367,9 @@ export default function CreateTender() {
 
   // Form Screen
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
-      <div className="max-w-3xl mx-auto">
+    <FloatingPathsBackground>
+      <div className="py-8 px-4">
+        <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <img src={logoPath} alt="Bid" className="h-16 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
           <Button 
@@ -670,7 +672,8 @@ export default function CreateTender() {
             </Form>
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+    </FloatingPathsBackground>
   );
 }

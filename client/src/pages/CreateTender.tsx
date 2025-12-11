@@ -104,6 +104,12 @@ export default function CreateTender() {
   const [hasDraft, setHasDraft] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  // Fetch tenders to check if user has created any
+  const { data: tenders = [] } = useQuery({
+    queryKey: ['/api/tenders'],
+    enabled: !!activeCompany,
+  });
+
   const form = useForm<CreateTenderForm>({
     resolver: zodResolver(createTenderSchema),
     mode: 'onChange',
@@ -312,7 +318,7 @@ export default function CreateTender() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
         <div className="max-w-md">
           <div className="text-center space-y-8">
-            <img src={logoPath} alt="Bid" className="h-12 mx-auto cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
+            <img src={logoPath} alt="Bid" className="h-40 mx-auto cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
             
             <AnimatedCircle />
 
@@ -321,7 +327,7 @@ export default function CreateTender() {
                 Welcome, {user?.name?.split(' ')[0]}!
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400">
-                Let's create your first tender
+                Let's create your {tenders.length > 0 ? 'tender' : 'first tender'}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-500">
                 Post a tender in just a few clicks and start receiving bids from qualified vendors.
@@ -336,7 +342,7 @@ export default function CreateTender() {
                 data-testid="button-get-started"
               >
                 <Sparkles className="h-5 w-5 mr-2" />
-                Create Your First Tender
+                {tenders.length > 0 ? 'Create Your Tender' : 'Create Your First Tender'}
               </Button>
               <Button 
                 variant="ghost"

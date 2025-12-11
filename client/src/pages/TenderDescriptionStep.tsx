@@ -72,7 +72,7 @@ export default function TenderDescriptionStep() {
   };
 
   const handleBack = () => {
-    navigate("/tenders/budget");
+    navigate("/tenders/new/budget");
   };
 
   const isFormValid = description.trim().length > 0;

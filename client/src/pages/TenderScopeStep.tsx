@@ -69,12 +69,12 @@ export default function TenderScopeStep() {
         deadline: deadlineDate.toISOString(),
       };
       localStorage.setItem("tenderDraft", JSON.stringify(updated));
-      navigate("/tenders/budget");
+      navigate("/tenders/new/budget");
     }
   };
 
   const handleBack = () => {
-    navigate("/tenders/skills");
+    navigate("/tenders/new/skills");
   };
 
   const isFormValid = scope && duration && deadline;

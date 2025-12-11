@@ -32,11 +32,11 @@ export default function App() {
           <Route path="/admin/dashboard" component={AdminDashboard} />
           <Route path="/admin/vendors" component={AdminVendors} />
           <Route path="/admin/join-requests" component={AdminJoinRequests} />
-          <Route path="/tenders/title" component={TenderTitleStep} />
-          <Route path="/tenders/skills" component={TenderSkillsStep} />
-          <Route path="/tenders/scope" component={TenderScopeStep} />
-          <Route path="/tenders/budget" component={TenderBudgetStep} />
-          <Route path="/tenders/description" component={TenderDescriptionStep} />
+          <Route path="/tenders/new" component={TenderTitleStep} />
+          <Route path="/tenders/new/skills" component={TenderSkillsStep} />
+          <Route path="/tenders/new/scope" component={TenderScopeStep} />
+          <Route path="/tenders/new/budget" component={TenderBudgetStep} />
+          <Route path="/tenders/new/description" component={TenderDescriptionStep} />
           <Route path="/tenders/:id" component={TenderDetails} />
           <Route path="/traction/:slug" component={TractionLink} />
           <Toaster />

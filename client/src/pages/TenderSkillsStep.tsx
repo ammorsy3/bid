@@ -306,12 +306,12 @@ export default function TenderSkillsStep() {
         skills: selectedSkills,
       };
       localStorage.setItem("tenderDraft", JSON.stringify(updated));
-      navigate("/tenders/scope");
+      navigate("/tenders/new/scope");
     }
   };
 
   const handleBack = () => {
-    navigate("/tenders/title");
+    navigate("/tenders/new");
   };
 
   const isFormValid = selectedSkills.length >= 1;

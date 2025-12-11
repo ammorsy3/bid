@@ -323,7 +323,7 @@ export default function CreateTender() {
           squareSize={4}
           gridGap={6}
           flickerChance={0.3}
-          maxOpacity={0.3}
+          maxOpacity={0.08}
           color={`rgb(${226}, ${94}, ${69})`}
         />
         <div className="relative z-10 max-w-md">

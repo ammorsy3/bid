@@ -348,26 +348,7 @@ export default function TenderDetails() {
     );
   }
 
-  if (!tender) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <h3 className="text-xl font-semibold mb-2">Tender not found</h3>
-              <p className="text-muted-foreground mb-4">
-                The tender you're looking for doesn't exist or you don't have access to it.
-              </p>
-              <Button onClick={() => setLocation('/dashboard')}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  
 
   const statusBadge = getStatusBadge(tender.status);
   const daysRemaining = Math.ceil((new Date(tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));

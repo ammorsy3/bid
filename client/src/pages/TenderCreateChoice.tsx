@@ -71,10 +71,6 @@ export default function TenderCreateChoice() {
                 I'll do it without AI
               </Button>
             </div>
-
-            <p className="text-xs text-gray-600 mt-8 drop-shadow-md">
-              Takes about 2 minutes to complete
-            </p>
           </div>
         </main>
       </div>

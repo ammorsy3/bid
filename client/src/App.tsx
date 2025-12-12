@@ -12,6 +12,7 @@ import AdminVendors from "@/pages/AdminVendors";
 import AdminJoinRequests from "@/pages/AdminJoinRequests";
 import TenderDetails from "@/pages/tender-details";
 import TenderEditPage from "@/pages/TenderEditPage";
+import TenderCreateChoice from "@/pages/TenderCreateChoice";
 import TenderTitleStep from "@/pages/TenderTitleStep";
 import TenderSkillsStep from "@/pages/TenderSkillsStep";
 import TenderScopeStep from "@/pages/TenderScopeStep";
@@ -35,7 +36,8 @@ export default function App() {
           <Route path="/admin/dashboard" component={AdminDashboard} />
           <Route path="/admin/vendors" component={AdminVendors} />
           <Route path="/admin/join-requests" component={AdminJoinRequests} />
-          <Route path="/tenders/new" component={TenderTitleStep} />
+          <Route path="/tenders/new" component={TenderCreateChoice} />
+          <Route path="/tenders/new/manual" component={TenderTitleStep} />
           <Route path="/tenders/new/skills" component={TenderSkillsStep} />
           <Route path="/tenders/new/scope" component={TenderScopeStep} />
           <Route path="/tenders/new/budget" component={TenderBudgetStep} />

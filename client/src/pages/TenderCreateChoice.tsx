@@ -25,9 +25,15 @@ export default function TenderCreateChoice() {
 
       <div className="relative z-10">
         <header className="pt-12 pb-8">
-          <h1 className="text-center text-4xl font-bold text-[#E25E45] tracking-tight">
-            Bid
-          </h1>
+          <button
+            onClick={() => setLocation('/dashboard')}
+            className="w-full cursor-pointer"
+            data-testid="button-logo-bid"
+          >
+            <h1 className="text-center text-4xl font-bold text-[#E25E45] tracking-tight hover:opacity-80 transition-opacity">
+              Bid
+            </h1>
+          </button>
         </header>
 
         <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">

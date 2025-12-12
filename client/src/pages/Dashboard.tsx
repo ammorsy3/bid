@@ -801,23 +801,20 @@ export default function Dashboard() {
 
       {/* Search Tenders Modal */}
       <Dialog open={showSearchModal} onOpenChange={setShowSearchModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Search Tenders</DialogTitle>
-            <DialogDescription>
-              Search through your tenders by title or description
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col p-0">
+          <div className="p-6 border-b">
             <Input
-              placeholder="Search tenders..."
+              placeholder="Search tenders by title or description..."
               value={tenderSearchQuery}
               onChange={(e) => setTenderSearchQuery(e.target.value)}
-              className="h-10"
+              className="h-12 text-base rounded-lg"
               autoFocus
             />
+          </div>
+          
+          <div className="flex-1 overflow-y-auto">
             {filteredTenders.length > 0 ? (
-              <div className="max-h-96 overflow-y-auto space-y-2">
+              <div className="divide-y">
                 {filteredTenders.map((tender) => (
                   <button
                     key={tender.id}
@@ -826,26 +823,44 @@ export default function Dashboard() {
                       setShowSearchModal(false);
                       setTenderSearchQuery("");
                     }}
-                    className="w-full text-left p-3 rounded-lg hover:bg-accent border transition-colors"
+                    className="w-full text-left p-6 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
                     data-testid={`search-tender-result-${tender.id}`}
                   >
-                    <p className="font-medium text-sm">{tender.title}</p>
-                    <p className="text-xs text-muted-foreground truncate">{tender.description}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="secondary" className="text-xs">
+                    <div className="flex items-start justify-between gap-4 mb-2">
+                      <h3 className="font-semibold text-gray-900 dark:text-white text-base group-hover:text-[#E25E45] transition-colors">
+                        {tender.title}
+                      </h3>
+                      <Badge 
+                        className={`flex-shrink-0 text-xs font-medium ${getStatusBadge(tender.status).className}`}
+                      >
                         {getStatusBadge(tender.status).label}
                       </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
+                      {tender.description}
+                    </p>
+                    <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-500">
+                      <span>{formatDate(tender.deadline)}</span>
+                      {tender.budget || tender.budgetRange ? (
+                        <>
+                          <span>•</span>
+                          <span>{tender.budgetRange || tender.budget}</span>
+                        </>
+                      ) : null}
                     </div>
                   </button>
                 ))}
               </div>
-            ) : tenderSearchQuery ? (
-              <div className="text-center py-8 text-sm text-muted-foreground">
-                No tenders found matching "{tenderSearchQuery}"
-              </div>
             ) : (
-              <div className="text-center py-8 text-sm text-muted-foreground">
-                Type to search your tenders
+              <div className="flex items-center justify-center h-48">
+                <div className="text-center">
+                  <Search className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {tenderSearchQuery 
+                      ? `No tenders found matching "${tenderSearchQuery}"`
+                      : "Type to search your tenders"}
+                  </p>
+                </div>
               </div>
             )}
           </div>

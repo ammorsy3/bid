@@ -18,7 +18,7 @@ export default function TenderCreateChoice() {
           squareSize={4}
           gridGap={6}
           color="rgb(226, 94, 69)"
-          maxOpacity={0.3}
+          maxOpacity={0.15}
           flickerChance={0.1}
         />
       </div>

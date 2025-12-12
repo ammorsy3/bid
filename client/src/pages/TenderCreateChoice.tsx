@@ -1,86 +1,61 @@
 import { useLocation } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, PenLine, ArrowLeft } from "lucide-react";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { Sparkles } from "lucide-react";
+import { AILoader } from "@/components/ui/ai-loader";
+import { useAuthStore } from "@/lib/auth";
 
 export default function TenderCreateChoice() {
   const [, setLocation] = useLocation();
+  const { user } = useAuthStore();
+  const firstName = user?.name?.split(' ')[0] || user?.username || 'there';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <header className="flex items-center justify-between px-8 py-6">
-        <img
-          src={logoPath}
-          alt="Bid"
-          className="h-10 cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={() => setLocation("/dashboard")}
-          data-testid="logo-home"
-        />
-        <Button 
-          variant="outline" 
-          onClick={() => setLocation("/dashboard")}
-          data-testid="button-back"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
+    <div className="min-h-screen bg-gradient-to-b from-[#e8f4fc] via-[#f0f7fb] to-white flex flex-col">
+      <header className="pt-12 pb-8">
+        <h1 className="text-center text-4xl font-bold text-[#E25E45] tracking-tight">
+          Bid
+        </h1>
       </header>
 
-      <main className="max-w-4xl mx-auto px-8 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            How would you like to create your tender?
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            Choose the method that works best for you
-          </p>
+      <main className="flex-1 flex flex-col items-center justify-center px-6 -mt-16">
+        <div className="mb-8">
+          <AILoader size={100} />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card 
-            className="cursor-pointer hover:shadow-lg hover:border-[#E25E45] transition-all duration-200 group"
-            onClick={() => setLocation("/tenders/new/ai")}
-            data-testid="card-create-with-ai"
-          >
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Sparkles className="h-8 w-8 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                Create with AI
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Let AI help you craft the perfect tender. Just describe your project and we'll generate a professional tender for you.
-              </p>
-              <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
-                <Sparkles className="h-4 w-4 mr-2" />
-                Start with AI
-              </Button>
-            </CardContent>
-          </Card>
+        <div className="text-center max-w-md">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome, {firstName}!
+          </h2>
+          <p className="text-lg text-gray-600 mb-2">
+            Let's create your tender
+          </p>
+          <p className="text-sm text-gray-500 mb-10">
+            Post a tender in just a few clicks and start receiving bids from qualified vendors.
+          </p>
 
-          <Card 
-            className="cursor-pointer hover:shadow-lg hover:border-[#E25E45] transition-all duration-200 group"
-            onClick={() => setLocation("/tenders/new/manual")}
-            data-testid="card-create-manually"
-          >
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#E25E45] to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <PenLine className="h-8 w-8 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                Create Manually
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Build your tender step by step with our guided wizard. Perfect for when you know exactly what you need.
-              </p>
-              <Button className="w-full bg-[#E25E45] hover:bg-[#d54d35]">
-                <PenLine className="h-4 w-4 mr-2" />
-                Start Manually
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="space-y-3 max-w-sm mx-auto">
+            <Button
+              onClick={() => setLocation("/tenders/new/ai")}
+              className="w-full h-12 bg-[#E25E45] hover:bg-[#d54d35] text-white text-base font-medium rounded-lg"
+              data-testid="button-create-with-ai"
+            >
+              <Sparkles className="h-5 w-5 mr-2" />
+              Get Started using AI
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => setLocation("/tenders/new/manual")}
+              className="w-full h-12 border-gray-300 text-gray-700 hover:bg-gray-50 text-base font-medium rounded-lg"
+              data-testid="button-create-manually"
+            >
+              I'll do it without AI
+            </Button>
+          </div>
+
+          <p className="text-xs text-gray-400 mt-8">
+            Takes about 2 minutes to complete
+          </p>
         </div>
       </main>
     </div>

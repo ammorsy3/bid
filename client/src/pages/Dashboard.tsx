@@ -819,9 +819,9 @@ export default function Dashboard() {
                   <button
                     key={tender.id}
                     onClick={() => {
-                      setActiveTab("tenders");
                       setShowSearchModal(false);
                       setTenderSearchQuery("");
+                      setLocation(`/tenders/${tender.id}`);
                     }}
                     className="w-full text-left p-6 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
                     data-testid={`search-tender-result-${tender.id}`}

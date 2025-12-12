@@ -55,9 +55,9 @@ export const AILoader: React.FC<AILoaderProps> = ({ size = 120 }) => {
         />
       ))}
 
-      {/* Main orb container with breathing effect */}
+      {/* Main orb container */}
       <div
-        className="relative rounded-full animate-breathe"
+        className="relative rounded-full"
         style={{ 
           width: size, 
           height: size,
@@ -75,55 +75,9 @@ export const AILoader: React.FC<AILoaderProps> = ({ size = 120 }) => {
           }}
         />
 
-        {/* Animated light layer */}
+        {/* Animated circle with loaderCircle animation */}
         <div
-          className="absolute inset-0 rounded-full animate-lightRotate"
-          style={{
-            background: `
-              conic-gradient(
-                from 0deg,
-                transparent 0deg,
-                rgba(251, 146, 60, 0.4) 30deg,
-                rgba(226, 94, 69, 0.6) 60deg,
-                rgba(234, 88, 12, 0.4) 90deg,
-                transparent 120deg,
-                transparent 180deg,
-                rgba(253, 186, 116, 0.3) 210deg,
-                rgba(249, 115, 22, 0.5) 240deg,
-                transparent 280deg,
-                transparent 360deg
-              )
-            `,
-            maskImage: "radial-gradient(circle, transparent 30%, black 50%, black 80%, transparent 100%)",
-            WebkitMaskImage: "radial-gradient(circle, transparent 30%, black 50%, black 80%, transparent 100%)",
-          }}
-        />
-
-        {/* Inner glow core */}
-        <div
-          className="absolute rounded-full animate-innerPulse"
-          style={{
-            top: '20%',
-            left: '20%',
-            width: '35%',
-            height: '35%',
-            background: "radial-gradient(circle, rgba(253, 186, 116, 0.8) 0%, rgba(251, 146, 60, 0.4) 50%, transparent 100%)",
-            filter: "blur(4px)",
-          }}
-        />
-
-        {/* Shimmer highlight */}
-        <div
-          className="absolute rounded-full animate-shimmer"
-          style={{
-            top: '15%',
-            left: '25%',
-            width: '20%',
-            height: '12%',
-            background: "linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 100%)",
-            borderRadius: "50%",
-            transform: "rotate(-30deg)",
-          }}
+          className="absolute inset-0 rounded-full animate-loaderCircle"
         />
       </div>
 
@@ -140,41 +94,36 @@ export const AILoader: React.FC<AILoaderProps> = ({ size = 120 }) => {
       />
 
       <style>{`
-        @keyframes breathe {
-          0%, 100% {
-            transform: scale(1);
+        @keyframes loaderCircle {
+          0% {
+            transform: rotate(90deg);
+            box-shadow:
+              0 6px 12px 0 #fb923c inset,
+              0 12px 18px 0 #E25E45 inset,
+              0 36px 36px 0 #9a3412 inset,
+              0 0 3px 1.2px rgba(251, 146, 60, 0.3),
+              0 0 6px 1.8px rgba(226, 94, 69, 0.2),
+              0 0 20px 4px rgba(251, 146, 60, 0.15);
           }
           50% {
-            transform: scale(1.03);
-          }
-        }
-
-        @keyframes lightRotate {
-          0% {
-            transform: rotate(0deg);
+            transform: rotate(270deg);
+            box-shadow:
+              0 6px 12px 0 #fdba74 inset,
+              0 12px 6px 0 #ea580c inset,
+              0 24px 36px 0 #E25E45 inset,
+              0 0 3px 1.2px rgba(251, 146, 60, 0.3),
+              0 0 6px 1.8px rgba(226, 94, 69, 0.2),
+              0 0 20px 4px rgba(251, 146, 60, 0.15);
           }
           100% {
-            transform: rotate(360deg);
-          }
-        }
-
-        @keyframes innerPulse {
-          0%, 100% {
-            opacity: 0.8;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.1);
-          }
-        }
-
-        @keyframes shimmer {
-          0%, 100% {
-            opacity: 0.4;
-          }
-          50% {
-            opacity: 0.7;
+            transform: rotate(450deg);
+            box-shadow:
+              0 6px 12px 0 #f97316 inset,
+              0 12px 18px 0 #E25E45 inset,
+              0 36px 36px 0 #9a3412 inset,
+              0 0 3px 1.2px rgba(251, 146, 60, 0.3),
+              0 0 6px 1.8px rgba(226, 94, 69, 0.2),
+              0 0 20px 4px rgba(251, 146, 60, 0.15);
           }
         }
 
@@ -238,20 +187,8 @@ export const AILoader: React.FC<AILoaderProps> = ({ size = 120 }) => {
           }
         }
 
-        .animate-breathe {
-          animation: breathe 4s ease-in-out infinite;
-        }
-
-        .animate-lightRotate {
-          animation: lightRotate 8s linear infinite;
-        }
-
-        .animate-innerPulse {
-          animation: innerPulse 3s ease-in-out infinite;
-        }
-
-        .animate-shimmer {
-          animation: shimmer 2s ease-in-out infinite;
+        .animate-loaderCircle {
+          animation: loaderCircle 5s linear infinite;
         }
 
         .animate-outerGlow {

@@ -166,6 +166,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
+  const [showSearchModal, setShowSearchModal] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(() => {
     const saved = localStorage.getItem('theme');
     if (saved) return saved;
@@ -461,6 +462,39 @@ export default function Dashboard() {
         </SidebarHeader>
         
         <SidebarContent>
+          {/* Action Items - Create & Search */}
+          {canManage && (
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-2">
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      onClick={() => setLocation("/tender-title")}
+                      tooltip={t('dashboard.createTender') || "Create Tender"}
+                      data-testid="sidebar-create-tender"
+                      className="py-3 text-base rounded-lg hover:bg-muted"
+                    >
+                      <Plus className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden">Create Tender</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      onClick={() => setShowSearchModal(true)}
+                      tooltip={t('dashboard.searchTenders') || "Search Tenders"}
+                      data-testid="sidebar-search-tenders"
+                      className="py-3 text-base rounded-lg hover:bg-muted"
+                    >
+                      <Search className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden">Search Tenders</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+
+          {/* Navigation Items */}
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu className="space-y-2">
@@ -764,6 +798,59 @@ export default function Dashboard() {
           </Popover>
         </SidebarFooter>
       </Sidebar>
+
+      {/* Search Tenders Modal */}
+      <Dialog open={showSearchModal} onOpenChange={setShowSearchModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Search Tenders</DialogTitle>
+            <DialogDescription>
+              Search through your tenders by title or description
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Search tenders..."
+              value={tenderSearchQuery}
+              onChange={(e) => setTenderSearchQuery(e.target.value)}
+              className="h-10"
+              autoFocus
+            />
+            {filteredTenders.length > 0 ? (
+              <div className="max-h-96 overflow-y-auto space-y-2">
+                {filteredTenders.map((tender) => (
+                  <button
+                    key={tender.id}
+                    onClick={() => {
+                      setActiveTab("tenders");
+                      setShowSearchModal(false);
+                      setTenderSearchQuery("");
+                    }}
+                    className="w-full text-left p-3 rounded-lg hover:bg-accent border transition-colors"
+                    data-testid={`search-tender-result-${tender.id}`}
+                  >
+                    <p className="font-medium text-sm">{tender.title}</p>
+                    <p className="text-xs text-muted-foreground truncate">{tender.description}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {getStatusBadge(tender.status).label}
+                      </Badge>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : tenderSearchQuery ? (
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                No tenders found matching "{tenderSearchQuery}"
+              </div>
+            ) : (
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                Type to search your tenders
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <SidebarInset className="bg-gray-50 dark:bg-gray-900">
         {/* Header */}

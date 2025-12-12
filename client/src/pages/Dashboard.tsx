@@ -134,7 +134,7 @@ interface IncomingOffer {
 }
 
 // Component for sidebar header with logo/toggle swap on hover when collapsed
-function SidebarLogoToggle() {
+function SidebarLogoToggle({ logoUrl }: { logoUrl?: string | null }) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isHovered, setIsHovered] = useState(false);
@@ -147,6 +147,8 @@ function SidebarLogoToggle() {
     >
       {isCollapsed && isHovered ? (
         <SidebarTrigger className="h-6 w-6" />
+      ) : logoUrl ? (
+        <img src={logoUrl} alt="Company logo" className="h-8 w-8 rounded-md object-cover" />
       ) : (
         <Building2 className="h-6 w-6 text-primary" />
       )}
@@ -447,7 +449,7 @@ export default function Dashboard() {
       <Sidebar collapsible="icon" side={isRtl ? "right" : "left"} className={isRtl ? "border-l" : "border-r"}>
         <SidebarHeader className="border-b px-4 py-4">
           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-            <SidebarLogoToggle />
+            <SidebarLogoToggle logoUrl={activeCompany.profile?.logoUrl} />
             <div className={`flex-1 min-w-0 group-data-[collapsible=icon]:hidden ${isRtl ? 'text-right' : ''}`}>
               <h2 className="font-semibold text-sm truncate">
                 {activeCompany.profile?.displayName || activeCompany.name}

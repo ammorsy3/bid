@@ -36,13 +36,13 @@ export default function TenderCreateChoice() {
           </div>
 
           <div className="text-center max-w-md">
-            <h2 className="text-4xl font-black text-gray-900 mb-4 drop-shadow-lg">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2 drop-shadow-lg">
               Welcome, {firstName}!
             </h2>
-            <p className="text-xl font-bold text-gray-800 mb-4 drop-shadow-md">
+            <p className="text-lg text-gray-700 mb-2 drop-shadow-md">
               Let's create your tender
             </p>
-            <p className="text-base font-semibold text-gray-700 mb-10 drop-shadow-md">
+            <p className="text-sm text-gray-600 mb-10 drop-shadow-md">
               Post a tender in just a few clicks and start receiving bids from qualified vendors.
             </p>
 
@@ -66,7 +66,7 @@ export default function TenderCreateChoice() {
               </Button>
             </div>
 
-            <p className="text-sm font-semibold text-gray-700 mt-8 drop-shadow-md">
+            <p className="text-xs text-gray-600 mt-8 drop-shadow-md">
               Takes about 2 minutes to complete
             </p>
           </div>

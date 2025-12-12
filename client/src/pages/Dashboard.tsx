@@ -469,7 +469,7 @@ export default function Dashboard() {
                 <SidebarMenu className="space-y-2">
                   <SidebarMenuItem>
                     <SidebarMenuButton 
-                      onClick={() => setLocation("/tender-title")}
+                      onClick={() => setLocation("/tenders/new")}
                       tooltip={t('dashboard.createTender') || "Create Tender"}
                       data-testid="sidebar-create-tender"
                       className="py-3 text-base rounded-lg hover:bg-muted"

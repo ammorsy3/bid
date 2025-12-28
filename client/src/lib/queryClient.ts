@@ -2,19 +2,22 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    // Handle 403 (Invalid Token) - clear token and redirect to login
-    if (res.status === 403) {
-      const text = await res.text();
-      if (text.includes('Invalid token') || text.includes('token')) {
+    const text = await res.text();
+    
+    // Handle 401 (No token) or 403 (Invalid token) - clear all auth data and redirect
+    if (res.status === 401 || res.status === 403) {
+      if (text.includes('token') || text.includes('Access token required') || text.includes('Invalid token')) {
+        // Clear token from localStorage
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        // Clear Zustand persist storage
+        localStorage.removeItem('auth-storage');
         // Redirect to login page
         window.location.href = '/login';
         throw new Error('Session expired. Please log in again.');
       }
     }
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    throw new Error(`${res.status}: ${text || res.statusText}`);
   }
 }
 

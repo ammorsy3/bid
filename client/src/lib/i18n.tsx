@@ -180,6 +180,33 @@ const translations = {
       task6TipDesc: "Personalize Bid to match your workflow.",
       optional: "Optional",
       completed: "Completed",
+      // New personalized welcome
+      welcomeBack: "Welcome back",
+      personalizedWelcome: "You're making great progress",
+      almostThere: "Almost there! Just a few more steps",
+      allSet: "You're all set! Start creating tenders",
+      // Quick metrics
+      activeTenders: "Active Tenders",
+      totalProposals: "Total Proposals",
+      responseRate: "Response Rate",
+      vendorNetwork: "Vendor Network",
+      newProposals: "New Proposals",
+      pendingActions: "Pending Actions",
+      upcomingDeadlines: "Upcoming Deadlines",
+      recentActivity: "Recent Activity",
+      // Action center
+      actionCenter: "Action Center",
+      noActions: "No pending actions",
+      viewAll: "View All",
+      reviewProposal: "Review Proposal",
+      approveVendor: "Approve Vendor",
+      respondToOffer: "Respond to Offer",
+      // Time estimates
+      timeEstimate: "~{minutes} min",
+      completedTasks: "Completed Tasks",
+      remainingTasks: "Remaining Tasks",
+      viewCompleted: "View Completed",
+      hideCompleted: "Hide Completed",
     }
   },
   ar: {
@@ -359,6 +386,33 @@ const translations = {
       task6TipDesc: "خصص Bid ليتناسب مع طريقة عملك.",
       optional: "اختياري",
       completed: "مكتمل",
+      // New personalized welcome
+      welcomeBack: "مرحباً بعودتك",
+      personalizedWelcome: "أنت تحرز تقدماً رائعاً",
+      almostThere: "أوشكت على الانتهاء! بضع خطوات فقط",
+      allSet: "أنت جاهز! ابدأ بإنشاء المناقصات",
+      // Quick metrics
+      activeTenders: "المناقصات النشطة",
+      totalProposals: "إجمالي العروض",
+      responseRate: "معدل الاستجابة",
+      vendorNetwork: "شبكة الموردين",
+      newProposals: "عروض جديدة",
+      pendingActions: "إجراءات معلقة",
+      upcomingDeadlines: "المواعيد النهائية القادمة",
+      recentActivity: "النشاط الأخير",
+      // Action center
+      actionCenter: "مركز الإجراءات",
+      noActions: "لا توجد إجراءات معلقة",
+      viewAll: "عرض الكل",
+      reviewProposal: "مراجعة العرض",
+      approveVendor: "الموافقة على المورد",
+      respondToOffer: "الرد على العرض",
+      // Time estimates
+      timeEstimate: "~{minutes} دقيقة",
+      completedTasks: "المهام المكتملة",
+      remainingTasks: "المهام المتبقية",
+      viewCompleted: "عرض المكتملة",
+      hideCompleted: "إخفاء المكتملة",
     }
   }
 };

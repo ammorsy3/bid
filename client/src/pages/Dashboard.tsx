@@ -167,6 +167,7 @@ export default function Dashboard() {
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showCompanyProfileDialog, setShowCompanyProfileDialog] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(() => {
     const saved = localStorage.getItem('theme');
     if (saved) return saved;
@@ -890,7 +891,7 @@ export default function Dashboard() {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             {/* Book a Demo Banner */}
-            <Card className="bg-gradient-to-b from-blue-100/80 via-blue-50/50 to-white dark:from-blue-900/40 dark:via-blue-950/20 dark:to-background border-blue-100/50 dark:border-blue-900/50">
+            <Card className="bg-gradient-to-b from-orange-100/80 via-orange-50/50 to-white dark:from-orange-900/40 dark:via-orange-950/20 dark:to-background border-orange-100/50 dark:border-orange-900/50">
               <CardContent className="py-4">
                 <div className={`flex items-center justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
                   <div className={`flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -919,25 +920,28 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* Get Started Section */}
-            <Card>
-              <CardHeader className={isRtl ? 'text-right' : ''}>
-                <CardTitle className="text-xl">{t('dashboard.getStartedTitle')}</CardTitle>
-                <CardDescription>{t('dashboard.getStartedDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Progress Bar */}
-                <div className="space-y-2">
-                  <div className={`flex items-center gap-2 text-sm ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <span className="font-medium text-[#E25E45]">{Math.min(onboardingTasks?.completedCount ?? 0, 5)}</span>
-                    <span className="text-muted-foreground">{t('dashboard.tasksCompleted')}</span>
-                  </div>
-                  <Progress value={(Math.min(onboardingTasks?.completedCount ?? 0, 5) / 5) * 100} className="h-2 bg-gray-100 dark:bg-gray-800" />
-                </div>
-                <p className={`text-xs text-muted-foreground ${isRtl ? 'text-right' : ''}`}>{Math.min(onboardingTasks?.completedCount ?? 0, 5)} of 5 tasks completed</p>
+            {/* Get Started Section with Sidebar */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Content - Get Started Tasks */}
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardHeader className={isRtl ? 'text-right' : ''}>
+                    <CardTitle className="text-xl">{t('dashboard.getStartedTitle')}</CardTitle>
+                    <CardDescription>{t('dashboard.getStartedDesc')}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Progress Bar */}
+                    <div className="space-y-2">
+                      <div className={`flex items-center gap-2 text-sm ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <span className="font-medium text-[#E25E45]">{Math.min(onboardingTasks?.completedCount ?? 0, 5)}</span>
+                        <span className="text-muted-foreground">{t('dashboard.tasksCompleted')}</span>
+                      </div>
+                      <Progress value={(Math.min(onboardingTasks?.completedCount ?? 0, 5) / 5) * 100} className="h-2 bg-gray-100 dark:bg-gray-800" />
+                    </div>
+                    <p className={`text-xs text-muted-foreground ${isRtl ? 'text-right' : ''}`}>{Math.min(onboardingTasks?.completedCount ?? 0, 5)} of 5 tasks completed</p>
 
-                {/* Onboarding Tasks Accordion */}
-                <Accordion type="single" collapsible className="space-y-2">
+                    {/* Onboarding Tasks Accordion */}
+                    <Accordion type="single" collapsible className="space-y-2">
                   {/* Task 1: Create your first Tender */}
                   <AccordionItem value="task-1" className={`border rounded-lg px-4 transition-colors ${onboardingTasks?.hasTender ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'}`}>
                     <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -1131,67 +1135,148 @@ export default function Dashboard() {
                       </div>
                     </AccordionContent>
                   </AccordionItem>
-                </Accordion>
-              </CardContent>
-            </Card>
+                    </Accordion>
+                  </CardContent>
+                </Card>
+              </div>
 
-            {/* Quick Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className={`pb-3 ${isRtl ? 'text-right' : ''}`}>
-                  <CardTitle className="text-sm font-medium">{t('dashboard.companyStatus')}</CardTitle>
-                </CardHeader>
-                <CardContent className={isRtl ? 'text-right' : ''}>
-                  <div className="text-2xl font-bold">
-                    {activeCompany.verificationStatus === 'verified' ? t('dashboard.verified') : activeCompany.verificationStatus === 'under_review' ? 'Under Review' : activeCompany.verificationStatus}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {activeCompany.onboardingState === 'completed' ? t('dashboard.profileComplete') : t('dashboard.setupInProgress')}
-                  </p>
-                </CardContent>
-              </Card>
+              {/* Sidebar - Info Cards */}
+              <div className="lg:col-span-1 space-y-4">
+                {/* Company Status Card */}
+                <Card className="border-l-4 border-l-blue-500 dark:border-l-blue-600">
+                  <CardContent className="pt-5 pb-5">
+                    <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                        {activeCompany.verificationStatus === 'verified' ? (
+                          <ShieldCheck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        ) : (
+                          <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        )}
+                      </div>
+                      <div className={`flex-1 min-w-0 ${isRtl ? 'text-right' : ''}`}>
+                        <p className="text-xs font-medium text-muted-foreground mb-0.5">{t('dashboard.companyStatus')}</p>
+                        <p className="text-base font-bold truncate">
+                          {activeCompany.verificationStatus === 'verified' ? t('dashboard.verified') : activeCompany.verificationStatus === 'under_review' ? 'Under Review' : activeCompany.verificationStatus}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardHeader className={`pb-3 ${isRtl ? 'text-right' : ''}`}>
-                  <CardTitle className="text-sm font-medium">{t('dashboard.yourRole')}</CardTitle>
-                </CardHeader>
-                <CardContent className={isRtl ? 'text-right' : ''}>
-                  <div className="text-2xl font-bold capitalize">
-                    {t(`dashboard.${activeCompany.role}`)}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t('dashboard.inThisCompany')}
-                  </p>
-                </CardContent>
-              </Card>
+                {/* Latest Proposals Card */}
+                <Card className="border-l-4 border-l-purple-500 dark:border-l-purple-600">
+                  <CardHeader className="pb-3">
+                    <div className={`flex items-center justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <Inbox className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                        <CardTitle className="text-sm">{t('dashboard.recentActivity')}</CardTitle>
+                      </div>
+                      {(incomingOffers.length > 0 || myOffers.length > 0) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => setActiveTab('proposals')}
+                        >
+                          {t('dashboard.viewAll')}
+                        </Button>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2">
+                      {/* Show latest incoming offers */}
+                      {incomingOffers.slice(0, 3).map((offer) => (
+                        <button
+                          key={offer.id}
+                          onClick={() => {
+                            setSelectedProposal(offer);
+                            if (!offer.isViewed) {
+                              markOfferViewed.mutate(offer.id);
+                            }
+                          }}
+                          className="w-full text-left p-2 rounded-md hover:bg-accent transition-colors border"
+                        >
+                          <div className="flex items-start gap-2">
+                            <div className={`flex-1 min-w-0 ${isRtl ? 'text-right' : ''}`}>
+                              <p className="text-xs font-medium truncate">{offer.company.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{offer.tender.title}</p>
+                            </div>
+                            {!offer.isViewed && offer.status === 'pending' && (
+                              <div className="h-2 w-2 bg-purple-600 rounded-full flex-shrink-0 mt-1"></div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
 
-              <Card>
-                <CardHeader className={`pb-3 ${isRtl ? 'text-right' : ''}`}>
-                  <CardTitle className="text-sm font-medium">{t('dashboard.quickActions')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {canManage && (
-                    <Button 
-                      variant="outline" 
-                      className="w-full" 
-                      size="sm" 
-                      data-testid="button-create-tender"
-                      onClick={() => setLocation('/tenders/new')}
-                    >
-                      {t('dashboard.createTender')}
-                    </Button>
-                  )}
-                  <Button 
-                    variant="outline" 
-                    className="w-full" 
-                    size="sm" 
-                    data-testid="button-view-profile"
-                    onClick={() => setLocation('/company-onboarding')}
-                  >
-                    {t('dashboard.viewProfile')}
-                  </Button>
-                </CardContent>
-              </Card>
+                      {/* Show latest my offers */}
+                      {myOffers.slice(0, 2).map((offer) => (
+                        <div
+                          key={offer.id}
+                          className="p-2 rounded-md border bg-muted/30"
+                        >
+                          <div className={`flex items-start justify-between gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex-1 min-w-0 ${isRtl ? 'text-right' : ''}`}>
+                              <p className="text-xs font-medium truncate">{offer.tender.title}</p>
+                              <p className="text-xs text-muted-foreground">{t(`dashboard.${offer.status}`)}</p>
+                            </div>
+                            {offer.status === 'pending' && (
+                              <Badge variant="secondary" className="text-xs flex-shrink-0">Pending</Badge>
+                            )}
+                            {offer.status === 'accepted' && (
+                              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs flex-shrink-0">Accepted</Badge>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Empty state */}
+                      {incomingOffers.length === 0 && myOffers.length === 0 && (
+                        <div className="text-center py-6">
+                          <Inbox className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-xs text-muted-foreground">{t('dashboard.noProposals')}</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Quick Actions Card */}
+                <Card className="border-l-4 border-l-[#E25E45]">
+                  <CardContent className="pt-5 pb-5">
+                    <div className="space-y-2.5">
+                      <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <Sparkles className="h-4 w-4 text-[#E25E45]" />
+                        <p className="text-sm font-semibold">{t('dashboard.quickActions')}</p>
+                      </div>
+                      <div className="space-y-1.5">
+                        {canManage && (
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start hover:bg-[#E25E45]/10 hover:border-[#E25E45] hover:text-[#E25E45] transition-colors h-9"
+                            size="sm"
+                            data-testid="button-create-tender"
+                            onClick={() => setLocation('/tenders/new')}
+                          >
+                            <Plus className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                            {t('dashboard.createTender')}
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start hover:bg-[#E25E45]/10 hover:border-[#E25E45] hover:text-[#E25E45] transition-colors h-9"
+                          size="sm"
+                          data-testid="button-view-profile"
+                          onClick={() => setShowCompanyProfileDialog(true)}
+                        >
+                          <Building2 className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                          {t('dashboard.viewProfile')}
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
 
@@ -2084,9 +2169,9 @@ export default function Dashboard() {
 
               <div className="flex gap-2 pt-2">
                 {selectedProposal.technicalFileUrl && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="flex-1"
                     onClick={() => viewAuthenticatedFile(selectedProposal.technicalFileUrl!)}
                     data-testid="button-modal-tech-file"
@@ -2096,9 +2181,9 @@ export default function Dashboard() {
                   </Button>
                 )}
                 {selectedProposal.financialFileUrl && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="flex-1"
                     onClick={() => viewAuthenticatedFile(selectedProposal.financialFileUrl!)}
                     data-testid="button-modal-fin-file"
@@ -2108,6 +2193,42 @@ export default function Dashboard() {
                   </Button>
                 )}
               </div>
+
+              {/* Accept/Ignore Actions */}
+              {selectedProposal.status === 'pending' && (
+                <div className="flex gap-2 pt-4 border-t">
+                  <Button
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    size="sm"
+                    onClick={() => {
+                      updateOfferStatus.mutate({ offerId: selectedProposal.id, status: 'accepted' });
+                      setSelectedProposal(null);
+                    }}
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    {t('dashboard.accept')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    size="sm"
+                    onClick={() => {
+                      updateOfferStatus.mutate({ offerId: selectedProposal.id, status: 'rejected' });
+                      setSelectedProposal(null);
+                    }}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    {t('dashboard.ignore')}
+                  </Button>
+                </div>
+              )}
+
+              {selectedProposal.status === 'accepted' && (
+                <div className="flex items-center justify-center gap-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border-t mt-4 pt-4">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span className="font-medium text-green-800 dark:text-green-200">{t('dashboard.accepted')}</span>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
@@ -2203,6 +2324,135 @@ export default function Dashboard() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Company Profile Dialog */}
+      <Dialog open={showCompanyProfileDialog} onOpenChange={setShowCompanyProfileDialog}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              {activeCompany.profile?.logoUrl ? (
+                <img
+                  src={activeCompany.profile.logoUrl}
+                  alt={activeCompany.name}
+                  className="w-12 h-12 rounded-lg object-cover"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-lg bg-[#E25E45]/10 flex items-center justify-center">
+                  <Building2 className="h-6 w-6 text-[#E25E45]" />
+                </div>
+              )}
+              <div>
+                <p className="text-xl font-bold">{activeCompany.profile?.displayName || activeCompany.name}</p>
+                <p className="text-sm text-muted-foreground font-normal">{t('dashboard.companyStatus')}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Verification & Role Status */}
+            <div className="flex items-center gap-2">
+              {activeCompany.verificationStatus === 'verified' ? (
+                <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                  <ShieldCheck className="h-3 w-3 mr-1" />
+                  {t('dashboard.verified')}
+                </Badge>
+              ) : (
+                <Badge variant="secondary">
+                  <Clock className="h-3 w-3 mr-1" />
+                  Under Review
+                </Badge>
+              )}
+              <Badge variant="outline" className="capitalize">
+                {t(`dashboard.${activeCompany.role}`)}
+              </Badge>
+              {activeCompany.onboardingState === 'completed' && (
+                <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  {t('dashboard.profileComplete')}
+                </Badge>
+              )}
+            </div>
+
+            {/* Company Bio */}
+            {activeCompany.profile?.bio && (
+              <div className="p-4 bg-muted rounded-lg">
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">About</h4>
+                <p className="text-sm">{activeCompany.profile.bio}</p>
+              </div>
+            )}
+
+            {/* Company Details Grid */}
+            <div className="grid grid-cols-2 gap-4 border-t pt-4">
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-1">Company Name</h4>
+                <p className="text-sm font-medium">{activeCompany.name}</p>
+              </div>
+              {activeCompany.profile?.displayName && (
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Display Name</h4>
+                  <p className="text-sm font-medium">{activeCompany.profile.displayName}</p>
+                </div>
+              )}
+              {activeCompany.slug && (
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Company Slug</h4>
+                  <p className="text-sm font-mono">{activeCompany.slug}</p>
+                </div>
+              )}
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-1">Onboarding Status</h4>
+                <p className="text-sm capitalize">{activeCompany.onboardingState?.replace('_', ' ')}</p>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg border-t">
+              {canManage && (
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-[#E25E45]">{tenders.length}</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.tenders')}</p>
+                </div>
+              )}
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-600">{incomingOffers.length + myOffers.length}</p>
+                <p className="text-xs text-muted-foreground">{t('dashboard.proposals')}</p>
+              </div>
+              {canManage && (
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-purple-600">{vendors.length}</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.vendorsBase')}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-2 border-t">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setShowCompanyProfileDialog(false);
+                  setLocation('/onboarding');
+                }}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                {t('dashboard.edit')}
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setShowCompanyProfileDialog(false);
+                  setLocation('/settings');
+                }}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                {t('settings.settings')}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
       </SidebarInset>

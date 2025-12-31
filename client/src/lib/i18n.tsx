@@ -180,6 +180,8 @@ const translations = {
       task6TipDesc: "Personalize Bid to match your workflow.",
       optional: "Optional",
       completed: "Completed",
+      recentActivity: "Recent Activity",
+      viewAll: "View All",
     }
   },
   ar: {
@@ -359,6 +361,8 @@ const translations = {
       task6TipDesc: "خصص Bid ليتناسب مع طريقة عملك.",
       optional: "اختياري",
       completed: "مكتمل",
+      recentActivity: "النشاط الأخير",
+      viewAll: "عرض الكل",
     }
   }
 };

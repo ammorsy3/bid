@@ -90,9 +90,7 @@ export default function TenderTitleStep() {
                 <div className="p-8 space-y-8">
                   {/* Title Input */}
                   <div className="space-y-3">
-                    <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                      Write a title for your tender
-                    </label>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white">Write a project title for your tender.</label>
                     <input
                       type="text"
                       placeholder="e.g., Senior React Developer Needed"

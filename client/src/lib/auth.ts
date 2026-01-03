@@ -17,6 +17,7 @@ interface User {
   timezone: string | null;
   linkedinUrl: string | null;
   phoneNumber: string | null;
+  tenderInquiryEmail: string | null;
 }
 
 interface CompanyProfile {

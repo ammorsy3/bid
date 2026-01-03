@@ -102,6 +102,8 @@ export default function CreateTender() {
   const [createdTender, setCreatedTender] = useState<Tender | null>(null);
   const [invitationCopied, setInvitationCopied] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+  const [reviewData, setReviewData] = useState<CreateTenderForm | null>(null);
   const [showDraftPrompt, setShowDraftPrompt] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -165,6 +167,8 @@ export default function CreateTender() {
     },
     onSuccess: (tender: Tender) => {
       setCreatedTender(tender);
+      setShowReview(false);
+      setReviewData(null);
       clearDraft();
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
       toast({
@@ -190,7 +194,18 @@ export default function CreateTender() {
   });
 
   const onSubmit = (data: CreateTenderForm) => {
-    createTenderMutation.mutate(data);
+    setReviewData(data);
+    setShowReview(true);
+  };
+
+  const handlePublishTender = () => {
+    if (reviewData) {
+      createTenderMutation.mutate(reviewData);
+    }
+  };
+
+  const handleBackToEdit = () => {
+    setShowReview(false);
   };
 
   const handleLoadDraft = () => {
@@ -314,6 +329,142 @@ export default function CreateTender() {
     );
   }
 
+  // Review/Confirmation Screen
+  if (showReview && reviewData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <img src={logoPath} alt="Bid" className="h-16 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
+            <Button 
+              onClick={handleBackToEdit}
+              className="group relative overflow-hidden"
+              data-testid="button-back-to-edit"
+            >
+              <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">Edit</span>
+              <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
+                <ArrowLeft className="opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
+              </i>
+            </Button>
+          </div>
+
+          <Card className="border-0 shadow-2xl overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+            
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#E25E45] to-[#d54d35] flex items-center justify-center">
+                  <Check className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-bold">Review Your Tender</CardTitle>
+                  <CardDescription>Please confirm the details before publishing</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              {/* Tender Brief */}
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Project Title</h3>
+                  <p className="text-lg font-bold text-gray-900 dark:text-white" data-testid="review-title">{reviewData.title}</p>
+                </div>
+
+                <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Description</h3>
+                  <p className="text-gray-900 dark:text-white whitespace-pre-wrap" data-testid="review-description">{reviewData.description}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Deadline</h3>
+                    <p className="text-gray-900 dark:text-white font-medium flex items-center gap-2" data-testid="review-deadline">
+                      <CalendarIcon className="h-4 w-4 text-[#E25E45]" />
+                      {reviewData.deadline ? format(new Date(reviewData.deadline), "PPP 'at' HH:mm") : "Not specified"}
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Budget Range</h3>
+                    <p className="text-gray-900 dark:text-white font-medium" data-testid="review-budget">
+                      {reviewData.budget || "Not specified"}
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Project Timeline</h3>
+                    <p className="text-gray-900 dark:text-white font-medium" data-testid="review-timeline">
+                      {reviewData.projectTimeline}
+                    </p>
+                  </div>
+
+                  {(reviewData.voiceNoteUrl || reviewData.videoUrl) && (
+                    <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Attachments</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {reviewData.voiceNoteUrl && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E25E45]/10 text-[#E25E45]">
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            Voice Note
+                          </span>
+                        )}
+                        {reviewData.videoUrl && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                            <Video className="h-3 w-3 mr-1" />
+                            Video Link
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Company Info */}
+              {activeCompany && (
+                <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+                  <Info className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-900 dark:text-blue-100">
+                    This tender will be published on behalf of <strong>{activeCompany.name}</strong>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <Button 
+                  variant="outline" 
+                  onClick={handleBackToEdit}
+                  className="flex-1"
+                  data-testid="button-back-edit"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Go Back & Edit
+                </Button>
+                <Button 
+                  onClick={handlePublishTender}
+                  className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
+                  disabled={createTenderMutation.isPending}
+                  data-testid="button-publish-tender"
+                >
+                  {createTenderMutation.isPending ? (
+                    <>Publishing...</>
+                  ) : (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Publish Tender
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   // Welcome Screen
   if (!showForm) {
     return (
@@ -346,7 +497,7 @@ export default function CreateTender() {
 
             <div className="space-y-3 pt-4">
               <Button 
-                onClick={() => navigate('/tenders/new')}
+                onClick={() => setShowForm(true)}
                 size="lg"
                 className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white font-semibold text-base py-6"
                 data-testid="button-get-started-ai"
@@ -357,7 +508,7 @@ export default function CreateTender() {
               <Button 
                 variant="outline"
                 size="lg"
-                onClick={() => navigate('/tenders/new')}
+                onClick={() => setShowForm(true)}
                 className="w-full font-semibold text-base py-6"
                 data-testid="button-without-ai"
               >
@@ -664,17 +815,10 @@ export default function CreateTender() {
                   <Button 
                     type="submit"
                     className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
-                    disabled={createTenderMutation.isPending}
                     data-testid="button-submit"
                   >
-                    {createTenderMutation.isPending ? (
-                      <>Creating...</>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        Create Tender
-                      </>
-                    )}
+                    <Check className="h-4 w-4 mr-2" />
+                    Review & Publish
                   </Button>
                 </div>
               </form>

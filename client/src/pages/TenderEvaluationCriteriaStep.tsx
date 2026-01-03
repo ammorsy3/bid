@@ -1,12 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 
 const CRITERIA_OPTIONS = [
   {
@@ -33,7 +30,6 @@ const CRITERIA_OPTIONS = [
 
 export default function TenderEvaluationCriteriaStep() {
   const [, navigate] = useLocation();
-  const { toast } = useToast();
   const [selectedCriteria, setSelectedCriteria] = useState<string[]>([]);
 
   const draft = useMemo(() => {
@@ -51,28 +47,15 @@ export default function TenderEvaluationCriteriaStep() {
     }
   }, [draft.evaluationCriteria]);
 
-  const submitTender = useMutation({
-    mutationFn: async (tenderData: any) => {
-      const response = await apiRequest("POST", "/api/tenders", tenderData);
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      localStorage.removeItem("tenderDraft");
-      queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
-      toast({
-        title: "Tender published!",
-        description: "Your tender is now live. Suppliers can start submitting proposals.",
-      });
-      navigate("/dashboard?tab=tenders");
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to publish tender",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  const saveCriteriaAndProceed = (criteria?: string[]) => {
+    const currentDraft = JSON.parse(localStorage.getItem("tenderDraft") || "{}");
+    const updatedDraft = {
+      ...currentDraft,
+      evaluationCriteria: criteria && criteria.length > 0 ? criteria : undefined,
+    };
+    localStorage.setItem("tenderDraft", JSON.stringify(updatedDraft));
+    navigate("/tenders/new/brief");
+  };
 
   const handleToggleCriteria = (criteriaId: string) => {
     setSelectedCriteria((prev) => {
@@ -87,36 +70,12 @@ export default function TenderEvaluationCriteriaStep() {
     });
   };
 
-  const handlePublish = (criteria?: string[]) => {
-    const tenderData = {
-      title: draft.title || "Untitled Tender",
-      description: draft.description || draft.projectDescription || draft.title || "No description provided",
-      category: draft.skills?.[0] || "Other",
-      skills: draft.skills || [],
-      scope: draft.scope || undefined,
-      deadline: draft.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      duration: draft.duration || "1-3 months",
-      budget: draft.budget || "",
-      projectSize: draft.projectSize || undefined,
-      showPriceToVendors: draft.showPriceToVendors !== false,
-      projectTimeline: draft.duration || "1-3 months",
-      submissionType: draft.submissionType || undefined,
-      videoRequired: draft.videoRequired || undefined,
-      inquiryType: draft.inquiryType || undefined,
-      whatsappContact: draft.whatsappContact || undefined,
-      emailContact: draft.emailContact || undefined,
-      evaluationCriteria: criteria && criteria.length > 0 ? criteria : undefined,
-    };
-
-    submitTender.mutate(tenderData);
+  const handleContinueWithCriteria = () => {
+    saveCriteriaAndProceed(selectedCriteria);
   };
 
-  const handlePublishWithCriteria = () => {
-    handlePublish(selectedCriteria);
-  };
-
-  const handlePublishWithoutCriteria = () => {
-    handlePublish();
+  const handleContinueWithoutCriteria = () => {
+    saveCriteriaAndProceed();
   };
 
   const handleBack = () => {
@@ -135,7 +94,6 @@ export default function TenderEvaluationCriteriaStep() {
           />
           <Button
             onClick={handleBack}
-            disabled={submitTender.isPending}
             className="group relative overflow-hidden"
             data-testid="button-back"
           >
@@ -194,7 +152,7 @@ export default function TenderEvaluationCriteriaStep() {
                         key={criteria.id}
                         type="button"
                         onClick={() => handleToggleCriteria(criteria.id)}
-                        disabled={isDisabled || submitTender.isPending}
+                        disabled={isDisabled}
                         className={`w-full flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all text-left ${
                           isSelected
                             ? "border-[#E25E45] bg-[#E25E45]/5"
@@ -226,30 +184,23 @@ export default function TenderEvaluationCriteriaStep() {
                 {/* Navigation Buttons */}
                 <div className="space-y-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <Button
-                    onClick={handlePublishWithCriteria}
-                    disabled={selectedCriteria.length === 0 || submitTender.isPending}
+                    onClick={handleContinueWithCriteria}
+                    disabled={selectedCriteria.length === 0}
                     className="w-full bg-[#E25E45] hover:bg-[#d54d35]"
-                    data-testid="button-publish-with-criteria"
+                    data-testid="button-continue-with-criteria"
                   >
-                    {submitTender.isPending ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Publishing...
-                      </>
-                    ) : (
-                      `Publish with ${selectedCriteria.length} ${selectedCriteria.length === 1 ? 'criterion' : 'criteria'}`
-                    )}
+                    <Check className="h-4 w-4 mr-2" />
+                    Continue with {selectedCriteria.length} {selectedCriteria.length === 1 ? 'criterion' : 'criteria'}
                   </Button>
 
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={handlePublishWithoutCriteria}
-                    disabled={submitTender.isPending}
+                    onClick={handleContinueWithoutCriteria}
                     className="w-full"
-                    data-testid="button-publish-without"
+                    data-testid="button-continue-without"
                   >
-                    {submitTender.isPending ? "Publishing..." : "Publish without criteria"}
+                    Skip & Continue
                   </Button>
                 </div>
               </div>

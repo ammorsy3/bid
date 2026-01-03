@@ -23,6 +23,8 @@ interface TenderInvite {
   status: string;
   budgetRange?: string;
   budget?: string;
+  projectSize?: string; // 'small', 'medium', 'large'
+  showPriceToVendors?: boolean;
   duration?: string;
   projectTimeline?: string;
   skills?: string[];
@@ -39,6 +41,35 @@ interface TenderInvite {
     displayName?: string;
   };
 }
+
+const getProjectSizeLabel = (size: string): string => {
+  switch (size) {
+    case "small": return "Small Project";
+    case "medium": return "Medium Project";
+    case "large": return "Large Project";
+    default: return size;
+  }
+};
+
+const getProjectSizeRange = (size: string): string => {
+  switch (size) {
+    case "small": return "Under 50,000 SAR";
+    case "medium": return "50,000 - 250,000 SAR";
+    case "large": return "250,000+ SAR";
+    default: return "";
+  }
+};
+
+const formatSAR = (amount: string | number) => {
+  const num = typeof amount === "string" ? parseFloat(amount) : amount;
+  if (isNaN(num)) return amount;
+  return new Intl.NumberFormat("ar-SA", {
+    style: "currency",
+    currency: "SAR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(num);
+};
 
 function AudioPlayer({ src }: { src: string }) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -302,9 +333,31 @@ export default function TenderInviteLink() {
                 <DollarSign className="h-4 w-4" />
                 <span className="text-sm font-medium">Budget</span>
               </div>
-              <p className="font-semibold text-gray-900">
-                {tender.budgetRange || tender.budget || "Not specified"}
-              </p>
+              {tender.showPriceToVendors !== false && tender.budget ? (
+                <>
+                  <p className="font-semibold text-gray-900">
+                    {formatSAR(tender.budget)}
+                  </p>
+                  {tender.projectSize && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {getProjectSizeLabel(tender.projectSize)}
+                    </p>
+                  )}
+                </>
+              ) : tender.projectSize ? (
+                <>
+                  <p className="font-semibold text-gray-900">
+                    {getProjectSizeLabel(tender.projectSize)}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {getProjectSizeRange(tender.projectSize)}
+                  </p>
+                </>
+              ) : (
+                <p className="font-semibold text-gray-900">
+                  {tender.budgetRange || "Not specified"}
+                </p>
+              )}
             </Card>
             <Card className="p-4">
               <div className="flex items-center gap-2 text-gray-600 mb-1">

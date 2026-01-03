@@ -311,7 +311,7 @@ export default function TenderSkillsStep() {
   };
 
   const handleBack = () => {
-    navigate("/tenders/new");
+    navigate("/tenders/new/ai-budget");
   };
 
   const isFormValid = selectedSkills.length >= 1;
@@ -350,7 +350,7 @@ export default function TenderSkillsStep() {
           <div>
               <div className="space-y-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  2 / 5
+                  4 / 6
                 </div>
                 <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
                   What are the main skills required for your work?

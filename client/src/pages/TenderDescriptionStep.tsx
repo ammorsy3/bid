@@ -59,26 +59,26 @@ export default function TenderDescriptionStep() {
         scope: draft.scope || undefined,
         deadline: draft.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         duration: draft.duration || "1-3 months",
-        pricingModel: draft.budgetType || "fixed",
-        budgetRange: draft.budgetType === "fixed" 
-          ? (parseFloat(draft.budget) < 500 ? "Under $500" 
-             : parseFloat(draft.budget) < 2000 ? "$500-$2,000" 
-             : parseFloat(draft.budget) < 10000 ? "$2,000-$10,000" 
-             : "$10,000+")
-          : "Not specified",
         budget: draft.budget || "",
-        milestones: draft.milestones || undefined,
-        voiceNoteUrl: voiceNoteUrl || undefined,
+        projectSize: draft.projectSize || undefined,
+        showPriceToVendors: draft.showPriceToVendors !== false, // Default to true
+        voiceNoteUrl: voiceNoteUrl || draft.voiceNoteUrl || undefined,
         videoUrl: videoUrl.trim() || undefined,
         projectTimeline: draft.duration || "1-3 months",
+        submissionType: draft.submissionType || undefined,
+        videoRequired: draft.videoRequired || undefined,
+        inquiryType: draft.inquiryType || undefined,
+        whatsappContact: draft.whatsappContact || undefined,
+        emailContact: draft.emailContact || undefined,
+        evaluationCriteria: draft.evaluationCriteria || undefined,
       };
-      
+
       submitTender.mutate(tenderData);
     }
   };
 
   const handleBack = () => {
-    navigate("/tenders/new/budget");
+    navigate("/tenders/new/evaluation-criteria");
   };
 
   const isFormValid = description.trim().length > 0;
@@ -120,7 +120,7 @@ export default function TenderDescriptionStep() {
           <div>
             <div className="space-y-4">
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                5 / 5
+                6 / 6
               </div>
               <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
                 Start the conversation.

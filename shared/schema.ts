@@ -23,7 +23,8 @@ export const users = pgTable("users", {
   timezone: text("timezone"),
   linkedinUrl: text("linkedin_url"),
   phoneNumber: text("phone_number"),
-  
+  tenderInquiryEmail: text("tender_inquiry_email"), // Custom email for tender inquiries (if different from account email)
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -132,18 +133,32 @@ export const tenders = pgTable("tenders", {
   scope: text("scope"), // 'large', 'medium', 'small'
   
   // Budget Fields
-  budget: text("budget"), // Legacy field for backwards compatibility
-  budgetRange: text("budget_range"), // "Under $10k", "$10k-$50k", "$50k-$100k", "$100k-$500k", "$500k+", "Not specified"
+  budget: text("budget"), // Budget amount in SAR
+  budgetRange: text("budget_range"), // Legacy field for backwards compatibility
   budgetMin: integer("budget_min"), // Optional minimum
   budgetMax: integer("budget_max"), // Optional maximum
-  currency: text("currency").default("USD"),
-  pricingModel: text("pricing_model"), // 'fixed' or 'milestone'
-  milestones: jsonb("milestones"), // Array of {name, amount} for milestone-based pricing
+  currency: text("currency").default("SAR"),
+  projectSize: text("project_size"), // 'small' (<50K SAR), 'medium' (50-250K SAR), 'large' (250K+ SAR)
+  showPriceToVendors: boolean("show_price_to_vendors").default(true), // Whether to show exact price to vendors
+  pricingModel: text("pricing_model"), // 'fixed' or 'milestone' (legacy)
+  milestones: jsonb("milestones"), // Array of {name, amount} for milestone-based pricing (legacy)
   
   duration: text("duration"),
   projectTimeline: text("project_timeline"), // Timeline description (required for new tenders)
   status: text("status").notNull().default("draft"), // 'draft', 'published', 'closed', 'cancelled'
-  
+
+  // Submission Process
+  submissionType: text("submission_type"), // 'quote_only', 'tech_fin_proposal', 'video_only', 'tech_fin_with_video'
+  videoRequired: boolean("video_required"), // For 'tech_fin_with_video' type, whether video is mandatory
+
+  // Inquiry Mechanism / Q&A
+  inquiryType: text("inquiry_type"), // 'inside_bid', 'email_whatsapp'
+  whatsappContact: text("whatsapp_contact"), // WhatsApp number/link if inquiryType is 'email_whatsapp'
+  emailContact: text("email_contact"), // Email address if inquiryType is 'email_whatsapp'
+
+  // Evaluation Criteria (Optional)
+  evaluationCriteria: text("evaluation_criteria").array(), // Array of criteria IDs that matter most to requester
+
   // Advanced Options
   voiceNoteUrl: text("voice_note_url"), // Recorded voice note about the project
   videoUrl: text("video_url"), // Video link about the project

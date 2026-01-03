@@ -14,10 +14,10 @@ import TenderDetails from "@/pages/tender-details";
 import TenderEditPage from "@/pages/TenderEditPage";
 import TenderCreateChoice from "@/pages/TenderCreateChoice";
 import TenderTitleStep from "@/pages/TenderTitleStep";
-import TenderSkillsStep from "@/pages/TenderSkillsStep";
-import TenderScopeStep from "@/pages/TenderScopeStep";
-import TenderBudgetStep from "@/pages/TenderBudgetStep";
-import TenderDescriptionStep from "@/pages/TenderDescriptionStep";
+import TenderProjectScopeStep from "@/pages/TenderProjectScopeStep";
+import TenderAIBudgetStep from "@/pages/TenderAIBudgetStep";
+import TenderSubmissionProcessStep from "@/pages/TenderSubmissionProcessStep";
+import TenderEvaluationCriteriaStep from "@/pages/TenderEvaluationCriteriaStep";
 import TenderInviteLink from "@/pages/TenderInviteLink";
 import TractionLink from "@/pages/TractionLink";
 import Landing from "@/pages/Landing";
@@ -39,10 +39,10 @@ export default function App() {
             <Route path="/admin/join-requests" component={AdminJoinRequests} />
             <Route path="/tenders/new" component={TenderCreateChoice} />
             <Route path="/tenders/new/manual" component={TenderTitleStep} />
-            <Route path="/tenders/new/skills" component={TenderSkillsStep} />
-            <Route path="/tenders/new/scope" component={TenderScopeStep} />
-            <Route path="/tenders/new/budget" component={TenderBudgetStep} />
-            <Route path="/tenders/new/description" component={TenderDescriptionStep} />
+            <Route path="/tenders/new/project-scope" component={TenderProjectScopeStep} />
+            <Route path="/tenders/new/ai-budget" component={TenderAIBudgetStep} />
+            <Route path="/tenders/new/submission-process" component={TenderSubmissionProcessStep} />
+            <Route path="/tenders/new/evaluation-criteria" component={TenderEvaluationCriteriaStep} />
             <Route path="/invite/:id" component={TenderInviteLink} />
             <Route path="/tenders/:id/edit" component={TenderEditPage} />
             <Route path="/tenders/:id" component={TenderDetails} />

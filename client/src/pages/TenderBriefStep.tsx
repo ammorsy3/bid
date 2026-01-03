@@ -19,6 +19,28 @@ const CRITERIA_LABELS: Record<string, string> = {
   team_expertise: "Team expertise",
 };
 
+const SUBMISSION_TYPE_LABELS: Record<string, string> = {
+  video_only: "Video Only",
+  document_only: "Document Only",
+  both: "Video & Document",
+};
+
+const INQUIRY_TYPE_LABELS: Record<string, string> = {
+  inside_bid: "Inside Bid Platform",
+  whatsapp: "WhatsApp",
+  email: "Email",
+  phone: "Phone",
+};
+
+const formatLabel = (value: string, labels?: Record<string, string>): string => {
+  if (labels && labels[value.toLowerCase()]) {
+    return labels[value.toLowerCase()];
+  }
+  return value
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase());
+};
+
 export default function TenderBriefStep() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -228,43 +250,45 @@ export default function TenderBriefStep() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {draft.submissionType && (
-                <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Submission Type
-                  </h3>
-                  <p className="text-gray-900 dark:text-white font-medium capitalize" data-testid="brief-submission-type">
-                    {draft.submissionType}
-                  </p>
-                </div>
-              )}
+            {(draft.submissionType || draft.inquiryType) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {draft.submissionType && (
+                  <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Submission Type
+                    </h3>
+                    <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-submission-type">
+                      {formatLabel(draft.submissionType, SUBMISSION_TYPE_LABELS)}
+                    </p>
+                  </div>
+                )}
 
-              {draft.videoRequired && (
-                <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
-                    <Video className="h-4 w-4" />
-                    Video Required
-                  </h3>
-                  <p className="text-gray-900 dark:text-white font-medium capitalize" data-testid="brief-video-required">
-                    {draft.videoRequired}
-                  </p>
-                </div>
-              )}
+                {draft.inquiryType && (
+                  <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Inquiry Type
+                    </h3>
+                    <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-inquiry-type">
+                      {formatLabel(draft.inquiryType, INQUIRY_TYPE_LABELS)}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
-              {draft.inquiryType && (
-                <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    Inquiry Type
-                  </h3>
-                  <p className="text-gray-900 dark:text-white font-medium capitalize" data-testid="brief-inquiry-type">
-                    {draft.inquiryType}
-                  </p>
-                </div>
-              )}
-            </div>
+            {draft.videoRequired && (
+              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
+                  <Video className="h-4 w-4" />
+                  Video Required
+                </h3>
+                <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-video-required">
+                  {formatLabel(draft.videoRequired)}
+                </p>
+              </div>
+            )}
 
             {(draft.emailContact || draft.whatsappContact) && (
               <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">

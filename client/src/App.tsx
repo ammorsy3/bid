@@ -18,6 +18,7 @@ import TenderProjectScopeStep from "@/pages/TenderProjectScopeStep";
 import TenderAIBudgetStep from "@/pages/TenderAIBudgetStep";
 import TenderSubmissionProcessStep from "@/pages/TenderSubmissionProcessStep";
 import TenderEvaluationCriteriaStep from "@/pages/TenderEvaluationCriteriaStep";
+import TenderBriefStep from "@/pages/TenderBriefStep";
 import TenderInviteLink from "@/pages/TenderInviteLink";
 import TractionLink from "@/pages/TractionLink";
 import Landing from "@/pages/Landing";
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="/tenders/new/ai-budget" component={TenderAIBudgetStep} />
             <Route path="/tenders/new/submission-process" component={TenderSubmissionProcessStep} />
             <Route path="/tenders/new/evaluation-criteria" component={TenderEvaluationCriteriaStep} />
+            <Route path="/tenders/new/brief" component={TenderBriefStep} />
             <Route path="/invite/:id" component={TenderInviteLink} />
             <Route path="/tenders/:id/edit" component={TenderEditPage} />
             <Route path="/tenders/:id" component={TenderDetails} />

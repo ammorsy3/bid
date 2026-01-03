@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Trash2 } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 interface Milestone {
   id: string;
@@ -26,6 +26,13 @@ export default function TenderBudgetStep() {
       return {};
     }
   }, []);
+
+  // Pre-fill with AI suggested budget if available
+  useEffect(() => {
+    if (draft.suggestedBudget && !fixedPrice) {
+      setFixedPrice(draft.suggestedBudget.toString());
+    }
+  }, [draft.suggestedBudget]);
 
   const handleAddMilestone = () => {
     if (milestoneName.trim() && milestoneAmount.trim()) {
@@ -113,7 +120,7 @@ export default function TenderBudgetStep() {
           <div>
             <div className="space-y-4">
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                4 / 5
+                6 / 7
               </div>
               <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
                 Tell us about your budget.

@@ -69,7 +69,7 @@ export default function TenderScopeStep() {
         deadline: deadlineDate.toISOString(),
       };
       localStorage.setItem("tenderDraft", JSON.stringify(updated));
-      navigate("/tenders/new/budget");
+      navigate("/tenders/new/description");
     }
   };
 
@@ -113,7 +113,7 @@ export default function TenderScopeStep() {
           <div>
             <div className="space-y-4">
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                3 / 5
+                5 / 6
               </div>
               <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
                 Next, estimate the scope of your work.

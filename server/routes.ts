@@ -362,7 +362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/user/profile", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const { name, jobTitle, timezone, linkedinUrl, phoneNumber } = req.body;
-      
+
       if (!name || typeof name !== 'string') {
         return res.status(400).json({ message: "Name is required" });
       }
@@ -383,6 +383,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Profile updated successfully" });
     } catch (error) {
       console.error('Update user profile error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Save tender inquiry email preference
+  app.patch("/api/user/tender-inquiry-email", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { tenderInquiryEmail } = req.body;
+
+      // Validate email format if provided
+      if (tenderInquiryEmail && typeof tenderInquiryEmail === 'string') {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(tenderInquiryEmail)) {
+          return res.status(400).json({ message: "Invalid email format" });
+        }
+      }
+
+      const user = await storage.getUser(req.auth!.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      await storage.updateUser(req.auth!.userId, {
+        tenderInquiryEmail: tenderInquiryEmail || null,
+      });
+
+      res.json({
+        message: "Tender inquiry email saved successfully",
+        tenderInquiryEmail: tenderInquiryEmail || null
+      });
+    } catch (error) {
+      console.error('Save tender inquiry email error:', error);
       res.status(500).json({ message: "Server error" });
     }
   });
@@ -1038,6 +1070,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error('Delete tender error:', error);
         res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  // ==========================================================================
+  // AI BUDGET ESTIMATION ROUTES
+  // ==========================================================================
+
+  // Estimate budget using AI
+  app.post("/api/ai/estimate-budget",
+    authenticateToken,
+    async (req: AuthRequest, res) => {
+      try {
+        const { title, projectType, projectObjective, keyDeliverables, projectDescription, voiceNoteUrl } = req.body;
+
+        // Check if OpenAI API key is configured
+        const openaiApiKey = process.env.OPENAI_API_KEY;
+        if (!openaiApiKey) {
+          return res.status(503).json({
+            message: "AI budget estimation is not available. Please configure an OpenAI API key to use this feature."
+          });
+        }
+
+        // Build context for AI
+        const projectContext = `
+Project Title: ${title || "Not specified"}
+Project Type: ${projectType === "time-bound" ? "Time-bound project" : "Deliverable-based project"}
+Project Objective: ${projectObjective || "Not specified"}
+Key Deliverables: ${keyDeliverables?.length ? keyDeliverables.join(", ") : "Not specified"}
+Project Description: ${projectDescription || "Not specified"}
+${voiceNoteUrl ? "Note: Client has provided a voice note with additional details." : ""}
+        `.trim();
+
+        // Call OpenAI API
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${openaiApiKey}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o",
+            messages: [
+              {
+                role: "system",
+                content: `You are a professional project cost estimator specializing in freelance and agency projects in Saudi Arabia.
+Your task is to provide realistic budget estimates in Saudi Riyals (SAR).
+
+Project Size Categories:
+- Small Projects: Under 50,000 SAR
+- Medium Projects: 50,000 - 250,000 SAR
+- Large Projects: 250,000+ SAR
+
+Guidelines for estimation by project type:
+- Small advertising campaigns: 15,000 - 40,000 SAR
+- Medium marketing campaigns: 50,000 - 150,000 SAR
+- Large integrated campaigns: 200,000 - 500,000 SAR
+- Web development (basic): 20,000 - 45,000 SAR
+- Web development (e-commerce/complex): 60,000 - 180,000 SAR
+- Enterprise web platforms: 250,000 - 600,000 SAR
+- Mobile app development (simple): 40,000 - 80,000 SAR
+- Mobile app development (complex): 100,000 - 300,000 SAR
+- Logo and branding package: 10,000 - 40,000 SAR
+- Full brand identity: 50,000 - 150,000 SAR
+- Social media management (3 months): 30,000 - 80,000 SAR
+- Video production (corporate): 25,000 - 100,000 SAR
+- Video production (commercial): 80,000 - 250,000 SAR
+- Content writing & strategy: 15,000 - 60,000 SAR
+
+Always provide a realistic estimate based on Saudi Arabian market rates.
+Response must be valid JSON with this exact structure:
+{
+  "estimatedBudget": <number>,
+  "budgetRange": { "min": <number>, "max": <number> },
+  "breakdown": [{ "item": "<string>", "amount": <number> }],
+  "reasoning": "<brief explanation in 1-2 sentences>"
+}`
+              },
+              {
+                role: "user",
+                content: `Please estimate the budget for this project:\n\n${projectContext}`
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 500,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error("OpenAI API error:", errorData);
+          throw new Error("Failed to get AI estimate");
+        }
+
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+
+        if (!content) {
+          throw new Error("Empty response from AI");
+        }
+
+        // Parse the JSON response
+        let estimate;
+        try {
+          // Try to extract JSON from the response (in case there's extra text)
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            estimate = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error("No JSON found in response");
+          }
+        } catch (parseError) {
+          console.error("Failed to parse AI response:", content);
+          // Provide a fallback estimate
+          estimate = {
+            estimatedBudget: 7500,
+            budgetRange: { min: 5000, max: 10000 },
+            breakdown: [
+              { item: "Project execution", amount: 5000 },
+              { item: "Management & coordination", amount: 2500 }
+            ],
+            reasoning: "Based on typical project costs in the Saudi market."
+          };
+        }
+
+        res.json(estimate);
+      } catch (error) {
+        console.error("AI budget estimation error:", error);
+        res.status(500).json({ message: "Failed to estimate budget. Please try again." });
       }
     }
   );

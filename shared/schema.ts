@@ -301,6 +301,33 @@ export const productEvents = pgTable("product_events", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Tender Templates - User-saved form structures
+export const tenderTemplates = pgTable("tender_templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  companyId: varchar("company_id").notNull().references(() => companies.id),
+
+  // Template Info
+  name: text("name").notNull(),
+  description: text("description"),
+
+  // Form Structure - Array of card configurations
+  cards: jsonb("cards").$type<{
+    id: string;
+    type: string;
+    label: string;
+    isRequired: boolean;
+    placeholder?: string;
+    options?: string[];
+  }[]>().notNull(),
+
+  // Visibility
+  isPublic: boolean("is_public").default(false).notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Audit Log - Admin actions tracking
 export const auditLog = pgTable("audit_log", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -329,6 +356,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   createdOffers: many(offers),
   productEvents: many(productEvents),
   auditActions: many(auditLog),
+  tenderTemplates: many(tenderTemplates),
 }));
 
 export const companiesRelations = relations(companies, ({ one, many }) => ({
@@ -345,6 +373,7 @@ export const companiesRelations = relations(companies, ({ one, many }) => ({
   joinRequestsSubmitted: many(joinRequests, { relationName: 'vendorJoinRequests' }),
   awards: many(awards),
   productEvents: many(productEvents),
+  tenderTemplates: many(tenderTemplates),
 }));
 
 export const companyProfilesRelations = relations(companyProfiles, ({ one }) => ({
@@ -465,6 +494,17 @@ export const auditLogRelations = relations(auditLog, ({ one }) => ({
   admin: one(users, {
     fields: [auditLog.adminId],
     references: [users.id],
+  }),
+}));
+
+export const tenderTemplatesRelations = relations(tenderTemplates, ({ one }) => ({
+  user: one(users, {
+    fields: [tenderTemplates.userId],
+    references: [users.id],
+  }),
+  company: one(companies, {
+    fields: [tenderTemplates.companyId],
+    references: [companies.id],
   }),
 }));
 
@@ -617,6 +657,17 @@ export const insertAwardSchema = createInsertSchema(awards).omit({
   createdAt: true,
 });
 
+export const insertTenderTemplateSchema = createInsertSchema(tenderTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const createTenderTemplateSchema = insertTenderTemplateSchema.omit({
+  userId: true,
+  companyId: true,
+});
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -667,3 +718,7 @@ export type InsertProductEvent = z.infer<typeof insertProductEventSchema>;
 
 export type AuditLog = typeof auditLog.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+
+export type TenderTemplate = typeof tenderTemplates.$inferSelect;
+export type InsertTenderTemplate = z.infer<typeof insertTenderTemplateSchema>;
+export type CreateTenderTemplate = z.infer<typeof createTenderTemplateSchema>;

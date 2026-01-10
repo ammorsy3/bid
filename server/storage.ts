@@ -1,4 +1,4 @@
-import { 
+import {
   users,
   companies,
   companyProfiles,
@@ -13,6 +13,7 @@ import {
   awards,
   productEvents,
   auditLog,
+  tenderTemplates,
   type User,
   type InsertUser,
   type Company,
@@ -39,7 +40,9 @@ import {
   type ProductEvent,
   type InsertProductEvent,
   type AuditLog,
-  type InsertAuditLog
+  type InsertAuditLog,
+  type TenderTemplate,
+  type InsertTenderTemplate
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ilike, or, isNull, sql, gte, count } from "drizzle-orm";
@@ -177,6 +180,15 @@ export interface IStorage {
     proposalsLast24h: number;
     blockedAwards: number;
   }>;
+
+  // ============================================================================
+  // TENDER TEMPLATE OPERATIONS
+  // ============================================================================
+  createTenderTemplate(template: InsertTenderTemplate): Promise<TenderTemplate>;
+  getTenderTemplate(id: string): Promise<TenderTemplate | undefined>;
+  getTenderTemplates(companyId: string): Promise<TenderTemplate[]>;
+  updateTenderTemplate(id: string, updates: Partial<InsertTenderTemplate>): Promise<TenderTemplate>;
+  deleteTenderTemplate(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1192,6 +1204,44 @@ export class DatabaseStorage implements IStorage {
       proposalsLast24h: proposalsCount,
       blockedAwards: blockedAwards.length
     };
+  }
+
+  // ============================================================================
+  // TENDER TEMPLATE OPERATIONS
+  // ============================================================================
+
+  async createTenderTemplate(template: InsertTenderTemplate): Promise<TenderTemplate> {
+    const [created] = await db.insert(tenderTemplates).values(template).returning();
+    return created;
+  }
+
+  async getTenderTemplate(id: string): Promise<TenderTemplate | undefined> {
+    const [template] = await db
+      .select()
+      .from(tenderTemplates)
+      .where(eq(tenderTemplates.id, id));
+    return template;
+  }
+
+  async getTenderTemplates(companyId: string): Promise<TenderTemplate[]> {
+    return db
+      .select()
+      .from(tenderTemplates)
+      .where(eq(tenderTemplates.companyId, companyId))
+      .orderBy(desc(tenderTemplates.createdAt));
+  }
+
+  async updateTenderTemplate(id: string, updates: Partial<InsertTenderTemplate>): Promise<TenderTemplate> {
+    const [updated] = await db
+      .update(tenderTemplates)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(tenderTemplates.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteTenderTemplate(id: string): Promise<void> {
+    await db.delete(tenderTemplates).where(eq(tenderTemplates.id, id));
   }
 }
 

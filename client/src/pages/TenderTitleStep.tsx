@@ -30,9 +30,9 @@ const PROJECT_OPTIONS = [
 ];
 
 const EXAMPLE_TITLES = [
-  "Build responsive WordPress site with booking/payment functionality",
-  "Graphic designer needed to design ad creative for multiple campaigns",
-  "Facebook ad specialist needed for product launch",
+  "Enterprise CRM Implementation and Integration Services",
+  "Corporate Website Redesign and Development Project",
+  "Digital Marketing Campaign Management for Product Launch",
 ];
 
 export default function TenderTitleStep() {
@@ -73,7 +73,7 @@ export default function TenderTitleStep() {
   };
 
   const handleBack = () => {
-    navigate("/dashboard");
+    navigate("/tenders/new/manual");
   };
 
   // Form validation based on project type

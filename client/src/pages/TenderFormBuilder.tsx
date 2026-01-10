@@ -53,6 +53,7 @@ export default function TenderFormBuilder() {
 
   // Sidebar resize state
   const [sidebarWidth, setSidebarWidth] = useState(288); // 288px = w-72 default
+  const [sidebarVisible, setSidebarVisible] = useState(true);
   const isResizing = useRef(false);
   const minSidebarWidth = 200;
   const maxSidebarWidth = 500;
@@ -325,20 +326,26 @@ export default function TenderFormBuilder() {
 
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
-          <CardLibrarySidebar usedCardTypes={usedCardTypes} width={sidebarWidth} />
+          {sidebarVisible && (
+            <>
+              <CardLibrarySidebar usedCardTypes={usedCardTypes} width={sidebarWidth} />
 
-          {/* Resize Handle */}
-          <div
-            onMouseDown={handleMouseDown}
-            className="w-1 hover:w-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-[#E25E45] cursor-col-resize transition-all flex-shrink-0 group relative"
-          >
-            <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-[#E25E45]/10" />
-          </div>
+              {/* Resize Handle */}
+              <div
+                onMouseDown={handleMouseDown}
+                className="w-1 hover:w-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-[#E25E45] cursor-col-resize transition-all flex-shrink-0 group relative"
+              >
+                <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-[#E25E45]/10" />
+              </div>
+            </>
+          )}
 
           <FormBuilderCanvas
             cards={cards}
             onRemoveCard={handleRemoveCard}
             onUpdateCard={handleUpdateCard}
+            sidebarVisible={sidebarVisible}
+            onToggleSidebar={() => setSidebarVisible(!sidebarVisible)}
           />
         </div>
 

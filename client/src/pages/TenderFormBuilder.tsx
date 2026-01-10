@@ -331,9 +331,9 @@ export default function TenderFormBuilder() {
             {sidebarVisible && (
               <motion.div
                 key="sidebar"
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: sidebarWidth, opacity: 1 }}
-                exit={{ width: 0, opacity: 0 }}
+                initial={{ width: 0 }}
+                animate={{ width: sidebarWidth + 4 }}
+                exit={{ width: 0 }}
                 transition={{ duration: 0.2, ease: "easeInOut" }}
                 className="flex flex-shrink-0 overflow-hidden"
               >

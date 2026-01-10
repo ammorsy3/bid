@@ -126,16 +126,9 @@ function ProjectTypeInput({
   value,
   onChange,
 }: {
-  value: { type: string | null; startDate?: string | null; endDate?: string | null; deliveryDate?: string | null } | string | null;
-  onChange: (value: any) => void;
+  value: string | null;
+  onChange: (value: string) => void;
 }) {
-  // Handle both old string format and new object format
-  const projectValue = typeof value === 'string' 
-    ? { type: value, startDate: null, endDate: null, deliveryDate: null }
-    : value || { type: null, startDate: null, endDate: null, deliveryDate: null };
-
-  const selectedType = projectValue.type;
-
   const options = [
     {
       id: "time-bound",
@@ -148,136 +141,6 @@ function ProjectTypeInput({
       label: "Purchase of a service or product",
       description: "A project that ends when the work is delivered",
       icon: ShoppingBag,
-    },
-  ];
-
-  const handleTypeSelect = (typeId: string) => {
-    onChange({ ...projectValue, type: typeId });
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="grid gap-3">
-        {options.map((option) => {
-          const Icon = option.icon;
-          const isSelected = selectedType === option.id;
-          return (
-            <button
-              key={option.id}
-              type="button"
-              onClick={() => handleTypeSelect(option.id)}
-              className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all text-left ${
-                isSelected
-                  ? "border-[#E25E45] bg-[#E25E45]/5"
-                  : "border-gray-200 dark:border-gray-600 hover:border-gray-300"
-              }`}
-            >
-              <div
-                className={`p-2 rounded-lg ${
-                  isSelected
-                    ? "bg-[#E25E45] text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-                }`}
-              >
-                <Icon className="h-5 w-5" />
-              </div>
-              <div className="flex-1">
-                <div className={`font-medium ${isSelected ? "text-[#E25E45]" : "text-gray-900 dark:text-white"}`}>
-                  {option.label}
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {option.description}
-                </div>
-              </div>
-              <div
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                  isSelected
-                    ? "border-[#E25E45] bg-[#E25E45]"
-                    : "border-gray-300 dark:border-gray-500"
-                }`}
-              >
-                {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Date pickers based on selected type */}
-      {selectedType === "time-bound" && (
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Project timeline</p>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <span className="text-xs text-gray-500 dark:text-gray-400">Start date</span>
-              <DatePickerInput
-                value={projectValue.startDate || null}
-                onChange={(date) => onChange({ ...projectValue, startDate: date })}
-                label="Select start date"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <span className="text-xs text-gray-500 dark:text-gray-400">End date</span>
-              <DatePickerInput
-                value={projectValue.endDate || null}
-                onChange={(date) => onChange({ ...projectValue, endDate: date })}
-                label="Select end date"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {selectedType === "deliverable" && (
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Expected delivery date</p>
-          <DatePickerInput
-            value={projectValue.deliveryDate || null}
-            onChange={(date) => onChange({ ...projectValue, deliveryDate: date })}
-            label="Select delivery date"
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Supplier Response Input Component
-function SupplierResponseInput({
-  value,
-  onChange,
-}: {
-  value: string | null;
-  onChange: (value: string) => void;
-}) {
-  const options = [
-    {
-      id: "price_only",
-      label: "Price Only",
-      description: "Just need a price quote",
-      icon: FileText,
-      color: "bg-indigo-500",
-    },
-    {
-      id: "full_proposal",
-      label: "Full Proposal",
-      description: "Technical plan + pricing details",
-      icon: FileText,
-      color: "bg-pink-500",
-    },
-    {
-      id: "video_pitch",
-      label: "Video Pitch",
-      description: "A short video explaining their approach",
-      icon: Video,
-      color: "bg-pink-500",
-    },
-    {
-      id: "proposal_video",
-      label: "Proposal + Video",
-      description: "Written proposal and a video pitch",
-      icon: FileText,
-      color: "bg-orange-500",
     },
   ];
 
@@ -297,7 +160,97 @@ function SupplierResponseInput({
                 : "border-gray-200 dark:border-gray-600 hover:border-gray-300"
             }`}
           >
-            <div className={`p-2.5 rounded-lg ${option.color} text-white`}>
+            <div
+              className={`p-2 rounded-lg ${
+                isSelected
+                  ? "bg-[#E25E45] text-white"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+              }`}
+            >
+              <Icon className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <div className={`font-medium ${isSelected ? "text-[#E25E45]" : "text-gray-900 dark:text-white"}`}>
+                {option.label}
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {option.description}
+              </div>
+            </div>
+            <div
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                isSelected
+                  ? "border-[#E25E45] bg-[#E25E45]"
+                  : "border-gray-300 dark:border-gray-500"
+              }`}
+            >
+              {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Supplier Response Input Component
+function SupplierResponseInput({
+  value,
+  onChange,
+}: {
+  value: string | null;
+  onChange: (value: string) => void;
+}) {
+  const options = [
+    {
+      id: "document",
+      label: "Document submission",
+      description: "Suppliers submit written proposals and documents",
+      icon: FileText,
+    },
+    {
+      id: "video",
+      label: "Video pitch",
+      description: "Suppliers record a video presentation",
+      icon: Video,
+    },
+    {
+      id: "both",
+      label: "Document + Video",
+      description: "Both written proposals and video pitches required",
+      icon: Users,
+    },
+    {
+      id: "platform",
+      label: "Through Bid platform",
+      description: "Suppliers respond directly through the platform",
+      icon: MessageSquare,
+    },
+  ];
+
+  return (
+    <div className="grid gap-3">
+      {options.map((option) => {
+        const Icon = option.icon;
+        const isSelected = value === option.id;
+        return (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => onChange(option.id)}
+            className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all text-left ${
+              isSelected
+                ? "border-[#E25E45] bg-[#E25E45]/5"
+                : "border-gray-200 dark:border-gray-600 hover:border-gray-300"
+            }`}
+          >
+            <div
+              className={`p-2 rounded-lg ${
+                isSelected
+                  ? "bg-[#E25E45] text-white"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+              }`}
+            >
               <Icon className="h-5 w-5" />
             </div>
             <div className="flex-1">

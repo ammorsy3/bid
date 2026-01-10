@@ -49,8 +49,17 @@ export function DraggableCard({
     (Array.isArray(card.value) && card.value.length === 0);
   const needsAction = card.touched && card.isRequired && isEmpty;
 
-  // Mark card as touched when user clicks on it
-  const handleCardClick = () => {
+  // Mark card as touched when user leaves it (blur)
+  const handleCardBlur = (e: React.FocusEvent) => {
+    // Only mark as touched if focus is leaving this card entirely
+    const relatedTarget = e.relatedTarget as HTMLElement | null;
+    const currentTarget = e.currentTarget as HTMLElement;
+    
+    // Check if the new focus target is still within this card
+    if (relatedTarget && currentTarget.contains(relatedTarget)) {
+      return; // Focus is still inside the card, don't mark as touched yet
+    }
+    
     if (!card.touched && onUpdate) {
       onUpdate(card.id, { touched: true });
     }
@@ -76,8 +85,9 @@ export function DraggableCard({
     <div
       ref={setNodeRef}
       style={style}
-      onClick={handleCardClick}
-      className={`bg-white dark:bg-gray-800 border-2 rounded-xl transition-all duration-200 ${
+      tabIndex={-1}
+      onBlur={handleCardBlur}
+      className={`bg-white dark:bg-gray-800 border-2 rounded-xl transition-all duration-200 outline-none ${
         isDragging
           ? "opacity-50 border-[#E25E45] shadow-lg"
           : needsAction

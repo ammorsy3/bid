@@ -230,9 +230,9 @@ function getDefaultPlaceholder(type: CardType): string {
 function getDefaultValue(type: CardType): any {
   switch (type) {
     case "project-type":
-      return null; // "time-bound" | "deliverable" | "ongoing"
+      return { type: null, startDate: null, endDate: null, deliveryDate: null };
     case "supplier-response":
-      return null; // "document" | "video" | "both" | "platform"
+      return null; // "price_only" | "full_proposal" | "video_pitch" | "proposal_video"
     case "project-dates":
       return { startDate: null, endDate: null, deliveryDate: null };
     case "budget":

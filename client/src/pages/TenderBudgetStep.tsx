@@ -15,6 +15,9 @@ export default function TenderBudgetStep() {
   const [, navigate] = useLocation();
   const [budgetType, setBudgetType] = useState<"fixed" | "milestone">("fixed");
   const [fixedPrice, setFixedPrice] = useState("");
+  const [priceType, setPriceType] = useState<"exact" | "range">("exact");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [milestoneName, setMilestoneName] = useState("");
   const [milestoneAmount, setMilestoneAmount] = useState("");
@@ -32,7 +35,15 @@ export default function TenderBudgetStep() {
     if (draft.suggestedBudget && !fixedPrice) {
       setFixedPrice(draft.suggestedBudget.toString());
     }
-  }, [draft.suggestedBudget]);
+    if (draft.budgetMin && draft.budgetMax) {
+      setPriceType("range");
+      setMinPrice(draft.budgetMin.toString());
+      setMaxPrice(draft.budgetMax.toString());
+    } else if (draft.budget) {
+      setPriceType("exact");
+      setFixedPrice(draft.budget);
+    }
+  }, [draft.suggestedBudget, draft.budget, draft.budgetMin, draft.budgetMax]);
 
   const handleAddMilestone = () => {
     if (milestoneName.trim() && milestoneAmount.trim()) {
@@ -56,14 +67,28 @@ export default function TenderBudgetStep() {
     .toFixed(2);
 
   const handleNext = () => {
-    if (budgetType === "fixed" && fixedPrice) {
-      const updated = {
-        ...draft,
-        budgetType: "fixed",
-        budget: fixedPrice,
-      };
-      localStorage.setItem("tenderDraft", JSON.stringify(updated));
-      navigate("/tenders/new/description");
+    if (budgetType === "fixed") {
+      if (priceType === "exact" && fixedPrice) {
+        const updated = {
+          ...draft,
+          budgetType: "fixed",
+          budget: fixedPrice,
+          budgetMin: undefined,
+          budgetMax: undefined,
+        };
+        localStorage.setItem("tenderDraft", JSON.stringify(updated));
+        navigate("/tenders/new/description");
+      } else if (priceType === "range" && minPrice && maxPrice) {
+        const updated = {
+          ...draft,
+          budgetType: "fixed",
+          budget: `${minPrice} - ${maxPrice}`,
+          budgetMin: parseFloat(minPrice),
+          budgetMax: parseFloat(maxPrice),
+        };
+        localStorage.setItem("tenderDraft", JSON.stringify(updated));
+        navigate("/tenders/new/description");
+      }
     } else if (budgetType === "milestone" && milestones.length > 0) {
       const updated = {
         ...draft,
@@ -83,7 +108,10 @@ export default function TenderBudgetStep() {
   };
 
   const isFormValid =
-    (budgetType === "fixed" && fixedPrice) ||
+    (budgetType === "fixed" && (
+      (priceType === "exact" && fixedPrice) ||
+      (priceType === "range" && minPrice && maxPrice && parseFloat(minPrice) < parseFloat(maxPrice))
+    )) ||
     (budgetType === "milestone" && milestones.length > 0);
 
   return (
@@ -210,19 +238,103 @@ export default function TenderBudgetStep() {
                         negotiate this cost when you chat with freelancers.
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-600 dark:text-gray-400 font-medium">
-                        $
-                      </span>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={fixedPrice}
-                        onChange={(e) => setFixedPrice(e.target.value)}
-                        className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
-                        data-testid="input-fixed-price"
-                      />
+
+                    {/* Price Type Toggle */}
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setPriceType("exact")}
+                        className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                          priceType === "exact"
+                            ? "bg-[#E25E45] text-white"
+                            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        }`}
+                        data-testid="button-exact-price"
+                      >
+                        Exact Budget
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPriceType("range")}
+                        className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                          priceType === "range"
+                            ? "bg-[#E25E45] text-white"
+                            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        }`}
+                        data-testid="button-range-price"
+                      >
+                        Budget Range
+                      </button>
                     </div>
+
+                    {/* Exact Price Input */}
+                    {priceType === "exact" && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-600 dark:text-gray-400 font-medium">
+                            $
+                          </span>
+                          <input
+                            type="number"
+                            placeholder="0.00"
+                            value={fixedPrice}
+                            onChange={(e) => setFixedPrice(e.target.value)}
+                            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                            data-testid="input-fixed-price"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Range Price Inputs */}
+                    {priceType === "range" && (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                              Minimum
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                $
+                              </span>
+                              <input
+                                type="number"
+                                placeholder="0.00"
+                                value={minPrice}
+                                onChange={(e) => setMinPrice(e.target.value)}
+                                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                                data-testid="input-min-price"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                              Maximum
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                $
+                              </span>
+                              <input
+                                type="number"
+                                placeholder="0.00"
+                                value={maxPrice}
+                                onChange={(e) => setMaxPrice(e.target.value)}
+                                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                                data-testid="input-max-price"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        {minPrice && maxPrice && parseFloat(minPrice) >= parseFloat(maxPrice) && (
+                          <p className="text-xs text-red-600 dark:text-red-400">
+                            Maximum price must be greater than minimum price
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       Popular budgets: $100-$500 (small), $500-$2,000 (medium),
                       $2,000-$10,000 (large), $10,000+ (very large)

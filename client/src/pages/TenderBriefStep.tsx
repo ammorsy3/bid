@@ -87,6 +87,8 @@ export default function TenderBriefStep() {
       deadline: draft.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       duration: draft.duration || "1-3 months",
       budget: draft.budget || "",
+      budgetMin: draft.budgetMin || undefined,
+      budgetMax: draft.budgetMax || undefined,
       projectSize: draft.projectSize || undefined,
       showPriceToVendors: draft.showPriceToVendors !== false,
       projectTimeline: draft.duration || "1-3 months",
@@ -96,6 +98,11 @@ export default function TenderBriefStep() {
       whatsappContact: draft.whatsappContact || undefined,
       emailContact: draft.emailContact || undefined,
       evaluationCriteria: draft.evaluationCriteria && draft.evaluationCriteria.length > 0 ? draft.evaluationCriteria : undefined,
+      // Project scope details
+      objective: draft.projectObjective || undefined,
+      deliverables: draft.keyDeliverables && draft.keyDeliverables.length > 0 ? draft.keyDeliverables : undefined,
+      // Voice note if provided
+      voiceNoteUrl: draft.voiceNoteUrl || undefined,
     };
 
     submitTender.mutate(tenderData);
@@ -175,6 +182,26 @@ export default function TenderBriefStep() {
               </div>
             )}
 
+            {draft.projectObjective && (
+              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Project Objective</h3>
+                <p className="text-gray-900 dark:text-white whitespace-pre-wrap" data-testid="brief-objective">
+                  {draft.projectObjective}
+                </p>
+              </div>
+            )}
+
+            {draft.keyDeliverables && draft.keyDeliverables.length > 0 && (
+              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">Key Deliverables</h3>
+                <ul className="list-disc list-inside space-y-1" data-testid="brief-deliverables">
+                  {draft.keyDeliverables.map((deliverable: string, index: number) => (
+                    <li key={index} className="text-gray-900 dark:text-white">{deliverable}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {draft.deadline && (
                 <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -192,10 +219,13 @@ export default function TenderBriefStep() {
                 <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                   <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
                     <DollarSign className="h-4 w-4" />
-                    Budget
+                    {draft.budgetMin && draft.budgetMax ? "Budget Range" : "Budget"}
                   </h3>
                   <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-budget">
-                    {draft.budget}
+                    {draft.budgetMin && draft.budgetMax
+                      ? `SAR ${draft.budgetMin.toLocaleString()} - ${draft.budgetMax.toLocaleString()}`
+                      : draft.budget
+                    }
                   </p>
                 </div>
               )}

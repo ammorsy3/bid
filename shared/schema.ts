@@ -159,6 +159,10 @@ export const tenders = pgTable("tenders", {
   // Evaluation Criteria (Optional)
   evaluationCriteria: text("evaluation_criteria").array(), // Array of criteria IDs that matter most to requester
 
+  // Project Scope Details
+  objective: text("objective"), // Project objective from wizard
+  deliverables: text("deliverables").array(), // Key deliverables array from wizard
+
   // Advanced Options
   voiceNoteUrl: text("voice_note_url"), // Recorded voice note about the project
   videoUrl: text("video_url"), // Video link about the project
@@ -184,7 +188,11 @@ export const offers = pgTable("offers", {
   technicalFileUrl: text("technical_file_url"),
   financialFileUrl: text("financial_file_url"),
   notes: text("notes"),
-  
+
+  // Submission Type-specific Fields
+  quotePrice: integer("quote_price"), // For quote_only submissions - price in SAR
+  videoUrl: text("video_url"), // For video_only and tech_fin_with_video submissions
+
   // Status Gates
   conditionalSubmission: boolean("conditional_submission").default(false).notNull(), // Was company unverified at submission?
   

@@ -5,7 +5,7 @@ import {
 } from "@dnd-kit/sortable";
 import { FormCard } from "@/lib/form-builder-types";
 import { DraggableCard } from "./DraggableCard";
-import { Plus, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { Plus, ZoomIn, ZoomOut, PanelLeftClose, PanelLeft } from "lucide-react";
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -14,12 +14,16 @@ interface FormBuilderCanvasProps {
   cards: FormCard[];
   onRemoveCard: (id: string) => void;
   onUpdateCard: (id: string, updates: Partial<FormCard>) => void;
+  sidebarVisible?: boolean;
+  onToggleSidebar?: () => void;
 }
 
 export function FormBuilderCanvas({
   cards,
   onRemoveCard,
   onUpdateCard,
+  sidebarVisible = true,
+  onToggleSidebar,
 }: FormBuilderCanvasProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: "form-canvas",
@@ -32,7 +36,7 @@ export function FormBuilderCanvas({
   const [scale, setScale] = useState(1);
   const [topPadding, setTopPadding] = useState(100);
 
-  const MIN_SCALE = 0.5;
+  const MIN_SCALE = 1;
   const MAX_SCALE = 2;
   const FIXED_TOP_PADDING = 60;
   const MIN_BOTTOM_PADDING = 100;
@@ -109,9 +113,6 @@ export function FormBuilderCanvas({
         >
           <ZoomOut className="h-4 w-4" />
         </Button>
-        <span className="text-sm font-medium text-gray-600 dark:text-gray-300 min-w-[50px] text-center">
-          {Math.round(scale * 100)}%
-        </span>
         <Button
           variant="ghost"
           size="icon"
@@ -125,11 +126,15 @@ export function FormBuilderCanvas({
         <Button
           variant="ghost"
           size="icon"
-          onClick={handleResetZoom}
+          onClick={onToggleSidebar}
           className="h-8 w-8"
-          title="Reset View"
+          title={sidebarVisible ? "Hide Card Library" : "Show Card Library"}
         >
-          <RotateCcw className="h-4 w-4" />
+          {sidebarVisible ? (
+            <PanelLeftClose className="h-4 w-4" />
+          ) : (
+            <PanelLeft className="h-4 w-4" />
+          )}
         </Button>
       </div>
 

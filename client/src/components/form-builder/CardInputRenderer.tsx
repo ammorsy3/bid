@@ -2,7 +2,7 @@ import { FormCard } from "@/lib/form-builder-types";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plus, X, Clock, ShoppingBag } from "lucide-react";
+import { CalendarIcon, Plus, X, Clock, ShoppingBag, FileText, Video, MessageSquare, Users } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -33,6 +33,9 @@ export function CardInputRenderer({ card, onUpdate }: CardInputRendererProps) {
 
     case "project-type":
       return <ProjectTypeInput value={card.value} onChange={updateValue} />;
+
+    case "supplier-response":
+      return <SupplierResponseInput value={card.value} onChange={updateValue} />;
 
     case "project-dates":
       return <ProjectDatesInput value={card.value} onChange={updateValue} />;
@@ -138,6 +141,90 @@ function ProjectTypeInput({
       label: "Purchase of a service or product",
       description: "A project that ends when the work is delivered",
       icon: ShoppingBag,
+    },
+  ];
+
+  return (
+    <div className="grid gap-3">
+      {options.map((option) => {
+        const Icon = option.icon;
+        const isSelected = value === option.id;
+        return (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => onChange(option.id)}
+            className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all text-left ${
+              isSelected
+                ? "border-[#E25E45] bg-[#E25E45]/5"
+                : "border-gray-200 dark:border-gray-600 hover:border-gray-300"
+            }`}
+          >
+            <div
+              className={`p-2 rounded-lg ${
+                isSelected
+                  ? "bg-[#E25E45] text-white"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+              }`}
+            >
+              <Icon className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <div className={`font-medium ${isSelected ? "text-[#E25E45]" : "text-gray-900 dark:text-white"}`}>
+                {option.label}
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {option.description}
+              </div>
+            </div>
+            <div
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                isSelected
+                  ? "border-[#E25E45] bg-[#E25E45]"
+                  : "border-gray-300 dark:border-gray-500"
+              }`}
+            >
+              {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Supplier Response Input Component
+function SupplierResponseInput({
+  value,
+  onChange,
+}: {
+  value: string | null;
+  onChange: (value: string) => void;
+}) {
+  const options = [
+    {
+      id: "document",
+      label: "Document submission",
+      description: "Suppliers submit written proposals and documents",
+      icon: FileText,
+    },
+    {
+      id: "video",
+      label: "Video pitch",
+      description: "Suppliers record a video presentation",
+      icon: Video,
+    },
+    {
+      id: "both",
+      label: "Document + Video",
+      description: "Both written proposals and video pitches required",
+      icon: Users,
+    },
+    {
+      id: "platform",
+      label: "Through Bid platform",
+      description: "Suppliers respond directly through the platform",
+      icon: MessageSquare,
     },
   ];
 

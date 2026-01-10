@@ -11,6 +11,7 @@ import {
   Paperclip,
   AlignLeft,
   List,
+  MessageSquare,
   LucideIcon,
 } from "lucide-react";
 
@@ -18,8 +19,9 @@ import {
 export type CardType =
   // Required
   | "project-title"
-  // Standard optional
   | "project-type"
+  | "supplier-response"
+  // Standard optional
   | "project-dates"
   | "budget"
   | "project-objective"
@@ -87,14 +89,22 @@ export const CARD_LIBRARY: {
       icon: Type,
       isRequired: true,
     },
-  ],
-  standard: [
     {
       type: "project-type",
-      label: "Project Type",
-      description: "Ongoing/time-bound or deliverable-based",
+      label: "What type of project is this?",
+      description: "Define if this is time-bound or deliverable-based",
       icon: Layers,
+      isRequired: true,
     },
+    {
+      type: "supplier-response",
+      label: "How should suppliers respond?",
+      description: "Define how vendors submit their proposals",
+      icon: MessageSquare,
+      isRequired: true,
+    },
+  ],
+  standard: [
     {
       type: "project-dates",
       label: "Timeline",
@@ -199,6 +209,10 @@ function getDefaultPlaceholder(type: CardType): string {
   switch (type) {
     case "project-title":
       return "Enter project title...";
+    case "project-type":
+      return "Select the type of project";
+    case "supplier-response":
+      return "Choose how suppliers should submit proposals";
     case "project-objective":
       return "What is the main goal of this project?";
     case "project-description":
@@ -216,7 +230,9 @@ function getDefaultPlaceholder(type: CardType): string {
 function getDefaultValue(type: CardType): any {
   switch (type) {
     case "project-type":
-      return null; // "time-bound" | "deliverable"
+      return null; // "time-bound" | "deliverable" | "ongoing"
+    case "supplier-response":
+      return null; // "document" | "video" | "both" | "platform"
     case "project-dates":
       return { startDate: null, endDate: null, deliveryDate: null };
     case "budget":

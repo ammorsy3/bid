@@ -422,7 +422,12 @@ function buildTenderData(cards: FormCard[]): Record<string, any> {
         data.title = card.value;
         break;
       case "project-type":
-        data.projectType = card.value;
+        if (card.value) {
+          data.projectType = card.value.type;
+          if (card.value.startDate) data.startDate = card.value.startDate;
+          if (card.value.endDate) data.endDate = card.value.endDate;
+          if (card.value.deliveryDate) data.deliveryDate = card.value.deliveryDate;
+        }
         break;
       case "supplier-response":
         data.submissionType = card.value;

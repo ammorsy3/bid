@@ -22,6 +22,7 @@ import TenderEvaluationCriteriaStep from "@/pages/TenderEvaluationCriteriaStep";
 import TenderBriefStep from "@/pages/TenderBriefStep";
 import TenderFormBuilder from "@/pages/TenderFormBuilder";
 import TenderFormFill from "@/pages/TenderFormFill";
+import TenderReview from "@/pages/TenderReview";
 import TenderInviteLink from "@/pages/TenderInviteLink";
 import TractionLink from "@/pages/TractionLink";
 import Landing from "@/pages/Landing";
@@ -51,6 +52,7 @@ export default function App() {
             <Route path="/tenders/new/brief" component={TenderBriefStep} />
             <Route path="/tenders/new/form-builder" component={TenderFormBuilder} />
             <Route path="/tenders/new/fill" component={TenderFormFill} />
+            <Route path="/tenders/new/review" component={TenderReview} />
             <Route path="/invite/:id" component={TenderInviteLink} />
             <Route path="/tenders/:id/edit" component={TenderEditPage} />
             <Route path="/tenders/:id" component={TenderDetails} />

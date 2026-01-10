@@ -55,6 +55,7 @@ export interface FormCard {
   isRequired: boolean;
   options?: string[]; // for select/choice cards
   value: any; // the actual form value
+  touched?: boolean; // tracks if user has interacted with this card
 }
 
 // Form builder state

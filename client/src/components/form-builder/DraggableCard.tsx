@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, X, Star, Pencil } from "lucide-react";
+import { GripVertical, X, Star, Pencil, AlertCircle } from "lucide-react";
 import { FormCard, getCardDefinition } from "@/lib/form-builder-types";
 import { useState } from "react";
 import { CardInputRenderer } from "./CardInputRenderer";
@@ -41,6 +41,21 @@ export function DraggableCard({
   const Icon = definition?.icon;
   const isCustomCard = definition?.isCustom;
 
+  // Check if card needs action (touched, required, but empty)
+  const isEmpty = 
+    card.value === null || 
+    card.value === undefined || 
+    card.value === "" ||
+    (Array.isArray(card.value) && card.value.length === 0);
+  const needsAction = card.touched && card.isRequired && isEmpty;
+
+  // Mark card as touched when user clicks on it
+  const handleCardClick = () => {
+    if (!card.touched && onUpdate) {
+      onUpdate(card.id, { touched: true });
+    }
+  };
+
   const handleLabelSave = () => {
     if (editedLabel.trim() && onUpdate) {
       onUpdate(card.id, { label: editedLabel.trim() });
@@ -61,9 +76,12 @@ export function DraggableCard({
     <div
       ref={setNodeRef}
       style={style}
+      onClick={handleCardClick}
       className={`bg-white dark:bg-gray-800 border-2 rounded-xl transition-all duration-200 ${
         isDragging
           ? "opacity-50 border-[#E25E45] shadow-lg"
+          : needsAction
+          ? "border-red-400 dark:border-red-500 shadow-sm"
           : "border-gray-200 dark:border-gray-700 shadow-sm hover:border-[#E25E45] hover:shadow-[0_0_0_4px_rgba(226,94,69,0.15)]"
       } ${isOverlay ? "shadow-2xl rotate-2" : ""}`}
     >
@@ -86,26 +104,34 @@ export function DraggableCard({
         )}
 
         {/* Label */}
-        <div className="flex-1 flex items-center gap-2">
-          {isEditingLabel ? (
-            <input
-              type="text"
-              value={editedLabel}
-              onChange={(e) => setEditedLabel(e.target.value)}
-              onBlur={handleLabelSave}
-              onKeyDown={handleLabelKeyDown}
-              className="flex-1 px-2 py-1 text-sm font-medium bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-[#E25E45]"
-              autoFocus
-            />
-          ) : (
-            <>
-              <span className="font-medium text-gray-900 dark:text-white">
-                {card.label}
-              </span>
-              {card.isRequired && (
-                <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-              )}
-            </>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            {isEditingLabel ? (
+              <input
+                type="text"
+                value={editedLabel}
+                onChange={(e) => setEditedLabel(e.target.value)}
+                onBlur={handleLabelSave}
+                onKeyDown={handleLabelKeyDown}
+                className="flex-1 px-2 py-1 text-sm font-medium bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-[#E25E45]"
+                autoFocus
+              />
+            ) : (
+              <>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {card.label}
+                </span>
+                {card.isRequired && (
+                  <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                )}
+              </>
+            )}
+          </div>
+          {needsAction && (
+            <div className="flex items-center gap-1.5 mt-1">
+              <AlertCircle className="h-3.5 w-3.5 text-red-500" />
+              <span className="text-xs text-red-500 font-medium">Action needed</span>
+            </div>
           )}
         </div>
 

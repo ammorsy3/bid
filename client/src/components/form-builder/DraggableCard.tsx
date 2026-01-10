@@ -18,7 +18,7 @@ export function DraggableCard({
   onRemove,
   onUpdate,
   isOverlay = false,
-  readOnly = true,
+  readOnly = false,
 }: DraggableCardProps) {
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [editedLabel, setEditedLabel] = useState(card.label);

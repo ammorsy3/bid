@@ -17,7 +17,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Send, Save } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { CardLibrarySidebar } from "@/components/form-builder/CardLibrarySidebar";
 import { FormBuilderCanvas } from "@/components/form-builder/FormBuilderCanvas";
@@ -170,32 +170,21 @@ export default function TenderFormBuilder() {
     navigate("/tenders/new/manual");
   };
 
-  const handleSubmit = async () => {
-    // Validate required fields
-    const projectTitleCard = cards.find((c) => c.type === "project-title");
-    if (!projectTitleCard?.value) {
-      toast({
-        title: "Missing required field",
-        description: "Please enter a project title",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Build tender data from cards
-    const tenderData = buildTenderData(cards);
-
-    // Save to localStorage for now (later: API call)
-    localStorage.setItem("tenderDraft", JSON.stringify({
-      ...tenderData,
-      isCustomForm: true,
-      formStructure: cards.map(({ id, type, label, isRequired, options, placeholder }) => ({
-        id, type, label, isRequired, options, placeholder
-      })),
+  const handleContinueToFill = () => {
+    // Save form structure (with ids but without values) to localStorage for fill phase
+    const FORM_STRUCTURE_KEY = "tender_form_structure";
+    const formStructure = cards.map((card) => ({
+      id: card.id,
+      type: card.type,
+      label: card.label,
+      isRequired: card.isRequired,
+      options: card.options,
+      placeholder: card.placeholder,
     }));
+    localStorage.setItem(FORM_STRUCTURE_KEY, JSON.stringify(formStructure));
 
-    // Navigate to brief/review page
-    navigate("/tenders/new/brief");
+    // Navigate to fill page
+    navigate("/tenders/new/fill");
   };
 
   const handleSaveAsTemplate = async () => {
@@ -240,8 +229,8 @@ export default function TenderFormBuilder() {
       setTemplateName("");
       setTemplateDescription("");
 
-      // Also submit the tender
-      await handleSubmit();
+      // Also continue to fill form
+      handleContinueToFill();
     } catch (error) {
       toast({
         title: "Error saving template",
@@ -324,11 +313,11 @@ export default function TenderFormBuilder() {
                 Submit & Save Template
               </Button>
               <Button
-                onClick={handleSubmit}
+                onClick={handleContinueToFill}
                 className="bg-[#E25E45] hover:bg-[#d54d35]"
               >
-                <Send className="h-4 w-4 mr-2" />
-                Submit Tender
+                Continue to Fill Form
+                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </div>

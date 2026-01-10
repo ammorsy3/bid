@@ -36,8 +36,8 @@ export function FormBuilderCanvas({
   const [scale, setScale] = useState(1);
   const [topPadding, setTopPadding] = useState(100);
 
-  const MIN_SCALE = 1;
-  const MAX_SCALE = 2;
+  const MIN_SCALE = 0.5;
+  const MAX_SCALE = 1.5;
   const FIXED_TOP_PADDING = 60;
   const MIN_BOTTOM_PADDING = 100;
   

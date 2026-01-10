@@ -43,15 +43,9 @@ export default function TenderFormBuilder() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
-  // Initialize with required Project Title card
+  // Initialize with ALL required cards
   const [cards, setCards] = useState<FormCard[]>(() => {
-    const projectTitleDef = CARD_LIBRARY.required.find(
-      (c) => c.type === "project-title"
-    );
-    if (projectTitleDef) {
-      return [createFormCard(projectTitleDef)];
-    }
-    return [];
+    return CARD_LIBRARY.required.map((def) => createFormCard(def));
   });
 
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -429,6 +423,9 @@ function buildTenderData(cards: FormCard[]): Record<string, any> {
         break;
       case "project-type":
         data.projectType = card.value;
+        break;
+      case "supplier-response":
+        data.submissionType = card.value;
         break;
       case "project-dates":
         if (card.value) {

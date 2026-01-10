@@ -203,28 +203,32 @@ function SupplierResponseInput({
 }) {
   const options = [
     {
-      id: "document",
-      label: "Document submission",
-      description: "Suppliers submit written proposals and documents",
+      id: "price_only",
+      label: "Price Only",
+      description: "Just need a price quote",
       icon: FileText,
+      color: "bg-indigo-500",
     },
     {
-      id: "video",
-      label: "Video pitch",
-      description: "Suppliers record a video presentation",
+      id: "full_proposal",
+      label: "Full Proposal",
+      description: "Technical plan + pricing details",
+      icon: FileText,
+      color: "bg-pink-500",
+    },
+    {
+      id: "video_pitch",
+      label: "Video Pitch",
+      description: "A short video explaining their approach",
       icon: Video,
+      color: "bg-pink-500",
     },
     {
-      id: "both",
-      label: "Document + Video",
-      description: "Both written proposals and video pitches required",
-      icon: Users,
-    },
-    {
-      id: "platform",
-      label: "Through Bid platform",
-      description: "Suppliers respond directly through the platform",
-      icon: MessageSquare,
+      id: "proposal_video",
+      label: "Proposal + Video",
+      description: "Written proposal and a video pitch",
+      icon: FileText,
+      color: "bg-orange-500",
     },
   ];
 
@@ -244,13 +248,7 @@ function SupplierResponseInput({
                 : "border-gray-200 dark:border-gray-600 hover:border-gray-300"
             }`}
           >
-            <div
-              className={`p-2 rounded-lg ${
-                isSelected
-                  ? "bg-[#E25E45] text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-              }`}
-            >
+            <div className={`p-2.5 rounded-lg ${option.color} text-white`}>
               <Icon className="h-5 w-5" />
             </div>
             <div className="flex-1">

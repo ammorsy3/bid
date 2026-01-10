@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -100,6 +100,27 @@ export default function TenderFormBuilder() {
 
   // Get list of card types already in the form
   const usedCardTypes = cards.map((c) => c.type);
+
+  // Validate required fields are complete
+  const { isFormValid, missingFields } = useMemo(() => {
+    const missing: string[] = [];
+    
+    for (const card of cards) {
+      if (card.isRequired) {
+        const isEmpty = 
+          card.value === null || 
+          card.value === undefined || 
+          card.value === "" ||
+          (Array.isArray(card.value) && card.value.length === 0);
+        
+        if (isEmpty) {
+          missing.push(card.label);
+        }
+      }
+    }
+    
+    return { isFormValid: missing.length === 0, missingFields: missing };
+  }, [cards]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -301,14 +322,18 @@ export default function TenderFormBuilder() {
               <Button
                 variant="outline"
                 onClick={() => setShowSaveDialog(true)}
-                className="border-[#E25E45] text-[#E25E45] hover:bg-[#E25E45]/5"
+                disabled={!isFormValid}
+                className={`border-[#E25E45] text-[#E25E45] hover:bg-[#E25E45]/5 ${!isFormValid ? "opacity-50 cursor-not-allowed border-gray-300 text-gray-400" : ""}`}
+                title={!isFormValid ? `Complete required fields: ${missingFields.join(", ")}` : ""}
               >
                 <Save className="h-4 w-4 mr-2" />
                 Submit & Save Template
               </Button>
               <Button
                 onClick={handleReviewAndLaunch}
-                className="bg-[#E25E45] hover:bg-[#d54d35]"
+                disabled={!isFormValid}
+                className={`${isFormValid ? "bg-[#E25E45] hover:bg-[#d54d35]" : "bg-gray-400 cursor-not-allowed"}`}
+                title={!isFormValid ? `Complete required fields: ${missingFields.join(", ")}` : ""}
               >
                 Review & Launch
                 <ArrowRight className="h-4 w-4 ml-2" />

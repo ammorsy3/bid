@@ -6,7 +6,7 @@ import {
 import { FormCard } from "@/lib/form-builder-types";
 import { DraggableCard } from "./DraggableCard";
 import { Plus, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
@@ -30,13 +30,12 @@ export function FormBuilderCanvas({
   const contentRef = useRef<HTMLDivElement>(null);
   
   const [scale, setScale] = useState(1);
-  const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
-  const [scrollStart, setScrollStart] = useState({ x: 0, y: 0 });
+  const [topPadding, setTopPadding] = useState(100);
 
-  const VIRTUAL_CANVAS_SIZE = 8000;
   const MIN_SCALE = 0.5;
   const MAX_SCALE = 2;
+  const FIXED_TOP_PADDING = 60;
+  const MIN_BOTTOM_PADDING = 100;
   
   const dotColor = theme === 'dark'
     ? 'rgba(139, 92, 246, 0.15)'
@@ -53,52 +52,23 @@ export function FormBuilderCanvas({
   const handleResetZoom = useCallback(() => {
     setScale(1);
     if (canvasRef.current) {
-      const centerX = (VIRTUAL_CANVAS_SIZE - canvasRef.current.clientWidth) / 2;
-      const centerY = (VIRTUAL_CANVAS_SIZE - canvasRef.current.clientHeight) / 2;
-      canvasRef.current.scrollTo(centerX, centerY);
+      canvasRef.current.scrollTop = 0;
     }
   }, []);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button === 1 || (e.button === 0 && e.altKey)) {
-      e.preventDefault();
-      setIsPanning(true);
-      setPanStart({ x: e.clientX, y: e.clientY });
-      setScrollStart({
-        x: canvasRef.current?.scrollLeft || 0,
-        y: canvasRef.current?.scrollTop || 0,
-      });
+  useLayoutEffect(() => {
+    if (!canvasRef.current || !contentRef.current) return;
+    
+    const canvasHeight = canvasRef.current.clientHeight;
+    const contentHeight = contentRef.current.scrollHeight * scale;
+    
+    if (contentHeight < canvasHeight) {
+      const padding = Math.max(FIXED_TOP_PADDING, (canvasHeight - contentHeight) / 2);
+      setTopPadding(padding);
+    } else {
+      setTopPadding(FIXED_TOP_PADDING);
     }
-  }, []);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isPanning || !canvasRef.current) return;
-    const dy = e.clientY - panStart.y;
-    canvasRef.current.scrollTop = scrollStart.y - dy;
-  }, [isPanning, panStart, scrollStart]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsPanning(false);
-  }, []);
-
-  useEffect(() => {
-    if (isPanning) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isPanning, handleMouseMove, handleMouseUp]);
-
-  useEffect(() => {
-    if (canvasRef.current) {
-      const centerX = (VIRTUAL_CANVAS_SIZE - canvasRef.current.clientWidth) / 2;
-      const centerY = (VIRTUAL_CANVAS_SIZE - canvasRef.current.clientHeight) / 2;
-      canvasRef.current.scrollTo(centerX, centerY);
-    }
-  }, []);
+  }, [cards.length, scale]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -110,12 +80,11 @@ export function FormBuilderCanvas({
 
       if (e.ctrlKey || e.metaKey) {
         const delta = e.deltaY > 0 ? -0.05 : 0.05;
-        setScale((s) => {
-          const newScale = Math.min(Math.max(s + delta, MIN_SCALE), MAX_SCALE);
-          return newScale;
-        });
+        setScale((s) => Math.min(Math.max(s + delta, MIN_SCALE), MAX_SCALE));
       } else {
-        canvas.scrollTop += e.deltaY;
+        const newScrollTop = canvas.scrollTop + e.deltaY;
+        const maxScroll = canvas.scrollHeight - canvas.clientHeight;
+        canvas.scrollTop = Math.max(0, Math.min(newScrollTop, maxScroll));
       }
     };
 
@@ -127,7 +96,7 @@ export function FormBuilderCanvas({
 
   return (
     <div 
-      className="flex-1 flex flex-col relative overflow-hidden"
+      className="flex-1 flex flex-col relative"
       style={{ overflow: 'hidden' }}
     >
       <div className="absolute top-4 right-4 z-20 flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-1 border border-gray-200 dark:border-gray-700">
@@ -166,77 +135,63 @@ export function FormBuilderCanvas({
 
       <div
         ref={canvasRef}
-        className={`relative z-10 flex-1 touch-none hide-scrollbar ${
-          isPanning ? 'cursor-grabbing' : 'cursor-grab'
-        }`}
+        className="relative z-10 flex-1 hide-scrollbar"
         style={{ 
-          touchAction: 'none',
           overflowX: 'hidden',
-          overflowY: 'scroll',
+          overflowY: 'auto',
           overscrollBehavior: 'contain',
         }}
-        onMouseDown={handleMouseDown}
       >
         <div
-          ref={contentRef}
-          className="relative"
+          className="absolute inset-0 pointer-events-none z-0"
           style={{
-            width: `${VIRTUAL_CANVAS_SIZE}px`,
-            height: `${VIRTUAL_CANVAS_SIZE}px`,
-            minHeight: '100%',
+            backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
+            backgroundSize: '20px 20px',
+          }}
+        />
+
+        <div
+          ref={contentRef}
+          className="relative z-10 flex flex-col items-center"
+          style={{
+            paddingTop: `${topPadding}px`,
+            paddingBottom: `${MIN_BOTTOM_PADDING}px`,
             transform: `scale(${scale})`,
-            transformOrigin: 'center center',
+            transformOrigin: 'top center',
             transition: 'transform 0.2s ease-out',
           }}
         >
-          <div
-            className="absolute inset-0 pointer-events-none z-0"
-            style={{
-              backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
-              backgroundSize: '20px 20px',
-            }}
-          />
+          <div className="w-full max-w-2xl px-6">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Your Tender Form
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Drag cards from the sidebar to build your custom tender form
+              </p>
+            </div>
 
-          <div 
-            className="absolute flex items-start justify-center pt-16"
-            style={{
-              left: `${VIRTUAL_CANVAS_SIZE / 2 - 320}px`,
-              top: `${VIRTUAL_CANVAS_SIZE / 2 - 400}px`,
-              width: '640px',
-            }}
-          >
-            <div className="w-full max-w-2xl p-6 pointer-events-auto">
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Your Tender Form
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Drag cards from the sidebar to build your custom tender form
-                </p>
-              </div>
-
-              <div
-                ref={setNodeRef}
-                className={`space-y-4 min-h-[400px] transition-colors rounded-lg ${
-                  isOver ? "bg-[#E25E45]/5" : ""
-                }`}
+            <div
+              ref={setNodeRef}
+              className={`space-y-4 min-h-[200px] transition-colors rounded-lg ${
+                isOver ? "bg-[#E25E45]/5" : ""
+              }`}
+            >
+              <SortableContext
+                items={cards.map((c) => c.id)}
+                strategy={verticalListSortingStrategy}
               >
-                <SortableContext
-                  items={cards.map((c) => c.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {cards.map((card) => (
-                    <DraggableCard
-                      key={card.id}
-                      card={card}
-                      onRemove={onRemoveCard}
-                      onUpdate={onUpdateCard}
-                    />
-                  ))}
-                </SortableContext>
+                {cards.map((card) => (
+                  <DraggableCard
+                    key={card.id}
+                    card={card}
+                    onRemove={onRemoveCard}
+                    onUpdate={onUpdateCard}
+                  />
+                ))}
+              </SortableContext>
 
-                <DropZoneIndicator isEmpty={cards.length === 0} isOver={isOver} />
-              </div>
+              <DropZoneIndicator isEmpty={cards.length === 0} isOver={isOver} />
             </div>
           </div>
         </div>

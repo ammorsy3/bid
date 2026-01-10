@@ -61,10 +61,10 @@ export function DraggableCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white dark:bg-gray-800 border-2 rounded-lg transition-all ${
+      className={`bg-white dark:bg-gray-800 border-2 rounded-xl transition-all duration-200 ${
         isDragging
           ? "opacity-50 border-[#E25E45] shadow-lg"
-          : "border-gray-200 dark:border-gray-700 shadow-sm"
+          : "border-gray-200 dark:border-gray-700 shadow-sm hover:border-[#E25E45] hover:shadow-[0_0_0_4px_rgba(226,94,69,0.15)]"
       } ${isOverlay ? "shadow-2xl rotate-2" : ""}`}
     >
       {/* Card Header */}

@@ -169,12 +169,12 @@ export function FormBuilderCanvas({
 
       <div
         ref={canvasRef}
-        className={`relative z-10 flex-1 touch-none ${
+        className={`relative z-10 flex-1 touch-none hide-scrollbar ${
           isPanning ? 'cursor-grabbing' : 'cursor-grab'
         }`}
         style={{ 
           touchAction: 'none',
-          overflow: 'auto',
+          overflow: 'scroll',
           overscrollBehavior: 'contain',
         }}
         onMouseDown={handleMouseDown}

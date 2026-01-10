@@ -138,13 +138,6 @@ function ProjectTypeInput({
   onChange: (value: string) => void;
   readOnly?: boolean;
 }) {
-  if (readOnly) {
-    return (
-      <div className="text-sm text-gray-400 italic py-2">
-        Select project type in the next step
-      </div>
-    );
-  }
   const options = [
     {
       id: "time-bound",
@@ -166,15 +159,16 @@ function ProjectTypeInput({
         const Icon = option.icon;
         const isSelected = value === option.id;
         return (
-          <button
+          <div
             key={option.id}
-            type="button"
-            onClick={() => onChange(option.id)}
+            onClick={readOnly ? undefined : () => onChange(option.id)}
             className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all text-left ${
+              readOnly ? "opacity-60 cursor-default" : "cursor-pointer"
+            } ${
               isSelected
                 ? "border-[#E25E45] bg-[#E25E45]/5"
-                : "border-gray-200 dark:border-gray-600 hover:border-gray-300"
-            }`}
+                : "border-gray-200 dark:border-gray-600"
+            } ${!readOnly && !isSelected ? "hover:border-gray-300" : ""}`}
           >
             <div
               className={`p-2 rounded-lg ${
@@ -202,7 +196,7 @@ function ProjectTypeInput({
             >
               {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
             </div>
-          </button>
+          </div>
         );
       })}
     </div>
@@ -219,13 +213,6 @@ function SupplierResponseInput({
   onChange: (value: string) => void;
   readOnly?: boolean;
 }) {
-  if (readOnly) {
-    return (
-      <div className="text-sm text-gray-400 italic py-2">
-        Select response method in the next step
-      </div>
-    );
-  }
   const options = [
     {
       id: "document",
@@ -259,15 +246,16 @@ function SupplierResponseInput({
         const Icon = option.icon;
         const isSelected = value === option.id;
         return (
-          <button
+          <div
             key={option.id}
-            type="button"
-            onClick={() => onChange(option.id)}
+            onClick={readOnly ? undefined : () => onChange(option.id)}
             className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all text-left ${
+              readOnly ? "opacity-60 cursor-default" : "cursor-pointer"
+            } ${
               isSelected
                 ? "border-[#E25E45] bg-[#E25E45]/5"
-                : "border-gray-200 dark:border-gray-600 hover:border-gray-300"
-            }`}
+                : "border-gray-200 dark:border-gray-600"
+            } ${!readOnly && !isSelected ? "hover:border-gray-300" : ""}`}
           >
             <div
               className={`p-2 rounded-lg ${
@@ -295,7 +283,7 @@ function SupplierResponseInput({
             >
               {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
             </div>
-          </button>
+          </div>
         );
       })}
     </div>

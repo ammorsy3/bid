@@ -4,11 +4,14 @@ import { Star, GripVertical } from "lucide-react";
 
 interface CardLibrarySidebarProps {
   usedCardTypes: string[];
+  width?: number;
 }
 
-export function CardLibrarySidebar({ usedCardTypes }: CardLibrarySidebarProps) {
+export function CardLibrarySidebar({ usedCardTypes, width = 288 }: CardLibrarySidebarProps) {
   return (
-    <div className="w-72 flex-shrink-0 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
+    <div 
+      style={{ width: `${width}px` }}
+      className="flex-shrink-0 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
       <div className="p-4 space-y-6">
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">

@@ -172,21 +172,13 @@ export default function TenderFormBuilder() {
     navigate("/tenders/new/manual");
   };
 
-  const handleContinueToFill = () => {
-    // Save form structure (with ids but without values) to localStorage for fill phase
-    const FORM_STRUCTURE_KEY = "tender_form_structure";
-    const formStructure = cards.map((card) => ({
-      id: card.id,
-      type: card.type,
-      label: card.label,
-      isRequired: card.isRequired,
-      options: card.options,
-      placeholder: card.placeholder,
-    }));
-    localStorage.setItem(FORM_STRUCTURE_KEY, JSON.stringify(formStructure));
+  const handleReviewAndLaunch = () => {
+    // Save full card state (with values) to localStorage for review phase
+    const TENDER_STATE_KEY = "tender_form_state";
+    localStorage.setItem(TENDER_STATE_KEY, JSON.stringify(cards));
 
-    // Navigate to fill page
-    navigate("/tenders/new/fill");
+    // Navigate to review page
+    navigate("/tenders/new/review");
   };
 
   const handleSaveAsTemplate = async () => {
@@ -231,8 +223,8 @@ export default function TenderFormBuilder() {
       setTemplateName("");
       setTemplateDescription("");
 
-      // Also continue to fill form
-      handleContinueToFill();
+      // Also continue to review
+      handleReviewAndLaunch();
     } catch (error) {
       toast({
         title: "Error saving template",
@@ -315,7 +307,7 @@ export default function TenderFormBuilder() {
                 Submit & Save Template
               </Button>
               <Button
-                onClick={handleContinueToFill}
+                onClick={handleReviewAndLaunch}
                 className="bg-[#E25E45] hover:bg-[#d54d35]"
               >
                 Review & Launch

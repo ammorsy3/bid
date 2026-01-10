@@ -323,7 +323,9 @@ export default function TenderFormBuilder() {
                 variant="outline"
                 onClick={() => setShowSaveDialog(true)}
                 disabled={!isFormValid}
-                className={`border-[#E25E45] text-[#E25E45] hover:bg-[#E25E45]/5 ${!isFormValid ? "opacity-50 cursor-not-allowed border-gray-300 text-gray-400" : ""}`}
+                className={isFormValid 
+                  ? "border-[#E25E45] text-[#E25E45] hover:bg-[#E25E45]/5" 
+                  : "border-gray-400 dark:border-gray-600 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-not-allowed"}
                 title={!isFormValid ? `Complete required fields: ${missingFields.join(", ")}` : ""}
               >
                 <Save className="h-4 w-4 mr-2" />
@@ -332,7 +334,9 @@ export default function TenderFormBuilder() {
               <Button
                 onClick={handleReviewAndLaunch}
                 disabled={!isFormValid}
-                className={`${isFormValid ? "bg-[#E25E45] hover:bg-[#d54d35]" : "bg-gray-400 cursor-not-allowed"}`}
+                className={isFormValid 
+                  ? "bg-[#E25E45] hover:bg-[#d54d35] text-white" 
+                  : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"}
                 title={!isFormValid ? `Complete required fields: ${missingFields.join(", ")}` : ""}
               >
                 Review & Launch

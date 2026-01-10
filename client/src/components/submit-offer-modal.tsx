@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { NeonButton } from "@/components/ui/neon-button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { SmartTextarea } from "@/components/ui/smart-input";
+import { SmartTextarea, SmartInput } from "@/components/ui/smart-input";
 import { FormProgress, DraftIndicator } from "@/components/ui/form-progress";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { useForm } from "react-hook-form";
@@ -12,10 +12,10 @@ import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { FileText, DollarSign, AlertTriangle, Clock, Sparkles, Check, X, ShieldAlert } from "lucide-react";
+import { FileText, DollarSign, AlertTriangle, Clock, Sparkles, Check, X, ShieldAlert, Video, Info } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { enUS } from "date-fns/locale";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAutosave, DraftStorage } from "@/lib/autosave";
 import { calculateFormProgress } from "@/lib/form-validation";
 import { useFormKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
@@ -23,13 +23,71 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { UploadResult } from "@uppy/core";
 import { useLocation } from "wouter";
 
-const submitOfferSchema = z.object({
-  technicalFileUrl: z.string().min(1, "Technical proposal is required"),
-  financialFileUrl: z.string().min(1, "Financial proposal is required"),
+type SubmissionType = 'quote_only' | 'tech_fin_proposal' | 'video_only' | 'tech_fin_with_video';
+
+// Base schema for all submission types
+const baseSchema = z.object({
   notes: z.string().optional(),
 });
 
-type SubmitOfferForm = z.infer<typeof submitOfferSchema>;
+// Schema for quote_only
+const quoteOnlySchema = baseSchema.extend({
+  quotePrice: z.number().min(1, "Price quote is required"),
+});
+
+// Schema for video_only
+const videoOnlySchema = baseSchema.extend({
+  videoUrl: z.string().url("Please enter a valid video URL").min(1, "Video URL is required"),
+});
+
+// Schema for tech_fin_proposal (default)
+const techFinSchema = baseSchema.extend({
+  technicalFileUrl: z.string().min(1, "Technical proposal is required"),
+  financialFileUrl: z.string().min(1, "Financial proposal is required"),
+});
+
+// Schema for tech_fin_with_video
+const techFinWithVideoSchema = baseSchema.extend({
+  technicalFileUrl: z.string().min(1, "Technical proposal is required"),
+  financialFileUrl: z.string().min(1, "Financial proposal is required"),
+  videoUrl: z.string().url("Please enter a valid video URL").optional(),
+});
+
+// Function to get the appropriate schema based on submission type
+function getSchema(submissionType?: SubmissionType, videoRequired?: boolean) {
+  switch (submissionType) {
+    case 'quote_only':
+      return quoteOnlySchema;
+    case 'video_only':
+      return videoOnlySchema;
+    case 'tech_fin_with_video':
+      if (videoRequired) {
+        return techFinWithVideoSchema.extend({
+          videoUrl: z.string().url("Please enter a valid video URL").min(1, "Video is required for this tender"),
+        });
+      }
+      return techFinWithVideoSchema;
+    case 'tech_fin_proposal':
+    default:
+      return techFinSchema;
+  }
+}
+
+// Combined type for all possible form fields
+type SubmitOfferForm = {
+  technicalFileUrl?: string;
+  financialFileUrl?: string;
+  quotePrice?: number;
+  videoUrl?: string;
+  notes?: string;
+};
+
+const SUBMISSION_TYPE_LABELS: Record<string, string> = {
+  quote_only: "Price Quote Only",
+  tech_fin_proposal: "Full Proposal",
+  video_only: "Video Pitch Only",
+  tech_fin_with_video: "Full Proposal + Video",
+};
 
 interface SubmitOfferModalProps {
   isOpen: boolean;
@@ -39,6 +97,8 @@ interface SubmitOfferModalProps {
     title: string;
     deadline: string;
     budget?: string;
+    submissionType?: SubmissionType;
+    videoRequired?: boolean;
   };
   requester: {
     name: string;
@@ -47,7 +107,21 @@ interface SubmitOfferModalProps {
 }
 
 const FORM_ID_PREFIX = 'submit-offer-';
-const REQUIRED_FIELDS: (keyof SubmitOfferForm)[] = ['technicalFileUrl', 'financialFileUrl'];
+
+// Get required fields based on submission type
+function getRequiredFields(submissionType?: SubmissionType): string[] {
+  switch (submissionType) {
+    case 'quote_only':
+      return ['quotePrice'];
+    case 'video_only':
+      return ['videoUrl'];
+    case 'tech_fin_with_video':
+      return ['technicalFileUrl', 'financialFileUrl'];
+    case 'tech_fin_proposal':
+    default:
+      return ['technicalFileUrl', 'financialFileUrl'];
+  }
+}
 
 export default function SubmitOfferModal({ isOpen, onClose, tender, requester }: SubmitOfferModalProps) {
   const { toast } = useToast();
@@ -80,16 +154,27 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   });
 
   const hasExistingOffer = existingOffers && existingOffers.length > 0;
-  
+
   // Check verification status - allow both verified and under_review to submit
   const verificationStatus = activeCompany?.verificationStatus || 'not_verified';
   const canSubmitOffer = verificationStatus === 'verified' || verificationStatus === 'under_review';
 
+  // Get the appropriate schema based on submission type
+  const schema = useMemo(() => getSchema(tender.submissionType, tender.videoRequired), [tender.submissionType, tender.videoRequired]);
+  const requiredFields = useMemo(() => getRequiredFields(tender.submissionType), [tender.submissionType]);
+
+  // Determine what fields to show
+  const showTechFinFields = !tender.submissionType || tender.submissionType === 'tech_fin_proposal' || tender.submissionType === 'tech_fin_with_video';
+  const showQuoteField = tender.submissionType === 'quote_only';
+  const showVideoField = tender.submissionType === 'video_only' || tender.submissionType === 'tech_fin_with_video';
+
   const form = useForm<SubmitOfferForm>({
-    resolver: zodResolver(submitOfferSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       technicalFileUrl: "",
       financialFileUrl: "",
+      quotePrice: undefined,
+      videoUrl: "",
       notes: "",
     },
   });
@@ -101,7 +186,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     isOpen
   );
 
-  const progress = calculateFormProgress(form, REQUIRED_FIELDS);
+  const progress = calculateFormProgress(form, requiredFields as any);
 
   // Calculate time remaining with real-time updates
   const deadlineDate = new Date(tender.deadline);
@@ -316,15 +401,41 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
         ) : (
           <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Submission Type Info */}
+            {tender.submissionType && (
+              <Alert className="bg-blue-50 border-blue-200">
+                <Info className="h-4 w-4 text-blue-600" />
+                <AlertDescription>
+                  <strong className="text-blue-900">Submission Type:</strong>{' '}
+                  <span className="text-blue-800">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</span>
+                  {tender.videoRequired && tender.submissionType === 'tech_fin_with_video' && (
+                    <span className="text-orange-600 ml-2">(Video required)</span>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Progress & Deadline */}
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1">
-                <FormProgress 
+                <FormProgress
                   progress={progress}
-                  steps={[
-                    { label: 'Technical proposal', completed: !!formValues.technicalFileUrl && !form.formState.errors.technicalFileUrl },
-                    { label: 'Financial proposal', completed: !!formValues.financialFileUrl && !form.formState.errors.financialFileUrl },
-                  ]}
+                  steps={
+                    showQuoteField
+                      ? [{ label: 'Price quote', completed: !!formValues.quotePrice }]
+                      : showVideoField && !showTechFinFields
+                      ? [{ label: 'Video pitch', completed: !!formValues.videoUrl }]
+                      : showVideoField && showTechFinFields
+                      ? [
+                          { label: 'Technical proposal', completed: !!formValues.technicalFileUrl && !form.formState.errors.technicalFileUrl },
+                          { label: 'Financial proposal', completed: !!formValues.financialFileUrl && !form.formState.errors.financialFileUrl },
+                          { label: 'Video pitch', completed: !!formValues.videoUrl || !tender.videoRequired },
+                        ]
+                      : [
+                          { label: 'Technical proposal', completed: !!formValues.technicalFileUrl && !form.formState.errors.technicalFileUrl },
+                          { label: 'Financial proposal', completed: !!formValues.financialFileUrl && !form.formState.errors.financialFileUrl },
+                        ]
+                  }
                 />
               </div>
               <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isUrgent ? 'bg-error-50 text-error-700' : 'bg-neutral-100 text-neutral-700'}`}>
@@ -381,82 +492,144 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </Alert>
             )}
 
-            {/* File Uploads */}
-            <FormField
-              control={form.control}
-              name="technicalFileUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Technical Proposal *</FormLabel>
-                  <FormControl>
-                    <div className="space-y-2">
-                      <ObjectUploader
-                        maxNumberOfFiles={1}
-                        maxFileSize={10485760}
-                        allowedFileTypes={['.pdf', '.doc', '.docx']}
-                        onGetUploadParameters={handleGetUploadURL}
-                        onComplete={handleTechnicalUploadComplete}
-                        buttonVariant="outline"
-                        buttonClassName="w-full h-24 border-2 border-dashed"
-                      >
-                        <div className="flex flex-col items-center gap-2">
-                          <FileText className="h-6 w-6 text-neutral-400" />
-                          <div className="text-center">
-                            <p className="text-sm text-neutral-600">Upload technical proposal</p>
-                            <p className="text-xs text-neutral-500">PDF, DOC, DOCX • Max 10MB</p>
-                          </div>
-                        </div>
-                      </ObjectUploader>
-                      {uploadedFiles.technical && (
-                        <div className="flex items-center gap-2 text-sm text-success-600">
-                          <Check className="h-4 w-4" />
-                          <span>{uploadedFiles.technical}</span>
-                        </div>
-                      )}
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Quote Price Field (for quote_only) */}
+            {showQuoteField && (
+              <FormField
+                control={form.control}
+                name="quotePrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Your Price Quote (SAR) *</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                        <input
+                          type="number"
+                          placeholder="Enter your price in SAR"
+                          className="w-full pl-10 pr-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          value={field.value || ''}
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                          data-testid="input-quote-price"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
-            <FormField
-              control={form.control}
-              name="financialFileUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Financial Proposal *</FormLabel>
-                  <FormControl>
-                    <div className="space-y-2">
-                      <ObjectUploader
-                        maxNumberOfFiles={1}
-                        maxFileSize={10485760}
-                        allowedFileTypes={['.pdf', '.doc', '.docx', '.xls', '.xlsx']}
-                        onGetUploadParameters={handleGetUploadURL}
-                        onComplete={handleFinancialUploadComplete}
-                        buttonVariant="outline"
-                        buttonClassName="w-full h-24 border-2 border-dashed"
-                      >
-                        <div className="flex flex-col items-center gap-2">
-                          <DollarSign className="h-6 w-6 text-neutral-400" />
-                          <div className="text-center">
-                            <p className="text-sm text-neutral-600">Upload financial proposal</p>
-                            <p className="text-xs text-neutral-500">PDF, DOC, XLS • Max 10MB</p>
-                          </div>
+            {/* Video URL Field (for video_only or tech_fin_with_video) */}
+            {showVideoField && (
+              <FormField
+                control={form.control}
+                name="videoUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Video Pitch URL {tender.videoRequired || tender.submissionType === 'video_only' ? '*' : '(Optional)'}
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Video className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                        <input
+                          type="url"
+                          placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+                          className="w-full pl-10 pr-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          data-testid="input-video-url"
+                          {...field}
+                        />
+                      </div>
+                    </FormControl>
+                    <p className="text-xs text-neutral-500 mt-1">
+                      Share a video explaining your approach, qualifications, and why you're the right fit for this project.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Technical & Financial File Uploads (for tech_fin_proposal or tech_fin_with_video) */}
+            {showTechFinFields && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="technicalFileUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Technical Proposal *</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2">
+                          <ObjectUploader
+                            maxNumberOfFiles={1}
+                            maxFileSize={10485760}
+                            allowedFileTypes={['.pdf', '.doc', '.docx']}
+                            onGetUploadParameters={handleGetUploadURL}
+                            onComplete={handleTechnicalUploadComplete}
+                            buttonVariant="outline"
+                            buttonClassName="w-full h-24 border-2 border-dashed"
+                          >
+                            <div className="flex flex-col items-center gap-2">
+                              <FileText className="h-6 w-6 text-neutral-400" />
+                              <div className="text-center">
+                                <p className="text-sm text-neutral-600">Upload technical proposal</p>
+                                <p className="text-xs text-neutral-500">PDF, DOC, DOCX • Max 10MB</p>
+                              </div>
+                            </div>
+                          </ObjectUploader>
+                          {uploadedFiles.technical && (
+                            <div className="flex items-center gap-2 text-sm text-success-600">
+                              <Check className="h-4 w-4" />
+                              <span>{uploadedFiles.technical}</span>
+                            </div>
+                          )}
                         </div>
-                      </ObjectUploader>
-                      {uploadedFiles.financial && (
-                        <div className="flex items-center gap-2 text-sm text-success-600">
-                          <Check className="h-4 w-4" />
-                          <span>{uploadedFiles.financial}</span>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="financialFileUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Financial Proposal *</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2">
+                          <ObjectUploader
+                            maxNumberOfFiles={1}
+                            maxFileSize={10485760}
+                            allowedFileTypes={['.pdf', '.doc', '.docx', '.xls', '.xlsx']}
+                            onGetUploadParameters={handleGetUploadURL}
+                            onComplete={handleFinancialUploadComplete}
+                            buttonVariant="outline"
+                            buttonClassName="w-full h-24 border-2 border-dashed"
+                          >
+                            <div className="flex flex-col items-center gap-2">
+                              <DollarSign className="h-6 w-6 text-neutral-400" />
+                              <div className="text-center">
+                                <p className="text-sm text-neutral-600">Upload financial proposal</p>
+                                <p className="text-xs text-neutral-500">PDF, DOC, XLS • Max 10MB</p>
+                              </div>
+                            </div>
+                          </ObjectUploader>
+                          {uploadedFiles.financial && (
+                            <div className="flex items-center gap-2 text-sm text-success-600">
+                              <Check className="h-4 w-4" />
+                              <span>{uploadedFiles.financial}</span>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
 
             <FormField
               control={form.control}

@@ -957,6 +957,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         voiceNoteUrl: tender.voiceNoteUrl,
         videoUrl: tender.videoUrl,
         projectTimeline: tender.projectTimeline,
+        // Submission process fields
+        submissionType: tender.submissionType,
+        videoRequired: tender.videoRequired,
+        // Inquiry/contact fields
+        inquiryType: tender.inquiryType,
+        whatsappContact: tender.whatsappContact,
+        emailContact: tender.emailContact,
+        // Evaluation and scope
+        evaluationCriteria: tender.evaluationCriteria,
+        objective: tender.objective,
+        deliverables: tender.deliverables,
+        // Price display settings
+        showPriceToVendors: tender.showPriceToVendors,
+        projectSize: tender.projectSize,
         company: company ? {
           id: company.id,
           name: company.name

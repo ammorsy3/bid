@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -13,6 +13,21 @@ import type { Tender } from "@shared/schema";
 import SubmitOfferModal from "@/components/submit-offer-modal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
+
+const SUBMISSION_TYPE_LABELS: Record<string, string> = {
+  quote_only: "Price Quote Only",
+  tech_fin_proposal: "Full Proposal (Technical + Financial)",
+  video_only: "Video Pitch Only",
+  tech_fin_with_video: "Full Proposal + Video Pitch",
+};
+
+const CRITERIA_LABELS: Record<string, string> = {
+  financial_offer: "Competitive Pricing",
+  previous_work: "Relevant Experience",
+  clear_timeline: "Clear Timeline",
+  technical_approach: "Technical Approach",
+  team_expertise: "Team Expertise",
+};
 
 function AudioPlayer({ src }: { src: string }) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -501,18 +516,132 @@ export default function TenderDetails() {
                     </div>
                   )}
 
-                  {tender.duration && (
+                  {(tender.duration || tender.projectTimeline) && (
                     <div className="flex items-center gap-3">
                       <Clock className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Duration</p>
-                        <p className="font-medium">{tender.duration}</p>
+                        <p className="text-sm text-muted-foreground">Project Timeline</p>
+                        <p className="font-medium">{tender.projectTimeline || tender.duration}</p>
                       </div>
                     </div>
                   )}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Project Objective & Deliverables */}
+            {(tender.objective || (tender.deliverables && tender.deliverables.length > 0)) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    Project Scope
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {tender.objective && (
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Project Objective</h4>
+                      <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{tender.objective}</p>
+                    </div>
+                  )}
+                  {tender.deliverables && tender.deliverables.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+                        <ListChecks className="h-4 w-4" />
+                        Key Deliverables
+                      </h4>
+                      <ul className="list-disc list-inside space-y-1">
+                        {tender.deliverables.map((deliverable, index) => (
+                          <li key={index} className="text-gray-800 dark:text-gray-200">{deliverable}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Submission Requirements */}
+            {tender.submissionType && (
+              <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    Submission Requirements
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                    {SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}
+                  </Badge>
+                  {tender.videoRequired && (
+                    <p className="text-sm text-orange-600 dark:text-orange-400 flex items-center gap-2">
+                      <Video className="h-4 w-4" />
+                      Video submission is required
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Evaluation Criteria */}
+            {tender.evaluationCriteria && tender.evaluationCriteria.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="h-5 w-5" />
+                    Evaluation Criteria
+                  </CardTitle>
+                  <CardDescription>
+                    What matters most when evaluating proposals
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {tender.evaluationCriteria.map((criteriaId, index) => (
+                      <Badge key={index} variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                        {CRITERIA_LABELS[criteriaId] || criteriaId}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Contact Information */}
+            {tender.inquiryType === 'email_whatsapp' && (tender.emailContact || tender.whatsappContact) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    Contact for Inquiries
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-wrap gap-4">
+                  {tender.emailContact && (
+                    <a
+                      href={`mailto:${tender.emailContact}`}
+                      className="flex items-center gap-2 text-blue-600 hover:underline"
+                    >
+                      <Mail className="h-4 w-4" />
+                      {tender.emailContact}
+                    </a>
+                  )}
+                  {tender.whatsappContact && (
+                    <a
+                      href={tender.whatsappContact.startsWith('http') ? tender.whatsappContact : `https://wa.me/${tender.whatsappContact.replace(/\D/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-green-600 hover:underline"
+                    >
+                      <Phone className="h-4 w-4" />
+                      WhatsApp: {tender.whatsappContact}
+                    </a>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Submit Offer Section (for non-owner companies) */}
             {!isOwner && activeCompany && (
@@ -889,7 +1018,9 @@ export default function TenderDetails() {
             id: tender.id,
             title: tender.title,
             deadline: tender.deadline,
-            budget: tender.budget || undefined
+            budget: tender.budget || undefined,
+            submissionType: tender.submissionType as any,
+            videoRequired: tender.videoRequired ?? undefined,
           }}
           requester={{
             name: 'Company',

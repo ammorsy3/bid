@@ -3,12 +3,13 @@ import { useRoute, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Calendar, DollarSign, Clock, Building2, ArrowLeft, Send, FileText, Video, Play, Pause, AlertCircle } from "lucide-react";
+import { Loader2, Calendar, DollarSign, Clock, Building2, ArrowLeft, Send, FileText, Video, Play, Pause, AlertCircle, Target, ListChecks, Star, Mail, Phone, MessageSquare } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import SubmitOfferModal from "@/components/submit-offer-modal";
+import { formatCurrency } from "@/lib/format-currency";
 
 interface Milestone {
   name: string;
@@ -33,6 +34,17 @@ interface TenderInvite {
   milestones?: Milestone[];
   voiceNoteUrl?: string;
   videoUrl?: string;
+  // Submission process fields
+  submissionType?: 'quote_only' | 'tech_fin_proposal' | 'video_only' | 'tech_fin_with_video';
+  videoRequired?: boolean;
+  // Inquiry/contact fields
+  inquiryType?: 'inside_bid' | 'email_whatsapp';
+  whatsappContact?: string;
+  emailContact?: string;
+  // Evaluation and scope
+  evaluationCriteria?: string[];
+  objective?: string;
+  deliverables?: string[];
   company?: {
     id: string;
     name: string;
@@ -60,15 +72,19 @@ const getProjectSizeRange = (size: string): string => {
   }
 };
 
-const formatSAR = (amount: string | number) => {
-  const num = typeof amount === "string" ? parseFloat(amount) : amount;
-  if (isNaN(num)) return amount;
-  return new Intl.NumberFormat("ar-SA", {
-    style: "currency",
-    currency: "SAR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(num);
+const SUBMISSION_TYPE_LABELS: Record<string, string> = {
+  quote_only: "Price Quote Only",
+  tech_fin_proposal: "Full Proposal (Technical + Financial)",
+  video_only: "Video Pitch Only",
+  tech_fin_with_video: "Full Proposal + Video Pitch",
+};
+
+const CRITERIA_LABELS: Record<string, string> = {
+  financial_offer: "Competitive Pricing",
+  previous_work: "Relevant Experience",
+  clear_timeline: "Clear Timeline",
+  technical_approach: "Technical Approach",
+  team_expertise: "Team Expertise",
 };
 
 function AudioPlayer({ src }: { src: string }) {
@@ -336,7 +352,7 @@ export default function TenderInviteLink() {
               {tender.showPriceToVendors !== false && tender.budget ? (
                 <>
                   <p className="font-semibold text-gray-900">
-                    {formatSAR(tender.budget)}
+                    {formatCurrency(tender.budget)}
                   </p>
                   {tender.projectSize && (
                     <p className="text-xs text-gray-500 mt-1">
@@ -508,15 +524,140 @@ export default function TenderInviteLink() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <a 
-                href={tender.videoUrl} 
-                target="_blank" 
+              <a
+                href={tender.videoUrl}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline flex items-center gap-2"
               >
                 <Video className="h-4 w-4" />
                 Watch project video
               </a>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Project Objective & Deliverables */}
+        {(tender.objective || (tender.deliverables && tender.deliverables.length > 0)) && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Project Scope
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {tender.objective && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">Project Objective</h4>
+                  <p className="text-gray-800 whitespace-pre-wrap">{tender.objective}</p>
+                </div>
+              )}
+              {tender.deliverables && tender.deliverables.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center gap-2">
+                    <ListChecks className="h-4 w-4" />
+                    Key Deliverables
+                  </h4>
+                  <ul className="list-disc list-inside space-y-1">
+                    {tender.deliverables.map((deliverable, index) => (
+                      <li key={index} className="text-gray-800">{deliverable}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Submission Requirements */}
+        {tender.submissionType && (
+          <Card className="mb-6 border-blue-200 bg-blue-50/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                How to Submit Your Proposal
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                  {SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}
+                </Badge>
+              </div>
+              {tender.videoRequired && (
+                <p className="text-sm text-orange-600 flex items-center gap-2">
+                  <Video className="h-4 w-4" />
+                  Video submission is required for this tender
+                </p>
+              )}
+              <p className="text-sm text-gray-600">
+                {tender.submissionType === 'quote_only' && "Submit your best price quote for this project."}
+                {tender.submissionType === 'video_only' && "Record a video pitch explaining your approach and qualifications."}
+                {tender.submissionType === 'tech_fin_proposal' && "Submit both a technical proposal and a financial proposal document."}
+                {tender.submissionType === 'tech_fin_with_video' && "Submit technical and financial proposals along with a video pitch."}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Evaluation Criteria */}
+        {tender.evaluationCriteria && tender.evaluationCriteria.length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="h-5 w-5" />
+                What We Value Most
+              </CardTitle>
+              <CardDescription>
+                These criteria will be prioritized when evaluating proposals
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {tender.evaluationCriteria.map((criteriaId, index) => (
+                  <Badge key={index} variant="secondary" className="bg-purple-100 text-purple-800">
+                    {CRITERIA_LABELS[criteriaId] || criteriaId}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Contact Information */}
+        {tender.inquiryType === 'email_whatsapp' && (tender.emailContact || tender.whatsappContact) && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Questions? Contact Us
+              </CardTitle>
+              <CardDescription>
+                Reach out if you have any questions about this tender
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-4">
+              {tender.emailContact && (
+                <a
+                  href={`mailto:${tender.emailContact}`}
+                  className="flex items-center gap-2 text-blue-600 hover:underline"
+                >
+                  <Mail className="h-4 w-4" />
+                  {tender.emailContact}
+                </a>
+              )}
+              {tender.whatsappContact && (
+                <a
+                  href={tender.whatsappContact.startsWith('http') ? tender.whatsappContact : `https://wa.me/${tender.whatsappContact.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-green-600 hover:underline"
+                >
+                  <Phone className="h-4 w-4" />
+                  WhatsApp: {tender.whatsappContact}
+                </a>
+              )}
             </CardContent>
           </Card>
         )}
@@ -560,6 +701,8 @@ export default function TenderInviteLink() {
             title: tender.title,
             deadline: tender.deadline,
             budget: tender.budgetRange || tender.budget,
+            submissionType: tender.submissionType,
+            videoRequired: tender.videoRequired,
           }}
           requester={{
             name: tender.profile?.displayName || tender.company?.name || "Unknown",

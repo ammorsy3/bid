@@ -98,18 +98,17 @@ export default function TenderProjectScopeStep() {
     navigate("/tenders/new");
   };
 
-  // Form is valid if we have objective and at least one deliverable
+  // Form is valid if we have at least one deliverable and description
   const isFormValid =
-    projectObjective.trim().length > 0 &&
     keyDeliverables.length > 0 &&
     (inputMode === "text" ? projectDescription.trim().length > 0 : voiceNoteUrl.length > 0);
 
   const maxDescriptionChars = 5000;
   const descriptionCharCount = projectDescription.length;
 
-  // Progressive disclosure logic
-  const showDeliverables = projectObjective.trim().length >= 10;
-  const showDescription = keyDeliverables.length > 0;
+  // Progressive disclosure logic - show description when user has deliverables or objective
+  const showDeliverables = true; // Always show deliverables
+  const showDescription = keyDeliverables.length > 0 || projectObjective.trim().length > 0;
 
   // Show quick suggestions only if user hasn't started typing (less than 10 chars)
   const showQuickSuggestions = projectObjective.trim().length < 10 && quickSuggestions.length > 0;
@@ -155,8 +154,7 @@ export default function TenderProjectScopeStep() {
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
                 Help candidates understand what you're looking for by clearly
-                defining your project objective, key deliverables, and
-                additional details.
+                defining your key deliverables and additional project details.
               </p>
             </div>
           </div>
@@ -170,7 +168,7 @@ export default function TenderProjectScopeStep() {
                 {/* Project Objective with Autocomplete */}
                 <div className="space-y-3">
                   <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                    Project Objective
+                    Project Objective <span className="text-gray-400 font-normal">(Optional)</span>
                   </label>
                   <AutocompleteInput
                     value={projectObjective}

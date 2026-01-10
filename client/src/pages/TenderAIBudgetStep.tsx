@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Sparkles, Edit3, Loader2, AlertCircle, Eye, EyeOff, Info } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
 
 type BudgetMode = "manual" | "ai" | null;
@@ -48,6 +48,9 @@ export default function TenderAIBudgetStep() {
 
   // Budget state
   const [budget, setBudget] = useState("");
+  const [priceType, setPriceType] = useState<"exact" | "range">("exact");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [showPriceToVendors, setShowPriceToVendors] = useState(true);
 
   const draft = useMemo(() => {
@@ -58,8 +61,22 @@ export default function TenderAIBudgetStep() {
     }
   }, []);
 
+  // Initialize price type and values from draft
+  useEffect(() => {
+    if (draft.budgetMin && draft.budgetMax) {
+      setPriceType("range");
+      setMinPrice(draft.budgetMin.toString());
+      setMaxPrice(draft.budgetMax.toString());
+    } else if (draft.budget) {
+      setPriceType("exact");
+      setBudget(draft.budget);
+    }
+  }, []);
+
   // Calculate project size based on budget
-  const budgetNumber = parseFloat(budget) || 0;
+  const budgetNumber = priceType === "exact"
+    ? (parseFloat(budget) || 0)
+    : (parseFloat(maxPrice) || 0); // Use max price for range to determine project size
   const projectSize = budgetNumber > 0 ? getProjectSize(budgetNumber) : null;
 
   const handleAIEstimate = async () => {
@@ -97,7 +114,9 @@ export default function TenderAIBudgetStep() {
     if (isFormValid) {
       const updated = {
         ...draft,
-        budget: budget,
+        budget: priceType === "exact" ? budget : `${minPrice} - ${maxPrice}`,
+        budgetMin: priceType === "range" ? parseFloat(minPrice) : undefined,
+        budgetMax: priceType === "range" ? parseFloat(maxPrice) : undefined,
         projectSize: projectSize,
         showPriceToVendors: showPriceToVendors,
         aiEstimate: aiEstimate || undefined,
@@ -111,7 +130,10 @@ export default function TenderAIBudgetStep() {
     navigate("/tenders/new/project-scope");
   };
 
-  const isFormValid = budgetMode !== null && budgetNumber > 0;
+  const isFormValid = budgetMode !== null && (
+    (priceType === "exact" && budgetNumber > 0) ||
+    (priceType === "range" && parseFloat(minPrice) > 0 && parseFloat(maxPrice) > 0 && parseFloat(minPrice) < parseFloat(maxPrice))
+  );
 
   const formatSAR = (amount: number) => {
     return new Intl.NumberFormat("ar-SA", {
@@ -342,22 +364,105 @@ export default function TenderAIBudgetStep() {
                   <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
                     {/* Budget Input */}
                     <div className="space-y-3">
-                      <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
                         {budgetMode === "ai" ? "Adjust budget if needed" : "Enter your budget"}
                       </label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-600 dark:text-gray-400 font-medium">
-                          SAR
-                        </span>
-                        <input
-                          type="number"
-                          placeholder="0"
-                          value={budget}
-                          onChange={(e) => setBudget(e.target.value)}
-                          className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
-                          data-testid="input-budget"
-                        />
-                      </div>
+
+                      {/* Price Type Toggle - Only show in manual mode */}
+                      {budgetMode === "manual" && (
+                        <div className="flex gap-2 mb-4">
+                          <button
+                            type="button"
+                            onClick={() => setPriceType("exact")}
+                            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                              priceType === "exact"
+                                ? "bg-[#E25E45] text-white"
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                            }`}
+                            data-testid="button-exact-price"
+                          >
+                            Exact Budget
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPriceType("range")}
+                            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                              priceType === "range"
+                                ? "bg-[#E25E45] text-white"
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                            }`}
+                            data-testid="button-range-price"
+                          >
+                            Budget Range
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Exact Budget Input */}
+                      {(budgetMode === "ai" || priceType === "exact") && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-600 dark:text-gray-400 font-medium">
+                            SAR
+                          </span>
+                          <input
+                            type="number"
+                            placeholder="0"
+                            value={budget}
+                            onChange={(e) => setBudget(e.target.value)}
+                            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                            data-testid="input-budget"
+                          />
+                        </div>
+                      )}
+
+                      {/* Range Budget Inputs */}
+                      {budgetMode === "manual" && priceType === "range" && (
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                                Minimum
+                              </label>
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                  SAR
+                                </span>
+                                <input
+                                  type="number"
+                                  placeholder="0"
+                                  value={minPrice}
+                                  onChange={(e) => setMinPrice(e.target.value)}
+                                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                                  data-testid="input-min-price"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                                Maximum
+                              </label>
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                  SAR
+                                </span>
+                                <input
+                                  type="number"
+                                  placeholder="0"
+                                  value={maxPrice}
+                                  onChange={(e) => setMaxPrice(e.target.value)}
+                                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                                  data-testid="input-max-price"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          {minPrice && maxPrice && parseFloat(minPrice) >= parseFloat(maxPrice) && (
+                            <p className="text-xs text-red-600 dark:text-red-400">
+                              Maximum price must be greater than minimum price
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Project Size Badge - Auto calculated */}
@@ -378,46 +483,48 @@ export default function TenderAIBudgetStep() {
                       </div>
                     )}
 
-                    {/* Show Price to Vendors Toggle */}
-                    <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {showPriceToVendors ? (
-                            <Eye className="h-5 w-5 text-gray-500" />
-                          ) : (
-                            <EyeOff className="h-5 w-5 text-gray-500" />
-                          )}
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">
-                            Show exact price to suppliers
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setShowPriceToVendors(!showPriceToVendors)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            showPriceToVendors ? "bg-[#E25E45]" : "bg-gray-300 dark:bg-gray-600"
-                          }`}
-                          data-testid="toggle-show-price"
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              showPriceToVendors ? "translate-x-6" : "translate-x-1"
+                    {/* Show Price to Vendors Toggle - Only show for exact budget (not for range or AI mode) */}
+                    {(budgetMode === "ai" || priceType === "exact") && (
+                      <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {showPriceToVendors ? (
+                              <Eye className="h-5 w-5 text-gray-500" />
+                            ) : (
+                              <EyeOff className="h-5 w-5 text-gray-500" />
+                            )}
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              Show exact price to suppliers
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowPriceToVendors(!showPriceToVendors)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                              showPriceToVendors ? "bg-[#E25E45]" : "bg-gray-300 dark:bg-gray-600"
                             }`}
-                          />
-                        </button>
-                      </div>
+                            data-testid="toggle-show-price"
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                showPriceToVendors ? "translate-x-6" : "translate-x-1"
+                              }`}
+                            />
+                          </button>
+                        </div>
 
-                      {/* Info Note */}
-                      <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                        <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs text-blue-700 dark:text-blue-300">
-                          {showPriceToVendors
-                            ? "Suppliers will see your exact budget and project size. This helps them understand the scope and submit more accurate proposals."
-                            : "Suppliers will only see the project size category. Showing the exact price helps suppliers understand the project scope and can shorten the proposal timeframe."
-                          }
-                        </p>
+                        {/* Info Note */}
+                        <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                          <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-blue-700 dark:text-blue-300">
+                            {showPriceToVendors
+                              ? "Suppliers will see your exact budget and project size. This helps them understand the scope and submit more accurate proposals."
+                              : "Suppliers will only see the project size category. Showing the exact price helps suppliers understand the project scope and can shorten the proposal timeframe."
+                            }
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
 

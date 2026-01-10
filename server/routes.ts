@@ -4,13 +4,14 @@ import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import multer from "multer";
-import { 
+import {
   registerUserSchema,
   createCompanySchema,
   updateCompanyProfileSchema,
   createTenderSchema,
   createOfferSchema,
-  createJoinRequestSchema
+  createJoinRequestSchema,
+  createTenderTemplateSchema
 } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
@@ -1989,6 +1990,107 @@ Response must be valid JSON with this exact structure:
       res.json({ message: "User promoted to admin", user });
     } catch (error) {
       console.error('Promote user error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ============================================================================
+  // TENDER TEMPLATES API
+  // ============================================================================
+
+  // Create a new template
+  app.post("/api/templates", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const validatedData = createTenderTemplateSchema.parse(req.body);
+
+      const template = await storage.createTenderTemplate({
+        ...validatedData,
+        userId: req.auth!.userId,
+        companyId: req.auth!.activeCompanyId!,
+      });
+
+      res.status(201).json(template);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: 'Invalid template data', errors: error.errors });
+      }
+      console.error('Create template error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Get all templates for current company
+  app.get("/api/templates", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const templates = await storage.getTenderTemplates(req.auth!.activeCompanyId!);
+      res.json(templates);
+    } catch (error) {
+      console.error('Get templates error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Get a specific template
+  app.get("/api/templates/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const template = await storage.getTenderTemplate(req.params.id);
+
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check access - user must belong to the company or template is public
+      if (!template.isPublic && template.companyId !== req.auth!.activeCompanyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      res.json(template);
+    } catch (error) {
+      console.error('Get template error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Update a template
+  app.patch("/api/templates/:id", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const template = await storage.getTenderTemplate(req.params.id);
+
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check ownership
+      if (template.companyId !== req.auth!.activeCompanyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updated = await storage.updateTenderTemplate(req.params.id, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error('Update template error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Delete a template
+  app.delete("/api/templates/:id", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const template = await storage.getTenderTemplate(req.params.id);
+
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check ownership
+      if (template.companyId !== req.auth!.activeCompanyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteTenderTemplate(req.params.id);
+      res.json({ message: "Template deleted" });
+    } catch (error) {
+      console.error('Delete template error:', error);
       res.status(500).json({ message: "Server error" });
     }
   });

@@ -5,7 +5,8 @@
       "Bash(kill:*)",
       "Bash(find:*)",
       "Bash(npm run build:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(npm run db:push:*)"
     ]
   }
 }

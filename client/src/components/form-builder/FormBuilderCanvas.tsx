@@ -35,17 +35,19 @@ export function FormBuilderCanvas({
   const [scrollStart, setScrollStart] = useState({ x: 0, y: 0 });
 
   const VIRTUAL_CANVAS_SIZE = 8000;
+  const MIN_SCALE = 0.5;
+  const MAX_SCALE = 2;
   
   const dotColor = theme === 'dark'
     ? 'rgba(139, 92, 246, 0.15)'
     : 'rgba(156, 163, 175, 0.3)';
 
   const handleZoomIn = useCallback(() => {
-    setScale((s) => Math.min(s + 0.1, 2));
+    setScale((s) => Math.min(s + 0.1, MAX_SCALE));
   }, []);
 
   const handleZoomOut = useCallback(() => {
-    setScale((s) => Math.max(s - 0.1, 0.5));
+    setScale((s) => Math.max(s - 0.1, MIN_SCALE));
   }, []);
 
   const handleResetZoom = useCallback(() => {
@@ -100,16 +102,37 @@ export function FormBuilderCanvas({
     }
   }, []);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (e.ctrlKey || e.metaKey) {
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const delta = e.deltaY > 0 ? -0.05 : 0.05;
-      setScale((s) => Math.min(Math.max(s + delta, 0.5), 2));
-    }
+      e.stopPropagation();
+
+      if (e.ctrlKey || e.metaKey) {
+        const delta = e.deltaY > 0 ? -0.05 : 0.05;
+        setScale((s) => {
+          const newScale = Math.min(Math.max(s + delta, MIN_SCALE), MAX_SCALE);
+          return newScale;
+        });
+      } else {
+        canvas.scrollLeft += e.deltaX || e.deltaY;
+        canvas.scrollTop += e.deltaY;
+      }
+    };
+
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      canvas.removeEventListener('wheel', handleWheel);
+    };
   }, []);
 
   return (
-    <div className="flex-1 flex flex-col relative overflow-hidden">
+    <div 
+      className="flex-1 flex flex-col relative overflow-hidden"
+      style={{ overflow: 'hidden' }}
+    >
       <div className="absolute top-4 right-4 z-20 flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-1 border border-gray-200 dark:border-gray-700">
         <Button
           variant="ghost"
@@ -146,12 +169,15 @@ export function FormBuilderCanvas({
 
       <div
         ref={canvasRef}
-        className={`relative z-10 flex-1 overflow-auto touch-none ${
+        className={`relative z-10 flex-1 touch-none ${
           isPanning ? 'cursor-grabbing' : 'cursor-grab'
         }`}
-        style={{ touchAction: 'pan-x pan-y' }}
+        style={{ 
+          touchAction: 'none',
+          overflow: 'auto',
+          overscrollBehavior: 'contain',
+        }}
         onMouseDown={handleMouseDown}
-        onWheel={handleWheel}
       >
         <div
           ref={contentRef}

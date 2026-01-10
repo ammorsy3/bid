@@ -73,9 +73,7 @@ export function FormBuilderCanvas({
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isPanning || !canvasRef.current) return;
-    const dx = e.clientX - panStart.x;
     const dy = e.clientY - panStart.y;
-    canvasRef.current.scrollLeft = scrollStart.x - dx;
     canvasRef.current.scrollTop = scrollStart.y - dy;
   }, [isPanning, panStart, scrollStart]);
 
@@ -117,7 +115,6 @@ export function FormBuilderCanvas({
           return newScale;
         });
       } else {
-        canvas.scrollLeft += e.deltaX || e.deltaY;
         canvas.scrollTop += e.deltaY;
       }
     };
@@ -174,7 +171,8 @@ export function FormBuilderCanvas({
         }`}
         style={{ 
           touchAction: 'none',
-          overflow: 'scroll',
+          overflowX: 'hidden',
+          overflowY: 'scroll',
           overscrollBehavior: 'contain',
         }}
         onMouseDown={handleMouseDown}

@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext,
   DragOverlay,
@@ -326,19 +327,28 @@ export default function TenderFormBuilder() {
 
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
-          {sidebarVisible && (
-            <>
-              <CardLibrarySidebar usedCardTypes={usedCardTypes} width={sidebarWidth} />
-
-              {/* Resize Handle */}
-              <div
-                onMouseDown={handleMouseDown}
-                className="w-1 hover:w-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-[#E25E45] cursor-col-resize transition-all flex-shrink-0 group relative"
+          <AnimatePresence mode="wait">
+            {sidebarVisible && (
+              <motion.div
+                key="sidebar"
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: sidebarWidth, opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="flex flex-shrink-0 overflow-hidden"
               >
-                <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-[#E25E45]/10" />
-              </div>
-            </>
-          )}
+                <CardLibrarySidebar usedCardTypes={usedCardTypes} width={sidebarWidth} />
+
+                {/* Resize Handle */}
+                <div
+                  onMouseDown={handleMouseDown}
+                  className="w-1 hover:w-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-[#E25E45] cursor-col-resize transition-all flex-shrink-0 group relative"
+                >
+                  <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-[#E25E45]/10" />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <FormBuilderCanvas
             cards={cards}

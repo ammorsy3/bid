@@ -10,9 +10,10 @@ import { useState } from "react";
 interface CardInputRendererProps {
   card: FormCard;
   onUpdate?: (id: string, updates: Partial<FormCard>) => void;
+  readOnly?: boolean;
 }
 
-export function CardInputRenderer({ card, onUpdate }: CardInputRendererProps) {
+export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInputRendererProps) {
   const updateValue = (newValue: any) => {
     if (onUpdate) {
       onUpdate(card.id, { value: newValue });
@@ -27,21 +28,22 @@ export function CardInputRenderer({ card, onUpdate }: CardInputRendererProps) {
           placeholder={card.placeholder}
           value={card.value || ""}
           onChange={(e) => updateValue(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+          disabled={readOnly}
+          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${readOnly ? "cursor-default opacity-60" : ""}`}
         />
       );
 
     case "project-type":
-      return <ProjectTypeInput value={card.value} onChange={updateValue} />;
+      return <ProjectTypeInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
 
     case "supplier-response":
-      return <SupplierResponseInput value={card.value} onChange={updateValue} />;
+      return <SupplierResponseInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
 
     case "project-dates":
-      return <ProjectDatesInput value={card.value} onChange={updateValue} />;
+      return <ProjectDatesInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
 
     case "budget":
-      return <BudgetInput value={card.value} onChange={updateValue} />;
+      return <BudgetInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
 
     case "project-objective":
       return (
@@ -50,12 +52,13 @@ export function CardInputRenderer({ card, onUpdate }: CardInputRendererProps) {
           placeholder={card.placeholder}
           value={card.value || ""}
           onChange={(e) => updateValue(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+          disabled={readOnly}
+          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${readOnly ? "cursor-default opacity-60" : ""}`}
         />
       );
 
     case "key-deliverables":
-      return <DeliverablesInput value={card.value || []} onChange={updateValue} />;
+      return <DeliverablesInput value={card.value || []} onChange={updateValue} readOnly={readOnly} />;
 
     case "project-description":
       return (
@@ -63,19 +66,20 @@ export function CardInputRenderer({ card, onUpdate }: CardInputRendererProps) {
           placeholder={card.placeholder}
           value={card.value || ""}
           onChange={(e) => updateValue(e.target.value)}
+          disabled={readOnly}
           rows={4}
-          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none"
+          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none ${readOnly ? "cursor-default opacity-60" : ""}`}
         />
       );
 
     case "submission-deadline":
-      return <DatePickerInput value={card.value} onChange={updateValue} label="Submission deadline" />;
+      return <DatePickerInput value={card.value} onChange={updateValue} label="Submission deadline" readOnly={readOnly} />;
 
     case "evaluation-criteria":
-      return <EvaluationCriteriaInput value={card.value || []} onChange={updateValue} />;
+      return <EvaluationCriteriaInput value={card.value || []} onChange={updateValue} readOnly={readOnly} />;
 
     case "attachments":
-      return <AttachmentsInput value={card.value || []} onChange={updateValue} />;
+      return <AttachmentsInput value={card.value || []} onChange={updateValue} readOnly={readOnly} />;
 
     case "custom-text":
       return (
@@ -84,7 +88,8 @@ export function CardInputRenderer({ card, onUpdate }: CardInputRendererProps) {
           placeholder={card.placeholder}
           value={card.value || ""}
           onChange={(e) => updateValue(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+          disabled={readOnly}
+          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${readOnly ? "cursor-default opacity-60" : ""}`}
         />
       );
 
@@ -94,13 +99,14 @@ export function CardInputRenderer({ card, onUpdate }: CardInputRendererProps) {
           placeholder={card.placeholder}
           value={card.value || ""}
           onChange={(e) => updateValue(e.target.value)}
+          disabled={readOnly}
           rows={3}
-          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none"
+          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none ${readOnly ? "cursor-default opacity-60" : ""}`}
         />
       );
 
     case "custom-date":
-      return <DatePickerInput value={card.value} onChange={updateValue} />;
+      return <DatePickerInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
 
     case "custom-select":
       return (
@@ -109,6 +115,7 @@ export function CardInputRenderer({ card, onUpdate }: CardInputRendererProps) {
           options={card.options || []}
           onChange={updateValue}
           onOptionsChange={(options) => onUpdate?.(card.id, { options })}
+          readOnly={readOnly}
         />
       );
 
@@ -125,10 +132,19 @@ export function CardInputRenderer({ card, onUpdate }: CardInputRendererProps) {
 function ProjectTypeInput({
   value,
   onChange,
+  readOnly = false,
 }: {
   value: string | null;
   onChange: (value: string) => void;
+  readOnly?: boolean;
 }) {
+  if (readOnly) {
+    return (
+      <div className="text-sm text-gray-400 italic py-2">
+        Select project type in the next step
+      </div>
+    );
+  }
   const options = [
     {
       id: "time-bound",
@@ -197,10 +213,19 @@ function ProjectTypeInput({
 function SupplierResponseInput({
   value,
   onChange,
+  readOnly = false,
 }: {
   value: string | null;
   onChange: (value: string) => void;
+  readOnly?: boolean;
 }) {
+  if (readOnly) {
+    return (
+      <div className="text-sm text-gray-400 italic py-2">
+        Select response method in the next step
+      </div>
+    );
+  }
   const options = [
     {
       id: "document",
@@ -281,10 +306,19 @@ function SupplierResponseInput({
 function ProjectDatesInput({
   value,
   onChange,
+  readOnly = false,
 }: {
   value: { startDate: string | null; endDate: string | null; deliveryDate: string | null };
   onChange: (value: any) => void;
+  readOnly?: boolean;
 }) {
+  if (readOnly) {
+    return (
+      <div className="text-sm text-gray-400 italic py-2">
+        Set dates in the next step
+      </div>
+    );
+  }
   const dateValue = value || { startDate: null, endDate: null, deliveryDate: null };
 
   return (
@@ -311,10 +345,19 @@ function ProjectDatesInput({
 function BudgetInput({
   value,
   onChange,
+  readOnly = false,
 }: {
   value: { type: string; amount: string; min: string; max: string };
   onChange: (value: any) => void;
+  readOnly?: boolean;
 }) {
+  if (readOnly) {
+    return (
+      <div className="text-sm text-gray-400 italic py-2">
+        Set budget in the next step
+      </div>
+    );
+  }
   const budgetValue = value || { type: "exact", amount: "", min: "", max: "" };
 
   return (
@@ -387,10 +430,19 @@ function BudgetInput({
 function DeliverablesInput({
   value,
   onChange,
+  readOnly = false,
 }: {
   value: string[];
   onChange: (value: string[]) => void;
+  readOnly?: boolean;
 }) {
+  if (readOnly) {
+    return (
+      <div className="text-sm text-gray-400 italic py-2">
+        Add deliverables in the next step
+      </div>
+    );
+  }
   const [newItem, setNewItem] = useState("");
 
   const handleAdd = () => {
@@ -446,11 +498,20 @@ function DatePickerInput({
   value,
   onChange,
   label,
+  readOnly = false,
 }: {
   value: string | null;
   onChange: (value: string | null) => void;
   label?: string;
+  readOnly?: boolean;
 }) {
+  if (readOnly) {
+    return (
+      <div className="text-sm text-gray-400 italic py-2">
+        {label || "Select date"} in the next step
+      </div>
+    );
+  }
   const date = value ? new Date(value) : undefined;
 
   return (
@@ -483,10 +544,19 @@ function DatePickerInput({
 function EvaluationCriteriaInput({
   value,
   onChange,
+  readOnly = false,
 }: {
   value: { name: string; weight: number }[];
   onChange: (value: { name: string; weight: number }[]) => void;
+  readOnly?: boolean;
 }) {
+  if (readOnly) {
+    return (
+      <div className="text-sm text-gray-400 italic py-2">
+        Add evaluation criteria in the next step
+      </div>
+    );
+  }
   const [newCriteria, setNewCriteria] = useState("");
 
   const handleAdd = () => {
@@ -556,10 +626,19 @@ function EvaluationCriteriaInput({
 function AttachmentsInput({
   value,
   onChange,
+  readOnly = false,
 }: {
   value: string[];
   onChange: (value: string[]) => void;
+  readOnly?: boolean;
 }) {
+  if (readOnly) {
+    return (
+      <div className="text-sm text-gray-400 italic py-2">
+        Upload attachments in the next step
+      </div>
+    );
+  }
   return (
     <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
       <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -578,12 +657,21 @@ function CustomSelectInput({
   options,
   onChange,
   onOptionsChange,
+  readOnly = false,
 }: {
   value: string | null;
   options: string[];
   onChange: (value: string) => void;
   onOptionsChange: (options: string[]) => void;
+  readOnly?: boolean;
 }) {
+  if (readOnly) {
+    return (
+      <div className="text-sm text-gray-400 italic py-2">
+        Select option in the next step
+      </div>
+    );
+  }
   const [newOption, setNewOption] = useState("");
   const [isEditingOptions, setIsEditingOptions] = useState(false);
 

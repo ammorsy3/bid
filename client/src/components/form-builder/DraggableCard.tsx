@@ -10,6 +10,7 @@ interface DraggableCardProps {
   onRemove?: (id: string) => void;
   onUpdate?: (id: string, updates: Partial<FormCard>) => void;
   isOverlay?: boolean;
+  readOnly?: boolean;
 }
 
 export function DraggableCard({
@@ -17,6 +18,7 @@ export function DraggableCard({
   onRemove,
   onUpdate,
   isOverlay = false,
+  readOnly = true,
 }: DraggableCardProps) {
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [editedLabel, setEditedLabel] = useState(card.label);
@@ -132,7 +134,7 @@ export function DraggableCard({
 
       {/* Card Content - Input Area */}
       <div className="p-4">
-        <CardInputRenderer card={card} onUpdate={onUpdate} />
+        <CardInputRenderer card={card} onUpdate={onUpdate} readOnly={readOnly} />
       </div>
     </div>
   );

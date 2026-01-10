@@ -40,3 +40,8 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_sendgrid:1.0.0", "javascript_database:1.0.0", "javascript_object_storage:1.0.0"]
+
+[userenv]
+
+[userenv.shared]
+JWT_SECRET = "nbFnYYl+HjkpAsQrj26sczIAoJxYm+iPbY4UHqXKApw="

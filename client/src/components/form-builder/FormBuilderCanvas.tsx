@@ -79,17 +79,17 @@ export function FormBuilderCanvas({
     if (!canvas) return;
 
     const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      
       e.preventDefault();
       e.stopPropagation();
-
-      if (e.ctrlKey || e.metaKey) {
-        const delta = e.deltaY > 0 ? -0.05 : 0.05;
-        setScale((s) => Math.min(Math.max(s + delta, MIN_SCALE), MAX_SCALE));
-      } else {
-        const newScrollTop = canvas.scrollTop + e.deltaY;
-        const maxScroll = canvas.scrollHeight - canvas.clientHeight;
-        canvas.scrollTop = Math.max(0, Math.min(newScrollTop, maxScroll));
-      }
+      const newScrollTop = canvas.scrollTop + e.deltaY;
+      const maxScroll = canvas.scrollHeight - canvas.clientHeight;
+      canvas.scrollTop = Math.max(0, Math.min(newScrollTop, maxScroll));
     };
 
     canvas.addEventListener('wheel', handleWheel, { passive: false });

@@ -1,12 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight, FileText, Video, FileCheck, FileVideo, MessageSquare, Mail, MessageCircle } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ArrowLeft, ArrowRight, FileText, Video, FileCheck, FileVideo, MessageSquare, Mail, MessageCircle, CalendarIcon, AlertCircle } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 type SubmissionType = "quote_only" | "tech_fin_proposal" | "video_only" | "tech_fin_with_video";
 type InquiryType = "inside_bid" | "email_whatsapp";
@@ -15,6 +19,7 @@ export default function TenderSubmissionProcessStep() {
   const [, navigate] = useLocation();
   const { user, checkAuth } = useAuthStore();
   const { toast } = useToast();
+  const [submissionDeadline, setSubmissionDeadline] = useState<Date | undefined>(undefined);
   const [submissionType, setSubmissionType] = useState<SubmissionType | null>(null);
   const [videoRequired, setVideoRequired] = useState(false);
   const [inquiryType, setInquiryType] = useState<InquiryType | null>(null);
@@ -34,6 +39,9 @@ export default function TenderSubmissionProcessStep() {
 
   // Pre-fill from draft if available
   useEffect(() => {
+    if (draft.submissionDeadline) {
+      setSubmissionDeadline(new Date(draft.submissionDeadline));
+    }
     if (draft.submissionType) {
       setSubmissionType(draft.submissionType);
     }
@@ -58,7 +66,7 @@ export default function TenderSubmissionProcessStep() {
       setCustomEmail(user.tenderInquiryEmail);
       setSaveCustomEmail(true); // Mark as saved if it's from user profile
     }
-  }, [draft.submissionType, draft.videoRequired, draft.inquiryType, draft.whatsappContact, draft.useAccountEmail, draft.customEmail, user?.tenderInquiryEmail]);
+  }, [draft.submissionDeadline, draft.submissionType, draft.videoRequired, draft.inquiryType, draft.whatsappContact, draft.useAccountEmail, draft.customEmail, user?.tenderInquiryEmail]);
 
   const handleSaveEmail = async (email: string) => {
     setIsSavingEmail(true);
@@ -102,11 +110,14 @@ export default function TenderSubmissionProcessStep() {
   };
 
   const handleNext = () => {
-    if (submissionType && inquiryType) {
+    if (submissionDeadline && submissionType && inquiryType) {
       const emailToUse = useAccountEmail ? user?.email : customEmail;
+      const deadlineISO = submissionDeadline.toISOString().split('T')[0]; // Format as YYYY-MM-DD
 
       const updated = {
         ...draft,
+        submissionDeadline: deadlineISO,
+        deadline: deadlineISO, // Also save as 'deadline' for the API
         submissionType,
         videoRequired: submissionType === "tech_fin_with_video" ? videoRequired : undefined,
         inquiryType,
@@ -175,6 +186,7 @@ export default function TenderSubmissionProcessStep() {
   const emailToUse = useAccountEmail ? user?.email : customEmail;
 
   const isFormValid =
+    submissionDeadline &&
     submissionType &&
     inquiryType &&
     (inquiryType === "inside_bid" ||
@@ -233,7 +245,59 @@ export default function TenderSubmissionProcessStep() {
               <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
 
               <div className="p-8 space-y-6">
+                {/* Submission Deadline */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-5 w-5 text-[#E25E45]" />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                        Submission Deadline
+                      </label>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Last date vendors can submit their proposals
+                      </p>
+                    </div>
+                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal h-12 border-2",
+                          !submissionDeadline && "text-muted-foreground"
+                        )}
+                        data-testid="input-submission-deadline"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {submissionDeadline ? format(submissionDeadline, "PPP") : "Select submission deadline"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={submissionDeadline}
+                        onSelect={setSubmissionDeadline}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {submissionDeadline && (
+                    <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                      <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-amber-700 dark:text-amber-300">
+                        After {format(submissionDeadline, "EEEE, MMMM d, yyyy")}, vendors will no longer be able to submit proposals to this tender.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 {/* Submission Type Options */}
+                <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                    What should vendors submit?
+                  </label>
+                </div>
                 <div className="grid grid-cols-1 gap-4">
                   {submissionOptions.map((option) => {
                     const Icon = option.icon;

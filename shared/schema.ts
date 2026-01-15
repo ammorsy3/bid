@@ -311,7 +311,7 @@ export const tenderTemplates = pgTable("tender_templates", {
   name: text("name").notNull(),
   description: text("description"),
 
-  // Form Structure - Array of card configurations
+  // Form Structure - Array of card configurations (with optional pre-filled values)
   cards: jsonb("cards").$type<{
     id: string;
     type: string;
@@ -319,6 +319,7 @@ export const tenderTemplates = pgTable("tender_templates", {
     isRequired: boolean;
     placeholder?: string;
     options?: string[];
+    value?: any; // Pre-filled value from when template was saved
   }[]>().notNull(),
 
   // Visibility
@@ -722,3 +723,6 @@ export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type TenderTemplate = typeof tenderTemplates.$inferSelect;
 export type InsertTenderTemplate = z.infer<typeof insertTenderTemplateSchema>;
 export type CreateTenderTemplate = z.infer<typeof createTenderTemplateSchema>;
+
+// Chat models for AI integrations
+export * from "./models/chat";

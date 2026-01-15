@@ -15,6 +15,7 @@ import {
 } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
+import { registerCopilotRoutes } from "./replit_integrations/copilot";
 
 // Configure multer for file uploads (memory storage)
 const upload = multer({
@@ -1233,9 +1234,38 @@ Response must be valid JSON with this exact structure:
           return res.status(404).json({ message: "Company not found" });
         }
 
+        // Check if tender exists and get deadline
+        const tender = await storage.getTender(req.params.id);
+        if (!tender) {
+          return res.status(404).json({ message: "Tender not found" });
+        }
+
+        // Check if tender is still accepting submissions (deadline not passed)
+        if (tender.deadline) {
+          const deadlineDate = new Date(tender.deadline);
+          // Set deadline to end of day
+          deadlineDate.setHours(23, 59, 59, 999);
+          const now = new Date();
+
+          if (now > deadlineDate) {
+            return res.status(403).json({
+              message: "Submission deadline has passed. This tender is no longer accepting proposals.",
+              deadline: tender.deadline
+            });
+          }
+        }
+
+        // Check if tender is published (not closed or cancelled)
+        if (tender.status !== 'published') {
+          return res.status(403).json({
+            message: `This tender is ${tender.status} and not accepting proposals.`,
+            status: tender.status
+          });
+        }
+
         // Check verification status - allow verified and under_review
         if (company.verificationStatus !== 'verified' && company.verificationStatus !== 'under_review') {
-          return res.status(403).json({ 
+          return res.status(403).json({
             message: "Company must complete profile and submit for verification to submit proposals",
             verificationStatus: company.verificationStatus
           });
@@ -2094,6 +2124,8 @@ Response must be valid JSON with this exact structure:
       res.status(500).json({ message: "Server error" });
     }
   });
+
+  registerCopilotRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;

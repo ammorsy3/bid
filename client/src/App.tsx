@@ -23,6 +23,7 @@ import TenderBriefStep from "@/pages/TenderBriefStep";
 import TenderFormBuilder from "@/pages/TenderFormBuilder";
 import TenderFormFill from "@/pages/TenderFormFill";
 import TenderReview from "@/pages/TenderReview";
+import TenderAICopilot from "@/pages/TenderAICopilot";
 import TenderInviteLink from "@/pages/TenderInviteLink";
 import TractionLink from "@/pages/TractionLink";
 import Landing from "@/pages/Landing";
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="/admin/vendors" component={AdminVendors} />
             <Route path="/admin/join-requests" component={AdminJoinRequests} />
             <Route path="/tenders/new" component={TenderCreateChoice} />
+            <Route path="/tenders/new/ai" component={TenderAICopilot} />
             <Route path="/tenders/new/manual" component={TenderStartMethodStep} />
             <Route path="/tenders/new/title" component={TenderTitleStep} />
             <Route path="/tenders/new/project-scope" component={TenderProjectScopeStep} />

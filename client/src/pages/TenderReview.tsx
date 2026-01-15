@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Rocket, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Rocket, AlertCircle, CheckCircle2, Save, ChevronDown, ChevronUp } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { FormCard, getCardDefinition } from "@/lib/form-builder-types";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Switch } from "@/components/ui/switch";
 
 const TENDER_STATE_KEY = "tender_form_state";
 
@@ -15,6 +16,12 @@ export default function TenderReview() {
   const [cards, setCards] = useState<FormCard[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  // Template saving state
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateDescription, setTemplateDescription] = useState("");
+  const [templateExpanded, setTemplateExpanded] = useState(false);
 
   useEffect(() => {
     const savedState = localStorage.getItem(TENDER_STATE_KEY);
@@ -75,12 +82,16 @@ export default function TenderReview() {
             data.startDate = card.value.startDate;
             data.endDate = card.value.endDate;
             data.deliveryDate = card.value.deliveryDate;
+            // Use end date as deadline if no explicit deadline is set
+            if (!data.deadline && card.value.endDate) {
+              data.deadline = card.value.endDate;
+            }
           }
           break;
         case "budget":
           if (card.value) {
             if (card.value.type === "exact") {
-              data.budget = card.value.amount;
+              data.budget = String(card.value.amount);
             } else {
               data.budgetMin = card.value.min;
               data.budgetMax = card.value.max;
@@ -89,15 +100,21 @@ export default function TenderReview() {
           break;
         case "project-objective":
           data.projectObjective = card.value;
+          // Use objective as description fallback if no explicit description
+          if (!data.description && card.value) {
+            data.description = card.value;
+          }
           break;
         case "key-deliverables":
           data.keyDeliverables = card.value;
           break;
         case "project-description":
-          data.projectDescription = card.value;
+          // Server schema expects 'description' field
+          data.description = card.value;
           break;
         case "submission-deadline":
-          data.submissionDeadline = card.value;
+          // Server schema expects 'deadline' field
+          data.deadline = card.value;
           break;
         case "evaluation-criteria":
           data.evaluationCriteria = card.value;
@@ -118,7 +135,68 @@ export default function TenderReview() {
       }
     }
 
+    // Ensure required fields have values (use title as fallback for description)
+    if (!data.description) {
+      data.description = data.title || "No description provided";
+    }
+    if (!data.deadline) {
+      // Default to 30 days from now if no deadline specified
+      const defaultDeadline = new Date();
+      defaultDeadline.setDate(defaultDeadline.getDate() + 30);
+      data.deadline = defaultDeadline.toISOString().split('T')[0];
+    }
+
     return data;
+  };
+
+  const handleSaveTemplate = async () => {
+    if (!templateName.trim()) {
+      return false;
+    }
+
+    try {
+      // Build template structure WITH values - so users can reuse filled data
+      const templateStructure = cards.map((card) => {
+        const templateCard: {
+          id: string;
+          type: string;
+          label: string;
+          isRequired: boolean;
+          placeholder?: string;
+          options?: string[];
+          value?: any;
+        } = {
+          id: card.id,
+          type: card.type,
+          label: card.label,
+          isRequired: card.isRequired,
+        };
+
+        if (card.placeholder) {
+          templateCard.placeholder = card.placeholder;
+        }
+        if (card.options && card.options.length > 0) {
+          templateCard.options = card.options;
+        }
+        // Include the value so templates can be reused with pre-filled data
+        if (card.value !== null && card.value !== undefined && card.value !== "") {
+          templateCard.value = card.value;
+        }
+
+        return templateCard;
+      });
+
+      await apiRequest("POST", "/api/templates", {
+        name: templateName.trim(),
+        description: templateDescription.trim() || undefined,
+        cards: templateStructure,
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error("Error saving template:", error?.message || error);
+      return false;
+    }
   };
 
   const handleLaunchTender = async () => {
@@ -131,15 +209,42 @@ export default function TenderReview() {
       return;
     }
 
+    // Validate template name if saving as template
+    if (saveAsTemplate && !templateName.trim()) {
+      toast({
+        title: "Template name required",
+        description: "Please enter a name for your template",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      // Save template first if requested
+      if (saveAsTemplate) {
+        const templateSaved = await handleSaveTemplate();
+        if (!templateSaved) {
+          toast({
+            title: "Error saving template",
+            description: "Failed to save template, but continuing with tender launch",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Template saved",
+            description: "Your template has been saved successfully",
+          });
+        }
+      }
+
       const tenderData = buildTenderData(cards);
-      
+
       await apiRequest("POST", "/api/tenders", tenderData);
 
       localStorage.removeItem(TENDER_STATE_KEY);
-      
+
       queryClient.invalidateQueries({ queryKey: ["/api/tenders"] });
 
       toast({
@@ -148,10 +253,11 @@ export default function TenderReview() {
       });
 
       navigate("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error launching tender:", error);
       toast({
         title: "Error launching tender",
-        description: "Please try again later",
+        description: error?.message || "Please try again later",
         variant: "destructive",
       });
     } finally {
@@ -267,9 +373,9 @@ export default function TenderReview() {
           {cards.map((card) => {
             const definition = getCardDefinition(card.type);
             const Icon = definition?.icon;
-            const hasValue = card.value !== null && card.value !== undefined && card.value !== "" && 
+            const hasValue = card.value !== null && card.value !== undefined && card.value !== "" &&
               !(Array.isArray(card.value) && card.value.length === 0);
-            
+
             return (
               <div
                 key={card.id}
@@ -309,6 +415,101 @@ export default function TenderReview() {
               </div>
             );
           })}
+        </div>
+
+        {/* Save as Template Section */}
+        <div className="mt-8 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setTemplateExpanded(!templateExpanded)}
+            className="w-full p-5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-[#E25E45]/10">
+                <Save className="h-5 w-5 text-[#E25E45]" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-medium text-gray-900 dark:text-white">
+                  Save as Template
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Reuse this tender structure for future projects
+                </p>
+              </div>
+            </div>
+            {templateExpanded ? (
+              <ChevronUp className="h-5 w-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-gray-400" />
+            )}
+          </button>
+
+          {templateExpanded && (
+            <div className="px-5 pb-5 border-t border-gray-200 dark:border-gray-700">
+              <div className="pt-5 space-y-4">
+                {/* Toggle Switch */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-sm font-medium text-gray-900 dark:text-white">
+                      Save this tender as a template
+                    </label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      Templates can be reused when creating new tenders
+                    </p>
+                  </div>
+                  <Switch
+                    checked={saveAsTemplate}
+                    onCheckedChange={(checked) => {
+                      setSaveAsTemplate(checked);
+                      if (!checked) {
+                        setTemplateName("");
+                        setTemplateDescription("");
+                      }
+                    }}
+                  />
+                </div>
+
+                {saveAsTemplate && (
+                  <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                    {/* Template Name */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-900 dark:text-white">
+                        Template Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={templateName}
+                        onChange={(e) => setTemplateName(e.target.value)}
+                        placeholder="e.g., Marketing Campaign Tender"
+                        className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                      />
+                    </div>
+
+                    {/* Template Description */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-900 dark:text-white">
+                        Description
+                      </label>
+                      <textarea
+                        value={templateDescription}
+                        onChange={(e) => setTemplateDescription(e.target.value)}
+                        placeholder="Describe what this template is for and when to use it..."
+                        rows={3}
+                        className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none"
+                      />
+                    </div>
+
+                    {/* Template Info */}
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                        The template will save the form structure (fields and their settings) without the actual values you've entered.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

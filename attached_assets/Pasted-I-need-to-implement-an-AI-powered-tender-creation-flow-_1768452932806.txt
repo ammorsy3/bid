@@ -1,0 +1,99 @@
+I need to implement an AI-powered tender creation flow called "Bid Copilot" in my app. This will be a new route at /tenders/new/use-ai (or suggest a better path name).
+
+## Overview
+Create a chat-first interface where users describe what they need, and AI builds a complete tender through an intelligent conversation, asking follow-up questions and suggesting requirements based on the service type.
+
+## UI Layout (see attached wireframe)
+- Split-screen design inspired by Lemlist
+- Left sidebar: Progress tracker showing 5 steps (Company → Service → Details → Prefs → Review) with checkmarks for completed steps, plus a "Tip Helper" box at the bottom
+- Main area: Chat interface on the left side, live tender preview building on the right side as the conversation progresses
+- Top: "Bid Copilot" header with close button
+- Bottom right: Back and Continue buttons
+
+## Step-by-Step Flow
+
+**Step 1: Company Context**
+- Auto-fetch and display company data from the database (name, bio, website, category, city, tags, logo)
+- Show this pre-filled information in the chat
+- Ask user: "I've pulled your company information. Does everything look correct, or would you like to update anything?"
+- Allow inline editing if needed
+
+**Step 2: Service/Product Needed**
+- Prompt: "What service or product are you looking to procure? Describe it in your own words."
+- User types freely in natural language (e.g., "I need office cleaning services for 3 buildings")
+- AI processes this and moves to next step
+
+**Step 3: Requirements (AI goes deep here)**
+- Based on the service type from Step 2, AI should:
+  - Determine project type (ongoing service, one-time purchase, project-based, etc.)
+  - Suggest budget ranges appropriate for this service type
+  - Suggest timeline/duration
+  - Ask about quantity, scope, location requirements
+  - Suggest specific deliverables common to this service type
+  - Suggest quality standards, certifications, or compliance requirements
+  - Ask contextual follow-up questions
+- AI should be proactive and suggest concrete requirements, not just ask open-ended questions
+- User can accept, modify, or reject suggestions
+
+**Step 4: Preferences**
+- AI suggests vendor preferences if applicable
+- Ask about required certifications
+- **Critical: Ask for submission deadline** (this is the one thing AI cannot guess - user must provide)
+- Any other procurement-specific preferences
+
+**Step 5: Review & Generate**
+- Show complete tender in structured format
+- Allow final edits
+- "Publish" or "Save Draft" buttons
+
+## Technical Requirements
+
+**Data to Pre-fill from Database:**
+```javascript
+{
+  companyName: companies.name,
+  description: companyProfiles.bio,
+  website: companyProfiles.socialLinks.website,
+  category: companies.category,
+  city: companies.city,
+  tags: companyProfiles.tags,
+  logo: companyProfiles.logoUrl
+}
+```
+
+**AI Integration:**
+- Use [specify your LLM - OpenAI, Anthropic, etc.]
+- AI should maintain context throughout the conversation
+- AI should generate smart, contextual follow-up questions based on previous answers
+- AI should provide concrete suggestions, not just ask questions
+- AI should structure all responses into proper tender fields
+
+**Live Preview:**
+- As the chat progresses, show a live preview panel on the right that builds the tender in real-time
+- Update the preview after each AI response/user input
+- Preview should show all tender fields being populated
+
+**Navigation:**
+- Create new route: /tenders/new/use-ai (or suggest better naming)
+- Update the /tenders/new page to include a card for "Create with AI Copilot" that links to this new route
+- Don't integrate with the existing Form Builder - this is a standalone flow that produces a complete tender
+
+**Important Notes:**
+- The AI should be assertive in suggesting requirements based on industry standards for each service type
+- Only ask users about things AI truly cannot determine (like submission deadlines)
+- No vendor suggestions from the vendors base
+- The final output is a complete tender, NOT a form to be edited in Form Builder
+- Make the chat conversational and intelligent, not just a form disguised as chat
+
+## Design Reference
+The layout should follow the wireframe provided, with a clean, modern look similar to Lemlist's onboarding flow.
+
+Please implement this feature with:
+1. The new route and navigation
+2. The UI layout as described
+3. AI integration with contextual question generation
+4. Live preview panel
+5. Database integration for pre-filling company data
+6. All 5 steps of the flow
+
+What's the best way to structure this implementation?

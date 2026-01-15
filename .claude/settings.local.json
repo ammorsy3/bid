@@ -6,7 +6,9 @@
       "Bash(find:*)",
       "Bash(npm run build:*)",
       "Bash(xargs:*)",
-      "Bash(npm run db:push:*)"
+      "Bash(npm run db:push:*)",
+      "Bash(npm run check:*)",
+      "WebSearch"
     ]
   }
 }

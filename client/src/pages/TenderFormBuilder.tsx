@@ -18,7 +18,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Save } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { CardLibrarySidebar } from "@/components/form-builder/CardLibrarySidebar";
 import { FormBuilderCanvas } from "@/components/form-builder/FormBuilderCanvas";
@@ -30,22 +30,26 @@ import {
   createFormCard,
   getCardDefinition,
 } from "@/lib/form-builder-types";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+
+const TENDER_STATE_KEY = "tender_form_state";
 
 export default function TenderFormBuilder() {
   const [, navigate] = useLocation();
-  const { toast } = useToast();
 
-  // Initialize with ALL required cards
+  // Initialize cards - check for saved template/state first, then fall back to required cards
   const [cards, setCards] = useState<FormCard[]>(() => {
+    const savedState = localStorage.getItem(TENDER_STATE_KEY);
+    if (savedState) {
+      try {
+        const parsedCards = JSON.parse(savedState);
+        if (Array.isArray(parsedCards) && parsedCards.length > 0) {
+          return parsedCards;
+        }
+      } catch (e) {
+        console.error("Error parsing saved cards:", e);
+      }
+    }
+    // Fall back to default required cards
     return CARD_LIBRARY.required.map((def) => createFormCard(def));
   });
 
@@ -80,12 +84,6 @@ export default function TenderFormBuilder() {
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
   }, [handleMouseMove]);
-
-  // Save as template dialog
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [templateName, setTemplateName] = useState("");
-  const [templateDescription, setTemplateDescription] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -202,61 +200,6 @@ export default function TenderFormBuilder() {
     navigate("/tenders/new/review");
   };
 
-  const handleSaveAsTemplate = async () => {
-    if (!templateName.trim()) {
-      toast({
-        title: "Template name required",
-        description: "Please enter a name for your template",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSaving(true);
-
-    try {
-      // Build template structure (without values)
-      const templateStructure = cards.map(({ id, type, label, isRequired, options, placeholder }) => ({
-        id, type, label, isRequired, options, placeholder
-      }));
-
-      // Save template via API
-      const response = await fetch("/api/templates", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: templateName.trim(),
-          description: templateDescription.trim(),
-          cards: templateStructure,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to save template");
-      }
-
-      toast({
-        title: "Template saved",
-        description: "Your template has been saved successfully",
-      });
-
-      setShowSaveDialog(false);
-      setTemplateName("");
-      setTemplateDescription("");
-
-      // Also continue to review
-      handleReviewAndLaunch();
-    } catch (error) {
-      toast({
-        title: "Error saving template",
-        description: "Please try again later",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   // Render drag overlay
   const renderDragOverlay = () => {
     if (!activeId || !activeDragData) return null;
@@ -320,18 +263,6 @@ export default function TenderFormBuilder() {
                 Back
               </Button>
               <Button
-                variant="outline"
-                onClick={() => setShowSaveDialog(true)}
-                disabled={!isFormValid}
-                className={isFormValid 
-                  ? "border-[#E25E45] text-[#E25E45] hover:bg-[#E25E45]/5" 
-                  : "border-gray-400 dark:border-gray-600 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-not-allowed"}
-                title={!isFormValid ? `Complete required fields: ${missingFields.join(", ")}` : ""}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Submit & Save Template
-              </Button>
-              <Button
                 onClick={handleReviewAndLaunch}
                 disabled={!isFormValid}
                 className={isFormValid 
@@ -385,55 +316,6 @@ export default function TenderFormBuilder() {
           {renderDragOverlay()}
         </DragOverlay>
 
-        {/* Save Template Dialog */}
-        <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Save as Template</DialogTitle>
-              <DialogDescription>
-                Save this form structure as a reusable template for future tenders.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-900 dark:text-white">
-                  Template Name
-                </label>
-                <input
-                  type="text"
-                  value={templateName}
-                  onChange={(e) => setTemplateName(e.target.value)}
-                  placeholder="e.g., Marketing Campaign Tender"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E25E45]"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-900 dark:text-white">
-                  Description (optional)
-                </label>
-                <textarea
-                  value={templateDescription}
-                  onChange={(e) => setTemplateDescription(e.target.value)}
-                  placeholder="Describe what this template is for..."
-                  rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E25E45] resize-none"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSaveAsTemplate}
-                disabled={isSaving}
-                className="bg-[#E25E45] hover:bg-[#d54d35]"
-              >
-                {isSaving ? "Saving..." : "Save & Submit"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </DndContext>
   );

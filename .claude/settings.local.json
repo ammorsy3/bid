@@ -8,7 +8,14 @@
       "Bash(xargs:*)",
       "Bash(npm run db:push:*)",
       "Bash(npm run check:*)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:bolt.new)",
+      "WebFetch(domain:replit.com)",
+      "WebFetch(domain:www.emerge.haus)",
+      "WebFetch(domain:fuselabcreative.com)",
+      "WebFetch(domain:codewave.com)",
+      "WebFetch(domain:matteing.com)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

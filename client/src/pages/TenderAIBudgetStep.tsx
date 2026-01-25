@@ -404,73 +404,49 @@ export default function TenderAIBudgetStep() {
                             className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
                             data-testid="input-budget"
                           />
-                          {projectSize && (
-                            <div className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap ${
-                              projectSize === "small"
-                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                : projectSize === "medium"
-                                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                                : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                            }`}>
-                              {getProjectSizeLabel(projectSize)}
-                            </div>
-                          )}
                         </div>
                       )}
 
                       {/* Range Budget Inputs */}
                       {budgetMode === "manual" && priceType === "range" && (
                         <div className="space-y-3">
-                          <div className="flex items-center gap-3">
-                            <div className="grid grid-cols-2 gap-3 flex-1">
-                              <div>
-                                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                  Minimum
-                                </label>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-gray-600 dark:text-gray-400 font-medium">
-                                    SAR
-                                  </span>
-                                  <input
-                                    type="number"
-                                    placeholder="0"
-                                    value={minPrice}
-                                    onChange={(e) => setMinPrice(e.target.value)}
-                                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
-                                    data-testid="input-min-price"
-                                  />
-                                </div>
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                  Maximum
-                                </label>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-gray-600 dark:text-gray-400 font-medium">
-                                    SAR
-                                  </span>
-                                  <input
-                                    type="number"
-                                    placeholder="0"
-                                    value={maxPrice}
-                                    onChange={(e) => setMaxPrice(e.target.value)}
-                                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
-                                    data-testid="input-max-price"
-                                  />
-                                </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                                Minimum
+                              </label>
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                  SAR
+                                </span>
+                                <input
+                                  type="number"
+                                  placeholder="0"
+                                  value={minPrice}
+                                  onChange={(e) => setMinPrice(e.target.value)}
+                                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                                  data-testid="input-min-price"
+                                />
                               </div>
                             </div>
-                            {projectSize && (
-                              <div className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap self-end mb-1 ${
-                                projectSize === "small"
-                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                  : projectSize === "medium"
-                                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                                  : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                              }`}>
-                                {getProjectSizeLabel(projectSize)}
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                                Maximum
+                              </label>
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                  SAR
+                                </span>
+                                <input
+                                  type="number"
+                                  placeholder="0"
+                                  value={maxPrice}
+                                  onChange={(e) => setMaxPrice(e.target.value)}
+                                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                                  data-testid="input-max-price"
+                                />
                               </div>
-                            )}
+                            </div>
                           </div>
                           {minPrice && maxPrice && parseFloat(minPrice) >= parseFloat(maxPrice) && (
                             <p className="text-xs text-red-600 dark:text-red-400">

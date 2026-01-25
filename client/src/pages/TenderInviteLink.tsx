@@ -44,7 +44,7 @@ interface TenderInvite {
   // Evaluation and scope
   evaluationCriteria?: string[];
   objective?: string;
-  deliverables?: string[];
+  deliverables?: Array<string | { id: string; name: string; description: string; unit: string; quantity: number }>;
   company?: {
     id: string;
     name: string;
@@ -557,13 +557,44 @@ export default function TenderInviteLink() {
                 <div>
                   <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center gap-2">
                     <ListChecks className="h-4 w-4" />
-                    Key Deliverables
+                    Key Deliverables (Bill of Quantities)
                   </h4>
-                  <ul className="list-disc list-inside space-y-1">
-                    {tender.deliverables.map((deliverable, index) => (
-                      <li key={index} className="text-gray-800">{deliverable}</li>
-                    ))}
-                  </ul>
+                  <div className="space-y-3">
+                    {tender.deliverables.map((deliverable, index) => {
+                      // Handle both old format (string) and new format (object)
+                      if (typeof deliverable === 'string') {
+                        return (
+                          <div key={index} className="px-3 py-2 bg-gray-50 rounded-lg">
+                            <span className="text-gray-800">{deliverable}</span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div key={deliverable.id || index} className="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs font-medium text-gray-400">#{index + 1}</span>
+                                <span className="font-medium text-gray-900">
+                                  {deliverable.name}
+                                </span>
+                              </div>
+                              {deliverable.description && (
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {deliverable.description}
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium bg-[#E25E45]/10 text-[#E25E45]">
+                                {deliverable.quantity} × {deliverable.unit}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </CardContent>

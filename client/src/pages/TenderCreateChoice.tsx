@@ -59,7 +59,7 @@ export default function TenderCreateChoice() {
                 data-testid="button-create-with-ai"
               >
                 <Sparkles className="h-5 w-5 mr-2" />
-                Get Started using AI
+                Get started with Bid AI
               </Button>
 
               <Button
@@ -68,7 +68,7 @@ export default function TenderCreateChoice() {
                 className="w-full h-12 border-gray-300 text-gray-700 hover:bg-gray-50 text-base font-medium rounded-lg"
                 data-testid="button-create-manually"
               >
-                I'll do it without AI
+                I'll create it myself
               </Button>
             </div>
           </div>

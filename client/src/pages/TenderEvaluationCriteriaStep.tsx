@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Check, Scale, ChevronDown, ChevronUp, Briefcase, Clock, Plus, X } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
@@ -386,16 +387,20 @@ export default function TenderEvaluationCriteriaStep() {
                                 <div className="flex-1">
                                   <label className="text-sm text-gray-900 dark:text-white">{req.label}</label>
                                   {req.type === "select" && req.options && (
-                                    <select
-                                      value={currentValue as string || ""}
-                                      onChange={(e) => handleRequirementChange(category.id, req.id, e.target.value)}
-                                      className="mt-1 w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                    <Select
+                                      value={(currentValue as string) || "none"}
+                                      onValueChange={(value) => handleRequirementChange(category.id, req.id, value === "none" ? "" : value)}
                                     >
-                                      <option value="">Not required</option>
-                                      {req.options.map(opt => (
-                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                      ))}
-                                    </select>
+                                      <SelectTrigger className="mt-1 w-full text-sm">
+                                        <SelectValue placeholder="Not required" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="none">Not required</SelectItem>
+                                        {req.options.map(opt => (
+                                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
                                   )}
                                 </div>
                               </div>

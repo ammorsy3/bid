@@ -344,9 +344,9 @@ export default function TenderEvaluationCriteriaStep() {
                       />
                     </svg>
                     <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${
-                      totalWeight === 100 ? "scale-110" : "scale-100"
+                      totalWeight === 100 ? "scale-105" : "scale-100"
                     }`}>
-                      <span className={`text-lg font-bold transition-colors duration-300 ${
+                      <span className={`text-sm font-bold transition-colors duration-300 ${
                         totalWeight === 100
                           ? "text-green-600"
                           : totalWeight > 100

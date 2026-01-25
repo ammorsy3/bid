@@ -161,7 +161,13 @@ export const tenders = pgTable("tenders", {
 
   // Project Scope Details
   objective: text("objective"), // Project objective from wizard
-  deliverables: text("deliverables").array(), // Key deliverables array from wizard
+  deliverables: jsonb("deliverables").$type<{
+    id: string;
+    name: string;
+    description: string;
+    unit: string;
+    quantity: number;
+  }[]>(), // Bill of Quantities - key deliverables with structured data
 
   // Advanced Options
   voiceNoteUrl: text("voice_note_url"), // Recorded voice note about the project

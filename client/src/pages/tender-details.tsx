@@ -549,13 +549,44 @@ export default function TenderDetails() {
                     <div>
                       <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                         <ListChecks className="h-4 w-4" />
-                        Key Deliverables
+                        Key Deliverables (Bill of Quantities)
                       </h4>
-                      <ul className="list-disc list-inside space-y-1">
-                        {tender.deliverables.map((deliverable, index) => (
-                          <li key={index} className="text-gray-800 dark:text-gray-200">{deliverable}</li>
-                        ))}
-                      </ul>
+                      <div className="space-y-3">
+                        {(tender.deliverables as any[]).map((deliverable: any, index: number) => {
+                          // Handle both old format (string) and new format (object)
+                          if (typeof deliverable === 'string') {
+                            return (
+                              <div key={index} className="px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                <span className="text-gray-800 dark:text-gray-200">{deliverable}</span>
+                              </div>
+                            );
+                          }
+                          return (
+                            <div key={deliverable.id || index} className="px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs font-medium text-gray-400">#{index + 1}</span>
+                                    <span className="font-medium text-gray-900 dark:text-white">
+                                      {deliverable.name}
+                                    </span>
+                                  </div>
+                                  {deliverable.description && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                      {deliverable.description}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium bg-[#E25E45]/10 text-[#E25E45]">
+                                    {deliverable.quantity} × {deliverable.unit}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </CardContent>

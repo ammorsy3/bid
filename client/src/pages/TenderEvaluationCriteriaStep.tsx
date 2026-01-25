@@ -145,6 +145,7 @@ interface CategoryWeight {
 interface CustomCriterion {
   id: string;
   text: string;
+  weight: number;
 }
 
 export default function TenderEvaluationCriteriaStep() {
@@ -160,6 +161,7 @@ export default function TenderEvaluationCriteriaStep() {
   // Custom criteria
   const [customCriteria, setCustomCriteria] = useState<CustomCriterion[]>([]);
   const [newCriterionText, setNewCriterionText] = useState("");
+  const [newCriterionWeight, setNewCriterionWeight] = useState(5);
 
   const draft = useMemo(() => {
     try {
@@ -219,9 +221,10 @@ export default function TenderEvaluationCriteriaStep() {
     if (newCriterionText.trim()) {
       setCustomCriteria(prev => [
         ...prev,
-        { id: `custom-${Date.now()}`, text: newCriterionText.trim() }
+        { id: `custom-${Date.now()}`, text: newCriterionText.trim(), weight: newCriterionWeight }
       ]);
       setNewCriterionText("");
+      setNewCriterionWeight(5);
     }
   };
 
@@ -229,7 +232,12 @@ export default function TenderEvaluationCriteriaStep() {
     setCustomCriteria(prev => prev.filter(c => c.id !== id));
   };
 
-  const totalWeight = categoryWeights.reduce((sum, cw) => sum + cw.weight, 0);
+  const updateCustomCriterionWeight = (id: string, weight: number) => {
+    setCustomCriteria(prev => prev.map(c => c.id === id ? { ...c, weight } : c));
+  };
+
+  const customCriteriaWeight = customCriteria.reduce((sum, c) => sum + c.weight, 0);
+  const totalWeight = categoryWeights.reduce((sum, cw) => sum + cw.weight, 0) + customCriteriaWeight;
   const isWeightValid = totalWeight === 100;
 
   const handleContinue = (skip: boolean = false) => {
@@ -401,9 +409,16 @@ export default function TenderEvaluationCriteriaStep() {
 
                 {/* Custom Criteria */}
                 <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                    Custom criteria <span className="text-gray-400 font-normal">(optional)</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                      Custom criteria <span className="text-gray-400 font-normal">(optional)</span>
+                    </label>
+                    {customCriteria.length > 0 && (
+                      <span className="text-xs text-gray-500">
+                        Total: {customCriteriaWeight}%
+                      </span>
+                    )}
+                  </div>
 
                   {/* Existing custom criteria */}
                   {customCriteria.length > 0 && (
@@ -411,45 +426,76 @@ export default function TenderEvaluationCriteriaStep() {
                       {customCriteria.map((criterion) => (
                         <div
                           key={criterion.id}
-                          className="flex items-center gap-2 px-3 py-2 bg-[#E25E45]/5 border border-[#E25E45]/20 rounded-lg"
+                          className="px-3 py-2 bg-[#E25E45]/5 border border-[#E25E45]/20 rounded-lg space-y-2"
                         >
-                          <span className="flex-1 text-sm text-gray-900 dark:text-white">
-                            {criterion.text}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => removeCustomCriterion(criterion.id)}
-                            className="text-gray-400 hover:text-red-500 transition-colors"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <span className="flex-1 text-sm text-gray-900 dark:text-white">
+                              {criterion.text}
+                            </span>
+                            <span className="text-xs font-medium text-[#E25E45]">
+                              {criterion.weight}%
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeCustomCriterion(criterion.id)}
+                              className="text-gray-400 hover:text-red-500 transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="50"
+                            step="5"
+                            value={criterion.weight}
+                            onChange={(e) => updateCustomCriterionWeight(criterion.id, parseInt(e.target.value))}
+                            className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]"
+                          />
                         </div>
                       ))}
                     </div>
                   )}
 
                   {/* Add new custom criterion */}
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newCriterionText}
-                      onChange={(e) => setNewCriterionText(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && addCustomCriterion()}
-                      placeholder="Add a custom requirement..."
-                      className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
-                    />
-                    <Button
-                      type="button"
-                      onClick={addCustomCriterion}
-                      disabled={!newCriterionText.trim()}
-                      size="sm"
-                      className="bg-[#E25E45] hover:bg-[#d54d35]"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newCriterionText}
+                        onChange={(e) => setNewCriterionText(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && addCustomCriterion()}
+                        placeholder="e.g., Team communication skills..."
+                        className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                      />
+                      <Button
+                        type="button"
+                        onClick={addCustomCriterion}
+                        disabled={!newCriterionText.trim()}
+                        size="sm"
+                        className="bg-[#E25E45] hover:bg-[#d54d35]"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {newCriterionText.trim() && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">Weight:</span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="50"
+                          step="5"
+                          value={newCriterionWeight}
+                          onChange={(e) => setNewCriterionWeight(parseInt(e.target.value))}
+                          className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]"
+                        />
+                        <span className="text-xs font-medium text-[#E25E45] w-8">{newCriterionWeight}%</span>
+                      </div>
+                    )}
                   </div>
                   <p className="text-xs text-gray-500">
-                    Add any specific requirements not listed above
+                    Add your own evaluation criteria with custom weights
                   </p>
                 </div>
 

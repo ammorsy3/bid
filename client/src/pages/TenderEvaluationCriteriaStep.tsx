@@ -310,12 +310,80 @@ export default function TenderEvaluationCriteriaStep() {
               <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
 
               <div className="p-6 space-y-6">
-                {/* Weight indicator */}
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Total Weight</span>
-                  <span className={`font-bold ${isWeightValid ? "text-green-600" : "text-red-600"}`}>
-                    {totalWeight}%
-                  </span>
+                {/* Animated Weight Progress Ring */}
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 border border-gray-200 dark:border-gray-700">
+                  <div className="relative w-16 h-16 flex-shrink-0">
+                    <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64">
+                      <circle
+                        cx="32"
+                        cy="32"
+                        r="28"
+                        stroke="currentColor"
+                        strokeWidth="6"
+                        fill="none"
+                        className="text-gray-200 dark:text-gray-700"
+                      />
+                      <circle
+                        cx="32"
+                        cy="32"
+                        r="28"
+                        stroke="currentColor"
+                        strokeWidth="6"
+                        fill="none"
+                        strokeLinecap="round"
+                        className={`transition-all duration-500 ease-out ${
+                          totalWeight === 100
+                            ? "text-green-500"
+                            : totalWeight > 100
+                            ? "text-red-500"
+                            : "text-amber-500"
+                        }`}
+                        style={{
+                          strokeDasharray: `${Math.min(totalWeight, 100) * 1.76} 176`,
+                        }}
+                      />
+                    </svg>
+                    <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${
+                      totalWeight === 100 ? "scale-110" : "scale-100"
+                    }`}>
+                      <span className={`text-lg font-bold transition-colors duration-300 ${
+                        totalWeight === 100
+                          ? "text-green-600"
+                          : totalWeight > 100
+                          ? "text-red-600"
+                          : "text-amber-600"
+                      }`}>
+                        {totalWeight}%
+                      </span>
+                    </div>
+                    {totalWeight === 100 && (
+                      <div className="absolute inset-0 rounded-full animate-ping bg-green-400/20" />
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {totalWeight === 100 ? "Perfect Balance!" : "Weight Distribution"}
+                      </span>
+                      {totalWeight === 100 && (
+                        <Check className="h-4 w-4 text-green-500" />
+                      )}
+                    </div>
+                    <p className={`text-sm mt-0.5 transition-colors duration-300 ${
+                      totalWeight === 100
+                        ? "text-green-600"
+                        : totalWeight > 100
+                        ? "text-red-500"
+                        : "text-amber-600"
+                    }`}>
+                      {totalWeight === 100
+                        ? "Weights add up correctly"
+                        : totalWeight > 100
+                        ? `Remove ${totalWeight - 100}% to balance`
+                        : `Add ${100 - totalWeight}% more weight`}
+                    </p>
+                  </div>
                 </div>
 
                 {ENTERPRISE_CRITERIA_CATEGORIES.map((category) => {

@@ -83,17 +83,6 @@ const ENTERPRISE_CRITERIA_CATEGORIES: CriteriaCategory[] = [
     defaultWeight: 30,
     requirements: [
       {
-        id: "price_weight",
-        label: "Price evaluation method",
-        description: "How should pricing be evaluated?",
-        type: "select",
-        options: [
-          { value: "lowest", label: "Lowest price wins" },
-          { value: "closest_budget", label: "Closest to budget" },
-          { value: "value_based", label: "Best value (price + quality)" },
-        ],
-      },
-      {
         id: "financial_statements",
         label: "Financial statements required",
         description: "Require audited financial statements",

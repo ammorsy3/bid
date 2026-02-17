@@ -1,13 +1,15 @@
+import { useRef } from "react";
 import { useDraggable } from "@dnd-kit/core";
-import { CARD_LIBRARY, CardDefinition } from "@/lib/form-builder-types";
+import { CARD_LIBRARY, CardDefinition, CardType } from "@/lib/form-builder-types";
 import { Star, GripVertical } from "lucide-react";
 
 interface CardLibrarySidebarProps {
   usedCardTypes: string[];
   width?: number;
+  onShowInsight?: (type: CardType) => void;
 }
 
-export function CardLibrarySidebar({ usedCardTypes, width = 288 }: CardLibrarySidebarProps) {
+export function CardLibrarySidebar({ usedCardTypes, width = 288, onShowInsight }: CardLibrarySidebarProps) {
   return (
     <div 
       style={{ width: `${width}px` }}
@@ -35,6 +37,7 @@ export function CardLibrarySidebar({ usedCardTypes, width = 288 }: CardLibrarySi
                 card={card}
                 isUsed={usedCardTypes.includes(card.type)}
                 isRequired
+                onShowInsight={onShowInsight}
               />
             ))}
           </div>
@@ -51,6 +54,7 @@ export function CardLibrarySidebar({ usedCardTypes, width = 288 }: CardLibrarySi
                 key={card.type}
                 card={card}
                 isUsed={usedCardTypes.includes(card.type)}
+                onShowInsight={onShowInsight}
               />
             ))}
           </div>
@@ -69,8 +73,9 @@ export function CardLibrarySidebar({ usedCardTypes, width = 288 }: CardLibrarySi
               <DraggableLibraryCard
                 key={card.type}
                 card={card}
-                isUsed={false} // Custom cards can be added multiple times
+                isUsed={false}
                 allowMultiple
+                onShowInsight={onShowInsight}
               />
             ))}
           </div>
@@ -85,6 +90,7 @@ interface DraggableLibraryCardProps {
   isUsed: boolean;
   isRequired?: boolean;
   allowMultiple?: boolean;
+  onShowInsight?: (type: CardType) => void;
 }
 
 function DraggableLibraryCard({
@@ -92,7 +98,10 @@ function DraggableLibraryCard({
   isUsed,
   isRequired,
   allowMultiple,
+  onShowInsight,
 }: DraggableLibraryCardProps) {
+  const didDrag = useRef(false);
+
   const {
     attributes,
     listeners,
@@ -117,18 +126,32 @@ function DraggableLibraryCard({
       }
     : undefined;
 
+  // Track whether a drag happened so we can distinguish click vs drag
+  if (isDragging) {
+    didDrag.current = true;
+  }
+
+  const handleClick = () => {
+    if (didDrag.current) {
+      didDrag.current = false;
+      return;
+    }
+    onShowInsight?.(card.type);
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...listeners}
       {...attributes}
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all ${
+      onClick={handleClick}
+      className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all outline-none ${
         isDragging
           ? "opacity-50 border-[#E25E45] bg-[#E25E45]/5 shadow-lg z-50"
           : isDisabled
           ? "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed"
-          : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-grab active:cursor-grabbing hover:border-[#E25E45] hover:shadow-sm"
+          : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-[#E25E45] hover:shadow-sm"
       }`}
     >
       <GripVertical className={`h-4 w-4 flex-shrink-0 ${isDisabled ? "text-gray-300" : "text-gray-400"}`} />

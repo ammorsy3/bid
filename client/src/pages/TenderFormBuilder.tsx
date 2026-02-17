@@ -23,9 +23,11 @@ import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-prev
 import { CardLibrarySidebar } from "@/components/form-builder/CardLibrarySidebar";
 import { FormBuilderCanvas } from "@/components/form-builder/FormBuilderCanvas";
 import { DraggableCard, LibraryCard } from "@/components/form-builder/DraggableCard";
+import { FieldInsightPanel } from "@/components/form-builder/FieldInsightPanel";
 import {
   FormCard,
   CardDefinition,
+  CardType,
   CARD_LIBRARY,
   createFormCard,
   getCardDefinition,
@@ -55,6 +57,7 @@ export default function TenderFormBuilder() {
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
+  const [insightCardType, setInsightCardType] = useState<CardType | null>(null);
 
   // Sidebar resize state
   const [sidebarWidth, setSidebarWidth] = useState(288); // 288px = w-72 default
@@ -289,7 +292,11 @@ export default function TenderFormBuilder() {
                 transition={{ duration: 0.2, ease: "easeInOut" }}
                 className="flex flex-shrink-0 overflow-hidden"
               >
-                <CardLibrarySidebar usedCardTypes={usedCardTypes} width={sidebarWidth} />
+                <CardLibrarySidebar
+                  usedCardTypes={usedCardTypes}
+                  width={sidebarWidth}
+                  onShowInsight={(type) => setInsightCardType(type)}
+                />
 
                 {/* Resize Handle */}
                 <div
@@ -316,6 +323,11 @@ export default function TenderFormBuilder() {
           {renderDragOverlay()}
         </DragOverlay>
 
+        {/* Field Insight Panel */}
+        <FieldInsightPanel
+          cardType={insightCardType}
+          onClose={() => setInsightCardType(null)}
+        />
       </div>
     </DndContext>
   );

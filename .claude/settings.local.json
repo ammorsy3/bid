@@ -15,7 +15,11 @@
       "WebFetch(domain:fuselabcreative.com)",
       "WebFetch(domain:codewave.com)",
       "WebFetch(domain:matteing.com)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(grep:*)",
+      "Bash(gh auth:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push origin main feature/dashboard-overview-improvements replit-agent)"
     ]
   }
 }

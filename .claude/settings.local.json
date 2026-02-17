@@ -19,7 +19,8 @@
       "Bash(grep:*)",
       "Bash(gh auth:*)",
       "Bash(git remote add:*)",
-      "Bash(git push origin main feature/dashboard-overview-improvements replit-agent)"
+      "Bash(git push origin main feature/dashboard-overview-improvements replit-agent)",
+      "Bash(npx vite build:*)"
     ]
   }
 }

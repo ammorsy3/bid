@@ -182,6 +182,14 @@ const translations = {
       completed: "Completed",
       recentActivity: "Recent Activity",
       viewAll: "View All",
+      filterByCategory: "Category",
+      filterByCity: "City",
+      filterByStatus: "Status",
+      allCategories: "All Categories",
+      allCities: "All Cities",
+      allStatuses: "All Statuses",
+      clearFilters: "Clear all",
+      activeFilters: "Active Filters",
     }
   },
   ar: {
@@ -363,6 +371,14 @@ const translations = {
       completed: "مكتمل",
       recentActivity: "النشاط الأخير",
       viewAll: "عرض الكل",
+      filterByCategory: "الفئة",
+      filterByCity: "المدينة",
+      filterByStatus: "الحالة",
+      allCategories: "جميع الفئات",
+      allCities: "جميع المدن",
+      allStatuses: "جميع الحالات",
+      clearFilters: "مسح الكل",
+      activeFilters: "الفلاتر النشطة",
     }
   }
 };

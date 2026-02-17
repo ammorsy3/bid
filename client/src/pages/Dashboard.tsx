@@ -25,7 +25,9 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter } from "lucide-react";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { motion, AnimatePresence } from "framer-motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription, PopoverBody, PopoverFooter } from "@/components/ui/popover";
@@ -165,6 +167,9 @@ export default function Dashboard() {
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [cityFilter, setCityFilter] = useState<string>("all");
+  const [verificationFilter, setVerificationFilter] = useState<string>("all");
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showCompanyProfileDialog, setShowCompanyProfileDialog] = useState(false);
@@ -282,6 +287,20 @@ export default function Dashboard() {
     const matchesFilter = tenderFilter === 'all' || tender.status === tenderFilter;
     return matchesSearch && matchesFilter;
   });
+
+  // Derived unique values for vendor filters
+  const uniqueCategories = Array.from(new Set(vendors.map(v => v.category).filter(Boolean))).sort();
+  const uniqueCities = Array.from(new Set(vendors.map(v => v.city).filter(Boolean) as string[])).sort();
+
+  // Filter vendors based on category, city, and verification status
+  const filteredVendors = vendors.filter(vendor => {
+    const matchesCategory = categoryFilter === 'all' || vendor.category === categoryFilter;
+    const matchesCity = cityFilter === 'all' || vendor.city === cityFilter;
+    const matchesVerification = verificationFilter === 'all' || vendor.verificationStatus === verificationFilter;
+    return matchesCategory && matchesCity && matchesVerification;
+  });
+
+  const activeFilterCount = [categoryFilter, cityFilter, verificationFilter].filter(f => f !== 'all').length;
 
   // Delete tender mutation
   const deleteTender = useMutation({
@@ -1851,12 +1870,134 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
 
+                  {/* Vendor Filters */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Filter className="h-4 w-4" />
+                    </div>
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="w-[160px] h-9" data-testid="filter-category">
+                        <SelectValue placeholder={t('dashboard.allCategories')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t('dashboard.allCategories')}</SelectItem>
+                        {uniqueCategories.map(cat => (
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={cityFilter} onValueChange={setCityFilter}>
+                      <SelectTrigger className="w-[160px] h-9" data-testid="filter-city">
+                        <SelectValue placeholder={t('dashboard.allCities')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t('dashboard.allCities')}</SelectItem>
+                        {uniqueCities.map(city => (
+                          <SelectItem key={city} value={city}>{city}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={verificationFilter} onValueChange={setVerificationFilter}>
+                      <SelectTrigger className="w-[160px] h-9" data-testid="filter-verification">
+                        <SelectValue placeholder={t('dashboard.allStatuses')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t('dashboard.allStatuses')}</SelectItem>
+                        <SelectItem value="verified">{t('dashboard.verified')}</SelectItem>
+                        <SelectItem value="unverified">{t('dashboard.unverified')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {activeFilterCount > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 px-2 text-muted-foreground hover:text-foreground"
+                        onClick={() => {
+                          setCategoryFilter('all');
+                          setCityFilter('all');
+                          setVerificationFilter('all');
+                        }}
+                        data-testid="button-clear-filters"
+                      >
+                        <X className="h-3.5 w-3.5 mr-1" />
+                        {t('dashboard.clearFilters')}
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Active Filter Badges */}
+                  <AnimatePresence>
+                    {activeFilterCount > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="flex flex-wrap gap-2"
+                      >
+                        {categoryFilter !== 'all' && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                          >
+                            <Badge variant="secondary" className="gap-1 pr-1">
+                              {t('dashboard.filterByCategory')}: {categoryFilter}
+                              <button
+                                onClick={() => setCategoryFilter('all')}
+                                className="ml-1 rounded-full hover:bg-muted p-0.5"
+                                data-testid="badge-remove-category"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          </motion.div>
+                        )}
+                        {cityFilter !== 'all' && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                          >
+                            <Badge variant="secondary" className="gap-1 pr-1">
+                              {t('dashboard.filterByCity')}: {cityFilter}
+                              <button
+                                onClick={() => setCityFilter('all')}
+                                className="ml-1 rounded-full hover:bg-muted p-0.5"
+                                data-testid="badge-remove-city"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          </motion.div>
+                        )}
+                        {verificationFilter !== 'all' && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                          >
+                            <Badge variant="secondary" className="gap-1 pr-1">
+                              {t('dashboard.filterByStatus')}: {t(`dashboard.${verificationFilter}`)}
+                              <button
+                                onClick={() => setVerificationFilter('all')}
+                                className="ml-1 rounded-full hover:bg-muted p-0.5"
+                                data-testid="badge-remove-verification"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   {/* Vendors List */}
                   {loadingVendors ? (
                     <div className="flex justify-center py-12">
                       <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
-                  ) : vendors.length === 0 ? (
+                  ) : filteredVendors.length === 0 ? (
                     <Card>
                       <CardContent className="flex flex-col items-center justify-center py-16">
                         <Users className="h-16 w-16 text-muted-foreground mb-4" />
@@ -1870,7 +2011,7 @@ export default function Dashboard() {
                     </Card>
                   ) : (
                     <div className="grid gap-4">
-                      {vendors.map((vendor) => (
+                      {filteredVendors.map((vendor) => (
                         <Card key={vendor.id} className="hover:shadow-lg transition-shadow" data-testid={`card-vendor-${vendor.id}`}>
                           <CardHeader>
                             <div className="flex items-start justify-between">

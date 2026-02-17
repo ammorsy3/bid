@@ -59,6 +59,7 @@
 | Custom form builder (drag-and-drop) | In Progress |
 | Contextual field guidance for vendors | In Progress |
 | Inquiry box through Bid | Not Started |
+| User journey diversification - simple, sophisticated | Not Started |
 
 ---
 

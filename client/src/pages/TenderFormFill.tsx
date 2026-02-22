@@ -1,302 +1,340 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, Send, AlertCircle, CheckCircle2, Pencil } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { FormCard, getCardDefinition } from "@/lib/form-builder-types";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  AlertCircle,
+  Rocket,
+  Star,
+} from "lucide-react";
+import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { useTheme } from "next-themes";
+import { FormCard, getCardDefinition, FIELD_INSIGHTS } from "@/lib/form-builder-types";
 import { CardInputRenderer } from "@/components/form-builder/CardInputRenderer";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 
-const FORM_STRUCTURE_KEY = "tender_form_structure";
+const TENDER_STATE_KEY = "tender_form_state";
 
 export default function TenderFormFill() {
   const [, navigate] = useLocation();
-  const { toast } = useToast();
+  const { theme } = useTheme();
   const [cards, setCards] = useState<FormCard[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  const dotColor =
+    theme === "dark"
+      ? "rgba(139, 92, 246, 0.15)"
+      : "rgba(156, 163, 175, 0.3)";
 
   useEffect(() => {
-    const stored = localStorage.getItem(FORM_STRUCTURE_KEY);
-    if (stored) {
+    const savedState = localStorage.getItem(TENDER_STATE_KEY);
+    if (savedState) {
       try {
-        const parsed = JSON.parse(stored);
-        const cardsWithEmptyValues = parsed.map((card: FormCard) => ({
-          ...card,
-          value: getEmptyValue(card.type),
-        }));
-        setCards(cardsWithEmptyValues);
-      } catch (e) {
-        toast({
-          title: "Error loading form",
-          description: "Could not load the form structure. Please try again.",
-          variant: "destructive",
-        });
+        const parsed = JSON.parse(savedState);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCards(parsed);
+          setIsLoaded(true);
+        } else {
+          navigate("/tenders/new/form-builder");
+        }
+      } catch {
         navigate("/tenders/new/form-builder");
       }
     } else {
       navigate("/tenders/new/form-builder");
     }
-  }, [navigate, toast]);
+  }, [navigate]);
 
-  const getEmptyValue = (type: string): any => {
-    switch (type) {
-      case "project-title":
-      case "project-objective":
-      case "project-description":
-      case "custom-text":
-      case "custom-textarea":
-        return "";
-      case "project-type":
-      case "supplier-response":
-      case "submission-deadline":
-      case "custom-date":
-      case "custom-select":
-        return null;
-      case "project-dates":
-        return { startDate: null, endDate: null, deliveryDate: null };
-      case "budget":
-        return { type: "exact", amount: "", min: "", max: "" };
-      case "key-deliverables":
-      case "attachments":
-        return [];
-      case "evaluation-criteria":
-        return [];
-      default:
-        return "";
-    }
-  };
+  const handleUpdateCard = useCallback((id: string, updates: Partial<FormCard>) => {
+    setCards((prev) => {
+      const updated = prev.map((c) => (c.id === id ? { ...c, ...updates } : c));
+      localStorage.setItem(TENDER_STATE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
-  const updateCard = (id: string, updates: Partial<FormCard>) => {
-    setCards((prev) =>
-      prev.map((card) => (card.id === id ? { ...card, ...updates } : card))
-    );
-  };
-
-  const validateRequiredFields = (): { valid: boolean; missing: string[] } => {
+  const { isFormValid, missingFields, completedRequired, totalRequired } = useMemo(() => {
+    const required = cards.filter((c) => c.isRequired);
     const missing: string[] = [];
-    cards.forEach((card) => {
-      if (card.isRequired) {
-        const isEmpty = isValueEmpty(card.value, card.type);
-        if (isEmpty) {
-          missing.push(card.label);
-        }
+    let completed = 0;
+    for (const card of required) {
+      const isEmpty =
+        card.value === null ||
+        card.value === undefined ||
+        card.value === "" ||
+        (Array.isArray(card.value) && card.value.length === 0);
+      if (isEmpty) {
+        missing.push(card.label);
+      } else {
+        completed++;
       }
-    });
-    return { valid: missing.length === 0, missing };
-  };
-
-  const isValueEmpty = (value: any, type: string): boolean => {
-    if (value === null || value === undefined) return true;
-    if (typeof value === "string" && value.trim() === "") return true;
-    if (Array.isArray(value) && value.length === 0) return true;
-    if (type === "project-dates") {
-      return !value.startDate && !value.endDate;
     }
-    if (type === "budget") {
-      if (value.type === "exact") return !value.amount;
-      return !value.min && !value.max;
-    }
-    return false;
+    return {
+      isFormValid: missing.length === 0,
+      missingFields: missing,
+      completedRequired: completed,
+      totalRequired: required.length,
+    };
+  }, [cards]);
+
+  const progressPercent =
+    totalRequired > 0 ? Math.round((completedRequired / totalRequired) * 100) : 0;
+
+  const handleBack = () => navigate("/tenders/new/form-builder");
+
+  const handleContinue = () => {
+    if (!isFormValid) return;
+    localStorage.setItem(TENDER_STATE_KEY, JSON.stringify(cards));
+    navigate("/tenders/new/review");
   };
 
-  const buildTenderData = () => {
-    const data: any = {};
-    cards.forEach((card) => {
-      switch (card.type) {
-        case "project-title":
-          data.title = card.value;
-          break;
-        case "project-type":
-          data.projectType = card.value;
-          break;
-        case "supplier-response":
-          data.submissionType = card.value;
-          break;
-        case "project-dates":
-          if (card.value) {
-            data.startDate = card.value.startDate;
-            data.endDate = card.value.endDate;
-          }
-          break;
-        case "budget":
-          if (card.value) {
-            data.budgetType = card.value.type;
-            if (card.value.type === "exact") {
-              data.budget = card.value.amount ? parseFloat(card.value.amount) : null;
-            } else {
-              data.budgetMin = card.value.min ? parseFloat(card.value.min) : null;
-              data.budgetMax = card.value.max ? parseFloat(card.value.max) : null;
-            }
-          }
-          break;
-        case "project-objective":
-          data.objective = card.value;
-          break;
-        case "project-description":
-          data.description = card.value;
-          break;
-        case "key-deliverables":
-          data.deliverables = card.value;
-          break;
-        case "submission-deadline":
-          data.submissionDeadline = card.value;
-          break;
-        case "evaluation-criteria":
-          data.evaluationCriteria = card.value;
-          break;
-      }
-    });
-    return data;
-  };
-
-  const handleSubmit = async () => {
-    const validation = validateRequiredFields();
-    if (!validation.valid) {
-      toast({
-        title: "Missing required fields",
-        description: `Please fill in: ${validation.missing.join(", ")}`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const tenderData = buildTenderData();
-      await apiRequest("POST", "/api/tenders", tenderData);
-      queryClient.invalidateQueries({ queryKey: ["/api/tenders"] });
-      localStorage.removeItem(FORM_STRUCTURE_KEY);
-      toast({
-        title: "Tender created!",
-        description: "Your tender has been published successfully.",
-      });
-      navigate("/dashboard");
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create tender",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleEditStructure = () => {
-    navigate("/tenders/new/form-builder");
-  };
-
-  const getFieldStatus = (card: FormCard) => {
-    if (!card.isRequired) return null;
-    const isEmpty = isValueEmpty(card.value, card.type);
-    return isEmpty ? "incomplete" : "complete";
-  };
-
-  if (cards.length === 0) {
+  if (!isLoaded) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-[#E25E45] border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-500">Loading form...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-[#E8614D] border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading your form…</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleEditStructure}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-              </button>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Fill in Tender Details
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Complete all required fields to submit your tender
-                </p>
-              </div>
+    <div
+      className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-gray-900"
+      style={{
+        backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
+        backgroundSize: "20px 20px",
+      }}
+    >
+      <div className="max-w-3xl mx-auto">
+
+        {/* ── Header ─────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between mb-10">
+          <img
+            src={logoPath}
+            alt="Bid"
+            className="h-14 cursor-pointer hover:opacity-80 transition-opacity duration-300"
+            onClick={() => navigate("/dashboard")}
+          />
+
+          {/* Step pills */}
+          <div className="hidden md:flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              </span>
+              <span className="text-gray-400 font-medium">Structure</span>
             </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={handleEditStructure}
-                className="gap-2"
-              >
-                <Pencil className="h-4 w-4" />
-                Edit Structure
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="bg-[#E25E45] hover:bg-[#d54d35] gap-2"
-              >
-                <Send className="h-4 w-4" />
-                {isSubmitting ? "Submitting..." : "Submit Tender"}
-              </Button>
+            <div className="w-8 h-px bg-[#E8614D]" />
+            <div className="flex items-center gap-1.5">
+              <span className="w-6 h-6 rounded-full bg-[#E8614D] text-white flex items-center justify-center font-bold">
+                2
+              </span>
+              <span className="font-semibold text-gray-900 dark:text-white">Fill Details</span>
+            </div>
+            <div className="w-8 h-px bg-gray-300 dark:bg-gray-600" />
+            <div className="flex items-center gap-1.5">
+              <span className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-400 flex items-center justify-center font-bold">
+                3
+              </span>
+              <span className="text-gray-400 font-medium">Review</span>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="space-y-4">
-          {cards.map((card) => {
+          {/* Animated back button — same style as the template page */}
+          <Button
+            onClick={handleBack}
+            variant="outline"
+            className="group relative overflow-hidden min-w-[120px] h-10"
+          >
+            <span className="translate-x-1 transition-opacity duration-300 group-hover:opacity-0">
+              Back
+            </span>
+            <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-300 group-hover:w-full rounded-md">
+              <ArrowLeft className="opacity-60 h-4 w-4" aria-hidden="true" />
+            </i>
+          </Button>
+        </div>
+
+        {/* ── Headline ───────────────────────────────────────────── */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white leading-tight mb-3">
+            Fill in your RFP details
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 text-lg max-w-xl mx-auto">
+            Complete each field below. Your progress is saved automatically as you type.
+          </p>
+        </div>
+
+        {/* ── Progress bar ───────────────────────────────────────── */}
+        <div className="mb-8 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {completedRequired} of {totalRequired} required fields complete
+            </span>
+            <span className="text-sm font-bold text-[#E8614D]">{progressPercent}%</span>
+          </div>
+          <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-[#E8614D] to-[#F19A8F]"
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercent}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
+          {progressPercent === 100 && (
+            <motion.p
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-3 text-sm text-green-600 dark:text-green-400 font-medium flex items-center gap-1.5"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              All required fields complete — ready to review!
+            </motion.p>
+          )}
+        </div>
+
+        {/* ── Partial-fill alert ─────────────────────────────────── */}
+        <AnimatePresence>
+          {!isFormValid && missingFields.length > 0 && completedRequired > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-start gap-3"
+            >
+              <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                Still needed:{" "}
+                <span className="font-semibold">{missingFields.join(", ")}</span>
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Field cards ────────────────────────────────────────── */}
+        <div className="space-y-6 mb-10">
+          {cards.map((card, index) => {
             const definition = getCardDefinition(card.type);
             const Icon = definition?.icon;
-            const status = getFieldStatus(card);
+            const insight = FIELD_INSIGHTS[card.type];
+            const hasValue =
+              card.value !== null &&
+              card.value !== undefined &&
+              card.value !== "" &&
+              !(Array.isArray(card.value) && card.value.length === 0);
 
             return (
-              <div
+              <motion.div
                 key={card.id}
-                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05, duration: 0.35, ease: "easeOut" }}
+                className={`bg-white dark:bg-gray-800 rounded-2xl border-2 shadow-lg transition-all duration-300 ease-in-out ${
+                  hasValue
+                    ? "border-[#E8614D] shadow-[#E8614D]/10"
+                    : "border-gray-200 dark:border-gray-700"
+                }`}
               >
-                <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                  {Icon && (
-                    <div className="p-1.5 rounded bg-gray-100 dark:bg-gray-700">
-                      <Icon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                {/* Gradient top strip — fills in when card has a value */}
+                <div
+                  className={`h-1 rounded-t-2xl bg-gradient-to-r from-[#E8614D] to-[#F19A8F] transition-opacity duration-300 ${
+                    hasValue ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+
+                <div className="p-8">
+                  {/* Card header */}
+                  <div className="flex items-start gap-4 mb-5">
+                    {/* Icon — turns brand-colored when complete */}
+                    {Icon && (
+                      <div
+                        className={`p-3 rounded-xl flex-shrink-0 transition-all duration-300 ease-in-out ${
+                          hasValue
+                            ? "bg-[#E8614D] text-white"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                        }`}
+                      >
+                        <Icon className="h-6 w-6" />
+                      </div>
+                    )}
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <h3
+                          className={`text-xl font-bold transition-colors duration-300 ${
+                            hasValue
+                              ? "text-[#E8614D]"
+                              : "text-gray-900 dark:text-white"
+                          }`}
+                        >
+                          {card.label}
+                        </h3>
+                        {card.isRequired && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                            <Star className="h-3 w-3" />
+                            Required
+                          </span>
+                        )}
+                      </div>
+                      {insight?.description && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                          {insight.description}
+                        </p>
+                      )}
                     </div>
-                  )}
-                  <span className="flex-1 font-medium text-gray-900 dark:text-white">
-                    {card.label}
-                  </span>
-                  {card.isRequired && (
-                    <span className="text-xs text-[#E25E45] font-medium">Required</span>
-                  )}
-                  {status === "complete" && (
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  )}
-                  {status === "incomplete" && (
-                    <AlertCircle className="h-4 w-4 text-amber-500" />
-                  )}
+
+                    {/* Completion indicator */}
+                    <div className="flex-shrink-0">
+                      {hasValue ? (
+                        <motion.div
+                          initial={{ scale: 0.4, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                        >
+                          <CheckCircle2 className="h-6 w-6 text-green-500" />
+                        </motion.div>
+                      ) : card.isRequired ? (
+                        <div className="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-500" />
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {/* Input */}
+                  <CardInputRenderer card={card} onUpdate={handleUpdateCard} />
                 </div>
-                <div className="p-4">
-                  <CardInputRenderer card={card} onUpdate={updateCard} />
-                </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
 
-        <div className="mt-8 flex justify-end gap-3">
-          <Button variant="outline" onClick={handleEditStructure}>
-            Back to Edit Structure
+        {/* ── Bottom navigation ──────────────────────────────────── */}
+        <div className="flex justify-center gap-4 pb-12">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleBack}
+            className="min-w-[160px] h-12 text-base"
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Back to Structure
           </Button>
           <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            size="lg"
-            className="bg-[#E25E45] hover:bg-[#d54d35] gap-2"
+            onClick={handleContinue}
+            disabled={!isFormValid}
+            className="min-w-[160px] h-12 text-base bg-[#E8614D] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed text-white"
+            title={
+              !isFormValid
+                ? `Complete required fields: ${missingFields.join(", ")}`
+                : ""
+            }
           >
-            <Send className="h-4 w-4" />
-            {isSubmitting ? "Submitting..." : "Submit Tender"}
+            Review & Launch
+            <Rocket className="h-5 w-5 ml-2" />
           </Button>
         </div>
       </div>

@@ -398,7 +398,7 @@ const DEFAULT_TEMPLATES: DisplayTemplate[] = [
   {
     id: "bid-recommended",
     name: "Bid Recommended Template",
-    description: "Our recommended structure for creating effective tenders with all essential sections",
+    description: "Our recommended structure for creating effective RFPs with all essential sections",
     recommended: true,
   },
 ];
@@ -556,6 +556,7 @@ export default function TenderStartMethodStep() {
             }`}>
               Start with a template
             </h3>
+            <span className="text-xs font-semibold uppercase tracking-wide text-[#E8614D] mb-2">Faster</span>
 
             {/* Subtitle */}
             <p className="text-gray-500 dark:text-gray-400 text-base mb-6 text-center max-w-[280px]">
@@ -615,10 +616,11 @@ export default function TenderStartMethodStep() {
             }`}>
               Start from scratch
             </h3>
+            <span className="text-xs font-semibold uppercase tracking-wide text-[#E8614D] mb-2">More customization</span>
 
             {/* Subtitle */}
             <p className="text-gray-500 dark:text-gray-400 text-base mb-6 text-center max-w-[280px]">
-              Build your tender from the ground up with complete customization freedom
+              Build your RFP from the ground up with complete customization freedom
             </p>
 
             {/* Selection Indicator */}

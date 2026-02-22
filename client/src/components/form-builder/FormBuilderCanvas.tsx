@@ -5,7 +5,7 @@ import {
 } from "@dnd-kit/sortable";
 import { FormCard } from "@/lib/form-builder-types";
 import { DraggableCard } from "./DraggableCard";
-import { Plus, ZoomIn, ZoomOut, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Plus, ZoomIn, ZoomOut, PanelRightClose, PanelRight } from "lucide-react";
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ interface FormBuilderCanvasProps {
   onUpdateCard: (id: string, updates: Partial<FormCard>) => void;
   sidebarVisible?: boolean;
   onToggleSidebar?: () => void;
+  structureOnly?: boolean;
 }
 
 export function FormBuilderCanvas({
@@ -24,6 +25,7 @@ export function FormBuilderCanvas({
   onUpdateCard,
   sidebarVisible = true,
   onToggleSidebar,
+  structureOnly = false,
 }: FormBuilderCanvasProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: "form-canvas",
@@ -103,7 +105,7 @@ export function FormBuilderCanvas({
       className="flex-1 flex flex-col relative"
       style={{ overflow: 'hidden' }}
     >
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-1 border border-gray-200 dark:border-gray-700">
+      <div className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-1 border border-gray-200 dark:border-gray-700">
         <Button
           variant="ghost"
           size="icon"
@@ -131,9 +133,9 @@ export function FormBuilderCanvas({
           title={sidebarVisible ? "Hide Card Library" : "Show Card Library"}
         >
           {sidebarVisible ? (
-            <PanelLeftClose className="h-4 w-4" />
+            <PanelRightClose className="h-4 w-4" />
           ) : (
-            <PanelLeft className="h-4 w-4" />
+            <PanelRight className="h-4 w-4" />
           )}
         </Button>
       </div>
@@ -141,19 +143,14 @@ export function FormBuilderCanvas({
       <div
         ref={canvasRef}
         className="relative z-10 flex-1 hide-scrollbar"
-        style={{ 
+        style={{
           overflowX: 'hidden',
           overflowY: 'auto',
           overscrollBehavior: 'contain',
+          backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
+          backgroundSize: '20px 20px',
         }}
       >
-        <div
-          className="absolute inset-0 pointer-events-none z-0"
-          style={{
-            backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
-            backgroundSize: '20px 20px',
-          }}
-        />
 
         <div
           ref={contentRef}
@@ -169,10 +166,10 @@ export function FormBuilderCanvas({
           <div className="w-full max-w-2xl px-6">
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Your Tender Form
+                Your RFP Structure
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Drag cards from the sidebar to build your custom tender form
+                Drag fields from the library to define the shape of your form. You'll fill in the details in Step 2.
               </p>
             </div>
 
@@ -192,6 +189,7 @@ export function FormBuilderCanvas({
                     card={card}
                     onRemove={onRemoveCard}
                     onUpdate={onUpdateCard}
+                    structureOnly={structureOnly}
                   />
                 ))}
               </SortableContext>
@@ -251,7 +249,7 @@ function DropZoneIndicator({ isEmpty, isOver }: DropZoneIndicatorProps) {
           {isOver ? "Drop here to add" : "Drag cards here to start"}
         </p>
         <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-          Build your custom tender form by dragging cards from the library
+          Build your custom RFP form by dragging cards from the library
         </p>
       </div>
     );

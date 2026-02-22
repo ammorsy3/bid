@@ -222,7 +222,7 @@ export default function TenderAICopilot() {
   const [showPreview, setShowPreview] = useState(true);
   const [isReady, setIsReady] = useState(false);
   const [orbState, setOrbState] = useState<OrbState>("idle");
-  const [statusText, setStatusText] = useState("Ready to help you create a tender");
+  const [statusText, setStatusText] = useState("Ready to help you create an RFP");
   const [currentStep, setCurrentStep] = useState(0);
   const [activityLog, setActivityLog] = useState<ActivityLogItem[]>([]);
   const [isListening, setIsListening] = useState(false);
@@ -319,7 +319,7 @@ export default function TenderAICopilot() {
             if (fullContent.length > 20 && !hasAddedStreamingActivity.current) {
               hasAddedStreamingActivity.current = true;
               setOrbState("speaking");
-              setStatusText("Generating your tender...");
+              setStatusText("Generating your RFP...");
               setCurrentStep(2);
             }
 
@@ -351,7 +351,7 @@ export default function TenderAICopilot() {
               // Add specific activity based on what was updated
               const updatedFields = Object.keys(parsed.tenderData);
               if (updatedFields.includes('title')) {
-                addActivity("generating", "Generated tender title", parsed.tenderData.title);
+                addActivity("generating", "Generated RFP title", parsed.tenderData.title);
               }
               if (updatedFields.includes('serviceDescription')) {
                 addActivity("generating", "Created service description", parsed.tenderData.serviceDescription?.slice(0, 80) + "...");
@@ -377,9 +377,9 @@ export default function TenderAICopilot() {
             if (parsed.readyToLaunch) {
               setIsReady(true);
               setOrbState("success");
-              setStatusText("Your tender is ready to launch!");
+              setStatusText("Your RFP is ready to launch!");
               setCurrentStep(4); // All steps complete
-              addActivity("complete", "Tender ready to launch", "All required fields have been filled");
+              addActivity("complete", "RFP ready to launch", "All required fields have been filled");
             } else {
               setOrbState("idle");
               setStatusText("How can I help you further?");
@@ -499,8 +499,8 @@ export default function TenderAICopilot() {
 
   const handleLaunchTender = async () => {
     setOrbState("thinking");
-    setStatusText("Launching your tender...");
-    addActivity("generating", "Creating your tender", tenderDraft.title || "New tender", "in_progress");
+    setStatusText("Launching your RFP...");
+    addActivity("generating", "Creating your RFP", tenderDraft.title || "New RFP", "in_progress");
 
     try {
       const response = await fetch("/api/tenders", {
@@ -511,14 +511,14 @@ export default function TenderAICopilot() {
 
       if (response.ok) {
         setOrbState("success");
-        setStatusText("Tender launched successfully!");
-        addActivity("complete", "Tender published!", "Your tender is now live and accepting bids");
+        setStatusText("RFP launched successfully!");
+        addActivity("complete", "RFP published!", "Your RFP is now live and accepting bids");
         setTimeout(() => navigate("/dashboard"), 1500);
       }
     } catch (error) {
       console.error("Error creating tender:", error);
       setOrbState("error");
-      setStatusText("Failed to launch tender");
+      setStatusText("Failed to launch RFP");
     }
   };
 
@@ -527,7 +527,7 @@ export default function TenderAICopilot() {
     setTenderDraft({});
     setIsReady(false);
     setOrbState("idle");
-    setStatusText("Ready to help you create a tender");
+    setStatusText("Ready to help you create an RFP");
     setCurrentStep(0);
     setActivityLog([]);
   };
@@ -653,7 +653,7 @@ export default function TenderAICopilot() {
                       Hey {firstName}, let's create something great
                     </h2>
                     <p className="text-gray-500 dark:text-gray-400 max-w-md">
-                      Click on the orb or choose a quick action below to get started. I'll help you create a professional tender in minutes.
+                      Click on the orb or choose a quick action below to get started. I'll help you create a professional RFP in minutes.
                     </p>
                   </motion.div>
 
@@ -906,7 +906,7 @@ export default function TenderAICopilot() {
                       className="h-12 px-6 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 rounded-xl gap-2 shadow-lg shadow-green-500/25"
                     >
                       <Rocket className="h-4 w-4" />
-                      Launch Tender
+                      Launch RFP
                     </Button>
                   </motion.div>
                 )}
@@ -955,7 +955,7 @@ export default function TenderAICopilot() {
                       animate={{ opacity: 1, y: 0 }}
                     >
                       <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-                        {tenderDraft.title || "Untitled Tender"}
+                        {tenderDraft.title || "Untitled RFP"}
                       </h1>
                       <p className="text-sm text-gray-500">
                         {companyData.name || "Your Company"} • {companyData.city || "Location"}
@@ -987,7 +987,7 @@ export default function TenderAICopilot() {
                       transition={{ delay: 0.1 }}
                     >
                       <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">Tender Details</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-white">RFP Details</h3>
                       </div>
                       <div className="p-4">
                         <div className="grid grid-cols-2 gap-4">
@@ -1075,10 +1075,10 @@ export default function TenderAICopilot() {
                       <div className="px-4 py-3 border-b border-blue-100 dark:border-blue-800">
                         <h3 className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
                           <FileText className="h-4 w-4" />
-                          Submit Your Offer
+                          Submit Your Proposal
                         </h3>
                         <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                          Submit your technical and financial proposal for this tender.
+                          Submit your technical and financial Proposal for this RFP.
                         </p>
                       </div>
                       <div className="p-4">
@@ -1087,7 +1087,7 @@ export default function TenderAICopilot() {
                           disabled
                         >
                           <Send className="h-4 w-4 mr-2" />
-                          Submit Offer
+                          Submit Proposal
                         </Button>
                       </div>
                     </motion.div>
@@ -1137,7 +1137,7 @@ export default function TenderAICopilot() {
                       No preview yet
                     </h4>
                     <p className="text-xs text-gray-500 max-w-[200px]">
-                      Start chatting with the AI to build your tender. The preview will update in real-time.
+                      Start chatting with the AI to build your RFP. The preview will update in real-time.
                     </p>
                   </div>
                 )}

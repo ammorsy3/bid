@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, X, Star, Pencil, AlertCircle } from "lucide-react";
-import { FormCard, getCardDefinition } from "@/lib/form-builder-types";
+import { FormCard, CardType, getCardDefinition } from "@/lib/form-builder-types";
 import { useState } from "react";
 import { CardInputRenderer } from "./CardInputRenderer";
 
@@ -11,6 +11,39 @@ interface DraggableCardProps {
   onUpdate?: (id: string, updates: Partial<FormCard>) => void;
   isOverlay?: boolean;
   readOnly?: boolean;
+  structureOnly?: boolean;
+}
+
+function getInputTypeLabel(type: CardType): string {
+  switch (type) {
+    case "project-title":
+    case "project-objective":
+    case "custom-text":
+      return "Short text";
+    case "project-description":
+    case "custom-textarea":
+      return "Long text";
+    case "project-type":
+    case "supplier-response":
+      return "Multiple choice";
+    case "project-dates":
+      return "Date range";
+    case "budget":
+      return "Budget input";
+    case "key-deliverables":
+      return "List of items";
+    case "submission-deadline":
+    case "custom-date":
+      return "Date picker";
+    case "evaluation-criteria":
+      return "Weighted criteria";
+    case "attachments":
+      return "File upload";
+    case "custom-select":
+      return "Dropdown";
+    default:
+      return "Input field";
+  }
 }
 
 export function DraggableCard({
@@ -19,6 +52,7 @@ export function DraggableCard({
   onUpdate,
   isOverlay = false,
   readOnly = false,
+  structureOnly = false,
 }: DraggableCardProps) {
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [editedLabel, setEditedLabel] = useState(card.label);
@@ -41,13 +75,13 @@ export function DraggableCard({
   const Icon = definition?.icon;
   const isCustomCard = definition?.isCustom;
 
-  // Check if card needs action (touched, required, but empty)
-  const isEmpty = 
-    card.value === null || 
-    card.value === undefined || 
+  // Check if card needs action (touched, required, but empty) — only relevant when filling in values (Step 2+)
+  const isEmpty =
+    card.value === null ||
+    card.value === undefined ||
     card.value === "" ||
     (Array.isArray(card.value) && card.value.length === 0);
-  const needsAction = card.touched && card.isRequired && isEmpty;
+  const needsAction = !structureOnly && card.touched && card.isRequired && isEmpty;
 
   // Mark card as touched when user leaves it (blur)
   const handleCardBlur = (e: React.FocusEvent) => {
@@ -168,10 +202,22 @@ export function DraggableCard({
         )}
       </div>
 
-      {/* Card Content - Input Area */}
-      <div className="p-4">
-        <CardInputRenderer card={card} onUpdate={onUpdate} readOnly={readOnly} />
-      </div>
+      {/* Card Content */}
+      {structureOnly ? (
+        <div className="px-4 py-3 bg-gray-50/60 dark:bg-gray-800/40 border-t border-gray-100 dark:border-gray-700/50">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-0.5 rounded-full">
+              {getInputTypeLabel(card.type)}
+            </span>
+            <span className="text-xs text-gray-300 dark:text-gray-600">·</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500 italic">Fill in Step 2</span>
+          </div>
+        </div>
+      ) : (
+        <div className="p-4">
+          <CardInputRenderer card={card} onUpdate={onUpdate} readOnly={readOnly} />
+        </div>
+      )}
     </div>
   );
 }

@@ -46,10 +46,10 @@ export default function TenderCreateChoice() {
               Welcome, {firstName}!
             </h2>
             <p className="text-lg text-gray-700 mb-2 drop-shadow-md">
-              Let's create your tender
+              Let's create your RFP
             </p>
             <p className="text-sm text-gray-600 mb-10 drop-shadow-md">
-              Post a tender in just a few clicks and start receiving bids from qualified vendors.
+              Post an RFP in just a few clicks and start receiving bids from qualified Vendors.
             </p>
 
             <div className="space-y-3 max-w-sm mx-auto">

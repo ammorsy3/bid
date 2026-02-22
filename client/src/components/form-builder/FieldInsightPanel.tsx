@@ -5,11 +5,32 @@ import { CardType, FIELD_INSIGHTS, getCardDefinition } from "@/lib/form-builder-
 
 interface FieldInsightPanelProps {
   cardType: CardType | null;
+  cursorPos?: { x: number; y: number } | null;
   onClose: () => void;
 }
 
-export function FieldInsightPanel({ cardType, onClose }: FieldInsightPanelProps) {
+const PANEL_WIDTH = 340;
+const PANEL_HEIGHT = 400; // approximate max height
+const OFFSET = 16;
+
+export function FieldInsightPanel({ cardType, cursorPos, onClose }: FieldInsightPanelProps) {
   const insight = cardType ? FIELD_INSIGHTS[cardType] : null;
+
+  // Position near cursor, flipping sides when near viewport edges
+  const panelStyle = (() => {
+    if (!cursorPos) return { top: 80, left: 16 };
+    const { x, y } = cursorPos;
+    const left = x + OFFSET + PANEL_WIDTH > window.innerWidth - 8
+      ? x - PANEL_WIDTH - OFFSET
+      : x + OFFSET;
+    const top = y + OFFSET + PANEL_HEIGHT > window.innerHeight - 8
+      ? y - PANEL_HEIGHT - OFFSET
+      : y + OFFSET;
+    return {
+      left: Math.max(8, left),
+      top: Math.max(8, top),
+    };
+  })();
 
   useEffect(() => {
     if (!insight) return;
@@ -26,28 +47,19 @@ export function FieldInsightPanel({ cardType, onClose }: FieldInsightPanelProps)
     <AnimatePresence>
       {insight && (
         <>
-          {/* Backdrop - subtle click-to-close */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40"
-            onClick={onClose}
-          />
-
           {/* Panel */}
           <motion.div
-            initial={{ x: 24, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 24, opacity: 0 }}
+            initial={{ y: -8, opacity: 0, scale: 0.97 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: -8, opacity: 0, scale: 0.97 }}
             transition={{
               type: "spring",
               damping: 28,
               stiffness: 320,
               mass: 0.7,
             }}
-            className="fixed right-4 top-20 z-50 w-[340px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl"
+            style={{ top: panelStyle.top, left: panelStyle.left }}
+            className="fixed z-50 w-[340px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3">

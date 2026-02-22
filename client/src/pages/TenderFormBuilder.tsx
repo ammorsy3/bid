@@ -11,7 +11,6 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
-  DragOverEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -45,7 +44,15 @@ export default function TenderFormBuilder() {
       try {
         const parsedCards = JSON.parse(savedState);
         if (Array.isArray(parsedCards) && parsedCards.length > 0) {
-          return parsedCards;
+          // Sync labels from the current library for non-custom cards so label
+          // changes in the library are always reflected on the canvas.
+          return parsedCards.map((card: FormCard) => {
+            const definition = getCardDefinition(card.type);
+            if (definition && !definition.isCustom) {
+              return { ...card, label: definition.label };
+            }
+            return card;
+          });
         }
       } catch (e) {
         console.error("Error parsing saved cards:", e);
@@ -58,13 +65,21 @@ export default function TenderFormBuilder() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [insightCardType, setInsightCardType] = useState<CardType | null>(null);
+  const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
 
-  // Sidebar resize state
-  const [sidebarWidth, setSidebarWidth] = useState(288); // 288px = w-72 default
+  // Sidebar resize state — default 50%, min 40%, max 60% of viewport
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const saved = localStorage.getItem("tender_sidebar_width");
+    if (saved) {
+      const parsed = parseInt(saved, 10);
+      const min = Math.round(window.innerWidth * 0.40);
+      const max = Math.round(window.innerWidth * 0.60);
+      if (!isNaN(parsed) && parsed >= min && parsed <= max) return parsed;
+    }
+    return Math.round(window.innerWidth * 0.50);
+  });
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const isResizing = useRef(false);
-  const minSidebarWidth = 200;
-  const maxSidebarWidth = 500;
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     isResizing.current = true;
@@ -76,8 +91,11 @@ export default function TenderFormBuilder() {
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing.current) return;
-    const newWidth = Math.min(maxSidebarWidth, Math.max(minSidebarWidth, e.clientX));
+    const min = Math.round(window.innerWidth * 0.40);
+    const max = Math.round(window.innerWidth * 0.60);
+    const newWidth = Math.min(max, Math.max(min, window.innerWidth - e.clientX));
     setSidebarWidth(newWidth);
+    localStorage.setItem("tender_sidebar_width", String(newWidth));
   }, []);
 
   const handleMouseUp = useCallback(() => {
@@ -102,34 +120,12 @@ export default function TenderFormBuilder() {
   // Get list of card types already in the form
   const usedCardTypes = cards.map((c) => c.type);
 
-  // Validate required fields are complete
-  const { isFormValid, missingFields } = useMemo(() => {
-    const missing: string[] = [];
-    
-    for (const card of cards) {
-      if (card.isRequired) {
-        const isEmpty = 
-          card.value === null || 
-          card.value === undefined || 
-          card.value === "" ||
-          (Array.isArray(card.value) && card.value.length === 0);
-        
-        if (isEmpty) {
-          missing.push(card.label);
-        }
-      }
-    }
-    
-    return { isFormValid: missing.length === 0, missingFields: missing };
-  }, [cards]);
+  // Step 1 is valid as long as the user has at least the required cards (always true)
+  const canContinue = cards.length > 0;
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
     setActiveDragData(event.active.data.current);
-  }, []);
-
-  const handleDragOver = useCallback((event: DragOverEvent) => {
-    // Could add visual feedback here
   }, []);
 
   const handleDragEnd = useCallback(
@@ -194,13 +190,10 @@ export default function TenderFormBuilder() {
     navigate("/tenders/new/manual");
   };
 
-  const handleReviewAndLaunch = () => {
-    // Save full card state (with values) to localStorage for review phase
-    const TENDER_STATE_KEY = "tender_form_state";
+  const handleContinue = () => {
+    // Save card structure to localStorage — values filled in Step 2
     localStorage.setItem(TENDER_STATE_KEY, JSON.stringify(cards));
-
-    // Navigate to review page
-    navigate("/tenders/new/review");
+    navigate("/tenders/new/fill");
   };
 
   // Render drag overlay
@@ -235,7 +228,6 @@ export default function TenderFormBuilder() {
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
@@ -252,11 +244,29 @@ export default function TenderFormBuilder() {
               <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
               <div>
                 <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Build Your Tender Form
+                  Build Your RFP Structure
                 </h1>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Drag and drop to customize
+                  Step 1 of 3 — Choose and arrange your form fields
                 </p>
+              </div>
+            </div>
+
+            {/* Step indicator */}
+            <div className="hidden md:flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-[#E25E45] text-white flex items-center justify-center text-[10px] font-bold">1</span>
+                <span className="font-medium text-gray-900 dark:text-white">Structure</span>
+              </div>
+              <div className="w-6 h-px bg-gray-300 dark:bg-gray-600" />
+              <div className="flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-400 flex items-center justify-center text-[10px] font-bold">2</span>
+                <span className="text-gray-400">Fill Details</span>
+              </div>
+              <div className="w-6 h-px bg-gray-300 dark:bg-gray-600" />
+              <div className="flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-400 flex items-center justify-center text-[10px] font-bold">3</span>
+                <span className="text-gray-400">Review</span>
               </div>
             </div>
 
@@ -266,14 +276,11 @@ export default function TenderFormBuilder() {
                 Back
               </Button>
               <Button
-                onClick={handleReviewAndLaunch}
-                disabled={!isFormValid}
-                className={isFormValid 
-                  ? "bg-[#E25E45] hover:bg-[#d54d35] text-white" 
-                  : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"}
-                title={!isFormValid ? `Complete required fields: ${missingFields.join(", ")}` : ""}
+                onClick={handleContinue}
+                disabled={!canContinue}
+                className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
               >
-                Review & Launch
+                Continue to Details
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
@@ -282,6 +289,15 @@ export default function TenderFormBuilder() {
 
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
+          <FormBuilderCanvas
+            cards={cards}
+            onRemoveCard={handleRemoveCard}
+            onUpdateCard={handleUpdateCard}
+            sidebarVisible={sidebarVisible}
+            onToggleSidebar={() => setSidebarVisible(!sidebarVisible)}
+            structureOnly={true}
+          />
+
           <AnimatePresence mode="wait">
             {sidebarVisible && (
               <motion.div
@@ -292,30 +308,29 @@ export default function TenderFormBuilder() {
                 transition={{ duration: 0.2, ease: "easeInOut" }}
                 className="flex flex-shrink-0 overflow-hidden"
               >
-                <CardLibrarySidebar
-                  usedCardTypes={usedCardTypes}
-                  width={sidebarWidth}
-                  onShowInsight={(type) => setInsightCardType(type)}
-                />
-
-                {/* Resize Handle */}
+                {/* Resize Handle - left of sidebar */}
                 <div
                   onMouseDown={handleMouseDown}
                   className="w-1 hover:w-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-[#E25E45] cursor-col-resize transition-all flex-shrink-0 group relative"
                 >
                   <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-[#E25E45]/10" />
                 </div>
+
+                <CardLibrarySidebar
+                  usedCardTypes={usedCardTypes}
+                  width={sidebarWidth}
+                  onShowInsight={(type, pos) => {
+                    setInsightCardType(type);
+                    setCursorPos(pos ?? null);
+                  }}
+                  onHideInsight={() => {
+                    setInsightCardType(null);
+                    setCursorPos(null);
+                  }}
+                />
               </motion.div>
             )}
           </AnimatePresence>
-
-          <FormBuilderCanvas
-            cards={cards}
-            onRemoveCard={handleRemoveCard}
-            onUpdateCard={handleUpdateCard}
-            sidebarVisible={sidebarVisible}
-            onToggleSidebar={() => setSidebarVisible(!sidebarVisible)}
-          />
         </div>
 
         {/* Drag Overlay */}
@@ -326,76 +341,11 @@ export default function TenderFormBuilder() {
         {/* Field Insight Panel */}
         <FieldInsightPanel
           cardType={insightCardType}
-          onClose={() => setInsightCardType(null)}
+          cursorPos={cursorPos}
+          onClose={() => { setInsightCardType(null); setCursorPos(null); }}
         />
       </div>
     </DndContext>
   );
 }
 
-// Helper function to build tender data from cards
-function buildTenderData(cards: FormCard[]): Record<string, any> {
-  const data: Record<string, any> = {};
-
-  for (const card of cards) {
-    switch (card.type) {
-      case "project-title":
-        data.title = card.value;
-        break;
-      case "project-type":
-        data.projectType = card.value;
-        break;
-      case "supplier-response":
-        data.submissionType = card.value;
-        break;
-      case "project-dates":
-        if (card.value) {
-          data.startDate = card.value.startDate;
-          data.endDate = card.value.endDate;
-          data.deliveryDate = card.value.deliveryDate;
-        }
-        break;
-      case "budget":
-        if (card.value) {
-          if (card.value.type === "exact") {
-            data.budget = card.value.amount;
-          } else {
-            data.budgetMin = card.value.min;
-            data.budgetMax = card.value.max;
-          }
-        }
-        break;
-      case "project-objective":
-        data.projectObjective = card.value;
-        break;
-      case "key-deliverables":
-        data.keyDeliverables = card.value;
-        break;
-      case "project-description":
-        data.projectDescription = card.value;
-        break;
-      case "submission-deadline":
-        data.submissionDeadline = card.value;
-        break;
-      case "evaluation-criteria":
-        data.evaluationCriteria = card.value;
-        break;
-      case "attachments":
-        data.attachments = card.value;
-        break;
-      default:
-        // Custom fields
-        if (card.type.startsWith("custom-")) {
-          if (!data.customFields) data.customFields = [];
-          data.customFields.push({
-            label: card.label,
-            type: card.type,
-            value: card.value,
-            options: card.options,
-          });
-        }
-    }
-  }
-
-  return data;
-}

@@ -86,21 +86,21 @@ export const CARD_LIBRARY: {
     {
       type: "project-title",
       label: "Project Title",
-      description: "The name of your tender project",
+      description: "The name of your RFP",
       icon: Type,
       isRequired: true,
     },
     {
       type: "project-type",
-      label: "What type of project is this?",
-      description: "Define if this is time-bound or deliverable-based",
+      label: "Project Type",
+      description: "Time-bound, deliverable-based, or ongoing",
       icon: Layers,
       isRequired: true,
     },
     {
       type: "supplier-response",
-      label: "How should suppliers respond?",
-      description: "Define how vendors submit their proposals",
+      label: "Vendor Response",
+      description: "How Vendors submit their Proposals",
       icon: MessageSquare,
       isRequired: true,
     },
@@ -213,7 +213,7 @@ function getDefaultPlaceholder(type: CardType): string {
     case "project-type":
       return "Select the type of project";
     case "supplier-response":
-      return "Choose how suppliers should submit proposals";
+      return "Choose how Vendors should submit Proposals";
     case "project-objective":
       return "What is the main goal of this project?";
     case "project-description":
@@ -263,9 +263,9 @@ export const FIELD_INSIGHTS: Record<CardType, FieldInsight> = {
   "project-title": {
     title: "Project Title",
     description:
-      "The project title is the first thing vendors see. A clear, specific title helps attract the right suppliers and sets expectations from the start.",
+      "The project title is the first thing vendors see. A clear, specific title helps attract the right Vendors and sets expectations from the start.",
     vendorTip:
-      "Vendors filter opportunities by title. Include the core service or product so qualified suppliers can find your tender quickly.",
+      "Vendors filter opportunities by title. Include the core service or product so qualified Vendors can find your RFP quickly.",
     bestPractice:
       "Be specific — \"Office IT Infrastructure Upgrade Q3\" is better than \"IT Project.\" Avoid internal jargon or acronyms.",
   },
@@ -279,7 +279,7 @@ export const FIELD_INSIGHTS: Record<CardType, FieldInsight> = {
       "Choose the type that best matches your contracting model. If unsure, deliverable-based gives you more control over outcomes.",
   },
   "supplier-response": {
-    title: "Supplier Response Format",
+    title: "Vendor Response Format",
     description:
       "Controls how vendors submit their proposals — documents, video pitches, or through the platform. This affects the quality and comparability of responses.",
     vendorTip:
@@ -292,7 +292,7 @@ export const FIELD_INSIGHTS: Record<CardType, FieldInsight> = {
     description:
       "Sets the expected start and end dates for the project. Clear timelines help vendors assess availability and plan resource allocation.",
     vendorTip:
-      "Vendors need realistic timelines to provide accurate quotes. Tight deadlines may limit the pool of qualified suppliers or increase costs.",
+      "Vendors need realistic timelines to provide accurate Proposals. Tight deadlines may limit the pool of qualified Vendors or increase costs.",
     bestPractice:
       "Include buffer time for onboarding. If dates are flexible, mention it — this can attract more competitive bids.",
   },
@@ -319,7 +319,7 @@ export const FIELD_INSIGHTS: Record<CardType, FieldInsight> = {
     description:
       "A list of tangible outputs the vendor is expected to produce. Clear deliverables prevent scope disagreements down the line.",
     vendorTip:
-      "Well-defined deliverables help vendors provide accurate timelines and pricing. Vague deliverables often lead to change orders and delays.",
+      "Well-defined deliverables help vendors provide accurate timelines and costs. Vague deliverables often lead to change orders and delays.",
     bestPractice:
       "Make each deliverable measurable. Instead of \"Training materials,\" try \"10-page training manual + 3 video tutorials (5 min each).\"",
   },
@@ -339,7 +339,7 @@ export const FIELD_INSIGHTS: Record<CardType, FieldInsight> = {
     vendorTip:
       "Give vendors at least 2 weeks for simple projects and 4+ weeks for complex ones. Rushed deadlines reduce proposal quality.",
     bestPractice:
-      "Set the deadline on a weekday, mid-morning. Avoid holidays. Publish the tender as early as possible to maximize response quality.",
+      "Set the deadline on a weekday, mid-morning. Avoid holidays. Publish the RFP as early as possible to maximize response quality.",
   },
   "evaluation-criteria": {
     title: "Evaluation Criteria",
@@ -375,7 +375,7 @@ export const FIELD_INSIGHTS: Record<CardType, FieldInsight> = {
     vendorTip:
       "Great for qualitative questions like \"Describe your approach\" or \"Explain relevant experience.\" Gives vendors space to differentiate themselves.",
     bestPractice:
-      "Limit to 2-3 long-answer questions per tender. Too many open-ended questions discourage vendors from completing the form.",
+      "Limit to 2-3 long-answer questions per RFP. Too many open-ended questions discourage vendors from completing the form.",
   },
   "custom-date": {
     title: "Date Field",

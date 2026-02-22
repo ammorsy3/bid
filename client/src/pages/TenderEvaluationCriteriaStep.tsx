@@ -299,7 +299,7 @@ export default function TenderEvaluationCriteriaStep() {
                 Evaluation Criteria
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Define structured evaluation criteria for fair and auditable supplier selection.
+                Define structured evaluation criteria for fair and auditable Vendor selection.
               </p>
             </div>
           </div>

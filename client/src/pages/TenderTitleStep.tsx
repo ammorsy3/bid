@@ -8,12 +8,6 @@ import { useState } from "react";
 import { AutocompleteInput } from "@/components/ui/autocomplete-input";
 import { getSuggestions } from "@/lib/tender-suggestions";
 
-const EXAMPLE_TITLES = [
-  "Enterprise CRM Implementation and Integration Services",
-  "Corporate Website Redesign and Development Project",
-  "Digital Marketing Campaign Management for Product Launch",
-];
-
 const MAX_WORDS = 10;
 
 const countWords = (text: string): number => {
@@ -96,8 +90,9 @@ export default function TenderTitleStep() {
                   Let's start with a strong title.
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 text-lg">
-                  This helps your tender stand out. It's the first thing that
-                  the candidates see, so make it count!
+                  Your RFP title is the first thing vendors evaluate. A clear,
+                  specific title signals professionalism and attracts the right
+                  companies to submit a Proposal.
                 </p>
               </div>
             </div>
@@ -111,13 +106,13 @@ export default function TenderTitleStep() {
                   {/* Title Input with Autocomplete */}
                   <div className="space-y-3">
                     <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                      Write a project title for your tender.
+                      Write a project title for your RFP.
                     </label>
                     <AutocompleteInput
                       value={title}
                       onChange={setTitle}
                       suggestions={getSuggestions("title")}
-                      placeholder="e.g., Senior React Developer Needed"
+                      placeholder="e.g., ERP System Integration for Finance Operations"
                       data-testid="input-title"
                       className={isOverLimit ? "border-red-300 dark:border-red-600 focus:ring-red-500" : ""}
                     />
@@ -129,26 +124,6 @@ export default function TenderTitleStep() {
                         {wordCount} / {MAX_WORDS} words
                       </p>
                     </div>
-                  </div>
-
-                  {/* Example Titles */}
-                  <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
-                    <h3 className="font-medium text-gray-900 dark:text-white">
-                      Example titles
-                    </h3>
-                    <ul className="space-y-2">
-                      {EXAMPLE_TITLES.map((example, index) => (
-                        <li
-                          key={index}
-                          className="text-sm text-gray-600 dark:text-gray-400 flex gap-3"
-                        >
-                          <span className="text-gray-400 dark:text-gray-600">
-                            •
-                          </span>
-                          <span>{example}</span>
-                        </li>
-                      ))}
-                    </ul>
                   </div>
 
                   {/* Navigation Buttons */}

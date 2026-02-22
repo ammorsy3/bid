@@ -468,7 +468,7 @@ export default function TenderAIBudgetStep() {
                               <EyeOff className="h-5 w-5 text-gray-500" />
                             )}
                             <span className="text-sm font-medium text-gray-900 dark:text-white">
-                              Show exact price to suppliers
+                              Show exact price to Vendors
                             </span>
                           </div>
                           <button
@@ -492,8 +492,8 @@ export default function TenderAIBudgetStep() {
                           <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                           <p className="text-xs text-blue-700 dark:text-blue-300">
                             {showPriceToVendors
-                              ? "Suppliers will see your exact budget and project size. This helps them understand the scope and submit more accurate proposals."
-                              : "Suppliers will only see the project size category. Showing the exact price helps suppliers understand the project scope and can shorten the proposal timeframe."
+                              ? "Vendors will see your exact budget and project size. This helps them understand the scope and submit more accurate Proposals."
+                              : "Vendors will only see the project size category. Showing the exact price helps Vendors understand the project scope and can shorten the Proposal timeframe."
                             }
                           </p>
                         </div>

@@ -63,14 +63,14 @@ export default function TenderBriefStep() {
       localStorage.removeItem("tenderDraft");
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
       toast({
-        title: "Tender published!",
-        description: "Your tender is now live. Suppliers can start submitting proposals.",
+        title: "RFP published!",
+        description: "Your RFP is now live. Vendors can start submitting Proposals.",
       });
       navigate("/dashboard?tab=tenders");
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to publish tender",
+        title: "Failed to publish RFP",
         description: error.message,
         variant: "destructive",
       });
@@ -79,7 +79,7 @@ export default function TenderBriefStep() {
 
   const handlePublish = () => {
     const tenderData = {
-      title: draft.title || "Untitled Tender",
+      title: draft.title || "Untitled RFP",
       description: draft.description || draft.projectDescription || draft.title || "No description provided",
       category: draft.skills?.[0] || "Other",
       skills: draft.skills || [],
@@ -159,8 +159,8 @@ export default function TenderBriefStep() {
                 <FileText className="h-6 w-6 text-white" />
               </div>
               <div>
-                <CardTitle className="text-2xl font-bold">Tender Brief</CardTitle>
-                <CardDescription>Review your tender details before publishing</CardDescription>
+                <CardTitle className="text-2xl font-bold">RFP Brief</CardTitle>
+                <CardDescription>Review your RFP details before publishing</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -169,7 +169,7 @@ export default function TenderBriefStep() {
             <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
               <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Project Title</h3>
               <p className="text-xl font-bold text-gray-900 dark:text-white" data-testid="brief-title">
-                {draft.title || "Untitled Tender"}
+                {draft.title || "Untitled RFP"}
               </p>
             </div>
 
@@ -391,7 +391,7 @@ export default function TenderBriefStep() {
               <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
                 <Info className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-900 dark:text-blue-100">
-                  This tender will be published on behalf of <strong>{activeCompany.name}</strong>
+                  This RFP will be published on behalf of <strong>{activeCompany.name}</strong>
                 </AlertDescription>
               </Alert>
             )}
@@ -421,7 +421,7 @@ export default function TenderBriefStep() {
                 ) : (
                   <>
                     <Check className="h-4 w-4 mr-2" />
-                    Publish Tender
+                    Publish RFP
                   </>
                 )}
               </Button>

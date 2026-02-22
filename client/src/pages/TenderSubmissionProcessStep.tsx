@@ -84,7 +84,7 @@ export default function TenderSubmissionProcessStep() {
 
       toast({
         title: "Email saved",
-        description: "Your tender inquiry email has been saved for future use.",
+        description: "Your RFP inquiry email has been saved for future use.",
       });
     } catch (error) {
       toast({
@@ -140,14 +140,14 @@ export default function TenderSubmissionProcessStep() {
       type: "quote_only" as SubmissionType,
       icon: FileText,
       title: "Price Only",
-      description: "Just need a price quote",
+      description: "Just need a price figure",
       color: "from-blue-500 to-blue-600",
     },
     {
       type: "tech_fin_proposal" as SubmissionType,
       icon: FileCheck,
       title: "Full Proposal",
-      description: "Technical plan + pricing details",
+      description: "Technical and Financial Proposal",
       color: "from-purple-500 to-purple-600",
     },
     {
@@ -171,7 +171,7 @@ export default function TenderSubmissionProcessStep() {
       type: "inside_bid" as InquiryType,
       icon: MessageSquare,
       title: "Inside Bid",
-      description: "Q&A appears anonymously in the tender",
+      description: "Q&A appears anonymously in the Tender",
       color: "from-green-500 to-green-600",
     },
     {
@@ -231,10 +231,10 @@ export default function TenderSubmissionProcessStep() {
                 4 / 5
               </div>
               <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
-                How should suppliers respond?
+                How should Vendors respond?
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Choose what you need from suppliers to evaluate their proposals.
+                Choose what you need from Vendors to evaluate their Proposals.
               </p>
             </div>
           </div>
@@ -358,7 +358,7 @@ export default function TenderSubmissionProcessStep() {
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {videoRequired
-                              ? "Suppliers must include a video"
+                              ? "Vendors must include a video"
                               : "Video is optional"
                             }
                           </p>
@@ -387,10 +387,10 @@ export default function TenderSubmissionProcessStep() {
                   <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div>
                       <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                        How should suppliers ask questions?
+                        How should Vendors ask questions?
                       </h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Choose how you want to receive inquiries about this tender
+                        Choose how you want to receive inquiries about this Tender
                       </p>
                     </div>
 
@@ -500,7 +500,7 @@ export default function TenderSubmissionProcessStep() {
                                   data-testid="checkbox-save-email"
                                 />
                                 <span className="text-xs text-gray-600 dark:text-gray-400">
-                                  {isSavingEmail ? "Saving..." : "Save this email for future tenders"}
+                                  {isSavingEmail ? "Saving..." : "Save this email for future RFPs"}
                                 </span>
                               </label>
                             </div>
@@ -523,7 +523,7 @@ export default function TenderSubmissionProcessStep() {
                         </div>
 
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          This contact information will be displayed in the tender for suppliers to reach you
+                          This contact information will be displayed in the Tender for Vendors to reach you
                         </p>
                       </div>
                     )}
@@ -533,7 +533,7 @@ export default function TenderSubmissionProcessStep() {
                       <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg animate-in fade-in slide-in-from-top-2 duration-300">
                         <MessageSquare className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                         <p className="text-xs text-blue-700 dark:text-blue-300">
-                          Questions will appear in an anonymous Q&A section visible to all suppliers in the tender
+                          Questions will appear in an anonymous Q&A section visible to all Vendors in the Tender
                         </p>
                       </div>
                     )}

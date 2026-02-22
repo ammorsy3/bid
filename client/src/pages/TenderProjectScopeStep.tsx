@@ -420,7 +420,7 @@ export default function TenderProjectScopeStep() {
                 Define your project scope.
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Help candidates understand what you're looking for by clearly
+                Help Vendors understand what you're looking for by clearly
                 defining your key deliverables and additional project details.
               </p>
             </div>

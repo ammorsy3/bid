@@ -406,6 +406,23 @@ export default function TenderInviteLink() {
   );
   const hasInquiryMethod = !!tender.inquiryType;
 
+  const tocSections = [
+    { id: 'description', label: 'Project Description', show: true },
+    { id: 'objective', label: 'Project Objective', show: !!tender.objective },
+    { id: 'deliverables', label: 'Scope of Work & Deliverables', show: hasDeliverables },
+    { id: 'milestones', label: 'Project Milestones & Payment Schedule', show: hasMilestones },
+    { id: 'context', label: 'Additional Context', show: !!(tender.voiceNoteUrl || tender.videoUrl) },
+    { id: 'submission', label: 'Submission Requirements', show: !!tender.submissionType },
+    { id: 'evaluation', label: 'Evaluation Criteria', show: hasEvalCriteria },
+    { id: 'inquiry', label: 'Questions & Clarifications', show: hasInquiryMethod },
+    { id: 'skills', label: 'Required Skills & Expertise', show: hasSkills },
+  ].filter(s => s.show);
+
+  const sectionNumber = (id: string) => {
+    const idx = tocSections.findIndex(s => s.id === id);
+    return idx >= 0 ? `${idx + 1}.0` : '';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sticky Header */}
@@ -448,7 +465,7 @@ export default function TenderInviteLink() {
                   }`}
                   data-testid="badge-status"
                 >
-                  {tender.status === 'published' ? 'Open' : tender.status}
+                  {tender.status === 'published' ? 'Open for Submissions' : tender.status}
                 </Badge>
                 {isDeadlinePassed && (
                   <Badge className="bg-red-100 text-red-700 text-sm px-3 py-1">
@@ -459,12 +476,21 @@ export default function TenderInviteLink() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2" data-testid="text-tender-title">
                 {tender.title}
               </h1>
-              {tender.company && (
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Building2 className="h-4 w-4" />
-                  <span className="text-sm">{tender.profile?.displayName || tender.company.name}</span>
-                </div>
-              )}
+              <div className="flex items-center gap-4 flex-wrap mt-1">
+                {tender.company && (
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <Building2 className="h-4 w-4" />
+                    <span className="text-sm">{tender.profile?.displayName || tender.company.name}</span>
+                  </div>
+                )}
+                {tender.createdAt && (
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Calendar className="h-3.5 w-3.5" />
+                    <span className="text-xs">Published {formatDate(tender.createdAt)}</span>
+                  </div>
+                )}
+                <span className="text-xs text-gray-400">Ref: RFP-{tenderId?.slice(0, 8).toUpperCase()}</span>
+              </div>
             </div>
           </div>
 
@@ -540,51 +566,70 @@ export default function TenderInviteLink() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-8">
 
             {/* 1. Description */}
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden" id="section-description">
               <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-[#E25E45]" />
-                  Project Description
-                </CardTitle>
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-[#E25E45] bg-[#E25E45]/10 rounded px-2 py-0.5">{sectionNumber('description')}</span>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-[#E25E45]" />
+                    Project Description
+                  </CardTitle>
+                </div>
+                <CardDescription className="ml-14">
+                  Complete overview of the project scope, context, and requirements
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed" data-testid="text-description">
-                  {tender.description}
-                </p>
+                <div className="prose prose-sm max-w-none">
+                  <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]" data-testid="text-description">
+                    {tender.description}
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
             {/* 2. Project Objective */}
             {tender.objective && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-blue-600" />
-                    Project Objective
-                  </CardTitle>
+              <Card id="section-objective">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-blue-600 bg-blue-50 rounded px-2 py-0.5">{sectionNumber('objective')}</span>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5 text-blue-600" />
+                      Project Objective
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="ml-14">
+                    The primary goal this project is expected to achieve
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                    {tender.objective}
-                  </p>
+                  <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
+                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]">
+                      {tender.objective}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             )}
 
             {/* 3. Key Deliverables (Bill of Quantities) */}
             {hasDeliverables && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ListChecks className="h-5 w-5 text-purple-600" />
-                    Key Deliverables (Bill of Quantities)
-                  </CardTitle>
-                  <CardDescription>
-                    Items and quantities expected in this project
+              <Card id="section-deliverables">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-purple-600 bg-purple-50 rounded px-2 py-0.5">{sectionNumber('deliverables')}</span>
+                    <CardTitle className="flex items-center gap-2">
+                      <ListChecks className="h-5 w-5 text-purple-600" />
+                      Scope of Work & Deliverables
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="ml-14">
+                    Itemized list of deliverables with quantities. Your proposal should address each item individually with pricing and timeline.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -592,23 +637,23 @@ export default function TenderInviteLink() {
                     {tender.deliverables!.map((deliverable, index) => {
                       if (typeof deliverable === 'string') {
                         return (
-                          <div key={index} className="px-4 py-3 bg-gray-50 rounded-lg">
+                          <div key={index} className="px-4 py-3 bg-gray-50 rounded-lg border-l-3 border-purple-300">
                             <span className="text-gray-800">{deliverable}</span>
                           </div>
                         );
                       }
                       return (
-                        <div key={deliverable.id || index} className="px-4 py-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div key={deliverable.id || index} className="px-4 py-4 bg-gray-50 rounded-xl border border-gray-100">
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs font-bold text-gray-400 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center">{index + 1}</span>
+                                <span className="text-xs font-bold text-white bg-purple-500 rounded-full w-6 h-6 flex items-center justify-center">{index + 1}</span>
                                 <span className="font-semibold text-gray-900">
                                   {deliverable.name}
                                 </span>
                               </div>
                               {deliverable.description && (
-                                <p className="text-sm text-gray-600 mt-1 ml-8">
+                                <p className="text-sm text-gray-600 mt-1.5 ml-8 leading-relaxed">
                                   {deliverable.description}
                                 </p>
                               )}
@@ -623,66 +668,88 @@ export default function TenderInviteLink() {
                       );
                     })}
                   </div>
+                  <div className="mt-4 p-3 bg-gray-100 rounded-lg">
+                    <p className="text-xs text-gray-500">
+                      Vendors are expected to provide a line-by-line cost breakdown for each deliverable listed above.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             )}
 
             {/* 4. Milestones */}
             {hasMilestones && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Flag className="h-5 w-5 text-orange-500" />
-                    Project Milestones
-                  </CardTitle>
-                  <CardDescription>
-                    Key milestones and checkpoints for this project
+              <Card id="section-milestones">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-orange-600 bg-orange-50 rounded px-2 py-0.5">{sectionNumber('milestones')}</span>
+                    <CardTitle className="flex items-center gap-2">
+                      <Flag className="h-5 w-5 text-orange-500" />
+                      Project Milestones & Payment Schedule
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="ml-14">
+                    Delivery checkpoints and associated payment amounts. Payments are released upon completion and acceptance of each milestone.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="relative">
                     <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-[#E25E45] to-[#FF8A6B] rounded-full" />
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       {tender.milestones!.map((milestone, index) => (
                         <div key={milestone.id || index} className="flex items-start gap-4 relative">
                           <div className="w-8 h-8 rounded-full bg-white border-2 border-[#E25E45] flex items-center justify-center flex-shrink-0 z-10">
                             <span className="text-xs font-bold text-[#E25E45]">{index + 1}</span>
                           </div>
-                          <div className="flex-1 pb-2">
+                          <div className="flex-1 pb-2 bg-white rounded-xl border border-gray-100 p-4">
                             <p className="font-semibold text-gray-900">{milestone.name}</p>
                             {milestone.description && (
-                              <p className="text-sm text-gray-600 mt-0.5">{milestone.description}</p>
+                              <p className="text-sm text-gray-600 mt-1 leading-relaxed">{milestone.description}</p>
                             )}
-                            {milestone.dueDate && (
-                              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                Due: {formatDate(milestone.dueDate)}
-                              </p>
-                            )}
-                            {milestone.amount && (
-                              <p className="text-xs text-[#E25E45] mt-1 font-medium">
-                                SAR {Number(milestone.amount).toLocaleString()}
-                              </p>
-                            )}
+                            <div className="flex items-center gap-4 mt-2 flex-wrap">
+                              {milestone.dueDate && (
+                                <p className="text-xs text-gray-500 flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  Due: {formatDate(milestone.dueDate)}
+                                </p>
+                              )}
+                              {milestone.amount && (
+                                <p className="text-xs font-semibold text-[#E25E45] flex items-center gap-1">
+                                  <DollarSign className="h-3 w-3" />
+                                  SAR {Number(milestone.amount).toLocaleString()}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
+                  {tender.milestones!.some(m => m.amount) && (
+                    <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-100 flex items-center justify-between">
+                      <span className="text-xs text-gray-600">Total milestone value</span>
+                      <span className="text-sm font-bold text-gray-900">
+                        SAR {tender.milestones!.reduce((sum, m) => sum + (Number(m.amount) || 0), 0).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
 
             {/* 5. Voice Note & Video */}
             {(tender.voiceNoteUrl || tender.videoUrl) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Mic className="h-5 w-5 text-pink-500" />
-                    Additional Context
-                  </CardTitle>
-                  <CardDescription>
-                    Listen or watch to better understand the project requirements
+              <Card id="section-context">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-pink-600 bg-pink-50 rounded px-2 py-0.5">{sectionNumber('context')}</span>
+                    <CardTitle className="flex items-center gap-2">
+                      <Mic className="h-5 w-5 text-pink-500" />
+                      Additional Context from Requester
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="ml-14">
+                    The requester has provided additional media to help you understand the project. Review this material carefully before preparing your proposal.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -742,14 +809,17 @@ export default function TenderInviteLink() {
 
             {/* 6. Submission Requirements */}
             {tender.submissionType && (
-              <Card className="border-blue-200">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Send className="h-5 w-5 text-blue-600" />
-                    How to Submit Your Proposal
-                  </CardTitle>
-                  <CardDescription>
-                    What the requester expects in your submission
+              <Card className="border-blue-200" id="section-submission">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-blue-600 bg-blue-50 rounded px-2 py-0.5">{sectionNumber('submission')}</span>
+                    <CardTitle className="flex items-center gap-2">
+                      <Send className="h-5 w-5 text-blue-600" />
+                      Submission Requirements
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="ml-14">
+                    Your proposal must follow the format specified below. Incomplete or incorrectly formatted submissions may not be considered.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -762,10 +832,10 @@ export default function TenderInviteLink() {
                         {SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}
                       </p>
                       <p className="text-sm text-gray-600 mt-0.5">
-                        {tender.submissionType === 'quote_only' && "Submit your price quote for this project"}
-                        {tender.submissionType === 'video_only' && "Record and submit a video pitch presenting your approach"}
-                        {tender.submissionType === 'tech_fin_proposal' && "Submit both technical approach and financial proposal documents"}
-                        {tender.submissionType === 'tech_fin_with_video' && "Submit full proposal documents plus a video pitch"}
+                        {tender.submissionType === 'quote_only' && "Submit a detailed price quotation with line-item breakdown for each deliverable."}
+                        {tender.submissionType === 'video_only' && "Record and submit a video pitch presenting your team, methodology, and approach."}
+                        {tender.submissionType === 'tech_fin_proposal' && "Submit a two-part proposal: (1) Technical approach with methodology and timeline, and (2) Financial proposal with detailed pricing."}
+                        {tender.submissionType === 'tech_fin_with_video' && "Submit a complete proposal package: technical document, financial proposal, and a supporting video pitch."}
                       </p>
                     </div>
                   </div>
@@ -773,24 +843,32 @@ export default function TenderInviteLink() {
                     <div className="flex items-center gap-2 px-4 py-3 bg-orange-50 rounded-xl border border-orange-200">
                       <Video className="h-4 w-4 text-orange-500 flex-shrink-0" />
                       <span className="text-sm font-medium text-orange-800">
-                        Video submission is required for this RFP
+                        Video submission is mandatory for this RFP
                       </span>
                     </div>
                   )}
+                  <div className="p-3 bg-gray-100 rounded-lg">
+                    <p className="text-xs text-gray-500">
+                      All submissions must be received before the deadline. Late submissions will not be accepted.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             )}
 
             {/* 7. Evaluation Criteria */}
             {hasEvalCriteria && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5 text-amber-500" />
-                    Evaluation Criteria
-                  </CardTitle>
-                  <CardDescription>
-                    How the requester will evaluate and compare proposals
+              <Card id="section-evaluation">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-amber-600 bg-amber-50 rounded px-2 py-0.5">{sectionNumber('evaluation')}</span>
+                    <CardTitle className="flex items-center gap-2">
+                      <Star className="h-5 w-5 text-amber-500" />
+                      Evaluation Criteria
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="ml-14">
+                    Proposals will be scored against these criteria. Ensure your submission clearly addresses each category to maximize your evaluation score.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -891,16 +969,19 @@ export default function TenderInviteLink() {
 
             {/* 8. Questions & Inquiries */}
             {hasInquiryMethod && (
-              <Card className="border-green-200">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <HelpCircle className="h-5 w-5 text-green-600" />
-                    Questions & Inquiries
-                  </CardTitle>
-                  <CardDescription>
+              <Card className="border-green-200" id="section-inquiry">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-green-600 bg-green-50 rounded px-2 py-0.5">{sectionNumber('inquiry')}</span>
+                    <CardTitle className="flex items-center gap-2">
+                      <HelpCircle className="h-5 w-5 text-green-600" />
+                      Questions & Clarifications
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="ml-14">
                     {tender.inquiryType === 'inside_bid'
-                      ? 'Ask questions anonymously — answers are visible to all vendors'
-                      : 'How to ask questions about this RFP'}
+                      ? 'Submit questions anonymously through the platform. All answers are shared with every vendor to ensure a fair and transparent process.'
+                      : 'Contact the requester directly for any clarifications about this RFP.'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-5">
@@ -1055,12 +1136,18 @@ export default function TenderInviteLink() {
 
             {/* 9. Required Skills */}
             {hasSkills && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Tag className="h-5 w-5 text-indigo-500" />
-                    Required Skills & Expertise
-                  </CardTitle>
+              <Card id="section-skills">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 rounded px-2 py-0.5">{sectionNumber('skills')}</span>
+                    <CardTitle className="flex items-center gap-2">
+                      <Tag className="h-5 w-5 text-indigo-500" />
+                      Required Skills & Expertise
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="ml-14">
+                    Your team should demonstrate competency in the following areas. Highlight relevant experience in your proposal.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
@@ -1089,22 +1176,28 @@ export default function TenderInviteLink() {
                 <h3 className="text-lg font-bold text-gray-900 mb-2">
                   {isDeadlinePassed ? 'Submissions Closed' : 'Submission Details'}
                 </h3>
-                <p className="text-sm text-gray-600 mb-5">
+                <p className="text-sm text-gray-600 mb-4">
                   {isDeadlinePassed
                     ? "This tender is no longer accepting proposals."
-                    : "Review the details below and submit when ready."}
+                    : "Review all sections thoroughly before submitting."}
                 </p>
 
                 {!isDeadlinePassed && (
-                  <div className="space-y-3 mb-5">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="space-y-3 mb-5 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
                       <Calendar className="h-4 w-4 text-[#E25E45]" />
-                      <span>{daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining</span>
+                      <span className="font-medium">{daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining</span>
                     </div>
                     {tender.submissionType && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm text-gray-700">
                         <FileText className="h-4 w-4 text-[#E25E45]" />
                         <span>{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</span>
+                      </div>
+                    )}
+                    {tender.deadline && (
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Clock className="h-3.5 w-3.5" />
+                        <span>Due by {formatDate(tender.deadline)}</span>
                       </div>
                     )}
                   </div>
@@ -1129,17 +1222,42 @@ export default function TenderInviteLink() {
               </CardContent>
             </Card>
 
-            {/* At a Glance */}
+            {/* Document Navigation */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Document Sections</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <nav className="space-y-0.5">
+                  {tocSections.map((section, idx) => (
+                    <a
+                      key={section.id}
+                      href={`#section-${section.id}`}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById(`section-${section.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }}
+                    >
+                      <span className="text-xs font-mono text-gray-400 w-6">{idx + 1}.0</span>
+                      <span>{section.label}</span>
+                    </a>
+                  ))}
+                </nav>
+              </CardContent>
+            </Card>
+
+            {/* Project Summary */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">At a Glance</CardTitle>
+                <CardTitle className="text-base">Project Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {tender.company && (
                   <div className="flex items-start gap-3">
                     <Building2 className="h-4 w-4 text-gray-400 mt-0.5" />
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider">Company</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider">Requesting Organization</p>
                       <p className="text-sm font-medium text-gray-900">
                         {tender.profile?.displayName || tender.company.name}
                       </p>
@@ -1166,7 +1284,7 @@ export default function TenderInviteLink() {
                       <p className="text-sm font-medium text-gray-900">
                         {tender.scope === 'large' ? 'Large - Complex initiative' :
                          tender.scope === 'medium' ? 'Medium - Well-defined project' :
-                         tender.scope === 'small' ? 'Small - Quick task' : tender.scope}
+                         tender.scope === 'small' ? 'Small - Focused engagement' : tender.scope}
                       </p>
                     </div>
                   </div>
@@ -1193,17 +1311,11 @@ export default function TenderInviteLink() {
                     </div>
                   </div>
                 )}
-                {tender.createdAt && (
-                  <div className="flex items-start gap-3">
-                    <Calendar className="h-4 w-4 text-gray-400 mt-0.5" />
-                    <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider">Published</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatDate(tender.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                )}
+                <div className="pt-2 border-t border-gray-100">
+                  <p className="text-xs text-gray-400">
+                    Ref: RFP-{tenderId?.slice(0, 8).toUpperCase()}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Check, Scale, ChevronDown, ChevronUp, Briefcase, Clock, Plus, X } from "lucide-react";
+import { ArrowLeft, Check, Scale, ChevronDown, Briefcase, Clock, Plus, X } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
@@ -418,64 +418,66 @@ export default function TenderEvaluationCriteriaStep() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-gray-500">{currentWeight}%</span>
-                          {isExpanded ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
+                          <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                         </div>
                       </button>
 
-                      {isExpanded && (
-                        <div className="border-t border-gray-200 dark:border-gray-700 p-3 space-y-3 bg-white dark:bg-gray-900">
-                          <div className="space-y-1">
-                            <label className="text-xs text-gray-500">Weight: {currentWeight}%</label>
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              step="5"
-                              value={currentWeight}
-                              onChange={(e) => handleWeightChange(category.id, parseInt(e.target.value))}
-                              className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]"
-                            />
-                          </div>
+                      <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                        <div className="overflow-hidden">
+                          <div className="border-t border-gray-200 dark:border-gray-700 p-3 space-y-3 bg-white dark:bg-gray-900">
+                            <div className="space-y-1">
+                              <label className="text-xs text-gray-500">Weight: {currentWeight}%</label>
+                              <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                step="5"
+                                value={currentWeight}
+                                onChange={(e) => handleWeightChange(category.id, parseInt(e.target.value))}
+                                className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]"
+                              />
+                            </div>
 
-                          {category.requirements.map((req) => {
-                            const currentValue = getRequirementValue(category.id, req.id);
-                            return (
-                              <div key={req.id} className="flex items-start gap-2">
-                                {req.type === "checkbox" && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRequirementChange(category.id, req.id, !currentValue)}
-                                    className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${
-                                      currentValue ? "border-[#E25E45] bg-[#E25E45]" : "border-gray-300"
-                                    }`}
-                                  >
-                                    {currentValue && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
-                                  </button>
-                                )}
-                                <div className="flex-1">
-                                  <label className="text-sm text-gray-900 dark:text-white">{req.label}</label>
-                                  {req.type === "select" && req.options && (
-                                    <Select
-                                      value={(currentValue as string) || "none"}
-                                      onValueChange={(value) => handleRequirementChange(category.id, req.id, value === "none" ? "" : value)}
+                            {category.requirements.map((req) => {
+                              const currentValue = getRequirementValue(category.id, req.id);
+                              return (
+                                <div key={req.id} className="flex items-start gap-2">
+                                  {req.type === "checkbox" && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRequirementChange(category.id, req.id, !currentValue)}
+                                      className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                                        currentValue ? "border-[#E25E45] bg-[#E25E45]" : "border-gray-300"
+                                      }`}
                                     >
-                                      <SelectTrigger className="mt-1 w-full text-sm">
-                                        <SelectValue placeholder="Not required" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="none">Not required</SelectItem>
-                                        {req.options.map(opt => (
-                                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
+                                      {currentValue && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
+                                    </button>
                                   )}
+                                  <div className="flex-1">
+                                    <label className="text-sm text-gray-900 dark:text-white">{req.label}</label>
+                                    {req.type === "select" && req.options && (
+                                      <Select
+                                        value={(currentValue as string) || "none"}
+                                        onValueChange={(value) => handleRequirementChange(category.id, req.id, value === "none" ? "" : value)}
+                                      >
+                                        <SelectTrigger className="mt-1 w-full text-sm">
+                                          <SelectValue placeholder="Not required" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="none">Not required</SelectItem>
+                                          {req.options.map(opt => (
+                                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
-                      )}
+                      </div>
                     </div>
                   );
                 })}

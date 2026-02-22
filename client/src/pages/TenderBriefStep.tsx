@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -97,6 +97,17 @@ export default function TenderBriefStep() {
       return {};
     }
   }, []);
+
+  const [expandedDeliverables, setExpandedDeliverables] = useState<Record<number, boolean>>({});
+  const [expandedCriteria, setExpandedCriteria] = useState<Record<string, boolean>>({});
+
+  const toggleDeliverable = (index: number) => {
+    setExpandedDeliverables(prev => ({ ...prev, [index]: !prev[index] }));
+  };
+
+  const toggleCriteria = (key: string) => {
+    setExpandedCriteria(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const submitTender = useMutation({
     mutationFn: async (tenderData: any) => {
@@ -354,22 +365,37 @@ export default function TenderBriefStep() {
                           </div>
                         );
                       }
+                      const isExpanded = expandedDeliverables[index];
+                      const hasDetails = deliverable.description || (deliverable.quantity && deliverable.unit);
                       return (
-                        <div key={deliverable.id || index} className="p-4 bg-gray-50 rounded-lg">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <div key={deliverable.id || index} className="bg-gray-50 rounded-lg overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={() => hasDetails && toggleDeliverable(index)}
+                            className={`w-full p-4 flex items-center justify-between gap-4 text-left ${hasDetails ? 'cursor-pointer hover:bg-gray-100' : ''} transition-colors`}
+                          >
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
                               <span className="flex-shrink-0 h-6 w-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">{index + 1}</span>
-                              <div>
-                                <p className="font-medium text-gray-900">{deliverable.name}</p>
-                                {deliverable.description && (
-                                  <p className="text-sm text-gray-500 mt-1">{deliverable.description}</p>
-                                )}
-                              </div>
+                              <p className="font-medium text-gray-900">{deliverable.name}</p>
                             </div>
-                            <Badge variant="outline" className="flex-shrink-0 font-medium">
-                              {deliverable.quantity} × {deliverable.unit}
-                            </Badge>
-                          </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {deliverable.quantity && deliverable.unit && (
+                                <Badge variant="outline" className="font-medium">
+                                  {deliverable.quantity} × {deliverable.unit}
+                                </Badge>
+                              )}
+                              {hasDetails && (
+                                isExpanded
+                                  ? <ChevronDown className="h-4 w-4 text-gray-400" />
+                                  : <ChevronRight className="h-4 w-4 text-gray-400" />
+                              )}
+                            </div>
+                          </button>
+                          {isExpanded && deliverable.description && (
+                            <div className="px-4 pb-4 pt-0 ml-12">
+                              <p className="text-sm text-gray-600 leading-relaxed">{deliverable.description}</p>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -426,20 +452,59 @@ export default function TenderBriefStep() {
                 </CardHeader>
                 <CardContent>
                   {Array.isArray(draft.evaluationCriteria) ? (
-                    <div className="flex flex-wrap gap-2" data-testid="brief-criteria">
+                    <div className="space-y-2" data-testid="brief-criteria">
                       {draft.evaluationCriteria.map((criteria: any, index: number) => {
                         if (typeof criteria === 'string') {
                           return (
-                            <Badge key={index} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                              {CRITERIA_LABELS[criteria] || criteria}
-                            </Badge>
+                            <div key={index} className="bg-gray-50 rounded-lg overflow-hidden">
+                              <button
+                                type="button"
+                                onClick={() => toggleCriteria(`arr-${index}`)}
+                                className="w-full p-3 flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-gray-100 transition-colors"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">{index + 1}</span>
+                                  <span className="text-sm font-medium text-gray-900">{CRITERIA_LABELS[criteria] || criteria}</span>
+                                </div>
+                                {expandedCriteria[`arr-${index}`]
+                                  ? <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                  : <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                }
+                              </button>
+                              {expandedCriteria[`arr-${index}`] && (
+                                <div className="px-4 pb-3 ml-12">
+                                  <p className="text-sm text-gray-500">This criterion will be used to evaluate vendor proposals.</p>
+                                </div>
+                              )}
+                            </div>
                           );
                         }
                         if (typeof criteria === 'object' && criteria.name) {
                           return (
-                            <Badge key={index} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                              {criteria.name}{criteria.weight ? ` (${criteria.weight}%)` : ''}
-                            </Badge>
+                            <div key={index} className="bg-gray-50 rounded-lg overflow-hidden">
+                              <button
+                                type="button"
+                                onClick={() => toggleCriteria(`arr-${index}`)}
+                                className="w-full p-3 flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-gray-100 transition-colors"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">{index + 1}</span>
+                                  <span className="text-sm font-medium text-gray-900">{criteria.name}</span>
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  {criteria.weight && <Badge variant="outline" className="font-semibold">{criteria.weight}%</Badge>}
+                                  {expandedCriteria[`arr-${index}`]
+                                    ? <ChevronDown className="h-4 w-4 text-gray-400" />
+                                    : <ChevronRight className="h-4 w-4 text-gray-400" />
+                                  }
+                                </div>
+                              </button>
+                              {expandedCriteria[`arr-${index}`] && criteria.description && (
+                                <div className="px-4 pb-3 ml-12">
+                                  <p className="text-sm text-gray-600 leading-relaxed">{criteria.description}</p>
+                                </div>
+                              )}
+                            </div>
                           );
                         }
                         return null;
@@ -451,35 +516,88 @@ export default function TenderBriefStep() {
                         <div className="space-y-2">
                           {draft.evaluationCriteria.weights.map((w: any) => {
                             const cat = EVAL_CATEGORY_LABELS[w.categoryId] || w.categoryId;
+                            const relatedReqs = draft.evaluationCriteria.requirements?.filter(
+                              (r: any) => r.categoryId === w.categoryId || r.requirementId?.startsWith(w.categoryId)
+                            ) || [];
+                            const hasContent = relatedReqs.length > 0;
                             return (
-                              <div key={w.categoryId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <span className="text-sm font-medium text-gray-900">{cat}</span>
-                                <Badge variant="outline" className="font-semibold">{w.weight}%</Badge>
+                              <div key={w.categoryId} className="bg-gray-50 rounded-lg overflow-hidden">
+                                <button
+                                  type="button"
+                                  onClick={() => hasContent && toggleCriteria(w.categoryId)}
+                                  className={`w-full p-3 flex items-center justify-between gap-3 text-left ${hasContent ? 'cursor-pointer hover:bg-gray-100' : ''} transition-colors`}
+                                >
+                                  <span className="text-sm font-medium text-gray-900">{cat}</span>
+                                  <div className="flex items-center gap-2 flex-shrink-0">
+                                    <Badge variant="outline" className="font-semibold">{w.weight}%</Badge>
+                                    {hasContent && (
+                                      expandedCriteria[w.categoryId]
+                                        ? <ChevronDown className="h-4 w-4 text-gray-400" />
+                                        : <ChevronRight className="h-4 w-4 text-gray-400" />
+                                    )}
+                                  </div>
+                                </button>
+                                {expandedCriteria[w.categoryId] && relatedReqs.length > 0 && (
+                                  <div className="px-4 pb-3 flex flex-wrap gap-2">
+                                    {relatedReqs.map((req: any, i: number) => (
+                                      <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                                        {EVAL_REQUIREMENT_LABELS[req.requirementId] || req.requirementId}
+                                        {req.value && typeof req.value !== 'boolean' ? `: ${req.value}` : ''}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
                         </div>
                       )}
-                      {draft.evaluationCriteria.requirements?.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Requirements</p>
-                          <div className="flex flex-wrap gap-2">
-                            {draft.evaluationCriteria.requirements.map((req: any, i: number) => (
-                              <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                                {EVAL_REQUIREMENT_LABELS[req.requirementId] || req.requirementId}
-                                {req.value && typeof req.value !== 'boolean' ? `: ${req.value}` : ''}
-                              </Badge>
-                            ))}
+                      {(() => {
+                        const weightCategoryIds = (draft.evaluationCriteria.weights || []).map((w: any) => w.categoryId);
+                        const ungroupedReqs = (draft.evaluationCriteria.requirements || []).filter(
+                          (r: any) => !weightCategoryIds.some((catId: string) =>
+                            r.categoryId === catId || r.requirementId?.startsWith(catId)
+                          )
+                        );
+                        if (ungroupedReqs.length === 0) return null;
+                        return (
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Additional Requirements</p>
+                            <div className="flex flex-wrap gap-2">
+                              {ungroupedReqs.map((req: any, i: number) => (
+                                <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                                  {EVAL_REQUIREMENT_LABELS[req.requirementId] || req.requirementId}
+                                  {req.value && typeof req.value !== 'boolean' ? `: ${req.value}` : ''}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                       {draft.evaluationCriteria.customCriteria?.length > 0 && (
                         <div className="space-y-2">
                           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Custom Criteria</p>
                           {draft.evaluationCriteria.customCriteria.map((c: any) => (
-                            <div key={c.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                              <span className="text-sm text-gray-900">{c.text}</span>
-                              <Badge variant="outline" className="font-semibold">{c.weight}%</Badge>
+                            <div key={c.id} className="bg-gray-50 rounded-lg overflow-hidden">
+                              <button
+                                type="button"
+                                onClick={() => toggleCriteria(`custom-${c.id}`)}
+                                className="w-full p-3 flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-gray-100 transition-colors"
+                              >
+                                <span className="text-sm text-gray-900">{c.text}</span>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <Badge variant="outline" className="font-semibold">{c.weight}%</Badge>
+                                  {expandedCriteria[`custom-${c.id}`]
+                                    ? <ChevronDown className="h-4 w-4 text-gray-400" />
+                                    : <ChevronRight className="h-4 w-4 text-gray-400" />
+                                  }
+                                </div>
+                              </button>
+                              {expandedCriteria[`custom-${c.id}`] && (
+                                <div className="px-4 pb-3">
+                                  <p className="text-sm text-gray-500">Custom criterion weighted at {c.weight}% of the total evaluation.</p>
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>

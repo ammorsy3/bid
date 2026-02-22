@@ -942,13 +942,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const company = await storage.getCompany(tender.companyId);
       const profile = company ? await storage.getCompanyProfile(company.id) : null;
 
+      const showPrice = tender.showPriceToVendors !== false;
+
       // Return only public information
       res.json({
         id: tender.id,
         title: tender.title,
         description: tender.description,
-        budget: tender.budget,
-        budgetRange: tender.budgetRange,
+        budget: showPrice ? tender.budget : null,
+        budgetRange: showPrice ? tender.budgetRange : null,
         deadline: tender.deadline,
         duration: tender.duration,
         status: tender.status,
@@ -975,8 +977,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Price display settings
         showPriceToVendors: tender.showPriceToVendors,
         projectSize: tender.projectSize,
-        budgetMin: tender.budgetMin,
-        budgetMax: tender.budgetMax,
+        budgetMin: showPrice ? tender.budgetMin : null,
+        budgetMax: showPrice ? tender.budgetMax : null,
         category: tender.category,
         createdAt: tender.createdAt,
         company: company ? {

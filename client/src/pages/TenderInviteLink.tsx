@@ -510,9 +510,7 @@ export default function TenderInviteLink() {
                   ? 'Closed'
                   : tender.scope
                     ? (SCOPE_LABELS[tender.scope] || tender.scope)
-                    : tender.projectSize
-                      ? (PROJECT_SIZE_LABELS[tender.projectSize] || tender.projectSize)
-                      : 'Accepting Proposals'}
+                    : 'Accepting Proposals'}
               </p>
             </div>
           </div>
@@ -1078,7 +1076,7 @@ export default function TenderInviteLink() {
                     </div>
                   </div>
                 )}
-                {tender.projectSize && (
+                {tender.projectSize && tender.showPriceToVendors === false && (
                   <div className="flex items-start gap-3">
                     <DollarSign className="h-4 w-4 text-gray-400 mt-0.5" />
                     <div>

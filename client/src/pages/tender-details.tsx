@@ -552,7 +552,7 @@ export default function TenderDetails() {
                 <span className="text-xs font-medium uppercase tracking-wider">Scope</span>
               </div>
               <p className="font-semibold text-sm text-gray-900 dark:text-white">
-                {tender.scope ? (SCOPE_LABELS[tender.scope] || tender.scope) : (tender.projectSize ? (PROJECT_SIZE_LABELS[tender.projectSize] || tender.projectSize) : 'Not specified')}
+                {tender.scope ? (SCOPE_LABELS[tender.scope] || tender.scope) : 'Not specified'}
               </p>
             </div>
           </div>
@@ -581,7 +581,7 @@ export default function TenderDetails() {
             </Card>
 
             {/* 2. Project Objective */}
-            {(tender.objective as string) && (
+            {tender.objective && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -591,7 +591,7 @@ export default function TenderDetails() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-                    {tender.objective as string}
+                    {String(tender.objective)}
                   </p>
                 </CardContent>
               </Card>
@@ -1339,7 +1339,13 @@ export default function TenderDetails() {
                     <span className="text-sm font-medium">{SCOPE_LABELS[tender.scope] || tender.scope}</span>
                   </div>
                 )}
-                {tender.projectSize && (
+                {tender.projectSize && !isOwner && tender.showPriceToVendors === false && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm text-muted-foreground">Size</span>
+                    <span className="text-sm font-medium">{PROJECT_SIZE_LABELS[tender.projectSize]?.split(' (')[0] || tender.projectSize}</span>
+                  </div>
+                )}
+                {tender.projectSize && isOwner && (
                   <div className="flex justify-between items-center py-1">
                     <span className="text-sm text-muted-foreground">Size</span>
                     <span className="text-sm font-medium">{PROJECT_SIZE_LABELS[tender.projectSize]?.split(' (')[0] || tender.projectSize}</span>

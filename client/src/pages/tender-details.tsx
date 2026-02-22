@@ -32,6 +32,25 @@ const CRITERIA_LABELS: Record<string, string> = {
   team_expertise: "Team Expertise",
 };
 
+const EVAL_CATEGORY_LABELS: Record<string, string> = {
+  experience: "Relevant Experience",
+  financial: "Financial Evaluation",
+  technical: "Technical Capability",
+};
+
+const EVAL_REQUIREMENT_LABELS: Record<string, string> = {
+  years_in_market: "Years in Market",
+  similar_projects_count: "Similar Projects",
+  min_project_value: "Min. Project Value",
+  client_references: "Client References",
+  financial_statements: "Financial Statements",
+  bank_guarantee: "Bank Guarantee",
+  methodology: "Methodology Required",
+  timeline: "Project Timeline",
+  team_cvs: "Team CVs",
+  industry_certifications: "Certifications",
+};
+
 const INQUIRY_TYPE_LABELS: Record<string, string> = {
   inside_bid: "Inside Bid Platform (Anonymous Q&A)",
   email_whatsapp: "Email & WhatsApp",
@@ -453,7 +472,12 @@ export default function TenderDetails() {
   const hasSkills = tender.skills && tender.skills.length > 0;
   const hasDeliverables = tender.deliverables && (tender.deliverables as any[]).length > 0;
   const hasMilestones = tender.milestones && Array.isArray(tender.milestones) && (tender.milestones as any[]).length > 0;
-  const hasEvalCriteria = tender.evaluationCriteria && tender.evaluationCriteria.length > 0;
+  const evalCriteria = tender.evaluationCriteria as any;
+  const hasEvalCriteria = evalCriteria && (
+    Array.isArray(evalCriteria)
+      ? evalCriteria.length > 0
+      : (evalCriteria.weights?.length > 0 || evalCriteria.requirements?.length > 0 || evalCriteria.customCriteria?.length > 0)
+  );
   const hasInquiryMethod = !!tender.inquiryType;
 
   return (
@@ -793,21 +817,68 @@ export default function TenderDetails() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {tender.evaluationCriteria!.map((criteriaId, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/30"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
-                          <Star className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  {Array.isArray(evalCriteria) ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {evalCriteria.map((criteria: any, index: number) => {
+                        const label = typeof criteria === 'string'
+                          ? (CRITERIA_LABELS[criteria] || criteria)
+                          : (criteria.name || criteria);
+                        return (
+                          <div
+                            key={index}
+                            className="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/30"
+                          >
+                            <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+                              <Star className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            </div>
+                            <span className="font-medium text-gray-800 dark:text-gray-200 text-sm">{label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {evalCriteria.weights?.length > 0 && (
+                        <div className="space-y-2">
+                          {evalCriteria.weights.map((w: any) => (
+                            <div key={w.categoryId} className="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                              <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+                                <Star className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                              </div>
+                              <span className="font-medium text-gray-800 dark:text-gray-200 text-sm flex-1">
+                                {EVAL_CATEGORY_LABELS[w.categoryId] || w.categoryId}
+                              </span>
+                              <Badge variant="outline" className="font-semibold text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700">{w.weight}%</Badge>
+                            </div>
+                          ))}
                         </div>
-                        <span className="font-medium text-gray-800 dark:text-gray-200 text-sm">
-                          {CRITERIA_LABELS[criteriaId] || criteriaId}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                      )}
+                      {evalCriteria.requirements?.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Requirements</p>
+                          <div className="flex flex-wrap gap-2">
+                            {evalCriteria.requirements.map((req: any, i: number) => (
+                              <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800">
+                                {EVAL_REQUIREMENT_LABELS[req.requirementId] || req.requirementId}
+                                {req.value && typeof req.value !== 'boolean' ? `: ${req.value}` : ''}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {evalCriteria.customCriteria?.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Custom Criteria</p>
+                          {evalCriteria.customCriteria.map((c: any) => (
+                            <div key={c.id} className="flex items-center justify-between px-4 py-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                              <span className="text-sm text-gray-800 dark:text-gray-200">{c.text}</span>
+                              <Badge variant="outline" className="font-semibold text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700">{c.weight}%</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

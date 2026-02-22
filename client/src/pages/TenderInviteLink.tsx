@@ -53,7 +53,7 @@ interface TenderInvite {
   inquiryType?: 'inside_bid' | 'email_whatsapp';
   whatsappContact?: string;
   emailContact?: string;
-  evaluationCriteria?: string[];
+  evaluationCriteria?: any;
   objective?: string;
   deliverables?: Array<string | { id: string; name: string; description: string; unit: string; quantity: number }>;
   company?: {
@@ -90,6 +90,25 @@ const CRITERIA_LABELS: Record<string, string> = {
   clear_timeline: "Clear Timeline",
   technical_approach: "Technical Approach",
   team_expertise: "Team Expertise",
+};
+
+const EVAL_CATEGORY_LABELS: Record<string, string> = {
+  experience: "Relevant Experience",
+  financial: "Financial Evaluation",
+  technical: "Technical Capability",
+};
+
+const EVAL_REQUIREMENT_LABELS: Record<string, string> = {
+  years_in_market: "Years in Market",
+  similar_projects_count: "Similar Projects",
+  min_project_value: "Min. Project Value",
+  client_references: "Client References",
+  financial_statements: "Financial Statements",
+  bank_guarantee: "Bank Guarantee",
+  methodology: "Methodology Required",
+  timeline: "Project Timeline",
+  team_cvs: "Team CVs",
+  industry_certifications: "Certifications",
 };
 
 const INQUIRY_TYPE_LABELS: Record<string, string> = {
@@ -379,7 +398,11 @@ export default function TenderInviteLink() {
   const hasSkills = tender.skills && tender.skills.length > 0;
   const hasDeliverables = tender.deliverables && tender.deliverables.length > 0;
   const hasMilestones = tender.milestones && tender.milestones.length > 0;
-  const hasEvalCriteria = tender.evaluationCriteria && tender.evaluationCriteria.length > 0;
+  const hasEvalCriteria = tender.evaluationCriteria && (
+    Array.isArray(tender.evaluationCriteria)
+      ? tender.evaluationCriteria.length > 0
+      : (tender.evaluationCriteria.weights?.length > 0 || tender.evaluationCriteria.requirements?.length > 0 || tender.evaluationCriteria.customCriteria?.length > 0)
+  );
   const hasInquiryMethod = !!tender.inquiryType;
 
   return (
@@ -775,21 +798,68 @@ export default function TenderInviteLink() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {tender.evaluationCriteria!.map((criteriaId, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 px-4 py-3 bg-amber-50 rounded-xl border border-amber-100"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                          <Star className="h-4 w-4 text-amber-600" />
+                  {Array.isArray(tender.evaluationCriteria) ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {tender.evaluationCriteria.map((criteria: any, index: number) => {
+                        const label = typeof criteria === 'string'
+                          ? (CRITERIA_LABELS[criteria] || criteria)
+                          : (criteria.name || criteria);
+                        return (
+                          <div
+                            key={index}
+                            className="flex items-center gap-3 px-4 py-3 bg-amber-50 rounded-xl border border-amber-100"
+                          >
+                            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                              <Star className="h-4 w-4 text-amber-600" />
+                            </div>
+                            <span className="font-medium text-gray-800 text-sm">{label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {tender.evaluationCriteria.weights?.length > 0 && (
+                        <div className="space-y-2">
+                          {tender.evaluationCriteria.weights.map((w: any) => (
+                            <div key={w.categoryId} className="flex items-center gap-3 px-4 py-3 bg-amber-50 rounded-xl border border-amber-100">
+                              <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                <Star className="h-4 w-4 text-amber-600" />
+                              </div>
+                              <span className="font-medium text-gray-800 text-sm flex-1">
+                                {EVAL_CATEGORY_LABELS[w.categoryId] || w.categoryId}
+                              </span>
+                              <Badge variant="outline" className="font-semibold text-amber-700 border-amber-300">{w.weight}%</Badge>
+                            </div>
+                          ))}
                         </div>
-                        <span className="font-medium text-gray-800 text-sm">
-                          {CRITERIA_LABELS[criteriaId] || criteriaId}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                      )}
+                      {tender.evaluationCriteria.requirements?.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Requirements</p>
+                          <div className="flex flex-wrap gap-2">
+                            {tender.evaluationCriteria.requirements.map((req: any, i: number) => (
+                              <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                                {EVAL_REQUIREMENT_LABELS[req.requirementId] || req.requirementId}
+                                {req.value && typeof req.value !== 'boolean' ? `: ${req.value}` : ''}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {tender.evaluationCriteria.customCriteria?.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Custom Criteria</p>
+                          {tender.evaluationCriteria.customCriteria.map((c: any) => (
+                            <div key={c.id} className="flex items-center justify-between px-4 py-3 bg-amber-50 rounded-xl border border-amber-100">
+                              <span className="text-sm text-gray-800">{c.text}</span>
+                              <Badge variant="outline" className="font-semibold text-amber-700 border-amber-300">{c.weight}%</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -988,7 +1058,7 @@ export default function TenderInviteLink() {
           {/* Right Sidebar */}
           <div className="space-y-6">
             {/* Submit Proposal CTA */}
-            <Card className="overflow-hidden sticky top-20">
+            <Card className="overflow-hidden">
               <div className="h-1.5 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
               <CardContent className="p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-2">

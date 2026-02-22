@@ -532,13 +532,17 @@ export default function TenderDetails() {
             <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
               <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
                 <Clock className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Duration</span>
+                <span className="text-xs font-medium uppercase tracking-wider">Project Timeline</span>
               </div>
               <p className="font-semibold text-sm text-gray-900 dark:text-white">
                 {DURATION_LABELS[tender.duration || ''] || tender.duration || 'Not specified'}
               </p>
-              {tender.projectTimeline && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{tender.projectTimeline}</p>
+              {(tender.startDate || tender.endDate) && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  {tender.startDate && new Date(tender.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  {tender.startDate && tender.endDate && ' → '}
+                  {tender.endDate && new Date(tender.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </p>
               )}
             </div>
 
@@ -1341,11 +1345,17 @@ export default function TenderDetails() {
                     <span className="text-sm font-medium">{PROJECT_SIZE_LABELS[tender.projectSize]?.split(' (')[0] || tender.projectSize}</span>
                   </div>
                 )}
-                {(tender.duration || tender.projectTimeline) && (
+                {(tender.duration || tender.projectTimeline || tender.startDate) && (
                   <div className="flex justify-between items-center py-1">
                     <span className="text-sm text-muted-foreground">Timeline</span>
                     <span className="text-sm font-medium">
                       {DURATION_LABELS[tender.duration || ''] || tender.projectTimeline || tender.duration}
+                      {tender.startDate && (
+                        <span className="text-xs text-muted-foreground ml-1">
+                          ({new Date(tender.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          {tender.endDate && ` → ${new Date(tender.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`})
+                        </span>
+                      )}
                     </span>
                   </div>
                 )}

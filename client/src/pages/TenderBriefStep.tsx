@@ -116,7 +116,7 @@ export default function TenderBriefStep() {
       budgetMax: draft.budgetMax || undefined,
       projectSize: draft.projectSize || undefined,
       showPriceToVendors: draft.showPriceToVendors !== false,
-      projectTimeline: draft.duration || "1-3 months",
+      projectTimeline: draft.projectTimeline || draft.duration || "1-3 months",
       submissionType: draft.submissionType || undefined,
       videoRequired: draft.videoRequired || undefined,
       inquiryType: draft.inquiryType || undefined,

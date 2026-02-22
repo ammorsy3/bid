@@ -144,7 +144,9 @@ export const tenders = pgTable("tenders", {
   milestones: jsonb("milestones"), // Array of {name, amount} for milestone-based pricing (legacy)
   
   duration: text("duration"),
-  projectTimeline: text("project_timeline"), // Timeline description (required for new tenders)
+  projectTimeline: text("project_timeline"),
+  startDate: text("start_date"),
+  endDate: text("end_date"),
   status: text("status").notNull().default("draft"), // 'draft', 'published', 'closed', 'cancelled'
 
   // Submission Process

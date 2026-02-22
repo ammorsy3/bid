@@ -40,6 +40,8 @@ interface TenderInvite {
   showPriceToVendors?: boolean;
   duration?: string;
   projectTimeline?: string;
+  startDate?: string;
+  endDate?: string;
   skills?: string[];
   scope?: string;
   pricingModel?: string;
@@ -482,13 +484,17 @@ export default function TenderInviteLink() {
             <div className="bg-gray-50 rounded-xl p-4">
               <div className="flex items-center gap-2 text-gray-500 mb-1">
                 <Clock className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Duration</span>
+                <span className="text-xs font-medium uppercase tracking-wider">Project Timeline</span>
               </div>
               <p className="font-semibold text-sm text-gray-900">
                 {DURATION_LABELS[tender.duration || ''] || tender.duration || 'Not specified'}
               </p>
-              {tender.projectTimeline && (
-                <p className="text-xs text-gray-500 mt-0.5">{tender.projectTimeline}</p>
+              {(tender.startDate || tender.endDate) && (
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {tender.startDate && formatDate(tender.startDate)}
+                  {tender.startDate && tender.endDate && ' → '}
+                  {tender.endDate && formatDate(tender.endDate)}
+                </p>
               )}
             </div>
 

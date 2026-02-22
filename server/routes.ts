@@ -959,6 +959,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         voiceNoteUrl: tender.voiceNoteUrl,
         videoUrl: tender.videoUrl,
         projectTimeline: tender.projectTimeline,
+        startDate: tender.startDate,
+        endDate: tender.endDate,
         // Submission process fields
         submissionType: tender.submissionType,
         videoRequired: tender.videoRequired,

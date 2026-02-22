@@ -159,7 +159,7 @@ export const tenders = pgTable("tenders", {
   emailContact: text("email_contact"), // Email address if inquiryType is 'email_whatsapp'
 
   // Evaluation Criteria (Optional)
-  evaluationCriteria: text("evaluation_criteria").array(), // Array of criteria IDs that matter most to requester
+  evaluationCriteria: jsonb("evaluation_criteria"), // Evaluation criteria - array of IDs or structured object {requirements, weights, customCriteria}
 
   // Project Scope Details
   objective: text("objective"), // Project objective from wizard

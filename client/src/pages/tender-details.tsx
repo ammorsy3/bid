@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -19,6 +19,8 @@ const SUBMISSION_TYPE_LABELS: Record<string, string> = {
   tech_fin_proposal: "Full Proposal (Technical + Financial)",
   video_only: "Video Pitch Only",
   tech_fin_with_video: "Full Proposal + Video Pitch",
+  document_only: "Document Only",
+  both: "Video & Document",
 };
 
 const CRITERIA_LABELS: Record<string, string> = {
@@ -27,6 +29,31 @@ const CRITERIA_LABELS: Record<string, string> = {
   clear_timeline: "Clear Timeline",
   technical_approach: "Technical Approach",
   team_expertise: "Team Expertise",
+};
+
+const INQUIRY_TYPE_LABELS: Record<string, string> = {
+  inside_bid: "Inside Bid Platform (Anonymous Q&A)",
+  email_whatsapp: "Email & WhatsApp",
+  whatsapp: "WhatsApp",
+  email: "Email",
+};
+
+const SCOPE_LABELS: Record<string, string> = {
+  large: "Large",
+  medium: "Medium",
+  small: "Small",
+};
+
+const PROJECT_SIZE_LABELS: Record<string, string> = {
+  small: "Small Project (Under 50K SAR)",
+  medium: "Medium Project (50K–250K SAR)",
+  large: "Large Project (250K+ SAR)",
+};
+
+const DURATION_LABELS: Record<string, string> = {
+  "6plus": "More than 6 months",
+  "3to6": "3 to 6 months",
+  "1to3": "1 to 3 months",
 };
 
 function AudioPlayer({ src }: { src: string }) {
@@ -107,13 +134,13 @@ function AudioPlayer({ src }: { src: string }) {
         variant="ghost"
         size="icon"
         onClick={togglePlay}
-        className="h-10 w-10 rounded-full bg-primary text-white hover:bg-primary/90"
+        className="h-10 w-10 rounded-full bg-[#E25E45] text-white hover:bg-[#d54d35]"
         data-testid="button-audio-play"
       >
         {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
       </Button>
       <div className="flex-1">
-        <div 
+        <div
           className="relative h-2 bg-gray-300 dark:bg-gray-600 rounded-full cursor-pointer"
           onClick={(e) => {
             if (!audioRef.current || !duration || !isFinite(duration)) return;
@@ -125,16 +152,16 @@ function AudioPlayer({ src }: { src: string }) {
             setCurrentTime(Math.max(0, Math.min(newTime, duration)));
           }}
         >
-          <div 
-            className="absolute top-0 left-0 h-full bg-blue-500 rounded-full"
-            style={{ 
+          <div
+            className="absolute top-0 left-0 h-full bg-[#E25E45] rounded-full"
+            style={{
               width: `${progress}%`,
               transition: isPlaying ? 'width 0.1s linear' : 'none'
             }}
           />
-          <div 
-            className="absolute top-1/2 -translate-y-1/2 h-4 w-4 bg-blue-600 rounded-full shadow-md border-2 border-white"
-            style={{ 
+          <div
+            className="absolute top-1/2 -translate-y-1/2 h-4 w-4 bg-[#E25E45] rounded-full shadow-md border-2 border-white"
+            style={{
               left: `calc(${progress}% - 8px)`,
               transition: isPlaying ? 'left 0.1s linear' : 'none'
             }}
@@ -142,6 +169,7 @@ function AudioPlayer({ src }: { src: string }) {
         </div>
         <div className="flex justify-between text-xs text-muted-foreground mt-2">
           <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
         </div>
       </div>
       <audio
@@ -171,6 +199,8 @@ interface Offer {
   technicalFileUrl: string | null;
   financialFileUrl: string | null;
   notes: string | null;
+  quotePrice: number | null;
+  videoUrl: string | null;
   submittedAt: string;
   status: 'pending' | 'accepted' | 'rejected';
   company: {
@@ -221,7 +251,6 @@ export default function TenderDetails() {
     enabled: !!user && !!id && !!canManage,
   });
 
-  // Check if current company has already submitted an offer
   const { data: myOffer } = useQuery<Offer | null>({
     queryKey: ['/api/tenders', id, 'my-offer'],
     queryFn: async () => {
@@ -234,7 +263,6 @@ export default function TenderDetails() {
     enabled: !!user && !!id && !!activeCompany,
   });
 
-  // Check ownership and eligibility for submission
   const isOwner = tender?.companyId === activeCompany?.id;
   const isTenderOpen = tender?.status === 'published';
   const deadline = tender ? new Date(tender.deadline) : null;
@@ -250,17 +278,10 @@ export default function TenderDetails() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenders', id] });
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
-      toast({
-        title: "Status updated",
-        description: "Tender status has been updated successfully",
-      });
+      toast({ title: "Status updated", description: "Tender status has been updated successfully" });
     },
     onError: (error: Error) => {
-      toast({
-        title: "Failed to update status",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Failed to update status", description: error.message, variant: "destructive" });
     }
   });
 
@@ -270,18 +291,11 @@ export default function TenderDetails() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
-      toast({
-        title: "Tender deleted",
-        description: "The tender has been removed",
-      });
+      toast({ title: "Tender deleted", description: "The tender has been removed" });
       setLocation('/dashboard');
     },
     onError: (error: Error) => {
-      toast({
-        title: "Failed to delete",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Failed to delete", description: error.message, variant: "destructive" });
     }
   });
 
@@ -291,23 +305,18 @@ export default function TenderDetails() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenders', id, 'offers'] });
-      // When accepting, vendor is automatically added to base - refresh that list too
       if (variables.status === 'accepted') {
         queryClient.invalidateQueries({ queryKey: ['/api/vendors-base'] });
       }
       toast({
         title: variables.status === 'accepted' ? "Proposal Accepted" : "Proposal Ignored",
-        description: variables.status === 'accepted' 
+        description: variables.status === 'accepted'
           ? "Vendor has been added to your Vendors Base."
           : "This proposal has been marked as ignored.",
       });
     },
     onError: (error: Error) => {
-      toast({
-        title: "Failed to update proposal",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Failed to update proposal", description: error.message, variant: "destructive" });
     }
   });
 
@@ -318,47 +327,64 @@ export default function TenderDetails() {
       await navigator.clipboard.writeText(invitationLink);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
-      toast({
-        title: "Copied!",
-        description: "Invitation link copied to clipboard",
-      });
+      toast({ title: "Copied!", description: "Invitation link copied to clipboard" });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to copy link",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to copy link", variant: "destructive" });
     }
   };
 
   const formatDate = (dateStr: string | Date) => {
     const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-    return date.toLocaleDateString('en-US', { 
-      month: 'long', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
     });
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'published':
-        return { className: 'bg-blue-100 text-blue-800', label: 'Published' };
+        return { className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300', label: 'Open' };
       case 'draft':
-        return { className: 'bg-gray-100 text-gray-800', label: 'Draft' };
+        return { className: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300', label: 'Draft' };
       case 'closed':
-        return { className: 'bg-green-100 text-green-800', label: 'Closed' };
+        return { className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', label: 'Closed' };
       case 'cancelled':
-        return { className: 'bg-red-100 text-red-800', label: 'Cancelled' };
+        return { className: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300', label: 'Cancelled' };
       default:
         return { className: 'bg-gray-100 text-gray-800', label: status };
     }
   };
 
+  const getBudgetDisplay = () => {
+    if (!tender) return null;
+    const showPrice = tender.showPriceToVendors !== false;
+
+    if (!showPrice && !isOwner) {
+      if (tender.projectSize) {
+        return PROJECT_SIZE_LABELS[tender.projectSize] || tender.projectSize;
+      }
+      return "Budget disclosed upon qualification";
+    }
+
+    if (tender.budgetMin && tender.budgetMax) {
+      return `SAR ${tender.budgetMin.toLocaleString()} – ${tender.budgetMax.toLocaleString()}`;
+    }
+    if (tender.budget) {
+      const numBudget = Number(tender.budget);
+      if (!isNaN(numBudget) && numBudget > 0) {
+        return `SAR ${numBudget.toLocaleString()}`;
+      }
+      return tender.budget;
+    }
+    return tender.budgetRange || 'Not specified';
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#E25E45]" />
       </div>
     );
   }
@@ -388,62 +414,261 @@ export default function TenderDetails() {
   const daysRemaining = Math.ceil((new Date(tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
   const invitationLink = `${window.location.origin}/invite/${tender.id}`;
 
+  const hasSkills = tender.skills && tender.skills.length > 0;
+  const hasDeliverables = tender.deliverables && (tender.deliverables as any[]).length > 0;
+  const hasMilestones = tender.milestones && Array.isArray(tender.milestones) && (tender.milestones as any[]).length > 0;
+  const hasEvalCriteria = tender.evaluationCriteria && tender.evaluationCriteria.length > 0;
+  const hasInquiryMethod = !!tender.inquiryType;
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-6">
-          <Button 
-            variant="ghost" 
+      {/* Hero Header */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <Button
+            variant="ghost"
             onClick={() => setLocation('/dashboard')}
-            className="mb-4"
+            className="mb-4 -ml-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
             data-testid="button-back"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
-          
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold" data-testid="text-tender-title">{tender.title}</h1>
-                <Badge className={statusBadge.className} data-testid="badge-status">
+
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-3 flex-wrap">
+                <Badge className={`${statusBadge.className} text-sm px-3 py-1`} data-testid="badge-status">
                   {statusBadge.label}
                 </Badge>
+                {isExpired && isTenderOpen && (
+                  <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-sm px-3 py-1">
+                    Deadline Passed
+                  </Badge>
+                )}
+                {tender.category && (
+                  <Badge variant="outline" className="text-sm px-3 py-1">
+                    {tender.category}
+                  </Badge>
+                )}
               </div>
-              <p className="text-muted-foreground">
-                Created on {formatDate(tender.createdAt)}
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2" data-testid="text-tender-title">
+                {tender.title}
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                Published {formatDate(tender.createdAt)}
+              </p>
+            </div>
+          </div>
+
+          {/* Key Metrics Bar */}
+          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
+                <Calendar className="h-4 w-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Deadline</span>
+              </div>
+              <p className={`font-semibold text-sm ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-gray-900 dark:text-white'}`}>
+                {formatDate(tender.deadline)}
+              </p>
+              {!isExpired && (
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining
+                </p>
+              )}
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
+                <DollarSign className="h-4 w-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Budget</span>
+              </div>
+              <p className="font-semibold text-sm text-gray-900 dark:text-white">
+                {getBudgetDisplay()}
+              </p>
+              {tender.showPriceToVendors === false && !isOwner && (
+                <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                  <EyeOff className="h-3 w-3" /> Hidden from vendors
+                </p>
+              )}
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
+                <Clock className="h-4 w-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Duration</span>
+              </div>
+              <p className="font-semibold text-sm text-gray-900 dark:text-white">
+                {DURATION_LABELS[tender.duration || ''] || tender.projectTimeline || tender.duration || 'Not specified'}
+              </p>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
+                <Layers className="h-4 w-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Scope</span>
+              </div>
+              <p className="font-semibold text-sm text-gray-900 dark:text-white">
+                {tender.scope ? (SCOPE_LABELS[tender.scope] || tender.scope) : (tender.projectSize ? (PROJECT_SIZE_LABELS[tender.projectSize] || tender.projectSize) : 'Not specified')}
               </p>
             </div>
           </div>
         </div>
+      </div>
 
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Description */}
-            <Card>
+
+            {/* 1. Description */}
+            <Card className="overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
               <CardHeader>
-                <CardTitle>Description</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-[#E25E45]" />
+                  Project Description
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap" data-testid="text-description">
+                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed" data-testid="text-description">
                   {tender.description}
                 </p>
               </CardContent>
             </Card>
 
-            {/* Voice Note & Video Link */}
+            {/* 2. Project Objective */}
+            {(tender.objective as string) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-blue-600" />
+                    Project Objective
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                    {tender.objective as string}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 3. Key Deliverables (Bill of Quantities) */}
+            {hasDeliverables && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ListChecks className="h-5 w-5 text-purple-600" />
+                    Key Deliverables (Bill of Quantities)
+                  </CardTitle>
+                  <CardDescription>
+                    Items and quantities expected in this project
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {(tender.deliverables as any[]).map((deliverable: any, index: number) => {
+                      if (typeof deliverable === 'string') {
+                        return (
+                          <div key={index} className="px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <span className="text-gray-800 dark:text-gray-200">{deliverable}</span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div key={deliverable.id || index} className="px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs font-bold text-gray-400 bg-gray-200 dark:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center">{index + 1}</span>
+                                <span className="font-semibold text-gray-900 dark:text-white">
+                                  {deliverable.name}
+                                </span>
+                              </div>
+                              {deliverable.description && (
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 ml-8">
+                                  {deliverable.description}
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold bg-[#E25E45]/10 text-[#E25E45]">
+                                {deliverable.quantity} x {deliverable.unit}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 4. Milestones */}
+            {hasMilestones && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Flag className="h-5 w-5 text-orange-500" />
+                    Project Milestones
+                  </CardTitle>
+                  <CardDescription>
+                    Key milestones and checkpoints for this project
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative">
+                    <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-[#E25E45] to-[#FF8A6B] rounded-full" />
+                    <div className="space-y-4">
+                      {(tender.milestones as any[]).map((milestone: any, index: number) => (
+                        <div key={milestone.id || index} className="flex items-start gap-4 relative">
+                          <div className="w-8 h-8 rounded-full bg-white dark:bg-gray-800 border-2 border-[#E25E45] flex items-center justify-center flex-shrink-0 z-10">
+                            <span className="text-xs font-bold text-[#E25E45]">{index + 1}</span>
+                          </div>
+                          <div className="flex-1 pb-2">
+                            <p className="font-semibold text-gray-900 dark:text-white">{milestone.name}</p>
+                            {milestone.description && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{milestone.description}</p>
+                            )}
+                            {milestone.dueDate && (
+                              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                Due: {formatDate(milestone.dueDate)}
+                              </p>
+                            )}
+                            {milestone.amount && (
+                              <p className="text-xs text-[#E25E45] mt-1 font-medium">
+                                SAR {Number(milestone.amount).toLocaleString()}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 5. Voice Note & Video */}
             {(tender.voiceNoteUrl || tender.videoUrl) && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Additional Media</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mic className="h-5 w-5 text-pink-500" />
+                    Additional Context
+                  </CardTitle>
+                  <CardDescription>
+                    Listen or watch to better understand the project requirements
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {tender.voiceNoteUrl && (
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Mic className="h-4 w-4" />
+                      <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <Mic className="h-4 w-4 text-pink-500" />
                         <span>Voice Note from Requester</span>
                       </div>
                       <AudioPlayer src={tender.voiceNoteUrl} />
@@ -451,15 +676,15 @@ export default function TenderDetails() {
                   )}
                   {tender.videoUrl && (
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Video className="h-4 w-4" />
+                      <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <Video className="h-4 w-4 text-blue-500" />
                         <span>Video Explanation</span>
                       </div>
-                      <a 
-                        href={tender.videoUrl} 
-                        target="_blank" 
+                      <a
+                        href={tender.videoUrl}
+                        target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-primary hover:underline"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                         data-testid="link-video"
                       >
                         <ExternalLink className="h-4 w-4" />
@@ -471,168 +696,177 @@ export default function TenderDetails() {
               </Card>
             )}
 
-            {/* Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Tender Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Submission Deadline</p>
-                      <p className={`font-medium ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : ''}`}>
-                        {formatDate(tender.deadline)}
-                        {!isExpired && (
-                          <span className="text-sm ml-2">
-                            ({daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left)
-                          </span>
-                        )}
-                        {isExpired && (
-                          <span className="text-sm ml-2">(Expired)</span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <DollarSign className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Budget Range</p>
-                      <p className="font-medium">
-                        {tender.budgetRange || tender.budget || 'Not specified'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {tender.category && (
-                    <div className="flex items-center gap-3">
-                      <Building className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Category</p>
-                        <p className="font-medium">{tender.category}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {(tender.duration || tender.projectTimeline) && (
-                    <div className="flex items-center gap-3">
-                      <Clock className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Project Timeline</p>
-                        <p className="font-medium">{tender.projectTimeline || tender.duration}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Project Objective & Deliverables */}
-            {(tender.objective || (tender.deliverables && tender.deliverables.length > 0)) && (
-              <Card>
+            {/* 6. Submission Requirements */}
+            {tender.submissionType && (
+              <Card className="border-blue-200 dark:border-blue-800">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    Project Scope
+                    <Send className="h-5 w-5 text-blue-600" />
+                    How to Submit Your Proposal
                   </CardTitle>
+                  <CardDescription>
+                    What the requester expects in your submission
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {tender.objective && (
-                    <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Project Objective</h4>
-                      <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{tender.objective}</p>
+                  <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                    <div className="p-2.5 bg-blue-100 dark:bg-blue-800/50 rounded-lg flex-shrink-0">
+                      <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
-                  )}
-                  {tender.deliverables && tender.deliverables.length > 0 && (
                     <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                        <ListChecks className="h-4 w-4" />
-                        Key Deliverables (Bill of Quantities)
-                      </h4>
-                      <div className="space-y-3">
-                        {(tender.deliverables as any[]).map((deliverable: any, index: number) => {
-                          // Handle both old format (string) and new format (object)
-                          if (typeof deliverable === 'string') {
-                            return (
-                              <div key={index} className="px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                <span className="text-gray-800 dark:text-gray-200">{deliverable}</span>
-                              </div>
-                            );
-                          }
-                          return (
-                            <div key={deliverable.id || index} className="px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                              <div className="flex items-start justify-between gap-4">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-xs font-medium text-gray-400">#{index + 1}</span>
-                                    <span className="font-medium text-gray-900 dark:text-white">
-                                      {deliverable.name}
-                                    </span>
-                                  </div>
-                                  {deliverable.description && (
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                      {deliverable.description}
-                                    </p>
-                                  )}
-                                </div>
-                                <div className="text-right flex-shrink-0">
-                                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium bg-[#E25E45]/10 text-[#E25E45]">
-                                    {deliverable.quantity} × {deliverable.unit}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      <p className="font-semibold text-gray-900 dark:text-white">
+                        {SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
+                        {tender.submissionType === 'quote_only' && "Submit your price quote for this project"}
+                        {tender.submissionType === 'tech_fin_proposal' && "Submit both technical approach and financial proposal documents"}
+                        {tender.submissionType === 'video_only' && "Record and submit a video pitch presenting your approach"}
+                        {tender.submissionType === 'tech_fin_with_video' && "Submit full proposal documents plus a video pitch"}
+                      </p>
+                    </div>
+                  </div>
+                  {tender.videoRequired && (
+                    <div className="flex items-center gap-2 px-4 py-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800">
+                      <Video className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                      <span className="text-sm font-medium text-orange-800 dark:text-orange-300">
+                        Video submission is required for this RFP
+                      </span>
                     </div>
                   )}
                 </CardContent>
               </Card>
             )}
 
-            {/* Submission Requirements */}
-            {tender.submissionType && (
-              <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/20">
+            {/* 7. Evaluation Criteria */}
+            {hasEvalCriteria && (
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    Submission Requirements
+                    <Star className="h-5 w-5 text-amber-500" />
+                    Evaluation Criteria
                   </CardTitle>
+                  <CardDescription>
+                    How the requester will evaluate and compare proposals
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
-                    {SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}
-                  </Badge>
-                  {tender.videoRequired && (
-                    <p className="text-sm text-orange-600 dark:text-orange-400 flex items-center gap-2">
-                      <Video className="h-4 w-4" />
-                      Video submission is required
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {tender.evaluationCriteria!.map((criteriaId, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/30"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+                          <Star className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <span className="font-medium text-gray-800 dark:text-gray-200 text-sm">
+                          {CRITERIA_LABELS[criteriaId] || criteriaId}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 8. Questions & Inquiries (Q&A) */}
+            {hasInquiryMethod && (
+              <Card className="border-green-200 dark:border-green-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <HelpCircle className="h-5 w-5 text-green-600" />
+                    Questions & Inquiries
+                  </CardTitle>
+                  <CardDescription>
+                    How to ask questions about this RFP
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {tender.inquiryType === 'inside_bid' && (
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                        <div className="p-2.5 bg-green-100 dark:bg-green-800/50 rounded-lg flex-shrink-0">
+                          <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            Anonymous Q&A Inside the Platform
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Submit your questions directly through the Bid platform. Your identity will remain anonymous to other vendors. The requester's answers will be visible to all participants to ensure fairness.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {tender.inquiryType === 'email_whatsapp' && (
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        Reach out directly to the requester using the contact details below:
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {tender.emailContact && (
+                          <a
+                            href={`mailto:${tender.emailContact}`}
+                            className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                          >
+                            <div className="p-2 bg-blue-100 dark:bg-blue-800/50 rounded-lg flex-shrink-0">
+                              <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                              <p className="font-medium text-blue-700 dark:text-blue-300 text-sm truncate">{tender.emailContact}</p>
+                            </div>
+                          </a>
+                        )}
+                        {tender.whatsappContact && (
+                          <a
+                            href={tender.whatsappContact.startsWith('http') ? tender.whatsappContact : `https://wa.me/${tender.whatsappContact.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors"
+                          >
+                            <div className="p-2 bg-green-100 dark:bg-green-800/50 rounded-lg flex-shrink-0">
+                              <Phone className="h-4 w-4 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs text-gray-500 dark:text-gray-400">WhatsApp</p>
+                              <p className="font-medium text-green-700 dark:text-green-300 text-sm truncate">{tender.whatsappContact}</p>
+                            </div>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {tender.inquiryType !== 'inside_bid' && tender.inquiryType !== 'email_whatsapp' && (
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {INQUIRY_TYPE_LABELS[tender.inquiryType!] || tender.inquiryType}
                     </p>
                   )}
                 </CardContent>
               </Card>
             )}
 
-            {/* Evaluation Criteria */}
-            {tender.evaluationCriteria && tender.evaluationCriteria.length > 0 && (
+            {/* 9. Required Skills */}
+            {hasSkills && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5" />
-                    Evaluation Criteria
+                    <Tag className="h-5 w-5 text-indigo-500" />
+                    Required Skills & Expertise
                   </CardTitle>
-                  <CardDescription>
-                    What matters most when evaluating proposals
-                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {tender.evaluationCriteria.map((criteriaId, index) => (
-                      <Badge key={index} variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
-                        {CRITERIA_LABELS[criteriaId] || criteriaId}
+                    {tender.skills!.map((skill, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 px-3 py-1.5 text-sm"
+                      >
+                        {skill}
                       </Badge>
                     ))}
                   </div>
@@ -640,60 +874,36 @@ export default function TenderDetails() {
               </Card>
             )}
 
-            {/* Contact Information */}
-            {tender.inquiryType === 'email_whatsapp' && (tender.emailContact || tender.whatsappContact) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5" />
-                    Contact for Inquiries
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-wrap gap-4">
-                  {tender.emailContact && (
-                    <a
-                      href={`mailto:${tender.emailContact}`}
-                      className="flex items-center gap-2 text-blue-600 hover:underline"
-                    >
-                      <Mail className="h-4 w-4" />
-                      {tender.emailContact}
-                    </a>
-                  )}
-                  {tender.whatsappContact && (
-                    <a
-                      href={tender.whatsappContact.startsWith('http') ? tender.whatsappContact : `https://wa.me/${tender.whatsappContact.replace(/\D/g, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-green-600 hover:underline"
-                    >
-                      <Phone className="h-4 w-4" />
-                      WhatsApp: {tender.whatsappContact}
-                    </a>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
             {/* Submit Offer Section (for non-owner companies) */}
             {!isOwner && activeCompany && (
-              <Card className={hasSubmittedOffer ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"}>
+              <Card className={`overflow-hidden ${hasSubmittedOffer ? "border-green-200 dark:border-green-800" : "border-[#E25E45]/30"}`}>
+                <div className={`h-1 ${hasSubmittedOffer ? 'bg-green-500' : 'bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]'}`} />
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    {hasSubmittedOffer ? 'Offer Submitted' : 'Submit Your Offer'}
+                    {hasSubmittedOffer ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <Send className="h-5 w-5 text-[#E25E45]" />
+                    )}
+                    {hasSubmittedOffer ? 'Proposal Submitted' : 'Submit Your Proposal'}
                   </CardTitle>
                   <CardDescription>
-                    {hasSubmittedOffer 
-                      ? 'You have already submitted an offer for this tender.' 
-                      : 'Submit your technical and financial proposal for this tender.'}
+                    {hasSubmittedOffer
+                      ? 'Your proposal has been received and is under review.'
+                      : 'Ready to compete? Submit your proposal for this opportunity.'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {hasSubmittedOffer ? (
-                    <div className="text-center py-4">
-                      <Check className="h-12 w-12 mx-auto text-green-600 mb-3" />
+                    <div className="text-center py-6">
+                      <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle className="h-8 w-8 text-green-500" />
+                      </div>
                       <p className="text-green-800 dark:text-green-200 font-medium">
-                        Your offer was submitted on {myOffer?.submittedAt ? formatDate(myOffer.submittedAt) : 'N/A'}
+                        Submitted on {myOffer?.submittedAt ? formatDate(myOffer.submittedAt) : 'N/A'}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        You'll be notified when the requester reviews your proposal.
                       </p>
                     </div>
                   ) : !companyCanSubmit ? (
@@ -702,7 +912,6 @@ export default function TenderDetails() {
                         <AlertCircle className="h-4 w-4 text-yellow-600" />
                         <AlertDescription className="text-yellow-800">
                           Your company must complete its profile and submit for verification to submit offers.
-                          Please complete your company profile to request verification.
                         </AlertDescription>
                       </Alert>
                       <Button
@@ -715,29 +924,30 @@ export default function TenderDetails() {
                       </Button>
                     </div>
                   ) : isExpired ? (
-                    <div className="text-center py-4">
-                      <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-3" />
-                      <p className="text-red-600 font-medium">This tender has expired</p>
+                    <div className="text-center py-6">
+                      <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+                        <AlertCircle className="h-8 w-8 text-red-400" />
+                      </div>
+                      <p className="text-red-600 font-medium">This RFP has expired</p>
                       <p className="text-sm text-muted-foreground mt-1">
                         The deadline for submissions has passed.
                       </p>
                     </div>
                   ) : !isTenderOpen ? (
-                    <div className="text-center py-4">
-                      <AlertCircle className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-                      <p className="text-muted-foreground font-medium">This tender is not accepting submissions</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        The tender status is: {tender.status}
-                      </p>
+                    <div className="text-center py-6">
+                      <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
+                        <AlertCircle className="h-8 w-8 text-gray-400" />
+                      </div>
+                      <p className="text-muted-foreground font-medium">This RFP is not accepting submissions</p>
                     </div>
                   ) : (
                     <Button
-                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      className="w-full h-12 text-base bg-[#E25E45] hover:bg-[#d54d35] text-white"
                       onClick={() => setIsSubmitOfferModalOpen(true)}
                       data-testid="button-submit-offer"
                     >
-                      <Send className="h-4 w-4 mr-2" />
-                      Submit Offer
+                      <Send className="h-5 w-5 mr-2" />
+                      Submit Your Proposal
                     </Button>
                   )}
                 </CardContent>
@@ -746,51 +956,51 @@ export default function TenderDetails() {
 
             {/* Invitation Link (for owner only) */}
             {isOwner && (
-            <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mail className="h-5 w-5" />
-                  Invitation Link
-                </CardTitle>
-                <CardDescription>
-                  Share this link with qualified vendors to invite them to submit proposals
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-4">
-                  <code className="text-sm break-all" data-testid="text-invitation-link">
-                    {invitationLink}
-                  </code>
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={copyInvitationLink}
-                    className="flex-1"
-                    data-testid="button-copy-link"
-                  >
-                    {copiedLink ? (
-                      <>
-                        <Check className="h-4 w-4 mr-2" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy Link
-                      </>
-                    )}
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => window.open(invitationLink, '_blank')}
-                    data-testid="button-open-link"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Preview
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mail className="h-5 w-5" />
+                    Invitation Link
+                  </CardTitle>
+                  <CardDescription>
+                    Share this link with qualified vendors to invite them to submit proposals
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-4">
+                    <code className="text-sm break-all" data-testid="text-invitation-link">
+                      {invitationLink}
+                    </code>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={copyInvitationLink}
+                      className="flex-1"
+                      data-testid="button-copy-link"
+                    >
+                      {copiedLink ? (
+                        <>
+                          <Check className="h-4 w-4 mr-2" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy Link
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open(invitationLink, '_blank')}
+                      data-testid="button-open-link"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Preview
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
             {/* Proposals Section - Only visible to tender owner */}
@@ -820,16 +1030,16 @@ export default function TenderDetails() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {offers.map((offer, index) => (
-                        <Card 
-                          key={offer.id} 
+                      {offers.map((offer) => (
+                        <Card
+                          key={offer.id}
                           className={`border ${
-                            offer.status === 'accepted' 
-                              ? 'border-green-300 bg-green-50 dark:bg-green-900/20' 
-                              : offer.status === 'rejected' 
-                                ? 'border-gray-300 bg-gray-50 dark:bg-gray-800/50 opacity-60' 
+                            offer.status === 'accepted'
+                              ? 'border-green-300 bg-green-50 dark:bg-green-900/20'
+                              : offer.status === 'rejected'
+                                ? 'border-gray-300 bg-gray-50 dark:bg-gray-800/50 opacity-60'
                                 : ''
-                          }`} 
+                          }`}
                           data-testid={`card-offer-${offer.id}`}
                         >
                           <CardContent className="p-4">
@@ -864,21 +1074,26 @@ export default function TenderDetails() {
                                 {offer.notes && (
                                   <p className="text-sm mt-2">{offer.notes}</p>
                                 )}
+                                {offer.quotePrice && (
+                                  <p className="text-sm font-semibold text-[#E25E45] mt-1">
+                                    Quote: SAR {offer.quotePrice.toLocaleString()}
+                                  </p>
+                                )}
                               </div>
                               <div className="flex flex-col gap-2">
                                 <div className="flex flex-wrap gap-2">
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => setSelectedOffer(offer)}
                                     data-testid={`button-view-profile-${offer.id}`}
                                   >
                                     <Eye className="h-4 w-4 mr-1" />
-                                    View Profile
+                                    View
                                   </Button>
                                   {offer.technicalFileUrl && (
-                                    <Button 
-                                      variant="outline" 
+                                    <Button
+                                      variant="outline"
                                       size="sm"
                                       onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
                                       data-testid={`button-tech-file-${offer.id}`}
@@ -888,8 +1103,8 @@ export default function TenderDetails() {
                                     </Button>
                                   )}
                                   {offer.financialFileUrl && (
-                                    <Button 
-                                      variant="outline" 
+                                    <Button
+                                      variant="outline"
                                       size="sm"
                                       onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
                                       data-testid={`button-fin-file-${offer.id}`}
@@ -898,10 +1113,20 @@ export default function TenderDetails() {
                                       Financial
                                     </Button>
                                   )}
+                                  {offer.videoUrl && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => window.open(offer.videoUrl!, '_blank')}
+                                    >
+                                      <Video className="h-4 w-4 mr-1" />
+                                      Video
+                                    </Button>
+                                  )}
                                 </div>
                                 {offer.status === 'pending' && (
                                   <div className="flex gap-2 mt-2">
-                                    <Button 
+                                    <Button
                                       size="sm"
                                       className="bg-green-600 hover:bg-green-700 text-white"
                                       onClick={() => updateOfferStatus.mutate({ offerId: offer.id, status: 'accepted' })}
@@ -911,7 +1136,7 @@ export default function TenderDetails() {
                                       <Check className="h-4 w-4 mr-1" />
                                       Accept
                                     </Button>
-                                    <Button 
+                                    <Button
                                       variant="outline"
                                       size="sm"
                                       className="text-gray-600 hover:bg-gray-100"
@@ -925,7 +1150,7 @@ export default function TenderDetails() {
                                   </div>
                                 )}
                                 {offer.status !== 'pending' && (
-                                  <Button 
+                                  <Button
                                     variant="ghost"
                                     size="sm"
                                     className="text-xs text-muted-foreground"
@@ -952,48 +1177,111 @@ export default function TenderDetails() {
           <div className="space-y-6">
             {/* Quick Stats */}
             <Card>
-              <CardHeader>
-                <CardTitle>Quick Stats</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">At a Glance</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 {isOwner && (
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center py-1">
                     <span className="text-sm text-muted-foreground">Proposals</span>
-                    <span className="font-semibold">{offers.length}</span>
+                    <span className="font-semibold text-lg">{offers.length}</span>
                   </div>
                 )}
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center py-1">
                   <span className="text-sm text-muted-foreground">Status</span>
                   <Badge className={statusBadge.className}>{statusBadge.label}</Badge>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Time Remaining</span>
+                <div className="flex justify-between items-center py-1">
+                  <span className="text-sm text-muted-foreground">Deadline</span>
                   <span className={`font-semibold ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : ''}`}>
                     {isExpired ? 'Expired' : `${daysRemaining} days`}
                   </span>
                 </div>
+                {tender.submissionType && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm text-muted-foreground">Format</span>
+                    <span className="text-sm font-medium text-right max-w-[140px]">
+                      {SUBMISSION_TYPE_LABELS[tender.submissionType]?.split(' (')[0] || tender.submissionType}
+                    </span>
+                  </div>
+                )}
+                {tender.inquiryType && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm text-muted-foreground">Q&A</span>
+                    <span className="text-sm font-medium">
+                      {tender.inquiryType === 'inside_bid' ? 'Platform' : 'Direct'}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Project Details Sidebar */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Project Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {tender.category && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm text-muted-foreground">Category</span>
+                    <span className="text-sm font-medium">{tender.category}</span>
+                  </div>
+                )}
+                {tender.scope && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm text-muted-foreground">Scope</span>
+                    <span className="text-sm font-medium">{SCOPE_LABELS[tender.scope] || tender.scope}</span>
+                  </div>
+                )}
+                {tender.projectSize && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm text-muted-foreground">Size</span>
+                    <span className="text-sm font-medium">{PROJECT_SIZE_LABELS[tender.projectSize]?.split(' (')[0] || tender.projectSize}</span>
+                  </div>
+                )}
+                {(tender.duration || tender.projectTimeline) && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm text-muted-foreground">Timeline</span>
+                    <span className="text-sm font-medium">
+                      {DURATION_LABELS[tender.duration || ''] || tender.projectTimeline || tender.duration}
+                    </span>
+                  </div>
+                )}
+                {isOwner && tender.showPriceToVendors !== undefined && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm text-muted-foreground">Price Visible</span>
+                    <span className="text-sm font-medium flex items-center gap-1">
+                      {tender.showPriceToVendors ? (
+                        <><Eye className="h-3.5 w-3.5 text-green-500" /> Yes</>
+                      ) : (
+                        <><EyeOff className="h-3.5 w-3.5 text-gray-400" /> No</>
+                      )}
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
             {/* Actions - Only visible to tender owner */}
             {isOwner && (
               <Card>
-                <CardHeader>
-                  <CardTitle>Actions</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {tender.status === 'draft' && (
                     <>
-                      <Button 
-                        className="w-full bg-blue-600 hover:bg-blue-700"
+                      <Button
+                        className="w-full bg-[#E25E45] hover:bg-[#d54d35]"
                         onClick={() => updateStatus.mutate('published')}
                         disabled={updateStatus.isPending}
                         data-testid="button-publish"
                       >
                         Publish Tender
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full"
                         onClick={() => setLocation(`/tenders/${tender.id}/edit`)}
                         data-testid="button-edit"
@@ -1003,10 +1291,10 @@ export default function TenderDetails() {
                       </Button>
                     </>
                   )}
-                  
+
                   {tender.status === 'published' && (
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full"
                       onClick={() => updateStatus.mutate('closed')}
                       disabled={updateStatus.isPending}
@@ -1015,9 +1303,9 @@ export default function TenderDetails() {
                       Close Tender
                     </Button>
                   )}
-                  
-                  <Button 
-                    variant="outline" 
+
+                  <Button
+                    variant="outline"
                     className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
                     onClick={() => {
                       if (confirm('Are you sure you want to delete this tender? This action cannot be undone.')) {
@@ -1066,9 +1354,9 @@ export default function TenderDetails() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {selectedOffer?.profile?.logoUrl && (
-                <img 
-                  src={selectedOffer.profile.logoUrl} 
-                  alt="" 
+                <img
+                  src={selectedOffer.profile.logoUrl}
+                  alt=""
                   className="h-10 w-10 rounded-full object-cover"
                 />
               )}
@@ -1081,7 +1369,7 @@ export default function TenderDetails() {
               {selectedOffer?.company.category || 'Company Profile'}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedOffer && (
             <div className="space-y-4">
               {selectedOffer.profile?.bio && (
@@ -1090,7 +1378,7 @@ export default function TenderDetails() {
                   <p className="text-sm">{selectedOffer.profile.bio}</p>
                 </div>
               )}
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h4 className="font-medium text-sm text-muted-foreground mb-1">Company Name</h4>
@@ -1115,6 +1403,12 @@ export default function TenderDetails() {
                       minute: '2-digit'
                     })}</span>
                   </div>
+                  {selectedOffer.quotePrice && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Quote Price</span>
+                      <span className="font-semibold text-[#E25E45]">SAR {selectedOffer.quotePrice.toLocaleString()}</span>
+                    </div>
+                  )}
                   {selectedOffer.notes && (
                     <div>
                       <span className="text-sm text-muted-foreground">Notes:</span>
@@ -1126,9 +1420,9 @@ export default function TenderDetails() {
 
               <div className="flex gap-2 pt-2">
                 {selectedOffer.technicalFileUrl && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="flex-1"
                     onClick={() => viewAuthenticatedFile(selectedOffer.technicalFileUrl!)}
                     data-testid="button-modal-tech-file"
@@ -1138,15 +1432,26 @@ export default function TenderDetails() {
                   </Button>
                 )}
                 {selectedOffer.financialFileUrl && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="flex-1"
                     onClick={() => viewAuthenticatedFile(selectedOffer.financialFileUrl!)}
                     data-testid="button-modal-fin-file"
                   >
                     <DollarSign className="h-4 w-4 mr-2" />
                     Financial Proposal
+                  </Button>
+                )}
+                {selectedOffer.videoUrl && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => window.open(selectedOffer.videoUrl!, '_blank')}
+                  >
+                    <Video className="h-4 w-4 mr-2" />
+                    Video Pitch
                   </Button>
                 )}
               </div>

@@ -1092,12 +1092,12 @@ export default function TenderInviteLink() {
               <div className="h-1.5 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
               <CardContent className="p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-2">
-                  {isDeadlinePassed ? 'Submissions Closed' : 'Interested in this project?'}
+                  {isDeadlinePassed ? 'Submissions Closed' : 'Submission Details'}
                 </h3>
                 <p className="text-sm text-gray-600 mb-5">
                   {isDeadlinePassed
                     ? "This tender is no longer accepting proposals."
-                    : "Submit your proposal to be considered for this project."}
+                    : "Review the details below and submit when ready."}
                 </p>
 
                 {!isDeadlinePassed && (

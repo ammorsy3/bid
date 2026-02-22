@@ -197,7 +197,7 @@ export default function TenderBriefStep() {
   const hasEvalCriteria = draft.evaluationCriteria && (
     Array.isArray(draft.evaluationCriteria)
       ? draft.evaluationCriteria.length > 0
-      : (draft.evaluationCriteria.requirements?.length > 0 || draft.evaluationCriteria.customCriteria?.length > 0)
+      : (draft.evaluationCriteria.weights?.length > 0 || draft.evaluationCriteria.requirements?.length > 0 || draft.evaluationCriteria.customCriteria?.length > 0)
   );
   const hasDescription = !!(draft.description || draft.projectDescription);
   const hasObjective = !!draft.projectObjective;
@@ -385,17 +385,19 @@ export default function TenderBriefStep() {
                                 </Badge>
                               )}
                               {hasDetails && (
-                                isExpanded
-                                  ? <ChevronDown className="h-4 w-4 text-gray-400" />
-                                  : <ChevronRight className="h-4 w-4 text-gray-400" />
+                                <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                               )}
                             </div>
                           </button>
-                          {isExpanded && deliverable.description && (
-                            <div className="px-4 pb-4 pt-0 ml-12">
-                              <p className="text-sm text-gray-600 leading-relaxed">{deliverable.description}</p>
+                          <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                            <div className="overflow-hidden">
+                              {deliverable.description && (
+                                <div className="px-4 pb-4 pt-0 ml-12">
+                                  <p className="text-sm text-gray-600 leading-relaxed">{deliverable.description}</p>
+                                </div>
+                              )}
                             </div>
-                          )}
+                          </div>
                         </div>
                       );
                     })}
@@ -455,6 +457,7 @@ export default function TenderBriefStep() {
                     <div className="space-y-2" data-testid="brief-criteria">
                       {draft.evaluationCriteria.map((criteria: any, index: number) => {
                         if (typeof criteria === 'string') {
+                          const isOpen = expandedCriteria[`arr-${index}`];
                           return (
                             <div key={index} className="bg-gray-50 rounded-lg overflow-hidden">
                               <button
@@ -466,20 +469,20 @@ export default function TenderBriefStep() {
                                   <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">{index + 1}</span>
                                   <span className="text-sm font-medium text-gray-900">{CRITERIA_LABELS[criteria] || criteria}</span>
                                 </div>
-                                {expandedCriteria[`arr-${index}`]
-                                  ? <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                                  : <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                                }
+                                <ChevronRight className={`h-4 w-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
                               </button>
-                              {expandedCriteria[`arr-${index}`] && (
-                                <div className="px-4 pb-3 ml-12">
-                                  <p className="text-sm text-gray-500">This criterion will be used to evaluate vendor proposals.</p>
+                              <div className={`grid transition-all duration-200 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                                <div className="overflow-hidden">
+                                  <div className="px-4 pb-3 ml-12">
+                                    <p className="text-sm text-gray-500">This criterion will be used to evaluate vendor proposals.</p>
+                                  </div>
                                 </div>
-                              )}
+                              </div>
                             </div>
                           );
                         }
                         if (typeof criteria === 'object' && criteria.name) {
+                          const isOpen = expandedCriteria[`arr-${index}`];
                           return (
                             <div key={index} className="bg-gray-50 rounded-lg overflow-hidden">
                               <button
@@ -493,17 +496,18 @@ export default function TenderBriefStep() {
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   {criteria.weight && <Badge variant="outline" className="font-semibold">{criteria.weight}%</Badge>}
-                                  {expandedCriteria[`arr-${index}`]
-                                    ? <ChevronDown className="h-4 w-4 text-gray-400" />
-                                    : <ChevronRight className="h-4 w-4 text-gray-400" />
-                                  }
+                                  <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
                                 </div>
                               </button>
-                              {expandedCriteria[`arr-${index}`] && criteria.description && (
-                                <div className="px-4 pb-3 ml-12">
-                                  <p className="text-sm text-gray-600 leading-relaxed">{criteria.description}</p>
+                              <div className={`grid transition-all duration-200 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                                <div className="overflow-hidden">
+                                  {criteria.description && (
+                                    <div className="px-4 pb-3 ml-12">
+                                      <p className="text-sm text-gray-600 leading-relaxed">{criteria.description}</p>
+                                    </div>
+                                  )}
                                 </div>
-                              )}
+                              </div>
                             </div>
                           );
                         }
@@ -520,6 +524,7 @@ export default function TenderBriefStep() {
                               (r: any) => r.categoryId === w.categoryId || r.requirementId?.startsWith(w.categoryId)
                             ) || [];
                             const hasContent = relatedReqs.length > 0;
+                            const isOpen = expandedCriteria[w.categoryId];
                             return (
                               <div key={w.categoryId} className="bg-gray-50 rounded-lg overflow-hidden">
                                 <button
@@ -531,22 +536,24 @@ export default function TenderBriefStep() {
                                   <div className="flex items-center gap-2 flex-shrink-0">
                                     <Badge variant="outline" className="font-semibold">{w.weight}%</Badge>
                                     {hasContent && (
-                                      expandedCriteria[w.categoryId]
-                                        ? <ChevronDown className="h-4 w-4 text-gray-400" />
-                                        : <ChevronRight className="h-4 w-4 text-gray-400" />
+                                      <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
                                     )}
                                   </div>
                                 </button>
-                                {expandedCriteria[w.categoryId] && relatedReqs.length > 0 && (
-                                  <div className="px-4 pb-3 flex flex-wrap gap-2">
-                                    {relatedReqs.map((req: any, i: number) => (
-                                      <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                                        {EVAL_REQUIREMENT_LABELS[req.requirementId] || req.requirementId}
-                                        {req.value && typeof req.value !== 'boolean' ? `: ${req.value}` : ''}
-                                      </Badge>
-                                    ))}
+                                <div className={`grid transition-all duration-200 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                                  <div className="overflow-hidden">
+                                    {relatedReqs.length > 0 && (
+                                      <div className="px-4 pb-3 flex flex-wrap gap-2">
+                                        {relatedReqs.map((req: any, i: number) => (
+                                          <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                                            {EVAL_REQUIREMENT_LABELS[req.requirementId] || req.requirementId}
+                                            {req.value && typeof req.value !== 'boolean' ? `: ${req.value}` : ''}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                </div>
                               </div>
                             );
                           })}
@@ -587,17 +594,16 @@ export default function TenderBriefStep() {
                                 <span className="text-sm text-gray-900">{c.text}</span>
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   <Badge variant="outline" className="font-semibold">{c.weight}%</Badge>
-                                  {expandedCriteria[`custom-${c.id}`]
-                                    ? <ChevronDown className="h-4 w-4 text-gray-400" />
-                                    : <ChevronRight className="h-4 w-4 text-gray-400" />
-                                  }
+                                  <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${expandedCriteria[`custom-${c.id}`] ? 'rotate-90' : ''}`} />
                                 </div>
                               </button>
-                              {expandedCriteria[`custom-${c.id}`] && (
-                                <div className="px-4 pb-3">
-                                  <p className="text-sm text-gray-500">Custom criterion weighted at {c.weight}% of the total evaluation.</p>
+                              <div className={`grid transition-all duration-200 ease-in-out ${expandedCriteria[`custom-${c.id}`] ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                                <div className="overflow-hidden">
+                                  <div className="px-4 pb-3">
+                                    <p className="text-sm text-gray-500">Custom criterion weighted at {c.weight}% of the total evaluation.</p>
+                                  </div>
                                 </div>
-                              )}
+                              </div>
                             </div>
                           ))}
                         </div>

@@ -507,11 +507,6 @@ export default function TenderDetails() {
                     Deadline Passed
                   </Badge>
                 )}
-                {tender.category && (
-                  <Badge variant="outline" className="text-sm px-3 py-1">
-                    {tender.category}
-                  </Badge>
-                )}
               </div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2" data-testid="text-tender-title">
                 {tender.title}

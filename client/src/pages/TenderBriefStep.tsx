@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Info } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Info, Eye, EyeOff, Mic, Flag, BarChart } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useMemo } from "react";
@@ -20,19 +20,44 @@ const CRITERIA_LABELS: Record<string, string> = {
 };
 
 const SUBMISSION_TYPE_LABELS: Record<string, string> = {
-  video_only: "Video Only",
+  quote_only: "Price Only",
+  tech_fin_proposal: "Full Proposal (Technical & Financial)",
+  video_only: "Video Pitch",
+  tech_fin_with_video: "Full Proposal + Video Pitch",
   document_only: "Document Only",
   both: "Video & Document",
 };
 
 const INQUIRY_TYPE_LABELS: Record<string, string> = {
-  inside_bid: "Inside Bid Platform",
+  inside_bid: "Inside Bid Platform (Anonymous Q&A)",
+  email_whatsapp: "Email & WhatsApp",
   whatsapp: "WhatsApp",
   email: "Email",
   phone: "Phone",
 };
 
+const SCOPE_LABELS: Record<string, string> = {
+  large: "Large",
+  medium: "Medium",
+  small: "Small",
+};
+
+const DURATION_LABELS: Record<string, string> = {
+  "6plus": "More than 6 months",
+  "3to6": "3 to 6 months",
+  "1to3": "1 to 3 months",
+};
+
+const PROJECT_SIZE_LABELS: Record<string, string> = {
+  small: "Small Project",
+  medium: "Medium Project",
+  large: "Large Project",
+};
+
 const formatLabel = (value: string, labels?: Record<string, string>): string => {
+  if (labels && labels[value]) {
+    return labels[value];
+  }
   if (labels && labels[value.toLowerCase()]) {
     return labels[value.toLowerCase()];
   }
@@ -98,11 +123,12 @@ export default function TenderBriefStep() {
       whatsappContact: draft.whatsappContact || undefined,
       emailContact: draft.emailContact || undefined,
       evaluationCriteria: draft.evaluationCriteria && draft.evaluationCriteria.length > 0 ? draft.evaluationCriteria : undefined,
-      // Project scope details
       objective: draft.projectObjective || undefined,
       deliverables: draft.keyDeliverables && draft.keyDeliverables.length > 0 ? draft.keyDeliverables : undefined,
-      // Voice note if provided
       voiceNoteUrl: draft.voiceNoteUrl || undefined,
+      startDate: draft.startDate || undefined,
+      endDate: draft.endDate || undefined,
+      milestones: draft.milestones && draft.milestones.length > 0 ? draft.milestones : undefined,
     };
 
     submitTender.mutate(tenderData);
@@ -112,11 +138,11 @@ export default function TenderBriefStep() {
     navigate("/tenders/new/evaluation-criteria");
   };
 
-  const formatDeadline = (deadline: string) => {
+  const formatDate = (dateStr: string) => {
     try {
-      return format(new Date(deadline), "PPP");
+      return format(new Date(dateStr), "PPP");
     } catch {
-      return deadline;
+      return dateStr;
     }
   };
 
@@ -196,7 +222,6 @@ export default function TenderBriefStep() {
                 <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">Key Deliverables (Bill of Quantities)</h3>
                 <div className="space-y-3" data-testid="brief-deliverables">
                   {draft.keyDeliverables.map((deliverable: any, index: number) => {
-                    // Handle both old format (string) and new format (object)
                     if (typeof deliverable === 'string') {
                       return (
                         <div key={index} className="px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -233,15 +258,67 @@ export default function TenderBriefStep() {
               </div>
             )}
 
+            {(draft.startDate || draft.endDate) && (
+              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Project Timeline
+                </h3>
+                <div className="grid grid-cols-2 gap-4" data-testid="brief-timeline">
+                  {draft.startDate && (
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Start Date</p>
+                      <p className="text-gray-900 dark:text-white font-medium">{formatDate(draft.startDate)}</p>
+                    </div>
+                  )}
+                  {draft.endDate && (
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">End Date</p>
+                      <p className="text-gray-900 dark:text-white font-medium">{formatDate(draft.endDate)}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {draft.milestones && draft.milestones.length > 0 && (
+              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
+                  <Flag className="h-4 w-4" />
+                  Milestones
+                </h3>
+                <div className="space-y-2" data-testid="brief-milestones">
+                  {draft.milestones.map((milestone: any, index: number) => (
+                    <div key={milestone.id || index} className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-gray-400">#{index + 1}</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{milestone.name}</span>
+                        </div>
+                        {milestone.description && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5 ml-6">{milestone.description}</p>
+                        )}
+                      </div>
+                      {milestone.dueDate && (
+                        <span className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0 ml-4">
+                          {formatDate(milestone.dueDate)}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {draft.deadline && (
                 <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                   <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    Deadline
+                    Submission Deadline
                   </h3>
                   <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-deadline">
-                    {formatDeadline(draft.deadline)}
+                    {formatDate(draft.deadline)}
                   </p>
                 </div>
               )}
@@ -255,9 +332,24 @@ export default function TenderBriefStep() {
                   <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-budget">
                     {draft.budgetMin && draft.budgetMax
                       ? `SAR ${draft.budgetMin.toLocaleString()} - ${draft.budgetMax.toLocaleString()}`
-                      : draft.budget
+                      : typeof draft.budget === 'number' ? `SAR ${draft.budget.toLocaleString()}` : draft.budget
                     }
                   </p>
+                  {draft.showPriceToVendors !== undefined && (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      {draft.showPriceToVendors ? (
+                        <>
+                          <Eye className="h-3.5 w-3.5 text-green-500" />
+                          <span className="text-xs text-green-600 dark:text-green-400">Visible to vendors</span>
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="h-3.5 w-3.5 text-gray-400" />
+                          <span className="text-xs text-gray-500 dark:text-gray-400">Hidden from vendors (only project size shown)</span>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -268,7 +360,7 @@ export default function TenderBriefStep() {
                     Duration
                   </h3>
                   <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-duration">
-                    {draft.duration}
+                    {DURATION_LABELS[draft.duration] || draft.duration}
                   </p>
                 </div>
               )}
@@ -280,7 +372,19 @@ export default function TenderBriefStep() {
                     Project Size
                   </h3>
                   <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-project-size">
-                    {draft.projectSize}
+                    {PROJECT_SIZE_LABELS[draft.projectSize] || formatLabel(draft.projectSize)}
+                  </p>
+                </div>
+              )}
+
+              {draft.scope && (
+                <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
+                    <BarChart className="h-4 w-4" />
+                    Project Scope
+                  </h3>
+                  <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-scope">
+                    {SCOPE_LABELS[draft.scope] || formatLabel(draft.scope)}
                   </p>
                 </div>
               )}
@@ -302,72 +406,84 @@ export default function TenderBriefStep() {
               </div>
             )}
 
-            {draft.scope && (
-              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Project Scope</h3>
-                <p className="text-gray-900 dark:text-white whitespace-pre-wrap" data-testid="brief-scope">
-                  {draft.scope}
-                </p>
-              </div>
-            )}
-
             {(draft.submissionType || draft.inquiryType) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {draft.submissionType && (
-                  <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Submission Type
-                    </h3>
-                    <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-submission-type">
-                      {formatLabel(draft.submissionType, SUBMISSION_TYPE_LABELS)}
-                    </p>
-                  </div>
-                )}
-
-                {draft.inquiryType && (
-                  <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4" />
-                      Inquiry Type
-                    </h3>
-                    <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-inquiry-type">
-                      {formatLabel(draft.inquiryType, INQUIRY_TYPE_LABELS)}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {draft.videoRequired && (
               <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
-                  <Video className="h-4 w-4" />
-                  Video Required
-                </h3>
-                <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-video-required">
-                  {formatLabel(draft.videoRequired)}
-                </p>
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">Vendor Response</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {draft.submissionType && (
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex-shrink-0">
+                        <FileText className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Submission Format</p>
+                        <p className="text-gray-900 dark:text-white font-medium text-sm" data-testid="brief-submission-type">
+                          {formatLabel(draft.submissionType, SUBMISSION_TYPE_LABELS)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {draft.inquiryType && (
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 flex-shrink-0">
+                        <MessageSquare className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Vendor Questions</p>
+                        <p className="text-gray-900 dark:text-white font-medium text-sm" data-testid="brief-inquiry-type">
+                          {formatLabel(draft.inquiryType, INQUIRY_TYPE_LABELS)}
+                        </p>
+                        {draft.inquiryType === "inside_bid" && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Vendors can ask questions anonymously inside the tender
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {draft.videoRequired && (
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                    <Video className="h-4 w-4 text-pink-500" />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Video pitch is <strong>required</strong>
+                    </span>
+                  </div>
+                )}
               </div>
             )}
 
             {(draft.emailContact || draft.whatsappContact) && (
               <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">Contact Information</h3>
-                <div className="flex flex-wrap gap-4">
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">Contact Details for Inquiries</h3>
+                <div className="space-y-2">
                   {draft.emailContact && (
-                    <span className="inline-flex items-center gap-2 text-gray-900 dark:text-white" data-testid="brief-email">
+                    <div className="flex items-center gap-2" data-testid="brief-email">
                       <Mail className="h-4 w-4 text-[#E25E45]" />
-                      {draft.emailContact}
-                    </span>
+                      <span className="text-gray-900 dark:text-white">{draft.emailContact}</span>
+                    </div>
                   )}
                   {draft.whatsappContact && (
-                    <span className="inline-flex items-center gap-2 text-gray-900 dark:text-white" data-testid="brief-whatsapp">
+                    <div className="flex items-center gap-2" data-testid="brief-whatsapp">
                       <Phone className="h-4 w-4 text-green-600" />
-                      {draft.whatsappContact}
-                    </span>
+                      <span className="text-gray-900 dark:text-white">{draft.whatsappContact}</span>
+                    </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {draft.voiceNoteUrl && (
+              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
+                  <Mic className="h-4 w-4" />
+                  Voice Note
+                </h3>
+                <audio controls className="w-full" data-testid="brief-voice-note">
+                  <source src={draft.voiceNoteUrl} />
+                </audio>
               </div>
             )}
 
@@ -375,14 +491,29 @@ export default function TenderBriefStep() {
               <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                 <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">Evaluation Criteria</h3>
                 <div className="flex flex-wrap gap-2" data-testid="brief-criteria">
-                  {draft.evaluationCriteria.map((criteriaId: string, index: number) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                    >
-                      {CRITERIA_LABELS[criteriaId] || criteriaId}
-                    </span>
-                  ))}
+                  {draft.evaluationCriteria.map((criteria: any, index: number) => {
+                    if (typeof criteria === 'string') {
+                      return (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                        >
+                          {CRITERIA_LABELS[criteria] || criteria}
+                        </span>
+                      );
+                    }
+                    if (typeof criteria === 'object' && criteria.name) {
+                      return (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                        >
+                          {criteria.name}{criteria.weight ? ` (${criteria.weight}%)` : ''}
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
                 </div>
               </div>
             )}

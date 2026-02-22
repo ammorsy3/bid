@@ -265,15 +265,53 @@ export default function TenderReview() {
     }
   };
 
+  const PROJECT_TYPE_LABELS: Record<string, string> = {
+    "time-bound": "Ongoing & time-bound",
+    "deliverable": "Purchase of a service or product",
+    "ongoing": "Ongoing project",
+  };
+
+  const SUPPLIER_RESPONSE_LABELS: Record<string, string> = {
+    "document": "Document submission",
+    "video": "Video pitch",
+    "both": "Document + Video",
+    "platform": "Through Bid platform",
+  };
+
   const getDisplayValue = (card: FormCard): string => {
     if (card.value === null || card.value === undefined || card.value === "") {
       return "Not provided";
     }
 
+    if (card.type === "project-type" && typeof card.value === "string") {
+      return PROJECT_TYPE_LABELS[card.value] || card.value;
+    }
+
+    if (card.type === "supplier-response" && typeof card.value === "string") {
+      return SUPPLIER_RESPONSE_LABELS[card.value] || card.value;
+    }
+
     if (typeof card.value === "string") return card.value;
 
     if (Array.isArray(card.value)) {
-      return card.value.length > 0 ? card.value.join(", ") : "Not provided";
+      if (card.value.length === 0) return "Not provided";
+      if (card.type === "evaluation-criteria") {
+        return card.value.map((item: any) => {
+          if (typeof item === "string") return item;
+          if (typeof item === "object" && item.name) {
+            return item.weight ? `${item.name} (${item.weight}%)` : item.name;
+          }
+          return String(item);
+        }).join(", ");
+      }
+      if (card.type === "key-deliverables") {
+        return card.value.map((item: any) => {
+          if (typeof item === "string") return item;
+          if (typeof item === "object" && item.name) return item.name;
+          return String(item);
+        }).join(", ");
+      }
+      return card.value.join(", ");
     }
 
     if (typeof card.value === "object") {

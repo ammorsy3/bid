@@ -353,6 +353,18 @@ export const auditLog = pgTable("audit_log", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Tender Q&A - Anonymous questions from vendors, answered by requester
+export const tenderQuestions = pgTable("tender_questions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenderId: varchar("tender_id").notNull().references(() => tenders.id),
+  askedByUserId: varchar("asked_by_user_id").notNull().references(() => users.id),
+  askedByCompanyId: varchar("asked_by_company_id").references(() => companies.id),
+  question: text("question").notNull(),
+  answer: text("answer"),
+  answeredAt: timestamp("answered_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // ============================================================================
 // RELATIONS
 // ============================================================================
@@ -675,6 +687,12 @@ export const createTenderTemplateSchema = insertTenderTemplateSchema.omit({
   companyId: true,
 });
 
+export const insertTenderQuestionSchema = createInsertSchema(tenderQuestions).omit({
+  id: true,
+  answeredAt: true,
+  createdAt: true,
+});
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -729,6 +747,9 @@ export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type TenderTemplate = typeof tenderTemplates.$inferSelect;
 export type InsertTenderTemplate = z.infer<typeof insertTenderTemplateSchema>;
 export type CreateTenderTemplate = z.infer<typeof createTenderTemplateSchema>;
+
+export type TenderQuestion = typeof tenderQuestions.$inferSelect;
+export type InsertTenderQuestion = z.infer<typeof insertTenderQuestionSchema>;
 
 // Chat models for AI integrations
 export * from "./models/chat";

@@ -5,7 +5,8 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -225,7 +226,42 @@ export default function TenderDetails() {
   const [isSubmitOfferModalOpen, setIsSubmitOfferModalOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
 
+  const [answerText, setAnswerText] = useState<Record<string, string>>({});
+
   const canManage = activeCompany && ['owner', 'admin'].includes(activeCompany.role);
+
+  const { data: qaQuestions = [] } = useQuery<Array<{
+    id: string;
+    question: string;
+    answer: string | null;
+    answeredAt: string | null;
+    createdAt: string;
+    askedByCompanyName?: string;
+  }>>({
+    queryKey: ['/api/tenders', id, 'questions'],
+    queryFn: async () => {
+      const res = await fetch(`/api/tenders/${id}/questions`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!user && !!id,
+  });
+
+  const answerQuestion = useMutation({
+    mutationFn: async ({ questionId, answer }: { questionId: string; answer: string }) => {
+      return await apiRequest('PATCH', `/api/tenders/${id}/questions/${questionId}/answer`, { answer });
+    },
+    onSuccess: (_, vars) => {
+      setAnswerText(prev => { const copy = { ...prev }; delete copy[vars.questionId]; return copy; });
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders', id, 'questions'] });
+      toast({ title: "Answer submitted", description: "Your answer is now visible to all vendors." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Failed to submit answer", description: error.message, variant: "destructive" });
+    },
+  });
 
   const { data: tender, isLoading } = useQuery<TenderWithCounts>({
     queryKey: ['/api/tenders', id],
@@ -499,8 +535,11 @@ export default function TenderDetails() {
                 <span className="text-xs font-medium uppercase tracking-wider">Duration</span>
               </div>
               <p className="font-semibold text-sm text-gray-900 dark:text-white">
-                {DURATION_LABELS[tender.duration || ''] || tender.projectTimeline || tender.duration || 'Not specified'}
+                {DURATION_LABELS[tender.duration || ''] || tender.duration || 'Not specified'}
               </p>
+              {tender.projectTimeline && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{tender.projectTimeline}</p>
+              )}
             </div>
 
             <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
@@ -783,20 +822,82 @@ export default function TenderDetails() {
                 </CardHeader>
                 <CardContent>
                   {tender.inquiryType === 'inside_bid' && (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
-                        <div className="p-2.5 bg-green-100 dark:bg-green-800/50 rounded-lg flex-shrink-0">
-                          <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        <div className="p-2 bg-green-100 dark:bg-green-800/50 rounded-lg flex-shrink-0">
+                          <Shield className="h-4 w-4 text-green-600 dark:text-green-400" />
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-900 dark:text-white">
-                            Anonymous Q&A Inside the Platform
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            Submit your questions directly through the Bid platform. Your identity will remain anonymous to other vendors. The requester's answers will be visible to all participants to ensure fairness.
-                          </p>
-                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Vendors can ask anonymous questions on this RFP. Your answers will be visible to all participants.
+                        </p>
                       </div>
+
+                      {qaQuestions.length > 0 ? (
+                        <div className="space-y-3">
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {qaQuestions.length} question{qaQuestions.length !== 1 ? 's' : ''} from vendors
+                          </p>
+                          {qaQuestions.map((q) => (
+                            <div key={q.id} className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                              <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+                                <div className="flex items-start gap-2">
+                                  <HelpCircle className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-gray-900 dark:text-white">{q.question}</p>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                      Asked {new Date(q.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                      {q.askedByCompanyName && (
+                                        <span className="ml-1 text-gray-500"> by {q.askedByCompanyName}</span>
+                                      )}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                              {q.answer ? (
+                                <div className="px-4 py-3 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
+                                  <div className="flex items-start gap-2">
+                                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-0.5">Your answer</p>
+                                      <p className="text-sm text-gray-800 dark:text-gray-200">{q.answer}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : canManage ? (
+                                <div className="px-4 py-3 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 space-y-2">
+                                  <Textarea
+                                    placeholder="Type your answer..."
+                                    value={answerText[q.id] || ''}
+                                    onChange={(e) => setAnswerText(prev => ({ ...prev, [q.id]: e.target.value }))}
+                                    rows={2}
+                                    className="resize-none text-sm"
+                                  />
+                                  <div className="flex justify-end">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => answerQuestion.mutate({ questionId: q.id, answer: answerText[q.id] || '' })}
+                                      disabled={!answerText[q.id]?.trim() || answerQuestion.isPending}
+                                      className="bg-green-600 hover:bg-green-700"
+                                    >
+                                      {answerQuestion.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Send className="h-3 w-3 mr-1" />}
+                                      Answer
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="px-4 py-2.5 bg-amber-50/50 dark:bg-amber-900/10 border-t border-gray-100 dark:border-gray-700">
+                                  <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                    <Clock className="h-3 w-3" />
+                                    Awaiting answer
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 italic">No questions have been asked yet.</p>
+                      )}
                     </div>
                   )}
 

@@ -991,6 +991,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================================
+  // TENDER Q&A ENDPOINTS
+  // ============================================================================
+
+  // Get questions for a tender (public - anonymous, no user info returned)
+  app.get("/api/tenders/:id/questions", async (req, res) => {
+    try {
+      const tender = await storage.getTender(req.params.id);
+      if (!tender) {
+        return res.status(404).json({ message: "Tender not found" });
+      }
+
+      const questions = await storage.getTenderQuestions(req.params.id);
+
+      let isOwner = false;
+      const authHeader = req.headers.authorization;
+      if (authHeader) {
+        try {
+          const token = authHeader.replace('Bearer ', '');
+          const decoded = jwt.verify(token, process.env.JWT_SECRET || '') as any;
+          if (decoded.activeCompanyId === tender.companyId) {
+            const role = decoded.roleInCompany;
+            if (role === 'owner' || role === 'admin') {
+              isOwner = true;
+            }
+          }
+        } catch {}
+      }
+
+      const result = await Promise.all(questions.map(async (q) => {
+        const base: any = {
+          id: q.id,
+          question: q.question,
+          answer: q.answer,
+          answeredAt: q.answeredAt,
+          createdAt: q.createdAt,
+        };
+        if (isOwner && q.askedByCompanyId) {
+          const company = await storage.getCompany(q.askedByCompanyId);
+          if (company) base.askedByCompanyName = company.name;
+        }
+        return base;
+      }));
+
+      res.json(result);
+    } catch (error) {
+      console.error('Get tender questions error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Post a question on a tender (requires login)
+  app.post("/api/tenders/:id/questions",
+    authenticateToken,
+    async (req: AuthRequest, res) => {
+      try {
+        const tender = await storage.getTender(req.params.id);
+        if (!tender) {
+          return res.status(404).json({ message: "Tender not found" });
+        }
+
+        if (tender.status !== 'published') {
+          return res.status(400).json({ message: "Tender is not accepting questions" });
+        }
+
+        if (tender.inquiryType !== 'inside_bid') {
+          return res.status(400).json({ message: "This tender does not support platform Q&A" });
+        }
+
+        const { question } = req.body;
+        if (!question || typeof question !== 'string' || question.trim().length === 0) {
+          return res.status(400).json({ message: "Question is required" });
+        }
+
+        if (question.trim().length > 1000) {
+          return res.status(400).json({ message: "Question must be under 1000 characters" });
+        }
+
+        const created = await storage.createTenderQuestion({
+          tenderId: req.params.id,
+          askedByUserId: req.auth!.userId,
+          askedByCompanyId: req.auth!.activeCompanyId || null,
+          question: question.trim(),
+        });
+
+        // Return anonymous version
+        res.status(201).json({
+          id: created.id,
+          question: created.question,
+          answer: created.answer,
+          answeredAt: created.answeredAt,
+          createdAt: created.createdAt,
+        });
+      } catch (error) {
+        console.error('Post tender question error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  // Answer a question (tender owner only)
+  app.patch("/api/tenders/:id/questions/:questionId/answer",
+    authenticateToken,
+    requireCompanyContext,
+    requireCompanyRole('admin'),
+    async (req: AuthRequest, res) => {
+      try {
+        const tender = await storage.getTender(req.params.id);
+        if (!tender) {
+          return res.status(404).json({ message: "Tender not found" });
+        }
+
+        if (tender.companyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: "Only the tender owner can answer questions" });
+        }
+
+        const { answer } = req.body;
+        if (!answer || typeof answer !== 'string' || answer.trim().length === 0) {
+          return res.status(400).json({ message: "Answer is required" });
+        }
+
+        const updated = await storage.answerTenderQuestion(req.params.questionId, answer.trim());
+
+        res.json({
+          id: updated.id,
+          question: updated.question,
+          answer: updated.answer,
+          answeredAt: updated.answeredAt,
+          createdAt: updated.createdAt,
+        });
+      } catch (error) {
+        console.error('Answer tender question error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
   // Update tender
   app.patch("/api/tenders/:id",
     authenticateToken,

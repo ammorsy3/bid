@@ -1,17 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Loader2, Calendar, DollarSign, Clock, Building2, Send, FileText,
   Video, Play, Pause, AlertCircle, Target, ListChecks, Star,
   Mail, Phone, MessageSquare, Flag, HelpCircle, Shield, Layers,
-  Tag, Mic, ExternalLink, EyeOff
+  Tag, Mic, ExternalLink, EyeOff, CheckCircle2
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import SubmitOfferModal from "@/components/submit-offer-modal";
 import { formatCurrency } from "@/lib/format-currency";
@@ -61,6 +63,14 @@ interface TenderInvite {
   };
   createdAt?: string;
   category?: string;
+}
+
+interface TenderQA {
+  id: string;
+  question: string;
+  answer: string | null;
+  answeredAt: string | null;
+  createdAt: string;
 }
 
 const SUBMISSION_TYPE_LABELS: Record<string, string> = {
@@ -235,6 +245,31 @@ export default function TenderInviteLink() {
   const { toast } = useToast();
   const { user } = useAuthStore();
   const [showOfferModal, setShowOfferModal] = useState(false);
+  const [newQuestion, setNewQuestion] = useState('');
+
+  const { data: questions = [] } = useQuery<TenderQA[]>({
+    queryKey: ['/api/tenders', tenderId, 'questions'],
+    enabled: !!tenderId,
+    queryFn: async () => {
+      const res = await fetch(`/api/tenders/${tenderId}/questions`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const askQuestion = useMutation({
+    mutationFn: async (question: string) => {
+      return await apiRequest('POST', `/api/tenders/${tenderId}/questions`, { question });
+    },
+    onSuccess: () => {
+      setNewQuestion('');
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders', tenderId, 'questions'] });
+      toast({ title: "Question submitted", description: "Your question has been posted anonymously." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Failed to submit question", description: error.message, variant: "destructive" });
+    },
+  });
 
   const { data: tender, isLoading, error } = useQuery<TenderInvite>({
     queryKey: ['/api/tenders', tenderId, 'invite'],
@@ -450,8 +485,11 @@ export default function TenderInviteLink() {
                 <span className="text-xs font-medium uppercase tracking-wider">Duration</span>
               </div>
               <p className="font-semibold text-sm text-gray-900">
-                {DURATION_LABELS[tender.duration || ''] || tender.projectTimeline || tender.duration || 'Not specified'}
+                {DURATION_LABELS[tender.duration || ''] || tender.duration || 'Not specified'}
               </p>
+              {tender.projectTimeline && (
+                <p className="text-xs text-gray-500 mt-0.5">{tender.projectTimeline}</p>
+              )}
             </div>
 
             <div className="bg-gray-50 rounded-xl p-4">
@@ -761,24 +799,110 @@ export default function TenderInviteLink() {
                     Questions & Inquiries
                   </CardTitle>
                   <CardDescription>
-                    How to ask questions about this RFP
+                    {tender.inquiryType === 'inside_bid'
+                      ? 'Ask questions anonymously — answers are visible to all vendors'
+                      : 'How to ask questions about this RFP'}
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-5">
                   {tender.inquiryType === 'inside_bid' && (
-                    <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl">
-                      <div className="p-2.5 bg-green-100 rounded-lg flex-shrink-0">
-                        <Shield className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          Anonymous Q&A Inside the Platform
-                        </p>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Submit your questions directly through the Bid platform. Your identity will remain anonymous to other vendors. The requester's answers will be visible to all participants to ensure fairness.
+                    <>
+                      <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl">
+                        <div className="p-2 bg-green-100 rounded-lg flex-shrink-0">
+                          <Shield className="h-4 w-4 text-green-600" />
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          Your identity is <span className="font-semibold text-gray-900">completely anonymous</span>. Only the requester can see and answer questions. All answers are shared with every vendor for fairness.
                         </p>
                       </div>
-                    </div>
+
+                      {/* Existing Questions */}
+                      {questions.length > 0 && (
+                        <div className="space-y-3">
+                          <p className="text-sm font-medium text-gray-700">
+                            {questions.length} question{questions.length !== 1 ? 's' : ''} asked
+                          </p>
+                          {questions.map((q) => (
+                            <div key={q.id} className="rounded-xl border border-gray-200 overflow-hidden">
+                              <div className="px-4 py-3 bg-gray-50">
+                                <div className="flex items-start gap-2">
+                                  <HelpCircle className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-gray-900">{q.question}</p>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                      Asked {new Date(q.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                              {q.answer ? (
+                                <div className="px-4 py-3 bg-white border-t border-gray-100">
+                                  <div className="flex items-start gap-2">
+                                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-medium text-green-700 mb-0.5">Answer from requester</p>
+                                      <p className="text-sm text-gray-800">{q.answer}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="px-4 py-2.5 bg-amber-50/50 border-t border-gray-100">
+                                  <p className="text-xs text-amber-600 flex items-center gap-1.5">
+                                    <Clock className="h-3 w-3" />
+                                    Awaiting answer from requester
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Ask a Question Form */}
+                      {user ? (
+                        <div className="space-y-3 pt-2 border-t border-gray-100">
+                          <p className="text-sm font-medium text-gray-700">Ask a question</p>
+                          <Textarea
+                            placeholder="Type your question here... (anonymous, max 1000 characters)"
+                            value={newQuestion}
+                            onChange={(e) => setNewQuestion(e.target.value)}
+                            maxLength={1000}
+                            rows={3}
+                            className="resize-none"
+                          />
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs text-gray-400">{newQuestion.length}/1000</p>
+                            <Button
+                              size="sm"
+                              onClick={() => askQuestion.mutate(newQuestion)}
+                              disabled={!newQuestion.trim() || askQuestion.isPending}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              {askQuestion.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              ) : (
+                                <Send className="h-4 w-4 mr-2" />
+                              )}
+                              Submit Question
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                          <p className="text-sm text-gray-600">Log in to ask a question anonymously</p>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`);
+                              navigate("/login");
+                            }}
+                          >
+                            Login to Ask
+                          </Button>
+                        </div>
+                      )}
+                    </>
                   )}
 
                   {tender.inquiryType === 'email_whatsapp' && (

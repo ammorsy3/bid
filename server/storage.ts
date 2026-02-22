@@ -42,7 +42,10 @@ import {
   type AuditLog,
   type InsertAuditLog,
   type TenderTemplate,
-  type InsertTenderTemplate
+  type InsertTenderTemplate,
+  tenderQuestions,
+  type TenderQuestion,
+  type InsertTenderQuestion
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ilike, or, isNull, sql, gte, count } from "drizzle-orm";
@@ -189,6 +192,13 @@ export interface IStorage {
   getTenderTemplates(companyId: string): Promise<TenderTemplate[]>;
   updateTenderTemplate(id: string, updates: Partial<InsertTenderTemplate>): Promise<TenderTemplate>;
   deleteTenderTemplate(id: string): Promise<void>;
+
+  // ============================================================================
+  // TENDER Q&A OPERATIONS
+  // ============================================================================
+  createTenderQuestion(question: InsertTenderQuestion): Promise<TenderQuestion>;
+  getTenderQuestions(tenderId: string): Promise<TenderQuestion[]>;
+  answerTenderQuestion(questionId: string, answer: string): Promise<TenderQuestion>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1242,6 +1252,32 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTenderTemplate(id: string): Promise<void> {
     await db.delete(tenderTemplates).where(eq(tenderTemplates.id, id));
+  }
+
+  // ============================================================================
+  // TENDER Q&A OPERATIONS
+  // ============================================================================
+
+  async createTenderQuestion(question: InsertTenderQuestion): Promise<TenderQuestion> {
+    const [created] = await db.insert(tenderQuestions).values(question).returning();
+    return created;
+  }
+
+  async getTenderQuestions(tenderId: string): Promise<TenderQuestion[]> {
+    return await db
+      .select()
+      .from(tenderQuestions)
+      .where(eq(tenderQuestions.tenderId, tenderId))
+      .orderBy(desc(tenderQuestions.createdAt));
+  }
+
+  async answerTenderQuestion(questionId: string, answer: string): Promise<TenderQuestion> {
+    const [updated] = await db
+      .update(tenderQuestions)
+      .set({ answer, answeredAt: new Date() })
+      .where(eq(tenderQuestions.id, questionId))
+      .returning();
+    return updated;
   }
 }
 

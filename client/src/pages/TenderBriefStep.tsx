@@ -54,6 +54,25 @@ const PROJECT_SIZE_LABELS: Record<string, string> = {
   large: "Large Project",
 };
 
+const EVAL_CATEGORY_LABELS: Record<string, string> = {
+  experience: "Relevant Experience",
+  financial: "Financial Evaluation",
+  technical: "Technical Capability",
+};
+
+const EVAL_REQUIREMENT_LABELS: Record<string, string> = {
+  years_in_market: "Years in Market",
+  similar_projects_count: "Similar Projects",
+  min_project_value: "Min. Project Value",
+  client_references: "Client References",
+  financial_statements: "Financial Statements",
+  bank_guarantee: "Bank Guarantee",
+  methodology: "Detailed Methodology",
+  timeline: "Project Timeline",
+  team_cvs: "Team CVs",
+  industry_certifications: "Industry Certifications",
+};
+
 const formatLabel = (value: string, labels?: Record<string, string>): string => {
   if (labels && labels[value]) {
     return labels[value];
@@ -122,7 +141,11 @@ export default function TenderBriefStep() {
       inquiryType: draft.inquiryType || undefined,
       whatsappContact: draft.whatsappContact || undefined,
       emailContact: draft.emailContact || undefined,
-      evaluationCriteria: draft.evaluationCriteria && draft.evaluationCriteria.length > 0 ? draft.evaluationCriteria : undefined,
+      evaluationCriteria: draft.evaluationCriteria && (
+        Array.isArray(draft.evaluationCriteria)
+          ? draft.evaluationCriteria.length > 0
+          : (draft.evaluationCriteria.requirements?.length > 0 || draft.evaluationCriteria.customCriteria?.length > 0)
+      ) ? draft.evaluationCriteria : undefined,
       objective: draft.projectObjective || undefined,
       deliverables: draft.keyDeliverables && draft.keyDeliverables.length > 0 ? draft.keyDeliverables : undefined,
       voiceNoteUrl: draft.voiceNoteUrl || undefined,
@@ -160,7 +183,11 @@ export default function TenderBriefStep() {
   const hasSkills = draft.skills && draft.skills.length > 0;
   const hasDeliverables = draft.keyDeliverables && draft.keyDeliverables.length > 0;
   const hasMilestones = draft.milestones && draft.milestones.length > 0;
-  const hasEvalCriteria = draft.evaluationCriteria && draft.evaluationCriteria.length > 0;
+  const hasEvalCriteria = draft.evaluationCriteria && (
+    Array.isArray(draft.evaluationCriteria)
+      ? draft.evaluationCriteria.length > 0
+      : (draft.evaluationCriteria.requirements?.length > 0 || draft.evaluationCriteria.customCriteria?.length > 0)
+  );
   const hasDescription = !!(draft.description || draft.projectDescription);
   const hasObjective = !!draft.projectObjective;
   const hasContactInfo = !!(draft.emailContact || draft.whatsappContact);
@@ -373,11 +400,14 @@ export default function TenderBriefStep() {
                             <p className="text-sm text-gray-500 mt-0.5">{milestone.description}</p>
                           )}
                         </div>
-                        {milestone.dueDate && (
-                          <div className="flex-shrink-0 text-right">
+                        <div className="flex-shrink-0 text-right space-y-0.5">
+                          {milestone.dueDate && (
                             <p className="text-sm font-medium text-gray-700">{formatDate(milestone.dueDate)}</p>
-                          </div>
-                        )}
+                          )}
+                          {milestone.amount && (
+                            <p className="text-sm font-semibold text-emerald-700">SAR {Number(milestone.amount).toLocaleString()}</p>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -395,25 +425,67 @@ export default function TenderBriefStep() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-wrap gap-2" data-testid="brief-criteria">
-                    {draft.evaluationCriteria.map((criteria: any, index: number) => {
-                      if (typeof criteria === 'string') {
-                        return (
-                          <Badge key={index} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                            {CRITERIA_LABELS[criteria] || criteria}
-                          </Badge>
-                        );
-                      }
-                      if (typeof criteria === 'object' && criteria.name) {
-                        return (
-                          <Badge key={index} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                            {criteria.name}{criteria.weight ? ` (${criteria.weight}%)` : ''}
-                          </Badge>
-                        );
-                      }
-                      return null;
-                    })}
-                  </div>
+                  {Array.isArray(draft.evaluationCriteria) ? (
+                    <div className="flex flex-wrap gap-2" data-testid="brief-criteria">
+                      {draft.evaluationCriteria.map((criteria: any, index: number) => {
+                        if (typeof criteria === 'string') {
+                          return (
+                            <Badge key={index} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                              {CRITERIA_LABELS[criteria] || criteria}
+                            </Badge>
+                          );
+                        }
+                        if (typeof criteria === 'object' && criteria.name) {
+                          return (
+                            <Badge key={index} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                              {criteria.name}{criteria.weight ? ` (${criteria.weight}%)` : ''}
+                            </Badge>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  ) : (
+                    <div className="space-y-4" data-testid="brief-criteria">
+                      {draft.evaluationCriteria.weights?.length > 0 && (
+                        <div className="space-y-2">
+                          {draft.evaluationCriteria.weights.map((w: any) => {
+                            const cat = EVAL_CATEGORY_LABELS[w.categoryId] || w.categoryId;
+                            return (
+                              <div key={w.categoryId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <span className="text-sm font-medium text-gray-900">{cat}</span>
+                                <Badge variant="outline" className="font-semibold">{w.weight}%</Badge>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {draft.evaluationCriteria.requirements?.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Requirements</p>
+                          <div className="flex flex-wrap gap-2">
+                            {draft.evaluationCriteria.requirements.map((req: any, i: number) => (
+                              <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                                {EVAL_REQUIREMENT_LABELS[req.requirementId] || req.requirementId}
+                                {req.value && typeof req.value !== 'boolean' ? `: ${req.value}` : ''}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {draft.evaluationCriteria.customCriteria?.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Custom Criteria</p>
+                          {draft.evaluationCriteria.customCriteria.map((c: any) => (
+                            <div key={c.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <span className="text-sm text-gray-900">{c.text}</span>
+                              <Badge variant="outline" className="font-semibold">{c.weight}%</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -450,6 +522,18 @@ export default function TenderBriefStep() {
                           <p className="text-xs text-gray-500 uppercase tracking-wider">Project Size</p>
                           <p className="text-sm font-medium text-gray-900">
                             {PROJECT_SIZE_LABELS[draft.projectSize] || draft.projectSize}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {draft.budgetType && (
+                      <div className="flex items-start gap-3">
+                        <DollarSign className="h-4 w-4 text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">Budget Type</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {draft.budgetType === 'milestone' ? 'Milestone-Based' : 'Fixed Price'}
                           </p>
                         </div>
                       </div>
@@ -526,6 +610,27 @@ export default function TenderBriefStep() {
                           {skill}
                         </Badge>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {draft.aiEstimate && (
+                  <div className="pt-4 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">AI Budget Insight</p>
+                    <div className="bg-blue-50 rounded-lg p-3 space-y-1.5">
+                      <p className="text-sm font-medium text-blue-900">
+                        Est. SAR {Number(draft.aiEstimate.estimatedBudget).toLocaleString()}
+                      </p>
+                      {draft.aiEstimate.budgetRange && (
+                        <p className="text-xs text-blue-700">
+                          Range: SAR {Number(draft.aiEstimate.budgetRange.min).toLocaleString()} – {Number(draft.aiEstimate.budgetRange.max).toLocaleString()}
+                        </p>
+                      )}
+                      {draft.aiEstimate.reasoning && (
+                        <p className="text-xs text-blue-600 leading-relaxed mt-1">
+                          {draft.aiEstimate.reasoning}
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}

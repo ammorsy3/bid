@@ -8,7 +8,7 @@ import {
   Loader2, Calendar, DollarSign, Clock, Building2, Send, FileText,
   Video, Play, Pause, AlertCircle, Target, ListChecks, Star,
   Mail, Phone, MessageSquare, Flag, HelpCircle, Shield, Layers,
-  Tag, Mic, ExternalLink, EyeOff, CheckCircle2
+  Tag, Mic, ExternalLink, EyeOff, CheckCircle2, ChevronRight
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -92,23 +92,23 @@ const CRITERIA_LABELS: Record<string, string> = {
   team_expertise: "Team Expertise",
 };
 
-const EVAL_CATEGORY_LABELS: Record<string, string> = {
-  experience: "Relevant Experience",
-  financial: "Financial Evaluation",
-  technical: "Technical Capability",
+const EVAL_CATEGORY_INFO: Record<string, { name: string; description: string }> = {
+  experience: { name: "Relevant Experience", description: "Track record in similar projects and industry expertise" },
+  financial: { name: "Financial Evaluation", description: "Financial stability and pricing competitiveness" },
+  technical: { name: "Technical Capability", description: "Technical approach, methodology, and delivery capability" },
 };
 
-const EVAL_REQUIREMENT_LABELS: Record<string, string> = {
-  years_in_market: "Years in Market",
-  similar_projects_count: "Similar Projects",
-  min_project_value: "Min. Project Value",
-  client_references: "Client References",
-  financial_statements: "Financial Statements",
-  bank_guarantee: "Bank Guarantee",
-  methodology: "Methodology Required",
-  timeline: "Project Timeline",
-  team_cvs: "Team CVs",
-  industry_certifications: "Certifications",
+const EVAL_REQUIREMENT_INFO: Record<string, { label: string; description: string; formatValue?: (v: string) => string }> = {
+  years_in_market: { label: "Minimum Years in Market", description: "The company must have been operating for at least this many years in a relevant field.", formatValue: (v) => `${v}+ years required` },
+  similar_projects_count: { label: "Similar Projects Completed", description: "The company must have successfully delivered this many comparable projects.", formatValue: (v) => `At least ${v} project${Number(v) > 1 ? 's' : ''} required` },
+  min_project_value: { label: "Minimum Project Value", description: "The company must have delivered at least one project of this value or higher.", formatValue: (v) => `${Number(v).toLocaleString()} SAR or higher` },
+  client_references: { label: "Client References Required", description: "The company must provide verifiable references from previous clients for similar work." },
+  financial_statements: { label: "Financial Statements Required", description: "The company must submit audited financial statements to demonstrate financial stability." },
+  bank_guarantee: { label: "Bank Guarantee Capability", description: "The company must be able to provide a bank guarantee if required during the project." },
+  methodology: { label: "Detailed Methodology Required", description: "The company must submit a detailed project methodology explaining their approach and execution plan." },
+  timeline: { label: "Project Timeline Required", description: "The company must provide a detailed project timeline with key milestones and delivery dates." },
+  team_cvs: { label: "Team CVs Required", description: "The company must submit CVs of key team members who will be working on this project." },
+  industry_certifications: { label: "Industry Certifications Required", description: "The company must hold relevant professional certifications for the specific field of work." },
 };
 
 const INQUIRY_TYPE_LABELS: Record<string, string> = {
@@ -267,6 +267,7 @@ export default function TenderInviteLink() {
   const { user } = useAuthStore();
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [newQuestion, setNewQuestion] = useState('');
+  const [expandedEvalCategories, setExpandedEvalCategories] = useState<Record<string, boolean>>({});
 
   const { data: questions = [] } = useQuery<TenderQA[]>({
     queryKey: ['/api/tenders', tenderId, 'questions'],
@@ -818,37 +819,66 @@ export default function TenderInviteLink() {
                       })}
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      {tender.evaluationCriteria.weights?.length > 0 && (
-                        <div className="space-y-2">
-                          {tender.evaluationCriteria.weights.map((w: any) => (
-                            <div key={w.categoryId} className="flex items-center gap-3 px-4 py-3 bg-amber-50 rounded-xl border border-amber-100">
-                              <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                                <Star className="h-4 w-4 text-amber-600" />
+                    <div className="space-y-3">
+                      {tender.evaluationCriteria.weights?.map((w: any) => {
+                        const catInfo = EVAL_CATEGORY_INFO[w.categoryId];
+                        const catRequirements = (tender.evaluationCriteria.requirements || []).filter((r: any) => r.categoryId === w.categoryId);
+                        const isExpanded = expandedEvalCategories[w.categoryId] || false;
+                        return (
+                          <div key={w.categoryId} className="rounded-xl border border-amber-100 overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] }))}
+                              className="w-full flex items-center gap-3 px-4 py-3 bg-amber-50 hover:bg-amber-100/60 transition-colors text-left"
+                            >
+                              <ChevronRight className={`h-4 w-4 text-amber-600 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-800 text-sm">
+                                  {catInfo?.name || w.categoryId}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                  {catInfo?.description || ''}
+                                </p>
                               </div>
-                              <span className="font-medium text-gray-800 text-sm flex-1">
-                                {EVAL_CATEGORY_LABELS[w.categoryId] || w.categoryId}
-                              </span>
-                              <Badge variant="outline" className="font-semibold text-amber-700 border-amber-300">{w.weight}%</Badge>
+                              <Badge variant="outline" className="font-semibold text-amber-700 border-amber-300 flex-shrink-0">{w.weight}%</Badge>
+                            </button>
+                            <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                              <div className="overflow-hidden">
+                                {catRequirements.length > 0 && (
+                                  <div className="px-4 py-3 space-y-3 border-t border-amber-100 bg-white">
+                                    {catRequirements.map((req: any, i: number) => {
+                                      const reqInfo = EVAL_REQUIREMENT_INFO[req.requirementId];
+                                      const displayValue = req.value && typeof req.value !== 'boolean'
+                                        ? (reqInfo?.formatValue ? reqInfo.formatValue(String(req.value)) : String(req.value))
+                                        : null;
+                                      return (
+                                        <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                          <CheckCircle2 className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-800">
+                                              {reqInfo?.label || req.requirementId}
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                              {reqInfo?.description || ''}
+                                            </p>
+                                            {displayValue && (
+                                              <p className="text-xs font-semibold text-amber-700 mt-1">
+                                                {displayValue}
+                                              </p>
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          ))}
-                        </div>
-                      )}
-                      {tender.evaluationCriteria.requirements?.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Requirements</p>
-                          <div className="flex flex-wrap gap-2">
-                            {tender.evaluationCriteria.requirements.map((req: any, i: number) => (
-                              <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                                {EVAL_REQUIREMENT_LABELS[req.requirementId] || req.requirementId}
-                                {req.value && typeof req.value !== 'boolean' ? `: ${req.value}` : ''}
-                              </Badge>
-                            ))}
                           </div>
-                        </div>
-                      )}
+                        );
+                      })}
                       {tender.evaluationCriteria.customCriteria?.length > 0 && (
-                        <div className="space-y-2">
+                        <div className="space-y-2 pt-2">
                           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Custom Criteria</p>
                           {tender.evaluationCriteria.customCriteria.map((c: any) => (
                             <div key={c.id} className="flex items-center justify-between px-4 py-3 bg-amber-50 rounded-xl border border-amber-100">

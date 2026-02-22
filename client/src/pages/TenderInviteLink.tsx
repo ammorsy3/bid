@@ -529,7 +529,7 @@ export default function TenderInviteLink() {
                   ? 'Closed'
                   : tender.scope
                     ? (SCOPE_LABELS[tender.scope] || tender.scope)
-                    : 'Accepting Proposals'}
+                    : 'Not specified'}
               </p>
             </div>
           </div>

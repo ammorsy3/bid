@@ -973,6 +973,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Price display settings
         showPriceToVendors: tender.showPriceToVendors,
         projectSize: tender.projectSize,
+        budgetMin: tender.budgetMin,
+        budgetMax: tender.budgetMax,
+        category: tender.category,
+        createdAt: tender.createdAt,
         company: company ? {
           id: company.id,
           name: company.name

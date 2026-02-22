@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Info, Eye, EyeOff, Mic, Flag, BarChart } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useMemo } from "react";
@@ -146,420 +146,476 @@ export default function TenderBriefStep() {
     }
   };
 
+  const getBudgetDisplay = () => {
+    if (draft.budgetMin && draft.budgetMax) {
+      return `SAR ${Number(draft.budgetMin).toLocaleString()} – ${Number(draft.budgetMax).toLocaleString()}`;
+    }
+    if (draft.budget) {
+      const num = Number(draft.budget);
+      return !isNaN(num) && num > 0 ? `SAR ${num.toLocaleString()}` : draft.budget;
+    }
+    return 'Not specified';
+  };
+
+  const hasSkills = draft.skills && draft.skills.length > 0;
+  const hasDeliverables = draft.keyDeliverables && draft.keyDeliverables.length > 0;
+  const hasMilestones = draft.milestones && draft.milestones.length > 0;
+  const hasEvalCriteria = draft.evaluationCriteria && draft.evaluationCriteria.length > 0;
+  const hasDescription = !!(draft.description || draft.projectDescription);
+  const hasObjective = !!draft.projectObjective;
+  const hasContactInfo = !!(draft.emailContact || draft.whatsappContact);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <img
             src={logoPath}
             alt="Bid"
-            className="h-16 cursor-pointer hover:opacity-80 transition-opacity"
+            className="h-10 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => navigate("/dashboard")}
           />
           <Button
+            variant="outline"
+            size="sm"
             onClick={handleBack}
             disabled={submitTender.isPending}
-            className="group relative overflow-hidden"
             data-testid="button-back"
           >
-            <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
-              Back
-            </span>
-            <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
-              <ArrowLeft
-                className="opacity-60"
-                size={16}
-                strokeWidth={2}
-                aria-hidden="true"
-              />
-            </i>
+            <ArrowLeft className="h-4 w-4 mr-1.5" />
+            Back to Edit
           </Button>
         </div>
+      </header>
 
-        <Card className="border-0 shadow-2xl overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
-          
-          <CardHeader className="pb-4">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#E25E45] to-[#d54d35] flex items-center justify-center">
-                <FileText className="h-6 w-6 text-white" />
+      <div className="bg-white border-b">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+          <div className="flex items-start justify-between gap-4 mb-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-3 flex-wrap">
+                <Badge className="bg-amber-100 text-amber-800 text-sm px-3 py-1">
+                  Review Draft
+                </Badge>
+                {draft.skills?.[0] && (
+                  <Badge variant="outline" className="text-sm px-3 py-1">
+                    {draft.skills[0]}
+                  </Badge>
+                )}
               </div>
-              <div>
-                <CardTitle className="text-2xl font-bold">RFP Brief</CardTitle>
-                <CardDescription>Review your RFP details before publishing</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent className="space-y-6">
-            <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-              <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Project Title</h3>
-              <p className="text-xl font-bold text-gray-900 dark:text-white" data-testid="brief-title">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2" data-testid="brief-title">
                 {draft.title || "Untitled RFP"}
+              </h1>
+              {activeCompany && (
+                <p className="text-sm text-gray-500">
+                  Publishing as <span className="font-medium text-gray-700">{activeCompany.name}</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center gap-2 text-gray-500 mb-1">
+                <Calendar className="h-4 w-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Deadline</span>
+              </div>
+              <p className="font-semibold text-sm text-gray-900" data-testid="brief-deadline">
+                {draft.deadline ? formatDate(draft.deadline) : 'Not set'}
               </p>
             </div>
 
-            {(draft.description || draft.projectDescription) && (
-              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Description</h3>
-                <p className="text-gray-900 dark:text-white whitespace-pre-wrap" data-testid="brief-description">
-                  {draft.description || draft.projectDescription}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center gap-2 text-gray-500 mb-1">
+                <DollarSign className="h-4 w-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Budget</span>
+              </div>
+              <p className="font-semibold text-sm text-gray-900" data-testid="brief-budget">
+                {getBudgetDisplay()}
+              </p>
+              {draft.showPriceToVendors === false && (
+                <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                  <EyeOff className="h-3 w-3" /> Hidden from vendors
                 </p>
-              </div>
-            )}
-
-            {draft.projectObjective && (
-              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Project Objective</h3>
-                <p className="text-gray-900 dark:text-white whitespace-pre-wrap" data-testid="brief-objective">
-                  {draft.projectObjective}
-                </p>
-              </div>
-            )}
-
-            {draft.keyDeliverables && draft.keyDeliverables.length > 0 && (
-              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">Key Deliverables (Bill of Quantities)</h3>
-                <div className="space-y-3" data-testid="brief-deliverables">
-                  {draft.keyDeliverables.map((deliverable: any, index: number) => {
-                    if (typeof deliverable === 'string') {
-                      return (
-                        <div key={index} className="px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                          <span className="text-gray-900 dark:text-white">{deliverable}</span>
-                        </div>
-                      );
-                    }
-                    return (
-                      <div key={deliverable.id || index} className="px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-medium text-gray-400">#{index + 1}</span>
-                              <span className="font-medium text-gray-900 dark:text-white">
-                                {deliverable.name}
-                              </span>
-                            </div>
-                            {deliverable.description && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                {deliverable.description}
-                              </p>
-                            )}
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium bg-[#E25E45]/10 text-[#E25E45]">
-                              {deliverable.quantity} × {deliverable.unit}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {(draft.startDate || draft.endDate) && (
-              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Project Timeline
-                </h3>
-                <div className="grid grid-cols-2 gap-4" data-testid="brief-timeline">
-                  {draft.startDate && (
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Start Date</p>
-                      <p className="text-gray-900 dark:text-white font-medium">{formatDate(draft.startDate)}</p>
-                    </div>
-                  )}
-                  {draft.endDate && (
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">End Date</p>
-                      <p className="text-gray-900 dark:text-white font-medium">{formatDate(draft.endDate)}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {draft.milestones && draft.milestones.length > 0 && (
-              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
-                  <Flag className="h-4 w-4" />
-                  Milestones
-                </h3>
-                <div className="space-y-2" data-testid="brief-milestones">
-                  {draft.milestones.map((milestone: any, index: number) => (
-                    <div key={milestone.id || index} className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-gray-400">#{index + 1}</span>
-                          <span className="font-medium text-gray-900 dark:text-white">{milestone.name}</span>
-                        </div>
-                        {milestone.description && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5 ml-6">{milestone.description}</p>
-                        )}
-                      </div>
-                      {milestone.dueDate && (
-                        <span className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0 ml-4">
-                          {formatDate(milestone.dueDate)}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {draft.deadline && (
-                <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Submission Deadline
-                  </h3>
-                  <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-deadline">
-                    {formatDate(draft.deadline)}
-                  </p>
-                </div>
-              )}
-
-              {draft.budget && (
-                <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
-                    {draft.budgetMin && draft.budgetMax ? "Budget Range" : "Budget"}
-                  </h3>
-                  <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-budget">
-                    {draft.budgetMin && draft.budgetMax
-                      ? `SAR ${draft.budgetMin.toLocaleString()} - ${draft.budgetMax.toLocaleString()}`
-                      : typeof draft.budget === 'number' ? `SAR ${draft.budget.toLocaleString()}` : draft.budget
-                    }
-                  </p>
-                  {draft.showPriceToVendors !== undefined && (
-                    <div className="flex items-center gap-1.5 mt-2">
-                      {draft.showPriceToVendors ? (
-                        <>
-                          <Eye className="h-3.5 w-3.5 text-green-500" />
-                          <span className="text-xs text-green-600 dark:text-green-400">Visible to vendors</span>
-                        </>
-                      ) : (
-                        <>
-                          <EyeOff className="h-3.5 w-3.5 text-gray-400" />
-                          <span className="text-xs text-gray-500 dark:text-gray-400">Hidden from vendors (only project size shown)</span>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {draft.duration && (
-                <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Duration
-                  </h3>
-                  <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-duration">
-                    {DURATION_LABELS[draft.duration] || draft.duration}
-                  </p>
-                </div>
-              )}
-
-              {draft.projectSize && (
-                <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Project Size
-                  </h3>
-                  <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-project-size">
-                    {PROJECT_SIZE_LABELS[draft.projectSize] || formatLabel(draft.projectSize)}
-                  </p>
-                </div>
-              )}
-
-              {draft.scope && (
-                <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-2">
-                    <BarChart className="h-4 w-4" />
-                    Project Scope
-                  </h3>
-                  <p className="text-gray-900 dark:text-white font-medium" data-testid="brief-scope">
-                    {SCOPE_LABELS[draft.scope] || formatLabel(draft.scope)}
-                  </p>
-                </div>
               )}
             </div>
 
-            {draft.skills && draft.skills.length > 0 && (
-              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">Required Skills</h3>
-                <div className="flex flex-wrap gap-2" data-testid="brief-skills">
-                  {draft.skills.map((skill: string, index: number) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#E25E45]/10 text-[#E25E45]"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center gap-2 text-gray-500 mb-1">
+                <Clock className="h-4 w-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Duration</span>
               </div>
+              <p className="font-semibold text-sm text-gray-900" data-testid="brief-duration">
+                {draft.duration ? (DURATION_LABELS[draft.duration] || draft.duration) : 'Not set'}
+              </p>
+              {(draft.startDate || draft.endDate) && (
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {draft.startDate && formatDate(draft.startDate)}
+                  {draft.startDate && draft.endDate && ' → '}
+                  {draft.endDate && formatDate(draft.endDate)}
+                </p>
+              )}
+            </div>
+
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center gap-2 text-gray-500 mb-1">
+                <Layers className="h-4 w-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">Scope</span>
+              </div>
+              <p className="font-semibold text-sm text-gray-900" data-testid="brief-scope">
+                {draft.scope ? (SCOPE_LABELS[draft.scope] || draft.scope) : 'Not specified'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+
+            {hasDescription && (
+              <Card className="overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-[#E25E45]" />
+                    Project Description
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 whitespace-pre-wrap leading-relaxed" data-testid="brief-description">
+                    {draft.description || draft.projectDescription}
+                  </p>
+                </CardContent>
+              </Card>
             )}
 
-            {(draft.submissionType || draft.inquiryType) && (
-              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">Vendor Response</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {draft.submissionType && (
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex-shrink-0">
-                        <FileText className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Submission Format</p>
-                        <p className="text-gray-900 dark:text-white font-medium text-sm" data-testid="brief-submission-type">
-                          {formatLabel(draft.submissionType, SUBMISSION_TYPE_LABELS)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
+            {hasObjective && (
+              <Card className="overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-blue-500 to-blue-400" />
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-blue-600" />
+                    Project Objective
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 whitespace-pre-wrap leading-relaxed" data-testid="brief-objective">
+                    {draft.projectObjective}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
-                  {draft.inquiryType && (
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 flex-shrink-0">
-                        <MessageSquare className="h-4 w-4 text-green-600 dark:text-green-400" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Vendor Questions</p>
-                        <p className="text-gray-900 dark:text-white font-medium text-sm" data-testid="brief-inquiry-type">
-                          {formatLabel(draft.inquiryType, INQUIRY_TYPE_LABELS)}
-                        </p>
-                        {draft.inquiryType === "inside_bid" && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            Vendors can ask questions anonymously inside the tender
-                          </p>
+            {hasDeliverables && (
+              <Card className="overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-emerald-500 to-emerald-400" />
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5 text-emerald-600" />
+                    Key Deliverables
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3" data-testid="brief-deliverables">
+                    {draft.keyDeliverables.map((deliverable: any, index: number) => {
+                      if (typeof deliverable === 'string') {
+                        return (
+                          <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <span className="flex-shrink-0 h-6 w-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">{index + 1}</span>
+                            <span className="text-gray-800 pt-0.5">{deliverable}</span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div key={deliverable.id || index} className="p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <span className="flex-shrink-0 h-6 w-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">{index + 1}</span>
+                              <div>
+                                <p className="font-medium text-gray-900">{deliverable.name}</p>
+                                {deliverable.description && (
+                                  <p className="text-sm text-gray-500 mt-1">{deliverable.description}</p>
+                                )}
+                              </div>
+                            </div>
+                            <Badge variant="outline" className="flex-shrink-0 font-medium">
+                              {deliverable.quantity} × {deliverable.unit}
+                            </Badge>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {hasMilestones && (
+              <Card className="overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-violet-500 to-violet-400" />
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Flag className="h-5 w-5 text-violet-600" />
+                    Milestones
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3" data-testid="brief-milestones">
+                    {draft.milestones.map((milestone: any, index: number) => (
+                      <div key={milestone.id || index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-bold">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900">{milestone.name}</p>
+                          {milestone.description && (
+                            <p className="text-sm text-gray-500 mt-0.5">{milestone.description}</p>
+                          )}
+                        </div>
+                        {milestone.dueDate && (
+                          <div className="flex-shrink-0 text-right">
+                            <p className="text-sm font-medium text-gray-700">{formatDate(milestone.dueDate)}</p>
+                          </div>
                         )}
                       </div>
-                    </div>
-                  )}
-                </div>
-
-                {draft.videoRequired && (
-                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                    <Video className="h-4 w-4 text-pink-500" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      Video pitch is <strong>required</strong>
-                    </span>
+                    ))}
                   </div>
-                )}
-              </div>
+                </CardContent>
+              </Card>
             )}
 
-            {(draft.emailContact || draft.whatsappContact) && (
-              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">Contact Details for Inquiries</h3>
-                <div className="space-y-2">
-                  {draft.emailContact && (
-                    <div className="flex items-center gap-2" data-testid="brief-email">
-                      <Mail className="h-4 w-4 text-[#E25E45]" />
-                      <span className="text-gray-900 dark:text-white">{draft.emailContact}</span>
-                    </div>
-                  )}
-                  {draft.whatsappContact && (
-                    <div className="flex items-center gap-2" data-testid="brief-whatsapp">
-                      <Phone className="h-4 w-4 text-green-600" />
-                      <span className="text-gray-900 dark:text-white">{draft.whatsappContact}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
+            {hasEvalCriteria && (
+              <Card className="overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-amber-500 to-amber-400" />
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ClipboardCheck className="h-5 w-5 text-amber-600" />
+                    Evaluation Criteria
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2" data-testid="brief-criteria">
+                    {draft.evaluationCriteria.map((criteria: any, index: number) => {
+                      if (typeof criteria === 'string') {
+                        return (
+                          <Badge key={index} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                            {CRITERIA_LABELS[criteria] || criteria}
+                          </Badge>
+                        );
+                      }
+                      if (typeof criteria === 'object' && criteria.name) {
+                        return (
+                          <Badge key={index} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                            {criteria.name}{criteria.weight ? ` (${criteria.weight}%)` : ''}
+                          </Badge>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
             {draft.voiceNoteUrl && (
-              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
-                  <Mic className="h-4 w-4" />
-                  Voice Note
-                </h3>
-                <audio controls className="w-full" data-testid="brief-voice-note">
-                  <source src={draft.voiceNoteUrl} />
-                </audio>
-              </div>
+              <Card className="overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-pink-500 to-pink-400" />
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mic className="h-5 w-5 text-pink-600" />
+                    Voice Note
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <audio controls className="w-full" data-testid="brief-voice-note">
+                    <source src={draft.voiceNoteUrl} />
+                  </audio>
+                </CardContent>
+              </Card>
             )}
+          </div>
 
-            {draft.evaluationCriteria && draft.evaluationCriteria.length > 0 && (
-              <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">Evaluation Criteria</h3>
-                <div className="flex flex-wrap gap-2" data-testid="brief-criteria">
-                  {draft.evaluationCriteria.map((criteria: any, index: number) => {
-                    if (typeof criteria === 'string') {
-                      return (
-                        <span
-                          key={index}
-                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                        >
-                          {CRITERIA_LABELS[criteria] || criteria}
-                        </span>
-                      );
-                    }
-                    if (typeof criteria === 'object' && criteria.name) {
-                      return (
-                        <span
-                          key={index}
-                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                        >
-                          {criteria.name}{criteria.weight ? ` (${criteria.weight}%)` : ''}
-                        </span>
-                      );
-                    }
-                    return null;
-                  })}
+          <div className="space-y-6">
+            <Card className="overflow-hidden sticky top-20">
+              <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+              <CardContent className="p-5 space-y-5">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Quick Summary</h3>
+                  <div className="space-y-4">
+                    {draft.projectSize && (
+                      <div className="flex items-start gap-3">
+                        <BarChart className="h-4 w-4 text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">Project Size</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {PROJECT_SIZE_LABELS[draft.projectSize] || draft.projectSize}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {draft.pricingModel && (
+                      <div className="flex items-start gap-3">
+                        <DollarSign className="h-4 w-4 text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">Pricing Model</p>
+                          <p className="text-sm font-medium text-gray-900">{formatLabel(draft.pricingModel)}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {draft.showPriceToVendors !== undefined && (
+                      <div className="flex items-start gap-3">
+                        {draft.showPriceToVendors ? (
+                          <Eye className="h-4 w-4 text-emerald-500 mt-0.5" />
+                        ) : (
+                          <EyeOff className="h-4 w-4 text-gray-400 mt-0.5" />
+                        )}
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">Price Visibility</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {draft.showPriceToVendors ? 'Visible to vendors' : 'Hidden (size only)'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {draft.submissionType && (
+                      <div className="flex items-start gap-3">
+                        <Send className="h-4 w-4 text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">Submission Format</p>
+                          <p className="text-sm font-medium text-gray-900" data-testid="brief-submission-type">
+                            {formatLabel(draft.submissionType, SUBMISSION_TYPE_LABELS)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {draft.videoRequired && (
+                      <div className="flex items-start gap-3">
+                        <Video className="h-4 w-4 text-pink-500 mt-0.5" />
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">Video Pitch</p>
+                          <p className="text-sm font-medium text-gray-900">Required</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {draft.inquiryType && (
+                      <div className="flex items-start gap-3">
+                        <MessageSquare className="h-4 w-4 text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">Vendor Questions</p>
+                          <p className="text-sm font-medium text-gray-900" data-testid="brief-inquiry-type">
+                            {formatLabel(draft.inquiryType, INQUIRY_TYPE_LABELS)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
 
-            {activeCompany && (
-              <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-                <Info className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-900 dark:text-blue-100">
-                  This RFP will be published on behalf of <strong>{activeCompany.name}</strong>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                disabled={submitTender.isPending}
-                className="flex-1"
-                data-testid="button-back-edit"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Go Back & Edit
-              </Button>
-              <Button
-                onClick={handlePublish}
-                disabled={submitTender.isPending}
-                className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
-                data-testid="button-publish-tender"
-              >
-                {submitTender.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Publishing...
-                  </>
-                ) : (
-                  <>
-                    <Check className="h-4 w-4 mr-2" />
-                    Publish RFP
-                  </>
+                {hasSkills && (
+                  <div className="pt-4 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Required Skills</p>
+                    <div className="flex flex-wrap gap-1.5" data-testid="brief-skills">
+                      {draft.skills.map((skill: string, index: number) => (
+                        <Badge key={index} className="bg-[#E25E45]/10 text-[#E25E45] hover:bg-[#E25E45]/15 text-xs px-2 py-0.5">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+
+                {hasContactInfo && (
+                  <div className="pt-4 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Contact for Inquiries</p>
+                    <div className="space-y-2">
+                      {draft.emailContact && (
+                        <div className="flex items-center gap-2 text-sm" data-testid="brief-email">
+                          <Mail className="h-3.5 w-3.5 text-[#E25E45]" />
+                          <span className="text-gray-700">{draft.emailContact}</span>
+                        </div>
+                      )}
+                      {draft.whatsappContact && (
+                        <div className="flex items-center gap-2 text-sm" data-testid="brief-whatsapp">
+                          <Phone className="h-3.5 w-3.5 text-green-600" />
+                          <span className="text-gray-700">{draft.whatsappContact}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-4 border-t border-gray-100 space-y-3">
+                  <Button
+                    onClick={handlePublish}
+                    disabled={submitTender.isPending}
+                    className="w-full bg-[#E25E45] hover:bg-[#d54d35] h-12 text-base font-semibold shadow-lg shadow-[#E25E45]/20"
+                    data-testid="button-publish-tender"
+                  >
+                    {submitTender.isPending ? (
+                      <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        Publishing...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-5 w-5 mr-2" />
+                        Publish RFP
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleBack}
+                    disabled={submitTender.isPending}
+                    className="w-full"
+                    data-testid="button-back-edit"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Go Back & Edit
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
+
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50">
+        <div className="max-w-5xl mx-auto flex gap-3">
+          <Button
+            variant="outline"
+            onClick={handleBack}
+            disabled={submitTender.isPending}
+            className="flex-shrink-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={handlePublish}
+            disabled={submitTender.isPending}
+            className="flex-1 bg-[#E25E45] hover:bg-[#d54d35] h-11 font-semibold"
+          >
+            {submitTender.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Publishing...
+              </>
+            ) : (
+              <>
+                <Check className="h-4 w-4 mr-2" />
+                Publish RFP
+              </>
+            )}
+          </Button>
+        </div>
       </div>
+      <div className="lg:hidden h-20" />
     </div>
   );
 }

@@ -92,6 +92,7 @@ const SUBMISSION_TYPE_LABELS: Record<string, string> = {
   tech_fin_proposal: "Full Proposal (Technical + Financial)",
   video_only: "Video Pitch Only",
   tech_fin_with_video: "Full Proposal + Video",
+  document: "Document Submission",
 };
 
 interface SubmitOfferModalProps {
@@ -141,9 +142,9 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   }>({});
   const [uploadMode, setUploadMode] = useState<UploadMode>('separate');
 
-  const showTechFinFields = !tender.submissionType || tender.submissionType === 'tech_fin_proposal' || tender.submissionType === 'tech_fin_with_video';
   const showQuoteField = tender.submissionType === 'quote_only';
   const showVideoField = tender.submissionType === 'video_only' || tender.submissionType === 'tech_fin_with_video';
+  const showTechFinFields = !showQuoteField && tender.submissionType !== 'video_only';
   const showUploadModeChoice = showTechFinFields;
 
   const FORM_ID = `${FORM_ID_PREFIX}${tender.id}`;

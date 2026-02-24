@@ -495,6 +495,7 @@ export default function TenderInviteLink() {
           </div>
 
           {/* Title */}
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Request for Proposal</p>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2" data-testid="text-tender-title">
             {tender.title}
           </h1>
@@ -589,7 +590,8 @@ export default function TenderInviteLink() {
               {/* Overview Tab */}
               {activeTab === 'overview' && (
                 <div className="p-6 sm:p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Project Description</h2>
+                  <h2 className="text-xl font-bold text-gray-900 mb-1">Project Description</h2>
+                  <p className="text-sm text-gray-400 mb-4">Overview of what this RFP is about and what the requesting organization needs.</p>
                   <div className="prose prose-sm max-w-none">
                     <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]" data-testid="text-description">{tender.description}</p>
                   </div>

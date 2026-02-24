@@ -180,6 +180,20 @@ export default function TenderBriefStep() {
     }
   };
 
+  const getDurationDisplay = () => {
+    if (draft.duration && DURATION_LABELS[draft.duration]) return DURATION_LABELS[draft.duration];
+    if (draft.duration) return draft.duration;
+    if (draft.startDate && draft.endDate) {
+      const start = new Date(draft.startDate);
+      const end = new Date(draft.endDate);
+      const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+      if (months <= 3) return '1 to 3 months';
+      if (months <= 6) return '3 to 6 months';
+      return 'More than 6 months';
+    }
+    return 'Not specified';
+  };
+
   const getBudgetDisplay = () => {
     if (draft.budgetMin && draft.budgetMax) {
       return `SAR ${Number(draft.budgetMin).toLocaleString()} – ${Number(draft.budgetMax).toLocaleString()}`;
@@ -251,11 +265,11 @@ export default function TenderBriefStep() {
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="bg-gray-50 rounded-xl p-4">
               <div className="flex items-center gap-2 text-gray-500 mb-1">
                 <Calendar className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Deadline</span>
+                <span className="text-xs font-medium uppercase tracking-wider">Submission Deadline</span>
               </div>
               <p className="font-semibold text-sm text-gray-900" data-testid="brief-deadline">
                 {draft.deadline ? formatDate(draft.deadline) : 'Not set'}
@@ -280,10 +294,10 @@ export default function TenderBriefStep() {
             <div className="bg-gray-50 rounded-xl p-4">
               <div className="flex items-center gap-2 text-gray-500 mb-1">
                 <Clock className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Duration</span>
+                <span className="text-xs font-medium uppercase tracking-wider">Project Duration</span>
               </div>
               <p className="font-semibold text-sm text-gray-900" data-testid="brief-duration">
-                {draft.duration ? (DURATION_LABELS[draft.duration] || draft.duration) : 'Not set'}
+                {getDurationDisplay()}
               </p>
               {(draft.startDate || draft.endDate) && (
                 <p className="text-xs text-gray-500 mt-0.5">
@@ -294,15 +308,6 @@ export default function TenderBriefStep() {
               )}
             </div>
 
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-gray-500 mb-1">
-                <Layers className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Scope</span>
-              </div>
-              <p className="font-semibold text-sm text-gray-900" data-testid="brief-scope">
-                {draft.scope ? (SCOPE_LABELS[draft.scope] || draft.scope) : 'Not specified'}
-              </p>
-            </div>
           </div>
         </div>
       </div>

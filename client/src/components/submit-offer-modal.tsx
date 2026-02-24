@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { NeonButton } from "@/components/ui/neon-button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { SmartTextarea, SmartInput } from "@/components/ui/smart-input";
 import { FormProgress, DraftIndicator } from "@/components/ui/form-progress";
@@ -12,7 +11,7 @@ import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { FileText, DollarSign, AlertTriangle, Clock, Sparkles, Check, X, ShieldAlert, Video, Info } from "lucide-react";
+import { FileText, DollarSign, AlertTriangle, Clock, ClipboardList, Check, X, ShieldAlert, Video, Info } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { enUS } from "date-fns/locale";
 import { useState, useEffect, useMemo } from "react";
@@ -352,8 +351,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-semibold text-neutral-900 flex items-center gap-2">
-              <Sparkles className="h-6 w-6 text-primary-600" />
-              Submit Offer
+              <ClipboardList className="h-6 w-6 text-[#E25E45]" />
+              Submit Proposal
             </DialogTitle>
             <DraftIndicator 
               lastSaved={lastSaved}
@@ -370,7 +369,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
 
         {showDraftPrompt && !hasExistingOffer && (
           <Alert className="bg-primary-50 border-primary-200">
-            <Sparkles className="h-4 w-4 text-primary-600" />
+            <ClipboardList className="h-4 w-4 text-primary-600" />
             <AlertDescription className="flex items-center justify-between">
               <span className="text-primary-900">You have an unsaved draft from earlier</span>
               <div className="flex gap-2">
@@ -690,15 +689,15 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               >
                 Cancel
               </Button>
-              <NeonButton 
+              <Button
                 type="submit"
                 size="lg"
-                className="flex-1"
+                className="flex-1 bg-[#E25E45] hover:bg-[#d54d35] text-white"
                 disabled={submitOfferMutation.isPending || progress < 100 || !canSubmitOffer}
                 data-testid="button-submit-offer"
               >
-                {submitOfferMutation.isPending ? "Submitting..." : !canSubmitOffer ? "Verification Required" : "Submit Offer"}
-              </NeonButton>
+                {submitOfferMutation.isPending ? "Submitting..." : !canSubmitOffer ? "Verification Required" : "Submit Proposal"}
+              </Button>
             </div>
           </form>
         </Form>

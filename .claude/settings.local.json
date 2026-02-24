@@ -20,7 +20,8 @@
       "Bash(gh auth:*)",
       "Bash(git remote add:*)",
       "Bash(git push origin main feature/dashboard-overview-improvements replit-agent)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(ls /home/runner/workspace/server/ && ls /home/runner/workspace/*.json 2>/dev/null | head -5)"
     ]
   }
 }

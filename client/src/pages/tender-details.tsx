@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -320,6 +320,22 @@ export default function TenderDetails() {
   });
 
   const isOwner = tender?.companyId === activeCompany?.id;
+
+  const { data: requesterProfile } = useQuery<{
+    company: { id: string; name: string; category: string | null; verificationStatus: string };
+    profile: { displayName: string | null; bio: string | null; logoUrl: string | null } | null;
+  }>({
+    queryKey: ['/api/companies', tender?.companyId, 'profile'],
+    queryFn: async () => {
+      const response = await fetch(`/api/companies/${tender!.companyId}/profile`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: !!tender?.companyId && !isOwner,
+  });
+
   const isTenderOpen = tender?.status === 'published';
   const deadline = tender ? new Date(tender.deadline) : null;
   const isExpired = deadline ? deadline.getTime() < Date.now() : true;
@@ -411,6 +427,20 @@ export default function TenderDetails() {
       default:
         return { className: 'bg-gray-100 text-gray-800', label: status };
     }
+  };
+
+  const getDurationDisplay = () => {
+    if (tender.duration && DURATION_LABELS[tender.duration]) return DURATION_LABELS[tender.duration];
+    if (tender.duration) return tender.duration;
+    if (tender.startDate && tender.endDate) {
+      const start = new Date(tender.startDate);
+      const end = new Date(tender.endDate);
+      const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+      if (months <= 3) return '1 to 3 months';
+      if (months <= 6) return '3 to 6 months';
+      return 'More than 6 months';
+    }
+    return 'Not specified';
   };
 
   const getBudgetDisplay = () => {
@@ -538,11 +568,11 @@ export default function TenderDetails() {
           </div>
 
           {/* Key Metrics Bar */}
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
               <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
                 <Calendar className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Deadline</span>
+                <span className="text-xs font-medium uppercase tracking-wider">Submission Deadline</span>
               </div>
               <p className={`font-semibold text-sm ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-gray-900 dark:text-white'}`}>
                 {formatDate(tender.deadline)}
@@ -572,10 +602,10 @@ export default function TenderDetails() {
             <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
               <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
                 <Clock className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Project Timeline</span>
+                <span className="text-xs font-medium uppercase tracking-wider">Project Duration</span>
               </div>
               <p className="font-semibold text-sm text-gray-900 dark:text-white">
-                {DURATION_LABELS[tender.duration || ''] || tender.duration || 'Not specified'}
+                {getDurationDisplay()}
               </p>
               {(tender.startDate || tender.endDate) && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -586,15 +616,6 @@ export default function TenderDetails() {
               )}
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                <Layers className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Scope</span>
-              </div>
-              <p className="font-semibold text-sm text-gray-900 dark:text-white">
-                {tender.scope ? (SCOPE_LABELS[tender.scope] || tender.scope) : 'Not specified'}
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -603,6 +624,58 @@ export default function TenderDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
+
+            {/* About the Client (vendor view only) */}
+            {!isOwner && requesterProfile && (
+              <Card className="overflow-hidden border-gray-200 dark:border-gray-700">
+                <div className="h-1 bg-gradient-to-r from-gray-400 to-gray-500" />
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <Building className="h-5 w-5" />
+                    About the Client
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-start gap-4">
+                    {requesterProfile.profile?.logoUrl ? (
+                      <img
+                        src={requesterProfile.profile.logoUrl}
+                        alt={requesterProfile.company.name}
+                        className="w-16 h-16 rounded-xl object-cover border border-gray-200 dark:border-gray-700 flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0 border border-gray-200 dark:border-gray-700">
+                        <Building className="h-7 w-7 text-gray-400" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <h3 className="font-semibold text-gray-900 dark:text-white text-base">
+                          {requesterProfile.profile?.displayName || requesterProfile.company.name}
+                        </h3>
+                        {requesterProfile.company.verificationStatus === 'verified' && (
+                          <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 text-xs">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Verified
+                          </Badge>
+                        )}
+                      </div>
+                      {requesterProfile.company.category && (
+                        <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 mb-2">
+                          <Tag className="h-3.5 w-3.5" />
+                          <span>{requesterProfile.company.category}</span>
+                        </div>
+                      )}
+                      {requesterProfile.profile?.bio && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          {requesterProfile.profile.bio}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* 1. Description */}
             <Card className="overflow-hidden" id="section-description">
@@ -1164,12 +1237,12 @@ export default function TenderDetails() {
                     ) : (
                       <Send className="h-5 w-5 text-[#E25E45]" />
                     )}
-                    {hasSubmittedOffer ? 'Proposal Submitted' : 'Submit Your Proposal'}
+                    {hasSubmittedOffer ? 'Proposal Submitted' : 'Submit Proposal'}
                   </CardTitle>
                   <CardDescription>
                     {hasSubmittedOffer
                       ? 'Your proposal has been received and is under review.'
-                      : 'Ready to compete? Submit your proposal for this opportunity.'}
+                      : 'Review all sections above before submitting your proposal.'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1532,10 +1605,10 @@ export default function TenderDetails() {
                     <span className="text-sm font-medium">{tender.category}</span>
                   </div>
                 )}
-                {tender.scope && (
+                {tender.submissionType && (
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-sm text-muted-foreground">Scope</span>
-                    <span className="text-sm font-medium">{SCOPE_LABELS[tender.scope] || tender.scope}</span>
+                    <span className="text-sm text-muted-foreground">Submission</span>
+                    <span className="text-sm font-medium">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</span>
                   </div>
                 )}
                 {tender.projectSize && !isOwner && tender.showPriceToVendors === false && (
@@ -1554,7 +1627,7 @@ export default function TenderDetails() {
                   <div className="flex justify-between items-center py-1">
                     <span className="text-sm text-muted-foreground">Timeline</span>
                     <span className="text-sm font-medium">
-                      {DURATION_LABELS[tender.duration || ''] || tender.projectTimeline || tender.duration}
+                      {getDurationDisplay()}
                       {tender.startDate && (
                         <span className="text-xs text-muted-foreground ml-1">
                           ({new Date(tender.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -1587,25 +1660,26 @@ export default function TenderDetails() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {tender.status === 'draft' && (
-                    <>
-                      <Button
-                        className="w-full bg-[#E25E45] hover:bg-[#d54d35]"
-                        onClick={() => updateStatus.mutate('published')}
-                        disabled={updateStatus.isPending}
-                        data-testid="button-publish"
-                      >
-                        Publish Tender
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => setLocation(`/tenders/${tender.id}/edit`)}
-                        data-testid="button-edit"
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit Tender
-                      </Button>
-                    </>
+                    <Button
+                      className="w-full bg-[#E25E45] hover:bg-[#d54d35]"
+                      onClick={() => updateStatus.mutate('published')}
+                      disabled={updateStatus.isPending}
+                      data-testid="button-publish"
+                    >
+                      Publish Tender
+                    </Button>
+                  )}
+
+                  {(tender.status === 'draft' || tender.status === 'published') && (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setLocation(`/tenders/${tender.id}/edit`)}
+                      data-testid="button-edit"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Tender
+                    </Button>
                   )}
 
                   {tender.status === 'published' && (

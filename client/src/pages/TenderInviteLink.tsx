@@ -62,6 +62,7 @@ interface TenderInvite {
   };
   profile?: {
     displayName?: string;
+    logoUrl?: string;
   };
   createdAt?: string;
   category?: string;
@@ -307,6 +308,16 @@ export default function TenderInviteLink() {
     },
   });
 
+  const { data: companyProfile } = useQuery<{ profile: { displayName?: string; logoUrl?: string } | null }>({
+    queryKey: ['/api/companies', tender?.company?.id, 'profile'],
+    enabled: !!tender?.company?.id,
+    queryFn: async () => {
+      const res = await fetch(`/api/companies/${tender!.company!.id}/profile`);
+      if (!res.ok) return { profile: null };
+      return res.json();
+    },
+  });
+
   if (!tenderId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
@@ -362,6 +373,20 @@ export default function TenderInviteLink() {
       day: 'numeric',
       year: 'numeric'
     });
+  };
+
+  const getDurationDisplay = () => {
+    if (tender.duration && DURATION_LABELS[tender.duration]) return DURATION_LABELS[tender.duration];
+    if (tender.duration) return tender.duration;
+    if (tender.startDate && tender.endDate) {
+      const start = new Date(tender.startDate);
+      const end = new Date(tender.endDate);
+      const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+      if (months <= 3) return '1 to 3 months';
+      if (months <= 6) return '3 to 6 months';
+      return 'More than 6 months';
+    }
+    return 'Not specified';
   };
 
   const getBudgetDisplay = () => {
@@ -453,12 +478,39 @@ export default function TenderInviteLink() {
 
       {/* Hero Header */}
       <div className="bg-white border-b">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-          <div className="flex items-start justify-between gap-4 mb-2">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+
+          {/* Organisation identity */}
+          {(() => {
+            const logoUrl = companyProfile?.profile?.logoUrl || tender.profile?.logoUrl;
+            const displayName = companyProfile?.profile?.displayName || tender.profile?.displayName || tender.company?.name;
+            return (
+              <div className="flex items-center gap-3 mb-4">
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt={displayName}
+                    className="w-12 h-12 rounded-lg object-cover border border-gray-200 flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                    <Building2 className="h-6 w-6 text-gray-400" />
+                  </div>
+                )}
+                <div className="flex flex-col">
+                  <span className="font-semibold text-gray-800 text-base">{displayName}</span>
+                  <span className="text-xs text-gray-500">Requesting Organization</span>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Title row + Deadline */}
+          <div className="flex items-start justify-between gap-6">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-3 flex-wrap">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <Badge
-                  className={`text-sm px-3 py-1 ${
+                  className={`text-xs px-2.5 py-0.5 ${
                     tender.status === 'published'
                       ? 'bg-emerald-100 text-emerald-800'
                       : 'bg-gray-100 text-gray-800'
@@ -468,38 +520,28 @@ export default function TenderInviteLink() {
                   {tender.status === 'published' ? 'Open for Submissions' : tender.status}
                 </Badge>
                 {isDeadlinePassed && (
-                  <Badge className="bg-red-100 text-red-700 text-sm px-3 py-1">
+                  <Badge className="bg-red-100 text-red-700 text-xs px-2.5 py-0.5">
                     Deadline Passed
                   </Badge>
                 )}
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2" data-testid="text-tender-title">
+              <h1 className="text-2xl font-bold text-gray-900 leading-snug break-words" data-testid="text-tender-title">
                 {tender.title}
               </h1>
-              <div className="flex items-center gap-4 flex-wrap mt-1">
-                {tender.company && (
-                  <div className="flex items-center gap-2 text-gray-500">
-                    <Building2 className="h-4 w-4" />
-                    <span className="text-sm">{tender.profile?.displayName || tender.company.name}</span>
-                  </div>
-                )}
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
                 {tender.createdAt && (
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <Calendar className="h-3.5 w-3.5" />
-                    <span className="text-xs">Published {formatDate(tender.createdAt)}</span>
-                  </div>
+                  <span className="text-xs text-gray-400">Published {formatDate(tender.createdAt)}</span>
                 )}
+                <span className="text-xs text-gray-300">·</span>
                 <span className="text-xs text-gray-400">Ref: RFP-{tenderId?.slice(0, 8).toUpperCase()}</span>
               </div>
             </div>
-          </div>
 
-          {/* Key Metrics Bar */}
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-gray-500 mb-1">
-                <Calendar className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Deadline</span>
+            {/* Submission Deadline — right side */}
+            <div className="flex-shrink-0 bg-gray-50 rounded-xl p-4 text-right min-w-[170px]">
+              <div className="flex items-center justify-end gap-1.5 text-gray-500 mb-1">
+                <span className="text-xs font-medium uppercase tracking-wider">Submission Deadline</span>
+                <Calendar className="h-3.5 w-3.5" />
               </div>
               <p className={`font-semibold text-sm ${isDeadlinePassed ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-gray-900'}`}>
                 {formatDate(tender.deadline)}
@@ -509,8 +551,14 @@ export default function TenderInviteLink() {
                   {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining
                 </p>
               )}
+              {isDeadlinePassed && (
+                <p className="text-xs text-red-400 mt-0.5">Closed</p>
+              )}
             </div>
+          </div>
 
+          {/* Metrics — Budget + Project Duration */}
+          <div className="mt-5 grid grid-cols-2 gap-4">
             <div className="bg-gray-50 rounded-xl p-4">
               <div className="flex items-center gap-2 text-gray-500 mb-1">
                 <DollarSign className="h-4 w-4" />
@@ -529,10 +577,10 @@ export default function TenderInviteLink() {
             <div className="bg-gray-50 rounded-xl p-4">
               <div className="flex items-center gap-2 text-gray-500 mb-1">
                 <Clock className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Project Timeline</span>
+                <span className="text-xs font-medium uppercase tracking-wider">Project Duration</span>
               </div>
               <p className="font-semibold text-sm text-gray-900">
-                {DURATION_LABELS[tender.duration || ''] || tender.duration || 'Not specified'}
+                {getDurationDisplay()}
               </p>
               {(tender.startDate || tender.endDate) && (
                 <p className="text-xs text-gray-500 mt-0.5">
@@ -542,23 +590,8 @@ export default function TenderInviteLink() {
                 </p>
               )}
             </div>
-
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-gray-500 mb-1">
-                <Layers className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">
-                  {isDeadlinePassed ? 'Status' : 'Scope'}
-                </span>
-              </div>
-              <p className="font-semibold text-sm text-gray-900">
-                {isDeadlinePassed
-                  ? 'Closed'
-                  : tender.scope
-                    ? (SCOPE_LABELS[tender.scope] || tender.scope)
-                    : 'Not specified'}
-              </p>
-            </div>
           </div>
+
         </div>
       </div>
 
@@ -1276,15 +1309,13 @@ export default function TenderInviteLink() {
                     </div>
                   </div>
                 )}
-                {tender.scope && (
+                {tender.submissionType && (
                   <div className="flex items-start gap-3">
-                    <Layers className="h-4 w-4 text-gray-400 mt-0.5" />
+                    <Send className="h-4 w-4 text-gray-400 mt-0.5" />
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider">Project Scope</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider">Submission</p>
                       <p className="text-sm font-medium text-gray-900">
-                        {tender.scope === 'large' ? 'Large - Complex initiative' :
-                         tender.scope === 'medium' ? 'Medium - Well-defined project' :
-                         tender.scope === 'small' ? 'Small - Focused engagement' : tender.scope}
+                        {SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}
                       </p>
                     </div>
                   </div>

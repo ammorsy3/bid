@@ -706,8 +706,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get company profile
-  app.get("/api/companies/:companyId/profile", authenticateToken, async (req: AuthRequest, res) => {
+  // Get company profile (public read)
+  app.get("/api/companies/:companyId/profile", async (req: AuthRequest, res) => {
     try {
       const { companyId } = req.params;
 
@@ -986,7 +986,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: company.name
         } : null,
         profile: profile ? {
-          displayName: profile.displayName
+          displayName: profile.displayName,
+          logoUrl: profile.logoUrl
         } : null
       });
     } catch (error) {

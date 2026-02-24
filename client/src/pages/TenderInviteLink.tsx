@@ -495,7 +495,7 @@ export default function TenderInviteLink() {
           </div>
 
           {/* Title */}
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Request for Proposal</p>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Project Title</p>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2" data-testid="text-tender-title">
             {tender.title}
           </h1>

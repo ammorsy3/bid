@@ -8,7 +8,8 @@ import {
   Loader2, Calendar, DollarSign, Clock, Building2, Send, FileText,
   Video, Play, Pause, AlertCircle, Target, ListChecks, Star,
   Mail, Phone, MessageSquare, Flag, HelpCircle, Shield, Layers,
-  Tag, Mic, ExternalLink, EyeOff, CheckCircle2, ChevronRight
+  Tag, Mic, ExternalLink, EyeOff, CheckCircle2, ChevronRight,
+  ArrowRight, Hash, Briefcase, ClipboardCheck
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -112,13 +113,6 @@ const EVAL_REQUIREMENT_INFO: Record<string, { label: string; description: string
   industry_certifications: { label: "Industry Certifications Required", description: "The company must hold relevant professional certifications for the specific field of work." },
 };
 
-const INQUIRY_TYPE_LABELS: Record<string, string> = {
-  inside_bid: "Inside Bid Platform (Anonymous Q&A)",
-  email_whatsapp: "Email & WhatsApp",
-  whatsapp: "WhatsApp",
-  email: "Email",
-};
-
 const PROJECT_SIZE_LABELS: Record<string, string> = {
   small: "Small Project (Under 50K SAR)",
   medium: "Medium Project (50K–250K SAR)",
@@ -129,12 +123,6 @@ const DURATION_LABELS: Record<string, string> = {
   "6plus": "More than 6 months",
   "3to6": "3 to 6 months",
   "1to3": "1 to 3 months",
-};
-
-const SCOPE_LABELS: Record<string, string> = {
-  large: "Large",
-  medium: "Medium",
-  small: "Small",
 };
 
 function AudioPlayer({ src }: { src: string }) {
@@ -260,6 +248,8 @@ function AudioPlayer({ src }: { src: string }) {
   );
 }
 
+type TabId = 'overview' | 'deliverables' | 'timeline' | 'evaluation' | 'requirements' | 'media' | 'qa';
+
 export default function TenderInviteLink() {
   const [, params] = useRoute("/invite/:id");
   const [, navigate] = useLocation();
@@ -268,6 +258,7 @@ export default function TenderInviteLink() {
   const { user } = useAuthStore();
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [newQuestion, setNewQuestion] = useState('');
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [expandedEvalCategories, setExpandedEvalCategories] = useState<Record<string, boolean>>({});
 
   const { data: questions = [] } = useQuery<TenderQA[]>({
@@ -391,14 +382,12 @@ export default function TenderInviteLink() {
 
   const getBudgetDisplay = () => {
     const showPrice = tender.showPriceToVendors !== false;
-
     if (!showPrice) {
       if (tender.projectSize) {
         return PROJECT_SIZE_LABELS[tender.projectSize] || tender.projectSize;
       }
       return "Budget disclosed upon qualification";
     }
-
     if (tender.budgetMin && tender.budgetMax) {
       return `SAR ${tender.budgetMin.toLocaleString()} – ${tender.budgetMax.toLocaleString()}`;
     }
@@ -421,7 +410,6 @@ export default function TenderInviteLink() {
     setShowOfferModal(true);
   };
 
-  const hasSkills = tender.skills && tender.skills.length > 0;
   const hasDeliverables = tender.deliverables && tender.deliverables.length > 0;
   const hasMilestones = tender.milestones && tender.milestones.length > 0;
   const hasEvalCriteria = tender.evaluationCriteria && (
@@ -429,429 +417,350 @@ export default function TenderInviteLink() {
       ? tender.evaluationCriteria.length > 0
       : (tender.evaluationCriteria.weights?.length > 0 || tender.evaluationCriteria.requirements?.length > 0 || tender.evaluationCriteria.customCriteria?.length > 0)
   );
-  const hasInquiryMethod = !!tender.inquiryType;
+  const hasMedia = !!(tender.voiceNoteUrl || tender.videoUrl);
+  const hasSkills = tender.skills && tender.skills.length > 0;
 
-  const tocSections = [
-    { id: 'description', label: 'Project Description', show: true },
-    { id: 'objective', label: 'Project Objective', show: !!tender.objective },
-    { id: 'deliverables', label: 'Scope of Work & Deliverables', show: hasDeliverables },
-    { id: 'milestones', label: 'Milestones & Payment Schedule', show: hasMilestones },
-    { id: 'context', label: 'Additional Context', show: !!(tender.voiceNoteUrl || tender.videoUrl) },
-    { id: 'submission', label: 'Submission Requirements', show: !!tender.submissionType },
-    { id: 'evaluation', label: 'Evaluation Criteria', show: hasEvalCriteria },
-    { id: 'skills', label: 'Required Skills & Expertise', show: hasSkills },
-  ].filter(s => s.show);
+  const logoUrl = companyProfile?.profile?.logoUrl || tender.profile?.logoUrl;
+  const displayName = companyProfile?.profile?.displayName || tender.profile?.displayName || tender.company?.name;
 
-  const sectionNumber = (id: string) => {
-    const idx = tocSections.findIndex(s => s.id === id);
-    return idx >= 0 ? `${idx + 1}.0` : '';
-  };
+  const allTabs: { id: TabId; label: string; icon: any; show: boolean }[] = [
+    { id: 'overview', label: 'Overview', icon: FileText, show: true },
+    { id: 'deliverables', label: 'Deliverables', icon: ListChecks, show: hasDeliverables || false },
+    { id: 'timeline', label: 'Timeline', icon: Flag, show: hasMilestones || false },
+    { id: 'evaluation', label: 'Evaluation', icon: Star, show: hasEvalCriteria || false },
+    { id: 'requirements', label: 'Requirements', icon: ClipboardCheck, show: !!(tender.submissionType || hasSkills) },
+    { id: 'media', label: 'Media', icon: Mic, show: hasMedia },
+    { id: 'qa', label: `Q&A${questions.length > 0 ? ` (${questions.length})` : ''}`, icon: MessageSquare, show: tender.inquiryType === 'inside_bid' },
+  ];
+  const tabs = allTabs.filter(t => t.show);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 lg:pb-0">
-      {/* Sticky Header */}
-      <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+    <div className="min-h-screen bg-[#0f172a]">
+      {/* Top Nav */}
+      <nav className="border-b border-white/10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <img
             src={logoPath}
             alt="Bid"
-            className="h-10 cursor-pointer hover:opacity-80 transition-opacity"
+            className="h-9 cursor-pointer hover:opacity-80 transition-opacity brightness-0 invert"
             onClick={() => navigate("/")}
           />
-          {!user ? (
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => navigate("/login")} data-testid="button-login">
-                Login
+          <div className="flex items-center gap-3">
+            {!user ? (
+              <>
+                <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10" onClick={() => navigate("/login")} data-testid="button-login">
+                  Login
+                </Button>
+                <Button size="sm" className="bg-[#E25E45] hover:bg-[#d54d35] text-white" onClick={() => navigate("/signup")} data-testid="button-signup">
+                  Sign Up
+                </Button>
+              </>
+            ) : (
+              <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10" onClick={() => navigate("/dashboard")} data-testid="button-dashboard">
+                Dashboard
               </Button>
-              <Button size="sm" className="bg-[#E25E45] hover:bg-[#d54d35]" onClick={() => navigate("/signup")} data-testid="button-signup">
-                Sign Up
-              </Button>
-            </div>
-          ) : (
-            <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")} data-testid="button-dashboard">
-              Dashboard
-            </Button>
-          )}
+            )}
+          </div>
         </div>
-      </header>
+      </nav>
 
-      {/* Hero Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-start justify-between gap-6">
-            <div className="flex-1 min-w-0">
-              {(() => {
-                const logoUrl = companyProfile?.profile?.logoUrl || tender.profile?.logoUrl;
-                const displayName = companyProfile?.profile?.displayName || tender.profile?.displayName || tender.company?.name;
-                return (
-                  <div className="flex items-center gap-3 mb-3">
-                    {logoUrl ? (
-                      <img src={logoUrl} alt={displayName} className="w-10 h-10 rounded-lg object-cover border border-gray-200 flex-shrink-0" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="h-5 w-5 text-gray-400" />
-                      </div>
-                    )}
-                    <div>
-                      <span className="font-semibold text-gray-800 text-sm">{displayName}</span>
-                      <span className="text-xs text-gray-400 block">Requesting Organization</span>
-                    </div>
-                  </div>
-                );
-              })()}
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <Badge className={`text-xs px-2.5 py-0.5 ${tender.status === 'published' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800'}`} data-testid="badge-status">
-                  {tender.status === 'published' ? 'Open for Submissions' : tender.status}
-                </Badge>
-                {isDeadlinePassed && <Badge className="bg-red-100 text-red-700 text-xs px-2.5 py-0.5">Deadline Passed</Badge>}
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900 leading-snug break-words" data-testid="text-tender-title">{tender.title}</h1>
-              <div className="flex items-center gap-3 mt-2 flex-wrap">
-                {tender.createdAt && <span className="text-xs text-gray-400">Published {formatDate(tender.createdAt)}</span>}
-                <span className="text-xs text-gray-300">·</span>
-                <span className="text-xs text-gray-400">Ref: RFP-{tenderId?.slice(0, 8).toUpperCase()}</span>
+      {/* Hero Section */}
+      <div className="bg-gradient-to-b from-[#0f172a] to-[#1e293b] pb-0">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-6">
+          {/* Company & Status Row */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              {logoUrl ? (
+                <img src={logoUrl} alt={displayName} className="w-11 h-11 rounded-xl object-cover border-2 border-white/20" />
+              ) : (
+                <div className="w-11 h-11 rounded-xl bg-white/10 border-2 border-white/20 flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-white/50" />
+                </div>
+              )}
+              <div>
+                <p className="text-white font-semibold text-sm">{displayName}</p>
+                <p className="text-white/40 text-xs">Requesting Organization</p>
               </div>
             </div>
-            <div className="flex-shrink-0 bg-gray-50 rounded-xl p-4 text-right min-w-[170px]">
-              <div className="flex items-center justify-end gap-1.5 text-gray-500 mb-1">
-                <span className="text-xs font-medium uppercase tracking-wider">Submission Deadline</span>
-                <Calendar className="h-3.5 w-3.5" />
-              </div>
-              <p className={`font-semibold text-sm ${isDeadlinePassed ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-gray-900'}`}>
-                {formatDate(tender.deadline)}
-              </p>
-              {!isDeadlinePassed && <p className="text-xs text-gray-500 mt-0.5">{daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining</p>}
-              {isDeadlinePassed && <p className="text-xs text-red-400 mt-0.5">Closed</p>}
+            <div className="flex items-center gap-2">
+              {tender.status === 'published' && !isDeadlinePassed && (
+                <Badge className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs px-3 py-1" data-testid="badge-status">
+                  Open for Submissions
+                </Badge>
+              )}
+              {isDeadlinePassed && (
+                <Badge className="bg-red-500/20 text-red-300 border border-red-500/30 text-xs px-3 py-1">Closed</Badge>
+              )}
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-gray-500 mb-1">
-                <DollarSign className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Budget</span>
+          {/* Title */}
+          <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight mb-3" data-testid="text-tender-title">
+            {tender.title}
+          </h1>
+          <div className="flex items-center gap-3 text-white/40 text-sm mb-8">
+            {tender.createdAt && <span>Published {formatDate(tender.createdAt)}</span>}
+            <span>·</span>
+            <span className="font-mono">RFP-{tenderId?.slice(0, 8).toUpperCase()}</span>
+          </div>
+
+          {/* Key Metrics Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-1.5 rounded-lg bg-[#E25E45]/20">
+                  <Calendar className="h-4 w-4 text-[#E25E45]" />
+                </div>
+                <span className="text-white/50 text-xs font-medium uppercase tracking-wider">Deadline</span>
               </div>
-              <p className="font-semibold text-sm text-gray-900">{getBudgetDisplay()}</p>
+              <p className={`font-bold text-sm ${isDeadlinePassed ? 'text-red-400' : daysRemaining <= 3 ? 'text-orange-400' : 'text-white'}`}>
+                {formatDate(tender.deadline)}
+              </p>
+              {!isDeadlinePassed && <p className="text-white/40 text-xs mt-0.5">{daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left</p>}
+            </div>
+
+            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-1.5 rounded-lg bg-emerald-500/20">
+                  <DollarSign className="h-4 w-4 text-emerald-400" />
+                </div>
+                <span className="text-white/50 text-xs font-medium uppercase tracking-wider">Budget</span>
+              </div>
+              <p className="font-bold text-sm text-white">{getBudgetDisplay()}</p>
               {tender.showPriceToVendors === false && (
-                <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1"><EyeOff className="h-3 w-3" /> Range estimate</p>
+                <p className="text-white/40 text-xs mt-0.5 flex items-center gap-1"><EyeOff className="h-3 w-3" /> Range estimate</p>
               )}
             </div>
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-gray-500 mb-1">
-                <Clock className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Duration</span>
+
+            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-1.5 rounded-lg bg-blue-500/20">
+                  <Clock className="h-4 w-4 text-blue-400" />
+                </div>
+                <span className="text-white/50 text-xs font-medium uppercase tracking-wider">Duration</span>
               </div>
-              <p className="font-semibold text-sm text-gray-900">{getDurationDisplay()}</p>
+              <p className="font-bold text-sm text-white">{getDurationDisplay()}</p>
               {(tender.startDate || tender.endDate) && (
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-white/40 text-xs mt-0.5">
                   {tender.startDate && formatDate(tender.startDate)}{tender.startDate && tender.endDate && ' → '}{tender.endDate && formatDate(tender.endDate)}
                 </p>
               )}
             </div>
-            {tender.pricingModel && (
-              <div className="bg-gray-50 rounded-xl p-4">
-                <div className="flex items-center gap-2 text-gray-500 mb-1">
-                  <Layers className="h-4 w-4" />
-                  <span className="text-xs font-medium uppercase tracking-wider">Pricing Model</span>
+
+            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-1.5 rounded-lg bg-purple-500/20">
+                  <Layers className="h-4 w-4 text-purple-400" />
                 </div>
-                <p className="font-semibold text-sm text-gray-900 capitalize">
-                  {tender.pricingModel === 'fixed' ? 'Fixed Price' : tender.pricingModel === 'milestone' ? 'Milestone-based' : tender.pricingModel}
-                </p>
+                <span className="text-white/50 text-xs font-medium uppercase tracking-wider">Model</span>
               </div>
-            )}
-            {tender.submissionType && (
-              <div className="bg-gray-50 rounded-xl p-4">
-                <div className="flex items-center gap-2 text-gray-500 mb-1">
-                  <Send className="h-4 w-4" />
-                  <span className="text-xs font-medium uppercase tracking-wider">Submission</span>
-                </div>
-                <p className="font-semibold text-sm text-gray-900">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Table of Contents — inline at top */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mr-2">Contents</span>
-            {tocSections.map((section, idx) => (
-              <a
-                key={section.id}
-                href={`#section-${section.id}`}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:text-[#E25E45] hover:bg-[#E25E45]/5 rounded-full border border-gray-200 hover:border-[#E25E45]/30 transition-colors"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById(`section-${section.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }}
-              >
-                <span className="font-mono font-bold text-gray-400">{idx + 1}.0</span>
-                <span>{section.label}</span>
-              </a>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content — document + sidebar */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
-
-          {/* Document Body — single continuous container */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-
-            {/* 1. Description */}
-            <div id="section-description" className="px-8 py-8">
-              <div className="flex items-center gap-3 mb-1">
-                <span className="text-xs font-bold text-[#E25E45] bg-[#E25E45]/10 rounded px-2 py-0.5">{sectionNumber('description')}</span>
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-[#E25E45]" />
-                  Project Description
-                </h2>
-              </div>
-              <p className="text-xs text-gray-500 ml-14 mb-4">Complete overview of the project scope, context, and requirements</p>
-              <div className="prose prose-sm max-w-none">
-                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]" data-testid="text-description">{tender.description}</p>
-              </div>
+              <p className="font-bold text-sm text-white capitalize">
+                {tender.pricingModel === 'fixed' ? 'Fixed Price' : tender.pricingModel === 'milestone' ? 'Milestone-based' : tender.pricingModel || 'Not specified'}
+              </p>
             </div>
+          </div>
+        </div>
 
-            {/* 2. Project Objective */}
-            {tender.objective && (
-              <>
-                <div className="border-t border-gray-100" />
-                <div id="section-objective" className="px-8 py-8">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-xs font-bold text-blue-600 bg-blue-50 rounded px-2 py-0.5">{sectionNumber('objective')}</span>
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                      <Target className="h-5 w-5 text-blue-600" />
-                      Project Objective
-                    </h2>
+        {/* Tab Bar - sits at bottom of hero, overlapping into content */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar">
+            {tabs.map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-5 py-3 text-sm font-medium rounded-t-xl transition-all whitespace-nowrap ${
+                    isActive
+                      ? 'bg-white text-gray-900 shadow-lg'
+                      : 'text-white/60 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Content Area */}
+      <div className="bg-gray-50 min-h-[60vh]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+
+            {/* Tab Content */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <div className="p-6 sm:p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Project Description</h2>
+                  <div className="prose prose-sm max-w-none">
+                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]" data-testid="text-description">{tender.description}</p>
                   </div>
-                  <p className="text-xs text-gray-500 ml-14 mb-4">The primary goal this project is expected to achieve</p>
-                  <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
-                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]">{tender.objective}</p>
+
+                  {tender.objective && (
+                    <div className="mt-8">
+                      <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <Target className="h-5 w-5 text-blue-500" />
+                        Project Objective
+                      </h3>
+                      <div className="p-5 bg-blue-50 border border-blue-100 rounded-xl">
+                        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{tender.objective}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {hasSkills && (
+                    <div className="mt-8">
+                      <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <Tag className="h-5 w-5 text-indigo-500" />
+                        Required Skills
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {tender.skills!.map((skill, index) => (
+                          <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium" data-testid={`badge-skill-${index}`}>
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quick navigation to other tabs */}
+                  <div className="mt-10 pt-6 border-t border-gray-100">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Explore This RFP</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {tabs.filter(t => t.id !== 'overview').map(tab => {
+                        const Icon = tab.icon;
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-left group"
+                          >
+                            <div className="p-2 rounded-lg bg-white border border-gray-200 group-hover:border-[#E25E45]/30 transition-colors">
+                              <Icon className="h-4 w-4 text-gray-500 group-hover:text-[#E25E45] transition-colors" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900">{tab.label}</p>
+                            </div>
+                            <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-[#E25E45] transition-colors" />
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </>
-            )}
+              )}
 
-            {/* 3. Key Deliverables */}
-            {hasDeliverables && (
-              <>
-                <div className="border-t border-gray-100" />
-                <div id="section-deliverables" className="px-8 py-8">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-xs font-bold text-purple-600 bg-purple-50 rounded px-2 py-0.5">{sectionNumber('deliverables')}</span>
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                      <ListChecks className="h-5 w-5 text-purple-600" />
-                      Scope of Work & Deliverables
-                    </h2>
-                  </div>
-                  <p className="text-xs text-gray-500 ml-14 mb-4">Itemized list of deliverables with quantities. Your proposal should address each item individually with pricing and timeline.</p>
+              {/* Deliverables Tab */}
+              {activeTab === 'deliverables' && hasDeliverables && (
+                <div className="p-6 sm:p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Scope of Work & Deliverables</h2>
+                  <p className="text-sm text-gray-500 mb-6">Your proposal should address each item with pricing and timeline.</p>
                   <div className="space-y-3">
                     {tender.deliverables!.map((deliverable, index) => {
                       if (typeof deliverable === 'string') {
                         return (
-                          <div key={index} className="px-4 py-3 bg-gray-50 rounded-lg border-l-3 border-purple-300">
-                            <span className="text-gray-800">{deliverable}</span>
+                          <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+                            <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-[#E25E45] text-white text-xs font-bold flex items-center justify-center">{index + 1}</span>
+                            <span className="text-gray-800 pt-0.5">{deliverable}</span>
                           </div>
                         );
                       }
                       return (
-                        <div key={deliverable.id || index} className="px-4 py-4 bg-gray-50 rounded-xl border border-gray-100">
+                        <div key={deliverable.id || index} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                           <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs font-bold text-white bg-purple-500 rounded-full w-6 h-6 flex items-center justify-center">{index + 1}</span>
-                                <span className="font-semibold text-gray-900">{deliverable.name}</span>
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-[#E25E45] text-white text-xs font-bold flex items-center justify-center mt-0.5">{index + 1}</span>
+                              <div>
+                                <p className="font-semibold text-gray-900">{deliverable.name}</p>
+                                {deliverable.description && (
+                                  <p className="text-sm text-gray-600 mt-1 leading-relaxed">{deliverable.description}</p>
+                                )}
                               </div>
-                              {deliverable.description && (
-                                <p className="text-sm text-gray-600 mt-1.5 ml-8 leading-relaxed">{deliverable.description}</p>
-                              )}
                             </div>
-                            <div className="text-right flex-shrink-0">
-                              <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold bg-[#E25E45]/10 text-[#E25E45]">
-                                {deliverable.quantity} x {deliverable.unit}
-                              </span>
-                            </div>
+                            <span className="flex-shrink-0 inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold bg-[#E25E45]/10 text-[#E25E45]">
+                              {deliverable.quantity} x {deliverable.unit}
+                            </span>
                           </div>
                         </div>
                       );
                     })}
                   </div>
-                  <div className="mt-4 p-3 bg-gray-100 rounded-lg">
-                    <p className="text-xs text-gray-500">Vendors are expected to provide a line-by-line cost breakdown for each deliverable listed above.</p>
+                  <div className="mt-5 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                    <p className="text-sm text-amber-800 flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                      Vendors are expected to provide a line-by-line cost breakdown for each deliverable.
+                    </p>
                   </div>
                 </div>
-              </>
-            )}
+              )}
 
-            {/* 4. Milestones */}
-            {hasMilestones && (
-              <>
-                <div className="border-t border-gray-100" />
-                <div id="section-milestones" className="px-8 py-8">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-xs font-bold text-orange-600 bg-orange-50 rounded px-2 py-0.5">{sectionNumber('milestones')}</span>
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                      <Flag className="h-5 w-5 text-orange-500" />
-                      Milestones & Payment Schedule
-                    </h2>
-                  </div>
-                  <p className="text-xs text-gray-500 ml-14 mb-4">Delivery checkpoints and associated payment amounts. Payments are released upon completion and acceptance of each milestone.</p>
-                  <div className="relative">
-                    <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-[#E25E45] to-[#FF8A6B] rounded-full" />
-                    <div className="space-y-5">
-                      {tender.milestones!.map((milestone, index) => (
-                        <div key={milestone.id || index} className="flex items-start gap-4 relative">
-                          <div className="w-8 h-8 rounded-full bg-white border-2 border-[#E25E45] flex items-center justify-center flex-shrink-0 z-10">
-                            <span className="text-xs font-bold text-[#E25E45]">{index + 1}</span>
-                          </div>
-                          <div className="flex-1 pb-2 bg-gray-50 rounded-xl border border-gray-100 p-4">
-                            <p className="font-semibold text-gray-900">{milestone.name}</p>
-                            {milestone.description && <p className="text-sm text-gray-600 mt-1 leading-relaxed">{milestone.description}</p>}
-                            <div className="flex items-center gap-4 mt-2 flex-wrap">
+              {/* Timeline / Milestones Tab */}
+              {activeTab === 'timeline' && hasMilestones && (
+                <div className="p-6 sm:p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Milestones & Payment Schedule</h2>
+                  <p className="text-sm text-gray-500 mb-6">Payments are released upon completion and acceptance of each milestone.</p>
+                  <div className="space-y-4">
+                    {tender.milestones!.map((milestone, index) => (
+                      <div key={milestone.id || index} className="relative flex gap-4">
+                        {/* Timeline line */}
+                        {index < tender.milestones!.length - 1 && (
+                          <div className="absolute left-[19px] top-10 bottom-0 w-0.5 bg-gradient-to-b from-[#E25E45]/40 to-[#E25E45]/10" />
+                        )}
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#E25E45] text-white font-bold text-sm flex items-center justify-center z-10">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 pb-4">
+                          <div className="bg-gray-50 rounded-xl border border-gray-100 p-4">
+                            <p className="font-semibold text-gray-900 text-base">{milestone.name}</p>
+                            {milestone.description && <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">{milestone.description}</p>}
+                            <div className="flex items-center gap-4 mt-3 flex-wrap">
                               {milestone.dueDate && (
-                                <p className="text-xs text-gray-500 flex items-center gap-1"><Calendar className="h-3 w-3" /> Due: {formatDate(milestone.dueDate)}</p>
+                                <span className="inline-flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-1.5 rounded-lg border border-gray-100">
+                                  <Calendar className="h-3.5 w-3.5" /> {formatDate(milestone.dueDate)}
+                                </span>
                               )}
                               {milestone.amount && (
-                                <p className="text-xs font-semibold text-[#E25E45] flex items-center gap-1"><DollarSign className="h-3 w-3" /> SAR {Number(milestone.amount).toLocaleString()}</p>
+                                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#E25E45] bg-[#E25E45]/5 px-3 py-1.5 rounded-lg">
+                                  <DollarSign className="h-3.5 w-3.5" /> SAR {Number(milestone.amount).toLocaleString()}
+                                </span>
                               )}
                             </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
                   {tender.milestones!.some(m => m.amount) && (
-                    <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-100 flex items-center justify-between">
-                      <span className="text-xs text-gray-600">Total milestone value</span>
-                      <span className="text-sm font-bold text-gray-900">SAR {tender.milestones!.reduce((sum, m) => sum + (Number(m.amount) || 0), 0).toLocaleString()}</span>
+                    <div className="mt-4 p-4 bg-[#E25E45]/5 rounded-xl border border-[#E25E45]/10 flex items-center justify-between">
+                      <span className="text-sm text-gray-600 font-medium">Total milestone value</span>
+                      <span className="text-lg font-bold text-gray-900">SAR {tender.milestones!.reduce((sum, m) => sum + (Number(m.amount) || 0), 0).toLocaleString()}</span>
                     </div>
                   )}
                 </div>
-              </>
-            )}
+              )}
 
-            {/* 5. Voice Note & Video */}
-            {(tender.voiceNoteUrl || tender.videoUrl) && (
-              <>
-                <div className="border-t border-gray-100" />
-                <div id="section-context" className="px-8 py-8">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-xs font-bold text-pink-600 bg-pink-50 rounded px-2 py-0.5">{sectionNumber('context')}</span>
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                      <Mic className="h-5 w-5 text-pink-500" />
-                      Additional Context from Requester
-                    </h2>
-                  </div>
-                  <p className="text-xs text-gray-500 ml-14 mb-4">The requester has provided additional media to help you understand the project. Review this material carefully before preparing your proposal.</p>
-                  <div className="space-y-4">
-                    {tender.voiceNoteUrl && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                          <Mic className="h-4 w-4 text-pink-500" /><span>Voice Note from Requester</span>
-                        </div>
-                        {user ? (
-                          <AudioPlayer src={tender.voiceNoteUrl} />
-                        ) : (
-                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                <Play className="h-5 w-5 text-gray-400" />
-                              </div>
-                              <div>
-                                <p className="font-medium text-gray-900">Voice note available</p>
-                                <p className="text-sm text-gray-500">Log in to listen to the requester's voice note</p>
-                              </div>
-                            </div>
-                            <Button size="sm" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }} data-testid="button-login-voice">Login to Listen</Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {tender.videoUrl && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                          <Video className="h-4 w-4 text-blue-500" /><span>Video Explanation</span>
-                        </div>
-                        <a href={tender.videoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors">
-                          <ExternalLink className="h-4 w-4" /> Watch Video
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* 6. Submission Requirements */}
-            {tender.submissionType && (
-              <>
-                <div className="border-t border-gray-100" />
-                <div id="section-submission" className="px-8 py-8">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-xs font-bold text-blue-600 bg-blue-50 rounded px-2 py-0.5">{sectionNumber('submission')}</span>
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                      <Send className="h-5 w-5 text-blue-600" />
-                      Submission Requirements
-                    </h2>
-                  </div>
-                  <p className="text-xs text-gray-500 ml-14 mb-4">Your proposal must follow the format specified below. Incomplete or incorrectly formatted submissions may not be considered.</p>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl">
-                      <div className="p-2.5 bg-blue-100 rounded-lg flex-shrink-0">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</p>
-                        <p className="text-sm text-gray-600 mt-0.5">
-                          {tender.submissionType === 'quote_only' && "Submit a detailed price quotation with line-item breakdown for each deliverable."}
-                          {tender.submissionType === 'video_only' && "Record and submit a video pitch presenting your team, methodology, and approach."}
-                          {tender.submissionType === 'tech_fin_proposal' && "Submit a two-part proposal: (1) Technical approach with methodology and timeline, and (2) Financial proposal with detailed pricing."}
-                          {tender.submissionType === 'tech_fin_with_video' && "Submit a complete proposal package: technical document, financial proposal, and a supporting video pitch."}
-                        </p>
-                      </div>
-                    </div>
-                    {tender.videoRequired && (
-                      <div className="flex items-center gap-2 px-4 py-3 bg-orange-50 rounded-xl border border-orange-200">
-                        <Video className="h-4 w-4 text-orange-500 flex-shrink-0" />
-                        <span className="text-sm font-medium text-orange-800">Video submission is mandatory for this RFP</span>
-                      </div>
-                    )}
-                    <div className="p-3 bg-gray-100 rounded-lg">
-                      <p className="text-xs text-gray-500">All submissions must be received before the deadline. Late submissions will not be accepted.</p>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* 7. Evaluation Criteria */}
-            {hasEvalCriteria && (
-              <>
-                <div className="border-t border-gray-100" />
-                <div id="section-evaluation" className="px-8 py-8">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-xs font-bold text-amber-600 bg-amber-50 rounded px-2 py-0.5">{sectionNumber('evaluation')}</span>
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                      <Star className="h-5 w-5 text-amber-500" />
-                      Evaluation Criteria
-                    </h2>
-                  </div>
-                  <p className="text-xs text-gray-500 ml-14 mb-4">Proposals will be scored against these criteria. Ensure your submission clearly addresses each category to maximize your evaluation score.</p>
+              {/* Evaluation Tab */}
+              {activeTab === 'evaluation' && hasEvalCriteria && (
+                <div className="p-6 sm:p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Evaluation Criteria</h2>
+                  <p className="text-sm text-gray-500 mb-6">Proposals will be scored against these criteria. Address each one in your submission.</p>
                   {Array.isArray(tender.evaluationCriteria) ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {tender.evaluationCriteria.map((criteria: any, index: number) => {
                         const label = typeof criteria === 'string' ? (CRITERIA_LABELS[criteria] || criteria) : (criteria.name || criteria);
                         return (
-                          <div key={index} className="flex items-center gap-3 px-4 py-3 bg-amber-50 rounded-xl border border-amber-100">
-                            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                          <div key={index} className="flex items-center gap-3 p-4 bg-amber-50/50 rounded-xl border border-amber-100">
+                            <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
                               <Star className="h-4 w-4 text-amber-600" />
                             </div>
-                            <span className="font-medium text-gray-800 text-sm">{label}</span>
+                            <span className="font-medium text-gray-800">{label}</span>
                           </div>
                         );
                       })}
@@ -863,23 +772,26 @@ export default function TenderInviteLink() {
                         const catRequirements = (tender.evaluationCriteria.requirements || []).filter((r: any) => r.categoryId === w.categoryId);
                         const isExpanded = expandedEvalCategories[w.categoryId] || false;
                         return (
-                          <div key={w.categoryId} className="rounded-xl border border-amber-100 overflow-hidden">
+                          <div key={w.categoryId} className="rounded-xl border border-gray-200 overflow-hidden">
                             <button
                               type="button"
                               onClick={() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] }))}
-                              className="w-full flex items-center gap-3 px-4 py-3 bg-amber-50 hover:bg-amber-100/60 transition-colors text-left"
+                              className="w-full flex items-center gap-3 px-5 py-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
                             >
-                              <ChevronRight className={`h-4 w-4 text-amber-600 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                              <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-800 text-sm">{catInfo?.name || w.categoryId}</p>
+                                <p className="font-semibold text-gray-900">{catInfo?.name || w.categoryId}</p>
                                 <p className="text-xs text-gray-500 mt-0.5">{catInfo?.description || ''}</p>
                               </div>
-                              <Badge variant="outline" className="font-semibold text-amber-700 border-amber-300 flex-shrink-0">{w.weight}%</Badge>
+                              <div className="flex-shrink-0 text-right">
+                                <span className="text-2xl font-bold text-[#E25E45]">{w.weight}</span>
+                                <span className="text-xs text-gray-400 ml-0.5">%</span>
+                              </div>
                             </button>
                             <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                               <div className="overflow-hidden">
                                 {catRequirements.length > 0 && (
-                                  <div className="px-4 py-3 space-y-3 border-t border-amber-100 bg-white">
+                                  <div className="px-5 py-4 space-y-3 border-t border-gray-100">
                                     {catRequirements.map((req: any, i: number) => {
                                       const reqInfo = EVAL_REQUIREMENT_INFO[req.requirementId];
                                       const displayValue = req.value && typeof req.value !== 'boolean'
@@ -887,11 +799,11 @@ export default function TenderInviteLink() {
                                         : null;
                                       return (
                                         <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                                          <CheckCircle2 className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                                          <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                                           <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium text-gray-800">{reqInfo?.label || req.requirementId}</p>
                                             <p className="text-xs text-gray-500 mt-0.5">{reqInfo?.description || ''}</p>
-                                            {displayValue && <p className="text-xs font-semibold text-amber-700 mt-1">{displayValue}</p>}
+                                            {displayValue && <p className="text-xs font-semibold text-[#E25E45] mt-1">{displayValue}</p>}
                                           </div>
                                         </div>
                                       );
@@ -904,12 +816,12 @@ export default function TenderInviteLink() {
                         );
                       })}
                       {tender.evaluationCriteria.customCriteria?.length > 0 && (
-                        <div className="space-y-2 pt-2">
-                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Custom Criteria</p>
+                        <div className="space-y-2 pt-3">
+                          <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Additional Criteria</p>
                           {tender.evaluationCriteria.customCriteria.map((c: any) => (
-                            <div key={c.id} className="flex items-center justify-between px-4 py-3 bg-amber-50 rounded-xl border border-amber-100">
-                              <span className="text-sm text-gray-800">{c.text}</span>
-                              <Badge variant="outline" className="font-semibold text-amber-700 border-amber-300">{c.weight}%</Badge>
+                            <div key={c.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                              <span className="text-sm font-medium text-gray-800">{c.text}</span>
+                              <span className="text-sm font-bold text-[#E25E45]">{c.weight}%</span>
                             </div>
                           ))}
                         </div>
@@ -917,242 +829,301 @@ export default function TenderInviteLink() {
                     </div>
                   )}
                 </div>
-              </>
-            )}
+              )}
 
-            {/* 8. Required Skills */}
-            {hasSkills && (
-              <>
-                <div className="border-t border-gray-100" />
-                <div id="section-skills" className="px-8 py-8">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 rounded px-2 py-0.5">{sectionNumber('skills')}</span>
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                      <Tag className="h-5 w-5 text-indigo-500" />
-                      Required Skills & Expertise
-                    </h2>
-                  </div>
-                  <p className="text-xs text-gray-500 ml-14 mb-4">Your team should demonstrate competency in the following areas. Highlight relevant experience in your proposal.</p>
-                  <div className="flex flex-wrap gap-2">
-                    {tender.skills!.map((skill, index) => (
-                      <Badge key={index} variant="secondary" className="bg-indigo-50 text-indigo-700 px-3 py-1.5 text-sm" data-testid={`badge-skill-${index}`}>
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+              {/* Requirements Tab */}
+              {activeTab === 'requirements' && (
+                <div className="p-6 sm:p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Submission Requirements</h2>
+                  <p className="text-sm text-gray-500 mb-6">Your proposal must follow the format specified below.</p>
 
-          {/* Right Sidebar — compact, sticky */}
-          <div className="hidden lg:block">
-            <div className="sticky top-20 space-y-4">
-              <Card className="overflow-hidden">
-                <div className="h-1.5 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
-                <CardContent className="p-5">
-                  <h3 className="text-base font-bold text-gray-900 mb-2">
-                    {isDeadlinePassed ? 'Submissions Closed' : 'Submit Your Proposal'}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    {isDeadlinePassed ? "This tender is no longer accepting proposals." : "Review all sections thoroughly before submitting."}
-                  </p>
-                  {!isDeadlinePassed && (
-                    <div className="space-y-2 mb-4 p-3 bg-gray-50 rounded-lg text-sm">
-                      <div className="flex items-center gap-2 text-gray-700">
-                        <Calendar className="h-4 w-4 text-[#E25E45]" />
-                        <span className="font-medium">{daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining</span>
+                  {tender.submissionType && (
+                    <div className="mb-6">
+                      <div className="flex items-start gap-4 p-5 bg-blue-50 rounded-xl border border-blue-100">
+                        <div className="p-3 bg-blue-100 rounded-xl flex-shrink-0">
+                          <FileText className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900 text-base">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</p>
+                          <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                            {tender.submissionType === 'quote_only' && "Submit a detailed price quotation with line-item breakdown for each deliverable."}
+                            {tender.submissionType === 'video_only' && "Record and submit a video pitch presenting your team, methodology, and approach."}
+                            {tender.submissionType === 'tech_fin_proposal' && "Submit a two-part proposal: (1) Technical approach with methodology and timeline, and (2) Financial proposal with detailed pricing."}
+                            {tender.submissionType === 'tech_fin_with_video' && "Submit a complete proposal package: technical document, financial proposal, and a supporting video pitch."}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <Clock className="h-3.5 w-3.5" />
-                        <span>Due by {formatDate(tender.deadline)}</span>
+                      {tender.videoRequired && (
+                        <div className="mt-3 flex items-center gap-2 px-4 py-3 bg-orange-50 rounded-xl border border-orange-200">
+                          <Video className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                          <span className="text-sm font-medium text-orange-800">Video submission is mandatory</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {hasSkills && (
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <Tag className="h-5 w-5 text-indigo-500" />
+                        Required Skills & Expertise
+                      </h3>
+                      <p className="text-sm text-gray-500 mb-4">Your team should demonstrate competency in these areas.</p>
+                      <div className="flex flex-wrap gap-2">
+                        {tender.skills!.map((skill, index) => (
+                          <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium border border-indigo-100">
+                            {skill}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   )}
-                  <Button
-                    size="lg"
-                    onClick={handleSubmitOffer}
-                    disabled={isDeadlinePassed || tender.status !== 'published'}
-                    className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white font-semibold h-12"
-                    data-testid="button-submit-proposal"
-                  >
-                    <Send className="h-5 w-5 mr-2" />
-                    Submit Proposal
-                  </Button>
-                  {!user && !isDeadlinePassed && (
-                    <p className="text-xs text-gray-500 text-center mt-3">You'll need to log in or sign up first</p>
+
+                  {/* Inquiry method info */}
+                  {tender.inquiryType && tender.inquiryType !== 'inside_bid' && (
+                    <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact for Questions</h4>
+                      <div className="space-y-2">
+                        {tender.emailContact && (
+                          <a href={`mailto:${tender.emailContact}`} className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
+                            <Mail className="h-4 w-4" /> {tender.emailContact}
+                          </a>
+                        )}
+                        {tender.whatsappContact && (
+                          <a href={`https://wa.me/${tender.whatsappContact.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-emerald-600 hover:underline">
+                            <Phone className="h-4 w-4" /> {tender.whatsappContact}
+                          </a>
+                        )}
+                      </div>
+                    </div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
 
-          {/* Mobile Submit CTA — fixed bottom on mobile */}
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-40">
-            <Button
-              size="lg"
-              onClick={handleSubmitOffer}
-              disabled={isDeadlinePassed || tender.status !== 'published'}
-              className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white font-semibold h-12"
-            >
-              <Send className="h-5 w-5 mr-2" />
-              Submit Proposal
-              {!isDeadlinePassed && <span className="ml-2 text-xs opacity-80">· {daysRemaining}d left</span>}
-            </Button>
-          </div>
-        </div>
-      </main>
-
-      {/* Vendor Inquiry Section — separate from document */}
-      {hasInquiryMethod && (
-        <div className="bg-gradient-to-b from-gray-50 to-gray-100 border-t-2 border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <div className="max-w-3xl mx-auto">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <MessageSquare className="h-5 w-5 text-green-600" />
+                  <div className="mt-6 p-4 bg-gray-100 rounded-xl">
+                    <p className="text-sm text-gray-500">All submissions must be received before the deadline. Late submissions will not be accepted.</p>
+                  </div>
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Vendor Inquiry</h2>
-              </div>
-              <p className="text-sm text-gray-600 mb-6 ml-12">
-                {tender.inquiryType === 'inside_bid'
-                  ? 'Have questions about this RFP? Submit them anonymously below. All answers are shared with every vendor to ensure a fair process.'
-                  : 'Contact the requester directly for any clarifications about this RFP.'}
-              </p>
+              )}
 
-              {tender.inquiryType === 'inside_bid' && (
-                <div className="space-y-5">
-                  <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl border border-green-200">
-                    <Shield className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-gray-600">
-                      Your identity is <span className="font-semibold text-gray-900">completely anonymous</span>. Only the requester can see and answer questions. All answers are visible to every vendor for fairness.
-                    </p>
+              {/* Media Tab */}
+              {activeTab === 'media' && hasMedia && (
+                <div className="p-6 sm:p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Additional Context</h2>
+                  <p className="text-sm text-gray-500 mb-6">The requester has provided additional media. Review carefully before preparing your proposal.</p>
+                  <div className="space-y-6">
+                    {tender.voiceNoteUrl && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <Mic className="h-4 w-4 text-pink-500" /> Voice Note
+                        </h3>
+                        {user ? (
+                          <AudioPlayer src={tender.voiceNoteUrl} />
+                        ) : (
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                <Play className="h-5 w-5 text-gray-400" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">Voice note available</p>
+                                <p className="text-sm text-gray-500">Log in to listen</p>
+                              </div>
+                            </div>
+                            <Button size="sm" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }} data-testid="button-login-voice">Login</Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {tender.videoUrl && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <Video className="h-4 w-4 text-blue-500" /> Video Explanation
+                        </h3>
+                        <a href={tender.videoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors font-medium">
+                          <ExternalLink className="h-4 w-4" /> Watch Video
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Q&A Tab */}
+              {activeTab === 'qa' && (
+                <div className="p-6 sm:p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Questions & Answers</h2>
+                  <div className="flex items-center gap-2 mb-6">
+                    <Shield className="h-4 w-4 text-emerald-500" />
+                    <p className="text-sm text-gray-500">All questions are posted anonymously.</p>
                   </div>
 
-                  {questions.length > 0 && (
-                    <div className="space-y-3">
-                      <p className="text-sm font-medium text-gray-700">{questions.length} question{questions.length !== 1 ? 's' : ''} asked</p>
-                      {questions.map((q) => (
-                        <div key={q.id} className="rounded-xl border border-gray-200 overflow-hidden bg-white">
-                          <div className="px-4 py-3 bg-gray-50/80">
-                            <div className="flex items-start gap-2">
-                              <HelpCircle className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm text-gray-900">{q.question}</p>
-                                <p className="text-xs text-gray-400 mt-1">Asked {new Date(q.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                              </div>
+                  {/* Ask question */}
+                  {user ? (
+                    <div className="mb-8 p-5 bg-gray-50 rounded-xl border border-gray-200">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-3">Ask a Question</h3>
+                      <Textarea
+                        value={newQuestion}
+                        onChange={(e) => setNewQuestion(e.target.value)}
+                        placeholder="Type your question about this RFP..."
+                        className="min-h-[80px] bg-white border-gray-200 resize-none mb-3"
+                        data-testid="input-question"
+                      />
+                      <Button
+                        size="sm"
+                        className="bg-[#E25E45] hover:bg-[#d54d35]"
+                        onClick={() => newQuestion.trim() && askQuestion.mutate(newQuestion.trim())}
+                        disabled={askQuestion.isPending || !newQuestion.trim()}
+                        data-testid="button-ask"
+                      >
+                        {askQuestion.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+                        Submit Question
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mb-8 p-5 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                      <p className="text-sm text-gray-600 mb-3">Log in to ask questions about this RFP</p>
+                      <Button size="sm" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }}>
+                        Login to Ask
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Question list */}
+                  {questions.length > 0 ? (
+                    <div className="space-y-4">
+                      {questions.map((qa) => (
+                        <div key={qa.id} className="p-4 rounded-xl border border-gray-100 bg-white">
+                          <div className="flex items-start gap-3">
+                            <div className="p-1.5 rounded-lg bg-blue-50 flex-shrink-0 mt-0.5">
+                              <HelpCircle className="h-4 w-4 text-blue-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-gray-800 font-medium">{qa.question}</p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                Asked {new Date(qa.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </p>
                             </div>
                           </div>
-                          {q.answer ? (
-                            <div className="px-4 py-3 border-t border-gray-100">
-                              <div className="flex items-start gap-2">
-                                <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-medium text-green-700 mb-0.5">Answer from requester</p>
-                                  <p className="text-sm text-gray-800">{q.answer}</p>
-                                </div>
-                              </div>
+                          {qa.answer && (
+                            <div className="mt-3 ml-9 p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+                              <p className="text-sm text-gray-700">{qa.answer}</p>
+                              {qa.answeredAt && (
+                                <p className="text-xs text-emerald-600 mt-1 font-medium">
+                                  Answered {new Date(qa.answeredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </p>
+                              )}
                             </div>
-                          ) : (
-                            <div className="px-4 py-2.5 bg-amber-50/50 border-t border-gray-100">
-                              <p className="text-xs text-amber-600 flex items-center gap-1.5"><Clock className="h-3 w-3" /> Awaiting answer from requester</p>
+                          )}
+                          {!qa.answer && (
+                            <div className="mt-3 ml-9">
+                              <span className="text-xs text-gray-400 italic">Awaiting response from requester</span>
                             </div>
                           )}
                         </div>
                       ))}
                     </div>
-                  )}
-
-                  {user ? (
-                    <div className="bg-white rounded-xl border border-gray-200 p-5">
-                      <p className="text-sm font-medium text-gray-700 mb-3">Ask a question</p>
-                      <Textarea
-                        placeholder="Type your question here... (anonymous, max 1000 characters)"
-                        value={newQuestion}
-                        onChange={(e) => setNewQuestion(e.target.value)}
-                        maxLength={1000}
-                        rows={3}
-                        className="resize-none"
-                      />
-                      <div className="flex items-center justify-between mt-3">
-                        <p className="text-xs text-gray-400">{newQuestion.length}/1000</p>
-                        <Button
-                          size="sm"
-                          onClick={() => askQuestion.mutate(newQuestion)}
-                          disabled={!newQuestion.trim() || askQuestion.isPending}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          {askQuestion.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
-                          Submit Question
-                        </Button>
-                      </div>
-                    </div>
                   ) : (
-                    <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200">
-                      <p className="text-sm text-gray-600">Log in to ask a question anonymously</p>
-                      <Button size="sm" variant="outline" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }}>
-                        Login to Ask
-                      </Button>
+                    <div className="text-center py-10 text-gray-400">
+                      <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                      <p className="text-sm">No questions yet. Be the first to ask!</p>
                     </div>
                   )}
                 </div>
               )}
+            </div>
 
-              {tender.inquiryType === 'email_whatsapp' && (
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-600 mb-3">Reach out directly to the requester using the contact details below:</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {tender.emailContact && (
-                      <a href={`mailto:${tender.emailContact}`} className="flex items-center gap-3 p-4 bg-white rounded-xl border border-blue-100 hover:bg-blue-50 transition-colors">
-                        <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0"><Mail className="h-4 w-4 text-blue-600" /></div>
-                        <div className="min-w-0">
-                          <p className="text-xs text-gray-500">Email</p>
-                          <p className="font-medium text-blue-700 text-sm truncate">{tender.emailContact}</p>
+            {/* Sidebar - Submit CTA */}
+            <div className="hidden lg:block">
+              <div className="sticky top-4 space-y-4">
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                  <h3 className="font-bold text-gray-900 mb-1">Ready to Submit?</h3>
+                  <p className="text-sm text-gray-500 mb-5">
+                    {isDeadlinePassed
+                      ? 'This RFP is no longer accepting submissions.'
+                      : `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining to submit your proposal.`}
+                  </p>
+                  <Button
+                    className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white py-6 text-base font-semibold rounded-xl"
+                    onClick={handleSubmitOffer}
+                    disabled={isDeadlinePassed}
+                    data-testid="button-submit-offer"
+                  >
+                    <Send className="h-5 w-5 mr-2" />
+                    Submit Proposal
+                  </Button>
+                  {!user && (
+                    <p className="text-xs text-gray-400 text-center mt-3">You'll need to log in first</p>
+                  )}
+                </div>
+
+                {/* Quick info card */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
+                  <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Quick Info</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Submission Format</span>
+                      <span className="font-medium text-gray-900 text-right">{SUBMISSION_TYPE_LABELS[tender.submissionType || ''] || 'Not specified'}</span>
+                    </div>
+                    <div className="border-t border-gray-50" />
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Pricing Model</span>
+                      <span className="font-medium text-gray-900 capitalize">{tender.pricingModel === 'fixed' ? 'Fixed' : tender.pricingModel === 'milestone' ? 'Milestone' : tender.pricingModel || '–'}</span>
+                    </div>
+                    <div className="border-t border-gray-50" />
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Category</span>
+                      <span className="font-medium text-gray-900">{tender.category || '–'}</span>
+                    </div>
+                    {tender.inquiryType && tender.inquiryType !== 'inside_bid' && (
+                      <>
+                        <div className="border-t border-gray-50" />
+                        <div className="text-sm">
+                          <span className="text-gray-500 block mb-1">Contact</span>
+                          {tender.emailContact && (
+                            <a href={`mailto:${tender.emailContact}`} className="text-blue-600 hover:underline block text-xs truncate">{tender.emailContact}</a>
+                          )}
+                          {tender.whatsappContact && (
+                            <a href={`https://wa.me/${tender.whatsappContact.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline block text-xs">{tender.whatsappContact}</a>
+                          )}
                         </div>
-                      </a>
-                    )}
-                    {tender.whatsappContact && (
-                      <a
-                        href={tender.whatsappContact.startsWith('http') ? tender.whatsappContact : `https://wa.me/${tender.whatsappContact.replace(/\D/g, '')}`}
-                        target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-4 bg-white rounded-xl border border-green-100 hover:bg-green-50 transition-colors"
-                      >
-                        <div className="p-2 bg-green-100 rounded-lg flex-shrink-0"><Phone className="h-4 w-4 text-green-600" /></div>
-                        <div className="min-w-0">
-                          <p className="text-xs text-gray-500">WhatsApp</p>
-                          <p className="font-medium text-green-700 text-sm truncate">{tender.whatsappContact}</p>
-                        </div>
-                      </a>
+                      </>
                     )}
                   </div>
                 </div>
-              )}
-
-              {tender.inquiryType !== 'inside_bid' && tender.inquiryType !== 'email_whatsapp' && (
-                <p className="text-gray-600">{INQUIRY_TYPE_LABELS[tender.inquiryType!] || tender.inquiryType}</p>
-              )}
+              </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Submit Offer Modal */}
-      {showOfferModal && tender && (
+      {/* Mobile bottom CTA */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <Button
+          className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white py-5 text-base font-semibold rounded-xl"
+          onClick={handleSubmitOffer}
+          disabled={isDeadlinePassed}
+          data-testid="button-submit-offer-mobile"
+        >
+          <Send className="h-5 w-5 mr-2" />
+          Submit Proposal
+        </Button>
+      </div>
+
+      {showOfferModal && (
         <SubmitOfferModal
-          isOpen={showOfferModal}
-          onClose={() => setShowOfferModal(false)}
           tender={{
-            id: tenderId,
+            id: tender.id,
             title: tender.title,
             deadline: tender.deadline,
-            budget: tender.budgetRange || tender.budget,
+            budget: tender.budget,
             submissionType: tender.submissionType,
             videoRequired: tender.videoRequired,
           }}
           requester={{
-            name: tender.profile?.displayName || tender.company?.name || "Unknown",
+            name: displayName || 'Unknown',
             company: tender.company?.name,
           }}
+          isOpen={showOfferModal}
+          onClose={() => setShowOfferModal(false)}
         />
       )}
     </div>

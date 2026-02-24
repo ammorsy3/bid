@@ -169,11 +169,16 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   const verificationStatus = activeCompany?.verificationStatus || 'not_verified';
   const canSubmitOffer = verificationStatus === 'verified' || verificationStatus === 'under_review';
 
-  const schema = useMemo(() => getSchema(tender.submissionType, tender.videoRequired, uploadMode), [tender.submissionType, tender.videoRequired, uploadMode]);
   const requiredFields = useMemo(() => getRequiredFields(tender.submissionType, uploadMode), [tender.submissionType, uploadMode]);
 
+  const schemaRef = { current: getSchema(tender.submissionType, tender.videoRequired, uploadMode) };
+  schemaRef.current = getSchema(tender.submissionType, tender.videoRequired, uploadMode);
+
   const form = useForm<SubmitOfferForm>({
-    resolver: zodResolver(schema),
+    resolver: async (values, context, options) => {
+      const currentSchema = schemaRef.current;
+      return zodResolver(currentSchema)(values, context, options);
+    },
     defaultValues: {
       technicalFileUrl: "",
       financialFileUrl: "",
@@ -186,7 +191,6 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
 
   useEffect(() => {
     form.clearErrors();
-    form.trigger();
   }, [uploadMode]);
 
   const formValues = form.watch();

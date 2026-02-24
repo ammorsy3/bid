@@ -9,7 +9,7 @@ import {
   Video, Play, Pause, AlertCircle, Target, ListChecks, Star,
   Mail, Phone, MessageSquare, Flag, HelpCircle, Shield, Layers,
   Tag, Mic, ExternalLink, EyeOff, CheckCircle2, ChevronRight,
-  ArrowRight, Hash, Briefcase, ClipboardCheck
+  Hash, ClipboardCheck
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -248,7 +248,7 @@ function AudioPlayer({ src }: { src: string }) {
   );
 }
 
-type TabId = 'overview' | 'deliverables' | 'timeline' | 'evaluation' | 'requirements' | 'media' | 'qa';
+type SectionId = 'overview' | 'deliverables' | 'timeline' | 'evaluation' | 'requirements' | 'media';
 
 export default function TenderInviteLink() {
   const [, params] = useRoute("/invite/:id");
@@ -258,7 +258,6 @@ export default function TenderInviteLink() {
   const { user } = useAuthStore();
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [newQuestion, setNewQuestion] = useState('');
-  const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [expandedEvalCategories, setExpandedEvalCategories] = useState<Record<string, boolean>>({});
 
   const { data: questions = [] } = useQuery<TenderQA[]>({
@@ -423,16 +422,21 @@ export default function TenderInviteLink() {
   const logoUrl = companyProfile?.profile?.logoUrl || tender.profile?.logoUrl;
   const displayName = companyProfile?.profile?.displayName || tender.profile?.displayName || tender.company?.name;
 
-  const allTabs: { id: TabId; label: string; icon: any; show: boolean }[] = [
-    { id: 'overview', label: 'Overview', icon: FileText, show: true },
-    { id: 'deliverables', label: 'Deliverables', icon: ListChecks, show: hasDeliverables || false },
-    { id: 'timeline', label: 'Timeline', icon: Flag, show: hasMilestones || false },
-    { id: 'evaluation', label: 'Evaluation', icon: Star, show: hasEvalCriteria || false },
-    { id: 'requirements', label: 'Requirements', icon: ClipboardCheck, show: !!(tender.submissionType || hasSkills) },
-    { id: 'media', label: 'Media', icon: Mic, show: hasMedia },
-    { id: 'qa', label: `Q&A${questions.length > 0 ? ` (${questions.length})` : ''}`, icon: MessageSquare, show: tender.inquiryType === 'inside_bid' },
+  const allSections: { id: SectionId; label: string; icon: any; show: boolean }[] = [
+    { id: 'overview', label: 'Project Description', icon: FileText, show: true },
+    { id: 'deliverables', label: 'Scope of Work & Deliverables', icon: ListChecks, show: hasDeliverables || false },
+    { id: 'timeline', label: 'Milestones & Payment Schedule', icon: Flag, show: hasMilestones || false },
+    { id: 'evaluation', label: 'Evaluation Criteria', icon: Star, show: hasEvalCriteria || false },
+    { id: 'requirements', label: 'Submission Requirements', icon: ClipboardCheck, show: !!(tender.submissionType || hasSkills) },
+    { id: 'media', label: 'Additional Context', icon: Mic, show: hasMedia },
   ];
-  const tabs = allTabs.filter(t => t.show);
+  const sections = allSections.filter(s => s.show);
+  const showQA = tender.inquiryType === 'inside_bid';
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(`section-${id}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -466,7 +470,7 @@ export default function TenderInviteLink() {
 
       {/* Header Section */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-0">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-6">
           {/* Company & Status Row */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -506,7 +510,7 @@ export default function TenderInviteLink() {
           </div>
 
           {/* Key Metrics Strip */}
-          <div className={`grid grid-cols-2 ${tender.pricingModel ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-3 mb-5`}>
+          <div className={`grid grid-cols-2 ${tender.pricingModel ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-3`}>
             <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
               <div className="flex items-center gap-2 mb-1.5">
                 <Calendar className="h-4 w-4 text-[#E25E45]" />
@@ -555,42 +559,49 @@ export default function TenderInviteLink() {
             )}
           </div>
 
-          {/* Tab Bar */}
-          <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar -mb-px">
-            {tabs.map(tab => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
-                    isActive
-                      ? 'border-[#E25E45] text-[#E25E45]'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
 
       {/* Content Area */}
       <div className="bg-gray-50 min-h-[60vh]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
 
-            {/* Tab Content */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div>
+              {/* Table of Contents */}
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Hash className="h-4 w-4 text-gray-400" />
+                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Document Contents</span>
+                </div>
+                <div className="flex flex-wrap gap-x-1 gap-y-1">
+                  {sections.map((section, idx) => {
+                    const Icon = section.icon;
+                    return (
+                      <button
+                        key={section.id}
+                        onClick={() => scrollToSection(section.id)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-[#E25E45] hover:bg-[#E25E45]/5 rounded-lg transition-colors"
+                      >
+                        <span className="text-xs font-mono text-gray-400">{idx + 1}.0</span>
+                        <Icon className="h-3.5 w-3.5" />
+                        <span className="font-medium">{section.label}</span>
+                        {idx < sections.length - 1 && <span className="text-gray-200 ml-1">|</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-              {/* Overview Tab */}
-              {activeTab === 'overview' && (
-                <div className="p-6 sm:p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-1">Project Description</h2>
+              {/* Continuous Document */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+
+                {/* Section: Overview */}
+                <div id="section-overview" className="p-6 sm:p-8 scroll-mt-20">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded">1.0</span>
+                    <h2 className="text-xl font-bold text-gray-900">Project Description</h2>
+                  </div>
                   <p className="text-sm text-gray-400 mb-4">Overview of what this RFP is about and what the requesting organization needs.</p>
                   <div className="prose prose-sm max-w-none">
                     <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]" data-testid="text-description">{tender.description}</p>
@@ -623,418 +634,437 @@ export default function TenderInviteLink() {
                       </div>
                     </div>
                   )}
-
-                  {/* Quick navigation to other tabs */}
-                  <div className="mt-10 pt-6 border-t border-gray-100">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Explore This RFP</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {tabs.filter(t => t.id !== 'overview').map(tab => {
-                        const Icon = tab.icon;
-                        return (
-                          <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-left group"
-                          >
-                            <div className="p-2 rounded-lg bg-white border border-gray-200 group-hover:border-[#E25E45]/30 transition-colors">
-                              <Icon className="h-4 w-4 text-gray-500 group-hover:text-[#E25E45] transition-colors" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900">{tab.label}</p>
-                            </div>
-                            <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-[#E25E45] transition-colors" />
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
                 </div>
-              )}
 
-              {/* Deliverables Tab */}
-              {activeTab === 'deliverables' && hasDeliverables && (
-                <div className="p-6 sm:p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Scope of Work & Deliverables</h2>
-                  <p className="text-sm text-gray-500 mb-6">Your proposal should address each item with pricing and timeline.</p>
-                  <div className="space-y-3">
-                    {tender.deliverables!.map((deliverable, index) => {
-                      if (typeof deliverable === 'string') {
-                        return (
-                          <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
-                            <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-[#E25E45] text-white text-xs font-bold flex items-center justify-center">{index + 1}</span>
-                            <span className="text-gray-800 pt-0.5">{deliverable}</span>
-                          </div>
-                        );
-                      }
-                      return (
-                        <div key={deliverable.id || index} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-start gap-3 flex-1 min-w-0">
-                              <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-[#E25E45] text-white text-xs font-bold flex items-center justify-center mt-0.5">{index + 1}</span>
-                              <div>
-                                <p className="font-semibold text-gray-900">{deliverable.name}</p>
-                                {deliverable.description && (
-                                  <p className="text-sm text-gray-600 mt-1 leading-relaxed">{deliverable.description}</p>
-                                )}
-                              </div>
-                            </div>
-                            <span className="flex-shrink-0 inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold bg-[#E25E45]/10 text-[#E25E45]">
-                              {deliverable.quantity} x {deliverable.unit}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="mt-5 p-4 bg-amber-50 border border-amber-100 rounded-xl">
-                    <p className="text-sm text-amber-800 flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                      Vendors are expected to provide a line-by-line cost breakdown for each deliverable.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Timeline / Milestones Tab */}
-              {activeTab === 'timeline' && hasMilestones && (
-                <div className="p-6 sm:p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Milestones & Payment Schedule</h2>
-                  <p className="text-sm text-gray-500 mb-6">Payments are released upon completion and acceptance of each milestone.</p>
-                  <div className="space-y-4">
-                    {tender.milestones!.map((milestone, index) => (
-                      <div key={milestone.id || index} className="relative flex gap-4">
-                        {/* Timeline line */}
-                        {index < tender.milestones!.length - 1 && (
-                          <div className="absolute left-[19px] top-10 bottom-0 w-0.5 bg-gradient-to-b from-[#E25E45]/40 to-[#E25E45]/10" />
-                        )}
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#E25E45] text-white font-bold text-sm flex items-center justify-center z-10">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1 pb-4">
-                          <div className="bg-gray-50 rounded-xl border border-gray-100 p-4">
-                            <p className="font-semibold text-gray-900 text-base">{milestone.name}</p>
-                            {milestone.description && <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">{milestone.description}</p>}
-                            <div className="flex items-center gap-4 mt-3 flex-wrap">
-                              {milestone.dueDate && (
-                                <span className="inline-flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-1.5 rounded-lg border border-gray-100">
-                                  <Calendar className="h-3.5 w-3.5" /> {formatDate(milestone.dueDate)}
-                                </span>
-                              )}
-                              {milestone.amount && (
-                                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#E25E45] bg-[#E25E45]/5 px-3 py-1.5 rounded-lg">
-                                  <DollarSign className="h-3.5 w-3.5" /> SAR {Number(milestone.amount).toLocaleString()}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
+                {/* Section: Deliverables */}
+                {hasDeliverables && (
+                  <>
+                    <div className="mx-6 sm:mx-8 border-t border-gray-100" />
+                    <div id="section-deliverables" className="p-6 sm:p-8 scroll-mt-20">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded">{sections.findIndex(s => s.id === 'deliverables') + 1}.0</span>
+                        <h2 className="text-xl font-bold text-gray-900">Scope of Work & Deliverables</h2>
                       </div>
-                    ))}
-                  </div>
-                  {tender.milestones!.some(m => m.amount) && (
-                    <div className="mt-4 p-4 bg-[#E25E45]/5 rounded-xl border border-[#E25E45]/10 flex items-center justify-between">
-                      <span className="text-sm text-gray-600 font-medium">Total milestone value</span>
-                      <span className="text-lg font-bold text-gray-900">SAR {tender.milestones!.reduce((sum, m) => sum + (Number(m.amount) || 0), 0).toLocaleString()}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Evaluation Tab */}
-              {activeTab === 'evaluation' && hasEvalCriteria && (
-                <div className="p-6 sm:p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Evaluation Criteria</h2>
-                  <p className="text-sm text-gray-500 mb-6">Proposals will be scored against these criteria. Address each one in your submission.</p>
-                  {Array.isArray(tender.evaluationCriteria) ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {tender.evaluationCriteria.map((criteria: any, index: number) => {
-                        const label = typeof criteria === 'string' ? (CRITERIA_LABELS[criteria] || criteria) : (criteria.name || criteria);
-                        return (
-                          <div key={index} className="flex items-center gap-3 p-4 bg-amber-50/50 rounded-xl border border-amber-100">
-                            <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                              <Star className="h-4 w-4 text-amber-600" />
-                            </div>
-                            <span className="font-medium text-gray-800">{label}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {tender.evaluationCriteria.weights?.map((w: any) => {
-                        const catInfo = EVAL_CATEGORY_INFO[w.categoryId];
-                        const catRequirements = (tender.evaluationCriteria.requirements || []).filter((r: any) => r.categoryId === w.categoryId);
-                        const isExpanded = expandedEvalCategories[w.categoryId] || false;
-                        return (
-                          <div key={w.categoryId} className="rounded-xl border border-gray-200 overflow-hidden">
-                            <button
-                              type="button"
-                              onClick={() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] }))}
-                              className="w-full flex items-center gap-3 px-5 py-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
-                            >
-                              <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
-                              <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-gray-900">{catInfo?.name || w.categoryId}</p>
-                                <p className="text-xs text-gray-500 mt-0.5">{catInfo?.description || ''}</p>
+                      <p className="text-sm text-gray-500 mb-6">Your proposal should address each item with pricing and timeline.</p>
+                      <div className="space-y-3">
+                        {tender.deliverables!.map((deliverable, index) => {
+                          if (typeof deliverable === 'string') {
+                            return (
+                              <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+                                <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-[#E25E45] text-white text-xs font-bold flex items-center justify-center">{index + 1}</span>
+                                <span className="text-gray-800 pt-0.5">{deliverable}</span>
                               </div>
-                              <div className="flex-shrink-0 text-right">
-                                <span className="text-2xl font-bold text-[#E25E45]">{w.weight}</span>
-                                <span className="text-xs text-gray-400 ml-0.5">%</span>
-                              </div>
-                            </button>
-                            <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                              <div className="overflow-hidden">
-                                {catRequirements.length > 0 ? (
-                                  <div className="px-5 py-4 space-y-3 border-t border-gray-100">
-                                    {catRequirements.map((req: any, i: number) => {
-                                      const reqInfo = EVAL_REQUIREMENT_INFO[req.requirementId];
-                                      const displayValue = req.value && typeof req.value !== 'boolean'
-                                        ? (reqInfo?.formatValue ? reqInfo.formatValue(String(req.value)) : String(req.value))
-                                        : null;
-                                      return (
-                                        <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                                          <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                                          <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-gray-800">{reqInfo?.label || req.requirementId}</p>
-                                            <p className="text-xs text-gray-500 mt-0.5">{reqInfo?.description || ''}</p>
-                                            {displayValue && <p className="text-xs font-semibold text-[#E25E45] mt-1">{displayValue}</p>}
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
+                            );
+                          }
+                          return (
+                            <div key={deliverable.id || index} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex items-start gap-3 flex-1 min-w-0">
+                                  <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-[#E25E45] text-white text-xs font-bold flex items-center justify-center mt-0.5">{index + 1}</span>
+                                  <div>
+                                    <p className="font-semibold text-gray-900">{deliverable.name}</p>
+                                    {deliverable.description && (
+                                      <p className="text-sm text-gray-600 mt-1 leading-relaxed">{deliverable.description}</p>
+                                    )}
                                   </div>
-                                ) : (
-                                  <div className="px-5 py-4 border-t border-gray-100">
-                                    <p className="text-sm text-gray-400 italic">No specific requirements were set for this category.</p>
-                                  </div>
-                                )}
+                                </div>
+                                <span className="flex-shrink-0 inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold bg-[#E25E45]/10 text-[#E25E45]">
+                                  {deliverable.quantity} x {deliverable.unit}
+                                </span>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                      {tender.evaluationCriteria.customCriteria?.length > 0 && (
-                        <div className="space-y-2 pt-3">
-                          <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Additional Criteria</p>
-                          {tender.evaluationCriteria.customCriteria.map((c: any) => (
-                            <div key={c.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
-                              <span className="text-sm font-medium text-gray-800">{c.text}</span>
-                              <span className="text-sm font-bold text-[#E25E45]">{c.weight}%</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Requirements Tab */}
-              {activeTab === 'requirements' && (
-                <div className="p-6 sm:p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Submission Requirements</h2>
-                  <p className="text-sm text-gray-500 mb-6">Your proposal must follow the format specified below.</p>
-
-                  {tender.submissionType && (
-                    <div className="mb-6">
-                      <div className="flex items-start gap-4 p-5 bg-blue-50 rounded-xl border border-blue-100">
-                        <div className="p-3 bg-blue-100 rounded-xl flex-shrink-0">
-                          <FileText className="h-6 w-6 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-gray-900 text-base">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</p>
-                          <p className="text-sm text-gray-600 mt-1 leading-relaxed">
-                            {tender.submissionType === 'quote_only' && "Submit a detailed price quotation with line-item breakdown for each deliverable."}
-                            {tender.submissionType === 'video_only' && "Record and submit a video pitch presenting your team, methodology, and approach."}
-                            {tender.submissionType === 'tech_fin_proposal' && "Submit a two-part proposal: (1) Technical approach with methodology and timeline, and (2) Financial proposal with detailed pricing."}
-                            {tender.submissionType === 'tech_fin_with_video' && "Submit a complete proposal package: technical document, financial proposal, and a supporting video pitch."}
-                          </p>
-                        </div>
+                          );
+                        })}
                       </div>
-                      {tender.videoRequired && (
-                        <div className="mt-3 flex items-center gap-2 px-4 py-3 bg-orange-50 rounded-xl border border-orange-200">
-                          <Video className="h-4 w-4 text-orange-500 flex-shrink-0" />
-                          <span className="text-sm font-medium text-orange-800">Video submission is mandatory</span>
-                        </div>
-                      )}
+                      <div className="mt-5 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                        <p className="text-sm text-amber-800 flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                          Vendors are expected to provide a line-by-line cost breakdown for each deliverable.
+                        </p>
+                      </div>
                     </div>
-                  )}
+                  </>
+                )}
 
-                  {hasSkills && (
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                        <Tag className="h-5 w-5 text-indigo-500" />
-                        Required Skills & Expertise
-                      </h3>
-                      <p className="text-sm text-gray-500 mb-4">Your team should demonstrate competency in these areas.</p>
-                      <div className="flex flex-wrap gap-2">
-                        {tender.skills!.map((skill, index) => (
-                          <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium border border-indigo-100">
-                            {skill}
-                          </span>
+                {/* Section: Timeline / Milestones */}
+                {hasMilestones && (
+                  <>
+                    <div className="mx-6 sm:mx-8 border-t border-gray-100" />
+                    <div id="section-timeline" className="p-6 sm:p-8 scroll-mt-20">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded">{sections.findIndex(s => s.id === 'timeline') + 1}.0</span>
+                        <h2 className="text-xl font-bold text-gray-900">Milestones & Payment Schedule</h2>
+                      </div>
+                      <p className="text-sm text-gray-500 mb-6">Payments are released upon completion and acceptance of each milestone.</p>
+                      <div className="space-y-4">
+                        {tender.milestones!.map((milestone, index) => (
+                          <div key={milestone.id || index} className="relative flex gap-4">
+                            {index < tender.milestones!.length - 1 && (
+                              <div className="absolute left-[19px] top-10 bottom-0 w-0.5 bg-gradient-to-b from-[#E25E45]/40 to-[#E25E45]/10" />
+                            )}
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#E25E45] text-white font-bold text-sm flex items-center justify-center z-10">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 pb-4">
+                              <div className="bg-gray-50 rounded-xl border border-gray-100 p-4">
+                                <p className="font-semibold text-gray-900 text-base">{milestone.name}</p>
+                                {milestone.description && <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">{milestone.description}</p>}
+                                <div className="flex items-center gap-4 mt-3 flex-wrap">
+                                  {milestone.dueDate && (
+                                    <span className="inline-flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-1.5 rounded-lg border border-gray-100">
+                                      <Calendar className="h-3.5 w-3.5" /> {formatDate(milestone.dueDate)}
+                                    </span>
+                                  )}
+                                  {milestone.amount && (
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#E25E45] bg-[#E25E45]/5 px-3 py-1.5 rounded-lg">
+                                      <DollarSign className="h-3.5 w-3.5" /> SAR {Number(milestone.amount).toLocaleString()}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         ))}
                       </div>
+                      {tender.milestones!.some(m => m.amount) && (
+                        <div className="mt-4 p-4 bg-[#E25E45]/5 rounded-xl border border-[#E25E45]/10 flex items-center justify-between">
+                          <span className="text-sm text-gray-600 font-medium">Total milestone value</span>
+                          <span className="text-lg font-bold text-gray-900">SAR {tender.milestones!.reduce((sum, m) => sum + (Number(m.amount) || 0), 0).toLocaleString()}</span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </>
+                )}
 
-                  {/* Inquiry method info */}
-                  {tender.inquiryType && tender.inquiryType !== 'inside_bid' && (
-                    <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact for Questions</h4>
-                      <div className="space-y-2">
-                        {tender.emailContact && (
-                          <a href={`mailto:${tender.emailContact}`} className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
-                            <Mail className="h-4 w-4" /> {tender.emailContact}
-                          </a>
-                        )}
-                        {tender.whatsappContact && (
-                          <a href={`https://wa.me/${tender.whatsappContact.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-emerald-600 hover:underline">
-                            <Phone className="h-4 w-4" /> {tender.whatsappContact}
-                          </a>
-                        )}
+                {/* Section: Evaluation Criteria */}
+                {hasEvalCriteria && (
+                  <>
+                    <div className="mx-6 sm:mx-8 border-t border-gray-100" />
+                    <div id="section-evaluation" className="p-6 sm:p-8 scroll-mt-20">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded">{sections.findIndex(s => s.id === 'evaluation') + 1}.0</span>
+                        <h2 className="text-xl font-bold text-gray-900">Evaluation Criteria</h2>
                       </div>
-                    </div>
-                  )}
-
-                  <div className="mt-6 p-4 bg-gray-100 rounded-xl">
-                    <p className="text-sm text-gray-500">All submissions must be received before the deadline. Late submissions will not be accepted.</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Media Tab */}
-              {activeTab === 'media' && hasMedia && (
-                <div className="p-6 sm:p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Additional Context</h2>
-                  <p className="text-sm text-gray-500 mb-6">The requester has provided additional media. Review carefully before preparing your proposal.</p>
-                  <div className="space-y-6">
-                    {tender.voiceNoteUrl && (
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                          <Mic className="h-4 w-4 text-pink-500" /> Voice Note
-                        </h3>
-                        {user ? (
-                          <AudioPlayer src={tender.voiceNoteUrl} />
-                        ) : (
-                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                <Play className="h-5 w-5 text-gray-400" />
+                      <p className="text-sm text-gray-500 mb-6">Proposals will be scored against these criteria. Address each one in your submission.</p>
+                      {Array.isArray(tender.evaluationCriteria) ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {tender.evaluationCriteria.map((criteria: any, index: number) => {
+                            const label = typeof criteria === 'string' ? (CRITERIA_LABELS[criteria] || criteria) : (criteria.name || criteria);
+                            return (
+                              <div key={index} className="flex items-center gap-3 p-4 bg-amber-50/50 rounded-xl border border-amber-100">
+                                <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                  <Star className="h-4 w-4 text-amber-600" />
+                                </div>
+                                <span className="font-medium text-gray-800">{label}</span>
                               </div>
-                              <div>
-                                <p className="font-medium text-gray-900">Voice note available</p>
-                                <p className="text-sm text-gray-500">Log in to listen</p>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {tender.evaluationCriteria.weights?.map((w: any) => {
+                            const catInfo = EVAL_CATEGORY_INFO[w.categoryId];
+                            const catRequirements = (tender.evaluationCriteria.requirements || []).filter((r: any) => r.categoryId === w.categoryId);
+                            const isExpanded = expandedEvalCategories[w.categoryId] || false;
+                            return (
+                              <div key={w.categoryId} className="rounded-xl border border-gray-200 overflow-hidden">
+                                <button
+                                  type="button"
+                                  onClick={() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] }))}
+                                  className="w-full flex items-center gap-3 px-5 py-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                                >
+                                  <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-gray-900">{catInfo?.name || w.categoryId}</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">{catInfo?.description || ''}</p>
+                                  </div>
+                                  <div className="flex-shrink-0 text-right">
+                                    <span className="text-2xl font-bold text-[#E25E45]">{w.weight}</span>
+                                    <span className="text-xs text-gray-400 ml-0.5">%</span>
+                                  </div>
+                                </button>
+                                <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                                  <div className="overflow-hidden">
+                                    {catRequirements.length > 0 ? (
+                                      <div className="px-5 py-4 space-y-3 border-t border-gray-100">
+                                        {catRequirements.map((req: any, i: number) => {
+                                          const reqInfo = EVAL_REQUIREMENT_INFO[req.requirementId];
+                                          const displayValue = req.value && typeof req.value !== 'boolean'
+                                            ? (reqInfo?.formatValue ? reqInfo.formatValue(String(req.value)) : String(req.value))
+                                            : null;
+                                          return (
+                                            <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                              <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                              <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-gray-800">{reqInfo?.label || req.requirementId}</p>
+                                                <p className="text-xs text-gray-500 mt-0.5">{reqInfo?.description || ''}</p>
+                                                {displayValue && <p className="text-xs font-semibold text-[#E25E45] mt-1">{displayValue}</p>}
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    ) : (
+                                      <div className="px-5 py-4 border-t border-gray-100">
+                                        <p className="text-sm text-gray-400 italic">No specific requirements were set for this category.</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
+                            );
+                          })}
+                          {tender.evaluationCriteria.customCriteria?.length > 0 && (
+                            <div className="space-y-2 pt-3">
+                              <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Additional Criteria</p>
+                              {tender.evaluationCriteria.customCriteria.map((c: any) => (
+                                <div key={c.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                  <span className="text-sm font-medium text-gray-800">{c.text}</span>
+                                  <span className="text-sm font-bold text-[#E25E45]">{c.weight}%</span>
+                                </div>
+                              ))}
                             </div>
-                            <Button size="sm" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }} data-testid="button-login-voice">Login</Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {tender.videoUrl && (
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                          <Video className="h-4 w-4 text-blue-500" /> Video Explanation
-                        </h3>
-                        <a href={tender.videoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors font-medium">
-                          <ExternalLink className="h-4 w-4" /> Watch Video
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Q&A Tab */}
-              {activeTab === 'qa' && (
-                <div className="p-6 sm:p-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Questions & Answers</h2>
-                  <div className="flex items-center gap-2 mb-6">
-                    <Shield className="h-4 w-4 text-emerald-500" />
-                    <p className="text-sm text-gray-500">All questions are posted anonymously.</p>
-                  </div>
-
-                  {/* Ask question */}
-                  {user ? (
-                    <div className="mb-8 p-5 bg-gray-50 rounded-xl border border-gray-200">
-                      <h3 className="text-sm font-semibold text-gray-900 mb-3">Ask a Question</h3>
-                      <Textarea
-                        value={newQuestion}
-                        onChange={(e) => setNewQuestion(e.target.value)}
-                        placeholder="Type your question about this RFP..."
-                        className="min-h-[80px] bg-white border-gray-200 resize-none mb-3"
-                        data-testid="input-question"
-                      />
-                      <Button
-                        size="sm"
-                        className="bg-[#E25E45] hover:bg-[#d54d35]"
-                        onClick={() => newQuestion.trim() && askQuestion.mutate(newQuestion.trim())}
-                        disabled={askQuestion.isPending || !newQuestion.trim()}
-                        data-testid="button-ask"
-                      >
-                        {askQuestion.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
-                        Submit Question
-                      </Button>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="mb-8 p-5 bg-gray-50 rounded-xl border border-gray-200 text-center">
-                      <p className="text-sm text-gray-600 mb-3">Log in to ask questions about this RFP</p>
-                      <Button size="sm" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }}>
-                        Login to Ask
-                      </Button>
-                    </div>
-                  )}
+                  </>
+                )}
 
-                  {/* Question list */}
-                  {questions.length > 0 ? (
-                    <div className="space-y-4">
-                      {questions.map((qa) => (
-                        <div key={qa.id} className="p-4 rounded-xl border border-gray-100 bg-white">
-                          <div className="flex items-start gap-3">
-                            <div className="p-1.5 rounded-lg bg-blue-50 flex-shrink-0 mt-0.5">
-                              <HelpCircle className="h-4 w-4 text-blue-500" />
+                {/* Section: Submission Requirements */}
+                {!!(tender.submissionType || hasSkills) && (
+                  <>
+                    <div className="mx-6 sm:mx-8 border-t border-gray-100" />
+                    <div id="section-requirements" className="p-6 sm:p-8 scroll-mt-20">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded">{sections.findIndex(s => s.id === 'requirements') + 1}.0</span>
+                        <h2 className="text-xl font-bold text-gray-900">Submission Requirements</h2>
+                      </div>
+                      <p className="text-sm text-gray-500 mb-6">Your proposal must follow the format specified below.</p>
+
+                      {tender.submissionType && (
+                        <div className="mb-6">
+                          <div className="flex items-start gap-4 p-5 bg-blue-50 rounded-xl border border-blue-100">
+                            <div className="p-3 bg-blue-100 rounded-xl flex-shrink-0">
+                              <FileText className="h-6 w-6 text-blue-600" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm text-gray-800 font-medium">{qa.question}</p>
-                              <p className="text-xs text-gray-400 mt-1">
-                                Asked {new Date(qa.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            <div>
+                              <p className="font-bold text-gray-900 text-base">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</p>
+                              <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                                {tender.submissionType === 'quote_only' && "Submit a detailed price quotation with line-item breakdown for each deliverable."}
+                                {tender.submissionType === 'video_only' && "Record and submit a video pitch presenting your team, methodology, and approach."}
+                                {tender.submissionType === 'tech_fin_proposal' && "Submit a two-part proposal: (1) Technical approach with methodology and timeline, and (2) Financial proposal with detailed pricing."}
+                                {tender.submissionType === 'tech_fin_with_video' && "Submit a complete proposal package: technical document, financial proposal, and a supporting video pitch."}
                               </p>
                             </div>
                           </div>
-                          {qa.answer && (
-                            <div className="mt-3 ml-9 p-3 bg-emerald-50 rounded-lg border border-emerald-100">
-                              <p className="text-sm text-gray-700">{qa.answer}</p>
-                              {qa.answeredAt && (
-                                <p className="text-xs text-emerald-600 mt-1 font-medium">
-                                  Answered {new Date(qa.answeredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                          {!qa.answer && (
-                            <div className="mt-3 ml-9">
-                              <span className="text-xs text-gray-400 italic">Awaiting response from requester</span>
+                          {tender.videoRequired && (
+                            <div className="mt-3 flex items-center gap-2 px-4 py-3 bg-orange-50 rounded-xl border border-orange-200">
+                              <Video className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                              <span className="text-sm font-medium text-orange-800">Video submission is mandatory</span>
                             </div>
                           )}
                         </div>
-                      ))}
+                      )}
+
+                      {hasSkills && (
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                            <Tag className="h-5 w-5 text-indigo-500" />
+                            Required Skills & Expertise
+                          </h3>
+                          <p className="text-sm text-gray-500 mb-4">Your team should demonstrate competency in these areas.</p>
+                          <div className="flex flex-wrap gap-2">
+                            {tender.skills!.map((skill, index) => (
+                              <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium border border-indigo-100">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {tender.inquiryType && tender.inquiryType !== 'inside_bid' && (
+                        <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                          <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact for Questions</h4>
+                          <div className="space-y-2">
+                            {tender.emailContact && (
+                              <a href={`mailto:${tender.emailContact}`} className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
+                                <Mail className="h-4 w-4" /> {tender.emailContact}
+                              </a>
+                            )}
+                            {tender.whatsappContact && (
+                              <a href={`https://wa.me/${tender.whatsappContact.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-emerald-600 hover:underline">
+                                <Phone className="h-4 w-4" /> {tender.whatsappContact}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="mt-6 p-4 bg-gray-100 rounded-xl">
+                        <p className="text-sm text-gray-500">All submissions must be received before the deadline. Late submissions will not be accepted.</p>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="text-center py-10 text-gray-400">
-                      <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-40" />
-                      <p className="text-sm">No questions yet. Be the first to ask!</p>
+                  </>
+                )}
+
+                {/* Section: Media */}
+                {hasMedia && (
+                  <>
+                    <div className="mx-6 sm:mx-8 border-t border-gray-100" />
+                    <div id="section-media" className="p-6 sm:p-8 scroll-mt-20">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded">{sections.findIndex(s => s.id === 'media') + 1}.0</span>
+                        <h2 className="text-xl font-bold text-gray-900">Additional Context</h2>
+                      </div>
+                      <p className="text-sm text-gray-500 mb-6">The requester has provided additional media. Review carefully before preparing your proposal.</p>
+                      <div className="space-y-6">
+                        {tender.voiceNoteUrl && (
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                              <Mic className="h-4 w-4 text-pink-500" /> Voice Note
+                            </h3>
+                            {user ? (
+                              <AudioPlayer src={tender.voiceNoteUrl} />
+                            ) : (
+                              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                    <Play className="h-5 w-5 text-gray-400" />
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-gray-900">Voice note available</p>
+                                    <p className="text-sm text-gray-500">Log in to listen</p>
+                                  </div>
+                                </div>
+                                <Button size="sm" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }} data-testid="button-login-voice">Login</Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {tender.videoUrl && (
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                              <Video className="h-4 w-4 text-blue-500" /> Video Explanation
+                            </h3>
+                            <a href={tender.videoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors font-medium">
+                              <ExternalLink className="h-4 w-4" /> Watch Video
+                            </a>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </>
+                )}
+              </div>
+
+              {/* Q&A Panel — separate from document */}
+              {showQA && (
+                <div className="mt-8 bg-gradient-to-b from-slate-50 to-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="px-6 sm:px-8 py-5 bg-slate-100 border-b border-slate-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-white rounded-xl shadow-sm border border-slate-200">
+                          <MessageSquare className="h-5 w-5 text-[#E25E45]" />
+                        </div>
+                        <div>
+                          <h2 className="text-lg font-bold text-gray-900">Vendor Inquiries</h2>
+                          <p className="text-xs text-gray-500">Ask questions about this RFP — all inquiries are anonymous</p>
+                        </div>
+                      </div>
+                      {questions.length > 0 && (
+                        <Badge className="bg-white text-gray-700 border border-slate-200 text-xs">
+                          {questions.length} question{questions.length !== 1 ? 's' : ''}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-6 sm:p-8">
+                    {user ? (
+                      <div className="mb-6 p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Shield className="h-4 w-4 text-emerald-500" />
+                          <span className="text-xs font-medium text-emerald-700">Your identity is hidden from the requester</span>
+                        </div>
+                        <Textarea
+                          value={newQuestion}
+                          onChange={(e) => setNewQuestion(e.target.value)}
+                          placeholder="Type your question about this RFP..."
+                          className="min-h-[80px] bg-gray-50 border-gray-200 resize-none mb-3 focus:bg-white"
+                          data-testid="input-question"
+                        />
+                        <Button
+                          size="sm"
+                          className="bg-[#E25E45] hover:bg-[#d54d35]"
+                          onClick={() => newQuestion.trim() && askQuestion.mutate(newQuestion.trim())}
+                          disabled={askQuestion.isPending || !newQuestion.trim()}
+                          data-testid="button-ask"
+                        >
+                          {askQuestion.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+                          Submit Question
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="mb-6 p-5 bg-white rounded-xl border border-slate-200 text-center shadow-sm">
+                        <p className="text-sm text-gray-600 mb-3">Log in to ask questions about this RFP</p>
+                        <Button size="sm" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }}>
+                          Login to Ask
+                        </Button>
+                      </div>
+                    )}
+
+                    {questions.length > 0 ? (
+                      <div className="space-y-4">
+                        {questions.map((qa) => (
+                          <div key={qa.id} className="p-4 rounded-xl border border-gray-100 bg-white">
+                            <div className="flex items-start gap-3">
+                              <div className="p-1.5 rounded-lg bg-blue-50 flex-shrink-0 mt-0.5">
+                                <HelpCircle className="h-4 w-4 text-blue-500" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-gray-800 font-medium">{qa.question}</p>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  Asked {new Date(qa.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </p>
+                              </div>
+                            </div>
+                            {qa.answer && (
+                              <div className="mt-3 ml-9 p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+                                <p className="text-sm text-gray-700">{qa.answer}</p>
+                                {qa.answeredAt && (
+                                  <p className="text-xs text-emerald-600 mt-1 font-medium">
+                                    Answered {new Date(qa.answeredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            {!qa.answer && (
+                              <div className="mt-3 ml-9">
+                                <span className="text-xs text-gray-400 italic">Awaiting response from requester</span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-400">
+                        <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                        <p className="text-sm">No questions yet. Be the first to ask!</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Sidebar - Submit CTA */}
             <div className="hidden lg:block">
-              <div className="sticky top-4 space-y-4">
+              <div className="sticky top-20 space-y-4">
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
                   <h3 className="font-bold text-gray-900 mb-1">Ready to Submit?</h3>
-                  <p className="text-sm text-gray-500 mb-5">
+                  <p className="text-sm text-gray-500 mb-4">
                     {isDeadlinePassed
                       ? 'This RFP is no longer accepting submissions.'
                       : `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining to submit your proposal.`}
@@ -1053,50 +1083,37 @@ export default function TenderInviteLink() {
                   )}
                 </div>
 
-                {/* Quick info card */}
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
-                  <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Quick Info</h4>
-                  <div className="space-y-3">
-                    {tender.submissionType && (
-                      <>
+                {(tender.submissionType || tender.pricingModel || tender.category) && (
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
+                    <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Quick Info</h4>
+                    <div className="space-y-3">
+                      {tender.submissionType && (
+                        <>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500">Format</span>
+                            <span className="font-medium text-gray-900 text-right text-xs">{SUBMISSION_TYPE_LABELS[tender.submissionType]}</span>
+                          </div>
+                          <div className="border-t border-gray-50" />
+                        </>
+                      )}
+                      {tender.pricingModel && (
+                        <>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500">Pricing</span>
+                            <span className="font-medium text-gray-900 capitalize text-xs">{tender.pricingModel === 'fixed' ? 'Fixed' : tender.pricingModel === 'milestone' ? 'Milestone' : tender.pricingModel}</span>
+                          </div>
+                          <div className="border-t border-gray-50" />
+                        </>
+                      )}
+                      {tender.category && (
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500">Submission Format</span>
-                          <span className="font-medium text-gray-900 text-right">{SUBMISSION_TYPE_LABELS[tender.submissionType]}</span>
+                          <span className="text-gray-500">Category</span>
+                          <span className="font-medium text-gray-900 text-xs">{tender.category}</span>
                         </div>
-                        <div className="border-t border-gray-50" />
-                      </>
-                    )}
-                    {tender.pricingModel && (
-                      <>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500">Pricing Model</span>
-                          <span className="font-medium text-gray-900 capitalize">{tender.pricingModel === 'fixed' ? 'Fixed' : tender.pricingModel === 'milestone' ? 'Milestone' : tender.pricingModel}</span>
-                        </div>
-                        <div className="border-t border-gray-50" />
-                      </>
-                    )}
-                    {tender.category && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-500">Category</span>
-                        <span className="font-medium text-gray-900">{tender.category}</span>
-                      </div>
-                    )}
-                    {tender.inquiryType && tender.inquiryType !== 'inside_bid' && (
-                      <>
-                        <div className="border-t border-gray-50" />
-                        <div className="text-sm">
-                          <span className="text-gray-500 block mb-1">Contact</span>
-                          {tender.emailContact && (
-                            <a href={`mailto:${tender.emailContact}`} className="text-blue-600 hover:underline block text-xs truncate">{tender.emailContact}</a>
-                          )}
-                          {tender.whatsappContact && (
-                            <a href={`https://wa.me/${tender.whatsappContact.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline block text-xs">{tender.whatsappContact}</a>
-                          )}
-                        </div>
-                      </>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

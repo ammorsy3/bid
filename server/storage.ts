@@ -1048,14 +1048,12 @@ export class DatabaseStorage implements IStorage {
     // Task 6: Check if user has visited settings
     const hasVisitedSettings = await this.hasUserVisitedSettings(userId);
 
-    // Count completed tasks
     const completedCount = [
       hasTender,
       hasCompletedProfile,
       hasProfilePicture,
       hasVendors,
       hasReviewedProposal,
-      hasVisitedSettings
     ].filter(Boolean).length;
 
     return {

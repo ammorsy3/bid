@@ -435,20 +435,20 @@ export default function TenderInviteLink() {
   const tabs = allTabs.filter(t => t.show);
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
+    <div className="min-h-screen bg-gray-50">
       {/* Top Nav */}
-      <nav className="border-b border-white/10">
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <img
             src={logoPath}
             alt="Bid"
-            className="h-9 cursor-pointer hover:opacity-80 transition-opacity brightness-0 invert"
+            className="h-9 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => navigate("/")}
           />
           <div className="flex items-center gap-3">
             {!user ? (
               <>
-                <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10" onClick={() => navigate("/login")} data-testid="button-login">
+                <Button variant="ghost" size="sm" onClick={() => navigate("/login")} data-testid="button-login">
                   Login
                 </Button>
                 <Button size="sm" className="bg-[#E25E45] hover:bg-[#d54d35] text-white" onClick={() => navigate("/signup")} data-testid="button-signup">
@@ -456,7 +456,7 @@ export default function TenderInviteLink() {
                 </Button>
               </>
             ) : (
-              <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10" onClick={() => navigate("/dashboard")} data-testid="button-dashboard">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} data-testid="button-dashboard">
                 Dashboard
               </Button>
             )}
@@ -464,106 +464,98 @@ export default function TenderInviteLink() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <div className="bg-gradient-to-b from-[#0f172a] to-[#1e293b] pb-0">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-6">
+      {/* Header Section */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-0">
           {/* Company & Status Row */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               {logoUrl ? (
-                <img src={logoUrl} alt={displayName} className="w-11 h-11 rounded-xl object-cover border-2 border-white/20" />
+                <img src={logoUrl} alt={displayName} className="w-10 h-10 rounded-xl object-cover border border-gray-200" />
               ) : (
-                <div className="w-11 h-11 rounded-xl bg-white/10 border-2 border-white/20 flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-white/50" />
+                <div className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-gray-400" />
                 </div>
               )}
               <div>
-                <p className="text-white font-semibold text-sm">{displayName}</p>
-                <p className="text-white/40 text-xs">Requesting Organization</p>
+                <p className="text-gray-900 font-semibold text-sm">{displayName}</p>
+                <p className="text-gray-400 text-xs">Requesting Organization</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               {tender.status === 'published' && !isDeadlinePassed && (
-                <Badge className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs px-3 py-1" data-testid="badge-status">
+                <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs px-3 py-1" data-testid="badge-status">
                   Open for Submissions
                 </Badge>
               )}
               {isDeadlinePassed && (
-                <Badge className="bg-red-500/20 text-red-300 border border-red-500/30 text-xs px-3 py-1">Closed</Badge>
+                <Badge className="bg-red-50 text-red-700 border border-red-200 text-xs px-3 py-1">Closed</Badge>
               )}
             </div>
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight mb-3" data-testid="text-tender-title">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2" data-testid="text-tender-title">
             {tender.title}
           </h1>
-          <div className="flex items-center gap-3 text-white/40 text-sm mb-8">
+          <div className="flex items-center gap-3 text-gray-400 text-sm mb-5">
             {tender.createdAt && <span>Published {formatDate(tender.createdAt)}</span>}
             <span>·</span>
-            <span className="font-mono">RFP-{tenderId?.slice(0, 8).toUpperCase()}</span>
+            <span className="font-mono text-xs">RFP-{tenderId?.slice(0, 8).toUpperCase()}</span>
           </div>
 
           {/* Key Metrics Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="p-1.5 rounded-lg bg-[#E25E45]/20">
-                  <Calendar className="h-4 w-4 text-[#E25E45]" />
-                </div>
-                <span className="text-white/50 text-xs font-medium uppercase tracking-wider">Deadline</span>
+          <div className={`grid grid-cols-2 ${tender.pricingModel ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-3 mb-5`}>
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Calendar className="h-4 w-4 text-[#E25E45]" />
+                <span className="text-gray-500 text-xs font-medium uppercase tracking-wider">Deadline</span>
               </div>
-              <p className={`font-bold text-sm ${isDeadlinePassed ? 'text-red-400' : daysRemaining <= 3 ? 'text-orange-400' : 'text-white'}`}>
+              <p className={`font-bold text-sm ${isDeadlinePassed ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-gray-900'}`}>
                 {formatDate(tender.deadline)}
               </p>
-              {!isDeadlinePassed && <p className="text-white/40 text-xs mt-0.5">{daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left</p>}
+              {!isDeadlinePassed && <p className="text-gray-400 text-xs mt-0.5">{daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left</p>}
             </div>
 
-            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="p-1.5 rounded-lg bg-emerald-500/20">
-                  <DollarSign className="h-4 w-4 text-emerald-400" />
-                </div>
-                <span className="text-white/50 text-xs font-medium uppercase tracking-wider">Budget</span>
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+              <div className="flex items-center gap-2 mb-1.5">
+                <DollarSign className="h-4 w-4 text-emerald-500" />
+                <span className="text-gray-500 text-xs font-medium uppercase tracking-wider">Budget</span>
               </div>
-              <p className="font-bold text-sm text-white">{getBudgetDisplay()}</p>
+              <p className="font-bold text-sm text-gray-900">{getBudgetDisplay()}</p>
               {tender.showPriceToVendors === false && (
-                <p className="text-white/40 text-xs mt-0.5 flex items-center gap-1"><EyeOff className="h-3 w-3" /> Range estimate</p>
+                <p className="text-gray-400 text-xs mt-0.5 flex items-center gap-1"><EyeOff className="h-3 w-3" /> Range estimate</p>
               )}
             </div>
 
-            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="p-1.5 rounded-lg bg-blue-500/20">
-                  <Clock className="h-4 w-4 text-blue-400" />
-                </div>
-                <span className="text-white/50 text-xs font-medium uppercase tracking-wider">Duration</span>
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Clock className="h-4 w-4 text-blue-500" />
+                <span className="text-gray-500 text-xs font-medium uppercase tracking-wider">Duration</span>
               </div>
-              <p className="font-bold text-sm text-white">{getDurationDisplay()}</p>
+              <p className="font-bold text-sm text-gray-900">{getDurationDisplay()}</p>
               {(tender.startDate || tender.endDate) && (
-                <p className="text-white/40 text-xs mt-0.5">
+                <p className="text-gray-400 text-xs mt-0.5">
                   {tender.startDate && formatDate(tender.startDate)}{tender.startDate && tender.endDate && ' → '}{tender.endDate && formatDate(tender.endDate)}
                 </p>
               )}
             </div>
 
-            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="p-1.5 rounded-lg bg-purple-500/20">
-                  <Layers className="h-4 w-4 text-purple-400" />
+            {tender.pricingModel && (
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Layers className="h-4 w-4 text-purple-500" />
+                  <span className="text-gray-500 text-xs font-medium uppercase tracking-wider">Model</span>
                 </div>
-                <span className="text-white/50 text-xs font-medium uppercase tracking-wider">Model</span>
+                <p className="font-bold text-sm text-gray-900 capitalize">
+                  {tender.pricingModel === 'fixed' ? 'Fixed Price' : tender.pricingModel === 'milestone' ? 'Milestone-based' : tender.pricingModel}
+                </p>
               </div>
-              <p className="font-bold text-sm text-white capitalize">
-                {tender.pricingModel === 'fixed' ? 'Fixed Price' : tender.pricingModel === 'milestone' ? 'Milestone-based' : tender.pricingModel || 'Not specified'}
-              </p>
-            </div>
+            )}
           </div>
-        </div>
 
-        {/* Tab Bar - sits at bottom of hero, overlapping into content */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar">
+          {/* Tab Bar */}
+          <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar -mb-px">
             {tabs.map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -571,10 +563,10 @@ export default function TenderInviteLink() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-5 py-3 text-sm font-medium rounded-t-xl transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
                     isActive
-                      ? 'bg-white text-gray-900 shadow-lg'
-                      : 'text-white/60 hover:text-white hover:bg-white/10'
+                      ? 'border-[#E25E45] text-[#E25E45]'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -1059,20 +1051,30 @@ export default function TenderInviteLink() {
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
                   <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Quick Info</h4>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Submission Format</span>
-                      <span className="font-medium text-gray-900 text-right">{SUBMISSION_TYPE_LABELS[tender.submissionType || ''] || 'Not specified'}</span>
-                    </div>
-                    <div className="border-t border-gray-50" />
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Pricing Model</span>
-                      <span className="font-medium text-gray-900 capitalize">{tender.pricingModel === 'fixed' ? 'Fixed' : tender.pricingModel === 'milestone' ? 'Milestone' : tender.pricingModel || '–'}</span>
-                    </div>
-                    <div className="border-t border-gray-50" />
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Category</span>
-                      <span className="font-medium text-gray-900">{tender.category || '–'}</span>
-                    </div>
+                    {tender.submissionType && (
+                      <>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-500">Submission Format</span>
+                          <span className="font-medium text-gray-900 text-right">{SUBMISSION_TYPE_LABELS[tender.submissionType]}</span>
+                        </div>
+                        <div className="border-t border-gray-50" />
+                      </>
+                    )}
+                    {tender.pricingModel && (
+                      <>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-500">Pricing Model</span>
+                          <span className="font-medium text-gray-900 capitalize">{tender.pricingModel === 'fixed' ? 'Fixed' : tender.pricingModel === 'milestone' ? 'Milestone' : tender.pricingModel}</span>
+                        </div>
+                        <div className="border-t border-gray-50" />
+                      </>
+                    )}
+                    {tender.category && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-500">Category</span>
+                        <span className="font-medium text-gray-900">{tender.category}</span>
+                      </div>
+                    )}
                     {tender.inquiryType && tender.inquiryType !== 'inside_bid' && (
                       <>
                         <div className="border-t border-gray-50" />

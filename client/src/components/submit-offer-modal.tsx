@@ -14,7 +14,7 @@ import { useAuthStore } from "@/lib/auth";
 import { FileText, DollarSign, AlertTriangle, Clock, ClipboardList, Check, X, ShieldAlert, Video, Info, Files, File } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { enUS } from "date-fns/locale";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useAutosave, DraftStorage } from "@/lib/autosave";
 import { calculateFormProgress } from "@/lib/form-validation";
 import { useFormKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
@@ -171,13 +171,12 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
 
   const requiredFields = useMemo(() => getRequiredFields(tender.submissionType, uploadMode), [tender.submissionType, uploadMode]);
 
-  const schemaRef = { current: getSchema(tender.submissionType, tender.videoRequired, uploadMode) };
+  const schemaRef = useRef(getSchema(tender.submissionType, tender.videoRequired, uploadMode));
   schemaRef.current = getSchema(tender.submissionType, tender.videoRequired, uploadMode);
 
   const form = useForm<SubmitOfferForm>({
     resolver: async (values, context, options) => {
-      const currentSchema = schemaRef.current;
-      return zodResolver(currentSchema)(values, context, options);
+      return zodResolver(schemaRef.current)(values, context, options);
     },
     defaultValues: {
       technicalFileUrl: "",
@@ -200,7 +199,16 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     isOpen
   );
 
-  const progress = calculateFormProgress(form, requiredFields as any);
+  const progress = useMemo(() => {
+    let completed = 0;
+    requiredFields.forEach((field) => {
+      const value = formValues[field as keyof SubmitOfferForm];
+      const isFilled = value !== undefined && value !== null && value !== '' &&
+        (typeof value !== 'number' || (value > 0 && !isNaN(value)));
+      if (isFilled) completed++;
+    });
+    return requiredFields.length > 0 ? Math.round((completed / requiredFields.length) * 100) : 100;
+  }, [formValues, requiredFields]);
 
   const deadlineDate = new Date(tender.deadline);
   const [timeRemaining, setTimeRemaining] = useState('');
@@ -511,8 +519,16 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                           type="number"
                           placeholder="Enter your price in SAR"
                           className="w-full pl-10 pr-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                          value={field.value || ''}
-                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                          value={field.value ?? ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === '') {
+                              field.onChange(undefined);
+                            } else {
+                              const num = Number(val);
+                              field.onChange(isNaN(num) ? undefined : num);
+                            }
+                          }}
                           data-testid="input-quote-price"
                         />
                       </div>

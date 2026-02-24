@@ -490,17 +490,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </Alert>
             )}
             
-            {verificationStatus === 'under_review' && (
-              <Alert className="bg-success-50 border-success-200">
-                <ShieldAlert className="h-4 w-4 text-success-600" />
-                <AlertDescription>
-                  <div>
-                    <strong className="text-success-900">Pre-Qualification Submitted</strong>
-                    <p className="text-sm text-success-800 mt-1">Your pre-qualification is under review. You can submit offers now while we verify your information.</p>
-                  </div>
-                </AlertDescription>
-              </Alert>
-            )}
+
 
             {showQuoteField && (
               <FormField

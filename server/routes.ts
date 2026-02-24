@@ -1950,13 +1950,17 @@ Response must be valid JSON with this exact structure:
       const filePath = req.path;
       
       // If standard ACL check fails, check if user's company owns a tender 
-      // that has a proposal with this file
+      // that has a proposal with this file, or if user's company submitted the proposal
       if (!canAccess && activeCompanyId) {
         const offerWithFile = await storage.getOfferByFileUrl(filePath);
         if (offerWithFile) {
-          const tender = await storage.getTender(offerWithFile.tenderId);
-          if (tender && tender.companyId === activeCompanyId) {
+          if (offerWithFile.companyId === activeCompanyId) {
             canAccess = true;
+          } else {
+            const tender = await storage.getTender(offerWithFile.tenderId);
+            if (tender && tender.companyId === activeCompanyId) {
+              canAccess = true;
+            }
           }
         }
       }

@@ -658,7 +658,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         or(
           eq(offers.technicalFileUrl, fileUrl),
-          eq(offers.financialFileUrl, fileUrl)
+          eq(offers.financialFileUrl, fileUrl),
+          eq(offers.combinedFileUrl, fileUrl)
         )
       )
       .limit(1);

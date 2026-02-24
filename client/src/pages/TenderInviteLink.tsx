@@ -784,7 +784,7 @@ export default function TenderInviteLink() {
                             </button>
                             <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                               <div className="overflow-hidden">
-                                {catRequirements.length > 0 && (
+                                {catRequirements.length > 0 ? (
                                   <div className="px-5 py-4 space-y-3 border-t border-gray-100">
                                     {catRequirements.map((req: any, i: number) => {
                                       const reqInfo = EVAL_REQUIREMENT_INFO[req.requirementId];
@@ -802,6 +802,10 @@ export default function TenderInviteLink() {
                                         </div>
                                       );
                                     })}
+                                  </div>
+                                ) : (
+                                  <div className="px-5 py-4 border-t border-gray-100">
+                                    <p className="text-sm text-gray-400 italic">No specific requirements were set for this category.</p>
                                   </div>
                                 )}
                               </div>

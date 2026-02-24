@@ -92,6 +92,9 @@ interface MyOffer {
   companyId: string;
   technicalFileUrl: string | null;
   financialFileUrl: string | null;
+  combinedFileUrl: string | null;
+  quotePrice: number | null;
+  videoUrl: string | null;
   notes: string | null;
   submittedAt: string;
   status: 'pending' | 'accepted' | 'rejected';
@@ -102,6 +105,7 @@ interface MyOffer {
     deadline: string;
     budget: string | null;
     status: string;
+    submissionType: string | null;
   };
 }
 
@@ -111,6 +115,9 @@ interface IncomingOffer {
   companyId: string;
   technicalFileUrl: string | null;
   financialFileUrl: string | null;
+  combinedFileUrl: string | null;
+  quotePrice: number | null;
+  videoUrl: string | null;
   notes: string | null;
   submittedAt: string;
   status: 'pending' | 'accepted' | 'rejected';
@@ -122,6 +129,7 @@ interface IncomingOffer {
     deadline: string;
     budget: string | null;
     status: string;
+    submissionType: string | null;
   };
   company: {
     id: string;
@@ -1617,7 +1625,7 @@ export default function Dashboard() {
                                   <p className="text-sm mt-2 text-muted-foreground italic">"{offer.notes}"</p>
                                 )}
                               </div>
-                              <div className={`flex gap-2 ${isRtl ? 'mr-4' : 'ml-4'}`}>
+                              <div className={`flex gap-2 flex-wrap ${isRtl ? 'mr-4' : 'ml-4'}`}>
                                 <Button 
                                   variant="outline" 
                                   size="sm"
@@ -1627,6 +1635,16 @@ export default function Dashboard() {
                                   <Eye className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
                                   {t('dashboard.viewTender')}
                                 </Button>
+                                {offer.combinedFileUrl && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)}
+                                    title="Combined Proposal"
+                                  >
+                                    <FileText className="h-4 w-4" />
+                                  </Button>
+                                )}
                                 {offer.technicalFileUrl && (
                                   <Button 
                                     variant="outline" 
@@ -1635,6 +1653,26 @@ export default function Dashboard() {
                                     title="Technical Proposal"
                                   >
                                     <FileText className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {offer.financialFileUrl && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
+                                    title="Financial Proposal"
+                                  >
+                                    <DollarSign className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {offer.videoUrl && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => window.open(offer.videoUrl!, '_blank')}
+                                    title="Video Pitch"
+                                  >
+                                    <Video className="h-4 w-4" />
                                   </Button>
                                 )}
                               </div>
@@ -1737,12 +1775,19 @@ export default function Dashboard() {
                                     </span>
                                   )}
                                 </div>
+                                {offer.quotePrice && (
+                                  <div className="flex items-center gap-1 mt-2">
+                                    <DollarSign className="h-3.5 w-3.5 text-emerald-600" />
+                                    <span className="text-sm font-semibold text-emerald-700">SAR {offer.quotePrice.toLocaleString()}</span>
+                                    <span className="text-xs text-muted-foreground ml-1">(Price Quote)</span>
+                                  </div>
+                                )}
                                 {offer.notes && (
                                   <p className="text-sm mt-2 text-muted-foreground italic">"{offer.notes}"</p>
                                 )}
                               </div>
                               <div className="flex flex-col gap-2 ml-4">
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 flex-wrap">
                                   <Button 
                                     variant="outline" 
                                     size="sm"
@@ -1752,6 +1797,17 @@ export default function Dashboard() {
                                     <Eye className="h-4 w-4 mr-1" />
                                     View
                                   </Button>
+                                  {offer.combinedFileUrl && (
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)}
+                                      title="Combined Proposal (Technical + Financial)"
+                                    >
+                                      <FileText className="h-4 w-4 mr-1" />
+                                      Proposal
+                                    </Button>
+                                  )}
                                   {offer.technicalFileUrl && (
                                     <Button 
                                       variant="outline" 
@@ -1770,6 +1826,16 @@ export default function Dashboard() {
                                       title="Financial Proposal"
                                     >
                                       <DollarSign className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                  {offer.videoUrl && (
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => window.open(offer.videoUrl!, '_blank')}
+                                      title="Video Pitch"
+                                    >
+                                      <Video className="h-4 w-4" />
                                     </Button>
                                   )}
                                 </div>
@@ -2308,30 +2374,69 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-2">
-                {selectedProposal.technicalFileUrl && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => viewAuthenticatedFile(selectedProposal.technicalFileUrl!)}
-                    data-testid="button-modal-tech-file"
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Technical Proposal
-                  </Button>
+              <div className="border-t pt-4">
+                <h4 className="font-medium text-sm text-muted-foreground mb-3">Submitted Materials</h4>
+                
+                {selectedProposal.quotePrice && (
+                  <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg mb-2">
+                    <span className="text-sm text-muted-foreground">Price Quote</span>
+                    <span className="text-lg font-bold text-emerald-700">SAR {selectedProposal.quotePrice.toLocaleString()}</span>
+                  </div>
                 )}
-                {selectedProposal.financialFileUrl && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => viewAuthenticatedFile(selectedProposal.financialFileUrl!)}
-                    data-testid="button-modal-fin-file"
-                  >
-                    <DollarSign className="h-4 w-4 mr-2" />
-                    Financial Proposal
-                  </Button>
+
+                <div className="flex gap-2 flex-wrap">
+                  {selectedProposal.combinedFileUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => viewAuthenticatedFile(selectedProposal.combinedFileUrl!)}
+                      data-testid="button-modal-combined-file"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Combined Proposal
+                    </Button>
+                  )}
+                  {selectedProposal.technicalFileUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => viewAuthenticatedFile(selectedProposal.technicalFileUrl!)}
+                      data-testid="button-modal-tech-file"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Technical Proposal
+                    </Button>
+                  )}
+                  {selectedProposal.financialFileUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => viewAuthenticatedFile(selectedProposal.financialFileUrl!)}
+                      data-testid="button-modal-fin-file"
+                    >
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      Financial Proposal
+                    </Button>
+                  )}
+                  {selectedProposal.videoUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => window.open(selectedProposal.videoUrl!, '_blank')}
+                      data-testid="button-modal-video"
+                    >
+                      <Video className="h-4 w-4 mr-2" />
+                      Video Pitch
+                    </Button>
+                  )}
+                </div>
+
+                {!selectedProposal.combinedFileUrl && !selectedProposal.technicalFileUrl && !selectedProposal.financialFileUrl && !selectedProposal.videoUrl && !selectedProposal.quotePrice && (
+                  <p className="text-sm text-muted-foreground italic">No files or media submitted</p>
                 )}
               </div>
 

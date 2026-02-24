@@ -195,6 +195,7 @@ export const offers = pgTable("offers", {
   // Proposal Files
   technicalFileUrl: text("technical_file_url"),
   financialFileUrl: text("financial_file_url"),
+  combinedFileUrl: text("combined_file_url"),
   notes: text("notes"),
 
   // Submission Type-specific Fields

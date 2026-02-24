@@ -11,7 +11,7 @@ import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { FileText, DollarSign, AlertTriangle, Clock, ClipboardList, Check, X, ShieldAlert, Video, Info } from "lucide-react";
+import { FileText, DollarSign, AlertTriangle, Clock, ClipboardList, Check, X, ShieldAlert, Video, Info, Files, File } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { enUS } from "date-fns/locale";
 import { useState, useEffect, useMemo } from "react";
@@ -23,59 +23,65 @@ import type { UploadResult } from "@uppy/core";
 import { useLocation } from "wouter";
 
 type SubmissionType = 'quote_only' | 'tech_fin_proposal' | 'video_only' | 'tech_fin_with_video';
+type UploadMode = 'combined' | 'separate';
 
-// Base schema for all submission types
 const baseSchema = z.object({
   notes: z.string().optional(),
 });
 
-// Schema for quote_only
 const quoteOnlySchema = baseSchema.extend({
   quotePrice: z.number().min(1, "Price quote is required"),
 });
 
-// Schema for video_only
 const videoOnlySchema = baseSchema.extend({
   videoUrl: z.string().url("Please enter a valid video URL").min(1, "Video URL is required"),
 });
 
-// Schema for tech_fin_proposal (default)
-const techFinSchema = baseSchema.extend({
+const techFinSeparateSchema = baseSchema.extend({
   technicalFileUrl: z.string().min(1, "Technical proposal is required"),
   financialFileUrl: z.string().min(1, "Financial proposal is required"),
 });
 
-// Schema for tech_fin_with_video
-const techFinWithVideoSchema = baseSchema.extend({
+const techFinCombinedSchema = baseSchema.extend({
+  combinedFileUrl: z.string().min(1, "Combined proposal file is required"),
+});
+
+const techFinWithVideoSeparateSchema = baseSchema.extend({
   technicalFileUrl: z.string().min(1, "Technical proposal is required"),
   financialFileUrl: z.string().min(1, "Financial proposal is required"),
   videoUrl: z.string().url("Please enter a valid video URL").optional(),
 });
 
-// Function to get the appropriate schema based on submission type
-function getSchema(submissionType?: SubmissionType, videoRequired?: boolean) {
+const techFinWithVideoCombinedSchema = baseSchema.extend({
+  combinedFileUrl: z.string().min(1, "Combined proposal file is required"),
+  videoUrl: z.string().url("Please enter a valid video URL").optional(),
+});
+
+function getSchema(submissionType?: SubmissionType, videoRequired?: boolean, uploadMode?: UploadMode) {
   switch (submissionType) {
     case 'quote_only':
       return quoteOnlySchema;
     case 'video_only':
       return videoOnlySchema;
-    case 'tech_fin_with_video':
+    case 'tech_fin_with_video': {
+      const base = uploadMode === 'combined' ? techFinWithVideoCombinedSchema : techFinWithVideoSeparateSchema;
       if (videoRequired) {
-        return techFinWithVideoSchema.extend({
+        return base.extend({
           videoUrl: z.string().url("Please enter a valid video URL").min(1, "Video is required for this tender"),
         });
       }
-      return techFinWithVideoSchema;
+      return base;
+    }
     case 'tech_fin_proposal':
     default:
-      return techFinSchema;
+      return uploadMode === 'combined' ? techFinCombinedSchema : techFinSeparateSchema;
   }
 }
 
-// Combined type for all possible form fields
 type SubmitOfferForm = {
   technicalFileUrl?: string;
   financialFileUrl?: string;
+  combinedFileUrl?: string;
   quotePrice?: number;
   videoUrl?: string;
   notes?: string;
@@ -83,7 +89,7 @@ type SubmitOfferForm = {
 
 const SUBMISSION_TYPE_LABELS: Record<string, string> = {
   quote_only: "Price Quote Only",
-  tech_fin_proposal: "Full Proposal",
+  tech_fin_proposal: "Full Proposal (Technical + Financial)",
   video_only: "Video Pitch Only",
   tech_fin_with_video: "Full Proposal + Video",
 };
@@ -107,18 +113,17 @@ interface SubmitOfferModalProps {
 
 const FORM_ID_PREFIX = 'submit-offer-';
 
-// Get required fields based on submission type
-function getRequiredFields(submissionType?: SubmissionType): string[] {
+function getRequiredFields(submissionType?: SubmissionType, uploadMode?: UploadMode): string[] {
   switch (submissionType) {
     case 'quote_only':
       return ['quotePrice'];
     case 'video_only':
       return ['videoUrl'];
     case 'tech_fin_with_video':
-      return ['technicalFileUrl', 'financialFileUrl'];
+      return uploadMode === 'combined' ? ['combinedFileUrl'] : ['technicalFileUrl', 'financialFileUrl'];
     case 'tech_fin_proposal':
     default:
-      return ['technicalFileUrl', 'financialFileUrl'];
+      return uploadMode === 'combined' ? ['combinedFileUrl'] : ['technicalFileUrl', 'financialFileUrl'];
   }
 }
 
@@ -132,11 +137,17 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   const [uploadedFiles, setUploadedFiles] = useState<{
     technical?: string;
     financial?: string;
+    combined?: string;
   }>({});
+  const [uploadMode, setUploadMode] = useState<UploadMode>('separate');
+
+  const showTechFinFields = !tender.submissionType || tender.submissionType === 'tech_fin_proposal' || tender.submissionType === 'tech_fin_with_video';
+  const showQuoteField = tender.submissionType === 'quote_only';
+  const showVideoField = tender.submissionType === 'video_only' || tender.submissionType === 'tech_fin_with_video';
+  const showUploadModeChoice = showTechFinFields;
 
   const FORM_ID = `${FORM_ID_PREFIX}${tender.id}`;
   
-  // Check if user already submitted an offer for this tender
   const { data: existingOffers } = useQuery({
     queryKey: ['/api/my-offers', tender.id],
     enabled: isOpen && !!user && !!activeCompany,
@@ -154,29 +165,28 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
 
   const hasExistingOffer = existingOffers && existingOffers.length > 0;
 
-  // Check verification status - allow both verified and under_review to submit
   const verificationStatus = activeCompany?.verificationStatus || 'not_verified';
   const canSubmitOffer = verificationStatus === 'verified' || verificationStatus === 'under_review';
 
-  // Get the appropriate schema based on submission type
-  const schema = useMemo(() => getSchema(tender.submissionType, tender.videoRequired), [tender.submissionType, tender.videoRequired]);
-  const requiredFields = useMemo(() => getRequiredFields(tender.submissionType), [tender.submissionType]);
-
-  // Determine what fields to show
-  const showTechFinFields = !tender.submissionType || tender.submissionType === 'tech_fin_proposal' || tender.submissionType === 'tech_fin_with_video';
-  const showQuoteField = tender.submissionType === 'quote_only';
-  const showVideoField = tender.submissionType === 'video_only' || tender.submissionType === 'tech_fin_with_video';
+  const schema = useMemo(() => getSchema(tender.submissionType, tender.videoRequired, uploadMode), [tender.submissionType, tender.videoRequired, uploadMode]);
+  const requiredFields = useMemo(() => getRequiredFields(tender.submissionType, uploadMode), [tender.submissionType, uploadMode]);
 
   const form = useForm<SubmitOfferForm>({
     resolver: zodResolver(schema),
     defaultValues: {
       technicalFileUrl: "",
       financialFileUrl: "",
+      combinedFileUrl: "",
       quotePrice: undefined,
       videoUrl: "",
       notes: "",
     },
   });
+
+  useEffect(() => {
+    form.clearErrors();
+    form.trigger();
+  }, [uploadMode]);
 
   const formValues = form.watch();
   const { lastSaved, isSaving, clearDraft, loadDraft } = useAutosave(
@@ -187,7 +197,6 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
 
   const progress = calculateFormProgress(form, requiredFields as any);
 
-  // Calculate time remaining with real-time updates
   const deadlineDate = new Date(tender.deadline);
   const [timeRemaining, setTimeRemaining] = useState('');
   const [isUrgent, setIsUrgent] = useState(false);
@@ -196,7 +205,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     const updateCountdown = () => {
       const now = new Date();
       const remaining = formatDistanceToNow(deadlineDate, { addSuffix: true, locale: enUS });
-      const urgent = deadlineDate.getTime() - now.getTime() < 24 * 60 * 60 * 1000; // Less than 24 hours
+      const urgent = deadlineDate.getTime() - now.getTime() < 24 * 60 * 60 * 1000;
       
       setTimeRemaining(remaining);
       setIsUrgent(urgent);
@@ -204,12 +213,11 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     
     if (isOpen) {
       updateCountdown();
-      const interval = setInterval(updateCountdown, 60000); // Update every minute
+      const interval = setInterval(updateCountdown, 60000);
       return () => clearInterval(interval);
     }
   }, [isOpen, deadlineDate]);
 
-  // Check for existing draft on mount
   useEffect(() => {
     if (isOpen) {
       const draft = DraftStorage.load<SubmitOfferForm>(FORM_ID);
@@ -223,7 +231,6 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     }
   }, [isOpen, FORM_ID]);
 
-  // Keyboard shortcuts
   useFormKeyboardShortcuts({
     onSubmit: () => {
       form.handleSubmit(onSubmit)();
@@ -308,42 +315,43 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   const handleTechnicalUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
     if (result.successful && result.successful[0]) {
       const uploadURL = result.successful[0].uploadURL;
-      
-      // Set ACL metadata
-      const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', {
-        fileURL: uploadURL,
-      });
+      const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
       const { objectPath } = await metadataResponse.json();
-      
       form.setValue('technicalFileUrl', objectPath, { shouldValidate: true, shouldDirty: true });
       setUploadedFiles(prev => ({ ...prev, technical: result.successful![0].name }));
-      
-      toast({
-        title: "Uploaded!",
-        description: "Technical proposal uploaded successfully",
-      });
+      toast({ title: "Uploaded!", description: "Technical proposal uploaded successfully" });
     }
   };
 
   const handleFinancialUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
     if (result.successful && result.successful[0]) {
       const uploadURL = result.successful[0].uploadURL;
-      
-      // Set ACL metadata
-      const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', {
-        fileURL: uploadURL,
-      });
+      const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
       const { objectPath } = await metadataResponse.json();
-      
       form.setValue('financialFileUrl', objectPath, { shouldValidate: true, shouldDirty: true });
       setUploadedFiles(prev => ({ ...prev, financial: result.successful![0].name }));
-      
-      toast({
-        title: "Uploaded!",
-        description: "Financial proposal uploaded successfully",
-      });
+      toast({ title: "Uploaded!", description: "Financial proposal uploaded successfully" });
     }
   };
+
+  const handleCombinedUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    if (result.successful && result.successful[0]) {
+      const uploadURL = result.successful[0].uploadURL;
+      const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
+      const { objectPath } = await metadataResponse.json();
+      form.setValue('combinedFileUrl', objectPath, { shouldValidate: true, shouldDirty: true });
+      setUploadedFiles(prev => ({ ...prev, combined: result.successful![0].name }));
+      toast({ title: "Uploaded!", description: "Proposal file uploaded successfully" });
+    }
+  };
+
+  function handleUploadModeChange(mode: UploadMode) {
+    setUploadMode(mode);
+    setUploadedFiles({});
+    form.setValue('technicalFileUrl', '', { shouldValidate: false });
+    form.setValue('financialFileUrl', '', { shouldValidate: false });
+    form.setValue('combinedFileUrl', '', { shouldValidate: false });
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
@@ -400,7 +408,6 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
         ) : (
           <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Submission Type Info */}
             {tender.submissionType && (
               <Alert className="bg-blue-50 border-blue-200">
                 <Info className="h-4 w-4 text-blue-600" />
@@ -414,7 +421,6 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </Alert>
             )}
 
-            {/* Progress & Deadline */}
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1">
                 <FormProgress
@@ -425,15 +431,22 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                       : showVideoField && !showTechFinFields
                       ? [{ label: 'Video pitch', completed: !!formValues.videoUrl }]
                       : showVideoField && showTechFinFields
-                      ? [
-                          { label: 'Technical proposal', completed: !!formValues.technicalFileUrl && !form.formState.errors.technicalFileUrl },
-                          { label: 'Financial proposal', completed: !!formValues.financialFileUrl && !form.formState.errors.financialFileUrl },
-                          { label: 'Video pitch', completed: !!formValues.videoUrl || !tender.videoRequired },
-                        ]
-                      : [
-                          { label: 'Technical proposal', completed: !!formValues.technicalFileUrl && !form.formState.errors.technicalFileUrl },
-                          { label: 'Financial proposal', completed: !!formValues.financialFileUrl && !form.formState.errors.financialFileUrl },
-                        ]
+                      ? uploadMode === 'combined'
+                        ? [
+                            { label: 'Combined proposal', completed: !!formValues.combinedFileUrl },
+                            { label: 'Video pitch', completed: !!formValues.videoUrl || !tender.videoRequired },
+                          ]
+                        : [
+                            { label: 'Technical proposal', completed: !!formValues.technicalFileUrl && !form.formState.errors.technicalFileUrl },
+                            { label: 'Financial proposal', completed: !!formValues.financialFileUrl && !form.formState.errors.financialFileUrl },
+                            { label: 'Video pitch', completed: !!formValues.videoUrl || !tender.videoRequired },
+                          ]
+                      : uploadMode === 'combined'
+                        ? [{ label: 'Combined proposal', completed: !!formValues.combinedFileUrl }]
+                        : [
+                            { label: 'Technical proposal', completed: !!formValues.technicalFileUrl && !form.formState.errors.technicalFileUrl },
+                            { label: 'Financial proposal', completed: !!formValues.financialFileUrl && !form.formState.errors.financialFileUrl },
+                          ]
                   }
                 />
               </div>
@@ -452,7 +465,6 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </Alert>
             )}
 
-            {/* Verification Status Alert */}
             {!canSubmitOffer && (
               <Alert className="bg-error-50 border-error-200">
                 <ShieldAlert className="h-4 w-4 text-error-600" />
@@ -478,7 +490,6 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </Alert>
             )}
             
-            {/* Under Review Notice */}
             {verificationStatus === 'under_review' && (
               <Alert className="bg-success-50 border-success-200">
                 <ShieldAlert className="h-4 w-4 text-success-600" />
@@ -491,7 +502,6 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </Alert>
             )}
 
-            {/* Quote Price Field (for quote_only) */}
             {showQuoteField && (
               <FormField
                 control={form.control}
@@ -518,7 +528,6 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               />
             )}
 
-            {/* Video URL Field (for video_only or tech_fin_with_video) */}
             {showVideoField && (
               <FormField
                 control={form.control}
@@ -549,84 +558,167 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               />
             )}
 
-            {/* Technical & Financial File Uploads (for tech_fin_proposal or tech_fin_with_video) */}
-            {showTechFinFields && (
+            {showUploadModeChoice && (
               <>
-                <FormField
-                  control={form.control}
-                  name="technicalFileUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Technical Proposal *</FormLabel>
-                      <FormControl>
-                        <div className="space-y-2">
-                          <ObjectUploader
-                            maxNumberOfFiles={1}
-                            maxFileSize={10485760}
-                            allowedFileTypes={['.pdf', '.doc', '.docx']}
-                            onGetUploadParameters={handleGetUploadURL}
-                            onComplete={handleTechnicalUploadComplete}
-                            buttonVariant="outline"
-                            buttonClassName="w-full h-24 border-2 border-dashed"
-                          >
-                            <div className="flex flex-col items-center gap-2">
-                              <FileText className="h-6 w-6 text-neutral-400" />
-                              <div className="text-center">
-                                <p className="text-sm text-neutral-600">Upload technical proposal</p>
-                                <p className="text-xs text-neutral-500">PDF, DOC, DOCX • Max 10MB</p>
-                              </div>
-                            </div>
-                          </ObjectUploader>
-                          {uploadedFiles.technical && (
-                            <div className="flex items-center gap-2 text-sm text-success-600">
-                              <Check className="h-4 w-4" />
-                              <span>{uploadedFiles.technical}</span>
-                            </div>
-                          )}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <p className="text-sm font-medium text-neutral-700 mb-3">How would you like to upload your proposal?</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleUploadModeChange('combined')}
+                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
+                        uploadMode === 'combined'
+                          ? 'border-[#E25E45] bg-[#E25E45]/5'
+                          : 'border-neutral-200 hover:border-neutral-300'
+                      }`}
+                    >
+                      <div className={`p-2 rounded-lg ${uploadMode === 'combined' ? 'bg-[#E25E45]/10' : 'bg-neutral-100'}`}>
+                        <File className={`h-5 w-5 ${uploadMode === 'combined' ? 'text-[#E25E45]' : 'text-neutral-400'}`} />
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${uploadMode === 'combined' ? 'text-[#E25E45]' : 'text-neutral-700'}`}>Single File</p>
+                        <p className="text-xs text-neutral-500">Both technical & financial in one document</p>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleUploadModeChange('separate')}
+                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
+                        uploadMode === 'separate'
+                          ? 'border-[#E25E45] bg-[#E25E45]/5'
+                          : 'border-neutral-200 hover:border-neutral-300'
+                      }`}
+                    >
+                      <div className={`p-2 rounded-lg ${uploadMode === 'separate' ? 'bg-[#E25E45]/10' : 'bg-neutral-100'}`}>
+                        <Files className={`h-5 w-5 ${uploadMode === 'separate' ? 'text-[#E25E45]' : 'text-neutral-400'}`} />
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${uploadMode === 'separate' ? 'text-[#E25E45]' : 'text-neutral-700'}`}>Separate Files</p>
+                        <p className="text-xs text-neutral-500">Upload technical & financial separately</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="financialFileUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Financial Proposal *</FormLabel>
-                      <FormControl>
-                        <div className="space-y-2">
-                          <ObjectUploader
-                            maxNumberOfFiles={1}
-                            maxFileSize={10485760}
-                            allowedFileTypes={['.pdf', '.doc', '.docx', '.xls', '.xlsx']}
-                            onGetUploadParameters={handleGetUploadURL}
-                            onComplete={handleFinancialUploadComplete}
-                            buttonVariant="outline"
-                            buttonClassName="w-full h-24 border-2 border-dashed"
-                          >
-                            <div className="flex flex-col items-center gap-2">
-                              <DollarSign className="h-6 w-6 text-neutral-400" />
-                              <div className="text-center">
-                                <p className="text-sm text-neutral-600">Upload financial proposal</p>
-                                <p className="text-xs text-neutral-500">PDF, DOC, XLS • Max 10MB</p>
+                {uploadMode === 'combined' && (
+                  <FormField
+                    control={form.control}
+                    name="combinedFileUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Combined Proposal (Technical + Financial) *</FormLabel>
+                        <FormControl>
+                          <div className="space-y-2">
+                            <ObjectUploader
+                              maxNumberOfFiles={1}
+                              maxFileSize={10485760}
+                              allowedFileTypes={['.pdf', '.doc', '.docx']}
+                              onGetUploadParameters={handleGetUploadURL}
+                              onComplete={handleCombinedUploadComplete}
+                              buttonVariant="outline"
+                              buttonClassName="w-full h-24 border-2 border-dashed"
+                            >
+                              <div className="flex flex-col items-center gap-2">
+                                <File className="h-6 w-6 text-neutral-400" />
+                                <div className="text-center">
+                                  <p className="text-sm text-neutral-600">Upload your combined proposal</p>
+                                  <p className="text-xs text-neutral-500">One file containing both technical and financial sections • PDF, DOC, DOCX • Max 10MB</p>
+                                </div>
                               </div>
+                            </ObjectUploader>
+                            {uploadedFiles.combined && (
+                              <div className="flex items-center gap-2 text-sm text-success-600">
+                                <Check className="h-4 w-4" />
+                                <span>{uploadedFiles.combined}</span>
+                              </div>
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {uploadMode === 'separate' && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="technicalFileUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Technical Proposal *</FormLabel>
+                          <FormControl>
+                            <div className="space-y-2">
+                              <ObjectUploader
+                                maxNumberOfFiles={1}
+                                maxFileSize={10485760}
+                                allowedFileTypes={['.pdf', '.doc', '.docx']}
+                                onGetUploadParameters={handleGetUploadURL}
+                                onComplete={handleTechnicalUploadComplete}
+                                buttonVariant="outline"
+                                buttonClassName="w-full h-24 border-2 border-dashed"
+                              >
+                                <div className="flex flex-col items-center gap-2">
+                                  <FileText className="h-6 w-6 text-neutral-400" />
+                                  <div className="text-center">
+                                    <p className="text-sm text-neutral-600">Upload technical proposal</p>
+                                    <p className="text-xs text-neutral-500">PDF, DOC, DOCX • Max 10MB</p>
+                                  </div>
+                                </div>
+                              </ObjectUploader>
+                              {uploadedFiles.technical && (
+                                <div className="flex items-center gap-2 text-sm text-success-600">
+                                  <Check className="h-4 w-4" />
+                                  <span>{uploadedFiles.technical}</span>
+                                </div>
+                              )}
                             </div>
-                          </ObjectUploader>
-                          {uploadedFiles.financial && (
-                            <div className="flex items-center gap-2 text-sm text-success-600">
-                              <Check className="h-4 w-4" />
-                              <span>{uploadedFiles.financial}</span>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="financialFileUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Financial Proposal *</FormLabel>
+                          <FormControl>
+                            <div className="space-y-2">
+                              <ObjectUploader
+                                maxNumberOfFiles={1}
+                                maxFileSize={10485760}
+                                allowedFileTypes={['.pdf', '.doc', '.docx', '.xls', '.xlsx']}
+                                onGetUploadParameters={handleGetUploadURL}
+                                onComplete={handleFinancialUploadComplete}
+                                buttonVariant="outline"
+                                buttonClassName="w-full h-24 border-2 border-dashed"
+                              >
+                                <div className="flex flex-col items-center gap-2">
+                                  <DollarSign className="h-6 w-6 text-neutral-400" />
+                                  <div className="text-center">
+                                    <p className="text-sm text-neutral-600">Upload financial proposal</p>
+                                    <p className="text-xs text-neutral-500">PDF, DOC, XLS • Max 10MB</p>
+                                  </div>
+                                </div>
+                              </ObjectUploader>
+                              {uploadedFiles.financial && (
+                                <div className="flex items-center gap-2 text-sm text-success-600">
+                                  <Check className="h-4 w-4" />
+                                  <span>{uploadedFiles.financial}</span>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
               </>
             )}
 
@@ -669,6 +761,12 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                     {format(deadlineDate, 'MMM d, yyyy h:mm a', { locale: enUS })}
                   </span>
                 </div>
+                {showTechFinFields && (
+                  <div className="flex justify-between">
+                    <span>Upload format:</span>
+                    <span className="font-medium">{uploadMode === 'combined' ? 'Single combined file' : 'Separate technical & financial files'}</span>
+                  </div>
+                )}
               </div>
             </div>
 

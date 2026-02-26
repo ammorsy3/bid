@@ -257,7 +257,7 @@ function AudioPlayer({ src }: { src: string }) {
   );
 }
 
-type SectionId = 'scope' | 'timeline' | 'evaluation' | 'submission' | 'context' | 'qa';
+type SectionId = 'scope' | 'timeline' | 'evaluation' | 'submission' | 'context';
 
 export default function TenderInviteLink() {
   const [, params] = useRoute("/invite/:id");
@@ -437,7 +437,6 @@ export default function TenderInviteLink() {
     { id: 'evaluation', label: 'Evaluation Criteria',    icon: Star,          show: !!hasEvalCriteria },
     { id: 'submission', label: 'Submission Requirements',icon: Shield,        show: hasSubmissionSection },
     { id: 'context',    label: 'Additional Context',     icon: Mic,           show: hasMedia },
-    { id: 'qa',         label: 'Vendor Q&A',             icon: MessageSquare, show: showQA },
   ];
   const sections = allSections.filter(s => s.show);
 
@@ -546,6 +545,37 @@ export default function TenderInviteLink() {
             {tender.createdAt && <span>Published {formatDate(tender.createdAt)}</span>}
             <span>·</span>
             <span className="font-mono text-xs">RFP-{tenderId?.slice(0, 8).toUpperCase()}</span>
+          </div>
+
+          {/* Metrics strip */}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold ${isDeadlinePassed ? 'bg-red-50 border-red-200 text-red-700' : isDeadlineToday ? 'bg-orange-50 border-orange-200 text-orange-700' : daysRemaining <= 3 ? 'bg-orange-50/70 border-orange-200 text-orange-700' : 'bg-gray-50 border-gray-200 text-gray-700'}`}>
+              <Calendar className="h-3.5 w-3.5" />
+              {isDeadlinePassed ? 'Closed' : isDeadlineToday ? 'Closes today' : `Due ${formatDate(tender.deadline)}`}
+              {!isDeadlinePassed && !isDeadlineToday && daysRemaining <= 7 && <span className="font-normal opacity-70">· {daysRemaining}d left</span>}
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
+              <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
+              {getBudgetDisplay()}
+            </div>
+            {durationDisplay && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
+                <Clock className="h-3.5 w-3.5 text-blue-400" />
+                {durationDisplay}
+              </div>
+            )}
+            {tender.submissionType && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
+                <FileText className="h-3.5 w-3.5 text-purple-400" />
+                {SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}
+              </div>
+            )}
+            {tender.category && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
+                <Tag className="h-3.5 w-3.5 text-indigo-400" />
+                {tender.category}
+              </div>
+            )}
           </div>
 
         </div>
@@ -1072,99 +1102,6 @@ export default function TenderInviteLink() {
                   </>
                 )}
 
-                {/* §6 Vendor Q&A */}
-                {showQA && (
-                  <>
-                    <SectionDivider />
-                    <SectionObserver id="qa" onVisible={() => setActiveSection('qa')}>
-                      <div id="section-qa" className="p-6 sm:p-8 scroll-mt-24">
-                        <div className="flex items-start justify-between mb-1">
-                          <SectionHeader index={sections.findIndex(s => s.id === 'qa') + 1} title="Vendor Q&A" />
-                          {questions.length > 0 && (
-                            <Badge className="bg-gray-100 text-gray-600 border-gray-200 text-xs mt-1">
-                              {questions.length} question{questions.length !== 1 ? 's' : ''}
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-400 mb-6">Questions from vendors are answered here, anonymously and visible to all participants.</p>
-
-                        {/* Ask a question */}
-                        {user ? (
-                          <div className="mb-6 p-5 bg-gray-50 rounded-xl border border-gray-200">
-                            <div className="flex items-center gap-2 mb-3">
-                              <Shield className="h-4 w-4 text-emerald-500" />
-                              <span className="text-xs font-medium text-emerald-700">Your identity is hidden from the requester</span>
-                            </div>
-                            <Textarea
-                              value={newQuestion}
-                              onChange={(e) => setNewQuestion(e.target.value)}
-                              placeholder="Type your question about this RFP..."
-                              className="min-h-[80px] bg-white border-gray-200 resize-none mb-3 focus:bg-white"
-                              data-testid="input-question"
-                            />
-                            <Button
-                              size="sm"
-                              className="bg-[#E25E45] hover:bg-[#d54d35]"
-                              onClick={() => newQuestion.trim() && askQuestion.mutate(newQuestion.trim())}
-                              disabled={askQuestion.isPending || !newQuestion.trim()}
-                              data-testid="button-ask"
-                            >
-                              {askQuestion.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
-                              Submit Question
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="mb-6 p-5 bg-gray-50 rounded-xl border border-gray-200 text-center">
-                            <p className="text-sm text-gray-600 mb-3">Log in to ask questions about this RFP</p>
-                            <Button size="sm" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }}>
-                              Login to Ask
-                            </Button>
-                          </div>
-                        )}
-
-                        {/* Q&A list */}
-                        {questions.length > 0 ? (
-                          <div className="space-y-4">
-                            {questions.map((qa) => (
-                              <div key={qa.id} className="p-4 rounded-xl border border-gray-100 bg-gray-50">
-                                <div className="flex items-start gap-3">
-                                  <div className="p-1.5 rounded-lg bg-blue-50 flex-shrink-0 mt-0.5">
-                                    <HelpCircle className="h-4 w-4 text-blue-500" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-gray-800 font-medium">{qa.question}</p>
-                                    <p className="text-xs text-gray-400 mt-1">
-                                      Asked {new Date(qa.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                    </p>
-                                  </div>
-                                </div>
-                                {qa.answer ? (
-                                  <div className="mt-3 ml-9 p-3 bg-emerald-50 rounded-lg border border-emerald-100">
-                                    <p className="text-sm text-gray-700">{qa.answer}</p>
-                                    {qa.answeredAt && (
-                                      <p className="text-xs text-emerald-600 mt-1 font-medium">
-                                        Answered {new Date(qa.answeredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                      </p>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div className="mt-3 ml-9">
-                                    <span className="text-xs text-gray-400 italic">Awaiting response from requester</span>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-10 text-gray-400">
-                            <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                            <p className="text-sm">No questions yet. Be the first to ask.</p>
-                          </div>
-                        )}
-                      </div>
-                    </SectionObserver>
-                  </>
-                )}
 
               </div>
               {/* end document */}
@@ -1173,73 +1110,6 @@ export default function TenderInviteLink() {
             {/* ── Sidebar ──────────────────────────────────────────────────────── */}
             <div className="hidden lg:block">
               <div className="sticky top-20 space-y-4">
-
-                {/* At a Glance */}
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">At a Glance</p>
-                  <div className="grid grid-cols-2 gap-2">
-
-                    {/* Deadline */}
-                    <div className={`rounded-lg p-2.5 border ${isDeadlineToday ? 'bg-orange-50 border-orange-200' : isDeadlinePassed ? 'bg-gray-50 border-gray-100' : daysRemaining <= 3 ? 'bg-orange-50/50 border-orange-100' : 'bg-gray-50 border-gray-100'}`}>
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Calendar className={`h-3 w-3 flex-shrink-0 ${isDeadlineToday ? 'text-orange-500' : 'text-[#E25E45]'}`} />
-                        <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Deadline</span>
-                      </div>
-                      <p className={`text-xs font-bold leading-tight ${isDeadlinePassed ? 'text-red-600' : isDeadlineToday || daysRemaining <= 3 ? 'text-orange-600' : 'text-gray-800'}`}>
-                        {formatDate(tender.deadline)}
-                      </p>
-                      {deadlineSubtext() && (
-                        <p className={`text-[10px] mt-0.5 ${isDeadlineToday ? 'text-orange-500' : 'text-gray-400'}`}>{deadlineSubtext()}</p>
-                      )}
-                    </div>
-
-                    {/* Budget */}
-                    <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <DollarSign className="h-3 w-3 flex-shrink-0 text-emerald-500" />
-                        <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Budget</span>
-                      </div>
-                      <p className="text-xs font-bold text-gray-800 leading-tight">{getBudgetDisplay()}</p>
-                      {tender.showPriceToVendors === false && (
-                        <p className="text-[10px] text-gray-400 mt-0.5">Range est.</p>
-                      )}
-                    </div>
-
-                    {/* Duration */}
-                    {durationDisplay && (
-                      <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Clock className="h-3 w-3 flex-shrink-0 text-blue-500" />
-                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Duration</span>
-                        </div>
-                        <p className="text-xs font-bold text-gray-800 leading-tight">{durationDisplay}</p>
-                      </div>
-                    )}
-
-                    {/* Submission Format */}
-                    {tender.submissionType && (
-                      <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <FileText className="h-3 w-3 flex-shrink-0 text-purple-500" />
-                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Format</span>
-                        </div>
-                        <p className="text-xs font-bold text-gray-800 leading-tight">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</p>
-                      </div>
-                    )}
-
-                    {/* Category */}
-                    {tender.category && (
-                      <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100 col-span-2">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Tag className="h-3 w-3 flex-shrink-0 text-indigo-500" />
-                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Category</span>
-                        </div>
-                        <p className="text-xs font-bold text-gray-800 leading-tight">{tender.category}</p>
-                      </div>
-                    )}
-
-                  </div>
-                </div>
 
                 {/* Submit CTA */}
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
@@ -1336,6 +1206,116 @@ export default function TenderInviteLink() {
           </div>
         </div>
       </div>
+
+      {/* ── Vendor Q&A Panel ─────────────────────────────────────────────────── */}
+      {showQA && (
+        <div className="bg-white border-t border-gray-200">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-50 rounded-xl">
+                  <MessageSquare className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Vendor Inquiries</h2>
+                  <p className="text-sm text-gray-400">Questions are answered anonymously and visible to all participants</p>
+                </div>
+              </div>
+              {questions.length > 0 && (
+                <Badge className="bg-blue-50 text-blue-600 border border-blue-200 text-xs">
+                  {questions.length} question{questions.length !== 1 ? 's' : ''}
+                </Badge>
+              )}
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
+              {/* Q&A list */}
+              <div>
+                {questions.length > 0 ? (
+                  <div className="space-y-3">
+                    {questions.map((qa) => (
+                      <div key={qa.id} className="p-4 rounded-xl border border-gray-200 bg-gray-50">
+                        <div className="flex items-start gap-3">
+                          <div className="p-1.5 rounded-lg bg-blue-100 flex-shrink-0 mt-0.5">
+                            <HelpCircle className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-800 font-medium">{qa.question}</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Asked {new Date(qa.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </p>
+                          </div>
+                        </div>
+                        {qa.answer ? (
+                          <div className="mt-3 ml-10 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                            <p className="text-sm text-gray-700">{qa.answer}</p>
+                            {qa.answeredAt && (
+                              <p className="text-xs text-emerald-600 mt-1 font-medium">
+                                Answered {new Date(qa.answeredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="mt-3 ml-10">
+                            <span className="text-xs text-gray-400 italic">Awaiting response from the requester</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-400 border border-dashed border-gray-200 rounded-2xl bg-gray-50">
+                    <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-25" />
+                    <p className="text-sm font-medium">No questions yet</p>
+                    <p className="text-xs mt-1 opacity-60">Be the first to ask a question</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Ask a question form */}
+              <div>
+                {user ? (
+                  <div className="p-5 bg-blue-50 border border-blue-100 rounded-2xl">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Shield className="h-4 w-4 text-emerald-500" />
+                      <span className="text-xs font-semibold text-emerald-700">Your identity is hidden from the requester</span>
+                    </div>
+                    <Textarea
+                      value={newQuestion}
+                      onChange={(e) => setNewQuestion(e.target.value)}
+                      placeholder="Type your question about this RFP..."
+                      className="min-h-[90px] bg-white border-blue-200 resize-none mb-3 focus:ring-blue-300 focus:border-blue-300"
+                      data-testid="input-question"
+                    />
+                    <Button
+                      className="w-full bg-[#E25E45] hover:bg-[#d54d35]"
+                      onClick={() => newQuestion.trim() && askQuestion.mutate(newQuestion.trim())}
+                      disabled={askQuestion.isPending || !newQuestion.trim()}
+                      data-testid="button-ask"
+                    >
+                      {askQuestion.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+                      Submit Question
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="p-6 bg-blue-50 border border-blue-100 rounded-2xl text-center">
+                    <MessageSquare className="h-8 w-8 mx-auto mb-3 text-blue-300" />
+                    <p className="text-sm font-semibold text-gray-800 mb-1">Have a question?</p>
+                    <p className="text-xs text-gray-500 mb-4">Log in to ask the requester anything about this RFP</p>
+                    <Button
+                      size="sm"
+                      className="bg-[#E25E45] hover:bg-[#d54d35]"
+                      onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }}
+                    >
+                      Login to Ask
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile bottom CTA */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">

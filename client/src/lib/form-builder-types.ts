@@ -156,6 +156,7 @@ export const CARD_LIBRARY: {
       label: "Description",
       description: "Detailed project description",
       icon: FileText,
+      isRequired: true,
     },
     {
       type: "submission-deadline",
@@ -251,6 +252,8 @@ function getDefaultValue(type: CardType): any {
   switch (type) {
     case "supplier-response":
       return null; // "quote_only" | "tech_fin_proposal" | "video_only" | "tech_fin_with_video"
+    case "project-description":
+      return { text: "", voiceNoteUrl: "", videoUrl: "" };
     case "project-dates":
       return { startDate: null, endDate: null, deliveryDate: null };
     case "budget":

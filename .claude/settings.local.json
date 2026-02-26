@@ -21,7 +21,8 @@
       "Bash(git remote add:*)",
       "Bash(git push origin main feature/dashboard-overview-improvements replit-agent)",
       "Bash(npx vite build:*)",
-      "Bash(ls /home/runner/workspace/server/ && ls /home/runner/workspace/*.json 2>/dev/null | head -5)"
+      "Bash(ls /home/runner/workspace/server/ && ls /home/runner/workspace/*.json 2>/dev/null | head -5)",
+      "Bash(npx drizzle-kit push 2>&1 | tail -2022)"
     ]
   }
 }

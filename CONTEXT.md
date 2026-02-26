@@ -12,7 +12,7 @@ This is the page vendors land on when they receive an RFP link. It shows the ful
 
 ---
 
-## Current Layout (post-redesign)
+## Current Layout (post-redesign v2)
 
 ### Top Nav
 - Bid logo (links to home)
@@ -20,28 +20,56 @@ This is the page vendors land on when they receive an RFP link. It shows the ful
 
 ### Header (white, sticky border-bottom)
 - Company logo + name + "Requesting Organization" label
-- Open/Closed badge
+- Open / Closes Today / Closed badge (computed from deadline vs now, using local calendar dates)
 - "PROJECT TITLE" label + tender title (large)
 - Published date + RFP reference number (e.g. `RFP-2DFA7977`)
-- **Key Metrics Strip**: 2–4 cards for Deadline, Budget, Duration, Pricing Model (only shown if data exists, never shows "Not specified")
+- **Key Metrics Strip**: Deadline (color-coded), Budget, Duration (only when set), Pricing Model (only when set)
+  - Duration card only shows if `tender.duration` OR calculated from start/end dates
+  - Date range sub-line only shows when NO `tender.duration` string is set (bug fix)
+  - Deadline "Closes today" bug fixed via local calendar date comparison
 
 ### Document Body (two-column: wide doc + narrow sidebar)
 
 **Left column — continuous document:**
-1. **Table of Contents bar** — inline, shows all section numbers + names, smooth-scrolls on click
-2. **Single white document container** — all sections rendered at once, separated by horizontal dividers (no separate cards)
-   - Each section has a monospace number label (1.0, 2.0, etc.) + bold heading
-   - Sections: Project Description, Scope of Work & Deliverables, Milestones & Payment Schedule, Evaluation Criteria, Submission Requirements, Additional Context
-   - Sections only render if they have content (conditional)
-3. **Vendor Inquiries panel** — below the document, visually distinct (slate background), only shown when `inquiryType === 'inside_bid'`. Anonymous Q&A, not numbered, not in TOC.
+1. **Table of Contents bar** — inline, section numbers + names, smooth-scrolls on click, **active section highlighted** via IntersectionObserver
+2. **Single white document container** — all sections rendered at once, separated by `SectionDivider` components
+
+**Section structure:**
+| # | Section ID | Label | Shown when |
+|---|-----------|-------|-----------|
+| 1 | `scope` | Project Scope | always |
+| 2 | `timeline` | Milestones & Payments | `hasMilestones` |
+| 3 | `evaluation` | Evaluation Criteria | `hasEvalCriteria` only (no longer includes submissionType) |
+| 4 | `submission` | Submission Requirements | `submissionType` OR `vendorRequirements` OR external contact |
+| 5 | `context` | Additional Context | voice note or video URL |
+| 6 | `qa` | Vendor Q&A | `inquiryType === 'inside_bid'` |
+
+**Evaluation section (§3):**
+- If weighted criteria: shows visual stacked bar chart showing score distribution (%, colored per category), then expandable accordion per category
+- If simple array criteria: 2-col grid of star cards
+
+**Submission Requirements section (§4) — was "Vendor Requirements":**
+- "What to Submit" block: submission format card + video required notice + deadline reminder
+- "Eligibility Requirements": mandatory (red) + preferred (amber) requirement rows
+- "Questions & Contact" block: email/WhatsApp for non-platform inquiry types
+- Contact info moved here from evaluation section
 
 **Right column — sticky sidebar:**
-- Submit Proposal button (big, coral/red `#E25E45`)
-- Compact Quick Info card (submission format, pricing model, category)
-- Sticks at `top-20` to clear the nav bar
+- **Submit Proposal CTA** — adapts text/state for open/closes-today/closed
+- **"Prepare Your Submission" checklist** — dynamically generated from:
+  - `submissionType` → document/video items
+  - `evaluationCriteria.requirements` → document checklist items
+  - `mandatoryRequirements` (up to 3 shown, "+N more →" link to section)
+- **Category tag** — only if `tender.category` is set
+- Sticks at `top-20`
 
 ### Mobile
 - Fixed bottom bar with Submit Proposal button
+
+### Sub-components (defined at bottom of file)
+- `SectionDivider` — thin `<hr>` with horizontal margin
+- `SectionHeader` — monospace number badge + bold title
+- `SectionObserver` — wraps section in IntersectionObserver, fires `onVisible` callback
 
 ---
 

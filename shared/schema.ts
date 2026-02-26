@@ -171,6 +171,13 @@ export const tenders = pgTable("tenders", {
     quantity: number;
   }[]>(), // Bill of Quantities - key deliverables with structured data
 
+  // Vendor Requirements (qualification checklist set by requester)
+  vendorRequirements: jsonb("vendor_requirements").$type<{
+    id: string;
+    text: string;
+    type: 'mandatory' | 'preferred';
+  }[]>(),
+
   // Advanced Options
   voiceNoteUrl: text("voice_note_url"), // Recorded voice note about the project
   videoUrl: text("video_url"), // Video link about the project

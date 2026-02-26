@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown, Shield } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useMemo, useState } from "react";
@@ -136,7 +136,7 @@ export default function TenderBriefStep() {
     const tenderData = {
       title: draft.title || "Untitled RFP",
       description: draft.description || draft.projectDescription || draft.title || "No description provided",
-      category: draft.skills?.[0] || "Other",
+      category: draft.category || undefined,
       skills: draft.skills || [],
       scope: draft.scope || undefined,
       deadline: draft.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -163,6 +163,7 @@ export default function TenderBriefStep() {
       startDate: draft.startDate || undefined,
       endDate: draft.endDate || undefined,
       milestones: draft.milestones && draft.milestones.length > 0 ? draft.milestones : undefined,
+      vendorRequirements: draft.vendorRequirements && draft.vendorRequirements.length > 0 ? draft.vendorRequirements : undefined,
     };
 
     submitTender.mutate(tenderData);
@@ -216,6 +217,7 @@ export default function TenderBriefStep() {
   const hasDescription = !!(draft.description || draft.projectDescription);
   const hasObjective = !!draft.projectObjective;
   const hasContactInfo = !!(draft.emailContact || draft.whatsappContact);
+  const hasVendorRequirements = !!(draft.vendorRequirements && draft.vendorRequirements.length > 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -615,6 +617,30 @@ export default function TenderBriefStep() {
                       )}
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            )}
+
+            {hasVendorRequirements && (
+              <Card className="overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-[#E25E45] to-orange-400" />
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-[#E25E45]" />
+                    Vendor Requirements
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2" data-testid="brief-vendor-requirements">
+                    {draft.vendorRequirements.map((req: any, index: number) => (
+                      <div key={req.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm text-gray-800">{req.text}</span>
+                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${req.type === 'mandatory' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {req.type === 'mandatory' ? 'Mandatory' : 'Preferred'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             )}

@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Check, Scale, ChevronDown, Briefcase, Clock, Plus, X } from "lucide-react";
+import { ArrowLeft, Check, Scale, ChevronDown, Briefcase, Clock, Plus, X, Shield } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
+
+// ── Evaluation criteria types ────────────────────────────────────────────────
 
 interface CriterionRequirement {
   id: string;
@@ -149,6 +151,34 @@ interface CustomCriterion {
   weight: number;
 }
 
+// ── Submission requirements types ────────────────────────────────────────────
+
+interface VendorRequirement {
+  id: string;
+  text: string;
+  type: 'mandatory' | 'preferred';
+}
+
+interface PresetRequirement {
+  id: string;
+  text: string;
+}
+
+const PRESET_REQUIREMENTS: PresetRequirement[] = [
+  { id: 'legal_registration', text: 'Be legally registered in Saudi Arabia' },
+  { id: 'cr_certificate',     text: 'Valid Commercial Registration (CR) certificate' },
+  { id: 'business_license',   text: 'Valid business license' },
+  { id: 'zakat_certificate',  text: 'Valid Zakat, Tax, and Customs Authority certificate' },
+  { id: 'gosi_certificate',   text: 'Valid GOSI (Social Insurance) certificate' },
+  { id: 'no_legal_disputes',  text: 'No ongoing legal disputes affecting project execution' },
+  { id: 'reg_compliance',     text: 'Must comply with all local regulatory requirements' },
+  { id: 'nda',                text: 'Signed Non-Disclosure Agreement (NDA) required' },
+  { id: 'data_protection',    text: 'Compliance with Saudi data protection and cybersecurity regulations' },
+  { id: 'local_content',      text: 'Commitment to local content regulations (if applicable)' },
+];
+
+// ── Component ────────────────────────────────────────────────────────────────
+
 export default function TenderEvaluationCriteriaStep() {
   const [, navigate] = useLocation();
 
@@ -158,11 +188,13 @@ export default function TenderEvaluationCriteriaStep() {
   const [categoryWeights, setCategoryWeights] = useState<CategoryWeight[]>(
     ENTERPRISE_CRITERIA_CATEGORIES.map(cat => ({ categoryId: cat.id, weight: cat.defaultWeight }))
   );
-
-  // Custom criteria
   const [customCriteria, setCustomCriteria] = useState<CustomCriterion[]>([]);
   const [newCriterionText, setNewCriterionText] = useState("");
   const [newCriterionWeight, setNewCriterionWeight] = useState(5);
+
+  // Submission requirements state
+  const [vendorRequirements, setVendorRequirements] = useState<VendorRequirement[]>([]);
+  const [customReqText, setCustomReqText] = useState('');
 
   const draft = useMemo(() => {
     try {
@@ -180,9 +212,13 @@ export default function TenderEvaluationCriteriaStep() {
       if (criteria.weights) setCategoryWeights(criteria.weights);
       if (criteria.customCriteria) setCustomCriteria(criteria.customCriteria);
     }
-  }, [draft.evaluationCriteria]);
+    if (draft.vendorRequirements && Array.isArray(draft.vendorRequirements)) {
+      setVendorRequirements(draft.vendorRequirements);
+    }
+  }, []);
 
-  // Category handlers
+  // ── Evaluation criteria handlers ───────────────────────────────────────────
+
   const toggleCategory = (categoryId: string) => {
     setExpandedCategories(prev =>
       prev.includes(categoryId) ? prev.filter(id => id !== categoryId) : [...prev, categoryId]
@@ -193,9 +229,7 @@ export default function TenderEvaluationCriteriaStep() {
     setSelectedRequirements(prev => {
       const existing = prev.findIndex(r => r.categoryId === categoryId && r.requirementId === requirementId);
       if (existing >= 0) {
-        if (value === false || value === "") {
-          return prev.filter((_, i) => i !== existing);
-        }
+        if (value === false || value === "") return prev.filter((_, i) => i !== existing);
         const updated = [...prev];
         updated[existing] = { categoryId, requirementId, value };
         return updated;
@@ -212,12 +246,9 @@ export default function TenderEvaluationCriteriaStep() {
   };
 
   const handleWeightChange = (categoryId: string, weight: number) => {
-    setCategoryWeights(prev =>
-      prev.map(cw => cw.categoryId === categoryId ? { ...cw, weight } : cw)
-    );
+    setCategoryWeights(prev => prev.map(cw => cw.categoryId === categoryId ? { ...cw, weight } : cw));
   };
 
-  // Custom criteria handlers
   const addCustomCriterion = () => {
     if (newCriterionText.trim()) {
       setCustomCriteria(prev => [
@@ -229,9 +260,7 @@ export default function TenderEvaluationCriteriaStep() {
     }
   };
 
-  const removeCustomCriterion = (id: string) => {
-    setCustomCriteria(prev => prev.filter(c => c.id !== id));
-  };
+  const removeCustomCriterion = (id: string) => setCustomCriteria(prev => prev.filter(c => c.id !== id));
 
   const updateCustomCriterionWeight = (id: string, weight: number) => {
     setCustomCriteria(prev => prev.map(c => c.id === id ? { ...c, weight } : c));
@@ -240,33 +269,63 @@ export default function TenderEvaluationCriteriaStep() {
   const customCriteriaWeight = customCriteria.reduce((sum, c) => sum + c.weight, 0);
   const totalWeight = categoryWeights.reduce((sum, cw) => sum + cw.weight, 0) + customCriteriaWeight;
   const isWeightValid = totalWeight === 100;
+  const hasEvalSelections = selectedRequirements.length > 0;
+
+  // ── Submission requirements handlers ──────────────────────────────────────
+
+  const isReqSelected = (id: string) => vendorRequirements.some(r => r.id === id);
+  const getReqType = (id: string): 'mandatory' | 'preferred' =>
+    vendorRequirements.find(r => r.id === id)?.type || 'mandatory';
+
+  const toggleReq = (preset: PresetRequirement) => {
+    if (isReqSelected(preset.id)) {
+      setVendorRequirements(prev => prev.filter(r => r.id !== preset.id));
+    } else {
+      setVendorRequirements(prev => [...prev, { id: preset.id, text: preset.text, type: 'mandatory' }]);
+    }
+  };
+
+  const setReqType = (id: string, type: 'mandatory' | 'preferred') => {
+    setVendorRequirements(prev => prev.map(r => r.id === id ? { ...r, type } : r));
+  };
+
+  const addCustomReq = () => {
+    const text = customReqText.trim();
+    if (!text) return;
+    setVendorRequirements(prev => [...prev, { id: `custom_${Date.now()}`, text, type: 'mandatory' }]);
+    setCustomReqText('');
+  };
+
+  const removeCustomReq = (id: string) => setVendorRequirements(prev => prev.filter(r => r.id !== id));
+
+  const customReqs = vendorRequirements.filter(r => r.id.startsWith('custom_'));
+  const mandatoryCount = vendorRequirements.filter(r => r.type === 'mandatory').length;
+  const preferredCount = vendorRequirements.filter(r => r.type === 'preferred').length;
+
+  // ── Navigation ─────────────────────────────────────────────────────────────
 
   const handleContinue = (skip: boolean = false) => {
     const currentDraft = JSON.parse(localStorage.getItem("tenderDraft") || "{}");
-
-    const evaluationCriteria = skip ? undefined : {
-      requirements: selectedRequirements,
-      weights: categoryWeights,
-      customCriteria,
-    };
-
     const updatedDraft = {
       ...currentDraft,
-      evaluationCriteria,
+      evaluationCriteria: skip ? undefined : {
+        requirements: selectedRequirements,
+        weights: categoryWeights,
+        customCriteria,
+      },
+      vendorRequirements: vendorRequirements.length > 0 ? vendorRequirements : undefined,
     };
     localStorage.setItem("tenderDraft", JSON.stringify(updatedDraft));
     navigate("/tenders/new/brief");
   };
 
-  const handleBack = () => {
-    navigate("/tenders/new/submission-process");
-  };
-
-  const hasSelections = selectedRequirements.length > 0;
+  const handleBack = () => navigate("/tenders/new/submission-process");
 
   return (
     <div className="py-8 px-4">
       <div className="max-w-6xl mx-auto">
+
+        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <img
             src={logoPath}
@@ -289,103 +348,91 @@ export default function TenderEvaluationCriteriaStep() {
         </div>
 
         <div className="grid grid-cols-2 gap-8">
-          {/* Left Section */}
-          <div>
-            <div className="space-y-4">
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                5 / 5 (Optional)
-              </div>
-              <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
+
+          {/* Left: Titles + descriptions */}
+          <div className="space-y-10">
+
+            {/* Evaluation section label */}
+            <div className="space-y-3">
+              <div className="text-sm font-medium text-gray-500">5 / 6 (Optional)</div>
+              <h1 className="text-5xl font-bold text-gray-900 leading-tight">
                 Evaluation Criteria
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Define structured evaluation criteria for fair and auditable Vendor selection.
+              <p className="text-gray-600 text-lg">
+                Define structured evaluation criteria for fair and auditable vendor selection.
               </p>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-gray-100" />
+
+            {/* Submission requirements label */}
+            <div className="space-y-3">
+              <h2 className="text-3xl font-bold text-gray-900 leading-tight">
+                Submission Requirements
+              </h2>
+              <p className="text-gray-600">
+                Define which vendors are eligible to respond. These will be shown to vendors on the published RFP page.
+              </p>
+              {vendorRequirements.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap pt-1">
+                  {mandatoryCount > 0 && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                      <span className="text-sm font-medium text-red-700">{mandatoryCount} mandatory</span>
+                    </div>
+                  )}
+                  {preferredCount > 0 && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      <span className="text-sm font-medium text-amber-700">{preferredCount} preferred</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right Section */}
-          <div>
+          {/* Right: Two stacked cards */}
+          <div className="space-y-6">
+
+            {/* ── Card 1: Evaluation Criteria ─────────────────────────────── */}
             <Card className="border-0 shadow-xl overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
 
               <div className="p-6 space-y-6">
-                {/* Animated Weight Progress Ring */}
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 border border-gray-200 dark:border-gray-700">
+
+                {/* Weight ring */}
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200">
                   <div className="relative w-16 h-16 flex-shrink-0">
                     <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64">
+                      <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="none" className="text-gray-200" />
                       <circle
-                        cx="32"
-                        cy="32"
-                        r="28"
-                        stroke="currentColor"
-                        strokeWidth="6"
-                        fill="none"
-                        className="text-gray-200 dark:text-gray-700"
-                      />
-                      <circle
-                        cx="32"
-                        cy="32"
-                        r="28"
-                        stroke="currentColor"
-                        strokeWidth="6"
-                        fill="none"
-                        strokeLinecap="round"
-                        className={`transition-all duration-500 ease-out ${
-                          totalWeight === 100
-                            ? "text-green-500"
-                            : totalWeight > 100
-                            ? "text-red-500"
-                            : "text-amber-500"
-                        }`}
-                        style={{
-                          strokeDasharray: `${Math.min(totalWeight, 100) * 1.76} 176`,
-                        }}
+                        cx="32" cy="32" r="28"
+                        stroke="currentColor" strokeWidth="6" fill="none" strokeLinecap="round"
+                        className={`transition-all duration-500 ease-out ${totalWeight === 100 ? "text-green-500" : totalWeight > 100 ? "text-red-500" : "text-amber-500"}`}
+                        style={{ strokeDasharray: `${Math.min(totalWeight, 100) * 1.76} 176` }}
                       />
                     </svg>
-                    <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${
-                      totalWeight === 100 ? "scale-105" : "scale-100"
-                    }`}>
-                      <span className={`text-sm font-bold transition-colors duration-300 ${
-                        totalWeight === 100
-                          ? "text-green-600"
-                          : totalWeight > 100
-                          ? "text-red-600"
-                          : "text-amber-600"
-                      }`}>
+                    <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${totalWeight === 100 ? "scale-105" : "scale-100"}`}>
+                      <span className={`text-sm font-bold transition-colors duration-300 ${totalWeight === 100 ? "text-green-600" : totalWeight > 100 ? "text-red-600" : "text-amber-600"}`}>
                         {totalWeight}%
                       </span>
                     </div>
-                    {totalWeight === 100 && (
-                      <div className="absolute inset-0 rounded-full animate-ping bg-green-400/20" />
-                    )}
+                    {totalWeight === 100 && <div className="absolute inset-0 rounded-full animate-ping bg-green-400/20" />}
                   </div>
-                  
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {totalWeight === 100 ? "Perfect Balance!" : "Weight Distribution"}
-                      </span>
-                      {totalWeight === 100 && (
-                        <Check className="h-4 w-4 text-green-500" />
-                      )}
+                      <span className="font-semibold text-gray-900">{totalWeight === 100 ? "Perfect Balance!" : "Weight Distribution"}</span>
+                      {totalWeight === 100 && <Check className="h-4 w-4 text-green-500" />}
                     </div>
-                    <p className={`text-sm mt-0.5 transition-colors duration-300 ${
-                      totalWeight === 100
-                        ? "text-green-600"
-                        : totalWeight > 100
-                        ? "text-red-500"
-                        : "text-amber-600"
-                    }`}>
-                      {totalWeight === 100
-                        ? "Weights add up correctly"
-                        : totalWeight > 100
-                        ? `Remove ${totalWeight - 100}% to balance`
-                        : `Add ${100 - totalWeight}% more weight`}
+                    <p className={`text-sm mt-0.5 transition-colors duration-300 ${totalWeight === 100 ? "text-green-600" : totalWeight > 100 ? "text-red-500" : "text-amber-600"}`}>
+                      {totalWeight === 100 ? "Weights add up correctly" : totalWeight > 100 ? `Remove ${totalWeight - 100}% to balance` : `Add ${100 - totalWeight}% more weight`}
                     </p>
                   </div>
                 </div>
 
+                {/* Category accordions */}
                 {ENTERPRISE_CRITERIA_CATEGORIES.map((category) => {
                   const isExpanded = expandedCategories.includes(category.id);
                   const currentWeight = categoryWeights.find(cw => cw.categoryId === category.id)?.weight || 0;
@@ -393,28 +440,17 @@ export default function TenderEvaluationCriteriaStep() {
                   const hasCategorySelections = categoryReqs.length > 0;
 
                   return (
-                    <div
-                      key={category.id}
-                      className={`border rounded-lg overflow-hidden transition-all ${
-                        hasCategorySelections
-                          ? "border-[#E25E45]/50 bg-[#E25E45]/5"
-                          : "border-gray-200 dark:border-gray-700"
-                      }`}
-                    >
+                    <div key={category.id} className={`border rounded-lg overflow-hidden transition-all ${hasCategorySelections ? "border-[#E25E45]/50 bg-[#E25E45]/5" : "border-gray-200"}`}>
                       <button
                         type="button"
                         onClick={() => toggleCategory(category.id)}
-                        className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                        className="w-full flex items-center justify-between p-3 hover:bg-gray-50"
                       >
                         <div className="flex items-center gap-2">
-                          <div className={`p-1.5 rounded ${
-                            hasCategorySelections ? "bg-[#E25E45]/10 text-[#E25E45]" : "bg-gray-100 dark:bg-gray-800 text-gray-500"
-                          }`}>
+                          <div className={`p-1.5 rounded ${hasCategorySelections ? "bg-[#E25E45]/10 text-[#E25E45]" : "bg-gray-100 text-gray-500"}`}>
                             {category.icon}
                           </div>
-                          <span className="font-medium text-sm text-gray-900 dark:text-white">
-                            {category.name}
-                          </span>
+                          <span className="font-medium text-sm text-gray-900">{category.name}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-gray-500">{currentWeight}%</span>
@@ -424,20 +460,15 @@ export default function TenderEvaluationCriteriaStep() {
 
                       <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                         <div className="overflow-hidden">
-                          <div className="border-t border-gray-200 dark:border-gray-700 p-3 space-y-3 bg-white dark:bg-gray-900">
+                          <div className="border-t border-gray-200 p-3 space-y-3 bg-white">
                             <div className="space-y-1">
                               <label className="text-xs text-gray-500">Weight: {currentWeight}%</label>
                               <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                step="5"
-                                value={currentWeight}
+                                type="range" min="0" max="100" step="5" value={currentWeight}
                                 onChange={(e) => handleWeightChange(category.id, parseInt(e.target.value))}
                                 className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]"
                               />
                             </div>
-
                             {category.requirements.map((req) => {
                               const currentValue = getRequirementValue(category.id, req.id);
                               return (
@@ -446,15 +477,13 @@ export default function TenderEvaluationCriteriaStep() {
                                     <button
                                       type="button"
                                       onClick={() => handleRequirementChange(category.id, req.id, !currentValue)}
-                                      className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${
-                                        currentValue ? "border-[#E25E45] bg-[#E25E45]" : "border-gray-300"
-                                      }`}
+                                      className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${currentValue ? "border-[#E25E45] bg-[#E25E45]" : "border-gray-300"}`}
                                     >
                                       {currentValue && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
                                     </button>
                                   )}
                                   <div className="flex-1">
-                                    <label className="text-sm text-gray-900 dark:text-white">{req.label}</label>
+                                    <label className="text-sm text-gray-900">{req.label}</label>
                                     {req.type === "select" && req.options && (
                                       <Select
                                         value={(currentValue as string) || "none"}
@@ -482,48 +511,29 @@ export default function TenderEvaluationCriteriaStep() {
                   );
                 })}
 
-                {/* Custom Criteria */}
-                <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                {/* Custom criteria */}
+                <div className="space-y-3 pt-2 border-t border-gray-200">
                   <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                    <label className="block text-sm font-medium text-gray-900">
                       Custom criteria <span className="text-gray-400 font-normal">(optional)</span>
                     </label>
                     {customCriteria.length > 0 && (
-                      <span className="text-xs text-gray-500">
-                        Total: {customCriteriaWeight}%
-                      </span>
+                      <span className="text-xs text-gray-500">Total: {customCriteriaWeight}%</span>
                     )}
                   </div>
-
-                  {/* Existing custom criteria */}
                   {customCriteria.length > 0 && (
                     <div className="space-y-2">
                       {customCriteria.map((criterion) => (
-                        <div
-                          key={criterion.id}
-                          className="px-3 py-2 bg-[#E25E45]/5 border border-[#E25E45]/20 rounded-lg space-y-2"
-                        >
+                        <div key={criterion.id} className="px-3 py-2 bg-[#E25E45]/5 border border-[#E25E45]/20 rounded-lg space-y-2">
                           <div className="flex items-center gap-2">
-                            <span className="flex-1 text-sm text-gray-900 dark:text-white">
-                              {criterion.text}
-                            </span>
-                            <span className="text-xs font-medium text-[#E25E45]">
-                              {criterion.weight}%
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => removeCustomCriterion(criterion.id)}
-                              className="text-gray-400 hover:text-red-500 transition-colors"
-                            >
+                            <span className="flex-1 text-sm text-gray-900">{criterion.text}</span>
+                            <span className="text-xs font-medium text-[#E25E45]">{criterion.weight}%</span>
+                            <button type="button" onClick={() => removeCustomCriterion(criterion.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                               <X className="h-4 w-4" />
                             </button>
                           </div>
                           <input
-                            type="range"
-                            min="0"
-                            max="50"
-                            step="5"
-                            value={criterion.weight}
+                            type="range" min="0" max="50" step="5" value={criterion.weight}
                             onChange={(e) => updateCustomCriterionWeight(criterion.id, parseInt(e.target.value))}
                             className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]"
                           />
@@ -531,25 +541,16 @@ export default function TenderEvaluationCriteriaStep() {
                       ))}
                     </div>
                   )}
-
-                  {/* Add new custom criterion */}
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <input
-                        type="text"
-                        value={newCriterionText}
+                        type="text" value={newCriterionText}
                         onChange={(e) => setNewCriterionText(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && addCustomCriterion()}
                         placeholder="e.g., Team communication skills..."
-                        className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                        className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
                       />
-                      <Button
-                        type="button"
-                        onClick={addCustomCriterion}
-                        disabled={!newCriterionText.trim()}
-                        size="sm"
-                        className="bg-[#E25E45] hover:bg-[#d54d35]"
-                      >
+                      <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#E25E45] hover:bg-[#d54d35]">
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -557,11 +558,7 @@ export default function TenderEvaluationCriteriaStep() {
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-gray-500">Weight:</span>
                         <input
-                          type="range"
-                          min="0"
-                          max="50"
-                          step="5"
-                          value={newCriterionWeight}
+                          type="range" min="0" max="50" step="5" value={newCriterionWeight}
                           onChange={(e) => setNewCriterionWeight(parseInt(e.target.value))}
                           className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]"
                         />
@@ -569,34 +566,172 @@ export default function TenderEvaluationCriteriaStep() {
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500">
-                    Add your own evaluation criteria with custom weights
-                  </p>
                 </div>
 
-                {/* Navigation Buttons */}
-                <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <Button
-                    onClick={() => handleContinue(false)}
-                    disabled={!hasSelections || !isWeightValid}
-                    className="w-full bg-[#E25E45] hover:bg-[#d54d35]"
-                    data-testid="button-continue"
-                  >
-                    Continue
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => handleContinue(true)}
-                    className="w-full"
-                    data-testid="button-skip"
-                  >
-                    Skip
-                  </Button>
-                </div>
               </div>
             </Card>
+
+            {/* ── Card 2: Submission Requirements — revealed when weight = 100% ── */}
+            <div className={`transition-all duration-300 ease-out ${
+              isWeightValid
+                ? "opacity-100 max-h-[2000px] translate-y-0"
+                : "opacity-0 max-h-0 overflow-hidden -translate-y-2 pointer-events-none !mt-0"
+            }`}>
+            <Card className="border-0 shadow-xl overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
+
+              <div className="p-6 space-y-4">
+
+                {/* Header */}
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <Shield className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">Submission Requirements</p>
+                    <p className="text-xs text-gray-500">Displayed to vendors on the published RFP</p>
+                  </div>
+                </div>
+
+                {/* Preset list */}
+                <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                  {PRESET_REQUIREMENTS.map((preset) => {
+                    const checked = isReqSelected(preset.id);
+                    const type = getReqType(preset.id);
+                    return (
+                      <div
+                        key={preset.id}
+                        className={`rounded-lg border transition-all ${checked ? 'border-blue-300 bg-blue-50/60' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                      >
+                        <div className="flex items-start gap-3 p-3">
+                          <button
+                            type="button"
+                            onClick={() => toggleReq(preset)}
+                            className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-colors ${checked ? 'border-blue-500 bg-blue-500' : 'border-gray-300 bg-white'}`}
+                            data-testid={`checkbox-${preset.id}`}
+                          >
+                            {checked && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm leading-snug ${checked ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>
+                              {preset.text}
+                            </p>
+
+                            {/* Mandatory / Preferred toggle — only when checked */}
+                            {checked && (
+                              <div className="flex items-center gap-1.5 mt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setReqType(preset.id, 'mandatory')}
+                                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                                >
+                                  Mandatory
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setReqType(preset.id, 'preferred')}
+                                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                                >
+                                  Preferred
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Custom requirements */}
+                <div className="space-y-3 pt-2 border-t border-gray-200">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Add custom requirement</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customReqText}
+                      onChange={(e) => setCustomReqText(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && addCustomReq()}
+                      placeholder="e.g., Must have ISO 9001 certification"
+                      className="flex-1 text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      data-testid="input-custom-requirement"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addCustomReq}
+                      disabled={!customReqText.trim()}
+                      className="flex-shrink-0"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Custom items */}
+                  {customReqs.length > 0 && (
+                    <div className="space-y-1.5">
+                      {customReqs.map((req) => (
+                        <div key={req.id} className="flex items-start gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-200">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-800 font-medium">{req.text}</p>
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                              <button
+                                type="button"
+                                onClick={() => setReqType(req.id, 'mandatory')}
+                                className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                              >
+                                Mandatory
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setReqType(req.id, 'preferred')}
+                                className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                              >
+                                Preferred
+                              </button>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeCustomReq(req.id)}
+                            className="flex-shrink-0 p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors mt-0.5"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </Card>
+            </div>{/* end animation wrapper */}
+
+            {/* ── Navigation buttons ─────────────────────────────────────── */}
+            <div className="space-y-3">
+              <Button
+                onClick={() => handleContinue(false)}
+                disabled={!hasEvalSelections || !isWeightValid}
+                className="w-full bg-[#E25E45] hover:bg-[#d54d35] py-6"
+                data-testid="button-continue"
+              >
+                {vendorRequirements.length > 0
+                  ? `Continue with ${vendorRequirements.length} requirement${vendorRequirements.length !== 1 ? 's' : ''}`
+                  : 'Continue'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleContinue(true)}
+                className="w-full"
+                data-testid="button-skip"
+              >
+                Skip both sections
+              </Button>
+            </div>
+
           </div>
         </div>
       </div>

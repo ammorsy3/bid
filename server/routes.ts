@@ -11,7 +11,8 @@ import {
   createTenderSchema,
   createOfferSchema,
   createJoinRequestSchema,
-  createTenderTemplateSchema
+  createTenderTemplateSchema,
+  VENDOR_CATEGORIES
 } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
@@ -168,6 +169,59 @@ const generateSlug = (name: string): string => {
 const generateToken = (payload: JWTPayload): string => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 };
+
+// ============================================================================
+// AI HELPERS
+// ============================================================================
+
+async function suggestTenderCategory(tender: {
+  title?: string;
+  description?: string;
+  objective?: string;
+  skills?: string[];
+  deliverables?: any[];
+}): Promise<string | null> {
+  const openaiApiKey = process.env.OPENAI_API_KEY;
+  if (!openaiApiKey) return null;
+
+  const categoryList = VENDOR_CATEGORIES.join(", ");
+  const context = [
+    tender.title && `Title: ${tender.title}`,
+    tender.description && `Description: ${tender.description}`,
+    tender.objective && `Objective: ${tender.objective}`,
+    tender.skills?.length && `Skills: ${tender.skills.join(", ")}`,
+    tender.deliverables?.length && `Deliverables: ${tender.deliverables.map((d: any) => typeof d === 'string' ? d : d.name).filter(Boolean).join(", ")}`,
+  ].filter(Boolean).join("\n");
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${openaiApiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a procurement specialist. Given an RFP brief, pick the single best-matching category from this list:\n${categoryList}\n\nRespond with ONLY the exact category name from the list, nothing else.`,
+          },
+          { role: "user", content: context },
+        ],
+        temperature: 0.2,
+        max_tokens: 30,
+      }),
+    });
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    const suggested = data.choices?.[0]?.message?.content?.trim();
+    return (VENDOR_CATEGORIES as readonly string[]).includes(suggested) ? suggested : null;
+  } catch {
+    return null;
+  }
+}
 
 // ============================================================================
 // ROUTE REGISTRATION
@@ -852,6 +906,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: 'published'
         });
 
+        // Auto-assign category via AI if not set or set to fallback value
+        if (!tender.category || tender.category === 'Other') {
+          const suggestedCategory = await suggestTenderCategory({
+            title: tenderData.title,
+            description: tenderData.description,
+            objective: (tenderData as any).objective,
+            skills: (tenderData as any).skills,
+            deliverables: (tenderData as any).deliverables,
+          });
+          if (suggestedCategory) {
+            const updated = await storage.updateTender(tender.id, { category: suggestedCategory });
+            return res.json(updated ?? tender);
+          }
+        }
+
         res.json(tender);
       } catch (error) {
         console.error('Create tender error:', error);
@@ -974,6 +1043,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         evaluationCriteria: tender.evaluationCriteria,
         objective: tender.objective,
         deliverables: tender.deliverables,
+        vendorRequirements: tender.vendorRequirements,
         // Price display settings
         showPriceToVendors: tender.showPriceToVendors,
         projectSize: tender.projectSize,
@@ -1361,6 +1431,21 @@ Response must be valid JSON with this exact structure:
       } catch (error) {
         console.error("AI budget estimation error:", error);
         res.status(500).json({ message: "Failed to estimate budget. Please try again." });
+      }
+    }
+  );
+
+  // Suggest category using AI
+  app.post("/api/ai/suggest-category",
+    authenticateToken,
+    async (req: AuthRequest, res) => {
+      try {
+        const { title, description, objective, skills, deliverables } = req.body;
+        const category = await suggestTenderCategory({ title, description, objective, skills, deliverables });
+        res.json({ category });
+      } catch (error) {
+        console.error("AI category suggestion error:", error);
+        res.status(500).json({ message: "Failed to suggest category." });
       }
     }
   );

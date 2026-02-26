@@ -21,12 +21,6 @@ const CARD_COLORS: Record<string, {
     border: "border-blue-200 dark:border-blue-800",
     hoverBorder: "hover:border-blue-400 hover:shadow-blue-100 dark:hover:shadow-blue-900/30",
   },
-  "project-type": {
-    topBg: "bg-gradient-to-br from-purple-500 to-purple-600",
-    iconBg: "bg-purple-400/30",
-    border: "border-purple-200 dark:border-purple-800",
-    hoverBorder: "hover:border-purple-400 hover:shadow-purple-100 dark:hover:shadow-purple-900/30",
-  },
   "supplier-response": {
     topBg: "bg-gradient-to-br from-emerald-500 to-emerald-600",
     iconBg: "bg-emerald-400/30",

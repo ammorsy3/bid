@@ -22,7 +22,8 @@
       "Bash(git push origin main feature/dashboard-overview-improvements replit-agent)",
       "Bash(npx vite build:*)",
       "Bash(ls /home/runner/workspace/server/ && ls /home/runner/workspace/*.json 2>/dev/null | head -5)",
-      "Bash(npx drizzle-kit push 2>&1 | tail -2022)"
+      "Bash(npx drizzle-kit push 2>&1 | tail -2022)",
+      "Bash(python3 -c \"\nlines = open\\('/home/runner/workspace/client/src/pages/tender-details.tsx'\\).readlines\\(\\)\nwith open\\('/home/runner/workspace/client/src/pages/tender-details.tsx', 'w'\\) as f:\n    f.writelines\\(lines[:1472]\\)\nprint\\('Done, file now has', len\\(lines[:1472]\\), 'lines'\\)\n\")"
     ]
   }
 }

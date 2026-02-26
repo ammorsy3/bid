@@ -1,6 +1,5 @@
 import {
   Type,
-  Layers,
   Calendar,
   DollarSign,
   Target,
@@ -9,8 +8,6 @@ import {
   Clock,
   BarChart,
   Paperclip,
-  AlignLeft,
-  List,
   MessageSquare,
   LucideIcon,
 } from "lucide-react";
@@ -19,7 +16,6 @@ import {
 export type CardType =
   // Required
   | "project-title"
-  | "project-type"
   | "supplier-response"
   // Standard optional
   | "project-dates"
@@ -76,6 +72,36 @@ export interface TenderTemplate {
   updatedAt?: string;
 }
 
+// Evaluation criteria value types (matches Bid Recommended template)
+export interface EvalRequirement {
+  categoryId: string;
+  requirementId: string;
+  value: string | boolean;
+}
+
+export interface EvalCategoryWeight {
+  categoryId: string;
+  weight: number;
+}
+
+export interface EvalCustomCriterion {
+  id: string;
+  text: string;
+  weight: number;
+}
+
+export interface EvaluationCriteriaValue {
+  requirements: EvalRequirement[];
+  weights: EvalCategoryWeight[];
+  customCriteria: EvalCustomCriterion[];
+}
+
+export const DEFAULT_EVAL_WEIGHTS: EvalCategoryWeight[] = [
+  { categoryId: "experience", weight: 30 },
+  { categoryId: "financial", weight: 30 },
+  { categoryId: "technical", weight: 25 },
+];
+
 // Card library organized by category
 export const CARD_LIBRARY: {
   required: CardDefinition[];
@@ -88,13 +114,6 @@ export const CARD_LIBRARY: {
       label: "Project Title",
       description: "The name of your RFP",
       icon: Type,
-      isRequired: true,
-    },
-    {
-      type: "project-type",
-      label: "Project Type",
-      description: "Time-bound, deliverable-based, or ongoing",
-      icon: Layers,
       isRequired: true,
     },
     {
@@ -157,31 +176,10 @@ export const CARD_LIBRARY: {
   ],
   custom: [
     {
-      type: "custom-text",
-      label: "Short Answer",
-      description: "Single-line text input",
-      icon: Type,
-      isCustom: true,
-    },
-    {
-      type: "custom-textarea",
-      label: "Long Answer",
-      description: "Multi-line text area",
-      icon: AlignLeft,
-      isCustom: true,
-    },
-    {
       type: "custom-date",
       label: "Date",
       description: "Date picker field",
       icon: Calendar,
-      isCustom: true,
-    },
-    {
-      type: "custom-select",
-      label: "Multiple Choice",
-      description: "Dropdown or radio options",
-      icon: List,
       isCustom: true,
     },
   ],
@@ -200,7 +198,7 @@ export function createFormCard(
     label: definition.isCustom ? "Custom Question" : definition.label,
     isRequired: definition.isRequired || false,
     placeholder: getDefaultPlaceholder(definition.type),
-    options: definition.type === "custom-select" ? ["Option 1", "Option 2"] : undefined,
+    options: undefined,
     value: getDefaultValue(definition.type),
   };
 }
@@ -210,8 +208,6 @@ function getDefaultPlaceholder(type: CardType): string {
   switch (type) {
     case "project-title":
       return "Enter project title...";
-    case "project-type":
-      return "Select the type of project";
     case "supplier-response":
       return "Choose how Vendors should submit Proposals";
     case "project-objective":
@@ -230,10 +226,8 @@ function getDefaultPlaceholder(type: CardType): string {
 // Get default value for card types
 function getDefaultValue(type: CardType): any {
   switch (type) {
-    case "project-type":
-      return null; // "time-bound" | "deliverable" | "ongoing"
     case "supplier-response":
-      return null; // "document" | "video" | "both" | "platform"
+      return null; // "quote_only" | "tech_fin_proposal" | "video_only" | "tech_fin_with_video"
     case "project-dates":
       return { startDate: null, endDate: null, deliveryDate: null };
     case "budget":
@@ -241,7 +235,11 @@ function getDefaultValue(type: CardType): any {
     case "key-deliverables":
       return [];
     case "evaluation-criteria":
-      return [];
+      return {
+        requirements: [],
+        weights: DEFAULT_EVAL_WEIGHTS.map(w => ({ ...w })),
+        customCriteria: [],
+      } as EvaluationCriteriaValue;
     case "attachments":
       return [];
     case "custom-select":
@@ -269,23 +267,14 @@ export const FIELD_INSIGHTS: Record<CardType, FieldInsight> = {
     bestPractice:
       "Be specific — \"Office IT Infrastructure Upgrade Q3\" is better than \"IT Project.\" Avoid internal jargon or acronyms.",
   },
-  "project-type": {
-    title: "Project Type",
-    description:
-      "Defines whether this project is ongoing with time constraints or focused on delivering a specific product or service. This shapes how vendors structure their proposals.",
-    vendorTip:
-      "Vendors tailor pricing and staffing based on project type. Time-bound projects need availability schedules, while deliverable-based projects need milestone plans.",
-    bestPractice:
-      "Choose the type that best matches your contracting model. If unsure, deliverable-based gives you more control over outcomes.",
-  },
   "supplier-response": {
     title: "Vendor Response Format",
     description:
-      "Controls how vendors submit their proposals — documents, video pitches, or through the platform. This affects the quality and comparability of responses.",
+      "Controls how vendors submit their proposals — price-only, full proposals, video pitches, or combined. This affects the quality and comparability of responses.",
     vendorTip:
-      "Offering multiple response formats (e.g. document + video) lets vendors showcase their strengths and gives you a richer evaluation.",
+      "Offering a full proposal + video lets vendors showcase their strengths and gives you a richer evaluation experience.",
     bestPractice:
-      "Document submissions are easiest to compare side-by-side. Video pitches work well for creative or consulting projects where presentation matters.",
+      "Price-only works best for commodity purchases. Full proposals are better for complex projects where approach matters.",
   },
   "project-dates": {
     title: "Timeline",
@@ -344,11 +333,11 @@ export const FIELD_INSIGHTS: Record<CardType, FieldInsight> = {
   "evaluation-criteria": {
     title: "Evaluation Criteria",
     description:
-      "Defines how you will score and compare vendor proposals. Transparent criteria ensure fairness and help vendors focus on what matters most to you.",
+      "Defines how you will score and compare vendor proposals across Financial, Experience, and Technical dimensions with weighted categories.",
     vendorTip:
       "When vendors know your priorities, they invest effort where it counts. This leads to higher-quality, more relevant proposals.",
     bestPractice:
-      "Weight criteria by importance (e.g. Technical Approach 40%, Price 30%, Experience 20%, Timeline 10%). Keep it to 3-5 criteria.",
+      "Weight criteria by importance (e.g. Technical 40%, Financial 35%, Experience 25%). Keep weights balanced and clearly communicated.",
   },
   attachments: {
     title: "Attachments",

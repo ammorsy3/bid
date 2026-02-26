@@ -88,9 +88,6 @@ export default function TenderReview() {
         case "project-title":
           data.title = card.value;
           break;
-        case "project-type":
-          data.projectType = card.value;
-          break;
         case "supplier-response":
           data.submissionType = card.value;
           break;
@@ -265,26 +262,16 @@ export default function TenderReview() {
     }
   };
 
-  const PROJECT_TYPE_LABELS: Record<string, string> = {
-    "time-bound": "Ongoing & time-bound",
-    "deliverable": "Purchase of a service or product",
-    "ongoing": "Ongoing project",
-  };
-
   const SUPPLIER_RESPONSE_LABELS: Record<string, string> = {
-    "document": "Document submission",
-    "video": "Video pitch",
-    "both": "Document + Video",
-    "platform": "Through Bid platform",
+    "quote_only": "Price Only",
+    "tech_fin_proposal": "Full Proposal",
+    "video_only": "Video Pitch",
+    "tech_fin_with_video": "Proposal + Video",
   };
 
   const getDisplayValue = (card: FormCard): string => {
     if (card.value === null || card.value === undefined || card.value === "") {
       return "Not provided";
-    }
-
-    if (card.type === "project-type" && typeof card.value === "string") {
-      return PROJECT_TYPE_LABELS[card.value] || card.value;
     }
 
     if (card.type === "supplier-response" && typeof card.value === "string") {
@@ -295,15 +282,6 @@ export default function TenderReview() {
 
     if (Array.isArray(card.value)) {
       if (card.value.length === 0) return "Not provided";
-      if (card.type === "evaluation-criteria") {
-        return card.value.map((item: any) => {
-          if (typeof item === "string") return item;
-          if (typeof item === "object" && item.name) {
-            return item.weight ? `${item.name} (${item.weight}%)` : item.name;
-          }
-          return String(item);
-        }).join(", ");
-      }
       if (card.type === "key-deliverables") {
         return card.value.map((item: any) => {
           if (typeof item === "string") return item;
@@ -315,6 +293,22 @@ export default function TenderReview() {
     }
 
     if (typeof card.value === "object") {
+      if (card.type === "evaluation-criteria") {
+        // New structure: { requirements, weights, customCriteria }
+        const v = card.value as any;
+        if (v.weights) {
+          const weightParts = (v.weights as any[])
+            .filter(w => w.weight > 0)
+            .map(w => {
+              const labels: Record<string, string> = { experience: "Experience", financial: "Financial", technical: "Technical" };
+              return `${labels[w.categoryId] || w.categoryId} ${w.weight}%`;
+            });
+          const custom = (v.customCriteria as any[] || []).map(c => `${c.text} ${c.weight}%`);
+          const all = [...weightParts, ...custom];
+          return all.length > 0 ? all.join(", ") : "Configured";
+        }
+        return "Configured";
+      }
       if (card.type === "budget") {
         if (card.value.type === "exact") {
           return `SAR ${card.value.amount?.toLocaleString() || 0}`;

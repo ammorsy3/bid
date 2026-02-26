@@ -144,9 +144,9 @@ const DURATION_LABELS: Record<string, string> = {
 };
 
 // Color palettes for the evaluation weight bar
-const CATEGORY_BAR_COLORS = ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500'];
-const CATEGORY_DOT_COLORS = ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500'];
-const CATEGORY_TEXT_COLORS = ['text-blue-600', 'text-emerald-600', 'text-purple-600', 'text-amber-600'];
+const CATEGORY_BAR_COLORS = ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500', 'bg-rose-500', 'bg-orange-500', 'bg-cyan-500', 'bg-teal-500', 'bg-indigo-500', 'bg-fuchsia-500'];
+const CATEGORY_DOT_COLORS = ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500', 'bg-rose-500', 'bg-orange-500', 'bg-cyan-500', 'bg-teal-500', 'bg-indigo-500', 'bg-fuchsia-500'];
+const CATEGORY_TEXT_COLORS = ['text-blue-600', 'text-emerald-600', 'text-purple-600', 'text-amber-600', 'text-rose-600', 'text-orange-600', 'text-cyan-600', 'text-teal-600', 'text-indigo-600', 'text-fuchsia-600'];
 const CATEGORY_LIGHT_COLORS = ['bg-blue-50 border-blue-100', 'bg-emerald-50 border-emerald-100', 'bg-purple-50 border-purple-100', 'bg-amber-50 border-amber-100'];
 
 function AudioPlayer({ src }: { src: string }) {
@@ -434,7 +434,6 @@ export default function TenderInviteLink() {
 
   const allSections: { id: SectionId; label: string; icon: any; show: boolean }[] = [
     { id: 'scope',      label: 'Project Scope',          icon: FileText,      show: true },
-    { id: 'timeline',   label: 'Milestones & Payments',  icon: Flag,          show: hasMilestones },
     { id: 'evaluation', label: 'Evaluation Criteria',    icon: Star,          show: !!hasEvalCriteria },
     { id: 'submission', label: 'Submission Requirements',icon: Shield,        show: hasSubmissionSection },
     { id: 'context',    label: 'Additional Context',     icon: Mic,           show: hasMedia },
@@ -549,77 +548,6 @@ export default function TenderInviteLink() {
             <span className="font-mono text-xs">RFP-{tenderId?.slice(0, 8).toUpperCase()}</span>
           </div>
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-
-            {/* Submission Deadline */}
-            <div className={`rounded-xl p-4 border ${isDeadlineToday ? 'bg-orange-50 border-orange-200' : isDeadlinePassed ? 'bg-gray-50 border-gray-100' : daysRemaining <= 3 ? 'bg-orange-50/50 border-orange-100' : 'bg-gray-50 border-gray-100'}`}>
-              <div className="flex items-center gap-2 mb-1.5">
-                <Calendar className={`h-4 w-4 ${isDeadlineToday ? 'text-orange-500' : 'text-[#E25E45]'}`} />
-                <span className="text-gray-500 text-xs font-medium uppercase tracking-wider">Submission Deadline</span>
-              </div>
-              <p className={`font-bold text-sm ${isDeadlinePassed ? 'text-red-600' : isDeadlineToday ? 'text-orange-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-gray-900'}`}>
-                {formatDate(tender.deadline)}
-              </p>
-              {deadlineSubtext() && (
-                <p className={`text-xs mt-0.5 font-medium ${isDeadlineToday ? 'text-orange-500' : 'text-gray-400'}`}>
-                  {deadlineSubtext()}
-                </p>
-              )}
-            </div>
-
-            {/* Budget */}
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center gap-2 mb-1.5">
-                <DollarSign className="h-4 w-4 text-emerald-500" />
-                <span className="text-gray-500 text-xs font-medium uppercase tracking-wider">Budget</span>
-              </div>
-              <p className="font-bold text-sm text-gray-900">{getBudgetDisplay()}</p>
-              {tender.showPriceToVendors === false && (
-                <p className="text-gray-400 text-xs mt-0.5 flex items-center gap-1"><EyeOff className="h-3 w-3" /> Range estimate</p>
-              )}
-            </div>
-
-            {/* Duration */}
-            {durationDisplay && (
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Clock className="h-4 w-4 text-blue-500" />
-                  <span className="text-gray-500 text-xs font-medium uppercase tracking-wider">Duration</span>
-                </div>
-                <p className="font-bold text-sm text-gray-900">{durationDisplay}</p>
-                {showDurationDateRange && (
-                  <p className="text-gray-400 text-xs mt-0.5">
-                    {tender.startDate && formatDate(tender.startDate)}{tender.startDate && tender.endDate && ' → '}{tender.endDate && formatDate(tender.endDate)}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Submission Format */}
-            {tender.submissionType && (
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <FileText className="h-4 w-4 text-purple-500" />
-                  <span className="text-gray-500 text-xs font-medium uppercase tracking-wider">Submission Format</span>
-                </div>
-                <p className="font-bold text-sm text-gray-900">
-                  {SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}
-                </p>
-              </div>
-            )}
-
-            {/* Category */}
-            {tender.category && (
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Tag className="h-4 w-4 text-indigo-500" />
-                  <span className="text-gray-500 text-xs font-medium uppercase tracking-wider">Category</span>
-                </div>
-                <p className="font-bold text-sm text-gray-900">{tender.category}</p>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
@@ -666,6 +594,7 @@ export default function TenderInviteLink() {
 
                     {/* Description */}
                     <div className="prose prose-sm max-w-none mb-6">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Project Description</p>
                       <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]" data-testid="text-description">
                         {tender.description}
                       </p>
@@ -673,14 +602,17 @@ export default function TenderInviteLink() {
 
                     {/* Duration row */}
                     {durationDisplay && (
-                      <div className="flex items-center gap-2 mb-6 text-sm text-gray-500">
-                        <Clock className="h-4 w-4 text-blue-400" />
-                        <span className="font-medium text-gray-700">{durationDisplay}</span>
-                        {showDurationDateRange && (
-                          <span className="text-gray-400 text-xs">
-                            ({tender.startDate && formatDate(tender.startDate)}{tender.startDate && tender.endDate && ' → '}{tender.endDate && formatDate(tender.endDate)})
-                          </span>
-                        )}
+                      <div className="mb-6">
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Project Duration</p>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-blue-400 flex-shrink-0" />
+                          <span className="font-semibold text-gray-800 text-[15px]">{durationDisplay}</span>
+                          {showDurationDateRange && (
+                            <span className="text-gray-400 text-sm">
+                              ({tender.startDate && formatDate(tender.startDate)}{tender.startDate && tender.endDate && ' → '}{tender.endDate && formatDate(tender.endDate)})
+                            </span>
+                          )}
+                        </div>
                       </div>
                     )}
 
@@ -738,7 +670,7 @@ export default function TenderInviteLink() {
 
                     {/* Required Skills */}
                     {tender.skills && tender.skills.length > 0 && (
-                      <div>
+                      <div className={hasMilestones ? "mb-8" : ""}>
                         <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                           <Tag className="h-4 w-4" /> Required Skills
                         </h3>
@@ -751,17 +683,14 @@ export default function TenderInviteLink() {
                         </div>
                       </div>
                     )}
-                  </div>
-                </SectionObserver>
 
-                {/* §2 Milestones & Payments */}
-                {hasMilestones && (
-                  <>
-                    <SectionDivider />
-                    <SectionObserver id="timeline" onVisible={() => setActiveSection('timeline')}>
-                      <div id="section-timeline" className="p-6 sm:p-8 scroll-mt-24">
-                        <SectionHeader index={sections.findIndex(s => s.id === 'timeline') + 1} title="Milestones & Payments" />
-                        <p className="text-sm text-gray-400 mb-6">Payments are released upon completion and acceptance of each milestone.</p>
+                    {/* Milestones & Payments (inline within scope) */}
+                    {hasMilestones && (
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-2">
+                          <Flag className="h-4 w-4" /> Milestones & Payments
+                        </h3>
+                        <p className="text-xs text-gray-400 mb-4">Payments are released upon completion and acceptance of each milestone.</p>
                         <div className="space-y-3">
                           {tender.milestones!.map((milestone, index) => (
                             <div key={milestone.id || index} className="relative flex gap-4">
@@ -791,7 +720,7 @@ export default function TenderInviteLink() {
                           ))}
                         </div>
                         {tender.milestones!.some(m => m.amount) && (
-                          <div className="mt-5 p-4 bg-[#E25E45]/5 rounded-xl border border-[#E25E45]/10 flex items-center justify-between">
+                          <div className="mt-4 p-4 bg-[#E25E45]/5 rounded-xl border border-[#E25E45]/10 flex items-center justify-between">
                             <span className="text-sm text-gray-600 font-medium">Total milestone value</span>
                             <span className="text-lg font-bold text-gray-900">
                               SAR {tender.milestones!.reduce((sum, m) => sum + (Number(m.amount) || 0), 0).toLocaleString()}
@@ -799,9 +728,9 @@ export default function TenderInviteLink() {
                           </div>
                         )}
                       </div>
-                    </SectionObserver>
-                  </>
-                )}
+                    )}
+                  </div>
+                </SectionObserver>
 
                 {/* §3 Evaluation Criteria */}
                 {hasEvalCriteria && (
@@ -815,7 +744,7 @@ export default function TenderInviteLink() {
                         </p>
 
                         {/* Weighted categories */}
-                        {!Array.isArray(tender.evaluationCriteria) && tender.evaluationCriteria.weights?.length > 0 ? (
+                        {!Array.isArray(tender.evaluationCriteria) && (tender.evaluationCriteria.weights?.length > 0 || tender.evaluationCriteria.customCriteria?.length > 0) ? (
                           <div>
                             {/* Visual weight bar */}
                             <div className="mb-6">
@@ -831,6 +760,17 @@ export default function TenderInviteLink() {
                                     title={`${EVAL_CATEGORY_INFO[w.categoryId]?.name || w.categoryId}: ${w.weight}%`}
                                   />
                                 ))}
+                                {(tender.evaluationCriteria.customCriteria || []).map((c: any, j: number) => {
+                                  const i = tender.evaluationCriteria.weights.length + j;
+                                  return (
+                                    <div
+                                      key={c.id}
+                                      style={{ width: `${c.weight}%` }}
+                                      className={`${CATEGORY_BAR_COLORS[i % CATEGORY_BAR_COLORS.length]} first:rounded-l-full last:rounded-r-full`}
+                                      title={`${c.text}: ${c.weight}%`}
+                                    />
+                                  );
+                                })}
                               </div>
                               <div className="flex flex-wrap gap-4">
                                 {tender.evaluationCriteria.weights.map((w: any, i: number) => {
@@ -841,6 +781,18 @@ export default function TenderInviteLink() {
                                       <span className="text-sm text-gray-600">
                                         {catInfo?.name || w.categoryId}
                                         <span className={`font-bold ml-1.5 ${CATEGORY_TEXT_COLORS[i % CATEGORY_TEXT_COLORS.length]}`}>{w.weight}%</span>
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                                {(tender.evaluationCriteria.customCriteria || []).map((c: any, j: number) => {
+                                  const i = tender.evaluationCriteria.weights.length + j;
+                                  return (
+                                    <div key={c.id} className="flex items-center gap-2">
+                                      <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${CATEGORY_DOT_COLORS[i % CATEGORY_DOT_COLORS.length]}`} />
+                                      <span className="text-sm text-gray-600">
+                                        {c.text}
+                                        <span className={`font-bold ml-1.5 ${CATEGORY_TEXT_COLORS[i % CATEGORY_TEXT_COLORS.length]}`}>{c.weight}%</span>
                                       </span>
                                     </div>
                                   );
@@ -1109,7 +1061,7 @@ export default function TenderInviteLink() {
                               <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                                 <Video className="h-4 w-4 text-blue-500" /> Video Explanation
                               </h3>
-                              <a href={tender.videoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors font-medium">
+                              <a href={tender.videoUrl.startsWith('http') ? tender.videoUrl : `https://${tender.videoUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors font-medium">
                                 <ExternalLink className="h-4 w-4" /> Watch Video
                               </a>
                             </div>
@@ -1221,6 +1173,73 @@ export default function TenderInviteLink() {
             {/* ── Sidebar ──────────────────────────────────────────────────────── */}
             <div className="hidden lg:block">
               <div className="sticky top-20 space-y-4">
+
+                {/* At a Glance */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">At a Glance</p>
+                  <div className="grid grid-cols-2 gap-2">
+
+                    {/* Deadline */}
+                    <div className={`rounded-lg p-2.5 border ${isDeadlineToday ? 'bg-orange-50 border-orange-200' : isDeadlinePassed ? 'bg-gray-50 border-gray-100' : daysRemaining <= 3 ? 'bg-orange-50/50 border-orange-100' : 'bg-gray-50 border-gray-100'}`}>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Calendar className={`h-3 w-3 flex-shrink-0 ${isDeadlineToday ? 'text-orange-500' : 'text-[#E25E45]'}`} />
+                        <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Deadline</span>
+                      </div>
+                      <p className={`text-xs font-bold leading-tight ${isDeadlinePassed ? 'text-red-600' : isDeadlineToday || daysRemaining <= 3 ? 'text-orange-600' : 'text-gray-800'}`}>
+                        {formatDate(tender.deadline)}
+                      </p>
+                      {deadlineSubtext() && (
+                        <p className={`text-[10px] mt-0.5 ${isDeadlineToday ? 'text-orange-500' : 'text-gray-400'}`}>{deadlineSubtext()}</p>
+                      )}
+                    </div>
+
+                    {/* Budget */}
+                    <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <DollarSign className="h-3 w-3 flex-shrink-0 text-emerald-500" />
+                        <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Budget</span>
+                      </div>
+                      <p className="text-xs font-bold text-gray-800 leading-tight">{getBudgetDisplay()}</p>
+                      {tender.showPriceToVendors === false && (
+                        <p className="text-[10px] text-gray-400 mt-0.5">Range est.</p>
+                      )}
+                    </div>
+
+                    {/* Duration */}
+                    {durationDisplay && (
+                      <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Clock className="h-3 w-3 flex-shrink-0 text-blue-500" />
+                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Duration</span>
+                        </div>
+                        <p className="text-xs font-bold text-gray-800 leading-tight">{durationDisplay}</p>
+                      </div>
+                    )}
+
+                    {/* Submission Format */}
+                    {tender.submissionType && (
+                      <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <FileText className="h-3 w-3 flex-shrink-0 text-purple-500" />
+                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Format</span>
+                        </div>
+                        <p className="text-xs font-bold text-gray-800 leading-tight">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</p>
+                      </div>
+                    )}
+
+                    {/* Category */}
+                    {tender.category && (
+                      <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100 col-span-2">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Tag className="h-3 w-3 flex-shrink-0 text-indigo-500" />
+                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Category</span>
+                        </div>
+                        <p className="text-xs font-bold text-gray-800 leading-tight">{tender.category}</p>
+                      </div>
+                    )}
+
+                  </div>
+                </div>
 
                 {/* Submit CTA */}
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">

@@ -81,7 +81,9 @@ export default function TenderDescriptionStep() {
     navigate("/tenders/new/evaluation-criteria");
   };
 
-  const isFormValid = description.trim().length > 0;
+  const countWords = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
+  const wordCount = countWords(description);
+  const isFormValid = wordCount >= 50;
   const characterCount = description.length;
   const maxCharacters = 5000;
 
@@ -176,11 +178,11 @@ A supportive and collaborative team environment."
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none disabled:opacity-50"
                     data-testid="input-description"
                   />
-                  <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-                    <p>Clear expectations, skills, and communication details</p>
-                    <p>
-                      {characterCount} / {maxCharacters} characters
+                  <div className="flex justify-between items-center text-xs">
+                    <p className={wordCount < 50 ? "text-amber-600 font-medium" : "text-green-600 font-medium"}>
+                      {wordCount < 50 ? `${50 - wordCount} more words needed (min. 50)` : "Minimum word count met ✓"}
                     </p>
+                    <p className="text-gray-400">{wordCount} words · {characterCount}/{maxCharacters}</p>
                   </div>
                 </div>
 

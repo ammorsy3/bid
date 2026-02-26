@@ -1,8 +1,12 @@
 import { FormCard } from "@/lib/form-builder-types";
+import { ENTERPRISE_CRITERIA_CATEGORIES } from "@/lib/evaluation-criteria-data";
+import type { EvaluationCriteriaValue, EvalRequirement, EvalCategoryWeight, EvalCustomCriterion } from "@/lib/form-builder-types";
+import { DEFAULT_EVAL_WEIGHTS } from "@/lib/form-builder-types";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plus, X, Clock, ShoppingBag, FileText, Video, MessageSquare, Users } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CalendarIcon, Plus, X, FileText, Video, FileCheck, FileVideo, ChevronDown, Check, Scale, Briefcase, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -32,9 +36,6 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
           className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${readOnly ? "cursor-default opacity-60" : ""}`}
         />
       );
-
-    case "project-type":
-      return <ProjectTypeInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
 
     case "supplier-response":
       return <SupplierResponseInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
@@ -76,7 +77,7 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
       return <DatePickerInput value={card.value} onChange={updateValue} label="Submission deadline" readOnly={readOnly} />;
 
     case "evaluation-criteria":
-      return <EvaluationCriteriaInput value={card.value || []} onChange={updateValue} readOnly={readOnly} />;
+      return <EvaluationCriteriaInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
 
     case "attachments":
       return <AttachmentsInput value={card.value || []} onChange={updateValue} readOnly={readOnly} />;
@@ -128,82 +129,7 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
   }
 }
 
-// Project Type Input Component
-function ProjectTypeInput({
-  value,
-  onChange,
-  readOnly = false,
-}: {
-  value: string | null;
-  onChange: (value: string) => void;
-  readOnly?: boolean;
-}) {
-  const options = [
-    {
-      id: "time-bound",
-      label: "Ongoing & time-bound",
-      description: "A project with a start and end date",
-      icon: Clock,
-    },
-    {
-      id: "deliverable",
-      label: "Purchase of a service or product",
-      description: "A project that ends when the work is delivered",
-      icon: ShoppingBag,
-    },
-  ];
-
-  return (
-    <div className="grid gap-3">
-      {options.map((option) => {
-        const Icon = option.icon;
-        const isSelected = value === option.id;
-        return (
-          <div
-            key={option.id}
-            onClick={readOnly ? undefined : () => onChange(option.id)}
-            className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all text-left ${
-              readOnly ? "opacity-60 cursor-default" : "cursor-pointer"
-            } ${
-              isSelected
-                ? "border-[#E25E45] bg-[#E25E45]/5"
-                : "border-gray-200 dark:border-gray-600"
-            } ${!readOnly && !isSelected ? "hover:border-gray-300" : ""}`}
-          >
-            <div
-              className={`p-2 rounded-lg ${
-                isSelected
-                  ? "bg-[#E25E45] text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-              }`}
-            >
-              <Icon className="h-5 w-5" />
-            </div>
-            <div className="flex-1">
-              <div className={`font-medium ${isSelected ? "text-[#E25E45]" : "text-gray-900 dark:text-white"}`}>
-                {option.label}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                {option.description}
-              </div>
-            </div>
-            <div
-              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                isSelected
-                  ? "border-[#E25E45] bg-[#E25E45]"
-                  : "border-gray-300 dark:border-gray-500"
-              }`}
-            >
-              {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// Supplier Response Input Component
+// Supplier Response Input — matches Bid Recommended submission types
 function SupplierResponseInput({
   value,
   onChange,
@@ -215,28 +141,32 @@ function SupplierResponseInput({
 }) {
   const options = [
     {
-      id: "document",
-      label: "Document submission",
-      description: "Suppliers submit written proposals and documents",
+      id: "quote_only",
+      label: "Price Only",
+      description: "Just need a price figure from vendors",
       icon: FileText,
+      color: "from-blue-500 to-blue-600",
     },
     {
-      id: "video",
-      label: "Video pitch",
-      description: "Suppliers record a video presentation",
+      id: "tech_fin_proposal",
+      label: "Full Proposal",
+      description: "Technical and Financial Proposal",
+      icon: FileCheck,
+      color: "from-purple-500 to-purple-600",
+    },
+    {
+      id: "video_only",
+      label: "Video Pitch",
+      description: "A short video explaining their approach",
       icon: Video,
+      color: "from-pink-500 to-pink-600",
     },
     {
-      id: "both",
-      label: "Document + Video",
-      description: "Both written proposals and video pitches required",
-      icon: Users,
-    },
-    {
-      id: "platform",
-      label: "Through Bid platform",
-      description: "Suppliers respond directly through the platform",
-      icon: MessageSquare,
+      id: "tech_fin_with_video",
+      label: "Proposal + Video",
+      description: "Written proposal and a video pitch",
+      icon: FileVideo,
+      color: "from-orange-500 to-orange-600",
     },
   ];
 
@@ -257,14 +187,8 @@ function SupplierResponseInput({
                 : "border-gray-200 dark:border-gray-600"
             } ${!readOnly && !isSelected ? "hover:border-gray-300" : ""}`}
           >
-            <div
-              className={`p-2 rounded-lg ${
-                isSelected
-                  ? "bg-[#E25E45] text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-              }`}
-            >
-              <Icon className="h-5 w-5" />
+            <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${option.color} flex items-center justify-center flex-shrink-0`}>
+              <Icon className="h-5 w-5 text-white" />
             </div>
             <div className="flex-1">
               <div className={`font-medium ${isSelected ? "text-[#E25E45]" : "text-gray-900 dark:text-white"}`}>
@@ -275,7 +199,7 @@ function SupplierResponseInput({
               </div>
             </div>
             <div
-              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                 isSelected
                   ? "border-[#E25E45] bg-[#E25E45]"
                   : "border-gray-300 dark:border-gray-500"
@@ -528,83 +452,255 @@ function DatePickerInput({
   );
 }
 
-// Evaluation Criteria Input Component
+// Evaluation Criteria Input — full weighted category system matching Bid Recommended
 function EvaluationCriteriaInput({
   value,
   onChange,
   readOnly = false,
 }: {
-  value: { name: string; weight: number }[];
-  onChange: (value: { name: string; weight: number }[]) => void;
+  value: EvaluationCriteriaValue | null;
+  onChange: (value: EvaluationCriteriaValue) => void;
   readOnly?: boolean;
 }) {
-  if (readOnly) {
-    return (
-      <div className="text-sm text-gray-400 italic py-2">
-        Add evaluation criteria in the next step
-      </div>
-    );
-  }
-  const [newCriteria, setNewCriteria] = useState("");
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(["experience"]);
+  const [newCriterionText, setNewCriterionText] = useState("");
+  const [newCriterionWeight, setNewCriterionWeight] = useState(5);
 
-  const handleAdd = () => {
-    if (newCriteria.trim()) {
-      onChange([...value, { name: newCriteria.trim(), weight: 0 }]);
-      setNewCriteria("");
+  // Ensure value has the expected shape
+  const evalValue: EvaluationCriteriaValue = value && typeof value === "object" && !Array.isArray(value) && "weights" in value
+    ? value
+    : { requirements: [], weights: DEFAULT_EVAL_WEIGHTS.map(w => ({ ...w })), customCriteria: [] };
+
+  const { requirements, weights, customCriteria } = evalValue;
+
+  const update = (patch: Partial<EvaluationCriteriaValue>) => {
+    onChange({ ...evalValue, ...patch });
+  };
+
+  const toggleCategory = (id: string) => {
+    setExpandedCategories(prev =>
+      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+    );
+  };
+
+  const getWeight = (categoryId: string) =>
+    weights.find(w => w.categoryId === categoryId)?.weight ?? 0;
+
+  const handleWeightChange = (categoryId: string, weight: number) => {
+    update({ weights: weights.map(w => w.categoryId === categoryId ? { ...w, weight } : w) });
+  };
+
+  const getReqValue = (categoryId: string, requirementId: string): string | boolean => {
+    const req = requirements.find(r => r.categoryId === categoryId && r.requirementId === requirementId);
+    return req?.value ?? false;
+  };
+
+  const handleReqChange = (categoryId: string, requirementId: string, val: string | boolean) => {
+    let updated: EvalRequirement[];
+    const idx = requirements.findIndex(r => r.categoryId === categoryId && r.requirementId === requirementId);
+    if (idx >= 0) {
+      if (val === false || val === "") {
+        updated = requirements.filter((_, i) => i !== idx);
+      } else {
+        updated = [...requirements];
+        updated[idx] = { categoryId, requirementId, value: val };
+      }
+    } else if (val !== false && val !== "") {
+      updated = [...requirements, { categoryId, requirementId, value: val }];
+    } else {
+      updated = requirements;
+    }
+    update({ requirements: updated });
+  };
+
+  const addCustomCriterion = () => {
+    if (newCriterionText.trim()) {
+      update({
+        customCriteria: [...customCriteria, { id: `custom-${Date.now()}`, text: newCriterionText.trim(), weight: newCriterionWeight }],
+      });
+      setNewCriterionText("");
+      setNewCriterionWeight(5);
     }
   };
 
-  const handleRemove = (index: number) => {
-    onChange(value.filter((_, i) => i !== index));
+  const removeCustomCriterion = (id: string) => {
+    update({ customCriteria: customCriteria.filter(c => c.id !== id) });
   };
 
-  const handleWeightChange = (index: number, weight: number) => {
-    const updated = [...value];
-    updated[index].weight = weight;
-    onChange(updated);
+  const updateCustomWeight = (id: string, weight: number) => {
+    update({ customCriteria: customCriteria.map(c => c.id === id ? { ...c, weight } : c) });
   };
+
+  const customWeight = customCriteria.reduce((s, c) => s + c.weight, 0);
+  const totalWeight = weights.reduce((s, w) => s + w.weight, 0) + customWeight;
+
+  if (readOnly) {
+    return (
+      <div className="text-sm text-gray-400 italic py-2">
+        Configure evaluation criteria in the next step
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-3">
-      {value.length > 0 && (
-        <div className="space-y-2">
-          {value.map((item, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg"
-            >
-              <span className="flex-1 text-sm text-gray-900 dark:text-white">{item.name}</span>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={item.weight}
-                onChange={(e) => handleWeightChange(index, parseInt(e.target.value) || 0)}
-                className="w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
-              />
-              <span className="text-xs text-gray-500">%</span>
-              <button
-                onClick={() => handleRemove(index)}
-                className="text-gray-400 hover:text-red-500"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          ))}
+    <div className="space-y-4">
+      {/* Weight ring */}
+      <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border border-gray-200 dark:border-gray-600">
+        <div className="relative w-14 h-14 flex-shrink-0">
+          <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="none" className="text-gray-200 dark:text-gray-600" />
+            <circle
+              cx="32" cy="32" r="28"
+              stroke="currentColor" strokeWidth="6" fill="none" strokeLinecap="round"
+              className={`transition-all duration-500 ${totalWeight === 100 ? "text-green-500" : totalWeight > 100 ? "text-red-500" : "text-amber-500"}`}
+              style={{ strokeDasharray: `${Math.min(totalWeight, 100) * 1.76} 176` }}
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className={`text-xs font-bold ${totalWeight === 100 ? "text-green-600" : totalWeight > 100 ? "text-red-600" : "text-amber-600"}`}>
+              {totalWeight}%
+            </span>
+          </div>
         </div>
-      )}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          placeholder="Add evaluation criteria..."
-          value={newCriteria}
-          onChange={(e) => setNewCriteria(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-          className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
-        />
-        <Button onClick={handleAdd} className="bg-[#E25E45] hover:bg-[#d54d35]">
-          <Plus className="h-4 w-4" />
-        </Button>
+        <div>
+          <p className="font-semibold text-sm text-gray-900 dark:text-white">
+            {totalWeight === 100 ? "Perfect Balance!" : "Weight Distribution"}
+          </p>
+          <p className={`text-xs mt-0.5 ${totalWeight === 100 ? "text-green-600" : totalWeight > 100 ? "text-red-500" : "text-amber-600"}`}>
+            {totalWeight === 100 ? "Weights add up to 100%" : totalWeight > 100 ? `Remove ${totalWeight - 100}% to balance` : `Add ${100 - totalWeight}% more weight`}
+          </p>
+        </div>
+      </div>
+
+      {/* Category accordions */}
+      {ENTERPRISE_CRITERIA_CATEGORIES.map((category) => {
+        const isExpanded = expandedCategories.includes(category.id);
+        const currentWeight = getWeight(category.id);
+        const hasSelections = requirements.some(r => r.categoryId === category.id);
+
+        const CategoryIcon = category.id === "experience" ? Briefcase : category.id === "financial" ? Scale : Clock;
+
+        return (
+          <div key={category.id} className={`border rounded-lg overflow-hidden transition-all ${hasSelections ? "border-[#E25E45]/50 bg-[#E25E45]/5" : "border-gray-200 dark:border-gray-600"}`}>
+            <button
+              type="button"
+              onClick={() => toggleCategory(category.id)}
+              className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+            >
+              <div className="flex items-center gap-2">
+                <div className={`p-1.5 rounded ${hasSelections ? "bg-[#E25E45]/10 text-[#E25E45]" : "bg-gray-100 dark:bg-gray-700 text-gray-500"}`}>
+                  <CategoryIcon className="h-4 w-4" />
+                </div>
+                <span className="font-medium text-sm text-gray-900 dark:text-white">{category.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">{currentWeight}%</span>
+                <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+              </div>
+            </button>
+
+            <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+              <div className="overflow-hidden">
+                <div className="border-t border-gray-200 dark:border-gray-600 p-3 space-y-3 bg-white dark:bg-gray-800">
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-500">Weight: {currentWeight}%</label>
+                    <input
+                      type="range" min="0" max="100" step="5" value={currentWeight}
+                      onChange={(e) => handleWeightChange(category.id, parseInt(e.target.value))}
+                      className="w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#E25E45]"
+                    />
+                  </div>
+
+                  {category.requirements.map((req) => {
+                    const currentValue = getReqValue(category.id, req.id);
+                    return (
+                      <div key={req.id} className="flex items-start gap-2">
+                        {req.type === "checkbox" && (
+                          <button
+                            type="button"
+                            onClick={() => handleReqChange(category.id, req.id, !currentValue)}
+                            className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${currentValue ? "border-[#E25E45] bg-[#E25E45]" : "border-gray-300 dark:border-gray-500"}`}
+                          >
+                            {currentValue && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
+                          </button>
+                        )}
+                        <div className="flex-1">
+                          <label className="text-sm text-gray-900 dark:text-white">{req.label}</label>
+                          {req.type === "select" && req.options && (
+                            <Select
+                              value={(currentValue as string) || "none"}
+                              onValueChange={(val) => handleReqChange(category.id, req.id, val === "none" ? "" : val)}
+                            >
+                              <SelectTrigger className="mt-1 w-full text-sm">
+                                <SelectValue placeholder="Not required" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">Not required</SelectItem>
+                                {req.options.map(opt => (
+                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Custom criteria */}
+      <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+        <label className="block text-sm font-medium text-gray-900 dark:text-white">
+          Custom criteria <span className="text-gray-400 font-normal">(optional)</span>
+        </label>
+
+        {customCriteria.length > 0 && (
+          <div className="space-y-2">
+            {customCriteria.map((item) => (
+              <div key={item.id} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <span className="flex-1 text-sm text-gray-900 dark:text-white">{item.text}</span>
+                <input
+                  type="number" min="0" max="100"
+                  value={item.weight}
+                  onChange={(e) => updateCustomWeight(item.id, parseInt(e.target.value) || 0)}
+                  className="w-14 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+                />
+                <span className="text-xs text-gray-500">%</span>
+                <button onClick={() => removeCustomCriterion(item.id)} className="text-gray-400 hover:text-red-500">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex gap-2 items-center">
+          <input
+            type="text"
+            placeholder="Add custom criterion..."
+            value={newCriterionText}
+            onChange={(e) => setNewCriterionText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addCustomCriterion()}
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+          />
+          <div className="flex items-center gap-1">
+            <input
+              type="number" min="0" max="100"
+              value={newCriterionWeight}
+              onChange={(e) => setNewCriterionWeight(parseInt(e.target.value) || 0)}
+              className="w-14 px-2 py-2 text-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm"
+            />
+            <span className="text-xs text-gray-500">%</span>
+          </div>
+          <Button onClick={addCustomCriterion} size="sm" className="bg-[#E25E45] hover:bg-[#d54d35]">
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -661,7 +757,6 @@ function CustomSelectInput({
     );
   }
   const [newOption, setNewOption] = useState("");
-  const [isEditingOptions, setIsEditingOptions] = useState(false);
 
   const handleAddOption = () => {
     if (newOption.trim() && !options.includes(newOption.trim())) {
@@ -677,55 +772,49 @@ function CustomSelectInput({
 
   return (
     <div className="space-y-3">
-      <select
-        value={value || ""}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
-      >
-        <option value="">Select an option...</option>
-        {options.map((opt, index) => (
-          <option key={index} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-
-      <button
-        type="button"
-        onClick={() => setIsEditingOptions(!isEditingOptions)}
-        className="text-xs text-[#E25E45] hover:underline"
-      >
-        {isEditingOptions ? "Done editing options" : "Edit options"}
-      </button>
-
-      {isEditingOptions && (
-        <div className="space-y-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          {options.map((opt, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <span className="flex-1 text-sm">{opt}</span>
+      {options.length > 0 && (
+        <div className="space-y-2">
+          {options.map((opt) => (
+            <div key={opt} className="flex items-center gap-3">
+              <label
+                className={`flex-1 flex items-center gap-3 px-3 py-2 rounded-lg border cursor-pointer transition-all ${
+                  value === opt
+                    ? "border-[#E25E45] bg-[#E25E45]/5"
+                    : "border-gray-200 dark:border-gray-600"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name={`select-${opt}`}
+                  checked={value === opt}
+                  onChange={() => onChange(opt)}
+                  className="text-[#E25E45]"
+                />
+                <span className="text-sm text-gray-900 dark:text-white">{opt}</span>
+              </label>
               <button
                 onClick={() => handleRemoveOption(opt)}
                 className="text-gray-400 hover:text-red-500"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </button>
             </div>
           ))}
-          <div className="flex gap-2 mt-2">
-            <input
-              type="text"
-              placeholder="Add option..."
-              value={newOption}
-              onChange={(e) => setNewOption(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAddOption()}
-              className="flex-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"
-            />
-            <Button size="sm" onClick={handleAddOption} className="bg-[#E25E45] hover:bg-[#d54d35]">
-              Add
-            </Button>
-          </div>
         </div>
       )}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          placeholder="Add an option..."
+          value={newOption}
+          onChange={(e) => setNewOption(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleAddOption()}
+          className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+        />
+        <Button onClick={handleAddOption} size="sm" className="bg-[#E25E45] hover:bg-[#d54d35]">
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }

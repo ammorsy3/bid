@@ -367,10 +367,11 @@ export default function TenderProjectScopeStep() {
   const isTimelineComplete = startDate !== undefined && endDate !== undefined;
 
   // Form is valid if we have timeline, at least one complete deliverable and description
+  const descriptionWordCount = countWords(projectDescription);
   const isFormValid =
     isTimelineComplete &&
     areDeliverablesComplete &&
-    (inputMode === "text" ? projectDescription.trim().length > 0 : voiceNoteUrl.length > 0);
+    (inputMode === "text" ? descriptionWordCount >= 50 : voiceNoteUrl.length > 0);
 
   const maxDescriptionChars = 5000;
   const descriptionCharCount = projectDescription.length;
@@ -911,11 +912,11 @@ export default function TenderProjectScopeStep() {
                         rows={6}
                         data-testid="textarea-project-description"
                       />
-                      <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-                        <p>Share any additional details about your project</p>
-                        <p>
-                          {descriptionCharCount} / {maxDescriptionChars}
+                      <div className="flex justify-between items-center text-xs">
+                        <p className={descriptionWordCount < 50 ? "text-amber-600 font-medium" : "text-green-600 font-medium"}>
+                          {descriptionWordCount < 50 ? `${50 - descriptionWordCount} more words needed (min. 50)` : "Minimum word count met ✓"}
                         </p>
+                        <p className="text-gray-400">{descriptionWordCount} words · {descriptionCharCount}/{maxDescriptionChars}</p>
                       </div>
                     </>
                   )}

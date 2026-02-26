@@ -23,6 +23,7 @@ Guidelines:
 - Keep responses concise but helpful
 - Offer clickable suggestion buttons for common responses
 - When you have enough info to create a tender, summarize and ask for confirmation
+- The serviceDescription field MUST be at least 50 words. Write a thorough, detailed description covering scope, context, goals, and requirements — never a one-liner
 
 IMPORTANT: Always respond in valid JSON format with this structure:
 {
@@ -31,7 +32,7 @@ IMPORTANT: Always respond in valid JSON format with this structure:
   "tenderData": {
     // Any tender fields you've extracted or suggested
     // "title": "string",
-    // "serviceDescription": "string", 
+    // "serviceDescription": "string (MINIMUM 50 words - must be detailed and comprehensive)",
     // "projectType": "ongoing|one-time|project-based",
     // "budget": { "min": number, "max": number } or number,
     // "timeline": "string",

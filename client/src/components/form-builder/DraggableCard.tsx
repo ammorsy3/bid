@@ -23,9 +23,8 @@ function getInputTypeLabel(type: CardType): string {
     case "project-description":
     case "custom-textarea":
       return "Long text";
-    case "project-type":
     case "supplier-response":
-      return "Multiple choice";
+      return "Submission type";
     case "project-dates":
       return "Date range";
     case "budget":

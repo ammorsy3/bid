@@ -9,6 +9,8 @@ import {
   BarChart,
   Paperclip,
   MessageSquare,
+  AlignLeft,
+  List,
   LucideIcon,
 } from "lucide-react";
 
@@ -176,10 +178,31 @@ export const CARD_LIBRARY: {
   ],
   custom: [
     {
+      type: "custom-text",
+      label: "Short Answer",
+      description: "Single-line text input",
+      icon: Type,
+      isCustom: true,
+    },
+    {
+      type: "custom-textarea",
+      label: "Long Answer",
+      description: "Multi-line text area",
+      icon: AlignLeft,
+      isCustom: true,
+    },
+    {
       type: "custom-date",
       label: "Date",
       description: "Date picker field",
       icon: Calendar,
+      isCustom: true,
+    },
+    {
+      type: "custom-select",
+      label: "Multiple Choice",
+      description: "Dropdown or radio options",
+      icon: List,
       isCustom: true,
     },
   ],

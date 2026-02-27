@@ -60,11 +60,14 @@ export default function TenderFormFill() {
     const missing: string[] = [];
     let completed = 0;
     for (const card of required) {
-      const isEmpty =
+      let isEmpty =
         card.value === null ||
         card.value === undefined ||
         card.value === "" ||
         (Array.isArray(card.value) && card.value.length === 0);
+      if (!isEmpty && card.type === "project-description" && typeof card.value === "object" && !Array.isArray(card.value)) {
+        isEmpty = !card.value.text?.trim() && !card.value.voiceNoteUrl;
+      }
       if (isEmpty) {
         missing.push(card.label);
       } else {
@@ -222,11 +225,14 @@ export default function TenderFormFill() {
             const definition = getCardDefinition(card.type);
             const Icon = definition?.icon;
             const insight = FIELD_INSIGHTS[card.type];
-            const hasValue =
-              card.value !== null &&
-              card.value !== undefined &&
-              card.value !== "" &&
-              !(Array.isArray(card.value) && card.value.length === 0);
+            const hasValue = (() => {
+              if (card.value === null || card.value === undefined || card.value === "") return false;
+              if (Array.isArray(card.value) && card.value.length === 0) return false;
+              if (card.type === "project-description" && typeof card.value === "object" && !Array.isArray(card.value)) {
+                return !!(card.value.text?.trim() || card.value.voiceNoteUrl);
+              }
+              return true;
+            })();
 
             return (
               <motion.div

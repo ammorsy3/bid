@@ -75,11 +75,14 @@ export function DraggableCard({
   const isCustomCard = definition?.isCustom;
 
   // Check if card needs action (touched, required, but empty) — only relevant when filling in values (Step 2+)
-  const isEmpty =
+  let isEmpty =
     card.value === null ||
     card.value === undefined ||
     card.value === "" ||
     (Array.isArray(card.value) && card.value.length === 0);
+  if (!isEmpty && card.type === "project-description" && typeof card.value === "object" && !Array.isArray(card.value)) {
+    isEmpty = !card.value.text?.trim() && !card.value.voiceNoteUrl;
+  }
   const needsAction = !structureOnly && card.touched && card.isRequired && isEmpty;
 
   // Mark card as touched when user leaves it (blur)

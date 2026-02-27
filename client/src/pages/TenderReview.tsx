@@ -304,6 +304,14 @@ export default function TenderReview() {
     }
 
     if (typeof card.value === "object") {
+      if (card.type === "project-description") {
+        const v = card.value as any;
+        const parts: string[] = [];
+        if (v.text?.trim()) parts.push(v.text.trim());
+        if (v.voiceNoteUrl) parts.push("🎙 Voice note attached");
+        if (v.videoUrl) parts.push(`🎬 ${v.videoUrl}`);
+        return parts.length > 0 ? parts.join("\n") : "Not provided";
+      }
       if (card.type === "evaluation-criteria") {
         // New structure: { requirements, weights, customCriteria }
         const v = card.value as any;
@@ -446,11 +454,14 @@ export default function TenderReview() {
           {cards.map((card, index) => {
             const definition = getCardDefinition(card.type);
             const Icon = definition?.icon;
-            const hasValue =
-              card.value !== null &&
-              card.value !== undefined &&
-              card.value !== "" &&
-              !(Array.isArray(card.value) && card.value.length === 0);
+            const hasValue = (() => {
+              if (card.value === null || card.value === undefined || card.value === "") return false;
+              if (Array.isArray(card.value) && card.value.length === 0) return false;
+              if (card.type === "project-description" && typeof card.value === "object" && !Array.isArray(card.value)) {
+                return !!(card.value.text?.trim() || card.value.voiceNoteUrl);
+              }
+              return true;
+            })();
 
             return (
               <motion.div

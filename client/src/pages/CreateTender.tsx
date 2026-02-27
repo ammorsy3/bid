@@ -20,6 +20,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth";
 import { useState, useEffect } from "react";
 import VoiceRecorder from "@/components/voice-recorder";
@@ -171,9 +172,16 @@ export default function CreateTender() {
       setReviewData(null);
       clearDraft();
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
+      const inviteLink = `${window.location.origin}/invite/${tender.invitationToken}`;
       toast({
         title: "Success!",
         description: "Tender created successfully",
+        action: (
+          <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
+            <Copy className="h-3 w-3 mr-1" /> Copy Link
+          </ToastAction>
+        ),
+        duration: 10000,
       });
     },
     onError: (error: any) => {

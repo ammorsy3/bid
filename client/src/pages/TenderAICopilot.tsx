@@ -30,8 +30,11 @@ import {
   Users,
   Lightbulb,
   Building2,
+  Copy,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { AIAgentOrb, OrbState } from "@/components/ui/ai-agent-orb";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { cn } from "@/lib/utils";
@@ -215,6 +218,7 @@ const taskSteps = [
 export default function TenderAICopilot() {
   const [, navigate] = useLocation();
   const { activeCompany, user } = useAuthStore();
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -503,17 +507,30 @@ export default function TenderAICopilot() {
     addActivity("generating", "Creating your RFP", tenderDraft.title || "New RFP", "in_progress");
 
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch("/api/tenders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(token ? { "Authorization": `Bearer ${token}` } : {}) },
         body: JSON.stringify(tenderDraft),
       });
 
       if (response.ok) {
+        const createdTender = await response.json();
         setOrbState("success");
         setStatusText("RFP launched successfully!");
         addActivity("complete", "RFP published!", "Your RFP is now live and accepting bids");
-        setTimeout(() => navigate("/dashboard"), 1500);
+        const inviteLink = `${window.location.origin}/invite/${createdTender.invitationToken}`;
+        toast({
+          title: "RFP published!",
+          description: "Your RFP is now live and accepting bids.",
+          action: (
+            <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
+              <Copy className="h-3 w-3 mr-1" /> Copy Link
+            </ToastAction>
+          ),
+          duration: 10000,
+        });
+        setTimeout(() => navigate("/dashboard"), 3000);
       }
     } catch (error) {
       console.error("Error creating tender:", error);

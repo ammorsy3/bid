@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown, Shield } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown, Shield, Copy } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth";
 import { format } from "date-fns";
 
@@ -114,12 +115,19 @@ export default function TenderBriefStep() {
       const response = await apiRequest("POST", "/api/tenders", tenderData);
       return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       localStorage.removeItem("tenderDraft");
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
+      const inviteLink = `${window.location.origin}/invite/${data.invitationToken}`;
       toast({
         title: "RFP published!",
         description: "Your RFP is now live. Vendors can start submitting Proposals.",
+        action: (
+          <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
+            <Copy className="h-3 w-3 mr-1" /> Copy Link
+          </ToastAction>
+        ),
+        duration: 10000,
       });
       navigate("/dashboard?tab=tenders");
     },

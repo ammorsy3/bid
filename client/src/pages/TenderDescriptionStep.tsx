@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, ArrowRight, Sparkles, Video, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Video, Loader2, Copy } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useState, useMemo } from "react";
@@ -9,6 +9,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import VoiceRecorder from "@/components/voice-recorder";
 import { SmartInput } from "@/components/ui/smart-input";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
 export default function TenderDescriptionStep() {
   const [, navigate] = useLocation();
@@ -30,13 +31,19 @@ export default function TenderDescriptionStep() {
       const response = await apiRequest("POST", "/api/tenders", tenderData);
       return await response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       localStorage.removeItem("tenderDraft");
-      // Invalidate tenders list so it shows the newly created tender
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
+      const inviteLink = `${window.location.origin}/invite/${data.invitationToken}`;
       toast({
         title: "Tender Created!",
         description: "Your tender has been published. Share the invite link with vendors.",
+        action: (
+          <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
+            <Copy className="h-3 w-3 mr-1" /> Copy Link
+          </ToastAction>
+        ),
+        duration: 10000,
       });
       navigate("/dashboard?tab=tenders");
     },

@@ -11,11 +11,13 @@ import {
   ChevronDown,
   ChevronUp,
   Star,
+  Copy,
 } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useTheme } from "next-themes";
 import { FormCard, getCardDefinition } from "@/lib/form-builder-types";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Switch } from "@/components/ui/switch";
 
@@ -282,13 +284,21 @@ export default function TenderReview() {
       }
 
       const tenderData = buildTenderData(cards);
-      await apiRequest("POST", "/api/tenders", tenderData);
+      const response = await apiRequest("POST", "/api/tenders", tenderData);
+      const createdTender = await response.json();
       localStorage.removeItem(TENDER_STATE_KEY);
       queryClient.invalidateQueries({ queryKey: ["/api/tenders"] });
 
+      const inviteLink = `${window.location.origin}/invite/${createdTender.invitationToken}`;
       toast({
         title: "RFP launched!",
         description: "Your RFP has been created successfully",
+        action: (
+          <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
+            <Copy className="h-3 w-3 mr-1" /> Copy Link
+          </ToastAction>
+        ),
+        duration: 10000,
       });
 
       navigate("/dashboard");

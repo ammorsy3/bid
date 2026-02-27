@@ -10,9 +10,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth";
 import {
-  ArrowLeft, Loader2, Save, Send, RotateCcw, Plus, X,
+  ArrowLeft, Loader2, Save, Send, RotateCcw, Plus, X, Copy,
   FileText, Calendar, DollarSign, ClipboardList, MessageSquare,
   ListChecks, Target, Tag, Eye, EyeOff
 } from "lucide-react";
@@ -240,7 +241,23 @@ export default function TenderEdit() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tenders", id] });
       queryClient.invalidateQueries({ queryKey: ["/api/tenders"] });
-      toast({ title: "Published!", description: "Tender is now live and accepting proposals" });
+      const tenderData = queryClient.getQueryData<any>(["/api/tenders", id]);
+      const invToken = tenderData?.invitationToken;
+      if (invToken) {
+        const inviteLink = `${window.location.origin}/invite/${invToken}`;
+        toast({
+          title: "Published!",
+          description: "Tender is now live and accepting proposals",
+          action: (
+            <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
+              <Copy className="h-3 w-3 mr-1" /> Copy Link
+            </ToastAction>
+          ),
+          duration: 10000,
+        });
+      } else {
+        toast({ title: "Published!", description: "Tender is now live and accepting proposals" });
+      }
       setLocation(`/tenders/${id}`);
     },
     onError: (error: any) => {

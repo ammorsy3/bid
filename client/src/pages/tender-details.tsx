@@ -9,6 +9,7 @@ import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, Ex
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Tender } from "@shared/schema";
 import SubmitOfferModal from "@/components/submit-offer-modal";
@@ -352,10 +353,24 @@ export default function TenderDetails() {
     mutationFn: async (status: string) => {
       return await apiRequest('PATCH', `/api/tenders/${id}/status`, { status });
     },
-    onSuccess: () => {
+    onSuccess: (_data, status) => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenders', id] });
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
-      toast({ title: "Status updated", description: "Tender status has been updated successfully" });
+      if (status === 'published' && tender?.invitationToken) {
+        const inviteLink = `${window.location.origin}/invite/${tender.invitationToken}`;
+        toast({
+          title: "Published!",
+          description: "Tender is now live and accepting proposals",
+          action: (
+            <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
+              <Copy className="h-3 w-3 mr-1" /> Copy Link
+            </ToastAction>
+          ),
+          duration: 10000,
+        });
+      } else {
+        toast({ title: "Status updated", description: "Tender status has been updated successfully" });
+      }
     },
     onError: (error: Error) => {
       toast({ title: "Failed to update status", description: error.message, variant: "destructive" });

@@ -8,7 +8,7 @@ import {
   Video, Play, Pause, AlertCircle, Target, ListChecks, Star,
   Mail, Phone, MessageSquare, Flag, HelpCircle, Shield, Layers,
   Tag, Mic, ExternalLink, EyeOff, CheckCircle2, ChevronRight,
-  Hash, ClipboardCheck, AlertTriangle, BarChart3, Paperclip
+  Hash, ClipboardCheck, AlertTriangle, BarChart3, Paperclip, ChevronDown
 } from "lucide-react";
 import { useState, useRef, useEffect, ReactNode } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -273,6 +273,95 @@ function AudioPlayer({ src }: { src: string }) {
 }
 
 type SectionId = 'scope' | 'timeline' | 'evaluation' | 'submission' | 'custom' | 'context' | 'qa';
+
+function MobileAtAGlance({
+  tender,
+  isDeadlinePassed,
+  isDeadlineToday,
+  daysRemaining,
+  formatDate,
+  deadlineSubtext,
+  getBudgetDisplay,
+  durationDisplay,
+}: {
+  tender: TenderData;
+  isDeadlinePassed: boolean;
+  isDeadlineToday: boolean;
+  daysRemaining: number;
+  formatDate: (d: string) => string;
+  deadlineSubtext: () => string;
+  getBudgetDisplay: () => string;
+  durationDisplay: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="lg:hidden mb-4">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3"
+      >
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-[#E25E45]" />
+          <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">At a Glance</span>
+        </div>
+        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="bg-white rounded-b-xl border border-t-0 border-gray-200 shadow-sm px-4 pb-4 -mt-1">
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            <div className={`rounded-lg p-2.5 border ${isDeadlineToday ? 'bg-orange-50 border-orange-200' : isDeadlinePassed ? 'bg-red-50 border-red-100' : daysRemaining <= 3 ? 'bg-orange-50/50 border-orange-100' : 'bg-gray-50 border-gray-100'}`}>
+              <div className="flex items-center gap-1.5 mb-1">
+                <Calendar className={`h-3 w-3 flex-shrink-0 ${isDeadlineToday ? 'text-orange-500' : isDeadlinePassed ? 'text-red-500' : 'text-[#E25E45]'}`} />
+                <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Deadline</span>
+              </div>
+              <p className={`text-xs font-bold leading-tight ${isDeadlinePassed ? 'text-red-600' : isDeadlineToday || daysRemaining <= 3 ? 'text-orange-600' : 'text-gray-800'}`}>
+                {formatDate(tender.deadline)}
+              </p>
+              {deadlineSubtext() && (
+                <p className={`text-[10px] mt-0.5 ${isDeadlineToday ? 'text-orange-500' : 'text-gray-400'}`}>{deadlineSubtext()}</p>
+              )}
+            </div>
+            <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
+              <div className="flex items-center gap-1.5 mb-1">
+                <DollarSign className="h-3 w-3 flex-shrink-0 text-emerald-500" />
+                <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Budget</span>
+              </div>
+              <p className="text-xs font-bold text-gray-800 leading-tight">{getBudgetDisplay()}</p>
+            </div>
+            {durationDisplay && (
+              <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Clock className="h-3 w-3 flex-shrink-0 text-blue-500" />
+                  <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Duration</span>
+                </div>
+                <p className="text-xs font-bold text-gray-800 leading-tight">{durationDisplay}</p>
+              </div>
+            )}
+            {tender.submissionType && (
+              <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <FileText className="h-3 w-3 flex-shrink-0 text-purple-500" />
+                  <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Format</span>
+                </div>
+                <p className="text-xs font-bold text-gray-800 leading-tight">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</p>
+              </div>
+            )}
+            {tender.category && (
+              <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100 col-span-2">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Tag className="h-3 w-3 flex-shrink-0 text-indigo-500" />
+                  <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Category</span>
+                </div>
+                <p className="text-xs font-bold text-gray-800 leading-tight">{tender.category}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function TenderInviteLink() {
   const [, params] = useRoute("/invite/:id");
@@ -580,6 +669,18 @@ export default function TenderInviteLink() {
             {/* ── Main document column ─────────────────────────────────────── */}
             <div>
 
+              {/* Mobile At a Glance (collapsible) */}
+              <MobileAtAGlance
+                tender={tender}
+                isDeadlinePassed={isDeadlinePassed}
+                isDeadlineToday={isDeadlineToday}
+                daysRemaining={daysRemaining}
+                formatDate={formatDate}
+                deadlineSubtext={deadlineSubtext}
+                getBudgetDisplay={getBudgetDisplay}
+                durationDisplay={durationDisplay}
+              />
+
               {/* Table of Contents */}
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
                 <div className="flex">
@@ -705,6 +806,24 @@ export default function TenderInviteLink() {
                             const sizeStr = file.size < 1024 ? `${file.size} B`
                               : file.size < 1024 * 1024 ? `${(file.size / 1024).toFixed(1)} KB`
                               : `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+                            if (!user) {
+                              return (
+                                <div key={file.id} className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                  {icon}
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-gray-800 truncate">{file.name}</p>
+                                    <p className="text-xs text-gray-400">{sizeStr}</p>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }}
+                                  >
+                                    Log in to download
+                                  </Button>
+                                </div>
+                              );
+                            }
                             return (
                               <a
                                 key={file.id}
@@ -1450,8 +1569,17 @@ export default function TenderInviteLink() {
         </div>
       )}
 
+      {/* Mobile bottom spacer so content isn't hidden behind sticky CTA */}
+      <div className="lg:hidden h-24" />
+
       {/* Mobile bottom CTA */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t px-4 pt-2 pb-4 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <div className="flex items-center justify-center gap-1.5 mb-2">
+          <Calendar className={`h-3 w-3 ${isDeadlinePassed ? 'text-red-500' : isDeadlineToday ? 'text-orange-500' : 'text-gray-400'}`} />
+          <span className={`text-xs font-medium ${isDeadlinePassed ? 'text-red-600' : isDeadlineToday ? 'text-orange-600' : 'text-gray-500'}`}>
+            {isDeadlinePassed ? 'Closed' : isDeadlineToday ? 'Closes today' : daysRemaining <= 7 ? `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} left` : `Due ${formatDate(tender.deadline)}`}
+          </span>
+        </div>
         <Button
           className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white py-5 text-base font-semibold rounded-xl"
           onClick={handleSubmitOffer}

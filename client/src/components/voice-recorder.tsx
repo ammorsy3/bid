@@ -167,6 +167,7 @@ export default function VoiceRecorder({
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ fileSize: audioBlob.size, fileType: audioBlob.type }),
       });
 
       if (!uploadUrlResponse.ok) {

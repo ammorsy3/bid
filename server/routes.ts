@@ -2009,9 +2009,32 @@ Response must be valid JSON with this exact structure:
     }
   });
 
+  const MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10MB
+  const ALLOWED_MIME_TYPES = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'image/png',
+    'image/jpeg',
+    'image/jpg',
+  ];
+
   // Get upload URL
   app.post("/api/objects/upload", authenticateToken, async (req: AuthRequest, res) => {
     try {
+      const { fileSize, fileType } = req.body || {};
+
+      if (fileSize && fileSize > MAX_UPLOAD_SIZE) {
+        return res.status(400).json({ error: `File too large (${(fileSize / (1024 * 1024)).toFixed(1)}MB). Maximum size is ${MAX_UPLOAD_SIZE / (1024 * 1024)}MB.` });
+      }
+
+      if (fileType && !ALLOWED_MIME_TYPES.includes(fileType) && 
+          !fileType.startsWith('audio/') && !fileType.startsWith('video/')) {
+        return res.status(400).json({ error: `File type "${fileType}" is not allowed. Accepted types: PDF, DOC, DOCX, XLS, XLSX, PNG, JPG, audio, and video.` });
+      }
+
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
       res.json({ uploadURL });
@@ -2056,12 +2079,23 @@ Response must be valid JSON with this exact structure:
       if (!canAccess) {
         const tenderWithVoice = await storage.getTenderByVoiceNoteUrl(filePath);
         if (tenderWithVoice) {
-          // Allow access to published tender voice notes
           if (tenderWithVoice.status === 'published') {
             canAccess = true;
           }
-          // Or if user's company owns the tender
           if (activeCompanyId && tenderWithVoice.companyId === activeCompanyId) {
+            canAccess = true;
+          }
+        }
+      }
+
+      // Check if this is an attachment on a published tender
+      if (!canAccess) {
+        const tenderWithAttachment = await storage.getTenderByAttachmentUrl(filePath);
+        if (tenderWithAttachment) {
+          if (tenderWithAttachment.status === 'published') {
+            canAccess = true;
+          }
+          if (activeCompanyId && tenderWithAttachment.companyId === activeCompanyId) {
             canAccess = true;
           }
         }
@@ -2103,6 +2137,11 @@ Response must be valid JSON with this exact structure:
 
       if (existingAcl && existingAcl.owner !== userId) {
         return res.status(403).json({ error: "Not authorized to modify this file" });
+      }
+
+      const fileSize = objectFile.metadata?.size ? parseInt(String(objectFile.metadata.size), 10) : 0;
+      if (fileSize > MAX_UPLOAD_SIZE) {
+        return res.status(400).json({ error: `File too large (${(fileSize / (1024 * 1024)).toFixed(1)}MB). Maximum size is ${MAX_UPLOAD_SIZE / (1024 * 1024)}MB.` });
       }
 
       const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(

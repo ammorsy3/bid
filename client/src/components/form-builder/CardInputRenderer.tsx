@@ -1132,7 +1132,7 @@ function AttachmentsInput({
       return null;
     }
 
-    const response = await apiRequest('POST', '/api/objects/upload', {});
+    const response = await apiRequest('POST', '/api/objects/upload', { fileSize: file.size, fileType: file.type });
     const { uploadURL } = await response.json();
 
     await fetch(uploadURL, {

@@ -45,7 +45,10 @@ import {
   type InsertTenderTemplate,
   tenderQuestions,
   type TenderQuestion,
-  type InsertTenderQuestion
+  type InsertTenderQuestion,
+  errorLogs,
+  type ErrorLog,
+  type InsertErrorLog
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ilike, or, isNull, sql, gte, count } from "drizzle-orm";
@@ -200,6 +203,12 @@ export interface IStorage {
   createTenderQuestion(question: InsertTenderQuestion): Promise<TenderQuestion>;
   getTenderQuestions(tenderId: string): Promise<TenderQuestion[]>;
   answerTenderQuestion(questionId: string, answer: string): Promise<TenderQuestion>;
+
+  // ============================================================================
+  // ERROR LOG OPERATIONS
+  // ============================================================================
+  createErrorLog(log: InsertErrorLog): Promise<ErrorLog>;
+  getErrorLogs(limit?: number): Promise<ErrorLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1292,6 +1301,23 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tenderQuestions.id, questionId))
       .returning();
     return updated;
+  }
+
+  // ============================================================================
+  // ERROR LOG OPERATIONS
+  // ============================================================================
+
+  async createErrorLog(log: InsertErrorLog): Promise<ErrorLog> {
+    const [created] = await db.insert(errorLogs).values(log).returning();
+    return created;
+  }
+
+  async getErrorLogs(limit = 100): Promise<ErrorLog[]> {
+    return await db
+      .select()
+      .from(errorLogs)
+      .orderBy(desc(errorLogs.createdAt))
+      .limit(limit);
   }
 }
 

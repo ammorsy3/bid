@@ -87,6 +87,14 @@ Comprehensive administrative control panel with operational capabilities:
 - **Audit Logging**: Complete audit trail with before/after snapshots
 - **Event-First Analytics**: Real-time metric calculations from database aggregations
 
+### Error Logging System
+Centralized error logging captures both client-side and server-side errors into the `error_logs` database table.
+- **Client errors**: Unhandled JS exceptions, unhandled promise rejections, and failed API responses are automatically reported via `POST /api/errors`
+- **Server errors**: Express global error handler middleware logs unhandled server errors
+- **Admin access**: Platform admins can view all error logs via `GET /api/admin/errors`
+- **Data captured**: userId, companyId, source (client/server), HTTP method, path, status code, error message, stack trace, user agent, metadata
+- **Frontend utility**: `client/src/lib/errorLogger.ts` — `reportError()` function and `setupGlobalErrorHandlers()` for window-level error capture
+
 ### Date Localization
 All date displays are formatted to English locale.
 

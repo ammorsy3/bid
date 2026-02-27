@@ -387,6 +387,25 @@ export const tenderQuestions = pgTable("tender_questions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Error Logs
+export const errorLogs = pgTable("error_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  companyId: varchar("company_id").references(() => companies.id),
+  source: varchar("source", { length: 20 }).notNull(),
+  method: varchar("method", { length: 10 }),
+  path: text("path"),
+  statusCode: integer("status_code"),
+  errorMessage: text("error_message").notNull(),
+  stack: text("stack"),
+  userAgent: text("user_agent"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type ErrorLog = typeof errorLogs.$inferSelect;
+export type InsertErrorLog = typeof errorLogs.$inferInsert;
+
 // ============================================================================
 // RELATIONS
 // ============================================================================

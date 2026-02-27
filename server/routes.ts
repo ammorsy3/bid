@@ -2403,6 +2403,96 @@ Response must be valid JSON with this exact structure:
 
   registerCopilotRoutes(app);
 
+  // ============================================================================
+  // ERROR LOGGING
+  // ============================================================================
+
+  app.post("/api/errors", async (req, res) => {
+    try {
+      let userId: string | undefined;
+      let companyId: string | undefined;
+      const authHeader = req.headers.authorization;
+      if (authHeader?.startsWith('Bearer ')) {
+        try {
+          const jwt = await import("jsonwebtoken");
+          const decoded = jwt.default.verify(authHeader.slice(7), process.env.JWT_SECRET!) as any;
+          userId = decoded.userId;
+          companyId = decoded.activeCompanyId;
+        } catch {}
+      }
+
+      const { message, stack, path, statusCode, method, metadata } = req.body;
+      if (!message) {
+        return res.status(400).json({ error: "Error message is required" });
+      }
+
+      await storage.createErrorLog({
+        userId: userId || null,
+        companyId: companyId || null,
+        source: 'client',
+        method: method || null,
+        path: path || null,
+        statusCode: statusCode || null,
+        errorMessage: String(message).substring(0, 5000),
+        stack: stack ? String(stack).substring(0, 10000) : null,
+        userAgent: req.headers['user-agent'] || null,
+        metadata: metadata || null,
+      });
+
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Error saving error log:", error);
+      res.status(500).json({ error: "Failed to log error" });
+    }
+  });
+
+  app.get("/api/admin/errors", authenticateToken, requireAdmin, async (_req, res) => {
+    try {
+      const logs = await storage.getErrorLogs(200);
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching error logs:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Global server-side error logging middleware
+  app.use(async (err: any, req: any, res: any, next: any) => {
+    let userId: string | undefined;
+    let companyId: string | undefined;
+    try {
+      const authHeader = req.headers?.authorization;
+      if (authHeader?.startsWith('Bearer ')) {
+        const jwt = await import("jsonwebtoken");
+        const decoded = jwt.default.verify(authHeader.slice(7), process.env.JWT_SECRET!) as any;
+        userId = decoded.userId;
+        companyId = decoded.activeCompanyId;
+      }
+    } catch {}
+
+    try {
+      await storage.createErrorLog({
+        userId: userId || null,
+        companyId: companyId || null,
+        source: 'server',
+        method: req.method || null,
+        path: req.originalUrl || req.path || null,
+        statusCode: err.status || err.statusCode || 500,
+        errorMessage: err.message || 'Unknown server error',
+        stack: err.stack || null,
+        userAgent: req.headers?.['user-agent'] || null,
+        metadata: null,
+      });
+    } catch (logErr) {
+      console.error("Failed to save error log:", logErr);
+    }
+
+    console.error("Unhandled error:", err);
+    if (!res.headersSent) {
+      res.status(err.status || 500).json({ message: err.message || "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

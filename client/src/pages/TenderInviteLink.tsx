@@ -257,7 +257,7 @@ function AudioPlayer({ src }: { src: string }) {
   );
 }
 
-type SectionId = 'scope' | 'timeline' | 'evaluation' | 'submission' | 'context';
+type SectionId = 'scope' | 'timeline' | 'evaluation' | 'submission' | 'context' | 'qa';
 
 export default function TenderInviteLink() {
   const [, params] = useRoute("/invite/:id");
@@ -437,6 +437,7 @@ export default function TenderInviteLink() {
     { id: 'evaluation', label: 'Evaluation Criteria',    icon: Star,          show: !!hasEvalCriteria },
     { id: 'submission', label: 'Submission Requirements',icon: Shield,        show: hasSubmissionSection },
     { id: 'context',    label: 'Additional Context',     icon: Mic,           show: hasMedia },
+    { id: 'qa',         label: 'Vendor Q&A',             icon: MessageSquare, show: showQA },
   ];
   const sections = allSections.filter(s => s.show);
 
@@ -1232,7 +1233,7 @@ export default function TenderInviteLink() {
 
       {/* ── Vendor Q&A Panel ─────────────────────────────────────────────────── */}
       {showQA && (
-        <div className="bg-white border-t border-gray-200">
+        <div id="section-qa" className="bg-white border-t border-gray-200">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">

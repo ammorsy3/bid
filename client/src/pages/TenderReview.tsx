@@ -168,8 +168,10 @@ export default function TenderReview() {
           if (card.value) data.evaluationCriteria = card.value;
           break;
 
-        // attachments has no DB column yet — intentionally omitted
         case "attachments":
+          if (Array.isArray(card.value) && card.value.length > 0) {
+            data.attachments = card.value;
+          }
           break;
 
         default:
@@ -382,6 +384,10 @@ export default function TenderReview() {
         if (card.value.endDate) parts.push(`End: ${card.value.endDate}`);
         if (card.value.deliveryDate) parts.push(`Delivery: ${card.value.deliveryDate}`);
         return parts.length > 0 ? parts.join("  ·  ") : "Not provided";
+      }
+      if (card.type === "attachments") {
+        const files = card.value as any[];
+        return `${files.length} file${files.length !== 1 ? 's' : ''}: ${files.map((f: any) => f.name).join(', ')}`;
       }
       return JSON.stringify(card.value);
     }

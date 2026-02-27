@@ -8,7 +8,7 @@ import {
   Video, Play, Pause, AlertCircle, Target, ListChecks, Star,
   Mail, Phone, MessageSquare, Flag, HelpCircle, Shield, Layers,
   Tag, Mic, ExternalLink, EyeOff, CheckCircle2, ChevronRight,
-  Hash, ClipboardCheck, AlertTriangle, BarChart3
+  Hash, ClipboardCheck, AlertTriangle, BarChart3, Paperclip
 } from "lucide-react";
 import { useState, useRef, useEffect, ReactNode } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -67,6 +67,13 @@ interface TenderInvite {
   profile?: { displayName?: string; logoUrl?: string };
   createdAt?: string;
   category?: string;
+  attachments?: Array<{
+    id: string;
+    name: string;
+    url: string;
+    size: number;
+    type: string;
+  }>;
   formCards?: Array<{
     id: string;
     type: string;
@@ -676,6 +683,43 @@ export default function TenderInviteLink() {
                                   )}
                                 </div>
                               </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Attachments */}
+                    {tender.attachments && tender.attachments.length > 0 && (
+                      <div className="mb-8">
+                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-2">
+                          <Paperclip className="h-4 w-4" /> Attachments
+                        </h3>
+                        <p className="text-xs text-gray-400 mb-4">Supporting documents provided by the requester. Review these before preparing your proposal.</p>
+                        <div className="space-y-2">
+                          {tender.attachments.map((file) => {
+                            const icon = file.type?.includes('pdf') ? <FileText className="h-5 w-5 text-red-500" />
+                              : (file.type?.includes('sheet') || file.type?.includes('excel') || file.type?.includes('xls')) ? <FileText className="h-5 w-5 text-green-500" />
+                              : file.type?.includes('image') ? <FileText className="h-5 w-5 text-blue-500" />
+                              : <Paperclip className="h-5 w-5 text-gray-500" />;
+                            const sizeStr = file.size < 1024 ? `${file.size} B`
+                              : file.size < 1024 * 1024 ? `${(file.size / 1024).toFixed(1)} KB`
+                              : `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+                            return (
+                              <a
+                                key={file.id}
+                                href={file.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-300 hover:bg-gray-100 transition-colors group"
+                              >
+                                {icon}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-semibold text-gray-800 truncate group-hover:text-[#E25E45] transition-colors">{file.name}</p>
+                                  <p className="text-xs text-gray-400">{sizeStr}</p>
+                                </div>
+                                <ExternalLink className="h-4 w-4 text-gray-300 group-hover:text-[#E25E45] transition-colors flex-shrink-0" />
+                              </a>
                             );
                           })}
                         </div>

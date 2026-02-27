@@ -72,6 +72,9 @@ Vite is used for fast development and optimized production builds. TypeScript is
 ### Vendors Base System
 Allows companies to build and manage their approved vendor network. Includes a "Traction Link" for vendors to apply and a "Join Requests Management" panel for admins to approve/reject applications. Company-to-company relationships tracked in vendors_base table.
 
+### Tender Attachments
+Requesters can upload supporting documents (PDF, DOC, DOCX, XLS, XLSX, PNG, JPG) directly in the form builder via the Attachments card. Files are uploaded to Replit Object Storage via presigned URLs and stored in the `attachments` jsonb column on the tenders table. Attachments appear in the Project Scope section of the published RFP as downloadable file cards with type-based icons and file sizes.
+
 ### Proposal Submission
 Enhanced form with autosave, real file uploads to Replit Object Storage with ACL security, progress tracking, inline validation, and real-time deadline countdowns.
 

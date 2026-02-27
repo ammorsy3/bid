@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Plus, X, FileText, Video, FileCheck, FileVideo, ChevronDown, Check, Scale, Briefcase, Clock, Mic, Type, Sparkles, ExternalLink, MessageSquare, Mail } from "lucide-react";
+import { CalendarIcon, Plus, X, FileText, Video, FileCheck, FileVideo, ChevronDown, Check, Scale, Briefcase, Clock, Mic, Type, Sparkles, ExternalLink, MessageSquare, Mail, Upload, Paperclip, Loader2, Trash2, FileSpreadsheet, FileImage } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import VoiceRecorder from "@/components/voice-recorder";
+import { apiRequest } from "@/lib/queryClient";
 
 interface CardInputRendererProps {
   card: FormCard;
@@ -1071,30 +1072,186 @@ function EvaluationCriteriaInput({
 }
 
 // Attachments Input Component
+interface AttachmentFile {
+  id: string;
+  name: string;
+  url: string;
+  size: number;
+  type: string;
+}
+
+const ALLOWED_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+];
+const ALLOWED_EXTENSIONS = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg';
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+function getFileIcon(type: string) {
+  if (type.includes('pdf')) return <FileText className="h-4 w-4 text-red-500" />;
+  if (type.includes('sheet') || type.includes('excel') || type.includes('xls')) return <FileSpreadsheet className="h-4 w-4 text-green-500" />;
+  if (type.includes('image')) return <FileImage className="h-4 w-4 text-blue-500" />;
+  if (type.includes('word') || type.includes('doc')) return <FileText className="h-4 w-4 text-blue-600" />;
+  return <Paperclip className="h-4 w-4 text-gray-500" />;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function AttachmentsInput({
   value,
   onChange,
   readOnly = false,
 }: {
-  value: string[];
-  onChange: (value: string[]) => void;
+  value: AttachmentFile[];
+  onChange: (value: AttachmentFile[]) => void;
   readOnly?: boolean;
 }) {
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const files: AttachmentFile[] = Array.isArray(value) ? value : [];
+
+  const uploadFile = useCallback(async (file: File) => {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      alert(`File type not allowed: ${file.name}. Accepted: PDF, DOC, DOCX, XLS, XLSX, PNG, JPG`);
+      return null;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      alert(`File too large: ${file.name}. Maximum size is 10MB.`);
+      return null;
+    }
+
+    const response = await apiRequest('POST', '/api/objects/upload', {});
+    const { uploadURL } = await response.json();
+
+    await fetch(uploadURL, {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': file.type },
+    });
+
+    const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
+    const { objectPath } = await metadataResponse.json();
+
+    return {
+      id: `att-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      name: file.name,
+      url: objectPath,
+      size: file.size,
+      type: file.type,
+    } as AttachmentFile;
+  }, []);
+
+  const handleFiles = useCallback(async (fileList: FileList | File[]) => {
+    const filesToUpload = Array.from(fileList);
+    if (filesToUpload.length === 0) return;
+
+    setUploading(true);
+    try {
+      const results = await Promise.all(filesToUpload.map(f => uploadFile(f)));
+      const uploaded = results.filter(Boolean) as AttachmentFile[];
+      if (uploaded.length > 0) {
+        onChange([...files, ...uploaded]);
+      }
+    } catch (err) {
+      console.error('Upload failed:', err);
+      alert('Upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  }, [files, onChange, uploadFile]);
+
+  const removeFile = useCallback((id: string) => {
+    onChange(files.filter(f => f.id !== id));
+  }, [files, onChange]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    if (!readOnly && !uploading) handleFiles(e.dataTransfer.files);
+  }, [readOnly, uploading, handleFiles]);
+
   if (readOnly) {
+    if (files.length === 0) {
+      return <div className="text-sm text-gray-400 italic py-2">No attachments</div>;
+    }
     return (
-      <div className="text-sm text-gray-400 italic py-2">
-        Upload attachments in the next step
+      <div className="space-y-2">
+        {files.map((file) => (
+          <div key={file.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
+            {getFileIcon(file.type)}
+            <span className="text-sm font-medium text-gray-700 truncate flex-1">{file.name}</span>
+            <span className="text-xs text-gray-400 flex-shrink-0">{formatFileSize(file.size)}</span>
+          </div>
+        ))}
       </div>
     );
   }
+
   return (
-    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-      <p className="text-sm text-gray-500 dark:text-gray-400">
-        Drag and drop files here, or click to browse
-      </p>
-      <p className="text-xs text-gray-400 mt-1">
-        PDF, DOC, DOCX, XLS, XLSX up to 10MB each
-      </p>
+    <div className="space-y-3">
+      <div
+        className={cn(
+          "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+          dragOver ? "border-[#E25E45] bg-[#E25E45]/5" : "border-gray-300 hover:border-gray-400",
+          uploading && "opacity-50 pointer-events-none"
+        )}
+        onClick={() => fileInputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          multiple
+          accept={ALLOWED_EXTENSIONS}
+          onChange={(e) => { if (e.target.files) handleFiles(e.target.files); e.target.value = ''; }}
+        />
+        {uploading ? (
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-6 w-6 text-[#E25E45] animate-spin" />
+            <p className="text-sm text-gray-500">Uploading...</p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            <Upload className="h-6 w-6 text-gray-400" />
+            <p className="text-sm text-gray-500">Drag and drop files here, or click to browse</p>
+            <p className="text-xs text-gray-400">PDF, DOC, DOCX, XLS, XLSX, PNG, JPG up to 10MB each</p>
+          </div>
+        )}
+      </div>
+
+      {files.length > 0 && (
+        <div className="space-y-2">
+          {files.map((file) => (
+            <div key={file.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 group">
+              {getFileIcon(file.type)}
+              <span className="text-sm font-medium text-gray-700 truncate flex-1">{file.name}</span>
+              <span className="text-xs text-gray-400 flex-shrink-0">{formatFileSize(file.size)}</span>
+              <button
+                type="button"
+                onClick={() => removeFile(file.id)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-50"
+              >
+                <Trash2 className="h-3.5 w-3.5 text-red-400" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

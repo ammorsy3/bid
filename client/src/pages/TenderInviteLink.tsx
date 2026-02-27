@@ -513,7 +513,7 @@ export default function TenderInviteLink() {
     if (!user) {
       toast({ title: "Login Required", description: "Please login or create an account to submit a proposal." });
       localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`);
-      navigate("/login");
+      window.open("/login", "_blank");
       return;
     }
     setShowOfferModal(true);
@@ -600,8 +600,8 @@ export default function TenderInviteLink() {
           <div className="flex items-center gap-3">
             {!user ? (
               <>
-                <Button variant="ghost" size="sm" onClick={() => navigate("/login")} data-testid="button-login">Login</Button>
-                <Button size="sm" className="bg-[#E25E45] hover:bg-[#d54d35] text-white" onClick={() => navigate("/signup")} data-testid="button-signup">Sign Up</Button>
+                <Button variant="ghost" size="sm" onClick={() => window.open("/login", "_blank")} data-testid="button-login">Login</Button>
+                <Button size="sm" className="bg-[#E25E45] hover:bg-[#d54d35] text-white" onClick={() => window.open("/signup", "_blank")} data-testid="button-signup">Sign Up</Button>
               </>
             ) : (
               <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} data-testid="button-dashboard">Dashboard</Button>
@@ -817,7 +817,7 @@ export default function TenderInviteLink() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }}
+                                    onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); window.open("/login", "_blank"); }}
                                   >
                                     Log in to download
                                   </Button>
@@ -1280,7 +1280,7 @@ export default function TenderInviteLink() {
                                       <p className="text-sm text-gray-500">Log in to listen</p>
                                     </div>
                                   </div>
-                                  <Button size="sm" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }} data-testid="button-login-voice">Login</Button>
+                                  <Button size="sm" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); window.open("/login", "_blank"); }} data-testid="button-login-voice">Login</Button>
                                 </div>
                               )}
                             </div>
@@ -1557,7 +1557,7 @@ export default function TenderInviteLink() {
                     <Button
                       size="sm"
                       className="bg-[#E25E45] hover:bg-[#d54d35]"
-                      onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); navigate("/login"); }}
+                      onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); window.open("/login", "_blank"); }}
                     >
                       Login to Ask
                     </Button>

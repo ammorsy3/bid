@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Plus, X, FileText, Video, FileCheck, FileVideo, ChevronDown, Check, Scale, Briefcase, Clock } from "lucide-react";
+import { CalendarIcon, Plus, X, FileText, Video, FileCheck, FileVideo, ChevronDown, Check, Scale, Briefcase, Clock, Mic, Type, Sparkles, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import VoiceRecorder from "@/components/voice-recorder";
 
 interface CardInputRendererProps {
   card: FormCard;
@@ -62,16 +63,7 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
       return <DeliverablesInput value={card.value || []} onChange={updateValue} readOnly={readOnly} />;
 
     case "project-description":
-      return (
-        <textarea
-          placeholder={card.placeholder}
-          value={card.value || ""}
-          onChange={(e) => updateValue(e.target.value)}
-          disabled={readOnly}
-          rows={4}
-          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none ${readOnly ? "cursor-default opacity-60" : ""}`}
-        />
-      );
+      return <ProjectDescriptionInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
 
     case "submission-deadline":
       return <DatePickerInput value={card.value} onChange={updateValue} label="Submission deadline" readOnly={readOnly} />;
@@ -400,6 +392,138 @@ function DeliverablesInput({
         <Button onClick={handleAdd} className="bg-[#E25E45] hover:bg-[#d54d35]">
           <Plus className="h-4 w-4" />
         </Button>
+      </div>
+    </div>
+  );
+}
+
+// Project Description Input — matches Bid Recommended template (text OR voice note + optional video)
+type DescriptionValue = { text: string; voiceNoteUrl: string; videoUrl: string };
+
+function ProjectDescriptionInput({
+  value,
+  onChange,
+  readOnly = false,
+}: {
+  value: DescriptionValue | null;
+  onChange: (value: DescriptionValue) => void;
+  readOnly?: boolean;
+}) {
+  const [tab, setTab] = useState<"text" | "voice">("text");
+  const val: DescriptionValue = value && typeof value === "object" && "text" in value
+    ? value
+    : { text: typeof value === "string" ? (value as string) : "", voiceNoteUrl: "", videoUrl: "" };
+
+  const update = (patch: Partial<DescriptionValue>) => onChange({ ...val, ...patch });
+
+  const countWords = (t: string) => t.trim().split(/\s+/).filter(Boolean).length;
+  const wordCount = countWords(val.text);
+  const charCount = val.text.length;
+
+  if (readOnly) {
+    return (
+      <div className="space-y-2">
+        {val.text && <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{val.text}</p>}
+        {val.voiceNoteUrl && (
+          <div className="flex items-center gap-2 text-xs text-pink-600 bg-pink-50 px-3 py-1.5 rounded-lg w-fit">
+            <Mic className="h-3.5 w-3.5" /> Voice note attached
+          </div>
+        )}
+        {val.videoUrl && (
+          <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg w-fit">
+            <Video className="h-3.5 w-3.5" /> Video link attached
+          </div>
+        )}
+        {!val.text && !val.voiceNoteUrl && (
+          <p className="text-sm text-gray-400 italic">No description yet</p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Tab switcher */}
+      <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg w-fit">
+        <button
+          type="button"
+          onClick={() => setTab("text")}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+            tab === "text"
+              ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700"
+          }`}
+        >
+          <Type className="h-3.5 w-3.5" />
+          Write
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("voice")}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+            tab === "voice"
+              ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700"
+          }`}
+        >
+          <Mic className="h-3.5 w-3.5" />
+          Voice Note
+          {val.voiceNoteUrl && (
+            <span className="w-1.5 h-1.5 rounded-full bg-pink-500 ml-0.5" />
+          )}
+        </button>
+      </div>
+
+      {/* Write tab */}
+      {tab === "text" && (
+        <div className="space-y-2">
+          <textarea
+            placeholder="Strong understanding of passing, dribbling, and visual aesthetics. Ability to work independently and as part of a team. Excellent communication and time-management skills..."
+            value={val.text}
+            onChange={(e) => update({ text: e.target.value })}
+            maxLength={5000}
+            rows={7}
+            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none"
+          />
+          <div className="flex justify-between items-center text-xs">
+            <p className={wordCount > 0 && wordCount < 50 ? "text-amber-600 font-medium" : wordCount >= 50 ? "text-green-600 font-medium" : "text-gray-400"}>
+              {wordCount < 50 ? `${Math.max(0, 50 - wordCount)} more words needed (min. 50)` : "Minimum word count met ✓"}
+            </p>
+            <p className="text-gray-400">{wordCount} words · {charCount}/5000</p>
+          </div>
+        </div>
+      )}
+
+      {/* Voice note tab */}
+      {tab === "voice" && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <Sparkles className="h-4 w-4 text-[#E25E45]" />
+            Record a message to describe your project (max 5 minutes)
+          </div>
+          <VoiceRecorder
+            onRecordingComplete={(url) => update({ voiceNoteUrl: url })}
+            onRecordingDeleted={() => update({ voiceNoteUrl: "" })}
+            existingUrl={val.voiceNoteUrl || undefined}
+            maxDurationSeconds={300}
+          />
+        </div>
+      )}
+
+      {/* Video URL — always visible below tabs */}
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
+        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+          <Video className="h-4 w-4 text-[#E25E45]" />
+          Video Link <span className="font-normal text-gray-400">(Optional)</span>
+        </label>
+        <input
+          type="url"
+          placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+          value={val.videoUrl}
+          onChange={(e) => update({ videoUrl: e.target.value })}
+          className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent text-sm"
+        />
+        <p className="text-xs text-gray-400">Add a YouTube or Vimeo link to show examples of your project</p>
       </div>
     </div>
   );

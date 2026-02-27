@@ -60,11 +60,16 @@ export default function TenderReview() {
 
     for (const card of cardsToValidate) {
       if (card.isRequired) {
-        const isEmpty =
+        let isEmpty =
           card.value === null ||
           card.value === undefined ||
           card.value === "" ||
           (Array.isArray(card.value) && card.value.length === 0);
+
+        // Special case: project-description is an object — empty when no text AND no voice note
+        if (!isEmpty && card.type === "project-description" && typeof card.value === "object" && !Array.isArray(card.value)) {
+          isEmpty = !card.value.text?.trim() && !card.value.voiceNoteUrl;
+        }
 
         if (isEmpty) {
           errors.push(card.label);
@@ -121,7 +126,13 @@ export default function TenderReview() {
           data.keyDeliverables = card.value;
           break;
         case "project-description":
-          data.description = card.value;
+          if (card.value && typeof card.value === "object" && "text" in card.value) {
+            data.description = card.value.text || undefined;
+            data.voiceNoteUrl = card.value.voiceNoteUrl || undefined;
+            data.videoUrl = card.value.videoUrl || undefined;
+          } else {
+            data.description = card.value;
+          }
           break;
         case "submission-deadline":
           data.deadline = card.value;

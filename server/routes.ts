@@ -1050,6 +1050,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         budgetMin: showPrice ? tender.budgetMin : null,
         budgetMax: showPrice ? tender.budgetMax : null,
         category: tender.category,
+        formCards: tender.formCards,
         createdAt: tender.createdAt,
         company: company ? {
           id: company.id,

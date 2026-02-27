@@ -265,7 +265,7 @@ function AudioPlayer({ src }: { src: string }) {
   );
 }
 
-type SectionId = 'scope' | 'timeline' | 'evaluation' | 'submission' | 'context' | 'qa';
+type SectionId = 'scope' | 'timeline' | 'evaluation' | 'submission' | 'custom' | 'context' | 'qa';
 
 export default function TenderInviteLink() {
   const [, params] = useRoute("/invite/:id");
@@ -434,19 +434,23 @@ export default function TenderInviteLink() {
   const hasVendorRequirements = !!(tender.vendorRequirements && tender.vendorRequirements.length > 0);
   const hasExternalContact = !!(tender.inquiryType && tender.inquiryType !== 'inside_bid' && (tender.emailContact || tender.whatsappContact));
   const hasSubmissionSection = !!(tender.submissionType || hasVendorRequirements || hasExternalContact);
-  const hasCustomCards = !!(tender.formCards && tender.formCards.length > 0);
-  const hasMedia = !!(tender.voiceNoteUrl || tender.videoUrl || hasCustomCards);
+  const hasCustomCards = !!(tender.formCards && tender.formCards.some(c =>
+    c.value !== null && c.value !== undefined && c.value !== '' &&
+    !(Array.isArray(c.value) && c.value.length === 0)
+  ));
+  const hasMedia = !!(tender.voiceNoteUrl || tender.videoUrl);
   const showQA = tender.inquiryType === 'inside_bid';
 
   const mandatoryRequirements = tender.vendorRequirements?.filter(r => r.type === 'mandatory') || [];
   const preferredRequirements = tender.vendorRequirements?.filter(r => r.type === 'preferred') || [];
 
   const allSections: { id: SectionId; label: string; icon: any; show: boolean }[] = [
-    { id: 'scope',      label: 'Project Scope',          icon: FileText,      show: true },
-    { id: 'evaluation', label: 'Evaluation Criteria',    icon: Star,          show: !!hasEvalCriteria },
-    { id: 'submission', label: 'Submission Requirements',icon: Shield,        show: hasSubmissionSection },
-    { id: 'context',    label: 'Additional Context',     icon: Mic,           show: hasMedia },
-    { id: 'qa',         label: 'Vendor Q&A',             icon: MessageSquare, show: showQA },
+    { id: 'scope',      label: 'Project Scope',           icon: FileText,       show: true },
+    { id: 'custom',     label: 'Additional Requirements', icon: ClipboardCheck, show: hasCustomCards },
+    { id: 'evaluation', label: 'Evaluation Criteria',     icon: Star,           show: !!hasEvalCriteria },
+    { id: 'submission', label: 'Submission Requirements', icon: Shield,         show: hasSubmissionSection },
+    { id: 'context',    label: 'Additional Context',      icon: Mic,            show: hasMedia },
+    { id: 'qa',         label: 'Vendor Q&A',              icon: MessageSquare,  show: showQA },
   ];
   const sections = allSections.filter(s => s.show);
 
@@ -741,6 +745,58 @@ export default function TenderInviteLink() {
                     )}
                   </div>
                 </SectionObserver>
+
+                {/* §2 Additional Requirements (custom fields) */}
+                {hasCustomCards && (
+                  <>
+                    <SectionDivider />
+                    <SectionObserver id="custom" onVisible={() => setActiveSection('custom')}>
+                      <div id="section-custom" className="p-6 sm:p-8 scroll-mt-24">
+                        <SectionHeader index={sections.findIndex(s => s.id === 'custom') + 1} title="Additional Requirements" />
+                        <p className="text-sm text-gray-400 mb-6">
+                          The requester has specified additional requirements for this project. Address these in your proposal.
+                        </p>
+                        <div className="space-y-4">
+                          {tender.formCards!.map((card) => {
+                            if (card.value === null || card.value === undefined || card.value === '') return null;
+                            if (Array.isArray(card.value) && card.value.length === 0) return null;
+                            return (
+                              <div key={card.id} className="rounded-xl border border-gray-100 overflow-hidden">
+                                <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+                                  {card.type === 'custom-date'
+                                    ? <Calendar className="h-3.5 w-3.5 text-orange-500 flex-shrink-0" />
+                                    : card.type === 'custom-select'
+                                    ? <Layers className="h-3.5 w-3.5 text-indigo-500 flex-shrink-0" />
+                                    : <Hash className="h-3.5 w-3.5 text-[#E25E45] flex-shrink-0" />}
+                                  <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                                    {card.label}
+                                  </span>
+                                  {card.isRequired && (
+                                    <span className="ml-auto text-[10px] font-bold text-red-400 uppercase tracking-wider">Required</span>
+                                  )}
+                                </div>
+                                <div className="px-4 py-3 bg-white">
+                                  {card.type === 'custom-date' ? (
+                                    <div className="flex items-center gap-2">
+                                      <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                      <span className="text-gray-800 font-medium">{formatDate(card.value)}</span>
+                                    </div>
+                                  ) : card.type === 'custom-select' ? (
+                                    <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium border border-indigo-100">
+                                      {card.value}
+                                    </span>
+                                  ) : (
+                                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">{card.value}</p>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </SectionObserver>
+                  </>
+                )}
 
                 {/* §3 Evaluation Criteria */}
                 {hasEvalCriteria && (
@@ -1076,40 +1132,6 @@ export default function TenderInviteLink() {
                               </a>
                             </div>
                           )}
-                          {hasCustomCards && tender.formCards!.map((card) => {
-                            if (!card.value && card.value !== 0) return null;
-                            const cardEmpty = card.value === '' || (Array.isArray(card.value) && card.value.length === 0);
-                            if (cardEmpty) return null;
-                            return (
-                              <div key={card.id}>
-                                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                                  {card.type === 'date-field' ? <Calendar className="h-4 w-4 text-orange-500" /> :
-                                   card.type === 'multiple-choice' ? <Layers className="h-4 w-4 text-indigo-500" /> :
-                                   <FileText className="h-4 w-4 text-gray-500" />}
-                                  {card.label}
-                                  {card.isRequired && <span className="text-red-400 text-xs">*</span>}
-                                </h3>
-                                {card.type === 'multiple-choice' && Array.isArray(card.value) ? (
-                                  <div className="flex flex-wrap gap-2">
-                                    {card.value.map((opt: string, i: number) => (
-                                      <span key={i} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium border border-indigo-100">
-                                        {opt}
-                                      </span>
-                                    ))}
-                                  </div>
-                                ) : card.type === 'date-field' ? (
-                                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                    <Calendar className="h-4 w-4 text-gray-400" />
-                                    <span className="text-gray-700 font-medium">{formatDate(card.value)}</span>
-                                  </div>
-                                ) : (
-                                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{card.value}</p>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
                         </div>
                       </div>
                     </SectionObserver>

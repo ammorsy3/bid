@@ -201,6 +201,7 @@ export default function TenderEditPage() {
   const [budgetType, setBudgetType] = useState<"exact" | "range">("exact");
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [formCards, setFormCards] = useState<Array<{ id: string; type: string; label: string; isRequired: boolean; options?: string[]; value?: any }>>([]);
 
   // Evaluation criteria state
   const [expandedEvalCategories, setExpandedEvalCategories] = useState<string[]>(["experience"]);
@@ -281,6 +282,9 @@ export default function TenderEditPage() {
     if ((tender as any).vendorRequirements && Array.isArray((tender as any).vendorRequirements)) {
       setVendorRequirements((tender as any).vendorRequirements as VendorRequirement[]);
     }
+    if ((tender as any).formCards && Array.isArray((tender as any).formCards)) {
+      setFormCards((tender as any).formCards);
+    }
 
     const formattedDeadline = new Date((tender as any).deadline).toISOString().slice(0, 16);
 
@@ -320,6 +324,7 @@ export default function TenderEditPage() {
         ...data, deliverables, milestones: milestonesPayload,
         evaluationCriteria: evaluationCriteriaPayload,
         vendorRequirements: vendorRequirements.length > 0 ? vendorRequirements : null,
+        formCards: formCards.length > 0 ? formCards : null,
       };
 
       if (budgetType === "exact") {
@@ -1147,6 +1152,59 @@ export default function TenderEditPage() {
                 <Plus className="h-4 w-4 mr-2" />Add Deliverable
               </Button>
             </SectionCard>
+
+            {/* Custom Fields (from form builder) */}
+            {formCards.length > 0 && (
+              <SectionCard
+                icon={<ClipboardList className="h-4 w-4 text-violet-600" />}
+                title="Custom Fields"
+                description="Additional fields added via the form builder"
+                color="bg-gradient-to-r from-violet-500 to-violet-400"
+              >
+                {formCards.map((card) => (
+                  <div key={card.id} className="space-y-1">
+                    <Label>
+                      {card.label}
+                      {card.isRequired && <span className="text-red-500 ml-1">*</span>}
+                    </Label>
+                    {card.type === 'custom-textarea' ? (
+                      <Textarea
+                        value={card.value ?? ''}
+                        onChange={(e) => setFormCards(prev => prev.map(c => c.id === card.id ? { ...c, value: e.target.value } : c))}
+                        placeholder={`Enter ${card.label.toLowerCase()}`}
+                        rows={3}
+                      />
+                    ) : card.type === 'custom-date' ? (
+                      <Input
+                        type="date"
+                        value={card.value ?? ''}
+                        onChange={(e) => setFormCards(prev => prev.map(c => c.id === card.id ? { ...c, value: e.target.value } : c))}
+                      />
+                    ) : card.type === 'custom-select' ? (
+                      <Select
+                        value={card.value ?? ''}
+                        onValueChange={(val) => setFormCards(prev => prev.map(c => c.id === card.id ? { ...c, value: val } : c))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={`Select ${card.label.toLowerCase()}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(card.options ?? []).map((opt) => (
+                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        value={card.value ?? ''}
+                        onChange={(e) => setFormCards(prev => prev.map(c => c.id === card.id ? { ...c, value: e.target.value } : c))}
+                        placeholder={`Enter ${card.label.toLowerCase()}`}
+                      />
+                    )}
+                  </div>
+                ))}
+              </SectionCard>
+            )}
 
             {/* Actions */}
             <div className="flex flex-col gap-3 pt-2">

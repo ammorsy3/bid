@@ -67,6 +67,14 @@ interface TenderInvite {
   profile?: { displayName?: string; logoUrl?: string };
   createdAt?: string;
   category?: string;
+  formCards?: Array<{
+    id: string;
+    type: string;
+    label: string;
+    isRequired: boolean;
+    options?: string[];
+    value?: any;
+  }>;
 }
 
 interface TenderQA {
@@ -728,6 +736,40 @@ export default function TenderInviteLink() {
                             </span>
                           </div>
                         )}
+                      </div>
+                    )}
+                    {/* Custom Fields */}
+                    {tender.formCards && tender.formCards.length > 0 && (
+                      <div className="mt-8 space-y-5">
+                        {tender.formCards.map((card) => {
+                          if (!card.value && card.value !== 0) return null;
+                          const isEmpty = card.value === '' || (Array.isArray(card.value) && card.value.length === 0);
+                          if (isEmpty) return null;
+                          return (
+                            <div key={card.id}>
+                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                                {card.label}
+                                {card.isRequired && <span className="text-red-400 ml-1">*</span>}
+                              </p>
+                              {card.type === 'multiple-choice' && Array.isArray(card.value) ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {card.value.map((opt: string, i: number) => (
+                                    <span key={i} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200">
+                                      {opt}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : card.type === 'date-field' ? (
+                                <div className="flex items-center gap-2">
+                                  <Calendar className="h-4 w-4 text-gray-400" />
+                                  <span className="text-gray-700 text-[15px]">{formatDate(card.value)}</span>
+                                </div>
+                              ) : (
+                                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]">{card.value}</p>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

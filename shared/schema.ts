@@ -182,6 +182,9 @@ export const tenders = pgTable("tenders", {
   voiceNoteUrl: text("voice_note_url"), // Recorded voice note about the project
   videoUrl: text("video_url"), // Video link about the project
   
+  // Form Builder Cards (preserves custom fields for display)
+  formCards: jsonb("form_cards"),
+
   // Invitation & Access
   invitationToken: varchar("invitation_token").notNull().unique(),
   

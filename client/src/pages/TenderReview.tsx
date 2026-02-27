@@ -187,6 +187,13 @@ export default function TenderReview() {
       data.deadline = defaultDeadline.toISOString().split("T")[0];
     }
 
+    const customCards = cards
+      .filter(c => ['short-answer', 'long-answer', 'date-field', 'multiple-choice'].includes(c.type))
+      .map(c => ({ id: c.id, type: c.type, label: c.label, isRequired: c.isRequired, options: c.options, value: c.value }));
+    if (customCards.length > 0) {
+      data.formCards = customCards;
+    }
+
     return data;
   };
 

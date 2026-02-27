@@ -23,6 +23,9 @@ import { CardLibrarySidebar } from "@/components/form-builder/CardLibrarySidebar
 import { FormBuilderCanvas } from "@/components/form-builder/FormBuilderCanvas";
 import { DraggableCard, LibraryCard } from "@/components/form-builder/DraggableCard";
 import { FieldInsightPanel } from "@/components/form-builder/FieldInsightPanel";
+import { StepIndicator } from "@/components/form-builder/StepIndicator";
+
+const WIZARD_STEPS = [{ label: "Structure" }, { label: "Fill Details" }, { label: "Review" }];
 import {
   FormCard,
   CardDefinition,
@@ -253,22 +256,7 @@ export default function TenderFormBuilder() {
             </div>
 
             {/* Step indicator */}
-            <div className="hidden md:flex items-center gap-2 text-xs">
-              <div className="flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-full bg-[#E25E45] text-white flex items-center justify-center text-[10px] font-bold">1</span>
-                <span className="font-medium text-gray-900 dark:text-white">Structure</span>
-              </div>
-              <div className="w-6 h-px bg-gray-300 dark:bg-gray-600" />
-              <div className="flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-400 flex items-center justify-center text-[10px] font-bold">2</span>
-                <span className="text-gray-400">Fill Details</span>
-              </div>
-              <div className="w-6 h-px bg-gray-300 dark:bg-gray-600" />
-              <div className="flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-400 flex items-center justify-center text-[10px] font-bold">3</span>
-                <span className="text-gray-400">Review</span>
-              </div>
-            </div>
+            <StepIndicator steps={WIZARD_STEPS} currentStep={1} />
 
             <div className="flex items-center gap-3">
               <Button variant="outline" onClick={handleBack}>

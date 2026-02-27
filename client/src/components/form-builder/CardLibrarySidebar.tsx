@@ -1,6 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CARD_LIBRARY, FIELD_INSIGHTS, CardDefinition, CardType } from "@/lib/form-builder-types";
-import { Star, GripVertical, CheckCircle2, Info } from "lucide-react";
+import { Star, GripVertical, CheckCircle2 } from "lucide-react";
 
 interface CardLibrarySidebarProps {
   usedCardTypes: string[];
@@ -244,28 +244,15 @@ function DraggableLibraryCard({
           <div className={`p-1.5 rounded-lg flex-shrink-0 ${colors.iconBg}`}>
             <Icon className="h-4 w-4 text-white" />
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            {isRequired && !isDisabled && (
-              <Star className="h-3 w-3 text-amber-300 fill-amber-300 mt-0.5" />
-            )}
-            {isDisabled && (
-              <div className="flex items-center gap-1 bg-white/20 rounded-full px-1.5 py-0.5">
-                <CheckCircle2 className="h-3 w-3 text-white" />
-                <span className="text-[10px] font-medium text-white leading-none">Added</span>
-              </div>
-            )}
-            {insight && !isDisabled && (
-              <button
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={handleMoreClick}
-                className="p-1 rounded-md hover:bg-white/20 transition-colors flex-shrink-0"
-                title="Field tips & best practices"
-                aria-label="Show field tips"
-              >
-                <Info className="h-3.5 w-3.5 text-white/70 hover:text-white" />
-              </button>
-            )}
-          </div>
+          {isRequired && !isDisabled && (
+            <Star className="h-3 w-3 text-amber-300 fill-amber-300 flex-shrink-0 mt-0.5" />
+          )}
+          {isDisabled && (
+            <div className="flex items-center gap-1 bg-white/20 rounded-full px-1.5 py-0.5">
+              <CheckCircle2 className="h-3 w-3 text-white" />
+              <span className="text-[10px] font-medium text-white leading-none">Added</span>
+            </div>
+          )}
         </div>
         <p className="mt-2 text-sm font-semibold text-white leading-snug">
           {card.label}
@@ -279,13 +266,24 @@ function DraggableLibraryCard({
           {card.description}
         </p>
 
-        {/* Bottom row: drag hint */}
-        <div className="flex items-center pt-0.5">
-          {!isDisabled && (
+        {/* Bottom row: drag hint + more button */}
+        <div className="flex items-center justify-between pt-0.5">
+          {!isDisabled ? (
             <div className="flex items-center gap-1">
               <GripVertical className="h-3 w-3 text-gray-300 dark:text-gray-600" />
               <span className="text-[10px] text-gray-300 dark:text-gray-600">Drag to add</span>
             </div>
+          ) : (
+            <span />
+          )}
+          {insight && !isDisabled && (
+            <button
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={handleMoreClick}
+              className="text-[10px] font-medium text-[#E25E45] hover:text-[#d54d35] hover:underline transition-colors leading-none"
+            >
+              ...more
+            </button>
           )}
         </div>
       </div>

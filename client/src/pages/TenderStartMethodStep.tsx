@@ -1,16 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, FileText, Star, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileText, PenLine, Star, Check, Loader2 } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { getQueryFn } from "@/lib/queryClient";
-import { motion, AnimatePresence } from "framer-motion";
-import { CARD_LIBRARY, createFormCard } from "@/lib/form-builder-types";
-
-const TENDER_STATE_KEY = "tender_form_state";
 
 // Template Illustration - Document Stack with floating icons
 const TemplateIllustration = ({ isSelected, isHovered }: { isSelected: boolean; isHovered: boolean }) => (
@@ -42,10 +38,8 @@ const TemplateIllustration = ({ isSelected, isHovered }: { isSelected: boolean; 
 
     {/* Background document (third/bottom) */}
     <g
-      style={{
-        transform: isHovered ? 'translate(2px, -1px)' : 'translate(0, 0)',
-        transition: 'transform 0.2s ease-out',
-      }}
+      className="transition-transform duration-250 ease-out"
+      style={{ transform: isHovered ? 'translate(2px, -1px)' : 'translate(0, 0)' }}
     >
       <rect
         x="98"
@@ -61,10 +55,8 @@ const TemplateIllustration = ({ isSelected, isHovered }: { isSelected: boolean; 
 
     {/* Middle document (second) */}
     <g
-      style={{
-        transform: isHovered ? 'translate(1px, -2px)' : 'translate(0, 0)',
-        transition: 'transform 0.2s ease-out',
-      }}
+      className="transition-transform duration-250 ease-out"
+      style={{ transform: isHovered ? 'translate(1px, -2px)' : 'translate(0, 0)' }}
     >
       <rect
         x="90"
@@ -80,10 +72,8 @@ const TemplateIllustration = ({ isSelected, isHovered }: { isSelected: boolean; 
 
     {/* Front document (top) - most prominent */}
     <g
-      style={{
-        transform: isHovered ? 'translate(0, -4px)' : 'translate(0, 0)',
-        transition: 'transform 0.2s ease-out',
-      }}
+      className="transition-transform duration-250 ease-out"
+      style={{ transform: isHovered ? 'translate(0, -4px)' : 'translate(0, 0)' }}
     >
       <rect
         x="82"
@@ -119,10 +109,8 @@ const TemplateIllustration = ({ isSelected, isHovered }: { isSelected: boolean; 
 
     {/* Floating checklist icon (top right) */}
     <g
-      style={{
-        transform: isHovered ? 'translate(2px, -3px)' : 'translate(0, 0)',
-        transition: 'transform 0.2s ease-out',
-      }}
+      className="transition-transform duration-250 ease-out"
+      style={{ transform: isHovered ? 'translate(2px, -3px)' : 'translate(0, 0)' }}
       filter="url(#iconShadow)"
     >
       <circle cx="200" cy="50" r="18" fill="#FCEAE7" />
@@ -138,10 +126,8 @@ const TemplateIllustration = ({ isSelected, isHovered }: { isSelected: boolean; 
 
     {/* Floating gear icon (bottom left) */}
     <g
-      style={{
-        transform: isHovered ? 'translate(-2px, -2px)' : 'translate(0, 0)',
-        transition: 'transform 0.2s ease-out',
-      }}
+      className="transition-transform duration-250 ease-out"
+      style={{ transform: isHovered ? 'translate(-2px, -2px)' : 'translate(0, 0)' }}
       filter="url(#iconShadow)"
     >
       <circle cx="65" cy="140" r="16" fill="#FDF2F0" />
@@ -156,11 +142,8 @@ const TemplateIllustration = ({ isSelected, isHovered }: { isSelected: boolean; 
 
     {/* Small decorative star (top left) */}
     <g
-      style={{
-        transform: isHovered ? 'translate(-1px, -2px) scale(1.1)' : 'translate(0, 0) scale(1)',
-        transformOrigin: '55px 68px',
-        transition: 'transform 0.2s ease-out',
-      }}
+      className="transition-transform duration-250 ease-out"
+      style={{ transform: isHovered ? 'translate(-1px, -2px) scale(1.1)' : 'translate(0, 0) scale(1)' }}
     >
       <path
         d="M55 60 L57 66 L63 66 L58 70 L60 76 L55 72 L50 76 L52 70 L47 66 L53 66 Z"
@@ -219,10 +202,8 @@ const ScratchIllustration = ({ isSelected, isHovered }: { isSelected: boolean; i
 
     {/* Block 1 - Text block (top-left, partially overlapping) */}
     <g
-      style={{
-        transform: isHovered ? 'translate(0, -3px)' : 'translate(0, 0)',
-        transition: 'transform 0.2s ease-out',
-      }}
+      className="transition-transform duration-250 ease-out"
+      style={{ transform: isHovered ? 'translate(0, -3px)' : 'translate(0, 0)' }}
       filter="url(#blockShadow)"
     >
       <rect
@@ -253,10 +234,8 @@ const ScratchIllustration = ({ isSelected, isHovered }: { isSelected: boolean; i
 
     {/* Block 2 - Image placeholder (top-right) */}
     <g
-      style={{
-        transform: isHovered ? 'translate(0, -2px) scale(1.02)' : 'translate(0, 0) scale(1)',
-        transition: 'transform 0.2s ease-out',
-      }}
+      className="transition-transform duration-250 ease-out"
+      style={{ transform: isHovered ? 'translate(0, -2px) scale(1.02)' : 'translate(0, 0) scale(1)' }}
       filter="url(#blockShadow)"
     >
       <rect
@@ -275,10 +254,8 @@ const ScratchIllustration = ({ isSelected, isHovered }: { isSelected: boolean; i
 
     {/* Block 3 - Button/input field (bottom-left) */}
     <g
-      style={{
-        transform: isHovered ? 'translate(0, -2px)' : 'translate(0, 0)',
-        transition: 'transform 0.2s ease-out',
-      }}
+      className="transition-transform duration-250 ease-out"
+      style={{ transform: isHovered ? 'translate(0, -2px)' : 'translate(0, 0)' }}
       filter="url(#blockShadow)"
     >
       <rect
@@ -306,10 +283,8 @@ const ScratchIllustration = ({ isSelected, isHovered }: { isSelected: boolean; i
 
     {/* Block 4 - Add button (bottom-right) */}
     <g
-      style={{
-        transform: isHovered ? 'translate(0, -2px) scale(1.05)' : 'translate(0, 0) scale(1)',
-        transition: 'transform 0.2s ease-out',
-      }}
+      className="transition-transform duration-250 ease-out"
+      style={{ transform: isHovered ? 'translate(0, -2px) scale(1.05)' : 'translate(0, 0) scale(1)' }}
       filter="url(#blockShadow)"
     >
       <circle
@@ -328,10 +303,8 @@ const ScratchIllustration = ({ isSelected, isHovered }: { isSelected: boolean; i
 
     {/* Block 5 - Small decorative block (middle-right) */}
     <g
-      style={{
-        transform: isHovered ? 'translate(2px, -1px)' : 'translate(0, 0)',
-        transition: 'transform 0.2s ease-out',
-      }}
+      className="transition-transform duration-250 ease-out"
+      style={{ transform: isHovered ? 'translate(2px, -1px)' : 'translate(0, 0)' }}
     >
       <rect
         x="215"
@@ -348,17 +321,17 @@ const ScratchIllustration = ({ isSelected, isHovered }: { isSelected: boolean; i
 
     {/* Cursor/Hand element */}
     <g
+      className="transition-transform duration-250 ease-out"
       style={{
         transform: isHovered
           ? 'translate(4px, 0) rotate(3deg)'
           : 'translate(0, 0) rotate(0deg)',
-        transformOrigin: '165px 75px',
-        transition: 'transform 0.2s ease-out',
+        transformOrigin: '165px 75px'
       }}
       filter="url(#cursorShadow)"
     >
-      {/* Motion lines behind cursor — appear only on hover */}
-      <g style={{ opacity: isHovered ? 1 : 0, transition: 'opacity 0.2s ease-out' }}>
+      {/* Motion lines behind cursor */}
+      <g opacity={isHovered ? 0.6 : 0.4}>
         <path d="M145 68 Q140 72 142 78" stroke="#E8614D" strokeWidth="1.5" strokeLinecap="round" fill="none" />
         <path d="M148 62 Q142 67 145 74" stroke="#E8614D" strokeWidth="1" strokeLinecap="round" fill="none" />
         <path d="M143 75 Q137 78 140 84" stroke="#E8614D" strokeWidth="1" strokeLinecap="round" fill="none" />
@@ -460,37 +433,25 @@ export default function TenderStartMethodStep() {
       const template = allTemplates.find((t) => t.id === selectedTemplate);
 
       if (template?.isUserTemplate && template.cards) {
-        // User templates: structure is already decided — skip to fill step
+        // For user templates, load the cards directly into the form builder
+        // Preserve any saved values from the template
+        const TENDER_STATE_KEY = "tender_form_state";
         const cardsWithValues = template.cards.map((card) => ({
           ...card,
+          // Keep the saved value if it exists, otherwise set to null
           value: card.value !== undefined ? card.value : null,
         }));
         localStorage.setItem(TENDER_STATE_KEY, JSON.stringify(cardsWithValues));
-        navigate("/tenders/new/fill");
-      } else if (template?.id === "bid-recommended") {
-        // Recommended template: pre-populate cards and skip straight to fill step
-        const allCardDefs = [
-          ...CARD_LIBRARY.required,
-          ...CARD_LIBRARY.standard.filter((c) =>
-            [
-              "project-description",
-              "project-dates",
-              "budget",
-              "key-deliverables",
-              "submission-deadline",
-              "evaluation-criteria",
-              "attachments",
-            ].includes(c.type)
-          ),
-        ];
-        const recommendedCards = allCardDefs.map((def) => createFormCard(def));
-        localStorage.setItem(TENDER_STATE_KEY, JSON.stringify(recommendedCards));
-        navigate("/tenders/new/fill");
+        navigate("/tenders/new/form-builder");
+      } else {
+        // For default templates, use the old flow
+        localStorage.setItem("tenderDraft", JSON.stringify({ template: selectedTemplate }));
+        navigate("/tenders/new/title");
       }
     } else if (startMethod === "scratch") {
       // Clear any existing draft for fresh start
       localStorage.removeItem("tenderDraft");
-      localStorage.removeItem(TENDER_STATE_KEY);
+      localStorage.removeItem("tender_form_state");
       // Navigate to the drag-and-drop form builder
       navigate("/tenders/new/form-builder");
     }
@@ -518,7 +479,7 @@ export default function TenderStartMethodStep() {
       }}
     >
       <div className="max-w-5xl mx-auto">
-        {/* Header — logo only, no duplicate Back button */}
+        {/* Header */}
         <div className="flex items-center justify-between mb-12">
           <img
             src={logoPath}
@@ -526,308 +487,309 @@ export default function TenderStartMethodStep() {
             className="h-16 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => navigate("/dashboard")}
           />
+          <Button
+            onClick={handleBack}
+            className="group relative overflow-hidden"
+            data-testid="button-back"
+          >
+            <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
+              Back
+            </span>
+            <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
+              <ArrowLeft
+                className="opacity-60"
+                size={16}
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+            </i>
+          </Button>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
-        >
-          {/* Headline Section - Centered */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
-              How would you like to start?
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-              Choose to start with a pre-built template for faster setup, or
-              start from scratch for complete customization.
+        {/* Headline Section - Centered */}
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
+            How would you like to start?
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
+            Choose to start with a pre-built template for faster setup, or
+            start from scratch for complete customization.
+          </p>
+        </div>
+
+        {/* Large Cards Section - Side by Side */}
+        <div className="flex justify-center gap-8 mb-12">
+          {/* Template Card */}
+          <button
+            type="button"
+            onClick={() => {
+              setStartMethod("template");
+              const recommended = DEFAULT_TEMPLATES.find((t) => t.recommended);
+              if (recommended) setSelectedTemplate(recommended.id);
+            }}
+            onMouseEnter={() => setHoveredCard("template")}
+            onMouseLeave={() => setHoveredCard(null)}
+            className={`group flex flex-col items-center min-w-[350px] h-[520px] p-8 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-gray-800 ${
+              startMethod === "template"
+                ? "border-[#E8614D] shadow-2xl shadow-[#E8614D]/20 scale-[1.02]"
+                : "border-gray-200 dark:border-gray-700 shadow-lg hover:border-[#E8614D] hover:shadow-2xl hover:shadow-[#E8614D]/15 hover:scale-[1.03]"
+            }`}
+            data-testid="button-template"
+          >
+            {/* Illustration Area */}
+            <div className={`w-full h-[220px] rounded-xl flex items-center justify-center mb-6 transition-all duration-300 ease-in-out overflow-hidden ${
+              startMethod === "template"
+                ? "bg-[#F7F7F7]"
+                : "bg-[#F7F7F7] group-hover:bg-[#FEF7F6]"
+            }`}>
+              <TemplateIllustration
+                isSelected={startMethod === "template"}
+                isHovered={hoveredCard === "template"}
+              />
+            </div>
+
+            {/* Title */}
+            <h3 className={`text-2xl font-bold mb-3 transition-colors duration-300 ease-in-out ${
+              startMethod === "template"
+                ? "text-[#E8614D]"
+                : "text-gray-900 dark:text-white group-hover:text-[#E8614D]"
+            }`}>
+              Start with a template
+            </h3>
+            <span className="text-xs font-semibold uppercase tracking-wide text-[#E8614D] mb-2">Faster</span>
+
+            {/* Subtitle */}
+            <p className="text-gray-500 dark:text-gray-400 text-base mb-6 text-center max-w-[280px]">
+              Use our pre-built structure for faster setup with all essential sections included
             </p>
-          </div>
 
-          {/* Large Cards Section — responsive stacking on mobile */}
-          <div className="flex flex-col sm:flex-row justify-center gap-6 sm:gap-8 mb-12">
-            {/* Template Card */}
-            <button
-              type="button"
-              onClick={() => {
-                setStartMethod("template");
-                const recommended = DEFAULT_TEMPLATES.find((t) => t.recommended);
-                if (recommended) setSelectedTemplate(recommended.id);
-              }}
-              onMouseEnter={() => setHoveredCard("template")}
-              onMouseLeave={() => setHoveredCard(null)}
-              className={`group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-gray-800 ${
-                startMethod === "template"
-                  ? "border-[#E8614D] shadow-2xl shadow-[#E8614D]/20 scale-[1.02]"
-                  : "border-gray-200 dark:border-gray-700 shadow-lg hover:border-[#E8614D] hover:shadow-2xl hover:shadow-[#E8614D]/15 hover:scale-[1.03]"
-              }`}
-              data-testid="button-template"
-            >
-              {/* Illustration Area */}
-              <div className={`w-full h-[180px] sm:h-[220px] rounded-xl flex items-center justify-center mb-6 transition-all duration-300 ease-in-out overflow-hidden ${
-                startMethod === "template"
-                  ? "bg-[#F7F7F7]"
-                  : "bg-[#F7F7F7] group-hover:bg-[#FEF7F6]"
-              }`}>
-                <TemplateIllustration
-                  isSelected={startMethod === "template"}
-                  isHovered={hoveredCard === "template"}
-                />
-              </div>
+            {/* Selection Indicator */}
+            <div className={`mt-auto w-full py-3 rounded-lg font-medium transition-all duration-300 ease-in-out ${
+              startMethod === "template"
+                ? "bg-[#E8614D] text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-[#E8614D]/10 group-hover:text-[#E8614D]"
+            }`}>
+              {startMethod === "template" ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Check className="w-5 h-5" />
+                  Selected
+                </span>
+              ) : (
+                "Select"
+              )}
+            </div>
+          </button>
 
-              {/* Title */}
-              <h3 className={`text-2xl font-bold mb-3 transition-colors duration-300 ease-in-out ${
-                startMethod === "template"
-                  ? "text-[#E8614D]"
-                  : "text-gray-900 dark:text-white group-hover:text-[#E8614D]"
-              }`}>
-                Start with a template
-              </h3>
-              <span className="text-xs font-semibold uppercase tracking-wide text-[#E8614D] mb-2">Faster</span>
+          {/* Scratch Card */}
+          <button
+            type="button"
+            onClick={() => {
+              setStartMethod("scratch");
+              setSelectedTemplate(null);
+            }}
+            onMouseEnter={() => setHoveredCard("scratch")}
+            onMouseLeave={() => setHoveredCard(null)}
+            className={`group flex flex-col items-center min-w-[350px] h-[520px] p-8 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-gray-800 ${
+              startMethod === "scratch"
+                ? "border-[#E8614D] shadow-2xl shadow-[#E8614D]/20 scale-[1.02]"
+                : "border-gray-200 dark:border-gray-700 shadow-lg hover:border-[#E8614D] hover:shadow-2xl hover:shadow-[#E8614D]/15 hover:scale-[1.03]"
+            }`}
+            data-testid="button-scratch"
+          >
+            {/* Illustration Area */}
+            <div className={`w-full h-[220px] rounded-xl flex items-center justify-center mb-6 transition-all duration-300 ease-in-out overflow-hidden ${
+              startMethod === "scratch"
+                ? "bg-[#F7F7F7]"
+                : "bg-[#F7F7F7] group-hover:bg-[#FEF7F6]"
+            }`}>
+              <ScratchIllustration
+                isSelected={startMethod === "scratch"}
+                isHovered={hoveredCard === "scratch"}
+              />
+            </div>
 
-              {/* Subtitle */}
-              <p className="text-gray-500 dark:text-gray-400 text-base mb-6 text-center max-w-[280px]">
-                Use our pre-built structure for faster setup with all essential sections included
-              </p>
+            {/* Title */}
+            <h3 className={`text-2xl font-bold mb-3 transition-colors duration-300 ease-in-out ${
+              startMethod === "scratch"
+                ? "text-[#E8614D]"
+                : "text-gray-900 dark:text-white group-hover:text-[#E8614D]"
+            }`}>
+              Start from scratch
+            </h3>
+            <span className="text-xs font-semibold uppercase tracking-wide text-[#E8614D] mb-2">More customization</span>
 
-              {/* Selection Indicator */}
-              <div className={`mt-auto w-full py-3 rounded-lg font-medium transition-all duration-300 ease-in-out ${
-                startMethod === "template"
-                  ? "bg-[#E8614D] text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-[#E8614D]/10 group-hover:text-[#E8614D]"
-              }`}>
-                {startMethod === "template" ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Check className="w-5 h-5" />
-                    Selected
-                  </span>
-                ) : (
-                  "Select"
-                )}
-              </div>
-            </button>
+            {/* Subtitle */}
+            <p className="text-gray-500 dark:text-gray-400 text-base mb-6 text-center max-w-[280px]">
+              Build your RFP from the ground up with complete customization freedom
+            </p>
 
-            {/* Scratch Card */}
-            <button
-              type="button"
-              onClick={() => {
-                setStartMethod("scratch");
-                setSelectedTemplate(null);
-              }}
-              onMouseEnter={() => setHoveredCard("scratch")}
-              onMouseLeave={() => setHoveredCard(null)}
-              className={`group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-gray-800 ${
-                startMethod === "scratch"
-                  ? "border-[#E8614D] shadow-2xl shadow-[#E8614D]/20 scale-[1.02]"
-                  : "border-gray-200 dark:border-gray-700 shadow-lg hover:border-[#E8614D] hover:shadow-2xl hover:shadow-[#E8614D]/15 hover:scale-[1.03]"
-              }`}
-              data-testid="button-scratch"
-            >
-              {/* Illustration Area */}
-              <div className={`w-full h-[180px] sm:h-[220px] rounded-xl flex items-center justify-center mb-6 transition-all duration-300 ease-in-out overflow-hidden ${
-                startMethod === "scratch"
-                  ? "bg-[#F7F7F7]"
-                  : "bg-[#F7F7F7] group-hover:bg-[#FEF7F6]"
-              }`}>
-                <ScratchIllustration
-                  isSelected={startMethod === "scratch"}
-                  isHovered={hoveredCard === "scratch"}
-                />
-              </div>
+            {/* Selection Indicator */}
+            <div className={`mt-auto w-full py-3 rounded-lg font-medium transition-all duration-300 ease-in-out ${
+              startMethod === "scratch"
+                ? "bg-[#E8614D] text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-[#E8614D]/10 group-hover:text-[#E8614D]"
+            }`}>
+              {startMethod === "scratch" ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Check className="w-5 h-5" />
+                  Selected
+                </span>
+              ) : (
+                "Select"
+              )}
+            </div>
+          </button>
+        </div>
 
-              {/* Title */}
-              <h3 className={`text-2xl font-bold mb-3 transition-colors duration-300 ease-in-out ${
-                startMethod === "scratch"
-                  ? "text-[#E8614D]"
-                  : "text-gray-900 dark:text-white group-hover:text-[#E8614D]"
-              }`}>
-                Start from scratch
-              </h3>
-              <span className="text-xs font-semibold uppercase tracking-wide text-[#E8614D] mb-2">More customization</span>
+        {/* Template Selection - Progressive Disclosure */}
+        <div
+          className={`max-w-3xl mx-auto transition-all duration-300 ease-out ${
+            startMethod === "template"
+              ? "opacity-100 max-h-[800px] translate-y-0"
+              : "opacity-0 max-h-0 overflow-hidden -translate-y-4"
+          }`}
+        >
+          <Card className="border-0 shadow-xl overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]" />
+            <div className="p-8">
+              <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Choose a template
+              </label>
 
-              {/* Subtitle */}
-              <p className="text-gray-500 dark:text-gray-400 text-base mb-6 text-center max-w-[280px]">
-                Build your RFP from the ground up with complete customization freedom
-              </p>
-
-              {/* Selection Indicator */}
-              <div className={`mt-auto w-full py-3 rounded-lg font-medium transition-all duration-300 ease-in-out ${
-                startMethod === "scratch"
-                  ? "bg-[#E8614D] text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-[#E8614D]/10 group-hover:text-[#E8614D]"
-              }`}>
-                {startMethod === "scratch" ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Check className="w-5 h-5" />
-                    Selected
-                  </span>
-                ) : (
-                  "Select"
-                )}
-              </div>
-            </button>
-          </div>
-
-          {/* Template Selection - Progressive Disclosure with Framer Motion */}
-          <AnimatePresence>
-            {startMethod === "template" && (
-              <motion.div
-                initial={{ height: 0, opacity: 0, y: -8 }}
-                animate={{ height: "auto", opacity: 1, y: 0 }}
-                exit={{ height: 0, opacity: 0, y: -8 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="overflow-hidden max-w-3xl mx-auto"
-              >
-                <Card className="border-0 shadow-xl overflow-hidden">
-                  <div className="h-1 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]" />
-                  <div className="p-8">
-                    <div role="radiogroup" aria-label="Choose a template">
-                      <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        Choose a template
-                      </label>
-
-                      {isLoadingTemplates ? (
-                        <div className="flex items-center justify-center py-8">
-                          <Loader2 className="h-8 w-8 animate-spin text-[#E8614D]" />
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {/* Default Templates Section */}
-                          {DEFAULT_TEMPLATES.map((template) => (
-                            <button
-                              key={template.id}
-                              type="button"
-                              role="radio"
-                              aria-checked={selectedTemplate === template.id}
-                              onClick={() => setSelectedTemplate(template.id)}
-                              className={`w-full flex items-start gap-4 p-5 rounded-xl border-2 transition-all duration-300 ease-in-out text-left ${
-                                selectedTemplate === template.id
-                                  ? "border-[#E8614D] bg-[#E8614D]/5 shadow-md"
-                                  : "border-gray-200 dark:border-gray-600 hover:border-[#E8614D]/50 hover:shadow-md"
-                              }`}
-                              data-testid={`template-${template.id}`}
-                            >
-                              <div
-                                className={`p-3 rounded-xl flex-shrink-0 transition-all duration-300 ease-in-out ${
-                                  selectedTemplate === template.id
-                                    ? "bg-[#E8614D] text-white"
-                                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-                                }`}
-                              >
-                                <FileText className="h-6 w-6" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className={`font-semibold text-lg ${
-                                    selectedTemplate === template.id
-                                      ? "text-[#E8614D]"
-                                      : "text-gray-900 dark:text-white"
-                                  }`}>
-                                    {template.name}
-                                  </span>
-                                  {template.recommended && (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                                      <Star className="h-3.5 w-3.5" />
-                                      Recommended
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1.5">
-                                  {template.description}
-                                </p>
-                              </div>
-                              <div
-                                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ease-in-out ${
-                                  selectedTemplate === template.id
-                                    ? "border-[#E8614D] bg-[#E8614D]"
-                                    : "border-gray-300 dark:border-gray-500"
-                                }`}
-                              >
-                                {selectedTemplate === template.id && (
-                                  <Check className="h-4 w-4 text-white" />
-                                )}
-                              </div>
-                            </button>
-                          ))}
-
-                          {/* User's Saved Templates Section */}
-                          {savedTemplates && savedTemplates.length > 0 && (
-                            <>
-                              <div className="relative py-3">
-                                <div className="absolute inset-0 flex items-center">
-                                  <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-                                </div>
-                                <div className="relative flex justify-center">
-                                  <span className="bg-white dark:bg-gray-800 px-4 text-sm text-gray-500 dark:text-gray-400">
-                                    Your Saved Templates
-                                  </span>
-                                </div>
-                              </div>
-
-                              {savedTemplates.map((template) => (
-                                <button
-                                  key={template.id}
-                                  type="button"
-                                  role="radio"
-                                  aria-checked={selectedTemplate === template.id}
-                                  onClick={() => setSelectedTemplate(template.id)}
-                                  className={`w-full flex items-start gap-4 p-5 rounded-xl border-2 transition-all duration-300 ease-in-out text-left ${
-                                    selectedTemplate === template.id
-                                      ? "border-[#E8614D] bg-[#E8614D]/5 shadow-md"
-                                      : "border-gray-200 dark:border-gray-600 hover:border-[#E8614D]/50 hover:shadow-md"
-                                  }`}
-                                  data-testid={`template-${template.id}`}
-                                >
-                                  <div
-                                    className={`p-3 rounded-xl flex-shrink-0 transition-all duration-300 ease-in-out ${
-                                      selectedTemplate === template.id
-                                        ? "bg-[#E8614D] text-white"
-                                        : "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                                    }`}
-                                  >
-                                    <FileText className="h-6 w-6" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                      <span className={`font-semibold text-lg ${
-                                        selectedTemplate === template.id
-                                          ? "text-[#E8614D]"
-                                          : "text-gray-900 dark:text-white"
-                                      }`}>
-                                        {template.name}
-                                      </span>
-                                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                                        {template.cards.length} fields
-                                      </span>
-                                    </div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1.5">
-                                      {template.description || "Your saved template"}
-                                    </p>
-                                  </div>
-                                  <div
-                                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ease-in-out ${
-                                      selectedTemplate === template.id
-                                        ? "border-[#E8614D] bg-[#E8614D]"
-                                        : "border-gray-300 dark:border-gray-500"
-                                    }`}
-                                  >
-                                    {selectedTemplate === template.id && (
-                                      <Check className="h-4 w-4 text-white" />
-                                    )}
-                                  </div>
-                                </button>
-                              ))}
-                            </>
+              {isLoadingTemplates ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-[#E8614D]" />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {/* Default Templates Section */}
+                  {DEFAULT_TEMPLATES.map((template) => (
+                    <button
+                      key={template.id}
+                      type="button"
+                      onClick={() => setSelectedTemplate(template.id)}
+                      className={`w-full flex items-start gap-4 p-5 rounded-xl border-2 transition-all duration-300 ease-in-out text-left ${
+                        selectedTemplate === template.id
+                          ? "border-[#E8614D] bg-[#E8614D]/5 shadow-md"
+                          : "border-gray-200 dark:border-gray-600 hover:border-[#E8614D]/50 hover:shadow-md"
+                      }`}
+                      data-testid={`template-${template.id}`}
+                    >
+                      <div
+                        className={`p-3 rounded-xl flex-shrink-0 transition-all duration-300 ease-in-out ${
+                          selectedTemplate === template.id
+                            ? "bg-[#E8614D] text-white"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                        }`}
+                      >
+                        <FileText className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-semibold text-lg ${
+                            selectedTemplate === template.id
+                              ? "text-[#E8614D]"
+                              : "text-gray-900 dark:text-white"
+                          }`}>
+                            {template.name}
+                          </span>
+                          {template.recommended && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                              <Star className="h-3.5 w-3.5" />
+                              Recommended
+                            </span>
                           )}
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1.5">
+                          {template.description}
+                        </p>
+                      </div>
+                      <div
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ease-in-out ${
+                          selectedTemplate === template.id
+                            ? "border-[#E8614D] bg-[#E8614D]"
+                            : "border-gray-300 dark:border-gray-500"
+                        }`}
+                      >
+                        {selectedTemplate === template.id && (
+                          <Check className="h-4 w-4 text-white" />
+                        )}
+                      </div>
+                    </button>
+                  ))}
+
+                  {/* User's Saved Templates Section */}
+                  {savedTemplates && savedTemplates.length > 0 && (
+                    <>
+                      <div className="relative py-3">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+                        </div>
+                        <div className="relative flex justify-center">
+                          <span className="bg-white dark:bg-gray-800 px-4 text-sm text-gray-500 dark:text-gray-400">
+                            Your Saved Templates
+                          </span>
+                        </div>
+                      </div>
+
+                      {savedTemplates.map((template) => (
+                        <button
+                          key={template.id}
+                          type="button"
+                          onClick={() => setSelectedTemplate(template.id)}
+                          className={`w-full flex items-start gap-4 p-5 rounded-xl border-2 transition-all duration-300 ease-in-out text-left ${
+                            selectedTemplate === template.id
+                              ? "border-[#E8614D] bg-[#E8614D]/5 shadow-md"
+                              : "border-gray-200 dark:border-gray-600 hover:border-[#E8614D]/50 hover:shadow-md"
+                          }`}
+                          data-testid={`template-${template.id}`}
+                        >
+                          <div
+                            className={`p-3 rounded-xl flex-shrink-0 transition-all duration-300 ease-in-out ${
+                              selectedTemplate === template.id
+                                ? "bg-[#E8614D] text-white"
+                                : "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                            }`}
+                          >
+                            <FileText className="h-6 w-6" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className={`font-semibold text-lg ${
+                                selectedTemplate === template.id
+                                  ? "text-[#E8614D]"
+                                  : "text-gray-900 dark:text-white"
+                              }`}>
+                                {template.name}
+                              </span>
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                {template.cards.length} fields
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1.5">
+                              {template.description || "Your saved template"}
+                            </p>
+                          </div>
+                          <div
+                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ease-in-out ${
+                              selectedTemplate === template.id
+                                ? "border-[#E8614D] bg-[#E8614D]"
+                                : "border-gray-300 dark:border-gray-500"
+                            }`}
+                          >
+                            {selectedTemplate === template.id && (
+                              <Check className="h-4 w-4 text-white" />
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
 
         {/* Navigation Buttons - Fixed at Bottom */}
         <div className="flex justify-center gap-4 mt-12">

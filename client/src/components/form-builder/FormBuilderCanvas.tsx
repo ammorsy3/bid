@@ -111,7 +111,6 @@ export function FormBuilderCanvas({
           size="icon"
           onClick={handleZoomOut}
           className="h-8 w-8"
-          aria-label="Zoom out"
           title="Zoom Out"
         >
           <ZoomOut className="h-4 w-4" />
@@ -121,7 +120,6 @@ export function FormBuilderCanvas({
           size="icon"
           onClick={handleZoomIn}
           className="h-8 w-8"
-          aria-label="Zoom in"
           title="Zoom In"
         >
           <ZoomIn className="h-4 w-4" />
@@ -132,7 +130,6 @@ export function FormBuilderCanvas({
           size="icon"
           onClick={onToggleSidebar}
           className="h-8 w-8"
-          aria-label={sidebarVisible ? "Hide card library" : "Show card library"}
           title={sidebarVisible ? "Hide Card Library" : "Show Card Library"}
         >
           {sidebarVisible ? (

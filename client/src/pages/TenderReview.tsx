@@ -13,9 +13,6 @@ import {
   Star,
   Copy,
 } from "lucide-react";
-import { StepIndicator } from "@/components/form-builder/StepIndicator";
-
-const WIZARD_STEPS = [{ label: "Structure" }, { label: "Fill Details" }, { label: "Review" }];
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useTheme } from "next-themes";
 import { FormCard, getCardDefinition } from "@/lib/form-builder-types";
@@ -32,14 +29,13 @@ export default function TenderReview() {
   const { theme } = useTheme();
   const [cards, setCards] = useState<FormCard[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Template saving state
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
-  const [templateExpanded, setTemplateExpanded] = useState(true);
+  const [templateExpanded, setTemplateExpanded] = useState(false);
 
   const dotColor =
     theme === "dark"
@@ -305,8 +301,7 @@ export default function TenderReview() {
         duration: 10000,
       });
 
-      setIsSuccess(true);
-      setTimeout(() => navigate("/dashboard"), 1800);
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("Error launching tender:", error);
       toast({
@@ -418,12 +413,7 @@ export default function TenderReview() {
         backgroundSize: "20px 20px",
       }}
     >
-      <motion.div
-        className="max-w-3xl mx-auto"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: "easeOut" }}
-      >
+      <div className="max-w-3xl mx-auto">
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <div className="flex items-center justify-between mb-10">
@@ -434,8 +424,29 @@ export default function TenderReview() {
             onClick={() => navigate("/dashboard")}
           />
 
-          {/* Step indicator */}
-          <StepIndicator steps={WIZARD_STEPS} currentStep={3} />
+          {/* Step pills */}
+          <div className="hidden md:flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              </span>
+              <span className="text-gray-400 font-medium">Structure</span>
+            </div>
+            <div className="w-8 h-px bg-green-500" />
+            <div className="flex items-center gap-1.5">
+              <span className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              </span>
+              <span className="text-gray-400 font-medium">Fill Details</span>
+            </div>
+            <div className="w-8 h-px bg-[#E8614D]" />
+            <div className="flex items-center gap-1.5">
+              <span className="w-6 h-6 rounded-full bg-[#E8614D] text-white flex items-center justify-center font-bold">
+                3
+              </span>
+              <span className="font-semibold text-gray-900 dark:text-white">Review</span>
+            </div>
+          </div>
 
           {/* Animated back button */}
           <Button
@@ -604,8 +615,6 @@ export default function TenderReview() {
         <div className="mb-10 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden">
           <button
             type="button"
-            aria-expanded={templateExpanded}
-            aria-controls="template-section"
             onClick={() => setTemplateExpanded(!templateExpanded)}
             className="w-full p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
           >
@@ -632,7 +641,6 @@ export default function TenderReview() {
           <AnimatePresence>
             {templateExpanded && (
               <motion.div
-                id="template-section"
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -699,49 +707,31 @@ export default function TenderReview() {
         </div>
 
         {/* ── Bottom navigation ──────────────────────────────────── */}
-        <AnimatePresence mode="wait">
-          {isSuccess ? (
-            <motion.div
-              key="success"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="flex flex-col items-center gap-3 py-6 pb-12"
-            >
-              <CheckCircle2 className="h-12 w-12 text-green-500" />
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">RFP Launched!</p>
-              <p className="text-sm text-gray-500">Redirecting to your dashboard…</p>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="actions"
-              className="flex justify-center gap-4 pb-12"
-            >
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleBackToEdit}
-                className="min-w-[160px] h-12 text-base"
-              >
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Back to Edit
-              </Button>
-              <Button
-                onClick={handleLaunchTender}
-                disabled={isSubmitting || validationErrors.length > 0}
-                className="min-w-[160px] h-12 text-base bg-[#E8614D] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed text-white"
-                title={
-                  validationErrors.length > 0
-                    ? `Complete required fields: ${validationErrors.join(", ")}`
-                    : ""
-                }
-              >
-                {isSubmitting ? "Launching…" : "Launch RFP"}
-                <Rocket className="h-5 w-5 ml-2" />
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+        <div className="flex justify-center gap-4 pb-12">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleBackToEdit}
+            className="min-w-[160px] h-12 text-base"
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Back to Edit
+          </Button>
+          <Button
+            onClick={handleLaunchTender}
+            disabled={isSubmitting || validationErrors.length > 0}
+            className="min-w-[160px] h-12 text-base bg-[#E8614D] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed text-white"
+            title={
+              validationErrors.length > 0
+                ? `Complete required fields: ${validationErrors.join(", ")}`
+                : ""
+            }
+          >
+            {isSubmitting ? "Launching…" : "Launch RFP"}
+            <Rocket className="h-5 w-5 ml-2" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -825,12 +825,29 @@ export default function TenderInviteLink() {
                               );
                             }
                             return (
-                              <a
+                              <button
                                 key={file.id}
-                                href={file.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-300 hover:bg-gray-100 transition-colors group"
+                                onClick={async () => {
+                                  try {
+                                    const token = localStorage.getItem("token");
+                                    const headers: HeadersInit = {};
+                                    if (token) headers.Authorization = `Bearer ${token}`;
+                                    const response = await fetch(file.url, { headers });
+                                    if (!response.ok) throw new Error("Download failed");
+                                    const blob = await response.blob();
+                                    const blobUrl = URL.createObjectURL(blob);
+                                    const a = document.createElement("a");
+                                    a.href = blobUrl;
+                                    a.download = file.name;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    URL.revokeObjectURL(blobUrl);
+                                  } catch {
+                                    toast({ title: "Download failed", description: "Could not download the file. Please try again.", variant: "destructive" });
+                                  }
+                                }}
+                                className="w-full flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-300 hover:bg-gray-100 transition-colors group text-left"
                               >
                                 {icon}
                                 <div className="flex-1 min-w-0">
@@ -838,7 +855,7 @@ export default function TenderInviteLink() {
                                   <p className="text-xs text-gray-400">{sizeStr}</p>
                                 </div>
                                 <ExternalLink className="h-4 w-4 text-gray-300 group-hover:text-[#E25E45] transition-colors flex-shrink-0" />
-                              </a>
+                              </button>
                             );
                           })}
                         </div>

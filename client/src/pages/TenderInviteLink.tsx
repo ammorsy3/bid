@@ -547,36 +547,6 @@ export default function TenderInviteLink() {
             <span className="font-mono text-xs">RFP-{tenderId?.slice(0, 8).toUpperCase()}</span>
           </div>
 
-          {/* Metrics strip */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold ${isDeadlinePassed ? 'bg-red-50 border-red-200 text-red-700' : isDeadlineToday ? 'bg-orange-50 border-orange-200 text-orange-700' : daysRemaining <= 3 ? 'bg-orange-50/70 border-orange-200 text-orange-700' : 'bg-gray-50 border-gray-200 text-gray-700'}`}>
-              <Calendar className="h-3.5 w-3.5" />
-              {isDeadlinePassed ? 'Closed' : isDeadlineToday ? 'Closes today' : `Due ${formatDate(tender.deadline)}`}
-              {!isDeadlinePassed && !isDeadlineToday && daysRemaining <= 7 && <span className="font-normal opacity-70">· {daysRemaining}d left</span>}
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
-              <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
-              {getBudgetDisplay()}
-            </div>
-            {durationDisplay && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
-                <Clock className="h-3.5 w-3.5 text-blue-400" />
-                {durationDisplay}
-              </div>
-            )}
-            {tender.submissionType && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
-                <FileText className="h-3.5 w-3.5 text-purple-400" />
-                {SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}
-              </div>
-            )}
-            {tender.category && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-700">
-                <Tag className="h-3.5 w-3.5 text-indigo-400" />
-                {tender.category}
-              </div>
-            )}
-          </div>
 
         </div>
       </div>
@@ -1110,6 +1080,59 @@ export default function TenderInviteLink() {
             {/* ── Sidebar ──────────────────────────────────────────────────────── */}
             <div className="hidden lg:block">
               <div className="sticky top-20 space-y-4">
+
+                {/* At a Glance */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">At a Glance</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className={`rounded-lg p-2.5 border ${isDeadlineToday ? 'bg-orange-50 border-orange-200' : isDeadlinePassed ? 'bg-red-50 border-red-100' : daysRemaining <= 3 ? 'bg-orange-50/50 border-orange-100' : 'bg-gray-50 border-gray-100'}`}>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Calendar className={`h-3 w-3 flex-shrink-0 ${isDeadlineToday ? 'text-orange-500' : isDeadlinePassed ? 'text-red-500' : 'text-[#E25E45]'}`} />
+                        <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Deadline</span>
+                      </div>
+                      <p className={`text-xs font-bold leading-tight ${isDeadlinePassed ? 'text-red-600' : isDeadlineToday || daysRemaining <= 3 ? 'text-orange-600' : 'text-gray-800'}`}>
+                        {formatDate(tender.deadline)}
+                      </p>
+                      {deadlineSubtext() && (
+                        <p className={`text-[10px] mt-0.5 ${isDeadlineToday ? 'text-orange-500' : 'text-gray-400'}`}>{deadlineSubtext()}</p>
+                      )}
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <DollarSign className="h-3 w-3 flex-shrink-0 text-emerald-500" />
+                        <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Budget</span>
+                      </div>
+                      <p className="text-xs font-bold text-gray-800 leading-tight">{getBudgetDisplay()}</p>
+                    </div>
+                    {durationDisplay && (
+                      <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Clock className="h-3 w-3 flex-shrink-0 text-blue-500" />
+                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Duration</span>
+                        </div>
+                        <p className="text-xs font-bold text-gray-800 leading-tight">{durationDisplay}</p>
+                      </div>
+                    )}
+                    {tender.submissionType && (
+                      <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <FileText className="h-3 w-3 flex-shrink-0 text-purple-500" />
+                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Format</span>
+                        </div>
+                        <p className="text-xs font-bold text-gray-800 leading-tight">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</p>
+                      </div>
+                    )}
+                    {tender.category && (
+                      <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100 col-span-2">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Tag className="h-3 w-3 flex-shrink-0 text-indigo-500" />
+                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Category</span>
+                        </div>
+                        <p className="text-xs font-bold text-gray-800 leading-tight">{tender.category}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
                 {/* Submit CTA */}
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">

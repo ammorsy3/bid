@@ -1,12 +1,12 @@
 import { FormCard } from "@/lib/form-builder-types";
 import { ENTERPRISE_CRITERIA_CATEGORIES } from "@/lib/evaluation-criteria-data";
-import type { EvaluationCriteriaValue, EvalRequirement, EvalCategoryWeight, EvalCustomCriterion } from "@/lib/form-builder-types";
+import type { EvaluationCriteriaValue, EvalRequirement, EvalCategoryWeight, EvalCustomCriterion, DeliverableItem, BudgetMilestone, ProjectMilestone } from "@/lib/form-builder-types";
 import { DEFAULT_EVAL_WEIGHTS } from "@/lib/form-builder-types";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Plus, X, FileText, Video, FileCheck, FileVideo, ChevronDown, Check, Scale, Briefcase, Clock, Mic, Type, Sparkles, ExternalLink } from "lucide-react";
+import { CalendarIcon, Plus, X, FileText, Video, FileCheck, FileVideo, ChevronDown, Check, Scale, Briefcase, Clock, Mic, Type, Sparkles, ExternalLink, MessageSquare, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -47,20 +47,11 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
     case "budget":
       return <BudgetInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
 
-    case "project-objective":
-      return (
-        <input
-          type="text"
-          placeholder={card.placeholder}
-          value={card.value || ""}
-          onChange={(e) => updateValue(e.target.value)}
-          disabled={readOnly}
-          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${readOnly ? "cursor-default opacity-60" : ""}`}
-        />
-      );
-
     case "key-deliverables":
       return <DeliverablesInput value={card.value || []} onChange={updateValue} readOnly={readOnly} />;
+
+    case "milestones":
+      return <MilestonesInput value={card.value || []} onChange={updateValue} readOnly={readOnly} />;
 
     case "project-description":
       return <ProjectDescriptionInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
@@ -121,17 +112,17 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
   }
 }
 
-// Supplier Response Input — matches Bid Recommended submission types
+// Supplier Response Input — submission type + how vendors ask questions
 function SupplierResponseInput({
   value,
   onChange,
   readOnly = false,
 }: {
-  value: string | null;
-  onChange: (value: string) => void;
+  value: any;
+  onChange: (value: any) => void;
   readOnly?: boolean;
 }) {
-  const options = [
+  const submissionOptions = [
     {
       id: "quote_only",
       label: "Price Only",
@@ -162,46 +153,128 @@ function SupplierResponseInput({
     },
   ];
 
-  return (
-    <div className="grid gap-3">
-      {options.map((option) => {
-        const Icon = option.icon;
-        const isSelected = value === option.id;
-        return (
-          <div
-            key={option.id}
-            onClick={readOnly ? undefined : () => onChange(option.id)}
-            className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all text-left ${
-              readOnly ? "opacity-60 cursor-default" : "cursor-pointer"
-            } ${
-              isSelected
-                ? "border-[#E25E45] bg-[#E25E45]/5"
-                : "border-gray-200 dark:border-gray-600"
-            } ${!readOnly && !isSelected ? "hover:border-gray-300" : ""}`}
-          >
-            <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${option.color} flex items-center justify-center flex-shrink-0`}>
-              <Icon className="h-5 w-5 text-white" />
+  const inquiryOptions = [
+    {
+      id: "inside_bid",
+      label: "Inside Bid",
+      description: "Q&A appears anonymously in the Tender",
+      icon: MessageSquare,
+      color: "from-green-500 to-green-600",
+    },
+    {
+      id: "email_whatsapp",
+      label: "WhatsApp & Email",
+      description: "Share your contact info for questions",
+      icon: Mail,
+      color: "from-amber-500 to-amber-600",
+    },
+  ];
+
+  // Normalize: backwards compat where value was just a string
+  const val = typeof value === "string"
+    ? { submissionType: value, inquiryType: null, whatsappContact: "", emailContact: "" }
+    : value || { submissionType: null, inquiryType: null, whatsappContact: "", emailContact: "" };
+
+  const update = (patch: any) => onChange({ ...val, ...patch });
+
+  const renderOptions = (
+    options: typeof submissionOptions,
+    selectedId: string | null,
+    onSelect: (id: string) => void,
+  ) =>
+    options.map((option) => {
+      const Icon = option.icon;
+      const isSelected = selectedId === option.id;
+      return (
+        <div
+          key={option.id}
+          onClick={readOnly ? undefined : () => onSelect(option.id)}
+          className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
+            readOnly ? "cursor-default" : "cursor-pointer"
+          } ${
+            isSelected
+              ? "border-[#E25E45] bg-[#E25E45]/5"
+              : "border-gray-200 dark:border-gray-600"
+          } ${!readOnly && !isSelected ? "hover:border-gray-300" : ""}`}
+        >
+          <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${option.color} flex items-center justify-center flex-shrink-0`}>
+            <Icon className="h-5 w-5 text-white" />
+          </div>
+          <div className="flex-1">
+            <div className={`font-medium ${isSelected ? "text-[#E25E45]" : "text-gray-900 dark:text-white"}`}>
+              {option.label}
             </div>
-            <div className="flex-1">
-              <div className={`font-medium ${isSelected ? "text-[#E25E45]" : "text-gray-900 dark:text-white"}`}>
-                {option.label}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                {option.description}
-              </div>
-            </div>
-            <div
-              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                isSelected
-                  ? "border-[#E25E45] bg-[#E25E45]"
-                  : "border-gray-300 dark:border-gray-500"
-              }`}
-            >
-              {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {option.description}
             </div>
           </div>
-        );
-      })}
+          <div
+            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+              isSelected ? "border-[#E25E45] bg-[#E25E45]" : "border-gray-300 dark:border-gray-500"
+            }`}
+          >
+            {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+          </div>
+        </div>
+      );
+    });
+
+  return (
+    <div className="space-y-6">
+      {/* Submission type */}
+      <div className="grid gap-3">
+        {renderOptions(submissionOptions, val.submissionType, (id) => update({ submissionType: id }))}
+      </div>
+
+      {/* How vendors ask questions */}
+      <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
+        <p className="text-sm font-medium text-gray-900 dark:text-white">
+          How should vendors ask questions?
+        </p>
+        <div className="grid gap-3">
+          {renderOptions(inquiryOptions, val.inquiryType, (id) => update({ inquiryType: id }))}
+        </div>
+
+        {/* Inside Bid info note */}
+        {val.inquiryType === "inside_bid" && (
+          <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <MessageSquare className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-blue-700 dark:text-blue-300">
+              Vendors submit questions through the platform. Questions and answers are visible to all invited vendors.
+            </p>
+          </div>
+        )}
+
+        {/* WhatsApp & Email contact inputs */}
+        {val.inquiryType === "email_whatsapp" && !readOnly && (
+          <div className="space-y-3 pt-1">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                WhatsApp Number
+              </label>
+              <input
+                type="text"
+                placeholder="+966 50 123 4567"
+                value={val.whatsappContact}
+                onChange={(e) => update({ whatsappContact: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Email
+              </label>
+              <input
+                type="email"
+                placeholder="contact@company.com"
+                value={val.emailContact}
+                onChange={(e) => update({ emailContact: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -245,13 +318,13 @@ function ProjectDatesInput({
   );
 }
 
-// Budget Input Component
+// Budget Input Component — matches Bid Recommended (exact / range / milestone + vendor visibility)
 function BudgetInput({
   value,
   onChange,
   readOnly = false,
 }: {
-  value: { type: string; amount: string; min: string; max: string };
+  value: any;
   onChange: (value: any) => void;
   readOnly?: boolean;
 }) {
@@ -262,36 +335,38 @@ function BudgetInput({
       </div>
     );
   }
-  const budgetValue = value || { type: "exact", amount: "", min: "", max: "" };
+
+  const budgetValue = {
+    type: "exact",
+    amount: "",
+    min: "",
+    max: "",
+    showToVendors: true,
+    ...(value || {}),
+  };
 
   return (
     <div className="space-y-3">
+      {/* Type toggle: Exact / Range */}
       <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => onChange({ ...budgetValue, type: "exact" })}
-          className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-            budgetValue.type === "exact"
-              ? "bg-[#E25E45] text-white"
-              : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-          }`}
-        >
-          Exact Budget
-        </button>
-        <button
-          type="button"
-          onClick={() => onChange({ ...budgetValue, type: "range" })}
-          className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-            budgetValue.type === "range"
-              ? "bg-[#E25E45] text-white"
-              : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-          }`}
-        >
-          Budget Range
-        </button>
+        {(["exact", "range"] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => onChange({ ...budgetValue, type: t })}
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+              budgetValue.type === t
+                ? "bg-[#E25E45] text-white"
+                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+            }`}
+          >
+            {t === "exact" ? "Exact Budget" : "Budget Range"}
+          </button>
+        ))}
       </div>
 
-      {budgetValue.type === "exact" ? (
+      {/* Exact Budget */}
+      {budgetValue.type === "exact" && (
         <div className="flex items-center gap-2">
           <span className="text-gray-600 dark:text-gray-400 font-medium">SAR</span>
           <input
@@ -302,7 +377,10 @@ function BudgetInput({
             className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
           />
         </div>
-      ) : (
+      )}
+
+      {/* Range Budget */}
+      {budgetValue.type === "range" && (
         <div className="grid grid-cols-2 gap-3">
           <div className="flex items-center gap-2">
             <span className="text-gray-600 dark:text-gray-400 font-medium text-sm">Min</span>
@@ -326,20 +404,45 @@ function BudgetInput({
           </div>
         </div>
       )}
+
+      {/* Show budget to vendors toggle */}
+      <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
+        <div>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">Show budget to vendors</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Vendors will see your budget in the RFP</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onChange({ ...budgetValue, showToVendors: !budgetValue.showToVendors })}
+          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+            budgetValue.showToVendors ? "bg-[#E25E45]" : "bg-gray-300 dark:bg-gray-600"
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+              budgetValue.showToVendors ? "translate-x-4" : "translate-x-0.5"
+            }`}
+          />
+        </button>
+      </div>
     </div>
   );
 }
 
-// Deliverables Input Component
+// Deliverables Input Component — supports name + optional description per item
 function DeliverablesInput({
   value,
   onChange,
   readOnly = false,
 }: {
-  value: string[];
-  onChange: (value: string[]) => void;
+  value: (string | DeliverableItem)[];
+  onChange: (value: DeliverableItem[]) => void;
   readOnly?: boolean;
 }) {
+  const [newName, setNewName] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
   if (readOnly) {
     return (
       <div className="text-sm text-gray-400 italic py-2">
@@ -347,50 +450,186 @@ function DeliverablesInput({
       </div>
     );
   }
-  const [newItem, setNewItem] = useState("");
+
+  // Normalize: convert legacy string items to DeliverableItem objects
+  const items: DeliverableItem[] = (value || []).map((item) =>
+    typeof item === "string"
+      ? { id: `legacy-${item}`, name: item, description: "" }
+      : item
+  );
 
   const handleAdd = () => {
-    if (newItem.trim() && !value.includes(newItem.trim())) {
-      onChange([...value, newItem.trim()]);
-      setNewItem("");
+    if (newName.trim()) {
+      const newItem: DeliverableItem = {
+        id: `del-${Date.now()}`,
+        name: newName.trim(),
+        description: newDesc.trim(),
+      };
+      onChange([...items, newItem]);
+      setNewName("");
+      setNewDesc("");
     }
   };
 
-  const handleRemove = (item: string) => {
-    onChange(value.filter((v) => v !== item));
+  const handleRemove = (id: string) => {
+    onChange(items.filter((i) => i.id !== id));
+  };
+
+  const handleUpdateDesc = (id: string, description: string) => {
+    onChange(items.map((i) => (i.id === id ? { ...i, description } : i)));
   };
 
   return (
     <div className="space-y-3">
-      {value.length > 0 && (
+      {items.length > 0 && (
         <div className="space-y-2">
-          {value.map((item, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg"
-            >
-              <span className="flex-1 text-sm text-gray-900 dark:text-white">{item}</span>
-              <button
-                onClick={() => handleRemove(item)}
-                className="text-gray-400 hover:text-red-500"
-              >
+          {items.map((item) => (
+            <div key={item.id} className="rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
+              <div className="flex items-center gap-3 px-3 py-2 bg-gray-50 dark:bg-gray-700">
+                <span className="flex-1 text-sm font-medium text-gray-900 dark:text-white">{item.name}</span>
+                <button
+                  onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                  className="text-xs text-[#E25E45] hover:underline flex-shrink-0"
+                >
+                  {expandedId === item.id ? "Close" : item.description ? "Edit desc" : "+ Description"}
+                </button>
+                <button onClick={() => handleRemove(item.id)} className="text-gray-400 hover:text-red-500 flex-shrink-0">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              {expandedId === item.id && (
+                <div className="px-3 py-2 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-600">
+                  <textarea
+                    placeholder="Add a description for this deliverable..."
+                    value={item.description}
+                    onChange={(e) => handleUpdateDesc(item.id, e.target.value)}
+                    rows={2}
+                    className="w-full text-sm px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E25E45] resize-none"
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="space-y-2">
+        <input
+          type="text"
+          placeholder="Deliverable name..."
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+        />
+        <textarea
+          placeholder="Description (optional)..."
+          value={newDesc}
+          onChange={(e) => setNewDesc(e.target.value)}
+          rows={2}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none text-sm"
+        />
+        <Button onClick={handleAdd} className="w-full bg-[#E25E45] hover:bg-[#d54d35]">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Deliverable
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Milestones Input Component — project milestones with due dates and descriptions
+function MilestonesInput({
+  value,
+  onChange,
+  readOnly = false,
+}: {
+  value: ProjectMilestone[];
+  onChange: (value: ProjectMilestone[]) => void;
+  readOnly?: boolean;
+}) {
+  const [newName, setNewName] = useState("");
+  const [newDate, setNewDate] = useState<string | null>(null);
+  const [newDesc, setNewDesc] = useState("");
+
+  if (readOnly) {
+    return (
+      <div className="text-sm text-gray-400 italic py-2">
+        Add milestones in the next step
+      </div>
+    );
+  }
+
+  const items = value || [];
+
+  const handleAdd = () => {
+    if (newName.trim()) {
+      const newItem: ProjectMilestone = {
+        id: `ms-${Date.now()}`,
+        name: newName.trim(),
+        dueDate: newDate || null,
+        description: newDesc.trim(),
+      };
+      onChange([...items, newItem]);
+      setNewName("");
+      setNewDate(null);
+      setNewDesc("");
+    }
+  };
+
+  const handleRemove = (id: string) => {
+    onChange(items.filter((i) => i.id !== id));
+  };
+
+  return (
+    <div className="space-y-3">
+      {items.length > 0 && (
+        <div className="space-y-2">
+          {items.map((item, index) => (
+            <div key={item.id} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E25E45] flex items-center justify-center text-white text-xs font-bold mt-0.5">
+                {index + 1}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{item.name}</p>
+                {item.dueDate && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    Due: {new Date(item.dueDate).toLocaleDateString()}
+                  </p>
+                )}
+                {item.description && (
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 italic">{item.description}</p>
+                )}
+              </div>
+              <button onClick={() => handleRemove(item.id)} className="text-gray-400 hover:text-red-500 flex-shrink-0">
                 <X className="h-4 w-4" />
               </button>
             </div>
           ))}
         </div>
       )}
-      <div className="flex gap-2">
+      <div className="space-y-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
         <input
           type="text"
-          placeholder="Add a deliverable..."
-          value={newItem}
-          onChange={(e) => setNewItem(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-          className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+          placeholder="Milestone name (e.g., Design Phase)"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent text-sm"
         />
-        <Button onClick={handleAdd} className="bg-[#E25E45] hover:bg-[#d54d35]">
-          <Plus className="h-4 w-4" />
+        <DatePickerInput
+          value={newDate}
+          onChange={setNewDate}
+          label="Due date (optional)"
+        />
+        <textarea
+          placeholder="Description (optional)..."
+          value={newDesc}
+          onChange={(e) => setNewDesc(e.target.value)}
+          rows={2}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none text-sm"
+        />
+        <Button onClick={handleAdd} className="w-full bg-[#E25E45] hover:bg-[#d54d35]">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Milestone
         </Button>
       </div>
     </div>
@@ -569,6 +808,7 @@ function DatePickerInput({
           mode="single"
           selected={date}
           onSelect={(d) => onChange(d?.toISOString() || null)}
+          disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
           initialFocus
         />
       </PopoverContent>

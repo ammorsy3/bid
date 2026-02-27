@@ -39,12 +39,6 @@ const CARD_COLORS: Record<string, {
     border: "border-teal-200 dark:border-teal-800",
     hoverBorder: "hover:border-teal-400 hover:shadow-teal-100 dark:hover:shadow-teal-900/30",
   },
-  "project-objective": {
-    topBg: "bg-gradient-to-br from-rose-500 to-rose-600",
-    iconBg: "bg-rose-400/30",
-    border: "border-rose-200 dark:border-rose-800",
-    hoverBorder: "hover:border-rose-400 hover:shadow-rose-100 dark:hover:shadow-rose-900/30",
-  },
   "key-deliverables": {
     topBg: "bg-gradient-to-br from-indigo-500 to-indigo-600",
     iconBg: "bg-indigo-400/30",
@@ -74,6 +68,12 @@ const CARD_COLORS: Record<string, {
     iconBg: "bg-lime-400/30",
     border: "border-lime-200 dark:border-lime-800",
     hoverBorder: "hover:border-lime-400 hover:shadow-lime-100 dark:hover:shadow-lime-900/30",
+  },
+  "milestones": {
+    topBg: "bg-gradient-to-br from-purple-500 to-purple-600",
+    iconBg: "bg-purple-400/30",
+    border: "border-purple-200 dark:border-purple-800",
+    hoverBorder: "hover:border-purple-400 hover:shadow-purple-100 dark:hover:shadow-purple-900/30",
   },
   "custom-text": {
     topBg: "bg-gradient-to-br from-slate-500 to-slate-600",

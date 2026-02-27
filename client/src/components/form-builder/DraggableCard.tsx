@@ -17,7 +17,6 @@ interface DraggableCardProps {
 function getInputTypeLabel(type: CardType): string {
   switch (type) {
     case "project-title":
-    case "project-objective":
     case "custom-text":
       return "Short text";
     case "project-description":

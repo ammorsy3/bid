@@ -2,7 +2,6 @@ import {
   Type,
   Calendar,
   DollarSign,
-  Target,
   CheckSquare,
   FileText,
   Clock,
@@ -11,6 +10,7 @@ import {
   MessageSquare,
   AlignLeft,
   List,
+  Flag,
   LucideIcon,
 } from "lucide-react";
 
@@ -22,12 +22,12 @@ export type CardType =
   // Standard optional
   | "project-dates"
   | "budget"
-  | "project-objective"
   | "key-deliverables"
   | "project-description"
   | "submission-deadline"
   | "evaluation-criteria"
   | "attachments"
+  | "milestones"
   // Custom
   | "custom-text"
   | "custom-textarea"
@@ -98,6 +98,28 @@ export interface EvaluationCriteriaValue {
   customCriteria: EvalCustomCriterion[];
 }
 
+// Budget milestone (for milestone-based payment)
+export interface BudgetMilestone {
+  id: string;
+  name: string;
+  amount: string;
+}
+
+// Project milestone (for the Milestones card)
+export interface ProjectMilestone {
+  id: string;
+  name: string;
+  dueDate: string | null;
+  description: string;
+}
+
+// Deliverable item with optional description
+export interface DeliverableItem {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export const DEFAULT_EVAL_WEIGHTS: EvalCategoryWeight[] = [
   { categoryId: "experience", weight: 30 },
   { categoryId: "financial", weight: 30 },
@@ -136,20 +158,20 @@ export const CARD_LIBRARY: {
     {
       type: "budget",
       label: "Budget",
-      description: "Project budget (exact or range)",
+      description: "Project budget (exact, range, or milestones)",
       icon: DollarSign,
-    },
-    {
-      type: "project-objective",
-      label: "Objective",
-      description: "Main goal of the project",
-      icon: Target,
     },
     {
       type: "key-deliverables",
       label: "Deliverables",
-      description: "List of expected deliverables",
+      description: "Expected deliverables with descriptions",
       icon: CheckSquare,
+    },
+    {
+      type: "milestones",
+      label: "Milestones",
+      description: "Project milestones with due dates",
+      icon: Flag,
     },
     {
       type: "project-description",
@@ -234,8 +256,6 @@ function getDefaultPlaceholder(type: CardType): string {
       return "Enter project title...";
     case "supplier-response":
       return "Choose how Vendors should submit Proposals";
-    case "project-objective":
-      return "What is the main goal of this project?";
     case "project-description":
       return "Provide detailed information about your project...";
     case "custom-text":
@@ -251,14 +271,16 @@ function getDefaultPlaceholder(type: CardType): string {
 function getDefaultValue(type: CardType): any {
   switch (type) {
     case "supplier-response":
-      return null; // "quote_only" | "tech_fin_proposal" | "video_only" | "tech_fin_with_video"
+      return { submissionType: null, inquiryType: null, whatsappContact: "", emailContact: "" };
     case "project-description":
       return { text: "", voiceNoteUrl: "", videoUrl: "" };
     case "project-dates":
       return { startDate: null, endDate: null, deliveryDate: null };
     case "budget":
-      return { type: "exact", amount: "", min: "", max: "" };
+      return { type: "exact", amount: "", min: "", max: "", showToVendors: true };
     case "key-deliverables":
+      return [];
+    case "milestones":
       return [];
     case "evaluation-criteria":
       return {
@@ -320,15 +342,6 @@ export const FIELD_INSIGHTS: Record<CardType, FieldInsight> = {
     bestPractice:
       "A budget range is often better than an exact amount — it gives vendors room to propose creative solutions while staying within limits.",
   },
-  "project-objective": {
-    title: "Objective",
-    description:
-      "A concise statement of what this project aims to achieve. This gives vendors the context they need to propose relevant solutions.",
-    vendorTip:
-      "Vendors use the objective to understand the \"why\" behind your project. A well-written objective leads to proposals that solve the right problem.",
-    bestPractice:
-      "Focus on outcomes, not methods. \"Reduce customer support response time by 40%\" is more useful than \"Implement a chatbot.\"",
-  },
   "key-deliverables": {
     title: "Deliverables",
     description:
@@ -373,6 +386,15 @@ export const FIELD_INSIGHTS: Record<CardType, FieldInsight> = {
       "Attachments reduce back-and-forth questions. The more context vendors have upfront, the faster and more accurate their proposals will be.",
     bestPractice:
       "Label files clearly (e.g. \"Floor_Plan_v2.pdf\"). Include a brief note explaining each attachment's relevance.",
+  },
+  "milestones": {
+    title: "Milestones",
+    description:
+      "Project milestones define the key stages and checkpoints of your project. They help vendors understand the project timeline and delivery expectations at each phase.",
+    vendorTip:
+      "Vendors use milestones to plan team allocation and resources. Clear milestones with due dates lead to more accurate proposals and fewer surprises.",
+    bestPractice:
+      "Break your project into 3–7 milestones. Assign realistic due dates and include a brief description of what success looks like at each stage.",
   },
   "custom-text": {
     title: "Short Answer Field",

@@ -91,68 +91,90 @@ export default function TenderReview() {
     for (const card of cards) {
       switch (card.type) {
         case "project-title":
-          data.title = card.value;
+          data.title = card.value || undefined;
           break;
+
         case "supplier-response":
-          data.submissionType = card.value;
+          if (card.value && typeof card.value === "object") {
+            data.submissionType = card.value.submissionType || undefined;
+            data.inquiryType = card.value.inquiryType || undefined;
+            data.whatsappContact = card.value.whatsappContact || undefined;
+            data.emailContact = card.value.emailContact || undefined;
+          } else if (typeof card.value === "string") {
+            data.submissionType = card.value; // backwards compat
+          }
           break;
+
         case "project-dates":
           if (card.value) {
-            data.startDate = card.value.startDate;
-            data.endDate = card.value.endDate;
-            data.deliveryDate = card.value.deliveryDate;
+            data.startDate = card.value.startDate || undefined;
+            data.endDate = card.value.endDate || undefined;
+            // endDate as fallback deadline
             if (!data.deadline && card.value.endDate) {
               data.deadline = card.value.endDate;
             }
           }
           break;
+
         case "budget":
           if (card.value) {
-            if (card.value.type === "exact") {
+            // Correct DB column name: showPriceToVendors
+            data.showPriceToVendors = card.value.showToVendors !== false;
+            if (card.value.type === "exact" && card.value.amount) {
               data.budget = String(card.value.amount);
-            } else {
-              data.budgetMin = card.value.min;
-              data.budgetMax = card.value.max;
+            } else if (card.value.type === "range") {
+              // DB expects integers — parse from input strings
+              const min = parseInt(card.value.min);
+              const max = parseInt(card.value.max);
+              if (!isNaN(min)) data.budgetMin = min;
+              if (!isNaN(max)) data.budgetMax = max;
             }
           }
           break;
-        case "project-objective":
-          data.projectObjective = card.value;
-          if (!data.description && card.value) {
-            data.description = card.value;
+
+        case "key-deliverables":
+          // DB column is `deliverables`, expects {id, name, description, unit, quantity}[]
+          if (Array.isArray(card.value) && card.value.length > 0) {
+            data.deliverables = card.value.map((item: any) =>
+              typeof item === "string"
+                ? { id: `del-${Date.now()}`, name: item, description: "", unit: "", quantity: 1 }
+                : { id: item.id || `del-${Date.now()}`, name: item.name || "", description: item.description || "", unit: item.unit || "", quantity: item.quantity ?? 1 }
+            );
           }
           break;
-        case "key-deliverables":
-          data.keyDeliverables = card.value;
+
+        case "milestones":
+          // Store project milestones in the milestones jsonb column
+          if (Array.isArray(card.value) && card.value.length > 0) {
+            data.milestones = card.value;
+          }
           break;
+
         case "project-description":
           if (card.value && typeof card.value === "object" && "text" in card.value) {
             data.description = card.value.text || undefined;
             data.voiceNoteUrl = card.value.voiceNoteUrl || undefined;
             data.videoUrl = card.value.videoUrl || undefined;
-          } else {
+          } else if (typeof card.value === "string" && card.value) {
             data.description = card.value;
           }
           break;
+
         case "submission-deadline":
-          data.deadline = card.value;
+          if (card.value) data.deadline = card.value;
           break;
+
         case "evaluation-criteria":
-          data.evaluationCriteria = card.value;
+          if (card.value) data.evaluationCriteria = card.value;
           break;
+
+        // attachments has no DB column yet — intentionally omitted
         case "attachments":
-          data.attachments = card.value;
           break;
+
         default:
-          if (card.type.startsWith("custom-")) {
-            if (!data.customFields) data.customFields = [];
-            data.customFields.push({
-              label: card.label,
-              type: card.type,
-              value: card.value,
-              options: card.options,
-            });
-          }
+          // custom-* fields have no DB column — omitted to avoid Zod stripping noise
+          break;
       }
     }
 
@@ -285,15 +307,22 @@ export default function TenderReview() {
       return "Not provided";
     }
 
-    if (card.type === "supplier-response" && typeof card.value === "string") {
-      return SUPPLIER_RESPONSE_LABELS[card.value] || card.value;
+    if (card.type === "supplier-response") {
+      if (typeof card.value === "string") return SUPPLIER_RESPONSE_LABELS[card.value] || card.value;
+      if (typeof card.value === "object" && card.value.submissionType) {
+        const submission = SUPPLIER_RESPONSE_LABELS[card.value.submissionType] || card.value.submissionType;
+        const inquiry = card.value.inquiryType === "inside_bid" ? "Inside Bid Q&A"
+          : card.value.inquiryType === "email_whatsapp" ? "WhatsApp & Email Q&A"
+          : null;
+        return inquiry ? `${submission} · ${inquiry}` : submission;
+      }
     }
 
     if (typeof card.value === "string") return card.value;
 
     if (Array.isArray(card.value)) {
       if (card.value.length === 0) return "Not provided";
-      if (card.type === "key-deliverables") {
+      if (card.type === "key-deliverables" || card.type === "milestones") {
         return card.value.map((item: any) => {
           if (typeof item === "string") return item;
           if (typeof item === "object" && item.name) return item.name;
@@ -329,10 +358,16 @@ export default function TenderReview() {
         return "Configured";
       }
       if (card.type === "budget") {
+        const visibilityNote = card.value.showToVendors === false ? " (hidden from vendors)" : "";
         if (card.value.type === "exact") {
-          return `SAR ${card.value.amount?.toLocaleString() || 0}`;
+          return `SAR ${card.value.amount?.toLocaleString() || 0}${visibilityNote}`;
         }
-        return `SAR ${card.value.min?.toLocaleString() || 0} – ${card.value.max?.toLocaleString() || 0}`;
+        return `SAR ${card.value.min?.toLocaleString() || 0} – ${card.value.max?.toLocaleString() || 0}${visibilityNote}`;
+      }
+      if (card.type === "milestones") {
+        const count = card.value.length || 0;
+        if (count === 0) return "No milestones added";
+        return card.value.map((m: any) => m.name).join(", ");
       }
       if (card.type === "project-dates") {
         const parts = [];

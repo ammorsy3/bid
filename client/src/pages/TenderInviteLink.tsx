@@ -434,7 +434,8 @@ export default function TenderInviteLink() {
   const hasVendorRequirements = !!(tender.vendorRequirements && tender.vendorRequirements.length > 0);
   const hasExternalContact = !!(tender.inquiryType && tender.inquiryType !== 'inside_bid' && (tender.emailContact || tender.whatsappContact));
   const hasSubmissionSection = !!(tender.submissionType || hasVendorRequirements || hasExternalContact);
-  const hasMedia = !!(tender.voiceNoteUrl || tender.videoUrl);
+  const hasCustomCards = !!(tender.formCards && tender.formCards.length > 0);
+  const hasMedia = !!(tender.voiceNoteUrl || tender.videoUrl || hasCustomCards);
   const showQA = tender.inquiryType === 'inside_bid';
 
   const mandatoryRequirements = tender.vendorRequirements?.filter(r => r.type === 'mandatory') || [];
@@ -736,40 +737,6 @@ export default function TenderInviteLink() {
                             </span>
                           </div>
                         )}
-                      </div>
-                    )}
-                    {/* Custom Fields */}
-                    {tender.formCards && tender.formCards.length > 0 && (
-                      <div className="mt-8 space-y-5">
-                        {tender.formCards.map((card) => {
-                          if (!card.value && card.value !== 0) return null;
-                          const isEmpty = card.value === '' || (Array.isArray(card.value) && card.value.length === 0);
-                          if (isEmpty) return null;
-                          return (
-                            <div key={card.id}>
-                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                                {card.label}
-                                {card.isRequired && <span className="text-red-400 ml-1">*</span>}
-                              </p>
-                              {card.type === 'multiple-choice' && Array.isArray(card.value) ? (
-                                <div className="flex flex-wrap gap-2">
-                                  {card.value.map((opt: string, i: number) => (
-                                    <span key={i} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200">
-                                      {opt}
-                                    </span>
-                                  ))}
-                                </div>
-                              ) : card.type === 'date-field' ? (
-                                <div className="flex items-center gap-2">
-                                  <Calendar className="h-4 w-4 text-gray-400" />
-                                  <span className="text-gray-700 text-[15px]">{formatDate(card.value)}</span>
-                                </div>
-                              ) : (
-                                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]">{card.value}</p>
-                              )}
-                            </div>
-                          );
-                        })}
                       </div>
                     )}
                   </div>
@@ -1109,6 +1076,40 @@ export default function TenderInviteLink() {
                               </a>
                             </div>
                           )}
+                          {hasCustomCards && tender.formCards!.map((card) => {
+                            if (!card.value && card.value !== 0) return null;
+                            const cardEmpty = card.value === '' || (Array.isArray(card.value) && card.value.length === 0);
+                            if (cardEmpty) return null;
+                            return (
+                              <div key={card.id}>
+                                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                  {card.type === 'date-field' ? <Calendar className="h-4 w-4 text-orange-500" /> :
+                                   card.type === 'multiple-choice' ? <Layers className="h-4 w-4 text-indigo-500" /> :
+                                   <FileText className="h-4 w-4 text-gray-500" />}
+                                  {card.label}
+                                  {card.isRequired && <span className="text-red-400 text-xs">*</span>}
+                                </h3>
+                                {card.type === 'multiple-choice' && Array.isArray(card.value) ? (
+                                  <div className="flex flex-wrap gap-2">
+                                    {card.value.map((opt: string, i: number) => (
+                                      <span key={i} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium border border-indigo-100">
+                                        {opt}
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : card.type === 'date-field' ? (
+                                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <Calendar className="h-4 w-4 text-gray-400" />
+                                    <span className="text-gray-700 font-medium">{formatDate(card.value)}</span>
+                                  </div>
+                                ) : (
+                                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{card.value}</p>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </SectionObserver>

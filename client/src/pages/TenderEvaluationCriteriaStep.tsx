@@ -590,7 +590,7 @@ export default function TenderEvaluationCriteriaStep() {
             <div className="space-y-3">
               <Button
                 onClick={() => handleContinue(false)}
-                disabled={!hasEvalSelections || !isWeightValid}
+                disabled={!isWeightValid}
                 className="w-full bg-[#E25E45] hover:bg-[#d54d35] py-6"
                 data-testid="button-continue"
               >

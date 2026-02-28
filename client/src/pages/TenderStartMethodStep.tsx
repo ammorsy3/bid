@@ -426,7 +426,6 @@ export default function TenderStartMethodStep() {
       const template = allTemplates.find((t) => t.id === selectedTemplate);
 
       if (template?.id === "bid-recommended") {
-        // Pre-populate with all required + key standard cards
         const standardTypes = [
           "project-description",
           "project-dates",
@@ -442,7 +441,7 @@ export default function TenderStartMethodStep() {
         ];
         const recommendedCards = allCardDefs.map((def) => createFormCard(def));
         localStorage.setItem(TENDER_STATE_KEY, JSON.stringify(recommendedCards));
-        navigate("/tenders/new/form-builder");
+        navigate("/tenders/new/title");
       } else if (template?.isUserTemplate && template.cards) {
         // For user templates, load the cards directly into the form builder
         const cardsWithValues = template.cards.map((card) => ({

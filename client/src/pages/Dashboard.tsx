@@ -156,7 +156,9 @@ function SidebarLogoToggle() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {isCollapsed ? null : (
+      {isCollapsed ? (
+        <SidebarTrigger className="h-6 w-6" />
+      ) : (
         <img src={logoPath} alt="Bid" className="h-8 object-contain" />
       )}
     </div>

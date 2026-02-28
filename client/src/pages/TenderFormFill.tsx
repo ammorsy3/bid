@@ -14,6 +14,7 @@ import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-prev
 import { useTheme } from "next-themes";
 import { FormCard, getCardDefinition, FIELD_INSIGHTS } from "@/lib/form-builder-types";
 import { CardInputRenderer } from "@/components/form-builder/CardInputRenderer";
+import { StepIndicator } from "@/components/form-builder/StepIndicator";
 
 const TENDER_STATE_KEY = "tender_form_state";
 
@@ -123,31 +124,12 @@ export default function TenderFormFill() {
             onClick={() => navigate("/dashboard")}
           />
 
-          {/* Step pills */}
-          <div className="hidden md:flex items-center gap-2 text-xs">
-            <div className="flex items-center gap-1.5">
-              <span className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-              </span>
-              <span className="text-gray-400 font-medium">Structure</span>
-            </div>
-            <div className="w-8 h-px bg-[#E8614D]" />
-            <div className="flex items-center gap-1.5">
-              <span className="w-6 h-6 rounded-full bg-[#E8614D] text-white flex items-center justify-center font-bold">
-                2
-              </span>
-              <span className="font-semibold text-gray-900 dark:text-white">Fill Details</span>
-            </div>
-            <div className="w-8 h-px bg-gray-300 dark:bg-gray-600" />
-            <div className="flex items-center gap-1.5">
-              <span className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-400 flex items-center justify-center font-bold">
-                3
-              </span>
-              <span className="text-gray-400 font-medium">Review</span>
-            </div>
-          </div>
+          <StepIndicator
+            steps={[{ label: "Structure" }, { label: "Fill Details" }, { label: "Review" }]}
+            currentStep={2}
+          />
 
-          {/* Animated back button — same style as the template page */}
+          {/* Animated back button */}
           <Button
             onClick={handleBack}
             variant="outline"
@@ -162,6 +144,11 @@ export default function TenderFormFill() {
           </Button>
         </div>
 
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+        >
         {/* ── Headline ───────────────────────────────────────────── */}
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white leading-tight mb-3">
@@ -180,7 +167,14 @@ export default function TenderFormFill() {
             </span>
             <span className="text-sm font-bold text-[#E8614D]">{progressPercent}%</span>
           </div>
-          <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div
+            role="progressbar"
+            aria-valuenow={progressPercent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Required fields completion"
+            className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden"
+          >
             <motion.div
               className="h-full rounded-full bg-gradient-to-r from-[#E8614D] to-[#F19A8F]"
               initial={{ width: 0 }}
@@ -343,6 +337,7 @@ export default function TenderFormFill() {
             <Rocket className="h-5 w-5 ml-2" />
           </Button>
         </div>
+        </motion.div>
       </div>
     </div>
   );

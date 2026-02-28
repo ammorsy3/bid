@@ -997,7 +997,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get tender for invitation page (public endpoint)
   app.get("/api/tenders/:id/invite", async (req, res) => {
     try {
-      const tender = await storage.getTender(req.params.id);
+      const idOrToken = req.params.id;
+      let tender: any = null;
+      let company: any = null;
+      let profile: any = null;
+
+      const tokenResult = await storage.getTenderByInvitationToken(idOrToken);
+      if (tokenResult) {
+        tender = tokenResult;
+        company = tokenResult.company;
+        profile = tokenResult.profile;
+      } else {
+        tender = await storage.getTender(idOrToken);
+        if (tender) {
+          company = await storage.getCompany(tender.companyId);
+          profile = company ? await storage.getCompanyProfile(company.id) : null;
+        }
+      }
+
       if (!tender) {
         return res.status(404).json({ message: "Tender not found" });
       }
@@ -1006,10 +1023,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (tender.status !== 'published' && tender.status !== 'draft') {
         return res.status(404).json({ message: "Tender not available" });
       }
-
-      // Get company info
-      const company = await storage.getCompany(tender.companyId);
-      const profile = company ? await storage.getCompanyProfile(company.id) : null;
 
       const showPrice = tender.showPriceToVendors !== false;
 

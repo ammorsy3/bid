@@ -618,15 +618,15 @@ export default function TenderInviteLink() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               {logoUrl ? (
-                <img src={logoUrl} alt={displayName} className="w-10 h-10 rounded-xl object-cover border border-gray-200" />
+                <img src={logoUrl} alt={displayName} className="w-14 h-14 rounded-xl object-cover border border-gray-200 shadow-sm" />
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-gray-400" />
+                <div className="w-14 h-14 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center shadow-sm">
+                  <Building2 className="h-7 w-7 text-gray-400" />
                 </div>
               )}
               <div>
-                <p className="text-gray-900 font-semibold text-sm">{displayName}</p>
-                <p className="text-gray-400 text-xs">Requesting Organization</p>
+                <p className="text-gray-900 font-bold text-lg">{displayName}</p>
+                <p className="text-gray-400 text-sm">Requesting Organization</p>
               </div>
             </div>
             <div>

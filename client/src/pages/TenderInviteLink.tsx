@@ -722,18 +722,34 @@ export default function TenderInviteLink() {
                       </p>
                     </div>
 
-                    {/* Duration row */}
+                    {/* Duration row — milestone strip */}
                     {durationDisplay && (
-                      <div className="mb-6">
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Project Duration</p>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-blue-400 flex-shrink-0" />
-                          <span className="font-semibold text-gray-800 text-[15px]">{durationDisplay}</span>
-                          {showDurationDateRange && (
-                            <span className="text-gray-400 text-sm">
-                              ({tender.startDate && formatDate(tender.startDate)}{tender.startDate && tender.endDate && ' → '}{tender.endDate && formatDate(tender.endDate)})
-                            </span>
-                          )}
+                      <div className="mb-8">
+                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                          <Clock className="h-4 w-4" /> Project Duration
+                        </h3>
+                        <div className="relative bg-gray-50 border border-gray-200 rounded-xl px-6 py-5">
+                          <div className="flex items-center justify-center mb-3">
+                            <span className="text-sm font-bold text-gray-800 bg-white border border-gray-200 rounded-full px-4 py-1 shadow-sm">{durationDisplay}</span>
+                          </div>
+                          <div className="relative flex items-center">
+                            <div className="relative z-10 flex flex-col items-center">
+                              <div className="w-3.5 h-3.5 rounded-full bg-blue-500 border-[3px] border-blue-100 shadow-sm" />
+                              <span className="text-[11px] font-semibold text-gray-500 mt-1.5 whitespace-nowrap">
+                                {showDurationDateRange && tender.startDate ? formatDate(tender.startDate) : 'Start'}
+                              </span>
+                            </div>
+                            <div className="flex-1 mx-2 relative">
+                              <div className="h-[2px] bg-gradient-to-r from-blue-400 via-blue-300 to-blue-400 rounded-full" />
+                              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-blue-300 rounded-full" />
+                            </div>
+                            <div className="relative z-10 flex flex-col items-center">
+                              <div className="w-3.5 h-3.5 rounded-full bg-[#E25E45] border-[3px] border-orange-100 shadow-sm" />
+                              <span className="text-[11px] font-semibold text-gray-500 mt-1.5 whitespace-nowrap">
+                                {showDurationDateRange && tender.endDate ? formatDate(tender.endDate) : 'End'}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}

@@ -728,17 +728,28 @@ export default function TenderInviteLink() {
                         <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
                           <Clock className="h-4 w-4" /> Project Duration
                         </h3>
-                        <div className="bg-white border-2 border-blue-100 rounded-2xl p-5 flex items-center gap-5">
-                          <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                            <Clock className="h-6 w-6 text-blue-500" />
+                        <div className="bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-2xl p-5">
+                          <div className="text-center mb-4">
+                            <span className="text-xl font-bold text-gray-900">{durationDisplay}</span>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-lg font-bold text-gray-900 leading-tight">{durationDisplay}</p>
-                            <p className="text-sm text-gray-400 mt-0.5">
-                              {tender.startDate ? formatDate(tender.startDate) : formatDate(tender.createdAt)}
-                              {' — '}
-                              {tender.endDate ? formatDate(tender.endDate) : formatDate(tender.deadline)}
-                            </p>
+                          <div className="relative">
+                            <div className="h-2 bg-blue-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full" style={{ width: '100%' }} />
+                            </div>
+                            <div className="flex justify-between mt-2.5">
+                              <div className="flex flex-col items-start">
+                                <span className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide">Start</span>
+                                <span className="text-xs font-semibold text-gray-700">
+                                  {tender.startDate ? formatDate(tender.startDate) : formatDate(tender.createdAt)}
+                                </span>
+                              </div>
+                              <div className="flex flex-col items-end">
+                                <span className="text-[10px] font-semibold text-[#E25E45] uppercase tracking-wide">End</span>
+                                <span className="text-xs font-semibold text-gray-700">
+                                  {tender.endDate ? formatDate(tender.endDate) : formatDate(tender.deadline)}
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>

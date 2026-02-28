@@ -736,7 +736,7 @@ export default function TenderInviteLink() {
                             <div className="relative z-10 flex flex-col items-center">
                               <div className="w-3.5 h-3.5 rounded-full bg-blue-500 border-[3px] border-blue-100 shadow-sm" />
                               <span className="text-[11px] font-semibold text-gray-500 mt-1.5 whitespace-nowrap">
-                                {showDurationDateRange && tender.startDate ? formatDate(tender.startDate) : 'Start'}
+                                {tender.startDate ? formatDate(tender.startDate) : formatDate(tender.createdAt)}
                               </span>
                             </div>
                             <div className="flex-1 mx-2 relative">
@@ -746,7 +746,7 @@ export default function TenderInviteLink() {
                             <div className="relative z-10 flex flex-col items-center">
                               <div className="w-3.5 h-3.5 rounded-full bg-[#E25E45] border-[3px] border-orange-100 shadow-sm" />
                               <span className="text-[11px] font-semibold text-gray-500 mt-1.5 whitespace-nowrap">
-                                {showDurationDateRange && tender.endDate ? formatDate(tender.endDate) : 'End'}
+                                {tender.endDate ? formatDate(tender.endDate) : formatDate(tender.deadline)}
                               </span>
                             </div>
                           </div>

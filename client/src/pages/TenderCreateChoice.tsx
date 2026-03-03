@@ -4,10 +4,12 @@ import { Sparkles } from "lucide-react";
 import { AILoader } from "@/components/ui/ai-loader";
 import { useAuthStore } from "@/lib/auth";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
+import { useI18n } from "@/lib/i18n";
 
 export default function TenderCreateChoice() {
   const [, setLocation] = useLocation();
   const { user } = useAuthStore();
+  const { t } = useI18n();
   const firstName = user?.name?.split(' ')[0] || user?.username || 'there';
 
   return (
@@ -43,13 +45,13 @@ export default function TenderCreateChoice() {
 
           <div className="text-center max-w-md">
             <h2 className="text-3xl font-bold text-gray-900 mb-2 drop-shadow-lg">
-              Welcome, {firstName}!
+              {t('tenderFlow.welcome')} {firstName}!
             </h2>
             <p className="text-lg text-gray-700 mb-2 drop-shadow-md">
-              Let's create your RFP
+              {t('tenderFlow.letsCreateRfp')}
             </p>
             <p className="text-sm text-gray-600 mb-10 drop-shadow-md">
-              Post an RFP in just a few clicks and start receiving bids from qualified Vendors.
+              {t('tenderFlow.postRfpDesc')}
             </p>
 
             <div className="space-y-3 max-w-sm mx-auto">
@@ -59,7 +61,7 @@ export default function TenderCreateChoice() {
                 data-testid="button-create-with-ai"
               >
                 <Sparkles className="h-5 w-5 mr-2" />
-                Get started with Bid AI
+                {t('tenderFlow.getStartedWithAI')}
               </Button>
 
               <Button
@@ -68,7 +70,7 @@ export default function TenderCreateChoice() {
                 className="w-full h-12 border-gray-300 text-gray-700 hover:bg-gray-50 text-base font-medium rounded-lg"
                 data-testid="button-create-manually"
               >
-                I'll create it myself
+                {t('tenderFlow.createMyself')}
               </Button>
             </div>
           </div>

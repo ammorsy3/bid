@@ -98,6 +98,9 @@ Centralized error logging captures both client-side and server-side errors into 
 ### Date Localization
 All date displays are formatted to English locale.
 
+### Internationalization (i18n)
+Full EN/AR translation support via `client/src/lib/i18n.tsx` using React Context + `useI18n()` hook. Translations are organized in sections: `settings`, `dashboard`, `auth`, `onboarding`, `nav`, `common`, `tenderFlow`. The `tenderFlow` section covers the entire 5-step tender creation flow (TenderCreateChoice, TenderStartMethodStep, TenderTitleStep, TenderProjectScopeStep, TenderAIBudgetStep, TenderSubmissionProcessStep, TenderEvaluationCriteriaStep). RTL layout is auto-applied when Arabic is selected.
+
 # Recent Changes (November 2025)
 
 ## Major Architectural Refactor: Role-Based → Company-Centric

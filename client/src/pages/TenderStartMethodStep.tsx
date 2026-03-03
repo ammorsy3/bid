@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { getQueryFn } from "@/lib/queryClient";
 import { CARD_LIBRARY, createFormCard } from "@/lib/form-builder-types";
+import { useI18n } from "@/lib/i18n";
 
 // Template Illustration - Document Stack with floating icons
 const TemplateIllustration = ({ isSelected, isHovered }: { isSelected: boolean; isHovered: boolean }) => (
@@ -387,18 +388,19 @@ interface DisplayTemplate {
   cards?: TemplateCard[];
 }
 
-const DEFAULT_TEMPLATES: DisplayTemplate[] = [
-  {
-    id: "bid-recommended",
-    name: "Bid Recommended Template",
-    description: "Our recommended structure for creating effective RFPs with all essential sections",
-    recommended: true,
-  },
-];
-
 export default function TenderStartMethodStep() {
   const [, navigate] = useLocation();
   const { theme } = useTheme();
+  const { t } = useI18n();
+
+  const DEFAULT_TEMPLATES: DisplayTemplate[] = [
+    {
+      id: "bid-recommended",
+      name: t('tenderFlow.bidRecommendedTemplate'),
+      description: t('tenderFlow.bidRecommendedDesc'),
+      recommended: true,
+    },
+  ];
   const [startMethod, setStartMethod] = useState<StartMethod>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [hoveredCard, setHoveredCard] = useState<"template" | "scratch" | null>(null);
@@ -412,18 +414,18 @@ export default function TenderStartMethodStep() {
   // Combine default templates with user's saved templates
   const allTemplates: DisplayTemplate[] = [
     ...DEFAULT_TEMPLATES,
-    ...(savedTemplates || []).map((t) => ({
-      id: t.id,
-      name: t.name,
-      description: t.description || "Your saved template",
+    ...(savedTemplates || []).map((tmpl) => ({
+      id: tmpl.id,
+      name: tmpl.name,
+      description: tmpl.description || t('tenderFlow.yourSavedTemplate'),
       isUserTemplate: true,
-      cards: t.cards,
+      cards: tmpl.cards,
     })),
   ];
 
   const handleNext = () => {
     if (startMethod === "template" && selectedTemplate) {
-      const template = allTemplates.find((t) => t.id === selectedTemplate);
+      const template = allTemplates.find((tmpl) => tmpl.id === selectedTemplate);
 
       if (template?.id === "bid-recommended") {
         const standardTypes = [
@@ -499,11 +501,10 @@ export default function TenderStartMethodStep() {
         {/* Headline Section - Centered */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
-            How would you like to start?
+            {t('tenderFlow.howToStart')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-            Choose to start with a pre-built template for faster setup, or
-            start from scratch for complete customization.
+            {t('tenderFlow.howToStartDesc')}
           </p>
         </div>
 
@@ -514,7 +515,7 @@ export default function TenderStartMethodStep() {
             type="button"
             onClick={() => {
               setStartMethod("template");
-              const recommended = DEFAULT_TEMPLATES.find((t) => t.recommended);
+              const recommended = DEFAULT_TEMPLATES.find((tmpl) => tmpl.recommended);
               if (recommended) setSelectedTemplate(recommended.id);
             }}
             onMouseEnter={() => setHoveredCard("template")}
@@ -544,13 +545,13 @@ export default function TenderStartMethodStep() {
                 ? "text-[#E8614D]"
                 : "text-gray-900 dark:text-white group-hover:text-[#E8614D]"
             }`}>
-              Start with a template
+              {t('tenderFlow.startWithTemplate')}
             </h3>
-            <span className="text-xs font-semibold uppercase tracking-wide text-[#E8614D] mb-2">Faster</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-[#E8614D] mb-2">{t('tenderFlow.faster')}</span>
 
             {/* Subtitle */}
             <p className="text-gray-500 dark:text-gray-400 text-base mb-6 text-center max-w-[280px]">
-              Use our pre-built structure for faster setup with all essential sections included
+              {t('tenderFlow.templateDesc')}
             </p>
 
             {/* Selection Indicator */}
@@ -562,10 +563,10 @@ export default function TenderStartMethodStep() {
               {startMethod === "template" ? (
                 <span className="flex items-center justify-center gap-2">
                   <Check className="w-5 h-5" />
-                  Selected
+                  {t('tenderFlow.selected')}
                 </span>
               ) : (
-                "Select"
+                t('tenderFlow.select')
               )}
             </div>
           </button>
@@ -604,13 +605,13 @@ export default function TenderStartMethodStep() {
                 ? "text-[#E8614D]"
                 : "text-gray-900 dark:text-white group-hover:text-[#E8614D]"
             }`}>
-              Start from scratch
+              {t('tenderFlow.startFromScratch')}
             </h3>
-            <span className="text-xs font-semibold uppercase tracking-wide text-[#E8614D] mb-2">More customization</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-[#E8614D] mb-2">{t('tenderFlow.moreCustomization')}</span>
 
             {/* Subtitle */}
             <p className="text-gray-500 dark:text-gray-400 text-base mb-6 text-center max-w-[280px]">
-              Build your RFP from the ground up with complete customization freedom
+              {t('tenderFlow.scratchDesc')}
             </p>
 
             {/* Selection Indicator */}
@@ -622,10 +623,10 @@ export default function TenderStartMethodStep() {
               {startMethod === "scratch" ? (
                 <span className="flex items-center justify-center gap-2">
                   <Check className="w-5 h-5" />
-                  Selected
+                  {t('tenderFlow.selected')}
                 </span>
               ) : (
-                "Select"
+                t('tenderFlow.select')
               )}
             </div>
           </button>
@@ -645,7 +646,7 @@ export default function TenderStartMethodStep() {
             <div className="h-1 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]" />
             <div className="p-8">
               <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Choose a template
+                {t('tenderFlow.chooseTemplate')}
               </label>
 
               {isLoadingTemplates ? (
@@ -690,7 +691,7 @@ export default function TenderStartMethodStep() {
                           {template.recommended && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
                               <Star className="h-3.5 w-3.5" />
-                              Recommended
+                              {t('tenderFlow.recommended')}
                             </span>
                           )}
                         </div>
@@ -721,7 +722,7 @@ export default function TenderStartMethodStep() {
                         </div>
                         <div className="relative flex justify-center">
                           <span className="bg-white dark:bg-gray-800 px-4 text-sm text-gray-500 dark:text-gray-400">
-                            Your Saved Templates
+                            {t('tenderFlow.yourSavedTemplates')}
                           </span>
                         </div>
                       </div>
@@ -759,11 +760,11 @@ export default function TenderStartMethodStep() {
                                 {template.name}
                               </span>
                               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                                {template.cards.length} fields
+                                {template.cards.length} {t('tenderFlow.fields')}
                               </span>
                             </div>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1.5">
-                              {template.description || "Your saved template"}
+                              {template.description || t('tenderFlow.yourSavedTemplate')}
                             </p>
                           </div>
                           <div
@@ -798,7 +799,7 @@ export default function TenderStartMethodStep() {
             className="min-w-[160px] h-12 text-base"
             data-testid="button-cancel"
           >
-            Back
+            {t('tenderFlow.back')}
           </Button>
           <Button
             onClick={handleNext}
@@ -806,7 +807,7 @@ export default function TenderStartMethodStep() {
             className="min-w-[160px] h-12 text-base bg-[#E8614D] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="button-next"
           >
-            Continue
+            {t('tenderFlow.continue')}
             <ArrowRight className="h-5 w-5 ml-2" />
           </Button>
         </div>

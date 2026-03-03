@@ -7,6 +7,7 @@ import { useLocation } from "wouter";
 import { useState } from "react";
 import { AutocompleteInput } from "@/components/ui/autocomplete-input";
 import { getSuggestions } from "@/lib/tender-suggestions";
+import { useI18n } from "@/lib/i18n";
 
 const MAX_WORDS = 10;
 
@@ -16,8 +17,8 @@ const countWords = (text: string): number => {
 
 export default function TenderTitleStep() {
   const [, navigate] = useLocation();
+  const { t } = useI18n();
 
-  // Load existing draft data
   const draft = (() => {
     try {
       return JSON.parse(localStorage.getItem("tenderDraft") || "{}");
@@ -46,7 +47,6 @@ export default function TenderTitleStep() {
     navigate("/tenders/new/manual");
   };
 
-  // Form validation - need a title and must be within word limit
   const isFormValid = title.trim().length > 0 && !isOverLimit;
 
   return (
@@ -66,7 +66,7 @@ export default function TenderTitleStep() {
               data-testid="button-back"
             >
               <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
-                Back
+                {t('tenderFlow.back')}
               </span>
               <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
                 <ArrowLeft
@@ -80,53 +80,47 @@ export default function TenderTitleStep() {
           </div>
 
           <div className="grid grid-cols-2 gap-8">
-            {/* Left Section - Headline and Explanation */}
             <div>
               <div className="space-y-4">
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   1 / 5
                 </div>
                 <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
-                  Let's start with a strong title.
+                  {t('tenderFlow.step1Title')}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 text-lg">
-                  Your RFP title is the first thing vendors evaluate. A clear,
-                  specific title signals professionalism and attracts the right
-                  companies to submit a Proposal.
+                  {t('tenderFlow.step1Desc')}
                 </p>
               </div>
             </div>
 
-            {/* Right Section - Form */}
             <div>
               <Card className="border-0 shadow-xl overflow-hidden">
                 <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
 
                 <div className="p-8 space-y-6">
-                  {/* Title Input with Autocomplete */}
                   <div className="space-y-3">
                     <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                      Write a project title for your RFP.
+                      {t('tenderFlow.writeProjectTitle')}
                     </label>
                     <AutocompleteInput
                       value={title}
                       onChange={setTitle}
                       suggestions={getSuggestions("title")}
-                      placeholder="e.g., ERP System Integration for Finance Operations"
+                      placeholder={t('tenderFlow.titlePlaceholder')}
                       data-testid="input-title"
                       className={isOverLimit ? "border-red-300 dark:border-red-600 focus:ring-red-500" : ""}
                     />
                     <div className="flex justify-between items-center">
                       <p className={`text-xs ${isOverLimit ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}>
-                        {isOverLimit ? "Title is too long" : "Keep it clear and specific"}
+                        {isOverLimit ? t('tenderFlow.titleTooLong') : t('tenderFlow.keepClearSpecific')}
                       </p>
                       <p className={`text-xs ${isOverLimit ? "text-red-500 font-medium" : "text-gray-500 dark:text-gray-400"}`}>
-                        {wordCount} / {MAX_WORDS} words
+                        {wordCount} / {MAX_WORDS} {t('tenderFlow.words')}
                       </p>
                     </div>
                   </div>
 
-                  {/* Navigation Buttons */}
                   <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <Button
                       type="button"
@@ -135,7 +129,7 @@ export default function TenderTitleStep() {
                       className="flex-1"
                       data-testid="button-cancel"
                     >
-                      Cancel
+                      {t('tenderFlow.cancel')}
                     </Button>
                     <Button
                       onClick={handleNext}
@@ -143,7 +137,7 @@ export default function TenderTitleStep() {
                       className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
                       data-testid="button-next"
                     >
-                      Next
+                      {t('tenderFlow.next')}
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </div>

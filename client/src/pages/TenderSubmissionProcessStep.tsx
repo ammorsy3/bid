@@ -11,12 +11,14 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
 type SubmissionType = "quote_only" | "tech_fin_proposal" | "video_only" | "tech_fin_with_video";
 type InquiryType = "inside_bid" | "email_whatsapp";
 
 export default function TenderSubmissionProcessStep() {
   const [, navigate] = useLocation();
+  const { t } = useI18n();
   const { user, checkAuth } = useAuthStore();
   const { toast } = useToast();
   const [submissionDeadline, setSubmissionDeadline] = useState<Date | undefined>(undefined);
@@ -37,7 +39,6 @@ export default function TenderSubmissionProcessStep() {
     }
   }, []);
 
-  // Pre-fill from draft if available
   useEffect(() => {
     if (draft.submissionDeadline) {
       setSubmissionDeadline(new Date(draft.submissionDeadline));
@@ -61,10 +62,9 @@ export default function TenderSubmissionProcessStep() {
       setCustomEmail(draft.customEmail);
     }
 
-    // Load saved custom email from user profile if exists
     if (user?.tenderInquiryEmail && !draft.customEmail) {
       setCustomEmail(user.tenderInquiryEmail);
-      setSaveCustomEmail(true); // Mark as saved if it's from user profile
+      setSaveCustomEmail(true);
     }
   }, [draft.submissionDeadline, draft.submissionType, draft.videoRequired, draft.inquiryType, draft.whatsappContact, draft.useAccountEmail, draft.customEmail, user?.tenderInquiryEmail]);
 
@@ -79,17 +79,16 @@ export default function TenderSubmissionProcessStep() {
         throw new Error("Failed to save email");
       }
 
-      // Refresh user data to get updated tenderInquiryEmail
       await checkAuth();
 
       toast({
-        title: "Email saved",
-        description: "Your RFP inquiry email has been saved for future use.",
+        title: t('tenderFlow.emailSaved'),
+        description: t('tenderFlow.emailSavedDesc'),
       });
     } catch (error) {
       toast({
-        title: "Failed to save email",
-        description: "Could not save your email preference. Please try again.",
+        title: t('tenderFlow.failedSaveEmail'),
+        description: t('tenderFlow.failedSaveEmailDesc'),
         variant: "destructive",
       });
     } finally {
@@ -100,7 +99,6 @@ export default function TenderSubmissionProcessStep() {
   const handleSaveEmailCheckbox = async (checked: boolean) => {
     setSaveCustomEmail(checked);
 
-    // If checking the box and email is valid, save immediately
     if (checked && customEmail.trim()) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (emailRegex.test(customEmail.trim())) {
@@ -112,12 +110,12 @@ export default function TenderSubmissionProcessStep() {
   const handleNext = () => {
     if (submissionDeadline && submissionType && inquiryType) {
       const emailToUse = useAccountEmail ? user?.email : customEmail;
-      const deadlineISO = submissionDeadline.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      const deadlineISO = submissionDeadline.toISOString().split('T')[0];
 
       const updated = {
         ...draft,
         submissionDeadline: deadlineISO,
-        deadline: deadlineISO, // Also save as 'deadline' for the API
+        deadline: deadlineISO,
         submissionType,
         videoRequired: submissionType === "tech_fin_with_video" ? videoRequired : undefined,
         inquiryType,
@@ -139,29 +137,29 @@ export default function TenderSubmissionProcessStep() {
     {
       type: "quote_only" as SubmissionType,
       icon: FileText,
-      title: "Price Only",
-      description: "Just need a price figure",
+      title: t('tenderFlow.priceOnly'),
+      description: t('tenderFlow.priceOnlyDesc'),
       color: "from-blue-500 to-blue-600",
     },
     {
       type: "tech_fin_proposal" as SubmissionType,
       icon: FileCheck,
-      title: "Full Proposal",
-      description: "Technical and Financial Proposal",
+      title: t('tenderFlow.fullProposal'),
+      description: t('tenderFlow.fullProposalDesc'),
       color: "from-purple-500 to-purple-600",
     },
     {
       type: "video_only" as SubmissionType,
       icon: Video,
-      title: "Video Pitch",
-      description: "A short video explaining their approach",
+      title: t('tenderFlow.videoPitch'),
+      description: t('tenderFlow.videoPitchDesc'),
       color: "from-pink-500 to-pink-600",
     },
     {
       type: "tech_fin_with_video" as SubmissionType,
       icon: FileVideo,
-      title: "Proposal + Video",
-      description: "Written proposal and a video pitch",
+      title: t('tenderFlow.proposalVideo'),
+      description: t('tenderFlow.proposalVideoDesc'),
       color: "from-orange-500 to-orange-600",
     },
   ];
@@ -170,15 +168,15 @@ export default function TenderSubmissionProcessStep() {
     {
       type: "inside_bid" as InquiryType,
       icon: MessageSquare,
-      title: "Inside Bid",
-      description: "Q&A appears anonymously in the Tender",
+      title: t('tenderFlow.insideBid'),
+      description: t('tenderFlow.insideBidDesc'),
       color: "from-green-500 to-green-600",
     },
     {
       type: "email_whatsapp" as InquiryType,
       icon: Mail,
-      title: "Email & WhatsApp",
-      description: "Share your contact info for questions",
+      title: t('tenderFlow.emailWhatsapp'),
+      description: t('tenderFlow.emailWhatsappDesc'),
       color: "from-blue-500 to-blue-600",
     },
   ];
@@ -210,7 +208,7 @@ export default function TenderSubmissionProcessStep() {
             data-testid="button-back"
           >
             <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
-              Back
+              {t('tenderFlow.back')}
             </span>
             <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
               <ArrowLeft
@@ -224,37 +222,34 @@ export default function TenderSubmissionProcessStep() {
         </div>
 
         <div className="grid grid-cols-2 gap-8">
-          {/* Left Section - Headline and Explanation */}
           <div>
             <div className="space-y-4">
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 4 / 5
               </div>
               <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
-                How should Vendors respond?
+                {t('tenderFlow.step4Title')}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Choose what you need from Vendors to evaluate their Proposals.
+                {t('tenderFlow.step4Desc')}
               </p>
             </div>
           </div>
 
-          {/* Right Section - Submission Options */}
           <div>
             <Card className="border-0 shadow-xl overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
 
               <div className="p-8 space-y-6">
-                {/* Submission Deadline */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <CalendarIcon className="h-5 w-5 text-[#E25E45]" />
                     <div>
                       <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                        Submission Deadline
+                        {t('tenderFlow.submissionDeadline')}
                       </label>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Last date vendors can submit their proposals
+                        {t('tenderFlow.submissionDeadlineDesc')}
                       </p>
                     </div>
                   </div>
@@ -269,7 +264,7 @@ export default function TenderSubmissionProcessStep() {
                         data-testid="input-submission-deadline"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {submissionDeadline ? format(submissionDeadline, "PPP") : "Select submission deadline"}
+                        {submissionDeadline ? format(submissionDeadline, "PPP") : t('tenderFlow.selectSubmissionDeadline')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -286,16 +281,15 @@ export default function TenderSubmissionProcessStep() {
                     <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                       <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
                       <p className="text-xs text-amber-700 dark:text-amber-300">
-                        After {format(submissionDeadline, "EEEE, MMMM d, yyyy")}, vendors will no longer be able to submit proposals to this tender.
+                        {format(submissionDeadline, "EEEE, MMMM d, yyyy")}, {t('tenderFlow.deadlineWarning')}
                       </p>
                     </div>
                   )}
                 </div>
 
-                {/* Submission Type Options */}
                 <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
                   <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                    What should vendors submit?
+                    {t('tenderFlow.whatShouldSubmit')}
                   </label>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
@@ -309,7 +303,6 @@ export default function TenderSubmissionProcessStep() {
                         type="button"
                         onClick={() => {
                           setSubmissionType(option.type);
-                          // Reset video required when changing away from tech_fin_with_video
                           if (option.type !== "tech_fin_with_video") {
                             setVideoRequired(false);
                           }
@@ -346,7 +339,6 @@ export default function TenderSubmissionProcessStep() {
                   })}
                 </div>
 
-                {/* Video Required Toggle - Only show when tech_fin_with_video is selected */}
                 {submissionType === "tech_fin_with_video" && (
                   <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -354,12 +346,12 @@ export default function TenderSubmissionProcessStep() {
                         <Video className="h-5 w-5 text-gray-500" />
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            Video is required
+                            {t('tenderFlow.videoRequired')}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {videoRequired
-                              ? "Vendors must include a video"
-                              : "Video is optional"
+                              ? t('tenderFlow.vendorsMustVideo')
+                              : t('tenderFlow.videoOptional')
                             }
                           </p>
                         </div>
@@ -382,19 +374,17 @@ export default function TenderSubmissionProcessStep() {
                   </div>
                 )}
 
-                {/* Q&A / Inquiry Mechanism - Progressive disclosure after submission type selected */}
                 {submissionType && (
                   <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div>
                       <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                        How should Vendors ask questions?
+                        {t('tenderFlow.howAskQuestions')}
                       </h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Choose how you want to receive inquiries about this Tender
+                        {t('tenderFlow.chooseInquiryMethod')}
                       </p>
                     </div>
 
-                    {/* Inquiry Type Options */}
                     <div className="grid grid-cols-1 gap-3">
                       {inquiryOptions.map((option) => {
                         const Icon = option.icon;
@@ -439,16 +429,13 @@ export default function TenderSubmissionProcessStep() {
                       })}
                     </div>
 
-                    {/* Email & WhatsApp Contact Inputs */}
                     {inquiryType === "email_whatsapp" && (
                       <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                        {/* Email Selection */}
                         <div className="space-y-3">
                           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                            Email Address
+                            {t('tenderFlow.emailAddress')}
                           </label>
 
-                          {/* Radio buttons for email selection */}
                           <div className="space-y-2">
                             <label className="flex items-center gap-2 cursor-pointer">
                               <input
@@ -459,7 +446,7 @@ export default function TenderSubmissionProcessStep() {
                                 data-testid="radio-account-email"
                               />
                               <span className="text-sm text-gray-700 dark:text-gray-300">
-                                Use my account email: <span className="font-medium">{user?.email}</span>
+                                {t('tenderFlow.useAccountEmail')} <span className="font-medium">{user?.email}</span>
                               </span>
                             </label>
 
@@ -472,12 +459,11 @@ export default function TenderSubmissionProcessStep() {
                                 data-testid="radio-custom-email"
                               />
                               <span className="text-sm text-gray-700 dark:text-gray-300">
-                                Use different email
+                                {t('tenderFlow.useDifferentEmail')}
                               </span>
                             </label>
                           </div>
 
-                          {/* Custom Email Input */}
                           {!useAccountEmail && (
                             <div className="space-y-2 ml-6 animate-in fade-in slide-in-from-top-2 duration-300">
                               <input
@@ -489,7 +475,6 @@ export default function TenderSubmissionProcessStep() {
                                 data-testid="input-custom-email"
                               />
 
-                              {/* Save email checkbox */}
                               <label className="flex items-center gap-2 cursor-pointer">
                                 <input
                                   type="checkbox"
@@ -500,17 +485,16 @@ export default function TenderSubmissionProcessStep() {
                                   data-testid="checkbox-save-email"
                                 />
                                 <span className="text-xs text-gray-600 dark:text-gray-400">
-                                  {isSavingEmail ? "Saving..." : "Save this email for future RFPs"}
+                                  {isSavingEmail ? t('tenderFlow.savingEmail') : t('tenderFlow.saveEmailForFuture')}
                                 </span>
                               </label>
                             </div>
                           )}
                         </div>
 
-                        {/* WhatsApp Input */}
                         <div className="space-y-2">
                           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                            WhatsApp Number or Link
+                            {t('tenderFlow.whatsappNumber')}
                           </label>
                           <input
                             type="text"
@@ -523,24 +507,22 @@ export default function TenderSubmissionProcessStep() {
                         </div>
 
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          This contact information will be displayed in the Tender for Vendors to reach you
+                          {t('tenderFlow.contactInfoDisplayed')}
                         </p>
                       </div>
                     )}
 
-                    {/* Inside Bid Info */}
                     {inquiryType === "inside_bid" && (
                       <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg animate-in fade-in slide-in-from-top-2 duration-300">
                         <MessageSquare className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                         <p className="text-xs text-blue-700 dark:text-blue-300">
-                          Questions will appear in an anonymous Q&A section visible to all Vendors in the Tender
+                          {t('tenderFlow.insideBidInfo')}
                         </p>
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* Navigation Buttons */}
                 <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <Button
                     type="button"
@@ -549,7 +531,7 @@ export default function TenderSubmissionProcessStep() {
                     className="flex-1"
                     data-testid="button-cancel"
                   >
-                    Back
+                    {t('tenderFlow.back')}
                   </Button>
                   <Button
                     onClick={handleNext}
@@ -557,7 +539,7 @@ export default function TenderSubmissionProcessStep() {
                     className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
                     data-testid="button-next"
                   >
-                    Next
+                    {t('tenderFlow.next')}
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </div>

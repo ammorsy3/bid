@@ -6,6 +6,7 @@ import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-prev
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { ENTERPRISE_CRITERIA_CATEGORIES } from "@/lib/evaluation-criteria-data";
+import { useI18n } from "@/lib/i18n";
 
 // ── Evaluation criteria types ────────────────────────────────────────────────
 
@@ -39,23 +40,42 @@ interface PresetRequirement {
   text: string;
 }
 
-const PRESET_REQUIREMENTS: PresetRequirement[] = [
-  { id: 'legal_registration', text: 'Be legally registered in Saudi Arabia' },
-  { id: 'cr_certificate',     text: 'Valid Commercial Registration (CR) certificate' },
-  { id: 'business_license',   text: 'Valid business license' },
-  { id: 'zakat_certificate',  text: 'Valid Zakat, Tax, and Customs Authority certificate' },
-  { id: 'gosi_certificate',   text: 'Valid GOSI (Social Insurance) certificate' },
-  { id: 'no_legal_disputes',  text: 'No ongoing legal disputes affecting project execution' },
-  { id: 'reg_compliance',     text: 'Must comply with all local regulatory requirements' },
-  { id: 'nda',                text: 'Signed Non-Disclosure Agreement (NDA) required' },
-  { id: 'data_protection',    text: 'Compliance with Saudi data protection and cybersecurity regulations' },
-  { id: 'local_content',      text: 'Commitment to local content regulations (if applicable)' },
-];
+const PRESET_REQUIREMENT_IDS = [
+  'legal_registration',
+  'cr_certificate',
+  'business_license',
+  'zakat_certificate',
+  'gosi_certificate',
+  'no_legal_disputes',
+  'reg_compliance',
+  'nda',
+  'data_protection',
+  'local_content',
+] as const;
+
+const PRESET_KEY_MAP: Record<string, string> = {
+  legal_registration: 'presetReqLegalRegistration',
+  cr_certificate: 'presetReqCrCertificate',
+  business_license: 'presetReqBusinessLicense',
+  zakat_certificate: 'presetReqZakatCertificate',
+  gosi_certificate: 'presetReqGosiCertificate',
+  no_legal_disputes: 'presetReqNoLegalDisputes',
+  reg_compliance: 'presetReqRegCompliance',
+  nda: 'presetReqNda',
+  data_protection: 'presetReqDataProtection',
+  local_content: 'presetReqLocalContent',
+};
 
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function TenderEvaluationCriteriaStep() {
   const [, navigate] = useLocation();
+  const { t } = useI18n();
+
+  const PRESET_REQUIREMENTS: PresetRequirement[] = PRESET_REQUIREMENT_IDS.map(id => ({
+    id,
+    text: t(`tenderFlow.${PRESET_KEY_MAP[id]}` as any),
+  }));
 
   // Evaluation criteria state
   const [expandedCategories, setExpandedCategories] = useState<string[]>(["experience"]);
@@ -214,7 +234,7 @@ export default function TenderEvaluationCriteriaStep() {
             data-testid="button-back"
           >
             <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
-              Back
+              {t('tenderFlow.back')}
             </span>
             <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
               <ArrowLeft className="opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
@@ -229,12 +249,12 @@ export default function TenderEvaluationCriteriaStep() {
 
             {/* Evaluation section label */}
             <div className="space-y-3">
-              <div className="text-sm font-medium text-gray-500">5 / 6 (Optional)</div>
+              <div className="text-sm font-medium text-gray-500">{t('tenderFlow.step5Label')}</div>
               <h1 className="text-5xl font-bold text-gray-900 leading-tight">
-                Evaluation Criteria
+                {t('tenderFlow.evaluationCriteria')}
               </h1>
               <p className="text-gray-600 text-lg">
-                Define structured evaluation criteria for fair and auditable vendor selection.
+                {t('tenderFlow.step5Desc')}
               </p>
             </div>
 
@@ -244,23 +264,23 @@ export default function TenderEvaluationCriteriaStep() {
             {/* Submission requirements label */}
             <div className="space-y-3">
               <h2 className="text-3xl font-bold text-gray-900 leading-tight">
-                Submission Requirements
+                {t('tenderFlow.submissionRequirements')}
               </h2>
               <p className="text-gray-600">
-                Define which vendors are eligible to respond. These will be shown to vendors on the published RFP page.
+                {t('tenderFlow.submissionReqDesc')}
               </p>
               {vendorRequirements.length > 0 && (
                 <div className="flex items-center gap-2 flex-wrap pt-1">
                   {mandatoryCount > 0 && (
                     <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
                       <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                      <span className="text-sm font-medium text-red-700">{mandatoryCount} mandatory</span>
+                      <span className="text-sm font-medium text-red-700">{mandatoryCount} {t('tenderFlow.mandatoryLabel').toLowerCase()}</span>
                     </div>
                   )}
                   {preferredCount > 0 && (
                     <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full">
                       <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      <span className="text-sm font-medium text-amber-700">{preferredCount} preferred</span>
+                      <span className="text-sm font-medium text-amber-700">{preferredCount} {t('tenderFlow.preferredLabel').toLowerCase()}</span>
                     </div>
                   )}
                 </div>
@@ -298,11 +318,11 @@ export default function TenderEvaluationCriteriaStep() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-gray-900">{totalWeight === 100 ? "Perfect Balance!" : "Weight Distribution"}</span>
+                      <span className="font-semibold text-gray-900">{totalWeight === 100 ? t('tenderFlow.perfectBalance') : t('tenderFlow.weightDistribution')}</span>
                       {totalWeight === 100 && <Check className="h-4 w-4 text-green-500" />}
                     </div>
                     <p className={`text-sm mt-0.5 transition-colors duration-300 ${totalWeight === 100 ? "text-green-600" : totalWeight > 100 ? "text-red-500" : "text-amber-600"}`}>
-                      {totalWeight === 100 ? "Weights add up correctly" : totalWeight > 100 ? `Remove ${totalWeight - 100}% to balance` : `Add ${100 - totalWeight}% more weight`}
+                      {totalWeight === 100 ? t('tenderFlow.weightsCorrect') : totalWeight > 100 ? `${t('tenderFlow.removeWeight')} ${totalWeight - 100}% ${t('tenderFlow.toBalance')}` : `${t('tenderFlow.addWeight')} ${100 - totalWeight}% ${t('tenderFlow.moreWeight')}`}
                     </p>
                   </div>
                 </div>
@@ -339,7 +359,7 @@ export default function TenderEvaluationCriteriaStep() {
                         <div className="overflow-hidden">
                           <div className="border-t border-gray-200 p-3 space-y-3 bg-white">
                             <div className="space-y-1">
-                              <label className="text-xs text-gray-500">Weight: {currentWeight}%</label>
+                              <label className="text-xs text-gray-500">{t('tenderFlow.weight')} {currentWeight}%</label>
                               <input
                                 type="range" min="0" max="100" step="5" value={currentWeight}
                                 onChange={(e) => handleWeightChange(category.id, parseInt(e.target.value))}
@@ -367,10 +387,10 @@ export default function TenderEvaluationCriteriaStep() {
                                         onValueChange={(value) => handleRequirementChange(category.id, req.id, value === "none" ? "" : value)}
                                       >
                                         <SelectTrigger className="mt-1 w-full text-sm">
-                                          <SelectValue placeholder="Not required" />
+                                          <SelectValue placeholder={t('tenderFlow.notRequired')} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                          <SelectItem value="none">Not required</SelectItem>
+                                          <SelectItem value="none">{t('tenderFlow.notRequired')}</SelectItem>
                                           {req.options.map(opt => (
                                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                                           ))}
@@ -392,10 +412,10 @@ export default function TenderEvaluationCriteriaStep() {
                 <div className="space-y-3 pt-2 border-t border-gray-200">
                   <div className="flex items-center justify-between">
                     <label className="block text-sm font-medium text-gray-900">
-                      Custom criteria <span className="text-gray-400 font-normal">(optional)</span>
+                      {t('tenderFlow.customCriteria')} <span className="text-gray-400 font-normal">{t('tenderFlow.optional')}</span>
                     </label>
                     {customCriteria.length > 0 && (
-                      <span className="text-xs text-gray-500">Total: {customCriteriaWeight}%</span>
+                      <span className="text-xs text-gray-500">{t('tenderFlow.total')} {customCriteriaWeight}%</span>
                     )}
                   </div>
                   {customCriteria.length > 0 && (
@@ -424,7 +444,7 @@ export default function TenderEvaluationCriteriaStep() {
                         type="text" value={newCriterionText}
                         onChange={(e) => setNewCriterionText(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && addCustomCriterion()}
-                        placeholder="e.g., Team communication skills..."
+                        placeholder={t('tenderFlow.customCriteriaPlaceholder')}
                         className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
                       />
                       <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#E25E45] hover:bg-[#d54d35]">
@@ -433,7 +453,7 @@ export default function TenderEvaluationCriteriaStep() {
                     </div>
                     {newCriterionText.trim() && (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">Weight:</span>
+                        <span className="text-xs text-gray-500">{t('tenderFlow.weight')}</span>
                         <input
                           type="range" min="0" max="50" step="5" value={newCriterionWeight}
                           onChange={(e) => setNewCriterionWeight(parseInt(e.target.value))}
@@ -465,8 +485,8 @@ export default function TenderEvaluationCriteriaStep() {
                     <Shield className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">Submission Requirements</p>
-                    <p className="text-xs text-gray-500">Displayed to vendors on the published RFP</p>
+                    <p className="font-semibold text-gray-900">{t('tenderFlow.submissionRequirements')}</p>
+                    <p className="text-xs text-gray-500">{t('tenderFlow.displayedToVendors')}</p>
                   </div>
                 </div>
 
@@ -502,14 +522,14 @@ export default function TenderEvaluationCriteriaStep() {
                                   onClick={() => setReqType(preset.id, 'mandatory')}
                                   className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
                                 >
-                                  Mandatory
+                                  {t('tenderFlow.mandatoryLabel')}
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => setReqType(preset.id, 'preferred')}
                                   className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
                                 >
-                                  Preferred
+                                  {t('tenderFlow.preferredLabel')}
                                 </button>
                               </div>
                             )}
@@ -522,14 +542,14 @@ export default function TenderEvaluationCriteriaStep() {
 
                 {/* Custom requirements */}
                 <div className="space-y-3 pt-2 border-t border-gray-200">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Add custom requirement</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('tenderFlow.addCustomRequirement')}</p>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={customReqText}
                       onChange={(e) => setCustomReqText(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && addCustomReq()}
-                      placeholder="e.g., Must have ISO 9001 certification"
+                      placeholder={t('tenderFlow.customReqPlaceholder')}
                       className="flex-1 text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       data-testid="input-custom-requirement"
                     />
@@ -558,14 +578,14 @@ export default function TenderEvaluationCriteriaStep() {
                                 onClick={() => setReqType(req.id, 'mandatory')}
                                 className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
                               >
-                                Mandatory
+                                {t('tenderFlow.mandatoryLabel')}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setReqType(req.id, 'preferred')}
                                 className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
                               >
-                                Preferred
+                                {t('tenderFlow.preferredLabel')}
                               </button>
                             </div>
                           </div>
@@ -595,8 +615,8 @@ export default function TenderEvaluationCriteriaStep() {
                 data-testid="button-continue"
               >
                 {vendorRequirements.length > 0
-                  ? `Continue with ${vendorRequirements.length} requirement${vendorRequirements.length !== 1 ? 's' : ''}`
-                  : 'Continue'}
+                  ? `${t('tenderFlow.continueWith')} ${vendorRequirements.length} ${vendorRequirements.length !== 1 ? t('tenderFlow.requirements') : t('tenderFlow.requirement')}`
+                  : t('tenderFlow.continue')}
               </Button>
               <Button
                 type="button"
@@ -605,7 +625,7 @@ export default function TenderEvaluationCriteriaStep() {
                 className="w-full"
                 data-testid="button-skip"
               >
-                Skip both sections
+                {t('tenderFlow.skipBothSections')}
               </Button>
             </div>
 

@@ -13,10 +13,10 @@ import { AutocompleteInput } from "@/components/ui/autocomplete-input";
 import { getSuggestions } from "@/lib/tender-suggestions";
 import { smartSuggestionEngine } from "@/lib/smart-suggestions";
 import { SmartUnitDropdown } from "@/components/ui/smart-unit-dropdown";
+import { useI18n } from "@/lib/i18n";
 
 type InputMode = "text" | "voice";
 
-// Bill of Quantities Deliverable structure
 export interface Deliverable {
   id: string;
   name: string;
@@ -25,7 +25,6 @@ export interface Deliverable {
   quantity: number;
 }
 
-// Milestone structure
 export interface Milestone {
   id: string;
   name: string;
@@ -33,27 +32,24 @@ export interface Milestone {
   dueDate: Date | undefined;
 }
 
-// Helper to count words
 const countWords = (text: string): number => {
   return text.trim().split(/\s+/).filter(Boolean).length;
 };
 
 export default function TenderProjectScopeStep() {
   const [, navigate] = useLocation();
+  const { t } = useI18n();
   const [keyDeliverables, setKeyDeliverables] = useState<Deliverable[]>([]);
   const [expandedDeliverableId, setExpandedDeliverableId] = useState<string | null>(null);
   const [projectDescription, setProjectDescription] = useState("");
   const [inputMode, setInputMode] = useState<InputMode>("text");
   const [voiceNoteUrl, setVoiceNoteUrl] = useState("");
 
-  // Timeline state
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
-  // Validation errors for deliverables
   const [deliverableErrors, setDeliverableErrors] = useState<Record<string, Record<string, string>>>({});
 
-  // Milestones state
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [milestoneErrors, setMilestoneErrors] = useState<Record<string, Record<string, string>>>({});
 
@@ -62,17 +58,13 @@ export default function TenderProjectScopeStep() {
       const stored = localStorage.getItem("tenderDraft") || "{}";
       const parsed = JSON.parse(stored);
 
-      // Initialize smart suggestion engine with project title
       if (parsed.title) {
         smartSuggestionEngine.updateContext("title", parsed.title);
       }
 
-      // Load existing data if available
       if (parsed.keyDeliverables) {
-        // Handle both old format (string[]) and new format (Deliverable[])
         if (Array.isArray(parsed.keyDeliverables)) {
           if (parsed.keyDeliverables.length > 0 && typeof parsed.keyDeliverables[0] === 'string') {
-            // Migrate old format to new format
             const migrated: Deliverable[] = parsed.keyDeliverables.map((name: string, index: number) => ({
               id: `migrated-${index}-${Date.now()}`,
               name,
@@ -91,7 +83,6 @@ export default function TenderProjectScopeStep() {
       if (parsed.startDate) setStartDate(new Date(parsed.startDate));
       if (parsed.endDate) setEndDate(new Date(parsed.endDate));
 
-      // Load milestones
       if (parsed.milestones && Array.isArray(parsed.milestones)) {
         const loadedMilestones: Milestone[] = parsed.milestones.map((m: { id: string; name: string; description: string; dueDate?: string }) => ({
           ...m,
@@ -106,12 +97,10 @@ export default function TenderProjectScopeStep() {
     }
   }, []);
 
-  // Get smart suggestions based on context
   const [deliverableSuggestions, setDeliverableSuggestions] = useState<string[]>([]);
   const [descriptionSuggestions, setDescriptionSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
-    // Update smart suggestions when context changes
     const generalDeliverable = getSuggestions("deliverable");
     const generalDescription = getSuggestions("description");
 
@@ -137,7 +126,6 @@ export default function TenderProjectScopeStep() {
 
   const handleRemoveDeliverable = (id: string) => {
     setKeyDeliverables(keyDeliverables.filter((d) => d.id !== id));
-    // Clear errors for removed deliverable
     setDeliverableErrors((prev) => {
       const updated = { ...prev };
       delete updated[id];
@@ -152,7 +140,6 @@ export default function TenderProjectScopeStep() {
     setKeyDeliverables((prev) =>
       prev.map((d) => (d.id === id ? { ...d, [field]: value } : d))
     );
-    // Clear specific field error when user starts typing
     setDeliverableErrors((prev) => {
       if (prev[id]?.[field]) {
         const updated = { ...prev };
@@ -169,30 +156,26 @@ export default function TenderProjectScopeStep() {
   const validateDeliverable = (deliverable: Deliverable): Record<string, string> => {
     const errors: Record<string, string> = {};
 
-    // Name validation: required, max 10 words
     if (!deliverable.name.trim()) {
-      errors.name = 'Deliverable name is required';
+      errors.name = t('tenderFlow.deliverableNameRequired');
     } else if (countWords(deliverable.name) > 10) {
-      errors.name = 'Name must be 10 words or less';
+      errors.name = t('tenderFlow.nameTooLong');
     }
 
-    // Description validation: optional, max 50 words
     if (deliverable.description && countWords(deliverable.description) > 50) {
-      errors.description = 'Description must be 50 words or less';
+      errors.description = t('tenderFlow.descTooLong');
     }
 
-    // Unit validation: required, max 5 words
     if (!deliverable.unit.trim()) {
-      errors.unit = 'Unit of measurement is required';
+      errors.unit = t('tenderFlow.unitRequired');
     } else if (countWords(deliverable.unit) > 5) {
-      errors.unit = 'Unit must be 5 words or less';
+      errors.unit = t('tenderFlow.unitTooLong');
     }
 
-    // Quantity validation: required, integer, min 1
     if (!deliverable.quantity || deliverable.quantity < 1) {
-      errors.quantity = 'Quantity must be at least 1';
+      errors.quantity = t('tenderFlow.quantityMin');
     } else if (!Number.isInteger(deliverable.quantity)) {
-      errors.quantity = 'Quantity must be a whole number';
+      errors.quantity = t('tenderFlow.quantityWhole');
     }
 
     return errors;
@@ -214,7 +197,6 @@ export default function TenderProjectScopeStep() {
     return !hasErrors;
   };
 
-  // Milestone CRUD handlers
   const handleAddMilestone = () => {
     const newMilestone: Milestone = {
       id: `milestone-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -227,7 +209,6 @@ export default function TenderProjectScopeStep() {
 
   const handleRemoveMilestone = (id: string) => {
     setMilestones(milestones.filter((m) => m.id !== id));
-    // Clear errors for removed milestone
     setMilestoneErrors((prev) => {
       const updated = { ...prev };
       delete updated[id];
@@ -239,7 +220,6 @@ export default function TenderProjectScopeStep() {
     setMilestones((prev) =>
       prev.map((m) => (m.id === id ? { ...m, [field]: value } : m))
     );
-    // Clear specific field error when user makes changes
     setMilestoneErrors((prev) => {
       if (prev[id]?.[field]) {
         const updated = { ...prev };
@@ -256,24 +236,21 @@ export default function TenderProjectScopeStep() {
   const validateMilestone = (milestone: Milestone): Record<string, string> => {
     const errors: Record<string, string> = {};
 
-    // Name validation: required, max 10 words
     if (!milestone.name.trim()) {
-      errors.name = 'Milestone name is required';
+      errors.name = t('tenderFlow.milestoneNameRequired');
     } else if (countWords(milestone.name) > 10) {
-      errors.name = 'Name must be 10 words or less';
+      errors.name = t('tenderFlow.nameTooLong');
     }
 
-    // Description validation: optional, max 50 words
     if (milestone.description && countWords(milestone.description) > 50) {
-      errors.description = 'Description must be 50 words or less';
+      errors.description = t('tenderFlow.descTooLong');
     }
 
-    // Due date validation: must be within project timeline if set
     if (milestone.dueDate && startDate && endDate) {
       if (milestone.dueDate < startDate) {
-        errors.dueDate = 'Due date must be on or after project start date';
+        errors.dueDate = t('tenderFlow.dueDateAfterStart');
       } else if (milestone.dueDate > endDate) {
-        errors.dueDate = 'Due date must be on or before project end date';
+        errors.dueDate = t('tenderFlow.dueDateBeforeEnd');
       }
     }
 
@@ -297,18 +274,14 @@ export default function TenderProjectScopeStep() {
   };
 
   const handleNext = () => {
-    // Validate all deliverables before proceeding
     const deliverablesValid = validateAllDeliverables();
 
-    // Validate all milestones (only if there are any)
     let milestonesValid = true;
     if (milestones.length > 0) {
       milestonesValid = validateAllMilestones();
     }
 
-    // Handle validation errors - deliverables first, then milestones
     if (!deliverablesValid) {
-      // Get fresh error state after validation
       const freshDeliverableErrors: Record<string, Record<string, string>> = {};
       keyDeliverables.forEach((deliverable) => {
         const errors = validateDeliverable(deliverable);
@@ -324,12 +297,10 @@ export default function TenderProjectScopeStep() {
     }
 
     if (!milestonesValid) {
-      // Errors will be shown inline - no expansion needed
       return;
     }
 
     if (isFormValid) {
-      // Serialize milestones with ISO date strings
       const serializedMilestones = milestones.map((m) => ({
         ...m,
         dueDate: m.dueDate?.toISOString(),
@@ -353,20 +324,16 @@ export default function TenderProjectScopeStep() {
     navigate("/tenders/new/title");
   };
 
-  // Check if all deliverables are complete (have required fields)
   const areDeliverablesComplete = keyDeliverables.length > 0 && keyDeliverables.every(
     (d) => d.name.trim() && d.unit.trim() && d.quantity >= 1
   );
 
-  // Check if at least one deliverable is complete (for progressive disclosure)
   const hasAtLeastOneCompleteDeliverable = keyDeliverables.some(
     (d) => d.name.trim() && d.unit.trim() && d.quantity >= 1
   );
 
-  // Check if timeline is complete
   const isTimelineComplete = startDate !== undefined && endDate !== undefined;
 
-  // Form is valid if we have timeline, at least one complete deliverable and description
   const descriptionWordCount = countWords(projectDescription);
   const isFormValid =
     isTimelineComplete &&
@@ -376,10 +343,9 @@ export default function TenderProjectScopeStep() {
   const maxDescriptionChars = 5000;
   const descriptionCharCount = projectDescription.length;
 
-  // Progressive disclosure logic
-  const showTimeline = hasAtLeastOneCompleteDeliverable; // Show timeline when first deliverable is complete
-  const showMilestones = isTimelineComplete; // Show milestones when timeline is complete
-  const showDescription = isTimelineComplete; // Show description when timeline is complete
+  const showTimeline = hasAtLeastOneCompleteDeliverable;
+  const showMilestones = isTimelineComplete;
+  const showDescription = isTimelineComplete;
 
   return (
     <div className="py-8 px-4">
@@ -397,7 +363,7 @@ export default function TenderProjectScopeStep() {
             data-testid="button-back"
           >
             <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
-              Back
+              {t('tenderFlow.back')}
             </span>
             <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
               <ArrowLeft
@@ -411,33 +377,29 @@ export default function TenderProjectScopeStep() {
         </div>
 
         <div className="grid grid-cols-2 gap-8">
-          {/* Left Section - Headline and Explanation */}
           <div>
             <div className="space-y-4">
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 2 / 5
               </div>
               <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
-                Define your project scope.
+                {t('tenderFlow.step2Title')}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Help Vendors understand what you're looking for by clearly
-                defining your key deliverables and additional project details.
+                {t('tenderFlow.step2Desc')}
               </p>
             </div>
           </div>
 
-          {/* Right Section - Form */}
           <div>
             <Card className="border-0 shadow-xl overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
 
               <div className="p-8 space-y-6">
-                {/* Key Deliverables - Bill of Quantities */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                      Key Deliverables (Bill of Quantities)
+                      {t('tenderFlow.keyDeliverables')}
                     </label>
                     <Button
                       onClick={handleAddDeliverable}
@@ -446,11 +408,10 @@ export default function TenderProjectScopeStep() {
                       data-testid="button-add-deliverable"
                     >
                       <Plus className="h-4 w-4 mr-1" />
-                      Add Deliverable
+                      {t('tenderFlow.addDeliverable')}
                     </Button>
                   </div>
 
-                  {/* Deliverable Cards */}
                   {keyDeliverables.length > 0 ? (
                     <div className="space-y-3">
                       {keyDeliverables.map((deliverable, index) => {
@@ -468,7 +429,6 @@ export default function TenderProjectScopeStep() {
                             }`}
                             data-testid={`deliverable-card-${index}`}
                           >
-                            {/* Card Header - Collapsed View */}
                             <div
                               className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors duration-200"
                               onClick={() => setExpandedDeliverableId(isExpanded ? null : deliverable.id)}
@@ -478,7 +438,7 @@ export default function TenderProjectScopeStep() {
                                   #{index + 1}
                                 </span>
                                 <span className="text-sm text-gray-900 dark:text-white truncate">
-                                  {deliverable.name || 'New Deliverable'}
+                                  {deliverable.name || t('tenderFlow.newDeliverable')}
                                 </span>
                                 {deliverable.quantity > 0 && deliverable.unit && (
                                   <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded">
@@ -487,7 +447,7 @@ export default function TenderProjectScopeStep() {
                                 )}
                                 {hasErrors && (
                                   <span className="text-xs text-red-500 font-medium">
-                                    Incomplete
+                                    {t('tenderFlow.incomplete')}
                                   </span>
                                 )}
                               </div>
@@ -506,7 +466,6 @@ export default function TenderProjectScopeStep() {
                               </div>
                             </div>
 
-                            {/* Expanded Form */}
                             <div
                               className={`grid transition-all duration-300 ease-in-out ${
                                 isExpanded
@@ -516,10 +475,9 @@ export default function TenderProjectScopeStep() {
                             >
                               <div className="overflow-hidden">
                                 <div className="px-4 pb-4 space-y-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-                                {/* Deliverable Name */}
                                 <div className="space-y-1">
                                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                                    Deliverable Name <span className="text-red-500">*</span>
+                                    {t('tenderFlow.deliverableName')} <span className="text-red-500">*</span>
                                   </label>
                                   <input
                                     type="text"
@@ -535,23 +493,22 @@ export default function TenderProjectScopeStep() {
                                     {errors.name ? (
                                       <span className="text-xs text-red-500">{errors.name}</span>
                                     ) : (
-                                      <span className="text-xs text-gray-400">Max 10 words</span>
+                                      <span className="text-xs text-gray-400">{t('tenderFlow.max10Words')}</span>
                                     )}
                                     <span className={`text-xs ${countWords(deliverable.name) > 10 ? 'text-red-500' : 'text-gray-400'}`}>
-                                      {countWords(deliverable.name)} / 10 words
+                                      {countWords(deliverable.name)} / 10 {t('tenderFlow.words')}
                                     </span>
                                   </div>
                                 </div>
 
-                                {/* Description */}
                                 <div className="space-y-1">
                                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                                    Description <span className="text-gray-400 font-normal">(Optional)</span>
+                                    {t('tenderFlow.description')} <span className="text-gray-400 font-normal">{t('tenderFlow.optional')}</span>
                                   </label>
                                   <textarea
                                     value={deliverable.description}
                                     onChange={(e) => handleUpdateDeliverable(deliverable.id, 'description', e.target.value)}
-                                    placeholder="Describe what this deliverable includes..."
+                                    placeholder={t('tenderFlow.describeDeliverable')}
                                     rows={2}
                                     className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none ${
                                       errors.description ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
@@ -562,20 +519,18 @@ export default function TenderProjectScopeStep() {
                                     {errors.description ? (
                                       <span className="text-xs text-red-500">{errors.description}</span>
                                     ) : (
-                                      <span className="text-xs text-gray-400">Max 50 words</span>
+                                      <span className="text-xs text-gray-400">{t('tenderFlow.max50Words')}</span>
                                     )}
                                     <span className={`text-xs ${countWords(deliverable.description) > 50 ? 'text-red-500' : 'text-gray-400'}`}>
-                                      {countWords(deliverable.description)} / 50 words
+                                      {countWords(deliverable.description)} / 50 {t('tenderFlow.words')}
                                     </span>
                                   </div>
                                 </div>
 
-                                {/* Unit and Quantity Row */}
                                 <div className="grid grid-cols-2 gap-4">
-                                  {/* Unit of Measurement */}
                                   <div className="space-y-1">
                                     <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                                      Unit of Measurement <span className="text-red-500">*</span>
+                                      {t('tenderFlow.unitOfMeasurement')} <span className="text-red-500">*</span>
                                     </label>
                                     <SmartUnitDropdown
                                       value={deliverable.unit}
@@ -591,10 +546,9 @@ export default function TenderProjectScopeStep() {
                                     )}
                                   </div>
 
-                                  {/* Quantity */}
                                   <div className="space-y-1">
                                     <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                                      Quantity <span className="text-red-500">*</span>
+                                      {t('tenderFlow.quantity')} <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                       type="number"
@@ -602,7 +556,7 @@ export default function TenderProjectScopeStep() {
                                       step="1"
                                       value={deliverable.quantity}
                                       onChange={(e) => handleUpdateDeliverable(deliverable.id, 'quantity', parseInt(e.target.value) || 0)}
-                                      placeholder="e.g., 3"
+                                      placeholder={t('tenderFlow.quantityPlaceholder')}
                                       className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${
                                         errors.quantity ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
                                       }`}
@@ -624,17 +578,16 @@ export default function TenderProjectScopeStep() {
                   ) : (
                     <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        No deliverables added yet. Click "Add Deliverable" to get started.
+                        {t('tenderFlow.noDeliverablesYet')}
                       </p>
                     </div>
                   )}
 
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Define what you expect to receive with quantities and units of measurement
+                    {t('tenderFlow.defineDeliverables')}
                   </p>
                 </div>
 
-                {/* Project Timeline - Progressive Disclosure */}
                 <div
                   className={`space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6 transition-all duration-300 ease-out ${
                     showTimeline
@@ -643,12 +596,11 @@ export default function TenderProjectScopeStep() {
                   }`}
                 >
                   <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                    Project Timeline
+                    {t('tenderFlow.projectTimeline')}
                   </label>
                   <div className="grid grid-cols-2 gap-3">
-                    {/* Start Date */}
                     <div className="space-y-2">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Start date</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{t('tenderFlow.startDate')}</span>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -659,7 +611,7 @@ export default function TenderProjectScopeStep() {
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {startDate ? format(startDate, "PPP") : "Select date"}
+                            {startDate ? format(startDate, "PPP") : t('tenderFlow.selectDate')}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -674,9 +626,8 @@ export default function TenderProjectScopeStep() {
                       </Popover>
                     </div>
 
-                    {/* End Date */}
                     <div className="space-y-2">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">End date</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{t('tenderFlow.endDate')}</span>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -687,7 +638,7 @@ export default function TenderProjectScopeStep() {
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {endDate ? format(endDate, "PPP") : "Select date"}
+                            {endDate ? format(endDate, "PPP") : t('tenderFlow.selectDate')}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -706,7 +657,6 @@ export default function TenderProjectScopeStep() {
                   </div>
                 </div>
 
-                {/* Milestones - Progressive Disclosure */}
                 <div
                   className={`space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6 transition-all duration-300 ease-out ${
                     showMilestones
@@ -716,11 +666,10 @@ export default function TenderProjectScopeStep() {
                 >
                   <div className="flex items-center justify-between">
                     <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                      Milestones <span className="text-gray-400 font-normal">(Optional)</span>
+                      {t('tenderFlow.milestones')} <span className="text-gray-400 font-normal">{t('tenderFlow.optional')}</span>
                     </label>
                   </div>
 
-                  {/* Inline Milestone List */}
                   <div className="space-y-2">
                     {milestones.map((milestone, index) => {
                       const errors = milestoneErrors[milestone.id] || {};
@@ -736,7 +685,6 @@ export default function TenderProjectScopeStep() {
                           }`}
                           data-testid={`milestone-row-${index}`}
                         >
-                          {/* Milestone marker */}
                           <div className="flex-shrink-0 mt-2.5">
                             <div className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
                               milestone.name.trim()
@@ -745,14 +693,12 @@ export default function TenderProjectScopeStep() {
                             }`} />
                           </div>
 
-                          {/* Main content */}
                           <div className="flex-1 min-w-0 space-y-2">
-                            {/* Name input - always visible */}
                             <input
                               type="text"
                               value={milestone.name}
                               onChange={(e) => handleUpdateMilestone(milestone.id, 'name', e.target.value)}
-                              placeholder="Milestone name..."
+                              placeholder={t('tenderFlow.milestoneName')}
                               className={`w-full bg-transparent border-0 border-b text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 transition-colors duration-200 pb-1 ${
                                 errors.name
                                   ? 'border-red-300 dark:border-red-600 focus:border-red-500'
@@ -764,11 +710,10 @@ export default function TenderProjectScopeStep() {
                               <span className="text-xs text-red-500">{errors.name}</span>
                             )}
 
-                            {/* Description - subtle textarea that appears on focus or if has content */}
                             <textarea
                               value={milestone.description}
                               onChange={(e) => handleUpdateMilestone(milestone.id, 'description', e.target.value)}
-                              placeholder="Add description..."
+                              placeholder={t('tenderFlow.addDescription')}
                               rows={1}
                               className={`w-full bg-transparent border-0 text-xs text-gray-600 dark:text-gray-400 placeholder-gray-400 focus:outline-none focus:ring-0 resize-none transition-all duration-200 ${
                                 milestone.description ? 'opacity-100' : 'opacity-60 focus:opacity-100'
@@ -790,7 +735,6 @@ export default function TenderProjectScopeStep() {
                             )}
                           </div>
 
-                          {/* Date picker - compact */}
                           <div className="flex-shrink-0">
                             <Popover>
                               <PopoverTrigger asChild>
@@ -805,7 +749,7 @@ export default function TenderProjectScopeStep() {
                                 >
                                   <CalendarIcon className="h-3.5 w-3.5" />
                                   <span className="hidden sm:inline">
-                                    {milestone.dueDate ? format(milestone.dueDate, "MMM d") : "Date"}
+                                    {milestone.dueDate ? format(milestone.dueDate, "MMM d") : t('tenderFlow.date')}
                                   </span>
                                 </button>
                               </PopoverTrigger>
@@ -827,7 +771,6 @@ export default function TenderProjectScopeStep() {
                             )}
                           </div>
 
-                          {/* Delete button - appears on hover */}
                           <button
                             onClick={() => handleRemoveMilestone(milestone.id)}
                             className="flex-shrink-0 p-1 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-200"
@@ -839,7 +782,6 @@ export default function TenderProjectScopeStep() {
                       );
                     })}
 
-                    {/* Add milestone button - inline style */}
                     <button
                       onClick={handleAddMilestone}
                       className="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 text-gray-400 hover:border-[#E25E45] hover:text-[#E25E45] transition-all duration-200 group"
@@ -849,16 +791,15 @@ export default function TenderProjectScopeStep() {
                         <div className="w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-gray-600 group-hover:bg-[#E25E45] transition-colors duration-200" />
                       </div>
                       <Plus className="h-4 w-4" />
-                      <span className="text-sm">Add milestone</span>
+                      <span className="text-sm">{t('tenderFlow.addMilestone')}</span>
                     </button>
                   </div>
 
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Track key checkpoints throughout your project timeline
+                    {t('tenderFlow.trackMilestones')}
                   </p>
                 </div>
 
-                {/* Project Description - Progressive Disclosure */}
                 <div
                   className={`space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6 transition-all duration-300 ease-out ${
                     showDescription
@@ -868,10 +809,9 @@ export default function TenderProjectScopeStep() {
                 >
                   <div className="flex items-center justify-between">
                     <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                      Project Description
+                      {t('tenderFlow.projectDescription')}
                     </label>
 
-                    {/* Toggle between Text and Voice */}
                     <div className="flex gap-2">
                       <button
                         onClick={() => setInputMode("text")}
@@ -882,7 +822,7 @@ export default function TenderProjectScopeStep() {
                         }`}
                         data-testid="button-text-mode"
                       >
-                        Text
+                        {t('tenderFlow.text')}
                       </button>
                       <button
                         onClick={() => setInputMode("voice")}
@@ -894,19 +834,18 @@ export default function TenderProjectScopeStep() {
                         data-testid="button-voice-mode"
                       >
                         <Mic className="h-3 w-3" />
-                        Voice
+                        {t('tenderFlow.voice')}
                       </button>
                     </div>
                   </div>
 
-                  {/* Text Input Mode with Autocomplete */}
                   {inputMode === "text" && (
                     <>
                       <AutocompleteInput
                         value={projectDescription}
                         onChange={setProjectDescription}
                         suggestions={descriptionSuggestions}
-                        placeholder="A space to discuss additional project details..."
+                        placeholder={t('tenderFlow.descriptionPlaceholder')}
                         maxLength={maxDescriptionChars}
                         type="textarea"
                         rows={6}
@@ -914,14 +853,13 @@ export default function TenderProjectScopeStep() {
                       />
                       <div className="flex justify-between items-center text-xs">
                         <p className={descriptionWordCount < 50 ? "text-amber-600 font-medium" : "text-green-600 font-medium"}>
-                          {descriptionWordCount < 50 ? `${50 - descriptionWordCount} more words needed (min. 50)` : "Minimum word count met ✓"}
+                          {descriptionWordCount < 50 ? `${50 - descriptionWordCount} ${t('tenderFlow.moreWordsNeeded')}` : `${t('tenderFlow.minWordCountMet')} ✓`}
                         </p>
-                        <p className="text-gray-400">{descriptionWordCount} words · {descriptionCharCount}/{maxDescriptionChars}</p>
+                        <p className="text-gray-400">{descriptionWordCount} {t('tenderFlow.words')} · {descriptionCharCount}/{maxDescriptionChars}</p>
                       </div>
                     </>
                   )}
 
-                  {/* Voice Input Mode */}
                   {inputMode === "voice" && (
                     <div className="py-2">
                       <VoiceRecorder
@@ -931,13 +869,12 @@ export default function TenderProjectScopeStep() {
                         maxDurationSeconds={300}
                       />
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                        Record a voice message to explain your project details (max 5 minutes)
+                        {t('tenderFlow.recordVoice')}
                       </p>
                     </div>
                   )}
                 </div>
 
-                {/* Navigation Buttons */}
                 <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <Button
                     type="button"
@@ -946,7 +883,7 @@ export default function TenderProjectScopeStep() {
                     className="flex-1"
                     data-testid="button-cancel"
                   >
-                    Back
+                    {t('tenderFlow.back')}
                   </Button>
                   <Button
                     onClick={handleNext}
@@ -954,7 +891,7 @@ export default function TenderProjectScopeStep() {
                     className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
                     data-testid="button-next"
                   >
-                    Next
+                    {t('tenderFlow.next')}
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </div>

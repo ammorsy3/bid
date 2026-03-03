@@ -5,6 +5,7 @@ import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-prev
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { useI18n } from "@/lib/i18n";
 
 type BudgetMode = "manual" | "ai" | null;
 
@@ -23,22 +24,14 @@ const getProjectSize = (budget: number): ProjectSize => {
   return "large";
 };
 
-const getProjectSizeLabel = (size: ProjectSize): string => {
-  switch (size) {
-    case "small": return "Small Project";
-    case "medium": return "Medium Project";
-    case "large": return "Large Project";
-  }
-};
-
 export default function TenderAIBudgetStep() {
   const [, navigate] = useLocation();
+  const { t } = useI18n();
   const [budgetMode, setBudgetMode] = useState<BudgetMode>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [aiEstimate, setAiEstimate] = useState<AIBudgetEstimate | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Budget state
   const [budget, setBudget] = useState("");
   const [priceType, setPriceType] = useState<"exact" | "range">("exact");
   const [minPrice, setMinPrice] = useState("");
@@ -53,7 +46,6 @@ export default function TenderAIBudgetStep() {
     }
   }, []);
 
-  // Initialize price type and values from draft
   useEffect(() => {
     if (draft.budgetMin && draft.budgetMax) {
       setPriceType("range");
@@ -65,11 +57,18 @@ export default function TenderAIBudgetStep() {
     }
   }, []);
 
-  // Calculate project size based on budget
   const budgetNumber = priceType === "exact"
     ? (parseFloat(budget) || 0)
-    : (parseFloat(maxPrice) || 0); // Use max price for range to determine project size
+    : (parseFloat(maxPrice) || 0);
   const projectSize = budgetNumber > 0 ? getProjectSize(budgetNumber) : null;
+
+  const getProjectSizeLabel = (size: ProjectSize): string => {
+    switch (size) {
+      case "small": return t('tenderFlow.smallProject');
+      case "medium": return t('tenderFlow.mediumProject');
+      case "large": return t('tenderFlow.largeProject');
+    }
+  };
 
   const handleAIEstimate = async () => {
     setIsLoading(true);
@@ -93,7 +92,6 @@ export default function TenderAIBudgetStep() {
 
       const data = await response.json();
       setAiEstimate(data);
-      // Pre-fill the budget with AI suggestion
       setBudget(data.estimatedBudget.toString());
     } catch (err: any) {
       setError(err.message || "Failed to get AI budget estimate");
@@ -152,7 +150,7 @@ export default function TenderAIBudgetStep() {
             data-testid="button-back"
           >
             <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
-              Back
+              {t('tenderFlow.back')}
             </span>
             <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
               <ArrowLeft
@@ -166,30 +164,25 @@ export default function TenderAIBudgetStep() {
         </div>
 
         <div className="grid grid-cols-2 gap-8">
-          {/* Left Section - Headline and Explanation */}
           <div>
             <div className="space-y-4">
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 3 / 5
               </div>
               <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
-                Set your project budget.
+                {t('tenderFlow.step3Title')}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Choose how you'd like to set your budget. Let AI suggest a
-                realistic estimate based on your project details, or set it
-                manually.
+                {t('tenderFlow.step3Desc')}
               </p>
             </div>
           </div>
 
-          {/* Right Section - Budget Options */}
           <div>
             <Card className="border-0 shadow-xl overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
 
               <div className="p-8 space-y-6">
-                {/* Budget Mode Selector */}
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     type="button"
@@ -209,10 +202,10 @@ export default function TenderAIBudgetStep() {
                     </div>
                     <div className="text-center">
                       <p className="font-medium text-gray-900 dark:text-white">
-                        AI Estimate
+                        {t('tenderFlow.aiEstimate')}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Get a smart suggestion
+                        {t('tenderFlow.getSmartSuggestion')}
                       </p>
                     </div>
                   </button>
@@ -236,23 +229,21 @@ export default function TenderAIBudgetStep() {
                     </div>
                     <div className="text-center">
                       <p className="font-medium text-gray-900 dark:text-white">
-                        Set Manually
+                        {t('tenderFlow.setManually')}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Enter your own budget
+                        {t('tenderFlow.enterOwnBudget')}
                       </p>
                     </div>
                   </button>
                 </div>
 
-                {/* AI Mode Content */}
                 {budgetMode === "ai" && (
                   <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
                     {!aiEstimate && !isLoading && !error && (
                       <div className="text-center py-4">
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                          Based on your project details, AI will analyze similar
-                          projects and suggest a realistic budget in SAR.
+                          {t('tenderFlow.aiAnalyzeDesc')}
                         </p>
                         <Button
                           onClick={handleAIEstimate}
@@ -260,7 +251,7 @@ export default function TenderAIBudgetStep() {
                           data-testid="button-get-estimate"
                         >
                           <Sparkles className="h-4 w-4 mr-2" />
-                          Get AI Estimate
+                          {t('tenderFlow.getAIEstimate')}
                         </Button>
                       </div>
                     )}
@@ -269,7 +260,7 @@ export default function TenderAIBudgetStep() {
                       <div className="flex flex-col items-center justify-center py-8">
                         <Loader2 className="h-8 w-8 animate-spin text-[#E25E45]" />
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
-                          Analyzing your project...
+                          {t('tenderFlow.analyzingProject')}
                         </p>
                       </div>
                     )}
@@ -288,7 +279,7 @@ export default function TenderAIBudgetStep() {
                               onClick={handleAIEstimate}
                               className="mt-2 text-red-600 hover:text-red-700"
                             >
-                              Try again
+                              {t('tenderFlow.tryAgain')}
                             </Button>
                           </div>
                         </div>
@@ -297,25 +288,23 @@ export default function TenderAIBudgetStep() {
 
                     {aiEstimate && (
                       <div className="space-y-4">
-                        {/* Main Estimate */}
                         <div className="bg-gradient-to-br from-[#E25E45]/5 to-[#FF8A6B]/5 border border-[#E25E45]/20 rounded-lg p-6">
                           <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                            Suggested Budget
+                            {t('tenderFlow.suggestedBudget')}
                           </p>
                           <p className="text-3xl font-bold text-gray-900 dark:text-white">
                             {formatSAR(aiEstimate.estimatedBudget)}
                           </p>
                           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Range: {formatSAR(aiEstimate.budgetRange.min)} -{" "}
+                            {t('tenderFlow.range')} {formatSAR(aiEstimate.budgetRange.min)} -{" "}
                             {formatSAR(aiEstimate.budgetRange.max)}
                           </p>
                         </div>
 
-                        {/* Breakdown */}
                         {aiEstimate.breakdown.length > 0 && (
                           <div className="space-y-2">
                             <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              Estimated Breakdown
+                              {t('tenderFlow.estimatedBreakdown')}
                             </p>
                             <div className="space-y-2">
                               {aiEstimate.breakdown.map((item, index) => (
@@ -335,11 +324,10 @@ export default function TenderAIBudgetStep() {
                           </div>
                         )}
 
-                        {/* Reasoning */}
                         {aiEstimate.reasoning && (
                           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                              AI Reasoning
+                              {t('tenderFlow.aiReasoning')}
                             </p>
                             <p className="text-sm text-gray-700 dark:text-gray-300">
                               {aiEstimate.reasoning}
@@ -351,16 +339,13 @@ export default function TenderAIBudgetStep() {
                   </div>
                 )}
 
-                {/* Budget Input Section - Show after mode is selected */}
                 {budgetMode !== null && (budgetMode === "manual" || aiEstimate) && (
                   <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                    {/* Budget Input */}
                     <div className="space-y-3">
                       <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
-                        {budgetMode === "ai" ? "Adjust budget if needed" : "Enter your budget"}
+                        {budgetMode === "ai" ? t('tenderFlow.adjustBudget') : t('tenderFlow.enterBudget')}
                       </label>
 
-                      {/* Price Type Toggle - Only show in manual mode */}
                       {budgetMode === "manual" && (
                         <div className="flex gap-2 mb-4">
                           <button
@@ -373,7 +358,7 @@ export default function TenderAIBudgetStep() {
                             }`}
                             data-testid="button-exact-price"
                           >
-                            Exact Budget
+                            {t('tenderFlow.exactBudget')}
                           </button>
                           <button
                             type="button"
@@ -385,12 +370,11 @@ export default function TenderAIBudgetStep() {
                             }`}
                             data-testid="button-range-price"
                           >
-                            Budget Range
+                            {t('tenderFlow.budgetRange')}
                           </button>
                         </div>
                       )}
 
-                      {/* Exact Budget Input */}
                       {(budgetMode === "ai" || priceType === "exact") && (
                         <div className="flex items-center gap-2">
                           <span className="text-gray-600 dark:text-gray-400 font-medium">
@@ -407,13 +391,12 @@ export default function TenderAIBudgetStep() {
                         </div>
                       )}
 
-                      {/* Range Budget Inputs */}
                       {budgetMode === "manual" && priceType === "range" && (
                         <div className="space-y-3">
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Minimum
+                                {t('tenderFlow.minimum')}
                               </label>
                               <div className="flex items-center gap-2">
                                 <span className="text-gray-600 dark:text-gray-400 font-medium">
@@ -431,7 +414,7 @@ export default function TenderAIBudgetStep() {
                             </div>
                             <div>
                               <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Maximum
+                                {t('tenderFlow.maximum')}
                               </label>
                               <div className="flex items-center gap-2">
                                 <span className="text-gray-600 dark:text-gray-400 font-medium">
@@ -450,14 +433,13 @@ export default function TenderAIBudgetStep() {
                           </div>
                           {minPrice && maxPrice && parseFloat(minPrice) >= parseFloat(maxPrice) && (
                             <p className="text-xs text-red-600 dark:text-red-400">
-                              Maximum price must be greater than minimum price
+                              {t('tenderFlow.maxGreaterThanMin')}
                             </p>
                           )}
                         </div>
                       )}
                     </div>
 
-                    {/* Show Price to Vendors Toggle - Only show for exact budget (not for range or AI mode) */}
                     {(budgetMode === "ai" || priceType === "exact") && (
                       <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
                         <div className="flex items-center justify-between">
@@ -468,7 +450,7 @@ export default function TenderAIBudgetStep() {
                               <EyeOff className="h-5 w-5 text-gray-500" />
                             )}
                             <span className="text-sm font-medium text-gray-900 dark:text-white">
-                              Show exact price to Vendors
+                              {t('tenderFlow.showPriceToVendors')}
                             </span>
                           </div>
                           <button
@@ -487,22 +469,32 @@ export default function TenderAIBudgetStep() {
                           </button>
                         </div>
 
-                        {/* Info Note */}
                         <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                           <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                           <p className="text-xs text-blue-700 dark:text-blue-300">
                             {showPriceToVendors
-                              ? "Vendors will see your exact budget and project size. This helps them understand the scope and submit more accurate Proposals."
-                              : "Vendors will only see the project size category. Showing the exact price helps Vendors understand the project scope and can shorten the Proposal timeframe."
+                              ? t('tenderFlow.priceVisibleInfo')
+                              : t('tenderFlow.priceHiddenInfo')
                             }
                           </p>
                         </div>
                       </div>
                     )}
+
+                    {projectSize && (
+                      <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className={`w-3 h-3 rounded-full ${
+                          projectSize === "small" ? "bg-green-500" :
+                          projectSize === "medium" ? "bg-yellow-500" : "bg-red-500"
+                        }`} />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                          {getProjectSizeLabel(projectSize)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* Navigation Buttons */}
                 <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <Button
                     type="button"
@@ -511,7 +503,7 @@ export default function TenderAIBudgetStep() {
                     className="flex-1"
                     data-testid="button-cancel"
                   >
-                    Back
+                    {t('tenderFlow.back')}
                   </Button>
                   <Button
                     onClick={handleNext}
@@ -519,7 +511,7 @@ export default function TenderAIBudgetStep() {
                     className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
                     data-testid="button-next"
                   >
-                    Next
+                    {t('tenderFlow.next')}
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </div>

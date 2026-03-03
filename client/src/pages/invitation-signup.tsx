@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/lib/auth";
 import { Loader2, Mic, Video, ExternalLink, Play, Pause, AlertCircle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useI18n } from "@/lib/i18n";
 
 interface TenderInvite {
   id: string;
@@ -81,11 +82,13 @@ function PublicAudioPlayer({ src }: { src: string }) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const { t } = useI18n();
+
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 p-3 bg-gray-200 dark:bg-gray-700 rounded-lg">
         <Loader2 className="h-5 w-5 animate-spin" />
-        <span className="text-sm text-muted-foreground">Loading voice note...</span>
+        <span className="text-sm text-muted-foreground">{t('auth.loadingVoiceNote')}</span>
       </div>
     );
   }
@@ -94,7 +97,7 @@ function PublicAudioPlayer({ src }: { src: string }) {
     return (
       <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600">
         <Mic className="h-5 w-5" />
-        <span className="text-sm">Voice note available - login to listen</span>
+        <span className="text-sm">{t('auth.voiceNoteLogin')}</span>
       </div>
     );
   }
@@ -164,6 +167,7 @@ export default function InvitationSignup() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
   const { user, activeCompany } = useAuthStore();
+  const { t } = useI18n();
 
   const { data: tender, isLoading, error } = useQuery<TenderInvite>({
     queryKey: ['/api/tenders', id, 'public'],
@@ -190,14 +194,14 @@ export default function InvitationSignup() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle className="text-center text-red-600">Invalid Invitation</CardTitle>
+            <CardTitle className="text-center text-red-600">{t('auth.invalidInvitation')}</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
             <p className="text-muted-foreground mb-4">
-              This invitation link is invalid or the tender has expired.
+              {t('auth.invitationExpiredDesc')}
             </p>
             <Link href="/">
-              <Button variant="outline">Go to Homepage</Button>
+              <Button variant="outline">{t('auth.goToHomepage')}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -226,28 +230,28 @@ export default function InvitationSignup() {
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="text-2xl text-center" data-testid="text-not-published-title">
-                This Tender is still not published
+                {t('auth.tenderNotPublished')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-center text-muted-foreground text-sm">
-                The tender owner has not yet published this tender. Please check back later.
+                {t('auth.tenderNotPublishedDesc')}
               </p>
-              
+
               {/* Get Started Section */}
               <div className="pt-4 border-t">
                 <h3 className="text-lg font-semibold text-center mb-4" data-testid="text-get-started-title">
-                  Get Started
+                  {t('auth.getStarted')}
                 </h3>
                 <div className="flex gap-4 justify-center">
                   <Link href={`/login?redirect=/tenders/${id}`}>
                     <Button variant="outline" className="min-w-24" data-testid="button-login">
-                      Login
+                      {t('auth.login')}
                     </Button>
                   </Link>
                   <Link href={`/register?redirect=/tenders/${id}`}>
                     <Button className="min-w-40 bg-blue-500 hover:bg-blue-600" data-testid="button-create-account">
-                      Create a Bid Account
+                      {t('auth.createBidAccount')}
                     </Button>
                   </Link>
                 </div>
@@ -266,7 +270,7 @@ export default function InvitationSignup() {
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-2xl text-center" data-testid="text-invitation-title">
-              You've Been Invited to Submit an Offer
+              {t('auth.youveBeenInvited')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -282,12 +286,12 @@ export default function InvitationSignup() {
               {/* Voice Note & Video Link */}
               {(tender.voiceNoteUrl || tender.videoUrl) && (
                 <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-700">
-                  <p className="text-sm font-medium text-muted-foreground">Additional Information</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('auth.additionalInfo')}</p>
                   {tender.voiceNoteUrl && (
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Mic className="h-3 w-3" />
-                        <span>Voice Note from Requester</span>
+                        <span>{t('auth.voiceNote')}</span>
                       </div>
                       <PublicAudioPlayer src={tender.voiceNoteUrl} />
                     </div>
@@ -295,14 +299,14 @@ export default function InvitationSignup() {
                   {tender.videoUrl && (
                     <div className="flex items-center gap-2">
                       <Video className="h-4 w-4 text-muted-foreground" />
-                      <a 
-                        href={tender.videoUrl} 
-                        target="_blank" 
+                      <a
+                        href={tender.videoUrl}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
                         data-testid="link-video"
                       >
-                        Watch Video Explanation
+                        {t('auth.watchVideo')}
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
@@ -312,19 +316,19 @@ export default function InvitationSignup() {
 
               <div className="grid grid-cols-3 gap-4 text-sm pt-2 border-t border-gray-200 dark:border-gray-700">
                 <div>
-                  <span className="text-muted-foreground">Budget:</span>
+                  <span className="text-muted-foreground">{t('auth.budgetLabel')}</span>
                   <p className="font-medium" data-testid="text-budget">
-                    {tender.budgetRange || tender.budget || 'Not specified'}
+                    {tender.budgetRange || tender.budget || t('auth.notSpecified')}
                   </p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Deadline:</span>
+                  <span className="text-muted-foreground">{t('auth.deadlineLabel')}</span>
                   <p className="font-medium" data-testid="text-deadline">{formatDate(tender.deadline)}</p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Duration:</span>
+                  <span className="text-muted-foreground">{t('auth.durationLabel')}</span>
                   <p className="font-medium" data-testid="text-duration">
-                    {tender.duration || 'Not specified'}
+                    {tender.duration || t('auth.notSpecified')}
                   </p>
                 </div>
               </div>
@@ -333,11 +337,11 @@ export default function InvitationSignup() {
             {/* From Company Box */}
             <div className="border rounded-lg p-4">
               <p className="text-sm" data-testid="text-company-name">
-                <span className="text-muted-foreground">From:</span>{' '}
+                <span className="text-muted-foreground">{t('auth.fromLabel')}</span>{' '}
                 <span className="font-medium">{companyName}</span>
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                This is a private tender. Only invited vendors can submit offers.
+                {t('auth.privateTender')}
               </p>
             </div>
           </CardContent>
@@ -347,42 +351,42 @@ export default function InvitationSignup() {
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-center text-lg" data-testid="text-get-started-title">
-              {user && activeCompany ? 'Access Tender' : 'Get Started'}
+              {user && activeCompany ? t('auth.accessTender') : t('auth.getStarted')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {user && activeCompany ? (
               <div className="text-center space-y-4">
                 <p className="text-muted-foreground text-sm">
-                  Welcome back! Click below to access this tender and submit your offer.
+                  {t('auth.welcomeBackInvite')}
                 </p>
-                <Button 
+                <Button
                   onClick={() => setLocation(`/tenders/${tender.id}`)}
                   className="bg-blue-500 hover:bg-blue-600"
                   data-testid="button-access-tender"
                 >
-                  Access Tender
+                  {t('auth.accessTender')}
                 </Button>
               </div>
             ) : (
               <div className="space-y-4">
                 <p className="text-center text-muted-foreground text-sm">
-                  To submit an offer for this tender, you need to sign in or create a Bid account.
+                  {t('auth.signInOrCreate')}
                 </p>
                 <div className="flex gap-4 justify-center">
                   <Link href={`/login?redirect=/tenders/${id}`}>
                     <Button variant="outline" className="min-w-32" data-testid="button-login">
-                      Login
+                      {t('auth.login')}
                     </Button>
                   </Link>
                   <Link href={`/register?redirect=/tenders/${id}`}>
                     <Button className="min-w-48 bg-blue-500 hover:bg-blue-600" data-testid="button-create-account">
-                      Create a Bid Account
+                      {t('auth.createBidAccount')}
                     </Button>
                   </Link>
                 </div>
                 <p className="text-xs text-center text-muted-foreground">
-                  After signing in, you'll be automatically redirected to this tender.
+                  {t('auth.autoRedirect')}
                 </p>
               </div>
             )}

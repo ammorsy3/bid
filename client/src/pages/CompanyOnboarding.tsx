@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { useI18n } from "@/lib/i18n";
 
 const getPostOnboardingRedirect = () => {
   const redirect = localStorage.getItem('postOnboardingRedirect');
@@ -23,6 +24,7 @@ export default function CompanyOnboarding() {
   const [, setLocation] = useLocation();
   const { user, token, activeCompany } = useAuthStore();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -83,8 +85,8 @@ export default function CompanyOnboarding() {
         }
 
         toast({
-          title: "Profile completed!",
-          description: "Your company profile has been updated successfully."
+          title: t('onboarding.profileCompleted'),
+          description: t('onboarding.companyProfileUpdated'),
         });
 
         // Refresh auth to get updated company
@@ -108,8 +110,8 @@ export default function CompanyOnboarding() {
         }
 
         toast({
-          title: "Profile updated!",
-          description: "Your company profile has been updated successfully."
+          title: t('onboarding.profileUpdated'),
+          description: t('onboarding.companyProfileUpdated'),
         });
 
         // Refresh auth to get updated company
@@ -131,8 +133,8 @@ export default function CompanyOnboarding() {
         await useAuthStore.getState().checkAuth();
 
         toast({
-          title: "Company created!",
-          description: "Your company has been created and is pending verification."
+          title: t('onboarding.companyCreated'),
+          description: t('onboarding.companyCreatedDesc'),
         });
 
         setLocation(getPostOnboardingRedirect());
@@ -140,8 +142,8 @@ export default function CompanyOnboarding() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: error.message || "Something went wrong"
+        title: t('onboarding.error'),
+        description: error.message || t('onboarding.somethingWentWrong'),
       });
     } finally {
       setLoading(false);
@@ -158,26 +160,26 @@ export default function CompanyOnboarding() {
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle>
-            {isEditingCompleted ? "Edit Company Profile" : isCompletingDraft ? "Complete Your Company Profile" : "Create Your Company"}
+            {isEditingCompleted ? t('onboarding.editCompanyProfile') : isCompletingDraft ? t('onboarding.completeCompanyProfile') : t('onboarding.createYourCompany')}
           </CardTitle>
           <CardDescription>
-            {isEditingCompleted 
-              ? "Update your company profile and information"
-              : isCompletingDraft 
-              ? "Add details to your company profile to get started"
-              : "Set up your company to start using the platform"}
+            {isEditingCompleted
+              ? t('onboarding.editDesc')
+              : isCompletingDraft
+              ? t('onboarding.completeDesc')
+              : t('onboarding.createDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name" data-testid="label-company-name">Company Display Name</Label>
+              <Label htmlFor="name" data-testid="label-company-name">{t('onboarding.companyDisplayName')}</Label>
               <Input
                 id="name"
                 data-testid="input-company-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Enter company display name"
+                placeholder={t('onboarding.companyDisplayNamePlaceholder')}
                 required
               />
             </div>
@@ -185,60 +187,60 @@ export default function CompanyOnboarding() {
             {(isCreating || isEditingCompleted) && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="legalName" data-testid="label-legal-name">Legal Name</Label>
+                  <Label htmlFor="legalName" data-testid="label-legal-name">{t('onboarding.legalName')}</Label>
                   <Input
                     id="legalName"
                     data-testid="input-legal-name"
                     value={formData.legalName}
                     onChange={(e) => setFormData({ ...formData, legalName: e.target.value })}
-                    placeholder="Enter legal company name"
+                    placeholder={t('onboarding.legalNamePlaceholder')}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="crNumber" data-testid="label-cr-number">CR Number</Label>
+                  <Label htmlFor="crNumber" data-testid="label-cr-number">{t('onboarding.crNumber')}</Label>
                   <Input
                     id="crNumber"
                     data-testid="input-cr-number"
                     value={formData.crNumber}
                     onChange={(e) => setFormData({ ...formData, crNumber: e.target.value })}
-                    placeholder="Commercial Registration Number"
+                    placeholder={t('onboarding.crNumberPlaceholder')}
                     required
                     pattern="[0-9]+"
-                    title="CR number must contain only numbers"
+                    title={t('onboarding.numericOnly')}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="vatNumber" data-testid="label-vat-number">VAT Number (Optional)</Label>
+                  <Label htmlFor="vatNumber" data-testid="label-vat-number">{t('onboarding.vatNumber')}</Label>
                   <Input
                     id="vatNumber"
                     data-testid="input-vat-number"
                     value={formData.vatNumber}
                     onChange={(e) => setFormData({ ...formData, vatNumber: e.target.value })}
-                    placeholder="VAT Number"
+                    placeholder={t('onboarding.vatNumberPlaceholder')}
                   />
                 </div>
               </>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="city" data-testid="label-city">City</Label>
+              <Label htmlFor="city" data-testid="label-city">{t('onboarding.city')}</Label>
               <Input
                 id="city"
                 data-testid="input-city"
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                placeholder="City"
+                placeholder={t('onboarding.cityPlaceholder')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category" data-testid="label-category">Category</Label>
+              <Label htmlFor="category" data-testid="label-category">{t('onboarding.category')}</Label>
               <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
                 <SelectTrigger data-testid="select-category">
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder={t('onboarding.categoryPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {VENDOR_CATEGORIES.map((category) => (
@@ -250,13 +252,13 @@ export default function CompanyOnboarding() {
               </Select>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full" 
+            <Button
+              type="submit"
+              className="w-full"
               disabled={loading}
               data-testid="button-submit"
             >
-              {loading ? "Processing..." : (isEditingCompleted ? "Update Profile" : isCompletingDraft ? "Complete Profile" : "Create Company")}
+              {loading ? t('onboarding.processing') : (isEditingCompleted ? t('onboarding.updateProfile') : isCompletingDraft ? t('onboarding.completeProfile') : t('onboarding.createCompany'))}
             </Button>
           </form>
         </CardContent>

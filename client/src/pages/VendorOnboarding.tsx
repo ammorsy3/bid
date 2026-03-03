@@ -17,6 +17,7 @@ import { ObjectUploader } from "@/components/ObjectUploader";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import type { UploadResult } from "@uppy/core";
 import { useAuthStore } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 
 // Step 1: Account credentials
 const step1Schema = z.object({
@@ -59,6 +60,7 @@ export default function VendorOnboarding() {
   const [, setLocation] = useLocation();
   const search = useSearch();
   const { toast } = useToast();
+  const { t } = useI18n();
   const { checkAuth } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -132,7 +134,7 @@ export default function VendorOnboarding() {
       setUploadedFiles(prev => ({ ...prev, [fileKey]: result.successful![0].name }));
       
       toast({
-        title: "Uploaded!",
+        title: t('onboarding.uploaded'),
         description: `${result.successful[0].name} uploaded successfully`,
       });
     }
@@ -151,8 +153,8 @@ export default function VendorOnboarding() {
       localStorage.setItem('token', result.token);
       
       toast({
-        title: "Account created!",
-        description: "Now let's complete your vendor profile.",
+        title: t('onboarding.accountCreated'),
+        description: t('onboarding.accountCreatedDesc'),
       });
       
       // Pre-fill step 2 form with company name from step 1
@@ -162,8 +164,8 @@ export default function VendorOnboarding() {
       setCurrentStep(2);
     } catch (error: any) {
       toast({
-        title: "Registration failed",
-        description: error.message || "Failed to create account",
+        title: t('onboarding.registrationFailed'),
+        description: error.message || t('onboarding.failedToCreateAccount'),
         variant: "destructive",
       });
     } finally {
@@ -176,10 +178,10 @@ export default function VendorOnboarding() {
     try {
       const response = await apiRequest("POST", "/api/vendor-register-step2", data);
       await response.json();
-      
+
       toast({
-        title: "Profile completed!",
-        description: "Your vendor profile has been created successfully.",
+        title: t('onboarding.profileCreated'),
+        description: t('onboarding.profileCreatedDesc'),
       });
       
       // Refresh auth state before redirecting to ensure onboardingState is updated
@@ -196,8 +198,8 @@ export default function VendorOnboarding() {
       }
     } catch (error: any) {
       toast({
-        title: "Profile creation failed",
-        description: error.message || "Failed to create profile",
+        title: t('onboarding.profileCreationFailed'),
+        description: error.message || t('onboarding.failedToCreateProfile'),
         variant: "destructive",
       });
     } finally {
@@ -216,10 +218,10 @@ export default function VendorOnboarding() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm font-medium">
                 <span className={currentStep === 1 ? "text-primary" : "text-muted-foreground"}>
-                  1. Account Details
+                  {t('onboarding.step1')}
                 </span>
                 <span className={currentStep === 2 ? "text-primary" : "text-muted-foreground"}>
-                  2. Vendor Profile
+                  {t('onboarding.step2')}
                 </span>
               </div>
               <Progress value={progress} className="h-2" />
@@ -231,9 +233,9 @@ export default function VendorOnboarding() {
         {currentStep === 1 && (
           <Card>
             <CardHeader>
-              <CardTitle>Create Vendor Account</CardTitle>
+              <CardTitle>{t('onboarding.createVendorAccount')}</CardTitle>
               <CardDescription>
-                Step 1 of 2: Set up your account credentials
+                {t('onboarding.step1Desc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -244,9 +246,9 @@ export default function VendorOnboarding() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full Name *</FormLabel>
+                        <FormLabel>{t('onboarding.fullName')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Your full name" {...field} data-testid="input-name" />
+                          <Input placeholder={t('auth.fullNamePlaceholder')} {...field} data-testid="input-name" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -258,9 +260,9 @@ export default function VendorOnboarding() {
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Username *</FormLabel>
+                        <FormLabel>{t('auth.username')} *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Choose a username" {...field} data-testid="input-username" />
+                          <Input placeholder={t('auth.usernamePlaceholder')} {...field} data-testid="input-username" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -272,7 +274,7 @@ export default function VendorOnboarding() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email *</FormLabel>
+                        <FormLabel>{t('auth.email')} *</FormLabel>
                         <FormControl>
                           <Input type="email" placeholder="your@email.com" {...field} data-testid="input-email" />
                         </FormControl>
@@ -286,7 +288,7 @@ export default function VendorOnboarding() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password *</FormLabel>
+                        <FormLabel>{t('auth.password')} *</FormLabel>
                         <FormControl>
                           <Input type="password" placeholder="At least 6 characters" {...field} data-testid="input-password" />
                         </FormControl>
@@ -300,9 +302,9 @@ export default function VendorOnboarding() {
                     name="company"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Company Name *</FormLabel>
+                        <FormLabel>{t('onboarding.companyDisplayName')} *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Your company name" {...field} data-testid="input-company" />
+                          <Input placeholder={t('onboarding.companyDisplayNamePlaceholder')} {...field} data-testid="input-company" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -314,11 +316,11 @@ export default function VendorOnboarding() {
                       {isSubmitting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating account...
+                          {t('onboarding.creatingAccount')}
                         </>
                       ) : (
                         <>
-                          Next Step
+                          {t('onboarding.nextStep')}
                           <ChevronRight className="ml-2 h-4 w-4" />
                         </>
                       )}
@@ -335,9 +337,9 @@ export default function VendorOnboarding() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Complete Your Vendor Profile</CardTitle>
+                <CardTitle>{t('onboarding.step2Title')}</CardTitle>
                 <CardDescription>
-                  Step 2 of 2: Provide your company details and qualifications
+                  {t('onboarding.step2Desc')}
                 </CardDescription>
               </CardHeader>
             </Card>

@@ -10,6 +10,7 @@ import { Link, useLocation, useSearch } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import { useI18n } from "@/lib/i18n";
 
 const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -25,6 +26,7 @@ export default function Register() {
   const search = useSearch();
   const { register, isLoading, user } = useAuthStore();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const urlParams = new URLSearchParams(search);
   const invitationToken = urlParams.get('token');
@@ -57,8 +59,8 @@ export default function Register() {
     try {
       await register(data);
       toast({
-        title: "Success!",
-        description: "Account created successfully. Now let's set up your company!",
+        title: t('common.success'),
+        description: t('auth.registerSuccess'),
       });
       // Store redirect URL for after company onboarding
       if (redirectUrl) {
@@ -70,8 +72,8 @@ export default function Register() {
       setLocation("/company-onboarding");
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to create account",
+        title: t('common.error'),
+        description: t('auth.registerError'),
         variant: "destructive",
       });
     }
@@ -82,7 +84,7 @@ export default function Register() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-primary-600 mb-2">Bid</CardTitle>
-          <p className="text-neutral-600">Create your account</p>
+          <p className="text-neutral-600">{t('auth.createAccountTitle')}</p>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -92,9 +94,9 @@ export default function Register() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>{t('auth.fullName')}</FormLabel>
                     <FormControl>
-                      <Input data-testid="input-name" placeholder="Enter your full name" {...field} />
+                      <Input data-testid="input-name" placeholder={t('auth.fullNamePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -106,37 +108,37 @@ export default function Register() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>{t('auth.username')}</FormLabel>
                     <FormControl>
-                      <Input data-testid="input-username" placeholder="Choose a username" {...field} />
+                      <Input data-testid="input-username" placeholder={t('auth.usernamePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('auth.email')}</FormLabel>
                     <FormControl>
-                      <Input data-testid="input-email" placeholder="Enter your email" {...field} />
+                      <Input data-testid="input-email" placeholder={t('auth.emailPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t('auth.password')}</FormLabel>
                     <FormControl>
-                      <Input data-testid="input-password" type="password" placeholder="Create a password" {...field} />
+                      <Input data-testid="input-password" type="password" placeholder={t('auth.passwordCreatePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -144,16 +146,16 @@ export default function Register() {
               />
 
               <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating Account..." : "Create Account"}
+                {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}
               </NeonButton>
             </form>
           </Form>
-          
+
           <div className="mt-6 text-center">
             <p className="text-sm text-neutral-600">
-              Already have an account?{" "}
+              {t('auth.haveAccount')}{" "}
               <Link href="/login" className="text-primary-600 hover:text-primary-700 font-medium">
-                Sign in
+                {t('auth.signInLink')}
               </Link>
             </p>
           </div>

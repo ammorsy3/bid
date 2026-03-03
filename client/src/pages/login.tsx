@@ -10,6 +10,7 @@ import { Link, useLocation, useSearch } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import { useI18n } from "@/lib/i18n";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -23,6 +24,7 @@ export default function Login() {
   const search = useSearch();
   const { login, isLoading, user, activeCompany } = useAuthStore();
   const { toast } = useToast();
+  const { t } = useI18n();
   
   const urlParams = new URLSearchParams(search);
   const invitationToken = urlParams.get('token');
@@ -63,14 +65,14 @@ export default function Login() {
     try {
       await login(data.email, data.password);
       toast({
-        title: "Success",
-        description: "Logged in successfully",
+        title: t('common.success'),
+        description: t('auth.loginSuccess'),
       });
       // Redirect is handled by useEffect which watches user and activeCompany changes
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Invalid credentials",
+        title: t('common.error'),
+        description: t('auth.loginError'),
         variant: "destructive",
       });
     }
@@ -81,7 +83,7 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-primary-600 mb-2">Bid</CardTitle>
-          <p className="text-neutral-600">Sign in to your account</p>
+          <p className="text-neutral-600">{t('auth.signInTitle')}</p>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -91,23 +93,23 @@ export default function Login() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('auth.email')}</FormLabel>
                     <FormControl>
-                      <Input data-testid="input-email" placeholder="Enter your email" {...field} />
+                      <Input data-testid="input-email" placeholder={t('auth.emailPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t('auth.password')}</FormLabel>
                     <FormControl>
-                      <Input data-testid="input-password" type="password" placeholder="Enter your password" {...field} />
+                      <Input data-testid="input-password" type="password" placeholder={t('auth.passwordPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -115,16 +117,16 @@ export default function Login() {
               />
 
               <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full" disabled={isLoading}>
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? t('auth.signingIn') : t('auth.signIn')}
               </NeonButton>
             </form>
           </Form>
-          
+
           <div className="mt-6 text-center">
             <p className="text-sm text-neutral-600">
-              Don't have an account?{" "}
+              {t('auth.noAccount')}{" "}
               <Link href="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-                Sign up
+                {t('auth.signUp')}
               </Link>
             </p>
           </div>

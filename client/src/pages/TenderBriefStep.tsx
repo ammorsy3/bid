@@ -11,68 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth";
 import { format } from "date-fns";
-
-const CRITERIA_LABELS: Record<string, string> = {
-  financial_offer: "Price close to budget",
-  previous_work: "Similar previous work",
-  clear_timeline: "Clear timeline",
-  technical_approach: "Strong technical approach",
-  team_expertise: "Team expertise",
-};
-
-const SUBMISSION_TYPE_LABELS: Record<string, string> = {
-  quote_only: "Price Only",
-  tech_fin_proposal: "Full Proposal (Technical & Financial)",
-  video_only: "Video Pitch",
-  tech_fin_with_video: "Full Proposal + Video Pitch",
-  document_only: "Document Only",
-  both: "Video & Document",
-};
-
-const INQUIRY_TYPE_LABELS: Record<string, string> = {
-  inside_bid: "Inside Bid Platform (Anonymous Q&A)",
-  email_whatsapp: "Email & WhatsApp",
-  whatsapp: "WhatsApp",
-  email: "Email",
-  phone: "Phone",
-};
-
-const SCOPE_LABELS: Record<string, string> = {
-  large: "Large",
-  medium: "Medium",
-  small: "Small",
-};
-
-const DURATION_LABELS: Record<string, string> = {
-  "6plus": "More than 6 months",
-  "3to6": "3 to 6 months",
-  "1to3": "1 to 3 months",
-};
-
-const PROJECT_SIZE_LABELS: Record<string, string> = {
-  small: "Small Project",
-  medium: "Medium Project",
-  large: "Large Project",
-};
-
-const EVAL_CATEGORY_LABELS: Record<string, string> = {
-  experience: "Relevant Experience",
-  financial: "Financial Evaluation",
-  technical: "Technical Capability",
-};
-
-const EVAL_REQUIREMENT_LABELS: Record<string, string> = {
-  years_in_market: "Years in Market",
-  similar_projects_count: "Similar Projects",
-  min_project_value: "Min. Project Value",
-  client_references: "Client References",
-  financial_statements: "Financial Statements",
-  bank_guarantee: "Bank Guarantee",
-  methodology: "Detailed Methodology",
-  timeline: "Project Timeline",
-  team_cvs: "Team CVs",
-  industry_certifications: "Industry Certifications",
-};
+import { useI18n } from "@/lib/i18n";
 
 const formatLabel = (value: string, labels?: Record<string, string>): string => {
   if (labels && labels[value]) {
@@ -90,6 +29,63 @@ export default function TenderBriefStep() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { activeCompany } = useAuthStore();
+  const { t } = useI18n();
+
+  const CRITERIA_LABELS: Record<string, string> = {
+    financial_offer: t('tenderFlow.criteriaFinancialOffer'),
+    previous_work: t('tenderFlow.criteriaPreviousWork'),
+    clear_timeline: t('tenderFlow.criteriaClearTimeline'),
+    technical_approach: t('tenderFlow.criteriaTechnicalApproach'),
+    team_expertise: t('tenderFlow.criteriaTeamExpertise'),
+  };
+
+  const SUBMISSION_TYPE_LABELS: Record<string, string> = {
+    quote_only: t('tenderFlow.submissionQuoteOnly'),
+    tech_fin_proposal: t('tenderFlow.submissionTechFin'),
+    video_only: t('tenderFlow.submissionVideoOnly'),
+    tech_fin_with_video: t('tenderFlow.submissionTechFinVideo'),
+    document_only: t('tenderFlow.submissionDocOnly'),
+    both: t('tenderFlow.submissionBoth'),
+  };
+
+  const INQUIRY_TYPE_LABELS: Record<string, string> = {
+    inside_bid: t('tenderFlow.inquiryInsideBid'),
+    email_whatsapp: t('tenderFlow.inquiryEmailWhatsapp'),
+    whatsapp: t('tenderFlow.inquiryWhatsapp'),
+    email: t('tenderFlow.inquiryEmail'),
+    phone: t('tenderFlow.inquiryPhone'),
+  };
+
+  const DURATION_LABELS: Record<string, string> = {
+    "6plus": t('tenderFlow.durationMoreThan6'),
+    "3to6": t('tenderFlow.duration3to6'),
+    "1to3": t('tenderFlow.duration1to3'),
+  };
+
+  const PROJECT_SIZE_LABELS: Record<string, string> = {
+    small: t('tenderFlow.smallProject'),
+    medium: t('tenderFlow.mediumProject'),
+    large: t('tenderFlow.largeProject'),
+  };
+
+  const EVAL_CATEGORY_LABELS: Record<string, string> = {
+    experience: t('tenderFlow.evalCategoryExperience'),
+    financial: t('tenderFlow.evalCategoryFinancial'),
+    technical: t('tenderFlow.evalCategoryTechnical'),
+  };
+
+  const EVAL_REQUIREMENT_LABELS: Record<string, string> = {
+    years_in_market: t('tenderFlow.evalReqYearsInMarket'),
+    similar_projects_count: t('tenderFlow.evalReqSimilarProjects'),
+    min_project_value: t('tenderFlow.evalReqMinProjectValue'),
+    client_references: t('tenderFlow.evalReqClientReferences'),
+    financial_statements: t('tenderFlow.evalReqFinancialStatements'),
+    bank_guarantee: t('tenderFlow.evalReqBankGuarantee'),
+    methodology: t('tenderFlow.evalReqMethodology'),
+    timeline: t('tenderFlow.evalReqTimeline'),
+    team_cvs: t('tenderFlow.evalReqTeamCvs'),
+    industry_certifications: t('tenderFlow.evalReqIndustryCertifications'),
+  };
 
   const draft = useMemo(() => {
     try {
@@ -120,11 +116,11 @@ export default function TenderBriefStep() {
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
       const inviteLink = `${window.location.origin}/invite/${data.invitationToken}`;
       toast({
-        title: "RFP published!",
-        description: "Your RFP is now live. Vendors can start submitting Proposals.",
+        title: t('tenderFlow.rfpPublished'),
+        description: t('tenderFlow.rfpPublishedDesc'),
         action: (
-          <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
-            <Copy className="h-3 w-3 mr-1" /> Copy Link
+          <ToastAction altText={t('tenderFlow.copyInviteLink')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderFlow.linkCopied') }); }}>
+            <Copy className="h-3 w-3 mr-1" /> {t('common.copyLink')}
           </ToastAction>
         ),
         duration: 10000,
@@ -133,7 +129,7 @@ export default function TenderBriefStep() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to publish RFP",
+        title: t('tenderFlow.failedPublishRfp'),
         description: error.message,
         variant: "destructive",
       });
@@ -196,11 +192,11 @@ export default function TenderBriefStep() {
       const start = new Date(draft.startDate);
       const end = new Date(draft.endDate);
       const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-      if (months <= 3) return '1 to 3 months';
-      if (months <= 6) return '3 to 6 months';
-      return 'More than 6 months';
+      if (months <= 3) return t('tenderFlow.duration1to3');
+      if (months <= 6) return t('tenderFlow.duration3to6');
+      return t('tenderFlow.durationMoreThan6');
     }
-    return 'Not specified';
+    return t('tenderFlow.notSpecified');
   };
 
   const getBudgetDisplay = () => {
@@ -211,7 +207,7 @@ export default function TenderBriefStep() {
       const num = Number(draft.budget);
       return !isNaN(num) && num > 0 ? `SAR ${num.toLocaleString()}` : draft.budget;
     }
-    return 'Not specified';
+    return t('tenderFlow.notSpecified');
   };
 
   const hasSkills = draft.skills && draft.skills.length > 0;
@@ -245,7 +241,7 @@ export default function TenderBriefStep() {
             data-testid="button-back"
           >
             <ArrowLeft className="h-4 w-4 mr-1.5" />
-            Back to Edit
+            {t('tenderFlow.backToEdit')}
           </Button>
         </div>
       </header>
@@ -256,7 +252,7 @@ export default function TenderBriefStep() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-3 flex-wrap">
                 <Badge className="bg-amber-100 text-amber-800 text-sm px-3 py-1">
-                  Review Draft
+                  {t('tenderFlow.reviewDraft')}
                 </Badge>
                 {draft.skills?.[0] && (
                   <Badge variant="outline" className="text-sm px-3 py-1">
@@ -269,7 +265,7 @@ export default function TenderBriefStep() {
               </h1>
               {activeCompany && (
                 <p className="text-sm text-gray-500">
-                  Publishing as <span className="font-medium text-gray-700">{activeCompany.name}</span>
+                  {t('tenderFlow.publishingAs')} <span className="font-medium text-gray-700">{activeCompany.name}</span>
                 </p>
               )}
             </div>
@@ -279,24 +275,24 @@ export default function TenderBriefStep() {
             <div className="bg-gray-50 rounded-xl p-4">
               <div className="flex items-center gap-2 text-gray-500 mb-1">
                 <Calendar className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Submission Deadline</span>
+                <span className="text-xs font-medium uppercase tracking-wider">{t('tenderFlow.submissionDeadline')}</span>
               </div>
               <p className="font-semibold text-sm text-gray-900" data-testid="brief-deadline">
-                {draft.deadline ? formatDate(draft.deadline) : 'Not set'}
+                {draft.deadline ? formatDate(draft.deadline) : t('tenderFlow.notSet')}
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-xl p-4">
               <div className="flex items-center gap-2 text-gray-500 mb-1">
                 <DollarSign className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Budget</span>
+                <span className="text-xs font-medium uppercase tracking-wider">{t('tenderFlow.budgetColumn')}</span>
               </div>
               <p className="font-semibold text-sm text-gray-900" data-testid="brief-budget">
                 {getBudgetDisplay()}
               </p>
               {draft.showPriceToVendors === false && (
                 <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                  <EyeOff className="h-3 w-3" /> Hidden from vendors
+                  <EyeOff className="h-3 w-3" /> {t('tenderFlow.hiddenFromVendors')}
                 </p>
               )}
             </div>
@@ -304,7 +300,7 @@ export default function TenderBriefStep() {
             <div className="bg-gray-50 rounded-xl p-4">
               <div className="flex items-center gap-2 text-gray-500 mb-1">
                 <Clock className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">Project Duration</span>
+                <span className="text-xs font-medium uppercase tracking-wider">{t('tenderFlow.projectDuration')}</span>
               </div>
               <p className="font-semibold text-sm text-gray-900" data-testid="brief-duration">
                 {getDurationDisplay()}
@@ -332,7 +328,7 @@ export default function TenderBriefStep() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5 text-[#E25E45]" />
-                    Project Description
+                    {t('tenderFlow.projectDescriptionTitle')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -349,7 +345,7 @@ export default function TenderBriefStep() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Target className="h-5 w-5 text-blue-600" />
-                    Project Objective
+                    {t('tenderFlow.projectObjectiveTitle')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -366,7 +362,7 @@ export default function TenderBriefStep() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Package className="h-5 w-5 text-emerald-600" />
-                    Key Deliverables
+                    {t('tenderFlow.keyDeliverablesTitle')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -427,7 +423,7 @@ export default function TenderBriefStep() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Flag className="h-5 w-5 text-violet-600" />
-                    Milestones
+                    {t('tenderFlow.milestonesTitle')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -464,7 +460,7 @@ export default function TenderBriefStep() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ClipboardCheck className="h-5 w-5 text-amber-600" />
-                    Evaluation Criteria
+                    {t('tenderFlow.evaluationCriteriaTitle')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -489,7 +485,7 @@ export default function TenderBriefStep() {
                               <div className={`grid transition-all duration-200 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                                 <div className="overflow-hidden">
                                   <div className="px-4 pb-3 ml-12">
-                                    <p className="text-sm text-gray-500">This criterion will be used to evaluate vendor proposals.</p>
+                                    <p className="text-sm text-gray-500">{t('tenderFlow.criterionEvalDesc')}</p>
                                   </div>
                                 </div>
                               </div>
@@ -584,7 +580,7 @@ export default function TenderBriefStep() {
                         if (ungroupedReqs.length === 0) return null;
                         return (
                           <div className="space-y-2">
-                            <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Additional Requirements</p>
+                            <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">{t('tenderFlow.additionalRequirements')}</p>
                             <div className="flex flex-wrap gap-2">
                               {ungroupedReqs.map((req: any, i: number) => (
                                 <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
@@ -598,7 +594,7 @@ export default function TenderBriefStep() {
                       })()}
                       {draft.evaluationCriteria.customCriteria?.length > 0 && (
                         <div className="space-y-2">
-                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Custom Criteria</p>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">{t('tenderFlow.customCriteriaTitle')}</p>
                           {draft.evaluationCriteria.customCriteria.map((c: any) => (
                             <div key={c.id} className="bg-gray-50 rounded-lg overflow-hidden">
                               <button
@@ -615,7 +611,7 @@ export default function TenderBriefStep() {
                               <div className={`grid transition-all duration-200 ease-in-out ${expandedCriteria[`custom-${c.id}`] ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                                 <div className="overflow-hidden">
                                   <div className="px-4 pb-3">
-                                    <p className="text-sm text-gray-500">Custom criterion weighted at {c.weight}% of the total evaluation.</p>
+                                    <p className="text-sm text-gray-500">{t('tenderFlow.customCriterionWeightedAt')} {c.weight}% {t('tenderFlow.ofTotalEvaluation')}</p>
                                   </div>
                                 </div>
                               </div>
@@ -635,7 +631,7 @@ export default function TenderBriefStep() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Shield className="h-5 w-5 text-[#E25E45]" />
-                    Vendor Requirements
+                    {t('tenderFlow.vendorRequirementsTitle')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -644,7 +640,7 @@ export default function TenderBriefStep() {
                       <div key={req.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <span className="text-sm text-gray-800">{req.text}</span>
                         <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${req.type === 'mandatory' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                          {req.type === 'mandatory' ? 'Mandatory' : 'Preferred'}
+                          {req.type === 'mandatory' ? t('tenderFlow.mandatoryBadge') : t('tenderFlow.preferredBadge')}
                         </span>
                       </div>
                     ))}
@@ -659,7 +655,7 @@ export default function TenderBriefStep() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Mic className="h-5 w-5 text-pink-600" />
-                    Voice Note
+                    {t('tenderFlow.voiceNoteTitle')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -676,13 +672,13 @@ export default function TenderBriefStep() {
               <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
               <CardContent className="p-5 space-y-5">
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Quick Summary</h3>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">{t('tenderFlow.quickSummary')}</h3>
                   <div className="space-y-4">
                     {draft.projectSize && (
                       <div className="flex items-start gap-3">
                         <BarChart className="h-4 w-4 text-gray-400 mt-0.5" />
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">Project Size</p>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.projectSizeLabel')}</p>
                           <p className="text-sm font-medium text-gray-900">
                             {PROJECT_SIZE_LABELS[draft.projectSize] || draft.projectSize}
                           </p>
@@ -694,9 +690,9 @@ export default function TenderBriefStep() {
                       <div className="flex items-start gap-3">
                         <DollarSign className="h-4 w-4 text-gray-400 mt-0.5" />
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">Budget Type</p>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.budgetTypeLabel')}</p>
                           <p className="text-sm font-medium text-gray-900">
-                            {draft.budgetType === 'milestone' ? 'Milestone-Based' : 'Fixed Price'}
+                            {draft.budgetType === 'milestone' ? t('tenderFlow.milestoneBased') : t('tenderFlow.fixedPrice')}
                           </p>
                         </div>
                       </div>
@@ -706,7 +702,7 @@ export default function TenderBriefStep() {
                       <div className="flex items-start gap-3">
                         <DollarSign className="h-4 w-4 text-gray-400 mt-0.5" />
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">Pricing Model</p>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.pricingModelLabel')}</p>
                           <p className="text-sm font-medium text-gray-900">{formatLabel(draft.pricingModel)}</p>
                         </div>
                       </div>
@@ -720,9 +716,9 @@ export default function TenderBriefStep() {
                           <EyeOff className="h-4 w-4 text-gray-400 mt-0.5" />
                         )}
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">Price Visibility</p>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.priceVisibilityLabel')}</p>
                           <p className="text-sm font-medium text-gray-900">
-                            {draft.showPriceToVendors ? 'Visible to vendors' : 'Hidden (size only)'}
+                            {draft.showPriceToVendors ? t('tenderFlow.visibleToVendors') : t('tenderFlow.hiddenSizeOnly')}
                           </p>
                         </div>
                       </div>
@@ -732,7 +728,7 @@ export default function TenderBriefStep() {
                       <div className="flex items-start gap-3">
                         <Send className="h-4 w-4 text-gray-400 mt-0.5" />
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">Submission Format</p>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.submissionFormatLabel')}</p>
                           <p className="text-sm font-medium text-gray-900" data-testid="brief-submission-type">
                             {formatLabel(draft.submissionType, SUBMISSION_TYPE_LABELS)}
                           </p>
@@ -744,8 +740,8 @@ export default function TenderBriefStep() {
                       <div className="flex items-start gap-3">
                         <Video className="h-4 w-4 text-pink-500 mt-0.5" />
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">Video Pitch</p>
-                          <p className="text-sm font-medium text-gray-900">Required</p>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.videoPitchTitle')}</p>
+                          <p className="text-sm font-medium text-gray-900">{t('tenderFlow.requiredBadge')}</p>
                         </div>
                       </div>
                     )}
@@ -754,7 +750,7 @@ export default function TenderBriefStep() {
                       <div className="flex items-start gap-3">
                         <MessageSquare className="h-4 w-4 text-gray-400 mt-0.5" />
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">Vendor Questions</p>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.vendorQuestionsLabel')}</p>
                           <p className="text-sm font-medium text-gray-900" data-testid="brief-inquiry-type">
                             {formatLabel(draft.inquiryType, INQUIRY_TYPE_LABELS)}
                           </p>
@@ -766,7 +762,7 @@ export default function TenderBriefStep() {
 
                 {hasSkills && (
                   <div className="pt-4 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Required Skills</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{t('tenderFlow.requiredSkillsLabel')}</p>
                     <div className="flex flex-wrap gap-1.5" data-testid="brief-skills">
                       {draft.skills.map((skill: string, index: number) => (
                         <Badge key={index} className="bg-[#E25E45]/10 text-[#E25E45] hover:bg-[#E25E45]/15 text-xs px-2 py-0.5">
@@ -779,7 +775,7 @@ export default function TenderBriefStep() {
 
                 {draft.aiEstimate && (
                   <div className="pt-4 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">AI Budget Insight</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{t('tenderFlow.aiBudgetInsight')}</p>
                     <div className="bg-blue-50 rounded-lg p-3 space-y-1.5">
                       <p className="text-sm font-medium text-blue-900">
                         Est. SAR {Number(draft.aiEstimate.estimatedBudget).toLocaleString()}
@@ -800,7 +796,7 @@ export default function TenderBriefStep() {
 
                 {hasContactInfo && (
                   <div className="pt-4 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Contact for Inquiries</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{t('tenderFlow.contactForInquiries')}</p>
                     <div className="space-y-2">
                       {draft.emailContact && (
                         <div className="flex items-center gap-2 text-sm" data-testid="brief-email">
@@ -828,12 +824,12 @@ export default function TenderBriefStep() {
                     {submitTender.isPending ? (
                       <>
                         <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                        Publishing...
+                        {t('tenderFlow.publishingRfp')}
                       </>
                     ) : (
                       <>
                         <Check className="h-5 w-5 mr-2" />
-                        Publish RFP
+                        {t('tenderFlow.publishRfp')}
                       </>
                     )}
                   </Button>
@@ -845,7 +841,7 @@ export default function TenderBriefStep() {
                     data-testid="button-back-edit"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    Go Back & Edit
+                    {t('tenderFlow.goBackEdit')}
                   </Button>
                 </div>
               </CardContent>

@@ -1,6 +1,7 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CARD_LIBRARY, FIELD_INSIGHTS, CardDefinition, CardType } from "@/lib/form-builder-types";
 import { Star, GripVertical, CheckCircle2, Info } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface CardLibrarySidebarProps {
   usedCardTypes: string[];
@@ -109,6 +110,25 @@ const DEFAULT_COLORS = {
 };
 
 export function CardLibrarySidebar({ usedCardTypes, width = 288, onShowInsight, onHideInsight }: CardLibrarySidebarProps) {
+  const { t } = useI18n();
+
+  const translatedCardInfo: Record<string, { label: string; description: string }> = {
+    'project-title': { label: t('formBuilder.cardProjectTitleLabel'), description: t('formBuilder.cardProjectTitleDesc') },
+    'supplier-response': { label: t('formBuilder.cardVendorResponseLabel'), description: t('formBuilder.cardVendorResponseDesc') },
+    'project-dates': { label: t('formBuilder.cardTimelineLabel'), description: t('formBuilder.cardTimelineDesc') },
+    'budget': { label: t('formBuilder.cardBudgetLabel'), description: t('formBuilder.cardBudgetDesc') },
+    'key-deliverables': { label: t('formBuilder.cardDeliverablesLabel'), description: t('formBuilder.cardDeliverablesDesc') },
+    'milestones': { label: t('formBuilder.cardMilestonesLabel'), description: t('formBuilder.cardMilestonesDesc') },
+    'project-description': { label: t('formBuilder.cardDescriptionLabel'), description: t('formBuilder.cardDescriptionDesc') },
+    'submission-deadline': { label: t('formBuilder.cardDeadlineLabel'), description: t('formBuilder.cardDeadlineDesc') },
+    'evaluation-criteria': { label: t('formBuilder.cardEvalLabel'), description: t('formBuilder.cardEvalDesc') },
+    'attachments': { label: t('formBuilder.cardAttachmentsLabel'), description: t('formBuilder.cardAttachmentsDesc') },
+    'custom-text': { label: t('formBuilder.cardShortAnswerLabel'), description: t('formBuilder.cardShortAnswerDesc') },
+    'custom-textarea': { label: t('formBuilder.cardLongAnswerLabel'), description: t('formBuilder.cardLongAnswerDesc') },
+    'custom-date': { label: t('formBuilder.cardDateLabel'), description: t('formBuilder.cardDateDesc') },
+    'custom-select': { label: t('formBuilder.cardMultipleChoiceLabel'), description: t('formBuilder.cardMultipleChoiceDesc') },
+  };
+
   return (
     <div
       style={{ width: `${width}px` }}
@@ -116,25 +136,27 @@ export function CardLibrarySidebar({ usedCardTypes, width = 288, onShowInsight, 
     >
       <div className="p-4 space-y-6">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">Card Library</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Drag cards onto the canvas to build your form</p>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{t('formBuilder.cardLibrary')}</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('formBuilder.cardLibrarySubtitle')}</p>
         </div>
 
         {/* Required Cards */}
         <div className="space-y-3">
           <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
             <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-            Required
+            {t('formBuilder.sectionRequired')}
           </h4>
           <div className="grid grid-cols-2 gap-3">
             {CARD_LIBRARY.required.map((card) => (
               <DraggableLibraryCard
                 key={card.type}
-                card={card}
+                card={{ ...card, label: translatedCardInfo[card.type]?.label ?? card.label, description: translatedCardInfo[card.type]?.description ?? card.description }}
                 isUsed={usedCardTypes.includes(card.type)}
                 isRequired
                 onShowInsight={onShowInsight}
                 onHideInsight={onHideInsight}
+                addedLabel={t('formBuilder.added')}
+                dragToAddLabel={t('formBuilder.dragToAdd')}
               />
             ))}
           </div>
@@ -143,16 +165,18 @@ export function CardLibrarySidebar({ usedCardTypes, width = 288, onShowInsight, 
         {/* Standard Cards */}
         <div className="space-y-3">
           <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-            Standard Fields
+            {t('formBuilder.sectionStandard')}
           </h4>
           <div className="grid grid-cols-2 gap-3">
             {CARD_LIBRARY.standard.map((card) => (
               <DraggableLibraryCard
                 key={card.type}
-                card={card}
+                card={{ ...card, label: translatedCardInfo[card.type]?.label ?? card.label, description: translatedCardInfo[card.type]?.description ?? card.description }}
                 isUsed={usedCardTypes.includes(card.type)}
                 onShowInsight={onShowInsight}
                 onHideInsight={onHideInsight}
+                addedLabel={t('formBuilder.added')}
+                dragToAddLabel={t('formBuilder.dragToAdd')}
               />
             ))}
           </div>
@@ -161,20 +185,22 @@ export function CardLibrarySidebar({ usedCardTypes, width = 288, onShowInsight, 
         {/* Custom Cards */}
         <div className="space-y-3">
           <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-            Custom Fields
+            {t('formBuilder.sectionCustom')}
           </h4>
           <p className="text-xs text-gray-400 dark:text-gray-500 -mt-1">
-            Create your own questions — add as many as you need
+            {t('formBuilder.sectionCustomSubtitle')}
           </p>
           <div className="grid grid-cols-2 gap-3">
             {CARD_LIBRARY.custom.map((card) => (
               <DraggableLibraryCard
                 key={card.type}
-                card={card}
+                card={{ ...card, label: translatedCardInfo[card.type]?.label ?? card.label, description: translatedCardInfo[card.type]?.description ?? card.description }}
                 isUsed={false}
                 allowMultiple
                 onShowInsight={onShowInsight}
                 onHideInsight={onHideInsight}
+                addedLabel={t('formBuilder.added')}
+                dragToAddLabel={t('formBuilder.dragToAdd')}
               />
             ))}
           </div>
@@ -191,6 +217,8 @@ interface DraggableLibraryCardProps {
   allowMultiple?: boolean;
   onShowInsight?: (type: CardType, pos?: { x: number; y: number }) => void;
   onHideInsight?: () => void;
+  addedLabel?: string;
+  dragToAddLabel?: string;
 }
 
 function DraggableLibraryCard({
@@ -199,6 +227,8 @@ function DraggableLibraryCard({
   isRequired,
   allowMultiple,
   onShowInsight,
+  addedLabel = "Added",
+  dragToAddLabel = "Drag to add",
 }: DraggableLibraryCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `library-${card.type}`,
@@ -262,7 +292,7 @@ function DraggableLibraryCard({
             {isDisabled && (
               <div className="flex items-center gap-1 bg-white/20 rounded-full px-1.5 py-0.5">
                 <CheckCircle2 className="h-3 w-3 text-white" />
-                <span className="text-[10px] font-medium text-white leading-none">Added</span>
+                <span className="text-[10px] font-medium text-white leading-none">{addedLabel}</span>
               </div>
             )}
           </div>
@@ -283,7 +313,7 @@ function DraggableLibraryCard({
         {!isDisabled && (
           <div className="flex items-center gap-1 pt-0.5">
             <GripVertical className="h-3 w-3 text-gray-300 dark:text-gray-600" />
-            <span className="text-[10px] text-gray-300 dark:text-gray-600">Drag to add</span>
+            <span className="text-[10px] text-gray-300 dark:text-gray-600">{dragToAddLabel}</span>
           </div>
         )}
       </div>

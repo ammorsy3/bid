@@ -3,9 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { FileText, User } from "lucide-react";
 import { format } from "date-fns";
+import { useI18n } from "@/lib/i18n";
 
 export default function AdminAuditLogs() {
-  const { data: logs, isLoading } = useQuery({
+  const { t } = useI18n();
+  const { data: logs, isLoading } = useQuery<any[]>({
     queryKey: ["/api/admin/audit-logs"],
   });
 
@@ -43,10 +45,10 @@ export default function AdminAuditLogs() {
       <div className="max-w-7xl mx-auto p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900" data-testid="text-page-title">
-            Audit Logs
+            {t('admin.auditLogs')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Track all administrative actions and changes
+            {t('admin.auditLogsDesc')}
           </p>
         </div>
 
@@ -55,7 +57,7 @@ export default function AdminAuditLogs() {
             <CardContent className="py-12 text-center">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600" data-testid="text-empty-state">
-                No audit logs found
+                {t('admin.noAuditLogs')}
               </p>
             </CardContent>
           </Card>
@@ -78,12 +80,12 @@ export default function AdminAuditLogs() {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4" />
-                            <span>Admin: {log.admin?.name || log.adminId}</span>
+                            <span>{t('admin.adminLabel')} {log.admin?.name || log.adminId}</span>
                           </div>
-                          <div>Target: {log.targetType} (ID: {log.targetId.substring(0, 8)}...)</div>
+                          <div>{t('admin.target')} {log.targetType} (ID: {log.targetId.substring(0, 8)}...)</div>
                           {log.notes && (
                             <div className="mt-2 p-2 bg-gray-50 rounded text-sm">
-                              <strong>Notes:</strong> {log.notes}
+                              <strong>{t('admin.notesLabel')}</strong> {log.notes}
                             </div>
                           )}
                         </div>
@@ -96,7 +98,7 @@ export default function AdminAuditLogs() {
                     <div className="grid grid-cols-2 gap-4 text-xs">
                       {log.beforeState && (
                         <div>
-                          <p className="font-medium text-gray-700 mb-2">Before:</p>
+                          <p className="font-medium text-gray-700 mb-2">{t('admin.before')}</p>
                           <pre className="bg-gray-50 p-2 rounded overflow-auto max-h-32">
                             {JSON.stringify(JSON.parse(log.beforeState), null, 2)}
                           </pre>
@@ -104,7 +106,7 @@ export default function AdminAuditLogs() {
                       )}
                       {log.afterState && (
                         <div>
-                          <p className="font-medium text-gray-700 mb-2">After:</p>
+                          <p className="font-medium text-gray-700 mb-2">{t('admin.after')}</p>
                           <pre className="bg-gray-50 p-2 rounded overflow-auto max-h-32">
                             {JSON.stringify(JSON.parse(log.afterState), null, 2)}
                           </pre>

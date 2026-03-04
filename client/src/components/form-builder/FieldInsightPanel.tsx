@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Lightbulb, Users } from "lucide-react";
 import { CardType, FIELD_INSIGHTS, getCardDefinition } from "@/lib/form-builder-types";
+import { useI18n } from "@/lib/i18n";
 
 interface FieldInsightPanelProps {
   cardType: CardType | null;
@@ -14,7 +15,26 @@ const PANEL_HEIGHT = 400; // approximate max height
 const OFFSET = 16;
 
 export function FieldInsightPanel({ cardType, cursorPos, onClose }: FieldInsightPanelProps) {
-  const insight = cardType ? FIELD_INSIGHTS[cardType] : null;
+  const { t } = useI18n();
+
+  const translatedInsights: Record<string, { title: string; description: string; vendorTip: string; bestPractice: string }> = {
+    'project-title': { title: t('formBuilder.insightProjectTitleTitle'), description: t('formBuilder.insightProjectTitleDesc'), vendorTip: t('formBuilder.insightProjectTitleVendorTip'), bestPractice: t('formBuilder.insightProjectTitleBestPractice') },
+    'supplier-response': { title: t('formBuilder.insightVendorResponseTitle'), description: t('formBuilder.insightVendorResponseDesc'), vendorTip: t('formBuilder.insightVendorResponseVendorTip'), bestPractice: t('formBuilder.insightVendorResponseBestPractice') },
+    'project-dates': { title: t('formBuilder.insightTimelineTitle'), description: t('formBuilder.insightTimelineDesc'), vendorTip: t('formBuilder.insightTimelineVendorTip'), bestPractice: t('formBuilder.insightTimelineBestPractice') },
+    'budget': { title: t('formBuilder.insightBudgetTitle'), description: t('formBuilder.insightBudgetDesc'), vendorTip: t('formBuilder.insightBudgetVendorTip'), bestPractice: t('formBuilder.insightBudgetBestPractice') },
+    'key-deliverables': { title: t('formBuilder.insightDeliverablesTitle'), description: t('formBuilder.insightDeliverablesDesc'), vendorTip: t('formBuilder.insightDeliverablesVendorTip'), bestPractice: t('formBuilder.insightDeliverablesBestPractice') },
+    'project-description': { title: t('formBuilder.insightDescriptionTitle'), description: t('formBuilder.insightDescriptionDesc'), vendorTip: t('formBuilder.insightDescriptionVendorTip'), bestPractice: t('formBuilder.insightDescriptionBestPractice') },
+    'submission-deadline': { title: t('formBuilder.insightDeadlineTitle'), description: t('formBuilder.insightDeadlineDesc'), vendorTip: t('formBuilder.insightDeadlineVendorTip'), bestPractice: t('formBuilder.insightDeadlineBestPractice') },
+    'evaluation-criteria': { title: t('formBuilder.insightEvalTitle'), description: t('formBuilder.insightEvalDesc'), vendorTip: t('formBuilder.insightEvalVendorTip'), bestPractice: t('formBuilder.insightEvalBestPractice') },
+    'attachments': { title: t('formBuilder.insightAttachmentsTitle'), description: t('formBuilder.insightAttachmentsDesc'), vendorTip: t('formBuilder.insightAttachmentsVendorTip'), bestPractice: t('formBuilder.insightAttachmentsBestPractice') },
+    'milestones': { title: t('formBuilder.insightMilestonesTitle'), description: t('formBuilder.insightMilestonesDesc'), vendorTip: t('formBuilder.insightMilestonesVendorTip'), bestPractice: t('formBuilder.insightMilestonesBestPractice') },
+    'custom-text': { title: t('formBuilder.insightShortAnswerTitle'), description: t('formBuilder.insightShortAnswerDesc'), vendorTip: t('formBuilder.insightShortAnswerVendorTip'), bestPractice: t('formBuilder.insightShortAnswerBestPractice') },
+    'custom-textarea': { title: t('formBuilder.insightLongAnswerTitle'), description: t('formBuilder.insightLongAnswerDesc'), vendorTip: t('formBuilder.insightLongAnswerVendorTip'), bestPractice: t('formBuilder.insightLongAnswerBestPractice') },
+    'custom-date': { title: t('formBuilder.insightDateTitle'), description: t('formBuilder.insightDateDesc'), vendorTip: t('formBuilder.insightDateVendorTip'), bestPractice: t('formBuilder.insightDateBestPractice') },
+    'custom-select': { title: t('formBuilder.insightMultipleChoiceTitle'), description: t('formBuilder.insightMultipleChoiceDesc'), vendorTip: t('formBuilder.insightMultipleChoiceVendorTip'), bestPractice: t('formBuilder.insightMultipleChoiceBestPractice') },
+  };
+
+  const insight = cardType ? (translatedInsights[cardType] || FIELD_INSIGHTS[cardType]) : null;
 
   // Position near cursor, flipping sides when near viewport edges
   const panelStyle = (() => {
@@ -103,7 +123,7 @@ export function FieldInsightPanel({ cardType, cursorPos, onClose }: FieldInsight
                 <div className="flex items-center gap-1.5 mb-1">
                   <Users className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                   <span className="text-xs font-medium text-blue-900 dark:text-blue-300">
-                    Vendor Perspective
+                    {t('formBuilder.vendorPerspective')}
                   </span>
                 </div>
                 <p className="text-xs text-blue-800 dark:text-blue-200/80 leading-relaxed">
@@ -121,7 +141,7 @@ export function FieldInsightPanel({ cardType, cursorPos, onClose }: FieldInsight
                 <div className="flex items-center gap-1.5 mb-1">
                   <Lightbulb className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                   <span className="text-xs font-medium text-amber-900 dark:text-amber-300">
-                    Best Practice
+                    {t('formBuilder.bestPractice')}
                   </span>
                 </div>
                 <p className="text-xs text-amber-800 dark:text-amber-200/80 leading-relaxed">
@@ -137,7 +157,7 @@ export function FieldInsightPanel({ cardType, cursorPos, onClose }: FieldInsight
                 onClick={onClose}
                 className="w-full py-2 rounded-lg bg-[#E25E45] hover:bg-[#d54d35] text-white text-xs font-medium transition-colors"
               >
-                Got it
+                {t('formBuilder.gotIt')}
               </motion.button>
             </div>
           </motion.div>

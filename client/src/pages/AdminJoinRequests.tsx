@@ -9,9 +9,11 @@ import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useI18n } from "@/lib/i18n";
 
 export default function AdminJoinRequests() {
   const { toast } = useToast();
+  const { t } = useI18n();
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
   const [reason, setReason] = useState("");
@@ -28,15 +30,15 @@ export default function AdminJoinRequests() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/join-requests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/metrics"] });
       toast({
-        title: "Join Request Approved",
-        description: "The vendor has been added to the requester's base.",
+        title: t('admin.joinRequestApproved'),
+        description: t('admin.joinRequestApprovedDesc'),
       });
       handleClose();
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to approve join request.",
+        title: t('admin.error'),
+        description: t('admin.failedApproveJoin'),
         variant: "destructive",
       });
     },
@@ -50,15 +52,15 @@ export default function AdminJoinRequests() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/join-requests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/metrics"] });
       toast({
-        title: "Join Request Rejected",
-        description: "The join request has been rejected.",
+        title: t('admin.joinRequestRejected'),
+        description: t('admin.joinRequestRejectedDesc'),
       });
       handleClose();
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to reject join request.",
+        title: t('admin.error'),
+        description: t('admin.failedRejectJoin'),
         variant: "destructive",
       });
     },
@@ -104,10 +106,10 @@ export default function AdminJoinRequests() {
       <div className="max-w-7xl mx-auto p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900" data-testid="text-page-title">
-            Join Requests Management
+            {t('admin.joinRequestsManagement')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Review and manage vendor base join requests
+            {t('admin.joinRequestsManagementDesc')}
           </p>
         </div>
 
@@ -116,7 +118,7 @@ export default function AdminJoinRequests() {
             <CardContent className="py-12 text-center">
               <UserIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600" data-testid="text-empty-state">
-                No pending join requests
+                {t('admin.noPendingJoinRequests')}
               </p>
             </CardContent>
           </Card>
@@ -130,17 +132,17 @@ export default function AdminJoinRequests() {
                       <CardTitle className="flex items-center gap-2">
                         {request.vendor?.name || "Unknown Vendor"}
                         <Badge variant="secondary" data-testid={`badge-status-${request.id}`}>
-                          Pending
+                          {t('admin.pendingBadge')}
                         </Badge>
                       </CardTitle>
                       <CardDescription className="mt-2">
                         <div className="space-y-1">
-                          <div>Vendor Email: {request.vendor?.email || "N/A"}</div>
-                          <div>Requester ID: {request.requesterId}</div>
+                          <div>{t('admin.vendorEmail')} {request.vendor?.email || t('admin.na')}</div>
+                          <div>{t('admin.requesterId')} {request.requesterId}</div>
                           <div>
-                            Submitted: {request.createdAt ? format(new Date(request.createdAt), "PPP") : "N/A"}
+                            {t('admin.submittedAt')} {request.createdAt ? format(new Date(request.createdAt), "PPP") : t('admin.na')}
                           </div>
-                          <div>Vendor Status: {request.vendor?.verificationStatus || "N/A"}</div>
+                          <div>{t('admin.vendorStatusLabel')} {request.vendor?.verificationStatus || t('admin.na')}</div>
                         </div>
                       </CardDescription>
                     </div>
@@ -158,7 +160,7 @@ export default function AdminJoinRequests() {
                       data-testid={`button-approve-${request.id}`}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Approve
+                      {t('admin.approve')}
                     </Button>
                     <Button
                       variant="outline"
@@ -170,10 +172,10 @@ export default function AdminJoinRequests() {
                       data-testid={`button-reject-${request.id}`}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
-                      Reject
+                      {t('admin.reject')}
                     </Button>
                     <Button variant="ghost" size="sm" data-testid={`button-view-profile-${request.id}`}>
-                      View Profile
+                      {t('admin.viewProfile')}
                     </Button>
                   </div>
                 </CardContent>
@@ -187,27 +189,27 @@ export default function AdminJoinRequests() {
         <DialogContent data-testid="dialog-action">
           <DialogHeader>
             <DialogTitle data-testid="text-dialog-title">
-              {actionType === "approve" ? "Approve Join Request" : "Reject Join Request"}
+              {actionType === "approve" ? t('admin.approveJoinRequest') : t('admin.rejectJoinRequest')}
             </DialogTitle>
             <DialogDescription>
               {actionType === "approve"
-                ? "The vendor will be added to the requester's Vendors Base."
-                : "Provide a reason for rejection. The vendor will be notified."}
+                ? t('admin.approveJoinDesc')
+                : t('admin.rejectJoinDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium mb-2">Vendor: {selectedRequest?.vendor?.name}</p>
-              <p className="text-sm text-gray-600">Email: {selectedRequest?.vendor?.email}</p>
+              <p className="text-sm font-medium mb-2">{t('admin.vendorLabel')} {selectedRequest?.vendor?.name}</p>
+              <p className="text-sm text-gray-600">{t('admin.emailLabel')} {selectedRequest?.vendor?.email}</p>
             </div>
             {actionType === "reject" && (
               <div>
                 <label className="text-sm font-medium" htmlFor="reason-input">
-                  Rejection Reason *
+                  {t('admin.rejectionReasonInput')}
                 </label>
                 <Textarea
                   id="reason-input"
-                  placeholder="Explain why this request is being rejected..."
+                  placeholder={t('admin.rejectionInputPlaceholder')}
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   className="mt-2"
@@ -218,7 +220,7 @@ export default function AdminJoinRequests() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleClose} data-testid="button-cancel">
-              Cancel
+              {t('admin.cancel')}
             </Button>
             <Button
               onClick={actionType === "approve" ? handleApprove : handleReject}
@@ -230,10 +232,10 @@ export default function AdminJoinRequests() {
               data-testid="button-confirm"
             >
               {approveMutation.isPending || rejectMutation.isPending
-                ? "Processing..."
+                ? t('admin.processing')
                 : actionType === "approve"
-                ? "Approve"
-                : "Reject"}
+                ? t('admin.approve')
+                : t('admin.reject')}
             </Button>
           </DialogFooter>
         </DialogContent>

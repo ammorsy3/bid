@@ -7,9 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Shield, UserPlus } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
 
 export default function AdminUsers() {
   const { toast } = useToast();
+  const { t } = useI18n();
   const [userId, setUserId] = useState("");
 
   const promoteMutation = useMutation({
@@ -18,15 +20,15 @@ export default function AdminUsers() {
     },
     onSuccess: () => {
       toast({
-        title: "User Promoted",
-        description: "The user has been successfully promoted to admin.",
+        title: t('admin.userPromoted'),
+        description: t('admin.userPromotedDesc'),
       });
       setUserId("");
     },
     onError: (error: any) => {
-      const errorMessage = error.message || "Failed to promote user. Please check the user ID and try again.";
+      const errorMessage = error.message || t('admin.failedPromoteUser');
       toast({
-        title: "Error",
+        title: t('admin.error'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -45,10 +47,10 @@ export default function AdminUsers() {
       <div className="max-w-4xl mx-auto p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900" data-testid="text-page-title">
-            User Management
+            {t('admin.userManagement')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Manage user roles and permissions
+            {t('admin.userManagementDesc')}
           </p>
         </div>
 
@@ -56,26 +58,25 @@ export default function AdminUsers() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
-              Promote User to Admin
+              {t('admin.promoteUserToAdmin')}
             </CardTitle>
             <CardDescription>
-              Grant admin privileges to an existing user. This will allow them to access the admin panel
-              and perform administrative operations.
+              {t('admin.promoteUserDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handlePromote} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="userId">User ID</Label>
+                <Label htmlFor="userId">{t('admin.userId')}</Label>
                 <Input
                   id="userId"
-                  placeholder="Enter user ID (UUID)"
+                  placeholder={t('admin.userIdPlaceholder')}
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
                   data-testid="input-user-id"
                 />
                 <p className="text-sm text-gray-500">
-                  You can find the user ID in the database or from user profile endpoints.
+                  {t('admin.userIdHelper')}
                 </p>
               </div>
               <Button
@@ -84,7 +85,7 @@ export default function AdminUsers() {
                 data-testid="button-promote"
               >
                 <UserPlus className="h-4 w-4 mr-2" />
-                {promoteMutation.isPending ? "Promoting..." : "Promote to Admin"}
+                {promoteMutation.isPending ? t('admin.promoting') : t('admin.promoteToAdmin')}
               </Button>
             </form>
           </CardContent>
@@ -92,13 +93,13 @@ export default function AdminUsers() {
 
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Important Notes</CardTitle>
+            <CardTitle>{t('admin.importantNotes')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-gray-600">
-            <p>• Admin users have full access to all platform operations</p>
-            <p>• Admins can verify vendors, manage join requests, and unblock awards</p>
-            <p>• All admin actions are logged in the audit trail</p>
-            <p>• Admin privileges cannot be revoked through this interface (requires database access)</p>
+            <p>{t('admin.adminNote1')}</p>
+            <p>{t('admin.adminNote2')}</p>
+            <p>{t('admin.adminNote3')}</p>
+            <p>{t('admin.adminNote4')}</p>
           </CardContent>
         </Card>
       </div>

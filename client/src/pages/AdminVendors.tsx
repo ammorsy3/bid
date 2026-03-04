@@ -9,9 +9,11 @@ import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useI18n } from "@/lib/i18n";
 
 export default function AdminVendors() {
   const { toast } = useToast();
+  const { t } = useI18n();
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const [actionType, setActionType] = useState<"approve" | "reject" | "view" | null>(null);
   const [notes, setNotes] = useState("");
@@ -28,15 +30,15 @@ export default function AdminVendors() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/companies/pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/metrics"] });
       toast({
-        title: "Company Verified",
-        description: "The company has been successfully verified.",
+        title: t('admin.companyVerified'),
+        description: t('admin.companyVerifiedDesc'),
       });
       handleClose();
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to verify company.",
+        title: t('admin.error'),
+        description: t('admin.failedVerifyCompany'),
         variant: "destructive",
       });
     },
@@ -50,15 +52,15 @@ export default function AdminVendors() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/companies/pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/metrics"] });
       toast({
-        title: "Company Rejected",
-        description: "The company application has been rejected.",
+        title: t('admin.companyRejected'),
+        description: t('admin.companyRejectedDesc'),
       });
       handleClose();
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to reject company.",
+        title: t('admin.error'),
+        description: t('admin.failedRejectCompany'),
         variant: "destructive",
       });
     },
@@ -102,10 +104,10 @@ export default function AdminVendors() {
       <div className="max-w-7xl mx-auto p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900" data-testid="text-page-title">
-            Company Verification Queue
+            {t('admin.companyVerificationQueue')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Review and approve pending company registrations
+            {t('admin.companyVerificationQueueDesc')}
           </p>
         </div>
 
@@ -114,7 +116,7 @@ export default function AdminVendors() {
             <CardContent className="py-12 text-center">
               <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600" data-testid="text-empty-state">
-                No pending company verifications
+                {t('admin.noPendingVerifications')}
               </p>
             </CardContent>
           </Card>
@@ -132,12 +134,12 @@ export default function AdminVendors() {
                         </Badge>
                       </CardTitle>
                       <CardDescription className="mt-2 space-y-1">
-                        <div><strong>Legal Name:</strong> {company.legalName}</div>
-                        <div><strong>CR Number:</strong> {company.crNumber}</div>
-                        {company.vatNumber && <div><strong>VAT Number:</strong> {company.vatNumber}</div>}
-                        <div><strong>City:</strong> {company.city || 'N/A'}</div>
-                        {company.category && <div><strong>Category:</strong> {company.category}</div>}
-                        <div><strong>Submitted:</strong> {format(new Date(company.createdAt), 'PPp')}</div>
+                        <div><strong>{t('admin.legalName')}</strong> {company.legalName}</div>
+                        <div><strong>{t('admin.crNumber')}</strong> {company.crNumber}</div>
+                        {company.vatNumber && <div><strong>{t('admin.vatNumber')}</strong> {company.vatNumber}</div>}
+                        <div><strong>{t('admin.city')}</strong> {company.city || t('admin.na')}</div>
+                        {company.category && <div><strong>{t('admin.categoryLabel')}</strong> {company.category}</div>}
+                        <div><strong>{t('admin.submitted')}</strong> {format(new Date(company.createdAt), 'PPp')}</div>
                       </CardDescription>
                     </div>
                   </div>
@@ -154,7 +156,7 @@ export default function AdminVendors() {
                       data-testid={`button-view-${company.id}`}
                     >
                       <Eye className="h-4 w-4 mr-2" />
-                      View Details
+                      {t('admin.viewDetails')}
                     </Button>
                     <Button
                       variant="default"
@@ -166,7 +168,7 @@ export default function AdminVendors() {
                       data-testid={`button-approve-${company.id}`}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Verify
+                      {t('admin.verify')}
                     </Button>
                     <Button
                       variant="destructive"
@@ -178,7 +180,7 @@ export default function AdminVendors() {
                       data-testid={`button-reject-${company.id}`}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
-                      Reject
+                      {t('admin.reject')}
                     </Button>
                   </div>
                 </CardContent>
@@ -192,46 +194,46 @@ export default function AdminVendors() {
       <Dialog open={actionType === "view"} onOpenChange={handleClose}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Company Details</DialogTitle>
-            <DialogDescription>Full information about this company</DialogDescription>
+            <DialogTitle>{t('admin.companyDetails')}</DialogTitle>
+            <DialogDescription>{t('admin.companyDetailsDesc')}</DialogDescription>
           </DialogHeader>
           {selectedCompany && (
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold mb-2">Basic Information</h3>
+                <h3 className="font-semibold mb-2">{t('admin.basicInfo')}</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><strong>Company Name:</strong> {selectedCompany.name}</div>
-                  <div><strong>Legal Name:</strong> {selectedCompany.legalName}</div>
-                  <div><strong>CR Number:</strong> {selectedCompany.crNumber}</div>
-                  <div><strong>VAT Number:</strong> {selectedCompany.vatNumber || 'N/A'}</div>
-                  <div><strong>City:</strong> {selectedCompany.city || 'N/A'}</div>
-                  <div><strong>Category:</strong> {selectedCompany.category || 'N/A'}</div>
+                  <div><strong>{t('admin.companyNameLabel')}</strong> {selectedCompany.name}</div>
+                  <div><strong>{t('admin.legalName')}</strong> {selectedCompany.legalName}</div>
+                  <div><strong>{t('admin.crNumber')}</strong> {selectedCompany.crNumber}</div>
+                  <div><strong>{t('admin.vatNumber')}</strong> {selectedCompany.vatNumber || t('admin.na')}</div>
+                  <div><strong>{t('admin.city')}</strong> {selectedCompany.city || t('admin.na')}</div>
+                  <div><strong>{t('admin.categoryLabel')}</strong> {selectedCompany.category || t('admin.na')}</div>
                 </div>
               </div>
-              
+
               {selectedCompany.profile && (
                 <div>
-                  <h3 className="font-semibold mb-2">Profile</h3>
+                  <h3 className="font-semibold mb-2">{t('admin.profileSection')}</h3>
                   <div className="text-sm space-y-1">
-                    <div><strong>Display Name:</strong> {selectedCompany.profile.displayName}</div>
-                    {selectedCompany.profile.bio && <div><strong>Bio:</strong> {selectedCompany.profile.bio}</div>}
+                    <div><strong>{t('admin.displayNameLabel')}</strong> {selectedCompany.profile.displayName}</div>
+                    {selectedCompany.profile.bio && <div><strong>{t('admin.bioLabel')}</strong> {selectedCompany.profile.bio}</div>}
                   </div>
                 </div>
               )}
-              
+
               <div>
-                <h3 className="font-semibold mb-2">Status</h3>
+                <h3 className="font-semibold mb-2">{t('admin.statusSection')}</h3>
                 <div className="text-sm space-y-1">
-                  <div><strong>Verification:</strong> {selectedCompany.verificationStatus}</div>
-                  <div><strong>Onboarding:</strong> {selectedCompany.onboardingState}</div>
-                  <div><strong>Created:</strong> {format(new Date(selectedCompany.createdAt), 'PPp')}</div>
+                  <div><strong>{t('admin.verificationLabel')}</strong> {selectedCompany.verificationStatus}</div>
+                  <div><strong>{t('admin.onboardingLabel')}</strong> {selectedCompany.onboardingState}</div>
+                  <div><strong>{t('admin.createdLabel')}</strong> {format(new Date(selectedCompany.createdAt), 'PPp')}</div>
                 </div>
               </div>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={handleClose} data-testid="button-close-view">
-              Close
+              {t('admin.close')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -241,18 +243,18 @@ export default function AdminVendors() {
       <Dialog open={actionType === "approve"} onOpenChange={handleClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Verify Company</DialogTitle>
+            <DialogTitle>{t('admin.verifyCompany')}</DialogTitle>
             <DialogDescription>
-              Verify this company registration. You can add optional notes.
+              {t('admin.verifyCompanyDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Notes (Optional)</label>
+              <label className="text-sm font-medium">{t('admin.notesOptional')}</label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any verification notes..."
+                placeholder={t('admin.addVerificationNotes')}
                 className="mt-2"
                 data-testid="textarea-approve-notes"
               />
@@ -260,14 +262,14 @@ export default function AdminVendors() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleClose} data-testid="button-cancel-approve">
-              Cancel
+              {t('admin.cancel')}
             </Button>
             <Button
               onClick={handleApprove}
               disabled={approveMutation.isPending}
               data-testid="button-confirm-approve"
             >
-              {approveMutation.isPending ? "Verifying..." : "Verify Company"}
+              {approveMutation.isPending ? t('admin.verifying') : t('admin.verifyCompanyBtn')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -277,18 +279,18 @@ export default function AdminVendors() {
       <Dialog open={actionType === "reject"} onOpenChange={handleClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reject Company</DialogTitle>
+            <DialogTitle>{t('admin.rejectCompany')}</DialogTitle>
             <DialogDescription>
-              Reject this company registration. Please provide a reason.
+              {t('admin.rejectCompanyDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Rejection Reason *</label>
+              <label className="text-sm font-medium">{t('admin.rejectionReason')}</label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Explain why this company is being rejected..."
+                placeholder={t('admin.rejectionReasonPlaceholder')}
                 className="mt-2"
                 required
                 data-testid="textarea-reject-reason"
@@ -297,7 +299,7 @@ export default function AdminVendors() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleClose} data-testid="button-cancel-reject">
-              Cancel
+              {t('admin.cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -305,7 +307,7 @@ export default function AdminVendors() {
               disabled={!notes.trim() || rejectMutation.isPending}
               data-testid="button-confirm-reject"
             >
-              {rejectMutation.isPending ? "Rejecting..." : "Reject Company"}
+              {rejectMutation.isPending ? t('admin.rejecting') : t('admin.rejectCompanyBtn')}
             </Button>
           </DialogFooter>
         </DialogContent>

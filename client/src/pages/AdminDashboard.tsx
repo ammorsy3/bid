@@ -2,15 +2,17 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileCheck, Package, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
+import { useI18n } from "@/lib/i18n";
 
 export default function AdminDashboard() {
+  const { t } = useI18n();
   const { data: metrics, isLoading } = useQuery({
     queryKey: ["/api/admin/metrics"],
   });
 
   const cards = [
     {
-      title: "Pending Verifications",
+      title: t('admin.pendingVerifications'),
       value: metrics?.pendingVerifications || 0,
       icon: Users,
       color: "text-blue-600",
@@ -19,7 +21,7 @@ export default function AdminDashboard() {
       dataTestId: "card-pending-verifications"
     },
     {
-      title: "Join Requests",
+      title: t('admin.joinRequests'),
       value: metrics?.pendingJoinRequests || 0,
       icon: FileCheck,
       color: "text-green-600",
@@ -28,7 +30,7 @@ export default function AdminDashboard() {
       dataTestId: "card-join-requests"
     },
     {
-      title: "Proposals (24h)",
+      title: t('admin.proposals24h'),
       value: metrics?.proposalsLast24h || 0,
       icon: Package,
       color: "text-purple-600",
@@ -37,7 +39,7 @@ export default function AdminDashboard() {
       dataTestId: "card-proposals-24h"
     },
     {
-      title: "Blocked Awards",
+      title: t('admin.blockedAwards'),
       value: metrics?.blockedAwards || 0,
       icon: AlertTriangle,
       color: "text-red-600",
@@ -69,8 +71,8 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900" data-testid="text-dashboard-title">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">Manage platform operations and monitor key metrics</p>
+          <h1 className="text-3xl font-bold text-gray-900" data-testid="text-dashboard-title">{t('admin.adminDashboard')}</h1>
+          <p className="text-gray-600 mt-2">{t('admin.adminDashboardDesc')}</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -106,8 +108,8 @@ export default function AdminDashboard() {
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Frequently used admin operations</CardDescription>
+              <CardTitle>{t('admin.quickActions')}</CardTitle>
+              <CardDescription>{t('admin.quickActionsDesc')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <Link 
@@ -115,44 +117,44 @@ export default function AdminDashboard() {
                 className="block p-3 rounded-lg hover:bg-gray-50 transition-colors" 
                 data-testid="link-verify-vendors"
               >
-                <div className="font-medium">Verify Vendors</div>
-                <div className="text-sm text-gray-600">Review and approve pending vendor applications</div>
+                <div className="font-medium">{t('admin.verifyVendors')}</div>
+                <div className="text-sm text-gray-600">{t('admin.verifyVendorsDesc')}</div>
               </Link>
               <Link 
                 href="/admin/join-requests"
                 className="block p-3 rounded-lg hover:bg-gray-50 transition-colors" 
                 data-testid="link-join-requests"
               >
-                <div className="font-medium">Manage Join Requests</div>
-                <div className="text-sm text-gray-600">Approve or reject vendor base applications</div>
+                <div className="font-medium">{t('admin.manageJoinRequests')}</div>
+                <div className="text-sm text-gray-600">{t('admin.manageJoinRequestsDesc')}</div>
               </Link>
               <Link 
                 href="/admin/audit-logs"
                 className="block p-3 rounded-lg hover:bg-gray-50 transition-colors" 
                 data-testid="link-audit-logs"
               >
-                <div className="font-medium">View Audit Logs</div>
-                <div className="text-sm text-gray-600">Track all administrative actions</div>
+                <div className="font-medium">{t('admin.viewAuditLogs')}</div>
+                <div className="text-sm text-gray-600">{t('admin.viewAuditLogsDesc')}</div>
               </Link>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>System Overview</CardTitle>
-              <CardDescription>Platform health and activity</CardDescription>
+              <CardTitle>{t('admin.systemOverview')}</CardTitle>
+              <CardDescription>{t('admin.systemOverviewDesc')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Active Vendors</span>
+                <span className="text-sm text-gray-600">{t('admin.activeVendors')}</span>
                 <span className="font-semibold" data-testid="text-active-vendors">--</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Active Tenders</span>
+                <span className="text-sm text-gray-600">{t('admin.activeTenders')}</span>
                 <span className="font-semibold" data-testid="text-active-tenders">--</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Total Proposals</span>
+                <span className="text-sm text-gray-600">{t('admin.totalProposals')}</span>
                 <span className="font-semibold" data-testid="text-total-proposals">--</span>
               </div>
             </CardContent>

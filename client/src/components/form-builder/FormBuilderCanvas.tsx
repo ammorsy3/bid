@@ -9,6 +9,7 @@ import { Plus, ZoomIn, ZoomOut, PanelRightClose, PanelRight } from "lucide-react
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n";
 
 interface FormBuilderCanvasProps {
   cards: FormCard[];
@@ -27,10 +28,11 @@ export function FormBuilderCanvas({
   onToggleSidebar,
   structureOnly = false,
 }: FormBuilderCanvasProps) {
+  const { t } = useI18n();
   const { isOver, setNodeRef } = useDroppable({
     id: "form-canvas",
   });
-  
+
   const { theme } = useTheme();
   const canvasRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -132,8 +134,8 @@ export function FormBuilderCanvas({
           size="icon"
           onClick={onToggleSidebar}
           className="h-8 w-8"
-          title={sidebarVisible ? "Hide Card Library" : "Show Card Library"}
-          aria-label={sidebarVisible ? "Hide card library" : "Show card library"}
+          title={sidebarVisible ? t('formBuilder.hideLibrary') : t('formBuilder.showLibrary')}
+          aria-label={sidebarVisible ? t('formBuilder.hideLibrary') : t('formBuilder.showLibrary')}
         >
           {sidebarVisible ? (
             <PanelRightClose className="h-4 w-4" />
@@ -169,10 +171,10 @@ export function FormBuilderCanvas({
           <div className="w-full max-w-2xl px-6">
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Your RFP Structure
+                {t('formBuilder.rfpStructure')}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Drag fields from the library to define the shape of your form. You'll fill in the details in Step 2.
+                {t('formBuilder.rfpStructureSubtitle')}
               </p>
             </div>
 
@@ -212,11 +214,13 @@ interface DropZoneIndicatorProps {
 }
 
 function DropZoneIndicator({ isEmpty, isOver }: DropZoneIndicatorProps) {
+  const { t } = useI18n();
+
   if (!isEmpty && !isOver) {
     return (
       <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center transition-colors hover:border-gray-300">
         <p className="text-sm text-gray-400 dark:text-gray-500">
-          Drop more cards here
+          {t('formBuilder.dropMoreCards')}
         </p>
       </div>
     );
@@ -249,10 +253,10 @@ function DropZoneIndicator({ isEmpty, isOver }: DropZoneIndicatorProps) {
             isOver ? "text-[#E25E45]" : "text-gray-500 dark:text-gray-400"
           }`}
         >
-          {isOver ? "Drop here to add" : "Drag cards here to start"}
+          {isOver ? t('formBuilder.dropHere') : t('formBuilder.dragCardsHere')}
         </p>
         <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-          Build your custom RFP form by dragging cards from the library
+          {t('formBuilder.buildFormHint')}
         </p>
       </div>
     );

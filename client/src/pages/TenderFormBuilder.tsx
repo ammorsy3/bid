@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useMemo } from "react";
+import { useI18n } from "@/lib/i18n";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -37,6 +38,7 @@ const TENDER_STATE_KEY = "tender_form_state";
 
 export default function TenderFormBuilder() {
   const [, navigate] = useLocation();
+  const { t } = useI18n();
 
   // Initialize cards - check for saved template/state first, then fall back to required cards
   const [cards, setCards] = useState<FormCard[]>(() => {
@@ -245,30 +247,30 @@ export default function TenderFormBuilder() {
               <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
               <div>
                 <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Build Your RFP Structure
+                  {t('tenderFlow.formBuilderTitle')}
                 </h1>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Step 1 of 3 — Choose and arrange your form fields
+                  {t('tenderFlow.formBuilderSubtitle')}
                 </p>
               </div>
             </div>
 
             <StepIndicator
-              steps={[{ label: "Structure" }, { label: "Fill Details" }, { label: "Review" }]}
+              steps={[{ label: t('tenderFlow.stepStructure') }, { label: t('tenderFlow.stepFillDetails') }, { label: t('tenderFlow.stepReview') }]}
               currentStep={1}
             />
 
             <div className="flex items-center gap-3">
               <Button variant="outline" onClick={handleBack}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
+                {t('tenderFlow.back')}
               </Button>
               <Button
                 onClick={handleContinue}
                 disabled={!canContinue}
                 className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
               >
-                Continue to Details
+                {t('tenderFlow.continueToDetails')}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>

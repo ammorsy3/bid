@@ -6,9 +6,11 @@ import { AlertTriangle, Unlock } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useI18n } from "@/lib/i18n";
 
 export default function AdminAwards() {
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const { data: awards, isLoading } = useQuery({
     queryKey: ["/api/admin/awards/blocked"],
@@ -22,14 +24,14 @@ export default function AdminAwards() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/awards/blocked"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/metrics"] });
       toast({
-        title: "Award Unblocked",
-        description: "The award has been successfully unblocked.",
+        title: t('admin.awardUnblocked'),
+        description: t('admin.awardUnblockedDesc'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to unblock award.",
+        title: t('admin.error'),
+        description: error.message || t('admin.failedUnblockAward'),
         variant: "destructive",
       });
     },
@@ -55,10 +57,10 @@ export default function AdminAwards() {
       <div className="max-w-7xl mx-auto p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900" data-testid="text-page-title">
-            Blocked Awards Management
+            {t('admin.blockedAwardsManagement')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Review and unblock awards awaiting vendor verification
+            {t('admin.blockedAwardsDesc')}
           </p>
         </div>
 
@@ -67,7 +69,7 @@ export default function AdminAwards() {
             <CardContent className="py-12 text-center">
               <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600" data-testid="text-empty-state">
-                No blocked awards
+                {t('admin.noBlockedAwards')}
               </p>
             </CardContent>
           </Card>
@@ -81,20 +83,20 @@ export default function AdminAwards() {
                       <CardTitle className="flex items-center gap-2">
                         {award.tender?.title || "Unknown Tender"}
                         <Badge variant="destructive" data-testid={`badge-status-${award.id}`}>
-                          Blocked
+                          {t('admin.blocked')}
                         </Badge>
                       </CardTitle>
                       <CardDescription className="mt-2">
                         <div className="space-y-1">
-                          <div>Vendor: {award.vendor?.name || "Unknown"}</div>
-                          <div>Vendor Status: {award.vendor?.verificationStatus || "N/A"}</div>
-                          <div>Tender Deadline: {award.tender?.deadline || "N/A"}</div>
+                          <div>{t('admin.vendorLabel')} {award.vendor?.name || t('common.notFound')}</div>
+                          <div>{t('admin.vendorStatusLabel')} {award.vendor?.verificationStatus || t('admin.na')}</div>
+                          <div>{t('admin.tenderDeadline')} {award.tender?.deadline || t('admin.na')}</div>
                           <div>
-                            Blocked Since: {award.createdAt ? format(new Date(award.createdAt), "PPP") : "N/A"}
+                            {t('admin.blockedSince')} {award.createdAt ? format(new Date(award.createdAt), "PPP") : t('admin.na')}
                           </div>
                           {award.blockReason && (
                             <div className="mt-2 p-2 bg-red-50 rounded text-sm">
-                              <strong>Reason:</strong> {award.blockReason}
+                              <strong>{t('admin.reason')}</strong> {award.blockReason}
                             </div>
                           )}
                         </div>
@@ -115,12 +117,12 @@ export default function AdminAwards() {
                   >
                     <Unlock className="h-4 w-4 mr-2" />
                     {award.vendor?.verificationStatus === "verified"
-                      ? "Unblock Award"
-                      : "Cannot Unblock (Vendor Not Verified)"}
+                      ? t('admin.unblockAward')
+                      : t('admin.cannotUnblock')}
                   </Button>
                   {award.vendor?.verificationStatus !== "verified" && (
                     <p className="text-sm text-gray-600 mt-2">
-                      This award can only be unblocked after the vendor is verified.
+                      {t('admin.cannotUnblockDesc')}
                     </p>
                   )}
                 </CardContent>

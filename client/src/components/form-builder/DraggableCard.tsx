@@ -4,6 +4,7 @@ import { GripVertical, X, Star, Pencil, AlertCircle } from "lucide-react";
 import { FormCard, CardType, getCardDefinition } from "@/lib/form-builder-types";
 import { useState } from "react";
 import { CardInputRenderer } from "./CardInputRenderer";
+import { useI18n } from "@/lib/i18n";
 
 interface DraggableCardProps {
   card: FormCard;
@@ -14,36 +15,6 @@ interface DraggableCardProps {
   structureOnly?: boolean;
 }
 
-function getInputTypeLabel(type: CardType): string {
-  switch (type) {
-    case "project-title":
-    case "custom-text":
-      return "Short text";
-    case "project-description":
-    case "custom-textarea":
-      return "Long text";
-    case "supplier-response":
-      return "Submission type";
-    case "project-dates":
-      return "Date range";
-    case "budget":
-      return "Budget input";
-    case "key-deliverables":
-      return "List of items";
-    case "submission-deadline":
-    case "custom-date":
-      return "Date picker";
-    case "evaluation-criteria":
-      return "Weighted criteria";
-    case "attachments":
-      return "File upload";
-    case "custom-select":
-      return "Dropdown";
-    default:
-      return "Input field";
-  }
-}
-
 export function DraggableCard({
   card,
   onRemove,
@@ -52,8 +23,28 @@ export function DraggableCard({
   readOnly = false,
   structureOnly = false,
 }: DraggableCardProps) {
+  const { t } = useI18n();
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [editedLabel, setEditedLabel] = useState(card.label);
+
+  const inputTypeLabel = (() => {
+    switch (card.type) {
+      case "project-title":
+      case "custom-text": return t('formBuilder.inputShortText');
+      case "project-description":
+      case "custom-textarea": return t('formBuilder.inputLongText');
+      case "supplier-response": return t('formBuilder.inputSubmissionType');
+      case "project-dates": return t('formBuilder.inputDateRange');
+      case "budget": return t('formBuilder.inputBudget');
+      case "key-deliverables": return t('formBuilder.inputListItems');
+      case "submission-deadline":
+      case "custom-date": return t('formBuilder.inputDatePicker');
+      case "evaluation-criteria": return t('formBuilder.inputWeightedCriteria');
+      case "attachments": return t('formBuilder.inputFileUpload');
+      case "custom-select": return t('formBuilder.inputDropdown');
+      default: return t('formBuilder.inputField');
+    }
+  })();
 
   const {
     attributes,
@@ -175,7 +166,7 @@ export function DraggableCard({
           {needsAction && (
             <div className="flex items-center gap-1.5 mt-1">
               <AlertCircle className="h-3.5 w-3.5 text-red-500" />
-              <span className="text-xs text-red-500 font-medium">Action needed</span>
+              <span className="text-xs text-red-500 font-medium">{t('formBuilder.actionNeeded')}</span>
             </div>
           )}
         </div>
@@ -208,10 +199,10 @@ export function DraggableCard({
         <div className="px-4 py-3 bg-gray-50/60 dark:bg-gray-800/40 border-t border-gray-100 dark:border-gray-700/50">
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-0.5 rounded-full">
-              {getInputTypeLabel(card.type)}
+              {inputTypeLabel}
             </span>
             <span className="text-xs text-gray-300 dark:text-gray-600">·</span>
-            <span className="text-xs text-gray-400 dark:text-gray-500 italic">Fill in Step 2</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500 italic">{t('formBuilder.fillInStep2')}</span>
           </div>
         </div>
       ) : (

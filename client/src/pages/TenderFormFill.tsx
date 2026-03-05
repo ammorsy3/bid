@@ -15,14 +15,44 @@ import { useTheme } from "next-themes";
 import { FormCard, getCardDefinition, FIELD_INSIGHTS } from "@/lib/form-builder-types";
 import { CardInputRenderer } from "@/components/form-builder/CardInputRenderer";
 import { StepIndicator } from "@/components/form-builder/StepIndicator";
+import { useI18n } from "@/lib/i18n";
 
 const TENDER_STATE_KEY = "tender_form_state";
 
 export default function TenderFormFill() {
   const [, navigate] = useLocation();
   const { theme } = useTheme();
+  const { t } = useI18n();
+  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
+  const isRfpRtl = rfpLanguage === "ar";
   const [cards, setCards] = useState<FormCard[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const translatedInsightDescriptions: Record<string, string> = {
+    'project-title': t('formBuilder.insightProjectTitleDesc'),
+    'supplier-response': t('formBuilder.insightVendorResponseDesc'),
+    'project-dates': t('formBuilder.insightTimelineDesc'),
+    'budget': t('formBuilder.insightBudgetDesc'),
+    'key-deliverables': t('formBuilder.insightDeliverablesDesc'),
+    'milestones': t('formBuilder.insightMilestonesDesc'),
+    'project-description': t('formBuilder.insightDescriptionDesc'),
+    'submission-deadline': t('formBuilder.insightDeadlineDesc'),
+    'evaluation-criteria': t('formBuilder.insightEvalDesc'),
+    'attachments': t('formBuilder.insightAttachmentsDesc'),
+  };
+
+  const translatedCardLabels: Record<string, string> = {
+    'project-title': t('formBuilder.cardProjectTitleLabel'),
+    'supplier-response': t('formBuilder.cardVendorResponseLabel'),
+    'project-dates': t('formBuilder.cardTimelineLabel'),
+    'budget': t('formBuilder.cardBudgetLabel'),
+    'key-deliverables': t('formBuilder.cardDeliverablesLabel'),
+    'milestones': t('formBuilder.cardMilestonesLabel'),
+    'project-description': t('formBuilder.cardDescriptionLabel'),
+    'submission-deadline': t('formBuilder.cardDeadlineLabel'),
+    'evaluation-criteria': t('formBuilder.cardEvalLabel'),
+    'attachments': t('formBuilder.cardAttachmentsLabel'),
+  };
 
   const dotColor =
     theme === "dark"
@@ -70,7 +100,7 @@ export default function TenderFormFill() {
         isEmpty = !card.value.text?.trim() && !card.value.voiceNoteUrl;
       }
       if (isEmpty) {
-        missing.push(card.label);
+        missing.push(translatedCardLabels[card.type] ?? card.label);
       } else {
         completed++;
       }
@@ -99,7 +129,7 @@ export default function TenderFormFill() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-[#E8614D] border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading your form…</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('tenderFlow.loadingForm')}</p>
         </div>
       </div>
     );
@@ -108,6 +138,7 @@ export default function TenderFormFill() {
   return (
     <div
       className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-gray-900"
+      dir={isRfpRtl ? "rtl" : "ltr"}
       style={{
         backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
         backgroundSize: "20px 20px",
@@ -125,7 +156,11 @@ export default function TenderFormFill() {
           />
 
           <StepIndicator
-            steps={[{ label: "Structure" }, { label: "Fill Details" }, { label: "Review" }]}
+            steps={[
+              { label: t('tenderFlow.stepStructure') },
+              { label: t('tenderFlow.stepFillDetails') },
+              { label: t('tenderFlow.stepReview') },
+            ]}
             currentStep={2}
           />
 
@@ -136,7 +171,7 @@ export default function TenderFormFill() {
             className="group relative overflow-hidden min-w-[120px] h-10"
           >
             <span className="translate-x-1 transition-opacity duration-300 group-hover:opacity-0">
-              Back
+              {t('tenderFlow.back')}
             </span>
             <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-300 group-hover:w-full rounded-md">
               <ArrowLeft className="opacity-60 h-4 w-4" aria-hidden="true" />
@@ -152,10 +187,10 @@ export default function TenderFormFill() {
         {/* ── Headline ───────────────────────────────────────────── */}
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white leading-tight mb-3">
-            Fill in your RFP details
+            {t('tenderFlow.fillRfpTitle')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-xl mx-auto">
-            Complete each field below. Your progress is saved automatically as you type.
+            {t('tenderFlow.fillRfpSubtitle')}
           </p>
         </div>
 
@@ -163,7 +198,7 @@ export default function TenderFormFill() {
         <div className="mb-8 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {completedRequired} of {totalRequired} required fields complete
+              {completedRequired} {t('tenderFlow.ofLabel')} {totalRequired} {t('tenderFlow.requiredFieldsComplete')}
             </span>
             <span className="text-sm font-bold text-[#E8614D]">{progressPercent}%</span>
           </div>
@@ -172,7 +207,7 @@ export default function TenderFormFill() {
             aria-valuenow={progressPercent}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label="Required fields completion"
+            aria-label={t('tenderFlow.requiredFieldsCompletion')}
             className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden"
           >
             <motion.div
@@ -189,7 +224,7 @@ export default function TenderFormFill() {
               className="mt-3 text-sm text-green-600 dark:text-green-400 font-medium flex items-center gap-1.5"
             >
               <CheckCircle2 className="h-4 w-4" />
-              All required fields complete — ready to review!
+              {t('tenderFlow.allRequiredFieldsComplete')}
             </motion.p>
           )}
         </div>
@@ -206,7 +241,7 @@ export default function TenderFormFill() {
             >
               <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-amber-800 dark:text-amber-200">
-                Still needed:{" "}
+                {t('tenderFlow.stillNeeded')}{" "}
                 <span className="font-semibold">{missingFields.join(", ")}</span>
               </p>
             </motion.div>
@@ -227,6 +262,10 @@ export default function TenderFormFill() {
               }
               return true;
             })();
+
+            const displayLabel = definition?.isCustom
+              ? card.label
+              : (translatedCardLabels[card.type] ?? card.label);
 
             return (
               <motion.div
@@ -272,18 +311,18 @@ export default function TenderFormFill() {
                               : "text-gray-900 dark:text-white"
                           }`}
                         >
-                          {card.label}
+                          {displayLabel}
                         </h3>
                         {card.isRequired && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
                             <Star className="h-3 w-3" />
-                            Required
+                            {t('tenderFlow.requiredBadge')}
                           </span>
                         )}
                       </div>
-                      {insight?.description && (
+                      {insight && (translatedInsightDescriptions[card.type] || insight.description) && (
                         <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                          {insight.description}
+                          {translatedInsightDescriptions[card.type] || insight.description}
                         </p>
                       )}
                     </div>
@@ -321,7 +360,7 @@ export default function TenderFormFill() {
             className="min-w-[160px] h-12 text-base"
           >
             <ArrowLeft className="h-5 w-5 mr-2" />
-            Back to Structure
+            {t('tenderFlow.backToStructure')}
           </Button>
           <Button
             onClick={handleContinue}
@@ -329,11 +368,11 @@ export default function TenderFormFill() {
             className="min-w-[160px] h-12 text-base bg-[#E8614D] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed text-white"
             title={
               !isFormValid
-                ? `Complete required fields: ${missingFields.join(", ")}`
+                ? `${t('tenderFlow.completeRequiredFields')} ${missingFields.join(", ")}`
                 : ""
             }
           >
-            Review & Launch
+            {t('tenderFlow.reviewAndLaunch')}
             <Rocket className="h-5 w-5 ml-2" />
           </Button>
         </div>

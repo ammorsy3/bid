@@ -392,6 +392,8 @@ export default function TenderStartMethodStep() {
   const [, navigate] = useLocation();
   const { theme } = useTheme();
   const { t } = useI18n();
+  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
+  const isRfpRtl = rfpLanguage === "ar";
 
   const DEFAULT_TEMPLATES: DisplayTemplate[] = [
     {
@@ -477,6 +479,7 @@ export default function TenderStartMethodStep() {
   return (
     <div
       className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-gray-900"
+      dir={isRfpRtl ? "rtl" : "ltr"}
       style={{
         backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
         backgroundSize: '20px 20px',
@@ -654,7 +657,7 @@ export default function TenderStartMethodStep() {
                   <Loader2 className="h-8 w-8 animate-spin text-[#E8614D]" />
                 </div>
               ) : (
-                <div role="radiogroup" aria-label="Choose a template" className="space-y-3">
+                <div role="radiogroup" aria-label={t('tenderFlow.chooseTemplate')} className="space-y-3">
                   {/* Default Templates Section */}
                   {DEFAULT_TEMPLATES.map((template) => (
                     <button

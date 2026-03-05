@@ -10,10 +10,12 @@ import { Mail, Send, Trophy, AlertCircle, CheckCircle2, Clock } from "lucide-rea
 import type { Tender, Offer } from "@shared/schema";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
+import { useI18n } from "@/lib/i18n";
 
 export default function VendorDashboard() {
   const { user } = useAuthStore();
   const [, navigate] = useLocation();
+  const { t } = useI18n();
 
   // Redirect to pre-qualification if vendor is not verified or under review
   useEffect(() => {
@@ -43,18 +45,18 @@ export default function VendorDashboard() {
   return (
     <div className="min-h-screen bg-neutral-50">
       <Navbar />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-neutral-900">Tender Invitations</h1>
-              <p className="text-neutral-600 mt-1">Respond to private tender invitations from qualified requesters</p>
+              <h1 className="text-3xl font-bold text-neutral-900">{t('dashboard.tenderInvitations')}</h1>
+              <p className="text-neutral-600 mt-1">{t('dashboard.tenderInvitationsDesc')}</p>
             </div>
             {verificationStatus === 'verified' && (
               <Badge className="bg-success-600 text-white">
                 <CheckCircle2 className="h-4 w-4 mr-1" />
-                Verified
+                {t('dashboard.verified')}
               </Badge>
             )}
           </div>
@@ -65,14 +67,14 @@ export default function VendorDashboard() {
               <AlertCircle className="h-4 w-4 text-warning-600" />
               <AlertDescription className="flex items-center justify-between">
                 <span className="text-warning-800">
-                  Complete your pre-qualification to start receiving tender invitations
+                  {t('dashboard.completePreQual')}
                 </span>
-                <Button 
+                <Button
                   onClick={() => navigate('/vendor-prequalification')}
                   className="bg-primary-600 hover:bg-primary-700"
                   data-testid="button-start-prequalification"
                 >
-                  Start Pre-Qualification
+                  {t('dashboard.startPreQual')}
                 </Button>
               </AlertDescription>
             </Alert>
@@ -83,14 +85,14 @@ export default function VendorDashboard() {
               <Clock className="h-4 w-4 text-primary-600" />
               <AlertDescription className="flex items-center justify-between">
                 <span className="text-primary-800">
-                  Your pre-qualification is under review. You'll be notified once verified.
+                  {t('dashboard.underReviewAlert')}
                 </span>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => navigate('/vendor-prequalification')}
                   data-testid="button-update-prequalification"
                 >
-                  Update Profile
+                  {t('dashboard.updateProfile')}
                 </Button>
               </AlertDescription>
             </Alert>
@@ -108,7 +110,7 @@ export default function VendorDashboard() {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">New Invitations</p>
+                  <p className="text-sm font-medium text-neutral-600">{t('dashboard.newInvitations')}</p>
                   <p className="text-2xl font-bold text-neutral-900">{newInvitations.length}</p>
                 </div>
               </div>
@@ -124,7 +126,7 @@ export default function VendorDashboard() {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">Offers Submitted</p>
+                  <p className="text-sm font-medium text-neutral-600">{t('dashboard.offersSubmitted')}</p>
                   <p className="text-2xl font-bold text-neutral-900">{offersSubmitted}</p>
                 </div>
               </div>
@@ -140,7 +142,7 @@ export default function VendorDashboard() {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">Awards Won</p>
+                  <p className="text-sm font-medium text-neutral-600">{t('dashboard.awardsWon')}</p>
                   <p className="text-2xl font-bold text-neutral-900">{awardsWon}</p>
                 </div>
               </div>
@@ -151,12 +153,12 @@ export default function VendorDashboard() {
         {/* Invitations Grid */}
         {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-neutral-600">Loading invitations...</p>
+            <p className="text-neutral-600">{t('dashboard.loadingInvitations')}</p>
           </div>
         ) : invitations?.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-neutral-600">No tender invitations yet</p>
-            <p className="text-sm text-neutral-500 mt-2">You'll receive invitations from requesters who find your profile suitable for their tenders.</p>
+            <p className="text-neutral-600">{t('dashboard.noInvitationsYet')}</p>
+            <p className="text-sm text-neutral-500 mt-2">{t('dashboard.noInvitationsDesc')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

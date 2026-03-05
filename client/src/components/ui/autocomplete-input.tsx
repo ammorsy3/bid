@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, KeyboardEvent, ChangeEvent } from "react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
 interface AutocompleteInputProps {
   value: string;
@@ -28,6 +29,8 @@ export function AutocompleteInput({
   rows = 1,
   onEnter,
 }: AutocompleteInputProps) {
+  const { t, isRtl } = useI18n();
+  const dir = isRtl ? "rtl" : "ltr";
   const [ghostText, setGhostText] = useState("");
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
@@ -157,6 +160,7 @@ export function AutocompleteInput({
       {/* Ghost text overlay */}
       {ghostText && (
         <div
+          dir={dir}
           className={cn(
             "absolute inset-0 pointer-events-none",
             type === "textarea" ? "resize-none" : ""
@@ -177,6 +181,7 @@ export function AutocompleteInput({
       {type === "input" ? (
         <input
           ref={inputRef as React.RefObject<HTMLInputElement>}
+          dir={dir}
           type="text"
           value={value}
           onChange={handleChange}
@@ -191,6 +196,7 @@ export function AutocompleteInput({
       ) : (
         <textarea
           ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+          dir={dir}
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
@@ -206,9 +212,9 @@ export function AutocompleteInput({
 
       {/* Tab hint */}
       {ghostText && (
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+        <div className={`absolute ${isRtl ? "left-3" : "right-3"} top-1/2 -translate-y-1/2 pointer-events-none`}>
           <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded border border-gray-300 dark:border-gray-600">
-            Tab to accept
+            {t('tenderFlow.tabToAccept')}
           </span>
         </div>
       )}

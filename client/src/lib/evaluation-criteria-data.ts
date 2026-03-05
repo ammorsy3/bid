@@ -14,6 +14,85 @@ export interface CriteriaCategory {
   requirements: CriterionRequirement[];
 }
 
+export const CRITERIA_TRANSLATIONS_AR: Record<string, {
+  name?: string;
+  description?: string;
+  label?: string;
+  options?: Record<string, string>;
+}> = {
+  experience: {
+    name: "الخبرة ذات الصلة",
+    description: "تقييم السجل الحافل في مشاريع مماثلة",
+  },
+  financial: {
+    name: "التقييم المالي",
+    description: "التنافسية السعرية والقيمة مقابل المال",
+  },
+  technical: {
+    name: "القدرة التقنية",
+    description: "المنهجية التقنية وقدرة التسليم",
+  },
+  years_in_market: {
+    label: "الحد الأدنى لسنوات العمل في السوق",
+    description: "كم عاماً يجب أن تكون الشركة تعمل؟",
+    options: {
+      "1": "+1 سنة",
+      "3": "+3 سنوات",
+      "5": "+5 سنوات",
+      "10": "+10 سنوات",
+    },
+  },
+  similar_projects_count: {
+    label: "الحد الأدنى للمشاريع المماثلة المنجزة",
+    description: "عدد المشاريع المماثلة التي تم تسليمها",
+    options: {
+      "1": "مشروع واحد على الأقل",
+      "3": "3 مشاريع على الأقل",
+      "5": "5 مشاريع على الأقل",
+      "10": "10 مشاريع على الأقل",
+    },
+  },
+  min_project_value: {
+    label: "الحد الأدنى لقيمة المشاريع السابقة",
+    description: "أكبر عقد مماثل تم تسليمه (ريال سعودي)",
+    options: {
+      "50000": "+50,000 ريال",
+      "100000": "+100,000 ريال",
+      "250000": "+250,000 ريال",
+      "500000": "+500,000 ريال",
+      "1000000": "+1,000,000 ريال",
+    },
+  },
+  client_references: {
+    label: "مراجع العملاء المطلوبة",
+    description: "طلب مراجع عملاء موثقة",
+  },
+  financial_statements: {
+    label: "البيانات المالية المطلوبة",
+    description: "طلب بيانات مالية مدققة",
+  },
+  bank_guarantee: {
+    label: "القدرة على تقديم ضمان بنكي",
+    description: "يجب أن تكون قادراً على تقديم ضمان بنكي إذا طُلب",
+  },
+  methodology: {
+    label: "المنهجية التفصيلية المطلوبة",
+    description: "يجب تقديم منهجية تفصيلية للمشروع",
+  },
+  timeline: {
+    label: "الجدول الزمني للمشروع",
+    description: "يجب تقديم جدول زمني تفصيلي للمشروع",
+  },
+  team_cvs: {
+    label: "السيرة الذاتية للفريق مطلوبة",
+    description: "يجب تقديم السير الذاتية لأعضاء الفريق الرئيسيين",
+  },
+  industry_certifications: {
+    label: "الشهادات المهنية المتخصصة",
+    description: "الشهادات المهنية ذات الصلة بالمجال",
+  },
+};
+
 export const ENTERPRISE_CRITERIA_CATEGORIES: CriteriaCategory[] = [
   {
     id: "experience",

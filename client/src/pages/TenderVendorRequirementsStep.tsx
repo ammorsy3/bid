@@ -33,6 +33,8 @@ const PRESET_REQUIREMENTS: PresetRequirement[] = [
 
 export default function TenderVendorRequirementsStep() {
   const [, navigate] = useLocation();
+  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
+  const isRfpRtl = rfpLanguage === "ar";
   const [selected, setSelected] = useState<VendorRequirement[]>([]);
   const [customText, setCustomText] = useState('');
 
@@ -101,7 +103,7 @@ export default function TenderVendorRequirementsStep() {
   const preferredCount = selected.filter(r => r.type === 'preferred').length;
 
   return (
-    <div className="py-8 px-4">
+    <div className="py-8 px-4" dir={isRfpRtl ? "rtl" : "ltr"}>
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}

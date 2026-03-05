@@ -1,6 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CARD_LIBRARY, FIELD_INSIGHTS, CardDefinition, CardType } from "@/lib/form-builder-types";
-import { Star, GripVertical, CheckCircle2, Info } from "lucide-react";
+import { Star, GripVertical, CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 interface CardLibrarySidebarProps {
@@ -230,6 +230,7 @@ function DraggableLibraryCard({
   addedLabel = "Added",
   dragToAddLabel = "Drag to add",
 }: DraggableLibraryCardProps) {
+  const { t } = useI18n();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `library-${card.type}`,
     data: {
@@ -275,17 +276,6 @@ function DraggableLibraryCard({
             <Icon className="h-4 w-4 text-white" />
           </div>
           <div className="flex items-center gap-1">
-            {insight && !isDisabled && (
-              <button
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={handleMoreClick}
-                className="p-1 rounded-md hover:bg-white/20 transition-colors flex-shrink-0"
-                title="Field tips & best practices"
-                aria-label="Show field tips"
-              >
-                <Info className="h-3.5 w-3.5 text-white/70" />
-              </button>
-            )}
             {isRequired && !isDisabled && (
               <Star className="h-3 w-3 text-amber-300 fill-amber-300 flex-shrink-0 mt-0.5" />
             )}
@@ -309,11 +299,22 @@ function DraggableLibraryCard({
           {card.description}
         </p>
 
-        {/* Bottom row: drag hint */}
+        {/* Bottom row: drag hint + see tips */}
         {!isDisabled && (
-          <div className="flex items-center gap-1 pt-0.5">
-            <GripVertical className="h-3 w-3 text-gray-300 dark:text-gray-600" />
-            <span className="text-[10px] text-gray-300 dark:text-gray-600">{dragToAddLabel}</span>
+          <div className="flex items-center justify-between pt-0.5">
+            <div className="flex items-center gap-1">
+              <GripVertical className="h-3 w-3 text-gray-300 dark:text-gray-600" />
+              <span className="text-[10px] text-gray-300 dark:text-gray-600">{dragToAddLabel}</span>
+            </div>
+            {insight && (
+              <button
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={handleMoreClick}
+                className="text-[10px] font-medium text-[#E25E45] hover:text-[#d54d35] hover:underline transition-colors leading-none"
+              >
+                {t('formBuilder.seeTips')}
+              </button>
+            )}
           </div>
         )}
       </div>

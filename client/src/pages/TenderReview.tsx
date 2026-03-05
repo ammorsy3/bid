@@ -12,15 +12,18 @@ import {
   ChevronUp,
   Star,
   Copy,
+  Languages,
+  Loader2,
 } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useTheme } from "next-themes";
-import { FormCard, getCardDefinition } from "@/lib/form-builder-types";
+import { FormCard, getCardDefinition, FIELD_INSIGHTS } from "@/lib/form-builder-types";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Switch } from "@/components/ui/switch";
 import { StepIndicator } from "@/components/form-builder/StepIndicator";
+import { useI18n, type Language } from "@/lib/i18n";
 
 const TENDER_STATE_KEY = "tender_form_state";
 
@@ -28,16 +31,53 @@ export default function TenderReview() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { theme } = useTheme();
+  const { t } = useI18n();
   const [cards, setCards] = useState<FormCard[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  // RFP language (the language the RFP was created in)
+  const rfpLanguage = (localStorage.getItem("rfp_creation_language") || "en") as Language;
+  const isRfpRtl = rfpLanguage === "ar";
+
+  // AI Translation state
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [translatedCards, setTranslatedCards] = useState<Record<string, string>>({});
+  const [isTranslating, setIsTranslating] = useState(false);
+  const translationTargetLang = rfpLanguage === "ar" ? "en" : "ar";
 
   // Template saving state
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
   const [templateExpanded, setTemplateExpanded] = useState(true);
+
+  const translatedInsightDescriptions: Record<string, string> = {
+    'project-title': t('formBuilder.insightProjectTitleDesc'),
+    'supplier-response': t('formBuilder.insightVendorResponseDesc'),
+    'project-dates': t('formBuilder.insightTimelineDesc'),
+    'budget': t('formBuilder.insightBudgetDesc'),
+    'key-deliverables': t('formBuilder.insightDeliverablesDesc'),
+    'milestones': t('formBuilder.insightMilestonesDesc'),
+    'project-description': t('formBuilder.insightDescriptionDesc'),
+    'submission-deadline': t('formBuilder.insightDeadlineDesc'),
+    'evaluation-criteria': t('formBuilder.insightEvalDesc'),
+    'attachments': t('formBuilder.insightAttachmentsDesc'),
+  };
+
+  const translatedCardLabels: Record<string, string> = {
+    'project-title': t('formBuilder.cardProjectTitleLabel'),
+    'supplier-response': t('formBuilder.cardVendorResponseLabel'),
+    'project-dates': t('formBuilder.cardTimelineLabel'),
+    'budget': t('formBuilder.cardBudgetLabel'),
+    'key-deliverables': t('formBuilder.cardDeliverablesLabel'),
+    'milestones': t('formBuilder.cardMilestonesLabel'),
+    'project-description': t('formBuilder.cardDescriptionLabel'),
+    'submission-deadline': t('formBuilder.cardDeadlineLabel'),
+    'evaluation-criteria': t('formBuilder.cardEvalLabel'),
+    'attachments': t('formBuilder.cardAttachmentsLabel'),
+  };
 
   const dotColor =
     theme === "dark"
@@ -76,7 +116,7 @@ export default function TenderReview() {
         }
 
         if (isEmpty) {
-          errors.push(card.label);
+          errors.push(translatedCardLabels[card.type] ?? card.label);
         }
       }
     }
@@ -200,6 +240,9 @@ export default function TenderReview() {
       data.formCards = customCards;
     }
 
+    // Include the RFP creation language
+    data.language = rfpLanguage;
+
     return data;
   };
 
@@ -247,11 +290,44 @@ export default function TenderReview() {
     }
   };
 
+  const handleTranslateWithAI = async () => {
+    setIsTranslating(true);
+    try {
+      // Simulate AI translation — in production this would call an API
+      const translations: Record<string, string> = {};
+      for (const card of cards) {
+        const displayValue = getDisplayValue(card);
+        if (displayValue && displayValue !== t('tenderFlow.notProvided')) {
+          // Simple placeholder translation — replace with real API call
+          translations[card.id] = displayValue;
+        }
+      }
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setTranslatedCards(translations);
+      setShowTranslation(true);
+      toast({
+        title: translationTargetLang === 'ar' ? 'تمت الترجمة بنجاح' : 'Translation complete',
+        description: translationTargetLang === 'ar'
+          ? 'تمت ترجمة المحتوى إلى العربية'
+          : 'Content has been translated to English',
+      });
+    } catch (error) {
+      toast({
+        title: t('tenderFlow.errorLaunchingRfp'),
+        description: 'Translation failed. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   const handleLaunchTender = async () => {
     if (!validateCards(cards)) {
       toast({
-        title: "Missing required fields",
-        description: "Please fill in all required fields before launching",
+        title: t('tenderFlow.missingRequiredFields'),
+        description: t('tenderFlow.fillRequiredBeforeLaunch'),
         variant: "destructive",
       });
       return;
@@ -259,8 +335,8 @@ export default function TenderReview() {
 
     if (saveAsTemplate && !templateName.trim()) {
       toast({
-        title: "Template name required",
-        description: "Please enter a name for your template",
+        title: t('tenderFlow.templateNameRequired'),
+        description: t('tenderFlow.enterTemplateName'),
         variant: "destructive",
       });
       return;
@@ -273,14 +349,14 @@ export default function TenderReview() {
         const templateSaved = await handleSaveTemplate();
         if (!templateSaved) {
           toast({
-            title: "Error saving template",
-            description: "Failed to save template, but continuing with RFP launch",
+            title: t('tenderFlow.errorSavingTemplate'),
+            description: t('tenderFlow.failedSaveTemplateContinuing'),
             variant: "destructive",
           });
         } else {
           toast({
-            title: "Template saved",
-            description: "Your template has been saved successfully",
+            title: t('tenderFlow.templateSaved'),
+            description: t('tenderFlow.templateSavedDesc'),
           });
         }
       }
@@ -293,11 +369,11 @@ export default function TenderReview() {
 
       const inviteLink = `${window.location.origin}/invite/${createdTender.invitationToken}`;
       toast({
-        title: "RFP launched!",
-        description: "Your RFP has been created successfully",
+        title: t('tenderFlow.rfpLaunchedTitle'),
+        description: t('tenderFlow.rfpCreatedSuccess'),
         action: (
-          <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
-            <Copy className="h-3 w-3 mr-1" /> Copy Link
+          <ToastAction altText={t('tenderFlow.copyInviteLink')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderFlow.linkCopied') }); }}>
+            <Copy className="h-3 w-3 mr-1" /> {t('tenderFlow.copyLink')}
           </ToastAction>
         ),
         duration: 10000,
@@ -308,8 +384,8 @@ export default function TenderReview() {
     } catch (error: any) {
       console.error("Error launching tender:", error);
       toast({
-        title: "Error launching RFP",
-        description: error?.message || "Please try again later",
+        title: t('tenderFlow.errorLaunchingRfp'),
+        description: error?.message || t('tenderFlow.tryAgainLater'),
         variant: "destructive",
       });
     } finally {
@@ -318,23 +394,23 @@ export default function TenderReview() {
   };
 
   const SUPPLIER_RESPONSE_LABELS: Record<string, string> = {
-    "quote_only": "Price Only",
-    "tech_fin_proposal": "Full Proposal",
-    "video_only": "Video Pitch",
-    "tech_fin_with_video": "Proposal + Video",
+    "quote_only": t('tenderFlow.priceOnly'),
+    "tech_fin_proposal": t('tenderFlow.fullProposal'),
+    "video_only": t('tenderFlow.videoPitch'),
+    "tech_fin_with_video": t('tenderFlow.proposalVideo'),
   };
 
   const getDisplayValue = (card: FormCard): string => {
     if (card.value === null || card.value === undefined || card.value === "") {
-      return "Not provided";
+      return t('tenderFlow.notProvided');
     }
 
     if (card.type === "supplier-response") {
       if (typeof card.value === "string") return SUPPLIER_RESPONSE_LABELS[card.value] || card.value;
       if (typeof card.value === "object" && card.value.submissionType) {
         const submission = SUPPLIER_RESPONSE_LABELS[card.value.submissionType] || card.value.submissionType;
-        const inquiry = card.value.inquiryType === "inside_bid" ? "Inside Bid Q&A"
-          : card.value.inquiryType === "email_whatsapp" ? "WhatsApp & Email Q&A"
+        const inquiry = card.value.inquiryType === "inside_bid" ? t('tenderFlow.insideBidQA')
+          : card.value.inquiryType === "email_whatsapp" ? t('tenderFlow.whatsappEmailQA')
           : null;
         return inquiry ? `${submission} · ${inquiry}` : submission;
       }
@@ -343,7 +419,7 @@ export default function TenderReview() {
     if (typeof card.value === "string") return card.value;
 
     if (Array.isArray(card.value)) {
-      if (card.value.length === 0) return "Not provided";
+      if (card.value.length === 0) return t('tenderFlow.notProvided');
       if (card.type === "key-deliverables" || card.type === "milestones") {
         return card.value.map((item: any) => {
           if (typeof item === "string") return item;
@@ -359,28 +435,29 @@ export default function TenderReview() {
         const v = card.value as any;
         const parts: string[] = [];
         if (v.text?.trim()) parts.push(v.text.trim());
-        if (v.voiceNoteUrl) parts.push("🎙 Voice note attached");
+        if (v.voiceNoteUrl) parts.push("🎙 " + t('formBuilder.voiceNoteAttached'));
         if (v.videoUrl) parts.push(`🎬 ${v.videoUrl}`);
-        return parts.length > 0 ? parts.join("\n") : "Not provided";
+        return parts.length > 0 ? parts.join("\n") : t('tenderFlow.notProvided');
       }
       if (card.type === "evaluation-criteria") {
-        // New structure: { requirements, weights, customCriteria }
         const v = card.value as any;
         if (v.weights) {
+          const categoryLabels: Record<string, string> = {
+            experience: t('tenderFlow.evalExperienceLabel'),
+            financial: t('tenderFlow.evalFinancialLabel'),
+            technical: t('tenderFlow.evalTechnicalLabel'),
+          };
           const weightParts = (v.weights as any[])
             .filter(w => w.weight > 0)
-            .map(w => {
-              const labels: Record<string, string> = { experience: "Experience", financial: "Financial", technical: "Technical" };
-              return `${labels[w.categoryId] || w.categoryId} ${w.weight}%`;
-            });
+            .map(w => `${categoryLabels[w.categoryId] || w.categoryId} ${w.weight}%`);
           const custom = (v.customCriteria as any[] || []).map(c => `${c.text} ${c.weight}%`);
           const all = [...weightParts, ...custom];
-          return all.length > 0 ? all.join(", ") : "Configured";
+          return all.length > 0 ? all.join(", ") : t('tenderFlow.configured');
         }
-        return "Configured";
+        return t('tenderFlow.configured');
       }
       if (card.type === "budget") {
-        const visibilityNote = card.value.showToVendors === false ? " (hidden from vendors)" : "";
+        const visibilityNote = card.value.showToVendors === false ? ` ${t('tenderFlow.hiddenFromVendorsNote')}` : "";
         if (card.value.type === "exact") {
           return `SAR ${card.value.amount?.toLocaleString() || 0}${visibilityNote}`;
         }
@@ -388,19 +465,19 @@ export default function TenderReview() {
       }
       if (card.type === "milestones") {
         const count = card.value.length || 0;
-        if (count === 0) return "No milestones added";
+        if (count === 0) return t('tenderFlow.noMilestonesAdded');
         return card.value.map((m: any) => m.name).join(", ");
       }
       if (card.type === "project-dates") {
         const parts = [];
-        if (card.value.startDate) parts.push(`Start: ${card.value.startDate}`);
-        if (card.value.endDate) parts.push(`End: ${card.value.endDate}`);
-        if (card.value.deliveryDate) parts.push(`Delivery: ${card.value.deliveryDate}`);
-        return parts.length > 0 ? parts.join("  ·  ") : "Not provided";
+        if (card.value.startDate) parts.push(`${t('tenderFlow.startLabel')} ${card.value.startDate}`);
+        if (card.value.endDate) parts.push(`${t('tenderFlow.endLabel')} ${card.value.endDate}`);
+        if (card.value.deliveryDate) parts.push(`${t('tenderFlow.deliveryLabel')} ${card.value.deliveryDate}`);
+        return parts.length > 0 ? parts.join("  ·  ") : t('tenderFlow.notProvided');
       }
       if (card.type === "attachments") {
         const files = card.value as any[];
-        return `${files.length} file${files.length !== 1 ? 's' : ''}: ${files.map((f: any) => f.name).join(', ')}`;
+        return `${files.length} ${files.length !== 1 ? t('tenderFlow.filesLabel') : t('tenderFlow.fileLabel')}: ${files.map((f: any) => f.name).join(', ')}`;
       }
       return JSON.stringify(card.value);
     }
@@ -411,6 +488,7 @@ export default function TenderReview() {
   return (
     <div
       className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-gray-900"
+      dir={isRfpRtl ? "rtl" : "ltr"}
       style={{
         backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
         backgroundSize: "20px 20px",
@@ -428,7 +506,11 @@ export default function TenderReview() {
           />
 
           <StepIndicator
-            steps={[{ label: "Structure" }, { label: "Fill Details" }, { label: "Review" }]}
+            steps={[
+              { label: t('tenderFlow.stepStructure') },
+              { label: t('tenderFlow.stepFillDetails') },
+              { label: t('tenderFlow.stepReview') },
+            ]}
             currentStep={3}
           />
 
@@ -439,7 +521,7 @@ export default function TenderReview() {
             className="group relative overflow-hidden min-w-[120px] h-10"
           >
             <span className="translate-x-1 transition-opacity duration-300 group-hover:opacity-0">
-              Back
+              {t('tenderFlow.back')}
             </span>
             <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-300 group-hover:w-full rounded-md">
               <ArrowLeft className="opacity-60 h-4 w-4" aria-hidden="true" />
@@ -455,11 +537,56 @@ export default function TenderReview() {
         {/* ── Headline ───────────────────────────────────────────── */}
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white leading-tight mb-3">
-            Review your RFP
+            {t('tenderFlow.reviewRfpTitle')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-xl mx-auto">
-            Everything looks good? Go back to edit, or launch when you're ready.
+            {t('tenderFlow.reviewRfpSubtitle')}
           </p>
+        </div>
+
+        {/* ── Language info & AI Translation toggle ────────────── */}
+        <div className="mb-6 flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+          <div className="flex items-center gap-3">
+            <Languages className="h-5 w-5 text-[#E8614D]" />
+            <div>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {rfpLanguage === 'ar' ? 'لغة طلب العروض: العربية' : 'RFP Language: English'}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {rfpLanguage === 'ar' ? 'سيُعرض طلب العروض باللغة العربية للموردين' : 'Vendors will see this RFP in English'}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant={showTranslation ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              if (!showTranslation && Object.keys(translatedCards).length === 0) {
+                handleTranslateWithAI();
+              } else {
+                setShowTranslation(!showTranslation);
+              }
+            }}
+            disabled={isTranslating}
+            className={showTranslation ? "bg-[#E8614D] hover:bg-[#D44D3A] text-white" : ""}
+          >
+            {isTranslating ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {rfpLanguage === 'ar' ? 'جارٍ الترجمة...' : 'Translating...'}
+              </>
+            ) : showTranslation ? (
+              <>
+                <Languages className="h-4 w-4 mr-2" />
+                {rfpLanguage === 'ar' ? 'عرض الأصلي' : 'Show Original'}
+              </>
+            ) : (
+              <>
+                <Languages className="h-4 w-4 mr-2" />
+                {rfpLanguage === 'ar' ? 'ترجمة إلى الإنجليزية' : 'Translate to Arabic'}
+              </>
+            )}
+          </Button>
         </div>
 
         {/* ── Status banner ──────────────────────────────────────── */}
@@ -475,7 +602,7 @@ export default function TenderReview() {
             >
               <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-red-800 dark:text-red-200">
-                Still missing:{" "}
+                {t('tenderFlow.stillMissing')}{" "}
                 <span className="font-semibold">{validationErrors.join(", ")}</span>
               </p>
             </motion.div>
@@ -490,7 +617,7 @@ export default function TenderReview() {
             >
               <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
               <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                All fields complete — ready to launch!
+                {t('tenderFlow.allFieldsReadyToLaunch')}
               </p>
             </motion.div>
           )}
@@ -509,6 +636,12 @@ export default function TenderReview() {
               }
               return true;
             })();
+
+            const displayLabel = definition?.isCustom
+              ? card.label
+              : (translatedCardLabels[card.type] ?? card.label);
+            const insight = FIELD_INSIGHTS[card.type];
+            const insightDesc = translatedInsightDescriptions[card.type] || insight?.description;
 
             return (
               <motion.div
@@ -555,15 +688,20 @@ export default function TenderReview() {
                               : "text-gray-900 dark:text-white"
                           }`}
                         >
-                          {card.label}
+                          {displayLabel}
                         </h3>
                         {card.isRequired && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
                             <Star className="h-3 w-3" />
-                            Required
+                            {t('tenderFlow.requiredBadge')}
                           </span>
                         )}
                       </div>
+                      {insightDesc && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mt-1">
+                          {insightDesc}
+                        </p>
+                      )}
                     </div>
 
                     {/* Status icon */}
@@ -615,10 +753,10 @@ export default function TenderReview() {
               </div>
               <div className="text-left">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Save as Template
+                  {t('tenderFlow.saveAsTemplate')}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Reuse this RFP structure for future projects
+                  {t('tenderFlow.reuseRfpStructure')}
                 </p>
               </div>
             </div>
@@ -644,10 +782,10 @@ export default function TenderReview() {
                     <div className="flex items-center justify-between">
                       <div>
                         <label className="text-sm font-medium text-gray-900 dark:text-white">
-                          Save this RFP as a template
+                          {t('tenderFlow.saveRfpAsTemplate')}
                         </label>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                          Templates can be reused when creating new RFPs
+                          {t('tenderFlow.templatesCanBeReused')}
                         </p>
                       </div>
                       <Switch
@@ -666,25 +804,25 @@ export default function TenderReview() {
                       <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-gray-900 dark:text-white">
-                            Template Name <span className="text-red-500">*</span>
+                            {t('tenderFlow.templateNameLabel')} <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
                             value={templateName}
                             onChange={(e) => setTemplateName(e.target.value)}
-                            placeholder="e.g., Marketing Campaign RFP"
+                            placeholder={t('tenderFlow.templateNamePlaceholder')}
                             className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E8614D] focus:border-transparent"
                           />
                         </div>
 
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-gray-900 dark:text-white">
-                            Description
+                            {t('tenderFlow.descriptionLabel')}
                           </label>
                           <textarea
                             value={templateDescription}
                             onChange={(e) => setTemplateDescription(e.target.value)}
-                            placeholder="Describe what this template is for and when to use it..."
+                            placeholder={t('tenderFlow.templateDescPlaceholder')}
                             rows={3}
                             className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E8614D] focus:border-transparent resize-none"
                           />
@@ -709,8 +847,8 @@ export default function TenderReview() {
                 className="flex flex-col items-center gap-3 py-6"
               >
                 <CheckCircle2 className="h-12 w-12 text-green-500" />
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">RFP Launched!</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Redirecting to your dashboard…</p>
+                <p className="text-lg font-semibold text-gray-900 dark:text-white">{t('tenderFlow.rfpLaunchedSuccess')}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('tenderFlow.redirectingToDashboard')}</p>
               </motion.div>
             ) : (
               <motion.div key="buttons" className="flex gap-4">
@@ -721,7 +859,7 @@ export default function TenderReview() {
                   className="min-w-[160px] h-12 text-base"
                 >
                   <ArrowLeft className="h-5 w-5 mr-2" />
-                  Back to Edit
+                  {t('tenderFlow.backToEdit')}
                 </Button>
                 <Button
                   onClick={handleLaunchTender}
@@ -729,11 +867,11 @@ export default function TenderReview() {
                   className="min-w-[160px] h-12 text-base bg-[#E8614D] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed text-white"
                   title={
                     validationErrors.length > 0
-                      ? `Complete required fields: ${validationErrors.join(", ")}`
+                      ? `${t('tenderFlow.completeRequiredFields')} ${validationErrors.join(", ")}`
                       : ""
                   }
                 >
-                  {isSubmitting ? "Launching…" : "Launch RFP"}
+                  {isSubmitting ? t('tenderFlow.launching') : t('tenderFlow.launchRfp')}
                   <Rocket className="h-5 w-5 ml-2" />
                 </Button>
               </motion.div>

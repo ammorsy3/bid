@@ -504,23 +504,23 @@ export default function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       onClick={() => setLocation("/tenders/new")}
-                      tooltip={t('dashboard.createTender') || "Create Tender"}
+                      tooltip={t('dashboard.createTender')}
                       data-testid="sidebar-create-tender"
                       className="py-3 text-base rounded-lg bg-[#E8614D] text-white hover:bg-[#D44D3A] hover:text-white"
                     >
                       <Plus className="h-5 w-5 text-white" />
-                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden text-white">Create Tender</span>
+                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden text-white">{t('dashboard.createTender')}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       onClick={() => setShowSearchModal(true)}
-                      tooltip={t('dashboard.searchTenders') || "Search Tenders"}
+                      tooltip={t('dashboard.searchTenders')}
                       data-testid="sidebar-search-tenders"
                       className="py-3 text-base rounded-lg hover:bg-muted"
                     >
                       <Search className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden">Search Tenders</span>
+                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden">{t('dashboard.searchTenders')}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -838,7 +838,7 @@ export default function Dashboard() {
         <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col p-0">
           <div className="p-6 border-b">
             <Input
-              placeholder="Search tenders by title or description..."
+              placeholder={t('dashboard.searchPlaceholder')}
               value={tenderSearchQuery}
               onChange={(e) => setTenderSearchQuery(e.target.value)}
               className="h-12 text-base rounded-lg"
@@ -890,9 +890,9 @@ export default function Dashboard() {
                 <div className="text-center">
                   <Search className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {tenderSearchQuery 
-                      ? `No tenders found matching "${tenderSearchQuery}"`
-                      : "Type to search your tenders"}
+                    {tenderSearchQuery
+                      ? `${t('dashboard.noTendersFoundMatching')} "${tenderSearchQuery}"`
+                      : t('dashboard.typeToSearch')}
                   </p>
                 </div>
               </div>
@@ -933,7 +933,7 @@ export default function Dashboard() {
                       <p className="text-2xl font-bold text-gray-900 dark:text-white">
                         {tenders.filter(tender => tender.status === 'published').length}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Active RFPs</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.activeRfps')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -952,7 +952,7 @@ export default function Dashboard() {
                       <p className="text-2xl font-bold text-gray-900 dark:text-white">
                         {incomingOffers.filter(o => o.status === 'pending').length}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Pending Proposals</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.pendingProposals')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -971,7 +971,7 @@ export default function Dashboard() {
                       <p className="text-2xl font-bold text-gray-900 dark:text-white">
                         {vendors.length}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Vendors in Base</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.vendorsInBase')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -1029,7 +1029,7 @@ export default function Dashboard() {
                     <div className="mb-6">
                       <div className={`flex items-center justify-between mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
                         <span className="text-sm text-gray-600 dark:text-gray-400">
-                          {Math.min(onboardingTasks?.completedCount ?? 0, 5)} of 5 tasks complete
+                          {Math.min(onboardingTasks?.completedCount ?? 0, 5)} {t('tenderFlow.ofLabel')} 5 {t('dashboard.tasksComplete')}
                         </span>
                         <span className="text-sm font-bold text-[#E8614D]">
                           {Math.round((Math.min(onboardingTasks?.completedCount ?? 0, 5) / 5) * 100)}%
@@ -1579,7 +1579,7 @@ export default function Dashboard() {
                                   size="sm"
                                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                   onClick={() => {
-                                    if (confirm('Are you sure you want to delete this tender?')) {
+                                    if (confirm(t('dashboard.deleteConfirm'))) {
                                       deleteTender.mutate(tender.id);
                                     }
                                   }}
@@ -1700,12 +1700,12 @@ export default function Dashboard() {
                                   )}
                                 </div>
                                 <p className="text-sm text-muted-foreground line-clamp-1">
-                                  {offer.tender.description || 'No description'}
+                                  {offer.tender.description || t('dashboard.noDescription')}
                                 </p>
                                 <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                                   <span className="flex items-center gap-1">
                                     <Calendar className="h-3 w-3" />
-                                    Submitted {new Date(offer.submittedAt).toLocaleDateString('en-US', {
+                                    {t('dashboard.submitted')} {new Date(offer.submittedAt).toLocaleDateString('en-US', {
                                       month: 'short',
                                       day: 'numeric',
                                       year: 'numeric'
@@ -1713,7 +1713,7 @@ export default function Dashboard() {
                                   </span>
                                   <span className={`flex items-center gap-1 ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : ''}`}>
                                     <Clock className="h-3 w-3" />
-                                    {isExpired ? 'Deadline passed' : `${daysRemaining} days left`}
+                                    {isExpired ? t('dashboard.deadlinePassed') : `${daysRemaining} ${t('dashboard.daysLeft')}`}
                                   </span>
                                 </div>
                                 {offer.notes && (
@@ -1721,8 +1721,8 @@ export default function Dashboard() {
                                 )}
                               </div>
                               <div className={`flex gap-2 flex-wrap ${isRtl ? 'mr-4' : 'ml-4'}`}>
-                                <Button 
-                                  variant="outline" 
+                                <Button
+                                  variant="outline"
                                   size="sm"
                                   onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
                                   data-testid={`button-view-tender-${offer.id}`}
@@ -1731,41 +1731,41 @@ export default function Dashboard() {
                                   {t('dashboard.viewTender')}
                                 </Button>
                                 {offer.combinedFileUrl && (
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)}
-                                    title="Combined Proposal"
+                                    title={t('dashboard.combinedProposal')}
                                   >
                                     <FileText className="h-4 w-4" />
                                   </Button>
                                 )}
                                 {offer.technicalFileUrl && (
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
-                                    title="Technical Proposal"
+                                    title={t('dashboard.technicalProposal')}
                                   >
                                     <FileText className="h-4 w-4" />
                                   </Button>
                                 )}
                                 {offer.financialFileUrl && (
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
-                                    title="Financial Proposal"
+                                    title={t('dashboard.financialProposal')}
                                   >
                                     <DollarSign className="h-4 w-4" />
                                   </Button>
                                 )}
                                 {offer.videoUrl && (
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => window.open(offer.videoUrl!, '_blank')}
-                                    title="Video Pitch"
+                                    title={t('dashboard.videoPitchLabel')}
                                   >
                                     <Video className="h-4 w-4" />
                                   </Button>
@@ -1844,7 +1844,7 @@ export default function Dashboard() {
                                   )}
                                 </div>
                                 <p className="text-sm text-muted-foreground">
-                                  For: <span 
+                                  {t('dashboard.forTender')} <span
                                     className="cursor-pointer hover:text-primary font-medium"
                                     onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
                                   >
@@ -1854,7 +1854,7 @@ export default function Dashboard() {
                                 <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                                   <span className="flex items-center gap-1">
                                     <Calendar className="h-3 w-3" />
-                                    Received {new Date(offer.submittedAt).toLocaleDateString('en-US', {
+                                    {t('dashboard.received')} {new Date(offer.submittedAt).toLocaleDateString('en-US', {
                                       month: 'short',
                                       day: 'numeric',
                                       year: 'numeric'
@@ -1862,7 +1862,7 @@ export default function Dashboard() {
                                   </span>
                                   <span className={`flex items-center gap-1 ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : ''}`}>
                                     <Clock className="h-3 w-3" />
-                                    {isExpired ? 'Deadline passed' : `${daysRemaining} days left`}
+                                    {isExpired ? t('dashboard.deadlinePassed') : `${daysRemaining} ${t('dashboard.daysLeft')}`}
                                   </span>
                                   {offer.company.category && (
                                     <span className="text-muted-foreground">
@@ -1874,7 +1874,7 @@ export default function Dashboard() {
                                   <div className="flex items-center gap-1 mt-2">
                                     <DollarSign className="h-3.5 w-3.5 text-emerald-600" />
                                     <span className="text-sm font-semibold text-emerald-700">SAR {offer.quotePrice.toLocaleString()}</span>
-                                    <span className="text-xs text-muted-foreground ml-1">(Price Quote)</span>
+                                    <span className="text-xs text-muted-foreground ml-1">({t('dashboard.priceQuote')})</span>
                                   </div>
                                 )}
                                 {offer.notes && (
@@ -1883,52 +1883,52 @@ export default function Dashboard() {
                               </div>
                               <div className="flex flex-col gap-2 ml-4">
                                 <div className="flex gap-2 flex-wrap">
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => setSelectedProposal(offer)}
                                     data-testid={`button-view-offer-${offer.id}`}
                                   >
                                     <Eye className="h-4 w-4 mr-1" />
-                                    View
+                                    {t('dashboard.view')}
                                   </Button>
                                   {offer.combinedFileUrl && (
-                                    <Button 
-                                      variant="outline" 
+                                    <Button
+                                      variant="outline"
                                       size="sm"
                                       onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)}
-                                      title="Combined Proposal (Technical + Financial)"
+                                      title={t('dashboard.combinedProposalLabel')}
                                     >
                                       <FileText className="h-4 w-4 mr-1" />
-                                      Proposal
+                                      {t('dashboard.proposalLabel')}
                                     </Button>
                                   )}
                                   {offer.technicalFileUrl && (
-                                    <Button 
-                                      variant="outline" 
+                                    <Button
+                                      variant="outline"
                                       size="sm"
                                       onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
-                                      title="Technical Proposal"
+                                      title={t('dashboard.technicalProposal')}
                                     >
                                       <FileText className="h-4 w-4" />
                                     </Button>
                                   )}
                                   {offer.financialFileUrl && (
-                                    <Button 
-                                      variant="outline" 
+                                    <Button
+                                      variant="outline"
                                       size="sm"
                                       onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
-                                      title="Financial Proposal"
+                                      title={t('dashboard.financialProposal')}
                                     >
                                       <DollarSign className="h-4 w-4" />
                                     </Button>
                                   )}
                                   {offer.videoUrl && (
-                                    <Button 
-                                      variant="outline" 
+                                    <Button
+                                      variant="outline"
                                       size="sm"
                                       onClick={() => window.open(offer.videoUrl!, '_blank')}
-                                      title="Video Pitch"
+                                      title={t('dashboard.videoPitchLabel')}
                                     >
                                       <Video className="h-4 w-4" />
                                     </Button>
@@ -1968,7 +1968,7 @@ export default function Dashboard() {
                                     disabled={updateOfferStatus.isPending}
                                     data-testid={`button-undo-offer-${offer.id}`}
                                   >
-                                    Undo Decision
+                                    {t('dashboard.undoDecision')}
                                   </Button>
                                 )}
                               </div>
@@ -2202,7 +2202,7 @@ export default function Dashboard() {
                                   variant={vendor.joinMethod === 'invitation' ? 'default' : 'outline'}
                                   data-testid={`badge-join-method-${vendor.id}`}
                                 >
-                                  {vendor.joinMethod === 'invitation' ? 'Invited' : vendor.joinMethod === 'proposal_accepted' ? 'Proposal' : 'Applied'}
+                                  {vendor.joinMethod === 'invitation' ? t('dashboard.invitedMethod') : vendor.joinMethod === 'proposal_accepted' ? t('dashboard.viaProposal') : t('dashboard.appliedViaTraction')}
                                 </Badge>
                                 <Button
                                   variant="outline"
@@ -2265,7 +2265,7 @@ export default function Dashboard() {
                                 <div className="flex-1">
                                   <div className="flex items-center gap-3 mb-1">
                                     <CardTitle className="text-lg" data-testid={`text-request-company-${request.id}`}>
-                                      {request.vendor?.company || 'Unknown Vendor'}
+                                      {request.vendor?.company || t('dashboard.unknownVendor')}
                                     </CardTitle>
                                     <Badge 
                                       variant={
@@ -2284,65 +2284,65 @@ export default function Dashboard() {
                                     >
                                       {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 mr-1" />}
                                       {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 mr-1" />}
-                                      {request.vendor?.verificationStatus === 'verified' ? 'Verified' : 
-                                       request.vendor?.verificationStatus === 'under_review' ? 'Under Review' : 
-                                       'Not Verified'}
+                                      {request.vendor?.verificationStatus === 'verified' ? t('dashboard.verifiedStatus') :
+                                       request.vendor?.verificationStatus === 'under_review' ? t('dashboard.underReviewStatus') :
+                                       t('dashboard.notVerifiedStatus')}
                                     </Badge>
                                   </div>
                                   <CardDescription data-testid={`text-request-category-${request.id}`}>
-                                    {request.vendor?.expertise || 'No category'}
+                                    {request.vendor?.expertise || t('dashboard.noCategory')}
                                   </CardDescription>
                                 </div>
                                 <div className="flex gap-2">
                                   <Dialog>
                                     <DialogTrigger asChild>
-                                      <Button 
-                                        variant="outline" 
-                                        size="sm" 
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
                                         onClick={() => setSelectedRequest(request)}
                                         data-testid={`button-review-${request.id}`}
                                       >
-                                        Review
+                                        {t('dashboard.view')}
                                       </Button>
                                     </DialogTrigger>
                                     <DialogContent data-testid="dialog-review">
                                       <DialogHeader>
                                         <DialogTitle data-testid="text-dialog-title">
-                                          Review Application: {selectedRequest?.vendor?.company || 'Unknown Vendor'}
+                                          {t('dashboard.reviewApplication')} {selectedRequest?.vendor?.company || t('dashboard.unknownVendor')}
                                         </DialogTitle>
                                         <DialogDescription>
-                                          Decide whether to approve or reject this vendor application
+                                          {t('dashboard.reviewApplicationDesc')}
                                         </DialogDescription>
                                       </DialogHeader>
                                       {selectedRequest && (
                                         <div className="space-y-4">
                                           <div className="grid gap-3">
                                             <div>
-                                              <label className="text-sm font-medium">Company Name</label>
+                                              <label className="text-sm font-medium">{t('dashboard.companyNameLabel')}</label>
                                               <p className="text-sm text-muted-foreground" data-testid="text-dialog-company">
-                                                {selectedRequest.vendor?.company || 'Unknown'}
+                                                {selectedRequest.vendor?.company || t('dashboard.unknownVendor')}
                                               </p>
                                             </div>
                                             <div>
-                                              <label className="text-sm font-medium">Contact Person</label>
+                                              <label className="text-sm font-medium">{t('dashboard.contactPersonLabel')}</label>
                                               <p className="text-sm text-muted-foreground" data-testid="text-dialog-contact">
-                                                {selectedRequest.vendor?.name || 'Unknown'}
+                                                {selectedRequest.vendor?.name || t('dashboard.unknownVendor')}
                                               </p>
                                             </div>
                                             <div>
-                                              <label className="text-sm font-medium">Email</label>
+                                              <label className="text-sm font-medium">{t('dashboard.emailLabel')}</label>
                                               <p className="text-sm text-muted-foreground" data-testid="text-dialog-email">
-                                                {selectedRequest.vendor?.email || 'Unknown'}
+                                                {selectedRequest.vendor?.email || t('dashboard.unknownVendor')}
                                               </p>
                                             </div>
                                             <div>
-                                              <label className="text-sm font-medium">Expertise</label>
+                                              <label className="text-sm font-medium">{t('dashboard.expertiseLabel')}</label>
                                               <p className="text-sm text-muted-foreground" data-testid="text-dialog-expertise">
-                                                {selectedRequest.vendor?.expertise || 'Not specified'}
+                                                {selectedRequest.vendor?.expertise || t('auth.notSpecified')}
                                               </p>
                                             </div>
                                             <div>
-                                              <label className="text-sm font-medium">Verification Status</label>
+                                              <label className="text-sm font-medium">{t('dashboard.verificationStatusLabel')}</label>
                                               <Badge variant={selectedRequest.vendor?.verificationStatus === 'verified' ? 'default' : 'secondary'}>
                                                 {selectedRequest.vendor?.verificationStatus || 'unknown'}
                                               </Badge>
@@ -2417,7 +2417,7 @@ export default function Dashboard() {
               {selectedProposal?.profile?.displayName || selectedProposal?.company.name}
             </DialogTitle>
             <DialogDescription>
-              {selectedProposal?.company.category || 'No category'}
+              {selectedProposal?.company.category || t('dashboard.noCategory')}
             </DialogDescription>
           </DialogHeader>
           
@@ -2425,33 +2425,33 @@ export default function Dashboard() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Company Name</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">{t('dashboard.companyNameLabel')}</h4>
                   <p className="text-sm">{selectedProposal.company.name}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Category</h4>
-                  <p className="text-sm">{selectedProposal.company.category || 'Not specified'}</p>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">{t('dashboard.categoryLabel')}</h4>
+                  <p className="text-sm">{selectedProposal.company.category || t('auth.notSpecified')}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Verification Status</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">{t('dashboard.verificationStatusLabel')}</h4>
                   <Badge variant={selectedProposal.company.verificationStatus === 'verified' ? 'default' : 'secondary'}>
-                    {selectedProposal.company.verificationStatus === 'verified' ? 'Verified' : 'Under Review'}
+                    {selectedProposal.company.verificationStatus === 'verified' ? t('dashboard.verifiedStatus') : t('dashboard.underReviewStatus')}
                   </Badge>
                 </div>
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">For Tender</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">{t('dashboard.forTenderLabel')}</h4>
                   <p className="text-sm font-medium">{selectedProposal.tender.title}</p>
                 </div>
               </div>
 
               <div className="border-t pt-4">
-                <h4 className="font-medium text-sm text-muted-foreground mb-2">Proposal Details</h4>
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">{t('dashboard.proposalDetailsLabel')}</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Submitted</span>
+                    <span className="text-muted-foreground">{t('dashboard.submittedLabel')}</span>
                     <span>{new Date(selectedProposal.submittedAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
@@ -2462,7 +2462,7 @@ export default function Dashboard() {
                   </div>
                   {selectedProposal.notes && (
                     <div>
-                      <span className="text-sm text-muted-foreground">Notes:</span>
+                      <span className="text-sm text-muted-foreground">{t('dashboard.notesLabel')}</span>
                       <p className="text-sm mt-1">{selectedProposal.notes}</p>
                     </div>
                   )}
@@ -2470,11 +2470,11 @@ export default function Dashboard() {
               </div>
 
               <div className="border-t pt-4">
-                <h4 className="font-medium text-sm text-muted-foreground mb-3">Submitted Materials</h4>
+                <h4 className="font-medium text-sm text-muted-foreground mb-3">{t('dashboard.submittedMaterials')}</h4>
                 
                 {selectedProposal.quotePrice && (
                   <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg mb-2">
-                    <span className="text-sm text-muted-foreground">Price Quote</span>
+                    <span className="text-sm text-muted-foreground">{t('dashboard.priceQuoteLabel')}</span>
                     <span className="text-lg font-bold text-emerald-700">SAR {selectedProposal.quotePrice.toLocaleString()}</span>
                   </div>
                 )}
@@ -2489,7 +2489,7 @@ export default function Dashboard() {
                       data-testid="button-modal-combined-file"
                     >
                       <FileText className="h-4 w-4 mr-2" />
-                      Combined Proposal
+                      {t('dashboard.combinedProposal')}
                     </Button>
                   )}
                   {selectedProposal.technicalFileUrl && (
@@ -2501,7 +2501,7 @@ export default function Dashboard() {
                       data-testid="button-modal-tech-file"
                     >
                       <FileText className="h-4 w-4 mr-2" />
-                      Technical Proposal
+                      {t('dashboard.technicalProposal')}
                     </Button>
                   )}
                   {selectedProposal.financialFileUrl && (
@@ -2513,7 +2513,7 @@ export default function Dashboard() {
                       data-testid="button-modal-fin-file"
                     >
                       <DollarSign className="h-4 w-4 mr-2" />
-                      Financial Proposal
+                      {t('dashboard.financialProposal')}
                     </Button>
                   )}
                   {selectedProposal.videoUrl && (
@@ -2525,13 +2525,13 @@ export default function Dashboard() {
                       data-testid="button-modal-video"
                     >
                       <Video className="h-4 w-4 mr-2" />
-                      Video Pitch
+                      {t('dashboard.videoPitchLabel')}
                     </Button>
                   )}
                 </div>
 
                 {!selectedProposal.combinedFileUrl && !selectedProposal.technicalFileUrl && !selectedProposal.financialFileUrl && !selectedProposal.videoUrl && !selectedProposal.quotePrice && (
-                  <p className="text-sm text-muted-foreground italic">No files or media submitted</p>
+                  <p className="text-sm text-muted-foreground italic">{t('dashboard.noFilesSubmitted')}</p>
                 )}
               </div>
 
@@ -2603,23 +2603,23 @@ export default function Dashboard() {
                 {selectedVendor.verificationStatus === 'verified' ? (
                   <Badge className="bg-green-100 text-green-800">
                     <CheckCircle className="h-3 w-3 mr-1" />
-                    Verified Company
+                    {t('dashboard.verifiedCompany')}
                   </Badge>
                 ) : (
                   <Badge variant="secondary">
                     <Clock className="h-3 w-3 mr-1" />
-                    Under Review
+                    {t('dashboard.underReviewStatus')}
                   </Badge>
                 )}
                 <Badge variant="outline">
-                  {selectedVendor.joinMethod === 'invitation' ? 'Invited' : selectedVendor.joinMethod === 'proposal_accepted' ? 'Via Proposal' : 'Applied via Traction'}
+                  {selectedVendor.joinMethod === 'invitation' ? t('dashboard.invitedMethod') : selectedVendor.joinMethod === 'proposal_accepted' ? t('dashboard.viaProposal') : t('dashboard.appliedViaTraction')}
                 </Badge>
               </div>
 
               {/* Bio */}
               {selectedVendor.bio && (
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">About</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">{t('dashboard.aboutLabel')}</h4>
                   <p className="text-sm">{selectedVendor.bio}</p>
                 </div>
               )}
@@ -2628,25 +2628,25 @@ export default function Dashboard() {
               <div className="grid grid-cols-2 gap-4 border-t pt-4">
                 {selectedVendor.legalName && (
                   <div>
-                    <h4 className="font-medium text-sm text-muted-foreground mb-1">Legal Name</h4>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-1">{t('dashboard.legalNameLabel')}</h4>
                     <p className="text-sm">{selectedVendor.legalName}</p>
                   </div>
                 )}
                 {selectedVendor.city && (
                   <div>
-                    <h4 className="font-medium text-sm text-muted-foreground mb-1">City</h4>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-1">{t('dashboard.cityLabel')}</h4>
                     <p className="text-sm">{selectedVendor.city}</p>
                   </div>
                 )}
                 {selectedVendor.crNumber && (
                   <div>
-                    <h4 className="font-medium text-sm text-muted-foreground mb-1">CR Number</h4>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-1">{t('dashboard.crNumberLabel')}</h4>
                     <p className="text-sm font-mono">{selectedVendor.crNumber}</p>
                   </div>
                 )}
                 {selectedVendor.vatNumber && (
                   <div>
-                    <h4 className="font-medium text-sm text-muted-foreground mb-1">VAT Number</h4>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-1">{t('dashboard.vatNumberLabel')}</h4>
                     <p className="text-sm font-mono">{selectedVendor.vatNumber}</p>
                   </div>
                 )}
@@ -2655,7 +2655,7 @@ export default function Dashboard() {
               {/* Joined Date */}
               <div className="border-t pt-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Added to Vendors Base</span>
+                  <span className="text-muted-foreground">{t('dashboard.addedToVendorsBase')}</span>
                   <span>{new Date(selectedVendor.joinedAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
@@ -2702,7 +2702,7 @@ export default function Dashboard() {
               ) : (
                 <Badge variant="secondary">
                   <Clock className="h-3 w-3 mr-1" />
-                  Under Review
+                  {t('dashboard.underReviewStatus')}
                 </Badge>
               )}
               <Badge variant="outline" className="capitalize">
@@ -2719,7 +2719,7 @@ export default function Dashboard() {
             {/* Company Bio */}
             {activeCompany.profile?.bio && (
               <div className="p-4 bg-muted rounded-lg">
-                <h4 className="font-medium text-sm text-muted-foreground mb-2">About</h4>
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">{t('dashboard.aboutLabel')}</h4>
                 <p className="text-sm">{activeCompany.profile.bio}</p>
               </div>
             )}
@@ -2727,23 +2727,23 @@ export default function Dashboard() {
             {/* Company Details Grid */}
             <div className="grid grid-cols-2 gap-4 border-t pt-4">
               <div>
-                <h4 className="font-medium text-sm text-muted-foreground mb-1">Company Name</h4>
+                <h4 className="font-medium text-sm text-muted-foreground mb-1">{t('dashboard.companyNameLabel')}</h4>
                 <p className="text-sm font-medium">{activeCompany.name}</p>
               </div>
               {activeCompany.profile?.displayName && (
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Display Name</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">{t('dashboard.displayNameLabel')}</h4>
                   <p className="text-sm font-medium">{activeCompany.profile.displayName}</p>
                 </div>
               )}
               {activeCompany.slug && (
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Company Slug</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">{t('dashboard.companySlugLabel')}</h4>
                   <p className="text-sm font-mono">{activeCompany.slug}</p>
                 </div>
               )}
               <div>
-                <h4 className="font-medium text-sm text-muted-foreground mb-1">Onboarding Status</h4>
+                <h4 className="font-medium text-sm text-muted-foreground mb-1">{t('dashboard.onboardingStatusLabel')}</h4>
                 <p className="text-sm capitalize">{activeCompany.onboardingState?.replace('_', ' ')}</p>
               </div>
             </div>

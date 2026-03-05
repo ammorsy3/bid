@@ -7,12 +7,13 @@ import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-prev
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
+import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import VoiceRecorder from "@/components/voice-recorder";
 import { AutocompleteInput } from "@/components/ui/autocomplete-input";
 import { getSuggestions } from "@/lib/tender-suggestions";
 import { smartSuggestionEngine } from "@/lib/smart-suggestions";
-import { SmartUnitDropdown } from "@/components/ui/smart-unit-dropdown";
+import { SmartUnitDropdown, UNIT_LABELS_AR } from "@/components/ui/smart-unit-dropdown";
 import { useI18n } from "@/lib/i18n";
 
 type InputMode = "text" | "voice";
@@ -38,7 +39,10 @@ const countWords = (text: string): number => {
 
 export default function TenderProjectScopeStep() {
   const [, navigate] = useLocation();
-  const { t } = useI18n();
+  const { t, language, isRtl } = useI18n();
+  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
+  const isRfpRtl = rfpLanguage === "ar";
+  const dateLocale = language === 'ar' ? arLocale : undefined;
   const [keyDeliverables, setKeyDeliverables] = useState<Deliverable[]>([]);
   const [expandedDeliverableId, setExpandedDeliverableId] = useState<string | null>(null);
   const [projectDescription, setProjectDescription] = useState("");
@@ -101,8 +105,8 @@ export default function TenderProjectScopeStep() {
   const [descriptionSuggestions, setDescriptionSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
-    const generalDeliverable = getSuggestions("deliverable");
-    const generalDescription = getSuggestions("description");
+    const generalDeliverable = getSuggestions("deliverable", language);
+    const generalDescription = getSuggestions("description", language);
 
     setDeliverableSuggestions(
       smartSuggestionEngine.getCombinedSuggestions("deliverable", generalDeliverable)
@@ -110,7 +114,7 @@ export default function TenderProjectScopeStep() {
     setDescriptionSuggestions(
       smartSuggestionEngine.getCombinedSuggestions("description", generalDescription)
     );
-  }, [draft.title]);
+  }, [draft.title, language]);
 
   const handleAddDeliverable = () => {
     const newDeliverableItem: Deliverable = {
@@ -348,7 +352,7 @@ export default function TenderProjectScopeStep() {
   const showDescription = isTimelineComplete;
 
   return (
-    <div className="py-8 px-4">
+    <div className="py-8 px-4" dir={isRfpRtl ? "rtl" : "ltr"}>
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <img
@@ -442,7 +446,7 @@ export default function TenderProjectScopeStep() {
                                 </span>
                                 {deliverable.quantity > 0 && deliverable.unit && (
                                   <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded">
-                                    {deliverable.quantity} × {deliverable.unit}
+                                    {deliverable.quantity} × {isRtl ? (UNIT_LABELS_AR[deliverable.unit] ?? deliverable.unit) : deliverable.unit}
                                   </span>
                                 )}
                                 {hasErrors && (
@@ -483,7 +487,7 @@ export default function TenderProjectScopeStep() {
                                     type="text"
                                     value={deliverable.name}
                                     onChange={(e) => handleUpdateDeliverable(deliverable.id, 'name', e.target.value)}
-                                    placeholder="e.g., Social Media Campaign Management"
+                                    placeholder={t('tenderFlow.deliverableNamePlaceholder')}
                                     className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${
                                       errors.name ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
                                     }`}
@@ -611,7 +615,7 @@ export default function TenderProjectScopeStep() {
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {startDate ? format(startDate, "PPP") : t('tenderFlow.selectDate')}
+                            {startDate ? format(startDate, "PPP", { locale: dateLocale }) : t('tenderFlow.selectDate')}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -620,6 +624,7 @@ export default function TenderProjectScopeStep() {
                             selected={startDate}
                             onSelect={setStartDate}
                             disabled={(date) => date < new Date()}
+                            locale={dateLocale}
                             initialFocus
                           />
                         </PopoverContent>
@@ -638,7 +643,7 @@ export default function TenderProjectScopeStep() {
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {endDate ? format(endDate, "PPP") : t('tenderFlow.selectDate')}
+                            {endDate ? format(endDate, "PPP", { locale: dateLocale }) : t('tenderFlow.selectDate')}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -649,6 +654,7 @@ export default function TenderProjectScopeStep() {
                             disabled={(date) =>
                               date < new Date() || (startDate ? date < startDate : false)
                             }
+                            locale={dateLocale}
                             initialFocus
                           />
                         </PopoverContent>
@@ -749,7 +755,7 @@ export default function TenderProjectScopeStep() {
                                 >
                                   <CalendarIcon className="h-3.5 w-3.5" />
                                   <span className="hidden sm:inline">
-                                    {milestone.dueDate ? format(milestone.dueDate, "MMM d") : t('tenderFlow.date')}
+                                    {milestone.dueDate ? format(milestone.dueDate, "MMM d", { locale: dateLocale }) : t('tenderFlow.date')}
                                   </span>
                                 </button>
                               </PopoverTrigger>
@@ -762,6 +768,7 @@ export default function TenderProjectScopeStep() {
                                     (startDate ? date < startDate : false) ||
                                     (endDate ? date > endDate : false)
                                   }
+                                  locale={dateLocale}
                                   initialFocus
                                 />
                               </PopoverContent>

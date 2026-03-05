@@ -27,7 +27,8 @@
       "Bash(wc -l /home/runner/workspace/client/src/pages/*.tsx | tail -1)",
       "Bash(for file in client/src/components/navbar.tsx client/src/components/create-tender-modal.tsx client/src/components/tender-card.tsx client/src/components/submit-offer-modal.tsx; do\n  if grep -q \"useI18n\" \"$file\" 2>/dev/null; then\n    echo \"$file: HAS useI18n\"\n  else\n    echo \"$file: NO useI18n\"\n  fi\ndone)",
       "Bash(cat << 'EOF'\n\n## SUMMARY OF FILES WITHOUT useI18n HOOK\n\nThe following files have hardcoded English strings that need to be translated:\n\n### ADMIN PAGES \\(All Missing useI18n\\):\n1. AdminDashboard.tsx - Admin panel dashboard\n2. AdminUsers.tsx - User management  \n3. AdminVendors.tsx - Vendor verification\n4. AdminJoinRequests.tsx - Join request management\n5. AdminAwards.tsx - Awards management\n6. AdminAuditLogs.tsx - Audit log viewer\n\n### TENDER/FORM PAGES \\(All Missing useI18n\\):\n1. TenderFormBuilder.tsx - Form structure builder\n2. TenderBriefStep.tsx - Tender brief step\n3. TenderInviteLink.tsx - Tender invitation links\n4. CreateTender.tsx - Create tender form\n5. invitation-links.tsx - Invitation links page\n\n### KEY COMPONENTS \\(Missing useI18n\\):\n1. navbar.tsx - Main navigation\n2. create-tender-modal.tsx - Modal for creating tenders\n3. submit-offer-modal.tsx - Modal for submitting offers\n4. tender-card.tsx - Tender card component\n5. Other utility components\n\nEOF)",
-      "Bash(ls -la /home/runner/workspace/client/src/pages/*.tsx | wc -l)"
+      "Bash(ls -la /home/runner/workspace/client/src/pages/*.tsx | wc -l)",
+      "Bash(find /home/runner/workspace -type f \\\\\\( -name \"main.tsx\" -o -name \"App.tsx\" -o -name \"*route*\" \\\\\\) 2>/dev/null | head -20)"
     ]
   }
 }

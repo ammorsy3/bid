@@ -11,7 +11,9 @@ import { TimePicker } from "@/components/ui/datetime-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, add } from "date-fns";
+import { ar as arLocale } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,6 +60,8 @@ const REQUIRED_FIELDS: (keyof CreateTenderForm)[] = ['title', 'description', 'de
 export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModalProps) {
   const { user } = useAuthStore();
   const { toast } = useToast();
+  const { language } = useI18n();
+  const dateLocale = language === 'ar' ? arLocale : undefined;
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   const [createdTender, setCreatedTender] = useState<Tender | null>(null);
@@ -466,7 +470,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                               data-testid="input-deadline"
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
-                              {dateValue ? format(dateValue, "PPP HH:mm:ss") : <span>Pick a date</span>}
+                              {dateValue ? format(dateValue, "PPP HH:mm:ss", { locale: dateLocale }) : <span>Pick a date</span>}
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
@@ -476,6 +480,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                             selected={dateValue}
                             onSelect={handleSelect}
                             disabled={(date) => date < new Date()}
+                            locale={dateLocale}
                             initialFocus
                           />
                           <div className="p-3 border-t border-border">

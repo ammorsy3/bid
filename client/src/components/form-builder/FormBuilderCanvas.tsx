@@ -113,8 +113,8 @@ export function FormBuilderCanvas({
           size="icon"
           onClick={handleZoomOut}
           className="h-8 w-8"
-          title="Zoom Out"
-          aria-label="Zoom out"
+          title={t('formBuilder.zoomOut')}
+          aria-label={t('formBuilder.zoomOut')}
         >
           <ZoomOut className="h-4 w-4" />
         </Button>
@@ -123,8 +123,8 @@ export function FormBuilderCanvas({
           size="icon"
           onClick={handleZoomIn}
           className="h-8 w-8"
-          title="Zoom In"
-          aria-label="Zoom in"
+          title={t('formBuilder.zoomIn')}
+          aria-label={t('formBuilder.zoomIn')}
         >
           <ZoomIn className="h-4 w-4" />
         </Button>

@@ -5,7 +5,7 @@ import { ArrowLeft, Check, Scale, ChevronDown, Briefcase, Clock, Plus, X, Shield
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
-import { ENTERPRISE_CRITERIA_CATEGORIES } from "@/lib/evaluation-criteria-data";
+import { ENTERPRISE_CRITERIA_CATEGORIES, CRITERIA_TRANSLATIONS_AR } from "@/lib/evaluation-criteria-data";
 import { useI18n } from "@/lib/i18n";
 
 // ── Evaluation criteria types ────────────────────────────────────────────────
@@ -70,7 +70,14 @@ const PRESET_KEY_MAP: Record<string, string> = {
 
 export default function TenderEvaluationCriteriaStep() {
   const [, navigate] = useLocation();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
+  const isRfpRtl = rfpLanguage === "ar";
+  const isAr = language === 'ar';
+  const tr = (id: string, field: 'name' | 'label' | 'description') =>
+    isAr ? (CRITERIA_TRANSLATIONS_AR[id]?.[field] ?? undefined) : undefined;
+  const trOpt = (reqId: string, value: string, fallback: string) =>
+    isAr ? (CRITERIA_TRANSLATIONS_AR[reqId]?.options?.[value] ?? fallback) : fallback;
 
   const PRESET_REQUIREMENTS: PresetRequirement[] = PRESET_REQUIREMENT_IDS.map(id => ({
     id,
@@ -217,7 +224,7 @@ export default function TenderEvaluationCriteriaStep() {
   const handleBack = () => navigate("/tenders/new/submission-process");
 
   return (
-    <div className="py-8 px-4">
+    <div className="py-8 px-4" dir={isRfpRtl ? "rtl" : "ltr"}>
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
@@ -347,7 +354,7 @@ export default function TenderEvaluationCriteriaStep() {
                             {category.id === "financial" && <Scale className="h-5 w-5" />}
                             {category.id === "technical" && <Clock className="h-5 w-5" />}
                           </div>
-                          <span className="font-medium text-sm text-gray-900">{category.name}</span>
+                          <span className="font-medium text-sm text-gray-900">{tr(category.id, 'name') ?? category.name}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-gray-500">{currentWeight}%</span>
@@ -380,7 +387,7 @@ export default function TenderEvaluationCriteriaStep() {
                                     </button>
                                   )}
                                   <div className="flex-1">
-                                    <label className="text-sm text-gray-900">{req.label}</label>
+                                    <label className="text-sm text-gray-900">{tr(req.id, 'label') ?? req.label}</label>
                                     {req.type === "select" && req.options && (
                                       <Select
                                         value={(currentValue as string) || "none"}
@@ -392,7 +399,7 @@ export default function TenderEvaluationCriteriaStep() {
                                         <SelectContent>
                                           <SelectItem value="none">{t('tenderFlow.notRequired')}</SelectItem>
                                           {req.options.map(opt => (
-                                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                            <SelectItem key={opt.value} value={opt.value}>{trOpt(req.id, opt.value, opt.label)}</SelectItem>
                                           ))}
                                         </SelectContent>
                                       </Select>

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Star, Search, X } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface SmartUnitDropdownProps {
   value: string;
@@ -50,6 +51,38 @@ const UNIT_GROUPS = {
     "Quarter",
     "Year",
   ],
+};
+
+// Arabic labels for unit options (stored value stays as English key)
+export const UNIT_LABELS_AR: Record<string, string> = {
+  "Article": "مقال",
+  "Photo": "صورة",
+  "Graphic": "جرافيك",
+  "Animation": "رسوم متحركة",
+  "Infographic": "إنفوغرافيك",
+  "Banner": "بانر",
+  "Logo": "شعار",
+  "Video": "فيديو",
+  "Design": "تصميم",
+  "Ad Set": "مجموعة إعلانات",
+  "Email": "بريد إلكتروني",
+  "Landing Page": "صفحة هبوط",
+  "Event": "فعالية",
+  "Report": "تقرير",
+  "Strategy": "استراتيجية",
+  "Package": "حزمة",
+  "Campaign": "حملة",
+  "Post": "منشور",
+  "Story": "ستوري",
+  "Reel": "ريل",
+  "Thread": "سلسلة",
+  "Carousel": "كاروسيل",
+  "Hour": "ساعة",
+  "Day": "يوم",
+  "Week": "أسبوع",
+  "Month": "شهر",
+  "Quarter": "ربع سنة",
+  "Year": "سنة",
 };
 
 // All units flattened for search
@@ -190,6 +223,16 @@ export function SmartUnitDropdown({
   error,
   "data-testid": dataTestId,
 }: SmartUnitDropdownProps) {
+  const { t, isRtl } = useI18n();
+  const labelFor = (unit: string) => isRtl ? (UNIT_LABELS_AR[unit] ?? unit) : unit;
+
+  const GROUP_NAME_KEYS: Record<string, string> = {
+    "Content & Creative": t('tenderFlow.unitGroupContent'),
+    "Marketing": t('tenderFlow.unitGroupMarketing'),
+    "Digital/Social": t('tenderFlow.unitGroupDigital'),
+    "Time-Based": t('tenderFlow.unitGroupTime'),
+  };
+
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [isOtherMode, setIsOtherMode] = useState(false);
@@ -338,7 +381,7 @@ export function SmartUnitDropdown({
             type="text"
             value={otherValue}
             onChange={handleOtherChange}
-            placeholder="Enter custom unit"
+            placeholder={t('tenderFlow.enterCustomUnit')}
             className={`w-full px-3 py-2 pr-8 text-sm border rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${
               error || isOverLimit ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
             }`}
@@ -361,7 +404,7 @@ export function SmartUnitDropdown({
             onClick={handleClearOther}
             className="text-xs text-[#E25E45] hover:underline"
           >
-            Back to suggestions
+            {t('tenderFlow.backToSuggestions')}
           </button>
         </div>
       </div>
@@ -386,7 +429,7 @@ export function SmartUnitDropdown({
           className="w-full px-3 py-2 text-sm text-left hover:bg-[#E25E45]/10 rounded-md flex items-center gap-2 text-[#E25E45] font-medium"
         >
           <span className="text-lg leading-none">+</span>
-          Add custom unit
+          {t('tenderFlow.addCustomUnit')}
         </button>
       </div>
 
@@ -399,7 +442,7 @@ export function SmartUnitDropdown({
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search units..."
+            placeholder={t('tenderFlow.searchUnits')}
             className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E25E45]"
           />
         </div>
@@ -412,7 +455,7 @@ export function SmartUnitDropdown({
           <div>
             <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 flex items-center gap-1">
               <Star className="h-3 w-3 text-[#E25E45]" />
-              Suggested
+              {t('tenderFlow.suggestedUnits')}
             </div>
             {filteredPrioritizedUnits.map((unit) => (
               <button
@@ -424,7 +467,7 @@ export function SmartUnitDropdown({
                 }`}
               >
                 <Star className="h-3 w-3 text-[#E25E45]" />
-                {unit}
+                {labelFor(unit)}
               </button>
             ))}
           </div>
@@ -432,7 +475,9 @@ export function SmartUnitDropdown({
           /* Show all options grouped only when NO keyword matches */
           Object.entries(UNIT_GROUPS).map(([groupName, units]) => {
             const groupUnits = units.filter(unit =>
-              !searchTerm || unit.toLowerCase().includes(searchTerm.toLowerCase())
+              !searchTerm ||
+              unit.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              labelFor(unit).includes(searchTerm)
             );
 
             if (groupUnits.length === 0) return null;
@@ -440,7 +485,7 @@ export function SmartUnitDropdown({
             return (
               <div key={groupName}>
                 <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-                  {groupName}
+                  {GROUP_NAME_KEYS[groupName] ?? groupName}
                 </div>
                 {groupUnits.map((unit) => (
                   <button
@@ -451,7 +496,7 @@ export function SmartUnitDropdown({
                       value === unit ? 'bg-[#E25E45]/5 text-[#E25E45]' : 'text-gray-900 dark:text-white'
                     }`}
                   >
-                    {unit}
+                    {labelFor(unit)}
                   </button>
                 ))}
               </div>
@@ -476,7 +521,7 @@ export function SmartUnitDropdown({
         data-testid={dataTestId}
       >
         <span className={value ? "text-gray-900 dark:text-white" : "text-gray-400"}>
-          {value || "Select unit..."}
+          {value ? labelFor(value) : t('tenderFlow.selectUnit')}
         </span>
         <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>

@@ -26,7 +26,9 @@ const getProjectSize = (budget: number): ProjectSize => {
 
 export default function TenderAIBudgetStep() {
   const [, navigate] = useLocation();
-  const { t } = useI18n();
+  const { t, isRtl } = useI18n();
+  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
+  const isRfpRtl = rfpLanguage === "ar";
   const [budgetMode, setBudgetMode] = useState<BudgetMode>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [aiEstimate, setAiEstimate] = useState<AIBudgetEstimate | null>(null);
@@ -135,7 +137,7 @@ export default function TenderAIBudgetStep() {
   };
 
   return (
-    <div className="py-8 px-4">
+    <div className="py-8 px-4" dir={isRfpRtl ? "rtl" : "ltr"}>
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <img
@@ -442,12 +444,12 @@ export default function TenderAIBudgetStep() {
 
                     {(budgetMode === "ai" || priceType === "exact") && (
                       <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between" dir={isRtl ? "rtl" : "ltr"}>
                           <div className="flex items-center gap-2">
                             {showPriceToVendors ? (
-                              <Eye className="h-5 w-5 text-gray-500" />
+                              <Eye className="h-5 w-5 text-gray-500 flex-shrink-0" />
                             ) : (
-                              <EyeOff className="h-5 w-5 text-gray-500" />
+                              <EyeOff className="h-5 w-5 text-gray-500 flex-shrink-0" />
                             )}
                             <span className="text-sm font-medium text-gray-900 dark:text-white">
                               {t('tenderFlow.showPriceToVendors')}
@@ -455,8 +457,9 @@ export default function TenderAIBudgetStep() {
                           </div>
                           <button
                             type="button"
+                            dir="ltr"
                             onClick={() => setShowPriceToVendors(!showPriceToVendors)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ms-3 ${
                               showPriceToVendors ? "bg-[#E25E45]" : "bg-gray-300 dark:bg-gray-600"
                             }`}
                             data-testid="toggle-show-price"
@@ -481,17 +484,6 @@ export default function TenderAIBudgetStep() {
                       </div>
                     )}
 
-                    {projectSize && (
-                      <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className={`w-3 h-3 rounded-full ${
-                          projectSize === "small" ? "bg-green-500" :
-                          projectSize === "medium" ? "bg-yellow-500" : "bg-red-500"
-                        }`} />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
-                          {getProjectSizeLabel(projectSize)}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 )}
 

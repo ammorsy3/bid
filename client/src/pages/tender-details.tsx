@@ -326,6 +326,8 @@ export default function TenderDetails() {
   });
 
   const isOwner = tender?.companyId === activeCompany?.id;
+  const tenderLanguage = (tender as any)?.language || 'en';
+  const isTenderRtl = tenderLanguage === 'ar';
 
   const { data: requesterProfile } = useQuery<{
     company: { id: string; name: string; category: string | null; verificationStatus: string };
@@ -553,7 +555,7 @@ export default function TenderDetails() {
   const durationDisplay = getDurationDisplay() !== 'Not specified' ? getDurationDisplay() : null;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white" dir={isTenderRtl ? "rtl" : "ltr"}>
       {/* Hero Header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">

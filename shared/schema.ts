@@ -194,6 +194,9 @@ export const tenders = pgTable("tenders", {
   // Form Builder Cards (preserves custom fields for display)
   formCards: jsonb("form_cards"),
 
+  // RFP Language — the language the RFP was created in ('en' or 'ar')
+  language: text("language").default("en"),
+
   // Invitation & Access
   invitationToken: varchar("invitation_token").notNull().unique(),
   

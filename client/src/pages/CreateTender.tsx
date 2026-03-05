@@ -11,7 +11,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { FloatingPathsBackground } from "@/components/ui/floating-paths-bg";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { format, add } from "date-fns";
+import { ar as arLocale } from "date-fns/locale";
 import { Calendar as CalendarIcon, ArrowLeft, Copy, Check, Mail, ExternalLink, Sparkles, Info, ChevronDown, ChevronUp, Video, Zap } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 
 import { useForm } from "react-hook-form";
@@ -98,6 +100,8 @@ function AnimatedCircle() {
 export default function CreateTender() {
   const { user, activeCompany } = useAuthStore();
   const { toast } = useToast();
+  const { language } = useI18n();
+  const dateLocale = language === 'ar' ? arLocale : undefined;
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   const [createdTender, setCreatedTender] = useState<Tender | null>(null);
@@ -157,9 +161,11 @@ export default function CreateTender() {
     enabled: true,
   });
 
+  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
+
   const createTenderMutation = useMutation({
     mutationFn: async (data: CreateTenderForm) => {
-      const response = await apiRequest('POST', '/api/tenders', data);
+      const response = await apiRequest('POST', '/api/tenders', { ...data, language: rfpLanguage });
       if (!response.ok) {
         const error = await response.json();
         throw error;
@@ -389,7 +395,7 @@ export default function CreateTender() {
                     <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Deadline</h3>
                     <p className="text-gray-900 dark:text-white font-medium flex items-center gap-2" data-testid="review-deadline">
                       <CalendarIcon className="h-4 w-4 text-[#E25E45]" />
-                      {reviewData.deadline ? format(new Date(reviewData.deadline), "PPP 'at' HH:mm") : "Not specified"}
+                      {reviewData.deadline ? format(new Date(reviewData.deadline), "PPP 'at' HH:mm", { locale: dateLocale }) : "Not specified"}
                     </p>
                   </div>
 
@@ -692,12 +698,12 @@ export default function CreateTender() {
                                     data-testid="input-deadline"
                                   >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {dateValue ? format(dateValue, "PPP HH:mm:ss") : <span>Pick a date</span>}
+                                    {dateValue ? format(dateValue, "PPP HH:mm:ss", { locale: dateLocale }) : <span>Pick a date</span>}
                                   </Button>
                                 </FormControl>
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={dateValue} onSelect={handleSelect} disabled={(date) => date < new Date()} initialFocus />
+                                <Calendar mode="single" selected={dateValue} onSelect={handleSelect} disabled={(date) => date < new Date()} locale={dateLocale} initialFocus />
                                 <div className="p-3 border-t border-border"><TimePicker setDate={setDate} date={dateValue} /></div>
                               </PopoverContent>
                             </Popover>

@@ -8,10 +8,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon, Plus, X, FileText, Video, FileCheck, FileVideo, ChevronDown, Check, Scale, Briefcase, Clock, Mic, Type, Sparkles, ExternalLink, MessageSquare, Mail, Upload, Paperclip, Loader2, Trash2, FileSpreadsheet, FileImage } from "lucide-react";
 import { format } from "date-fns";
+import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useCallback } from "react";
 import VoiceRecorder from "@/components/voice-recorder";
 import { apiRequest } from "@/lib/queryClient";
+import { useI18n } from "@/lib/i18n";
 
 interface CardInputRendererProps {
   card: FormCard;
@@ -20,6 +22,9 @@ interface CardInputRendererProps {
 }
 
 export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInputRendererProps) {
+  const { t, language } = useI18n();
+  const dateLocale = language === 'ar' ? arLocale : undefined;
+
   const updateValue = (newValue: any) => {
     if (onUpdate) {
       onUpdate(card.id, { value: newValue });
@@ -58,7 +63,7 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
       return <ProjectDescriptionInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
 
     case "submission-deadline":
-      return <DatePickerInput value={card.value} onChange={updateValue} label="Submission deadline" readOnly={readOnly} />;
+      return <DatePickerInput value={card.value} onChange={updateValue} label={t('formBuilder.submissionDeadlineLabel')} readOnly={readOnly} />;
 
     case "evaluation-criteria":
       return <EvaluationCriteriaInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
@@ -123,32 +128,34 @@ function SupplierResponseInput({
   onChange: (value: any) => void;
   readOnly?: boolean;
 }) {
+  const { t } = useI18n();
+
   const submissionOptions = [
     {
       id: "quote_only",
-      label: "Price Only",
-      description: "Just need a price figure from vendors",
+      label: t('tenderFlow.priceOnly'),
+      description: t('tenderFlow.priceOnlyDesc'),
       icon: FileText,
       color: "from-blue-500 to-blue-600",
     },
     {
       id: "tech_fin_proposal",
-      label: "Full Proposal",
-      description: "Technical and Financial Proposal",
+      label: t('tenderFlow.fullProposal'),
+      description: t('tenderFlow.fullProposalDesc'),
       icon: FileCheck,
       color: "from-purple-500 to-purple-600",
     },
     {
       id: "video_only",
-      label: "Video Pitch",
-      description: "A short video explaining their approach",
+      label: t('tenderFlow.videoPitch'),
+      description: t('tenderFlow.videoPitchDesc'),
       icon: Video,
       color: "from-pink-500 to-pink-600",
     },
     {
       id: "tech_fin_with_video",
-      label: "Proposal + Video",
-      description: "Written proposal and a video pitch",
+      label: t('tenderFlow.proposalVideo'),
+      description: t('tenderFlow.proposalVideoDesc'),
       icon: FileVideo,
       color: "from-orange-500 to-orange-600",
     },
@@ -157,15 +164,15 @@ function SupplierResponseInput({
   const inquiryOptions = [
     {
       id: "inside_bid",
-      label: "Inside Bid",
-      description: "Q&A appears anonymously in the Tender",
+      label: t('tenderFlow.insideBid'),
+      description: t('tenderFlow.insideBidDesc'),
       icon: MessageSquare,
       color: "from-green-500 to-green-600",
     },
     {
       id: "email_whatsapp",
-      label: "WhatsApp & Email",
-      description: "Share your contact info for questions",
+      label: t('tenderFlow.emailWhatsapp'),
+      description: t('tenderFlow.emailWhatsappDesc'),
       icon: Mail,
       color: "from-amber-500 to-amber-600",
     },
@@ -230,7 +237,7 @@ function SupplierResponseInput({
       {/* How vendors ask questions */}
       <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
         <p className="text-sm font-medium text-gray-900 dark:text-white">
-          How should vendors ask questions?
+          {t('tenderFlow.howAskQuestions')}
         </p>
         <div className="grid gap-3">
           {renderOptions(inquiryOptions, val.inquiryType, (id) => update({ inquiryType: id }))}
@@ -241,7 +248,7 @@ function SupplierResponseInput({
           <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <MessageSquare className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-blue-700 dark:text-blue-300">
-              Vendors submit questions through the platform. Questions and answers are visible to all invited vendors.
+              {t('tenderFlow.insideBidInfo')}
             </p>
           </div>
         )}
@@ -251,7 +258,7 @@ function SupplierResponseInput({
           <div className="space-y-3 pt-1">
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                WhatsApp Number
+                {t('tenderFlow.whatsappNumber')}
               </label>
               <input
                 type="text"
@@ -263,7 +270,7 @@ function SupplierResponseInput({
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                Email
+                {t('tenderFlow.emailAddress')}
               </label>
               <input
                 type="email"
@@ -290,10 +297,12 @@ function ProjectDatesInput({
   onChange: (value: any) => void;
   readOnly?: boolean;
 }) {
+  const { t } = useI18n();
+
   if (readOnly) {
     return (
       <div className="text-sm text-gray-400 italic py-2">
-        Set dates in the next step
+        {t('formBuilder.setDatesNextStep')}
       </div>
     );
   }
@@ -302,14 +311,14 @@ function ProjectDatesInput({
   return (
     <div className="grid grid-cols-2 gap-3">
       <div className="space-y-2">
-        <span className="text-xs text-gray-500 dark:text-gray-400">Start date</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400">{t('tenderFlow.startDate')}</span>
         <DatePickerInput
           value={dateValue.startDate}
           onChange={(date) => onChange({ ...dateValue, startDate: date })}
         />
       </div>
       <div className="space-y-2">
-        <span className="text-xs text-gray-500 dark:text-gray-400">End date</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400">{t('tenderFlow.endDate')}</span>
         <DatePickerInput
           value={dateValue.endDate}
           onChange={(date) => onChange({ ...dateValue, endDate: date })}
@@ -329,10 +338,12 @@ function BudgetInput({
   onChange: (value: any) => void;
   readOnly?: boolean;
 }) {
+  const { t } = useI18n();
+
   if (readOnly) {
     return (
       <div className="text-sm text-gray-400 italic py-2">
-        Set budget in the next step
+        {t('formBuilder.setBudgetNextStep')}
       </div>
     );
   }
@@ -350,18 +361,18 @@ function BudgetInput({
     <div className="space-y-3">
       {/* Type toggle: Exact / Range */}
       <div className="flex gap-2">
-        {(["exact", "range"] as const).map((t) => (
+        {(["exact", "range"] as const).map((budgetType) => (
           <button
-            key={t}
+            key={budgetType}
             type="button"
-            onClick={() => onChange({ ...budgetValue, type: t })}
+            onClick={() => onChange({ ...budgetValue, type: budgetType })}
             className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-              budgetValue.type === t
+              budgetValue.type === budgetType
                 ? "bg-[#E25E45] text-white"
                 : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >
-            {t === "exact" ? "Exact Budget" : "Budget Range"}
+            {budgetType === "exact" ? t('tenderFlow.exactBudget') : t('tenderFlow.budgetRange')}
           </button>
         ))}
       </div>
@@ -384,7 +395,7 @@ function BudgetInput({
       {budgetValue.type === "range" && (
         <div className="grid grid-cols-2 gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-gray-600 dark:text-gray-400 font-medium text-sm">Min</span>
+            <span className="text-gray-600 dark:text-gray-400 font-medium text-sm">{t('formBuilder.minLabel')}</span>
             <input
               type="number"
               placeholder="0"
@@ -394,7 +405,7 @@ function BudgetInput({
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-gray-600 dark:text-gray-400 font-medium text-sm">Max</span>
+            <span className="text-gray-600 dark:text-gray-400 font-medium text-sm">{t('formBuilder.maxLabel')}</span>
             <input
               type="number"
               placeholder="0"
@@ -409,8 +420,8 @@ function BudgetInput({
       {/* Show budget to vendors toggle */}
       <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
         <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">Show budget to vendors</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Vendors will see your budget in the RFP</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('formBuilder.showBudgetToVendors')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('formBuilder.vendorsSeeBudgetRfp')}</p>
         </div>
         <button
           type="button"
@@ -440,6 +451,7 @@ function DeliverablesInput({
   onChange: (value: DeliverableItem[]) => void;
   readOnly?: boolean;
 }) {
+  const { t } = useI18n();
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -447,7 +459,7 @@ function DeliverablesInput({
   if (readOnly) {
     return (
       <div className="text-sm text-gray-400 italic py-2">
-        Add deliverables in the next step
+        {t('formBuilder.addDeliverablesNextStep')}
       </div>
     );
   }
@@ -492,7 +504,11 @@ function DeliverablesInput({
                   onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
                   className="text-xs text-[#E25E45] hover:underline flex-shrink-0"
                 >
-                  {expandedId === item.id ? "Close" : item.description ? "Edit desc" : "+ Description"}
+                  {expandedId === item.id
+                    ? t('formBuilder.closeButton')
+                    : item.description
+                    ? t('formBuilder.editDescButton')
+                    : t('formBuilder.addDescriptionButton')}
                 </button>
                 <button onClick={() => handleRemove(item.id)} className="text-gray-400 hover:text-red-500 flex-shrink-0">
                   <X className="h-4 w-4" />
@@ -501,7 +517,7 @@ function DeliverablesInput({
               {expandedId === item.id && (
                 <div className="px-3 py-2 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-600">
                   <textarea
-                    placeholder="Add a description for this deliverable..."
+                    placeholder={t('formBuilder.addDescriptionPlaceholder')}
                     value={item.description}
                     onChange={(e) => handleUpdateDesc(item.id, e.target.value)}
                     rows={2}
@@ -516,14 +532,14 @@ function DeliverablesInput({
       <div className="space-y-2">
         <input
           type="text"
-          placeholder="Deliverable name..."
+          placeholder={t('formBuilder.deliverableNamePlaceholder')}
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
         />
         <textarea
-          placeholder="Description (optional)..."
+          placeholder={t('tenderFlow.describeDeliverable')}
           value={newDesc}
           onChange={(e) => setNewDesc(e.target.value)}
           rows={2}
@@ -531,7 +547,7 @@ function DeliverablesInput({
         />
         <Button onClick={handleAdd} className="w-full bg-[#E25E45] hover:bg-[#d54d35]">
           <Plus className="h-4 w-4 mr-2" />
-          Add Deliverable
+          {t('tenderFlow.addDeliverable')}
         </Button>
       </div>
     </div>
@@ -548,6 +564,7 @@ function MilestonesInput({
   onChange: (value: ProjectMilestone[]) => void;
   readOnly?: boolean;
 }) {
+  const { t } = useI18n();
   const [newName, setNewName] = useState("");
   const [newDate, setNewDate] = useState<string | null>(null);
   const [newDesc, setNewDesc] = useState("");
@@ -555,7 +572,7 @@ function MilestonesInput({
   if (readOnly) {
     return (
       <div className="text-sm text-gray-400 italic py-2">
-        Add milestones in the next step
+        {t('formBuilder.addMilestonesNextStep')}
       </div>
     );
   }
@@ -611,7 +628,7 @@ function MilestonesInput({
       <div className="space-y-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
         <input
           type="text"
-          placeholder="Milestone name (e.g., Design Phase)"
+          placeholder={t('tenderFlow.milestoneName')}
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent text-sm"
@@ -619,10 +636,10 @@ function MilestonesInput({
         <DatePickerInput
           value={newDate}
           onChange={setNewDate}
-          label="Due date (optional)"
+          label={t('formBuilder.dueDateOptional')}
         />
         <textarea
-          placeholder="Description (optional)..."
+          placeholder={t('tenderFlow.addDescription')}
           value={newDesc}
           onChange={(e) => setNewDesc(e.target.value)}
           rows={2}
@@ -630,7 +647,7 @@ function MilestonesInput({
         />
         <Button onClick={handleAdd} className="w-full bg-[#E25E45] hover:bg-[#d54d35]">
           <Plus className="h-4 w-4 mr-2" />
-          Add Milestone
+          {t('tenderFlow.addMilestone')}
         </Button>
       </div>
     </div>
@@ -649,6 +666,7 @@ function ProjectDescriptionInput({
   onChange: (value: DescriptionValue) => void;
   readOnly?: boolean;
 }) {
+  const { t } = useI18n();
   const [tab, setTab] = useState<"text" | "voice">("text");
   const val: DescriptionValue = value && typeof value === "object" && "text" in value
     ? value
@@ -656,7 +674,7 @@ function ProjectDescriptionInput({
 
   const update = (patch: Partial<DescriptionValue>) => onChange({ ...val, ...patch });
 
-  const countWords = (t: string) => t.trim().split(/\s+/).filter(Boolean).length;
+  const countWords = (str: string) => str.trim().split(/\s+/).filter(Boolean).length;
   const wordCount = countWords(val.text);
   const charCount = val.text.length;
 
@@ -666,16 +684,16 @@ function ProjectDescriptionInput({
         {val.text && <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{val.text}</p>}
         {val.voiceNoteUrl && (
           <div className="flex items-center gap-2 text-xs text-pink-600 bg-pink-50 px-3 py-1.5 rounded-lg w-fit">
-            <Mic className="h-3.5 w-3.5" /> Voice note attached
+            <Mic className="h-3.5 w-3.5" /> {t('formBuilder.voiceNoteAttached')}
           </div>
         )}
         {val.videoUrl && (
           <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg w-fit">
-            <Video className="h-3.5 w-3.5" /> Video link attached
+            <Video className="h-3.5 w-3.5" /> {t('formBuilder.videoLinkAttached')}
           </div>
         )}
         {!val.text && !val.voiceNoteUrl && (
-          <p className="text-sm text-gray-400 italic">No description yet</p>
+          <p className="text-sm text-gray-400 italic">{t('formBuilder.noDescriptionYet')}</p>
         )}
       </div>
     );
@@ -695,7 +713,7 @@ function ProjectDescriptionInput({
           }`}
         >
           <Type className="h-3.5 w-3.5" />
-          Write
+          {t('formBuilder.writeTab')}
         </button>
         <button
           type="button"
@@ -707,7 +725,7 @@ function ProjectDescriptionInput({
           }`}
         >
           <Mic className="h-3.5 w-3.5" />
-          Voice Note
+          {t('formBuilder.voiceNoteTab')}
           {val.voiceNoteUrl && (
             <span className="w-1.5 h-1.5 rounded-full bg-pink-500 ml-0.5" />
           )}
@@ -718,7 +736,7 @@ function ProjectDescriptionInput({
       {tab === "text" && (
         <div className="space-y-2">
           <textarea
-            placeholder="Strong understanding of passing, dribbling, and visual aesthetics. Ability to work independently and as part of a team. Excellent communication and time-management skills..."
+            placeholder={t('tenderFlow.descriptionPlaceholder')}
             value={val.text}
             onChange={(e) => update({ text: e.target.value })}
             maxLength={5000}
@@ -727,9 +745,11 @@ function ProjectDescriptionInput({
           />
           <div className="flex justify-between items-center text-xs">
             <p className={wordCount > 0 && wordCount < 50 ? "text-amber-600 font-medium" : wordCount >= 50 ? "text-green-600 font-medium" : "text-gray-400"}>
-              {wordCount < 50 ? `${Math.max(0, 50 - wordCount)} more words needed (min. 50)` : "Minimum word count met ✓"}
+              {wordCount < 50
+                ? `${Math.max(0, 50 - wordCount)} ${t('tenderFlow.moreWordsNeeded')}`
+                : `${t('tenderFlow.minWordCountMet')} ✓`}
             </p>
-            <p className="text-gray-400">{wordCount} words · {charCount}/5000</p>
+            <p className="text-gray-400">{wordCount} {t('tenderFlow.words')} · {charCount}/5000</p>
           </div>
         </div>
       )}
@@ -739,7 +759,7 @@ function ProjectDescriptionInput({
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <Sparkles className="h-4 w-4 text-[#E25E45]" />
-            Record a message to describe your project (max 5 minutes)
+            {t('formBuilder.recordMessageDesc')}
           </div>
           <VoiceRecorder
             onRecordingComplete={(url) => update({ voiceNoteUrl: url })}
@@ -754,7 +774,7 @@ function ProjectDescriptionInput({
       <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
         <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
           <Video className="h-4 w-4 text-[#E25E45]" />
-          Video Link <span className="font-normal text-gray-400">(Optional)</span>
+          {t('formBuilder.videoLink')} <span className="font-normal text-gray-400">{t('tenderFlow.optional')}</span>
         </label>
         <input
           type="url"
@@ -763,7 +783,7 @@ function ProjectDescriptionInput({
           onChange={(e) => update({ videoUrl: e.target.value })}
           className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent text-sm"
         />
-        <p className="text-xs text-gray-400">Add a YouTube or Vimeo link to show examples of your project</p>
+        <p className="text-xs text-gray-400">{t('formBuilder.videoLinkHelper')}</p>
       </div>
     </div>
   );
@@ -781,10 +801,13 @@ function DatePickerInput({
   label?: string;
   readOnly?: boolean;
 }) {
+  const { t, language } = useI18n();
+  const dateLocale = language === 'ar' ? arLocale : undefined;
+
   if (readOnly) {
     return (
       <div className="text-sm text-gray-400 italic py-2">
-        {label || "Select date"} in the next step
+        {t('formBuilder.setDateNextStep')}
       </div>
     );
   }
@@ -801,7 +824,7 @@ function DatePickerInput({
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : label || "Select date"}
+          {date ? format(date, "PPP", { locale: dateLocale }) : label || t('tenderFlow.selectDate')}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -810,6 +833,7 @@ function DatePickerInput({
           selected={date}
           onSelect={(d) => onChange(d?.toISOString() || null)}
           disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+          locale={dateLocale}
           initialFocus
         />
       </PopoverContent>
@@ -827,6 +851,7 @@ function EvaluationCriteriaInput({
   onChange: (value: EvaluationCriteriaValue) => void;
   readOnly?: boolean;
 }) {
+  const { t } = useI18n();
   const [expandedCategories, setExpandedCategories] = useState<string[]>(["experience"]);
   const [newCriterionText, setNewCriterionText] = useState("");
   const [newCriterionWeight, setNewCriterionWeight] = useState(5);
@@ -902,7 +927,7 @@ function EvaluationCriteriaInput({
   if (readOnly) {
     return (
       <div className="text-sm text-gray-400 italic py-2">
-        Configure evaluation criteria in the next step
+        {t('formBuilder.configureEvalNextStep')}
       </div>
     );
   }
@@ -929,10 +954,14 @@ function EvaluationCriteriaInput({
         </div>
         <div>
           <p className="font-semibold text-sm text-gray-900 dark:text-white">
-            {totalWeight === 100 ? "Perfect Balance!" : "Weight Distribution"}
+            {totalWeight === 100 ? t('tenderFlow.perfectBalance') : t('tenderFlow.weightDistribution')}
           </p>
           <p className={`text-xs mt-0.5 ${totalWeight === 100 ? "text-green-600" : totalWeight > 100 ? "text-red-500" : "text-amber-600"}`}>
-            {totalWeight === 100 ? "Weights add up to 100%" : totalWeight > 100 ? `Remove ${totalWeight - 100}% to balance` : `Add ${100 - totalWeight}% more weight`}
+            {totalWeight === 100
+              ? t('tenderFlow.weightsCorrect')
+              : totalWeight > 100
+              ? `${t('tenderFlow.removeWeight')} ${totalWeight - 100}% ${t('tenderFlow.toBalance')}`
+              : `${t('tenderFlow.addWeight')} ${100 - totalWeight}% ${t('tenderFlow.moreWeight')}`}
           </p>
         </div>
       </div>
@@ -968,7 +997,7 @@ function EvaluationCriteriaInput({
               <div className="overflow-hidden">
                 <div className="border-t border-gray-200 dark:border-gray-600 p-3 space-y-3 bg-white dark:bg-gray-800">
                   <div className="space-y-1">
-                    <label className="text-xs text-gray-500">Weight: {currentWeight}%</label>
+                    <label className="text-xs text-gray-500">{t('tenderFlow.weight')} {currentWeight}%</label>
                     <input
                       type="range" min="0" max="100" step="5" value={currentWeight}
                       onChange={(e) => handleWeightChange(category.id, parseInt(e.target.value))}
@@ -997,10 +1026,10 @@ function EvaluationCriteriaInput({
                               onValueChange={(val) => handleReqChange(category.id, req.id, val === "none" ? "" : val)}
                             >
                               <SelectTrigger className="mt-1 w-full text-sm">
-                                <SelectValue placeholder="Not required" />
+                                <SelectValue placeholder={t('tenderFlow.notRequired')} />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="none">Not required</SelectItem>
+                                <SelectItem value="none">{t('tenderFlow.notRequired')}</SelectItem>
                                 {req.options.map(opt => (
                                   <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                                 ))}
@@ -1021,7 +1050,7 @@ function EvaluationCriteriaInput({
       {/* Custom criteria */}
       <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-700">
         <label className="block text-sm font-medium text-gray-900 dark:text-white">
-          Custom criteria <span className="text-gray-400 font-normal">(optional)</span>
+          {t('tenderFlow.customCriteria')} <span className="text-gray-400 font-normal">{t('tenderFlow.optional')}</span>
         </label>
 
         {customCriteria.length > 0 && (
@@ -1047,7 +1076,7 @@ function EvaluationCriteriaInput({
         <div className="flex gap-2 items-center">
           <input
             type="text"
-            placeholder="Add custom criterion..."
+            placeholder={t('formBuilder.addCustomCriterionPlaceholder')}
             value={newCriterionText}
             onChange={(e) => setNewCriterionText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addCustomCriterion()}
@@ -1116,6 +1145,7 @@ function AttachmentsInput({
   onChange: (value: AttachmentFile[]) => void;
   readOnly?: boolean;
 }) {
+  const { t } = useI18n();
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1124,11 +1154,11 @@ function AttachmentsInput({
 
   const uploadFile = useCallback(async (file: File) => {
     if (!ALLOWED_TYPES.includes(file.type)) {
-      alert(`File type not allowed: ${file.name}. Accepted: PDF, DOC, DOCX, XLS, XLSX, PNG, JPG`);
+      alert(t('formBuilder.fileTypeError'));
       return null;
     }
     if (file.size > MAX_FILE_SIZE) {
-      alert(`File too large: ${file.name}. Maximum size is 10MB.`);
+      alert(t('formBuilder.fileSizeError'));
       return null;
     }
 
@@ -1151,7 +1181,7 @@ function AttachmentsInput({
       size: file.size,
       type: file.type,
     } as AttachmentFile;
-  }, []);
+  }, [t]);
 
   const handleFiles = useCallback(async (fileList: FileList | File[]) => {
     const filesToUpload = Array.from(fileList);
@@ -1166,11 +1196,11 @@ function AttachmentsInput({
       }
     } catch (err) {
       console.error('Upload failed:', err);
-      alert('Upload failed. Please try again.');
+      alert(t('formBuilder.uploadError'));
     } finally {
       setUploading(false);
     }
-  }, [files, onChange, uploadFile]);
+  }, [files, onChange, uploadFile, t]);
 
   const removeFile = useCallback((id: string) => {
     onChange(files.filter(f => f.id !== id));
@@ -1184,7 +1214,7 @@ function AttachmentsInput({
 
   if (readOnly) {
     if (files.length === 0) {
-      return <div className="text-sm text-gray-400 italic py-2">No attachments</div>;
+      return <div className="text-sm text-gray-400 italic py-2">{t('formBuilder.noAttachments')}</div>;
     }
     return (
       <div className="space-y-2">
@@ -1223,13 +1253,13 @@ function AttachmentsInput({
         {uploading ? (
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="h-6 w-6 text-[#E25E45] animate-spin" />
-            <p className="text-sm text-gray-500">Uploading...</p>
+            <p className="text-sm text-gray-500">{t('formBuilder.uploading')}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
             <Upload className="h-6 w-6 text-gray-400" />
-            <p className="text-sm text-gray-500">Drag and drop files here, or click to browse</p>
-            <p className="text-xs text-gray-400">PDF, DOC, DOCX, XLS, XLSX, PNG, JPG up to 10MB each</p>
+            <p className="text-sm text-gray-500">{t('formBuilder.dragDropFiles')}</p>
+            <p className="text-xs text-gray-400">{t('formBuilder.acceptedFileTypes')}</p>
           </div>
         )}
       </div>
@@ -1270,10 +1300,12 @@ function CustomSelectInput({
   onOptionsChange: (options: string[]) => void;
   readOnly?: boolean;
 }) {
+  const { t } = useI18n();
+
   if (readOnly) {
     return (
       <div className="text-sm text-gray-400 italic py-2">
-        Select option in the next step
+        {t('formBuilder.selectOptionNextStep')}
       </div>
     );
   }
@@ -1326,7 +1358,7 @@ function CustomSelectInput({
       <div className="flex gap-2">
         <input
           type="text"
-          placeholder="Add an option..."
+          placeholder={t('formBuilder.addOptionPlaceholder')}
           value={newOption}
           onChange={(e) => setNewOption(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAddOption()}

@@ -24,6 +24,25 @@ export function DraggableCard({
   structureOnly = false,
 }: DraggableCardProps) {
   const { t } = useI18n();
+
+  const translatedCardLabels: Record<string, string> = {
+    'project-title': t('formBuilder.cardProjectTitleLabel'),
+    'supplier-response': t('formBuilder.cardVendorResponseLabel'),
+    'project-dates': t('formBuilder.cardTimelineLabel'),
+    'budget': t('formBuilder.cardBudgetLabel'),
+    'key-deliverables': t('formBuilder.cardDeliverablesLabel'),
+    'milestones': t('formBuilder.cardMilestonesLabel'),
+    'project-description': t('formBuilder.cardDescriptionLabel'),
+    'submission-deadline': t('formBuilder.cardDeadlineLabel'),
+    'evaluation-criteria': t('formBuilder.cardEvalLabel'),
+    'attachments': t('formBuilder.cardAttachmentsLabel'),
+  };
+
+  const definition = getCardDefinition(card.type);
+  const displayLabel = definition?.isCustom
+    ? card.label
+    : (translatedCardLabels[card.type] ?? card.label);
+
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [editedLabel, setEditedLabel] = useState(card.label);
 
@@ -60,7 +79,6 @@ export function DraggableCard({
     transition,
   };
 
-  const definition = getCardDefinition(card.type);
   const Icon = definition?.icon;
   const isCustomCard = definition?.isCustom;
 
@@ -155,7 +173,7 @@ export function DraggableCard({
             ) : (
               <>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  {card.label}
+                  {displayLabel}
                 </span>
                 {card.isRequired && (
                   <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
@@ -176,7 +194,7 @@ export function DraggableCard({
           <button
             onClick={() => setIsEditingLabel(true)}
             className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-            title="Edit question"
+            title={t('formBuilder.editQuestion')}
           >
             <Pencil className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600" />
           </button>
@@ -187,7 +205,7 @@ export function DraggableCard({
           <button
             onClick={() => onRemove(card.id)}
             className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors group"
-            title="Remove card"
+            title={t('formBuilder.removeCard')}
           >
             <X className="h-4 w-4 text-gray-400 group-hover:text-red-500" />
           </button>

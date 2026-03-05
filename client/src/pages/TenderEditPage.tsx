@@ -20,7 +20,9 @@ import {
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
+import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -197,6 +199,8 @@ export default function TenderEditPage() {
   const [, navigate] = useLocation();
   const { activeCompany } = useAuthStore();
   const { toast } = useToast();
+  const { language } = useI18n();
+  const dateLocale = language === 'ar' ? arLocale : undefined;
   const tenderId = params?.id;
 
   const [budgetType, setBudgetType] = useState<"exact" | "range">("exact");
@@ -489,8 +493,11 @@ export default function TenderEditPage() {
     );
   }
 
+  const editTenderLanguage = (tender as any)?.language || 'en';
+  const isEditRtl = editTenderLanguage === 'ar';
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900" dir={isEditRtl ? "rtl" : "ltr"}>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button variant="ghost" onClick={() => navigate(`/tenders/${tenderId}`)} className="mb-6 -ml-2">
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -565,7 +572,7 @@ export default function TenderEditPage() {
                               !dateVal && "text-muted-foreground"
                             )}>
                               <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
-                              {dateVal ? format(new Date(dateVal), "MMM d, yyyy") : "Pick a date"}
+                              {dateVal ? format(new Date(dateVal), "MMM d, yyyy", { locale: dateLocale }) : "Pick a date"}
                             </button>
                           </FormControl>
                         </PopoverTrigger>
@@ -574,6 +581,7 @@ export default function TenderEditPage() {
                             mode="single"
                             selected={dateVal ? new Date(dateVal) : undefined}
                             onSelect={(date) => field.onChange(date ? `${date.toISOString().slice(0, 10)}T${timeVal}` : "")}
+                            locale={dateLocale}
                             disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
                             initialFocus
                           />
@@ -615,6 +623,7 @@ export default function TenderEditPage() {
                             mode="single"
                             selected={field.value ? new Date(field.value) : undefined}
                             onSelect={(date) => field.onChange(date ? date.toISOString().slice(0, 10) : "")}
+                            locale={dateLocale}
                             initialFocus
                           />
                         </PopoverContent>
@@ -643,6 +652,7 @@ export default function TenderEditPage() {
                             selected={field.value ? new Date(field.value) : undefined}
                             onSelect={(date) => field.onChange(date ? date.toISOString().slice(0, 10) : "")}
                             disabled={(date) => startDateVal ? date < new Date(startDateVal) : false}
+                            locale={dateLocale}
                             initialFocus
                           />
                         </PopoverContent>
@@ -1085,7 +1095,7 @@ export default function TenderEditPage() {
                               m.dueDate ? "bg-violet-100 text-violet-700 hover:bg-violet-200" : "text-gray-400 hover:text-gray-600 hover:bg-gray-200"
                             )}>
                               <CalendarIcon className="h-3.5 w-3.5" />
-                              {m.dueDate ? format(m.dueDate, "MMM d") : "Date"}
+                              {m.dueDate ? format(m.dueDate, "MMM d", { locale: dateLocale }) : "Date"}
                             </button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="end">
@@ -1094,6 +1104,7 @@ export default function TenderEditPage() {
                                 mode="single"
                                 selected={m.dueDate}
                                 onSelect={(date) => updateMilestone(m.id, "dueDate", date)}
+                                locale={dateLocale}
                                 initialFocus
                                 fromDate={startDateVal ? new Date(startDateVal + 'T00:00:00') : undefined}
                                 toDate={endDateVal ? new Date(endDateVal + 'T00:00:00') : undefined}

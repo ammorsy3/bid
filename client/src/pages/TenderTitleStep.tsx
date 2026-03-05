@@ -17,7 +17,9 @@ const countWords = (text: string): number => {
 
 export default function TenderTitleStep() {
   const [, navigate] = useLocation();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
+  const isRfpRtl = rfpLanguage === "ar";
 
   const draft = (() => {
     try {
@@ -51,7 +53,7 @@ export default function TenderTitleStep() {
 
   return (
     <FloatingPathsBackground>
-      <div className="py-8 px-4">
+      <div className="py-8 px-4" dir={isRfpRtl ? "rtl" : "ltr"}>
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <img
@@ -106,7 +108,7 @@ export default function TenderTitleStep() {
                     <AutocompleteInput
                       value={title}
                       onChange={setTitle}
-                      suggestions={getSuggestions("title")}
+                      suggestions={getSuggestions("title", language)}
                       placeholder={t('tenderFlow.titlePlaceholder')}
                       data-testid="input-title"
                       className={isOverLimit ? "border-red-300 dark:border-red-600 focus:ring-red-500" : ""}

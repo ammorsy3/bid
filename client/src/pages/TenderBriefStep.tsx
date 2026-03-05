@@ -30,6 +30,8 @@ export default function TenderBriefStep() {
   const { toast } = useToast();
   const { activeCompany } = useAuthStore();
   const { t } = useI18n();
+  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
+  const isRfpRtl = rfpLanguage === "ar";
 
   const CRITERIA_LABELS: Record<string, string> = {
     financial_offer: t('tenderFlow.criteriaFinancialOffer'),
@@ -168,6 +170,7 @@ export default function TenderBriefStep() {
       endDate: draft.endDate || undefined,
       milestones: draft.milestones && draft.milestones.length > 0 ? draft.milestones : undefined,
       vendorRequirements: draft.vendorRequirements && draft.vendorRequirements.length > 0 ? draft.vendorRequirements : undefined,
+      language: rfpLanguage,
     };
 
     submitTender.mutate(tenderData);
@@ -224,7 +227,7 @@ export default function TenderBriefStep() {
   const hasVendorRequirements = !!(draft.vendorRequirements && draft.vendorRequirements.length > 0);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" dir={isRfpRtl ? "rtl" : "ltr"}>
       <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <img

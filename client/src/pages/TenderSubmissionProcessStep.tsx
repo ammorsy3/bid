@@ -10,6 +10,7 @@ import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 
@@ -18,7 +19,10 @@ type InquiryType = "inside_bid" | "email_whatsapp";
 
 export default function TenderSubmissionProcessStep() {
   const [, navigate] = useLocation();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
+  const isRfpRtl = rfpLanguage === "ar";
+  const dateLocale = language === 'ar' ? arLocale : undefined;
   const { user, checkAuth } = useAuthStore();
   const { toast } = useToast();
   const [submissionDeadline, setSubmissionDeadline] = useState<Date | undefined>(undefined);
@@ -193,7 +197,7 @@ export default function TenderSubmissionProcessStep() {
       emailToUse?.trim()));
 
   return (
-    <div className="py-8 px-4">
+    <div className="py-8 px-4" dir={isRfpRtl ? "rtl" : "ltr"}>
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <img
@@ -264,7 +268,7 @@ export default function TenderSubmissionProcessStep() {
                         data-testid="input-submission-deadline"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {submissionDeadline ? format(submissionDeadline, "PPP") : t('tenderFlow.selectSubmissionDeadline')}
+                        {submissionDeadline ? format(submissionDeadline, "PPP", { locale: dateLocale }) : t('tenderFlow.selectSubmissionDeadline')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -273,6 +277,7 @@ export default function TenderSubmissionProcessStep() {
                         selected={submissionDeadline}
                         onSelect={setSubmissionDeadline}
                         disabled={(date) => date < new Date()}
+                        locale={dateLocale}
                         initialFocus
                       />
                     </PopoverContent>
@@ -281,7 +286,7 @@ export default function TenderSubmissionProcessStep() {
                     <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                       <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
                       <p className="text-xs text-amber-700 dark:text-amber-300">
-                        {format(submissionDeadline, "EEEE, MMMM d, yyyy")}, {t('tenderFlow.deadlineWarning')}
+                        {format(submissionDeadline, "EEEE, MMMM d, yyyy", { locale: dateLocale })}, {t('tenderFlow.deadlineWarning')}
                       </p>
                     </div>
                   )}

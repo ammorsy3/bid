@@ -219,8 +219,6 @@ export default function TenderAICopilot() {
   const [, navigate] = useLocation();
   const { activeCompany, user } = useAuthStore();
   const { toast } = useToast();
-  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
-  const isRfpRtl = rfpLanguage === "ar";
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -561,7 +559,7 @@ export default function TenderAICopilot() {
   const progressPercentage = isReady ? 100 : hasPreviewContent ? 60 : messages.length > 0 ? 30 : 0;
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-gray-950 relative overflow-hidden" dir={isRfpRtl ? "rtl" : "ltr"}>
+    <div className="h-screen flex flex-col bg-white dark:bg-gray-950 relative overflow-hidden">
       {/* Flickering Grid Background - matches /tenders/new */}
       <div className="absolute inset-0 z-0">
         <FlickeringGrid

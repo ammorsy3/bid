@@ -27,8 +27,6 @@ const getProjectSize = (budget: number): ProjectSize => {
 export default function TenderAIBudgetStep() {
   const [, navigate] = useLocation();
   const { t, isRtl } = useI18n();
-  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
-  const isRfpRtl = rfpLanguage === "ar";
   const [budgetMode, setBudgetMode] = useState<BudgetMode>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [aiEstimate, setAiEstimate] = useState<AIBudgetEstimate | null>(null);
@@ -137,7 +135,7 @@ export default function TenderAIBudgetStep() {
   };
 
   return (
-    <div className="py-8 px-4" dir={isRfpRtl ? "rtl" : "ltr"}>
+    <div className="py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <img

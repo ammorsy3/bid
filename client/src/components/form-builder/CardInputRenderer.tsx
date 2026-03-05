@@ -1,5 +1,5 @@
 import { FormCard } from "@/lib/form-builder-types";
-import { ENTERPRISE_CRITERIA_CATEGORIES } from "@/lib/evaluation-criteria-data";
+import { ENTERPRISE_CRITERIA_CATEGORIES, CRITERIA_TRANSLATIONS_AR } from "@/lib/evaluation-criteria-data";
 import type { EvaluationCriteriaValue, EvalRequirement, EvalCategoryWeight, EvalCustomCriterion, DeliverableItem, BudgetMilestone, ProjectMilestone } from "@/lib/form-builder-types";
 import { DEFAULT_EVAL_WEIGHTS } from "@/lib/form-builder-types";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
       return (
         <input
           type="text"
-          placeholder={card.placeholder}
+          placeholder={t('formBuilder.projectTitleInputPlaceholder')}
           value={card.value || ""}
           onChange={(e) => updateValue(e.target.value)}
           disabled={readOnly}
@@ -75,7 +75,7 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
       return (
         <input
           type="text"
-          placeholder={card.placeholder}
+          placeholder={card.placeholder || t('formBuilder.customTextPlaceholder')}
           value={card.value || ""}
           onChange={(e) => updateValue(e.target.value)}
           disabled={readOnly}
@@ -86,7 +86,7 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
     case "custom-textarea":
       return (
         <textarea
-          placeholder={card.placeholder}
+          placeholder={card.placeholder || t('formBuilder.customTextareaPlaceholder')}
           value={card.value || ""}
           onChange={(e) => updateValue(e.target.value)}
           disabled={readOnly}
@@ -611,7 +611,7 @@ function MilestonesInput({
                 <p className="text-sm font-medium text-gray-900 dark:text-white">{item.name}</p>
                 {item.dueDate && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    Due: {new Date(item.dueDate).toLocaleDateString()}
+                    {t('formBuilder.dueLabel')} {new Date(item.dueDate).toLocaleDateString()}
                   </p>
                 )}
                 {item.description && (
@@ -851,7 +851,7 @@ function EvaluationCriteriaInput({
   onChange: (value: EvaluationCriteriaValue) => void;
   readOnly?: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [expandedCategories, setExpandedCategories] = useState<string[]>(["experience"]);
   const [newCriterionText, setNewCriterionText] = useState("");
   const [newCriterionWeight, setNewCriterionWeight] = useState(5);
@@ -985,7 +985,7 @@ function EvaluationCriteriaInput({
                 <div className={`p-1.5 rounded ${hasSelections ? "bg-[#E25E45]/10 text-[#E25E45]" : "bg-gray-100 dark:bg-gray-700 text-gray-500"}`}>
                   <CategoryIcon className="h-4 w-4" />
                 </div>
-                <span className="font-medium text-sm text-gray-900 dark:text-white">{category.name}</span>
+                <span className="font-medium text-sm text-gray-900 dark:text-white">{language === 'ar' ? (CRITERIA_TRANSLATIONS_AR[category.id]?.name || category.name) : category.name}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-500">{currentWeight}%</span>
@@ -1019,7 +1019,7 @@ function EvaluationCriteriaInput({
                           </button>
                         )}
                         <div className="flex-1">
-                          <label className="text-sm text-gray-900 dark:text-white">{req.label}</label>
+                          <label className="text-sm text-gray-900 dark:text-white">{language === 'ar' ? (CRITERIA_TRANSLATIONS_AR[req.id]?.label || req.label) : req.label}</label>
                           {req.type === "select" && req.options && (
                             <Select
                               value={(currentValue as string) || "none"}
@@ -1031,7 +1031,7 @@ function EvaluationCriteriaInput({
                               <SelectContent>
                                 <SelectItem value="none">{t('tenderFlow.notRequired')}</SelectItem>
                                 {req.options.map(opt => (
-                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                  <SelectItem key={opt.value} value={opt.value}>{language === 'ar' ? (CRITERIA_TRANSLATIONS_AR[req.id]?.options?.[opt.value] || opt.label) : opt.label}</SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>

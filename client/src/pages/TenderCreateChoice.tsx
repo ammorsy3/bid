@@ -4,31 +4,16 @@ import { Sparkles } from "lucide-react";
 import { AILoader } from "@/components/ui/ai-loader";
 import { useAuthStore } from "@/lib/auth";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
-import { useI18n, type Language } from "@/lib/i18n";
-import { useState } from "react";
-
-const RFP_LANGUAGE_KEY = "rfp_creation_language";
+import { useI18n } from "@/lib/i18n";
 
 export default function TenderCreateChoice() {
   const [, setLocation] = useLocation();
   const { user } = useAuthStore();
-  const { t, language, setLanguage } = useI18n();
+  const { t } = useI18n();
   const firstName = user?.name?.split(' ')[0] || user?.username || 'there';
-  const [rfpLanguage, setRfpLanguage] = useState<Language>(language);
-
-  const handleSelectRfpLanguage = (lang: Language) => {
-    setRfpLanguage(lang);
-    localStorage.setItem(RFP_LANGUAGE_KEY, lang);
-    setLanguage(lang);
-  };
-
-  const handleNavigate = (path: string) => {
-    localStorage.setItem(RFP_LANGUAGE_KEY, rfpLanguage);
-    setLocation(path);
-  };
 
   return (
-    <div className="relative min-h-screen bg-white flex flex-col overflow-hidden" dir={rfpLanguage === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="relative min-h-screen bg-white flex flex-col overflow-hidden">
       <div className="absolute inset-0 z-0">
         <FlickeringGrid
           className="size-full"
@@ -42,43 +27,15 @@ export default function TenderCreateChoice() {
 
       <div className="relative z-10">
         <header className="pt-12 pb-8">
-          <div className="flex items-center justify-between max-w-md mx-auto px-6">
-            <button
-              onClick={() => setLocation('/dashboard')}
-              className="cursor-pointer"
-              data-testid="button-logo-bid"
-            >
-              <h1 className="text-4xl font-bold text-[#E25E45] tracking-tight hover:opacity-80 transition-opacity">
-                Bid
-              </h1>
-            </button>
-
-            {/* RFP Language Selector */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1" data-testid="rfp-language-selector">
-              <button
-                onClick={() => handleSelectRfpLanguage('en')}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                  rfpLanguage === 'en'
-                    ? 'bg-[#E25E45] text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                data-testid="button-lang-en"
-              >
-                EN
-              </button>
-              <button
-                onClick={() => handleSelectRfpLanguage('ar')}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                  rfpLanguage === 'ar'
-                    ? 'bg-[#E25E45] text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                data-testid="button-lang-ar"
-              >
-                AR
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={() => setLocation('/dashboard')}
+            className="w-full cursor-pointer"
+            data-testid="button-logo-bid"
+          >
+            <h1 className="text-center text-4xl font-bold text-[#E25E45] tracking-tight hover:opacity-80 transition-opacity">
+              Bid
+            </h1>
+          </button>
         </header>
 
         <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
@@ -99,7 +56,7 @@ export default function TenderCreateChoice() {
 
             <div className="space-y-3 max-w-sm mx-auto">
               <Button
-                onClick={() => handleNavigate("/tenders/new/ai")}
+                onClick={() => setLocation("/tenders/new/ai")}
                 className="w-full h-12 bg-[#E25E45] hover:bg-[#d54d35] text-white text-base font-medium rounded-lg"
                 data-testid="button-create-with-ai"
               >
@@ -109,7 +66,7 @@ export default function TenderCreateChoice() {
 
               <Button
                 variant="outline"
-                onClick={() => handleNavigate("/tenders/new/manual")}
+                onClick={() => setLocation("/tenders/new/manual")}
                 className="w-full h-12 border-gray-300 text-gray-700 hover:bg-gray-50 text-base font-medium rounded-lg"
                 data-testid="button-create-manually"
               >

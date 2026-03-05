@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown, Shield, Copy } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown, Shield, Copy, Languages } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useMemo, useState } from "react";
@@ -11,7 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth";
 import { format } from "date-fns";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type Language } from "@/lib/i18n";
+import { Switch } from "@/components/ui/switch";
 
 const formatLabel = (value: string, labels?: Record<string, string>): string => {
   if (labels && labels[value]) {
@@ -30,8 +31,8 @@ export default function TenderBriefStep() {
   const { toast } = useToast();
   const { activeCompany } = useAuthStore();
   const { t } = useI18n();
-  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
-  const isRfpRtl = rfpLanguage === "ar";
+  const [rfpLanguage, setRfpLanguage] = useState<Language>("en");
+  const [allowTranslation, setAllowTranslation] = useState(false);
 
   const CRITERIA_LABELS: Record<string, string> = {
     financial_offer: t('tenderFlow.criteriaFinancialOffer'),
@@ -171,6 +172,7 @@ export default function TenderBriefStep() {
       milestones: draft.milestones && draft.milestones.length > 0 ? draft.milestones : undefined,
       vendorRequirements: draft.vendorRequirements && draft.vendorRequirements.length > 0 ? draft.vendorRequirements : undefined,
       language: rfpLanguage,
+      allowTranslation,
     };
 
     submitTender.mutate(tenderData);
@@ -227,7 +229,7 @@ export default function TenderBriefStep() {
   const hasVendorRequirements = !!(draft.vendorRequirements && draft.vendorRequirements.length > 0);
 
   return (
-    <div className="min-h-screen bg-gray-50" dir={isRfpRtl ? "rtl" : "ltr"}>
+    <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <img
@@ -816,6 +818,62 @@ export default function TenderBriefStep() {
                     </div>
                   </div>
                 )}
+
+                {/* ── RFP Language & Translation Settings ─── */}
+                <div className="pt-4 border-t border-gray-100 space-y-4 mb-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Languages className="h-4 w-4 text-[#E25E45]" />
+                      <span className="text-sm font-semibold text-gray-900">
+                        {t('tenderFlow.rfpLanguageLabel')} <span className="text-red-500">*</span>
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setRfpLanguage('en')}
+                        className={`flex-1 py-2.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${
+                          rfpLanguage === 'en'
+                            ? 'border-[#E25E45] bg-[#E25E45]/10 text-[#E25E45]'
+                            : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                        }`}
+                      >
+                        English
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRfpLanguage('ar')}
+                        className={`flex-1 py-2.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${
+                          rfpLanguage === 'ar'
+                            ? 'border-[#E25E45] bg-[#E25E45]/10 text-[#E25E45]'
+                            : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                        }`}
+                      >
+                        العربية
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-md bg-blue-50">
+                        <Languages className="h-3.5 w-3.5 text-blue-600" />
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">
+                          {t('tenderFlow.allowTranslationLabel')}
+                        </span>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {t('tenderFlow.allowTranslationDesc')}
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={allowTranslation}
+                      onCheckedChange={setAllowTranslation}
+                    />
+                  </div>
+                </div>
 
                 <div className="pt-4 border-t border-gray-100 space-y-3">
                   <Button

@@ -71,8 +71,6 @@ const PRESET_KEY_MAP: Record<string, string> = {
 export default function TenderEvaluationCriteriaStep() {
   const [, navigate] = useLocation();
   const { t, language } = useI18n();
-  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
-  const isRfpRtl = rfpLanguage === "ar";
   const isAr = language === 'ar';
   const tr = (id: string, field: 'name' | 'label' | 'description') =>
     isAr ? (CRITERIA_TRANSLATIONS_AR[id]?.[field] ?? undefined) : undefined;
@@ -224,7 +222,7 @@ export default function TenderEvaluationCriteriaStep() {
   const handleBack = () => navigate("/tenders/new/submission-process");
 
   return (
-    <div className="py-8 px-4" dir={isRfpRtl ? "rtl" : "ltr"}>
+    <div className="py-8 px-4">
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}

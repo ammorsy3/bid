@@ -40,8 +40,6 @@ const countWords = (text: string): number => {
 export default function TenderProjectScopeStep() {
   const [, navigate] = useLocation();
   const { t, language, isRtl } = useI18n();
-  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
-  const isRfpRtl = rfpLanguage === "ar";
   const dateLocale = language === 'ar' ? arLocale : undefined;
   const [keyDeliverables, setKeyDeliverables] = useState<Deliverable[]>([]);
   const [expandedDeliverableId, setExpandedDeliverableId] = useState<string | null>(null);
@@ -352,7 +350,7 @@ export default function TenderProjectScopeStep() {
   const showDescription = isTimelineComplete;
 
   return (
-    <div className="py-8 px-4" dir={isRfpRtl ? "rtl" : "ltr"}>
+    <div className="py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <img

@@ -196,6 +196,8 @@ export const tenders = pgTable("tenders", {
 
   // RFP Language — the language the RFP was created in ('en' or 'ar')
   language: text("language").default("en"),
+  // Whether vendors can translate the published RFP to the other language
+  allowTranslation: boolean("allow_translation").default(false),
 
   // Invitation & Access
   invitationToken: varchar("invitation_token").notNull().unique(),

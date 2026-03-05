@@ -13,7 +13,6 @@ import {
   Star,
   Copy,
   Languages,
-  Loader2,
 } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useTheme } from "next-themes";
@@ -37,15 +36,9 @@ export default function TenderReview() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  // RFP language (the language the RFP was created in)
-  const rfpLanguage = (localStorage.getItem("rfp_creation_language") || "en") as Language;
-  const isRfpRtl = rfpLanguage === "ar";
-
-  // AI Translation state
-  const [showTranslation, setShowTranslation] = useState(false);
-  const [translatedCards, setTranslatedCards] = useState<Record<string, string>>({});
-  const [isTranslating, setIsTranslating] = useState(false);
-  const translationTargetLang = rfpLanguage === "ar" ? "en" : "ar";
+  // RFP language & translation settings (required before launch)
+  const [rfpLanguage, setRfpLanguage] = useState<Language>("en");
+  const [allowTranslation, setAllowTranslation] = useState(false);
 
   // Template saving state
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
@@ -240,8 +233,9 @@ export default function TenderReview() {
       data.formCards = customCards;
     }
 
-    // Include the RFP creation language
+    // Include the RFP language and translation settings
     data.language = rfpLanguage;
+    data.allowTranslation = allowTranslation;
 
     return data;
   };
@@ -287,39 +281,6 @@ export default function TenderReview() {
     } catch (error: any) {
       console.error("Error saving template:", error?.message || error);
       return false;
-    }
-  };
-
-  const handleTranslateWithAI = async () => {
-    setIsTranslating(true);
-    try {
-      // Simulate AI translation — in production this would call an API
-      const translations: Record<string, string> = {};
-      for (const card of cards) {
-        const displayValue = getDisplayValue(card);
-        if (displayValue && displayValue !== t('tenderFlow.notProvided')) {
-          // Simple placeholder translation — replace with real API call
-          translations[card.id] = displayValue;
-        }
-      }
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setTranslatedCards(translations);
-      setShowTranslation(true);
-      toast({
-        title: translationTargetLang === 'ar' ? 'تمت الترجمة بنجاح' : 'Translation complete',
-        description: translationTargetLang === 'ar'
-          ? 'تمت ترجمة المحتوى إلى العربية'
-          : 'Content has been translated to English',
-      });
-    } catch (error) {
-      toast({
-        title: t('tenderFlow.errorLaunchingRfp'),
-        description: 'Translation failed. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsTranslating(false);
     }
   };
 
@@ -488,7 +449,6 @@ export default function TenderReview() {
   return (
     <div
       className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-gray-900"
-      dir={isRfpRtl ? "rtl" : "ltr"}
       style={{
         backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
         backgroundSize: "20px 20px",
@@ -544,49 +504,70 @@ export default function TenderReview() {
           </p>
         </div>
 
-        {/* ── Language info & AI Translation toggle ────────────── */}
-        <div className="mb-6 flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <Languages className="h-5 w-5 text-[#E8614D]" />
-            <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {rfpLanguage === 'ar' ? 'لغة طلب العروض: العربية' : 'RFP Language: English'}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {rfpLanguage === 'ar' ? 'سيُعرض طلب العروض باللغة العربية للموردين' : 'Vendors will see this RFP in English'}
-              </p>
+        {/* ── RFP Language & Translation Settings ────────────── */}
+        <div className="mb-6 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg p-6 space-y-5">
+          {/* RFP Language (required) */}
+          <div>
+            <div className="flex items-center gap-3 mb-3">
+              <Languages className="h-5 w-5 text-[#E8614D]" />
+              <div>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                  {t('tenderFlow.rfpLanguageLabel')} <span className="text-red-500">*</span>
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {t('tenderFlow.rfpLanguageDesc')}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setRfpLanguage('en')}
+                className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
+                  rfpLanguage === 'en'
+                    ? 'border-[#E8614D] bg-[#E8614D]/10 text-[#E8614D]'
+                    : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-300'
+                }`}
+              >
+                English
+              </button>
+              <button
+                type="button"
+                onClick={() => setRfpLanguage('ar')}
+                className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
+                  rfpLanguage === 'ar'
+                    ? 'border-[#E8614D] bg-[#E8614D]/10 text-[#E8614D]'
+                    : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-300'
+                }`}
+              >
+                العربية
+              </button>
             </div>
           </div>
-          <Button
-            variant={showTranslation ? "default" : "outline"}
-            size="sm"
-            onClick={() => {
-              if (!showTranslation && Object.keys(translatedCards).length === 0) {
-                handleTranslateWithAI();
-              } else {
-                setShowTranslation(!showTranslation);
-              }
-            }}
-            disabled={isTranslating}
-            className={showTranslation ? "bg-[#E8614D] hover:bg-[#D44D3A] text-white" : ""}
-          >
-            {isTranslating ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {rfpLanguage === 'ar' ? 'جارٍ الترجمة...' : 'Translating...'}
-              </>
-            ) : showTranslation ? (
-              <>
-                <Languages className="h-4 w-4 mr-2" />
-                {rfpLanguage === 'ar' ? 'عرض الأصلي' : 'Show Original'}
-              </>
-            ) : (
-              <>
-                <Languages className="h-4 w-4 mr-2" />
-                {rfpLanguage === 'ar' ? 'ترجمة إلى الإنجليزية' : 'Translate to Arabic'}
-              </>
-            )}
-          </Button>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200 dark:border-gray-700" />
+
+          {/* Allow Translation toggle */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                <Languages className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-900 dark:text-white">
+                  {t('tenderFlow.allowTranslationLabel')}
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  {t('tenderFlow.allowTranslationDesc')}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={allowTranslation}
+              onCheckedChange={setAllowTranslation}
+            />
+          </div>
         </div>
 
         {/* ── Status banner ──────────────────────────────────────── */}

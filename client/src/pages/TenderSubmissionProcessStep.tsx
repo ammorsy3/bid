@@ -20,8 +20,6 @@ type InquiryType = "inside_bid" | "email_whatsapp";
 export default function TenderSubmissionProcessStep() {
   const [, navigate] = useLocation();
   const { t, language } = useI18n();
-  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
-  const isRfpRtl = rfpLanguage === "ar";
   const dateLocale = language === 'ar' ? arLocale : undefined;
   const { user, checkAuth } = useAuthStore();
   const { toast } = useToast();
@@ -197,7 +195,7 @@ export default function TenderSubmissionProcessStep() {
       emailToUse?.trim()));
 
   return (
-    <div className="py-8 px-4" dir={isRfpRtl ? "rtl" : "ltr"}>
+    <div className="py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <img

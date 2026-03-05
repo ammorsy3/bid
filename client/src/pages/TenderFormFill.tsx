@@ -23,8 +23,6 @@ export default function TenderFormFill() {
   const [, navigate] = useLocation();
   const { theme } = useTheme();
   const { t } = useI18n();
-  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
-  const isRfpRtl = rfpLanguage === "ar";
   const [cards, setCards] = useState<FormCard[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -138,7 +136,6 @@ export default function TenderFormFill() {
   return (
     <div
       className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-gray-900"
-      dir={isRfpRtl ? "rtl" : "ltr"}
       style={{
         backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
         backgroundSize: "20px 20px",

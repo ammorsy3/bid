@@ -1065,6 +1065,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         category: tender.category,
         attachments: tender.attachments,
         formCards: tender.formCards,
+        language: tender.language || 'en',
+        allowTranslation: tender.allowTranslation || false,
         createdAt: tender.createdAt,
         company: company ? {
           id: company.id,
@@ -1078,6 +1080,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Get tender invite error:', error);
       res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ============================================================================
+  // TRANSLATION ENDPOINT
+  // ============================================================================
+
+  // Translate text content for a tender (used by vendor-side language toggle)
+  app.post("/api/translate", async (req, res) => {
+    try {
+      const { texts, targetLanguage } = req.body;
+
+      if (!texts || !Array.isArray(texts) || !targetLanguage) {
+        return res.status(400).json({ message: "texts (array) and targetLanguage are required" });
+      }
+
+      if (!['en', 'ar'].includes(targetLanguage)) {
+        return res.status(400).json({ message: "targetLanguage must be 'en' or 'ar'" });
+      }
+
+      // Simple translation pairs for common terms
+      const commonTranslations: Record<string, Record<string, string>> = {
+        en: {
+          'Not provided': 'غير متوفر',
+          'Not specified': 'غير محدد',
+          'Required': 'مطلوب',
+          'Optional': 'اختياري',
+        },
+        ar: {
+          'غير متوفر': 'Not provided',
+          'غير محدد': 'Not specified',
+          'مطلوب': 'Required',
+          'اختياري': 'Optional',
+        }
+      };
+
+      // For each text, attempt basic translation
+      // In production, this would call an AI translation API (e.g., Claude, GPT, Google Translate)
+      const translated = texts.map((text: string) => {
+        if (!text || text.trim() === '') return text;
+        // Check common translations first
+        if (commonTranslations[targetLanguage]?.[text]) {
+          return commonTranslations[targetLanguage][text];
+        }
+        // Return original text — in production, call an AI translation service here
+        return text;
+      });
+
+      res.json({ translations: translated });
+    } catch (error) {
+      console.error('Translation error:', error);
+      res.status(500).json({ message: "Translation failed" });
     }
   });
 

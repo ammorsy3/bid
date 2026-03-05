@@ -161,11 +161,9 @@ export default function CreateTender() {
     enabled: true,
   });
 
-  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
-
   const createTenderMutation = useMutation({
     mutationFn: async (data: CreateTenderForm) => {
-      const response = await apiRequest('POST', '/api/tenders', { ...data, language: rfpLanguage });
+      const response = await apiRequest('POST', '/api/tenders', data);
       if (!response.ok) {
         const error = await response.json();
         throw error;

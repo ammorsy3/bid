@@ -96,10 +96,10 @@ Centralized error logging captures both client-side and server-side errors into 
 - **Frontend utility**: `client/src/lib/errorLogger.ts` — `reportError()` function and `setupGlobalErrorHandlers()` for window-level error capture
 
 ### Date Localization
-All date displays are formatted to English locale.
+Date displays use language-aware locale formatting (`en-US` for English, `ar-SA` for Arabic).
 
 ### Internationalization (i18n)
-Full EN/AR translation support via `client/src/lib/i18n.tsx` using React Context + `useI18n()` hook. Translations are organized in sections: `settings`, `dashboard`, `auth`, `onboarding`, `nav`, `common`, `tenderFlow`. The `tenderFlow` section covers the entire 5-step tender creation flow (TenderCreateChoice, TenderStartMethodStep, TenderTitleStep, TenderProjectScopeStep, TenderAIBudgetStep, TenderSubmissionProcessStep, TenderEvaluationCriteriaStep). RTL layout is auto-applied when Arabic is selected.
+Full EN/AR translation support via `client/src/lib/i18n.tsx` using React Context + `useI18n()` hook. Translations are organized in sections: `settings`, `dashboard`, `auth`, `onboarding`, `nav`, `common`, `tenderFlow`. The `tenderFlow` section covers the entire 5-step tender creation flow (TenderCreateChoice, TenderStartMethodStep, TenderTitleStep, TenderProjectScopeStep, TenderAIBudgetStep, TenderSubmissionProcessStep, TenderEvaluationCriteriaStep) AND the published RFP page (TenderInviteLink.tsx — all ~100+ strings including nav, header, section labels, project scope, evaluation criteria, submission requirements, additional context, sidebar, Q&A panel, mobile CTA, proposal checklist, and toast messages). RTL layout is auto-applied when Arabic is selected.
 
 # Recent Changes (November 2025)
 

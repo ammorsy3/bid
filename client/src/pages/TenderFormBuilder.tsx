@@ -39,8 +39,6 @@ const TENDER_STATE_KEY = "tender_form_state";
 export default function TenderFormBuilder() {
   const [, navigate] = useLocation();
   const { t } = useI18n();
-  const rfpLanguage = localStorage.getItem("rfp_creation_language") || "en";
-  const isRfpRtl = rfpLanguage === "ar";
 
   // Initialize cards - check for saved template/state first, then fall back to required cards
   const [cards, setCards] = useState<FormCard[]>(() => {
@@ -235,7 +233,7 @@ export default function TenderFormBuilder() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950" dir={isRfpRtl ? "rtl" : "ltr"}>
+      <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
         {/* Header */}
         <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
           <div className="flex items-center justify-between">

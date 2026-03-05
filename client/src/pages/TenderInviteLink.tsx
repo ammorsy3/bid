@@ -316,7 +316,7 @@ export default function TenderInviteLink() {
   const tenderId = params?.id;
   const { toast } = useToast();
   const { user } = useAuthStore();
-  const { t, language } = useI18n();
+  const { t, language, setLanguage } = useI18n();
 
   const translatedSubmissionTypeLabels: Record<string, string> = {
     quote_only: t('tenderFlow.inviteSubmissionQuoteOnly'),
@@ -700,8 +700,8 @@ export default function TenderInviteLink() {
 
   const remainingReqCount = Math.max(0, mandatoryRequirements.length - 3);
 
-  const activeLanguage = viewLanguage || tenderOriginalLang;
-  const isActiveRtl = activeLanguage === 'ar';
+  const activeLanguage = viewLanguage || language || tenderOriginalLang;
+  const isActiveRtl = language === 'ar' || activeLanguage === 'ar';
 
   return (
     <div className="min-h-screen bg-gray-50" dir={isActiveRtl ? "rtl" : "ltr"}>
@@ -715,7 +715,7 @@ export default function TenderInviteLink() {
             {canTranslate && (
               <div className="flex items-center gap-1 bg-gray-100 rounded-full p-0.5">
                 <button
-                  onClick={() => translateContent('en')}
+                  onClick={() => { setLanguage('en'); translateContent('en'); }}
                   disabled={isTranslating}
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
                     activeLanguage === 'en'
@@ -726,7 +726,7 @@ export default function TenderInviteLink() {
                   EN
                 </button>
                 <button
-                  onClick={() => translateContent('ar')}
+                  onClick={() => { setLanguage('ar'); translateContent('ar'); }}
                   disabled={isTranslating}
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
                     activeLanguage === 'ar'

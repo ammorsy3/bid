@@ -77,6 +77,7 @@ interface TenderInvite {
   }>;
   language?: 'en' | 'ar';
   allowTranslation?: boolean;
+  translatedContent?: Record<string, Record<string, string>> | null;
   formCards?: Array<{
     id: string;
     type: string;
@@ -300,7 +301,7 @@ function MobileAtAGlance({
                   <Tag className="h-3 w-3 flex-shrink-0 text-indigo-500" />
                   <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.categoryLabel')}</span>
                 </div>
-                <p className="text-xs font-bold text-gray-800 leading-tight">{tender.category}</p>
+                <p className="text-xs font-bold text-gray-800 leading-tight">{tx('category', tender.category)}</p>
               </div>
             )}
           </div>
@@ -391,6 +392,7 @@ export default function TenderInviteLink() {
   const [viewLanguage, setViewLanguage] = useState<'en' | 'ar' | null>(null); // null = original
   const [translatedTexts, setTranslatedTexts] = useState<Record<string, string>>({});
   const [isTranslating, setIsTranslating] = useState(false);
+  const [langInitialized, setLangInitialized] = useState(false);
 
   const { data: questions = [] } = useQuery<TenderQA[]>({
     queryKey: ['/api/tenders', tenderId, 'questions'],
@@ -439,6 +441,26 @@ export default function TenderInviteLink() {
       return res.json();
     },
   });
+
+  // On tender load: sync UI language to the RFP's language
+  useEffect(() => {
+    if (!tender || langInitialized) return;
+    setLangInitialized(true);
+
+    // Default the page language to match the RFP's chosen language
+    const tenderLang = tender.language || 'en';
+    if (language !== tenderLang) {
+      setLanguage(tenderLang as 'en' | 'ar');
+    }
+
+    // Apply stored translations for the default language right away
+    // (handles mixed-language content — e.g. Arabic title + English description in Arabic mode)
+    const stored = tender.translatedContent?.[tenderLang];
+    if (stored && Object.keys(stored).length > 0) {
+      setTranslatedTexts(stored);
+      setViewLanguage(tenderLang);
+    }
+  }, [tender, langInitialized, language, setLanguage]);
 
   if (!tenderId) {
     return (
@@ -544,27 +566,32 @@ export default function TenderInviteLink() {
 
   // Translate text content; voice/video/attachments are excluded
   const translateContent = async (targetLang: 'en' | 'ar') => {
-    if (targetLang === tenderOriginalLang) {
-      setViewLanguage(null);
-      return;
-    }
-    // If we already have translations cached, just toggle
-    if (Object.keys(translatedTexts).length > 0) {
+    // Use pre-stored translations if available (both directions stored at creation time)
+    const stored = tender.translatedContent?.[targetLang];
+    if (stored && typeof stored === 'object' && Object.keys(stored).length > 0) {
+      setTranslatedTexts(stored);
       setViewLanguage(targetLang);
       return;
     }
+
+    // If switching back to original and no stored translations exist, show raw originals
+    if (targetLang === tenderOriginalLang) {
+      setTranslatedTexts({});
+      setViewLanguage(null);
+      return;
+    }
+
+    // Fallback: call /api/translate on demand
     setIsTranslating(true);
     try {
       const textsToTranslate: string[] = [];
       const keys: string[] = [];
 
-      // Collect all text content to translate
       if (tender.title) { keys.push('title'); textsToTranslate.push(tender.title); }
       if (tender.description) { keys.push('description'); textsToTranslate.push(tender.description); }
       if (tender.objective) { keys.push('objective'); textsToTranslate.push(tender.objective); }
       if (tender.category) { keys.push('category'); textsToTranslate.push(tender.category); }
 
-      // Deliverables
       if (tender.deliverables) {
         tender.deliverables.forEach((d, i) => {
           const name = typeof d === 'string' ? d : d.name;
@@ -575,7 +602,6 @@ export default function TenderInviteLink() {
         });
       }
 
-      // Milestones
       if (tender.milestones) {
         tender.milestones.forEach((m: Milestone, i: number) => {
           if (m.name) { keys.push(`milestone_name_${i}`); textsToTranslate.push(m.name); }
@@ -583,14 +609,18 @@ export default function TenderInviteLink() {
         });
       }
 
-      // Vendor requirements
       if (tender.vendorRequirements) {
         tender.vendorRequirements.forEach((r, i) => {
           if (r.text) { keys.push(`vendor_req_${i}`); textsToTranslate.push(r.text); }
         });
       }
 
-      // Custom form cards
+      if (tender.skills) {
+        tender.skills.forEach((s, i) => {
+          if (s) { keys.push(`skill_${i}`); textsToTranslate.push(s); }
+        });
+      }
+
       if (tender.formCards) {
         tender.formCards.forEach((c, i) => {
           if (c.label) { keys.push(`card_label_${i}`); textsToTranslate.push(c.label); }
@@ -625,7 +655,7 @@ export default function TenderInviteLink() {
   // Helper: get translated or original text
   const tx = (key: string, original: string | undefined | null): string => {
     if (!original) return '';
-    if (isShowingTranslation && translatedTexts[key]) return translatedTexts[key];
+    if (translatedTexts[key]) return translatedTexts[key];
     return original;
   };
 
@@ -1034,7 +1064,7 @@ export default function TenderInviteLink() {
                         <div className="flex flex-wrap gap-2">
                           {tender.skills.map((skill, index) => (
                             <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium border border-indigo-100" data-testid={`badge-skill-${index}`}>
-                              {skill}
+                              {tx(`skill_${index}`, skill)}
                             </span>
                           ))}
                         </div>
@@ -1100,7 +1130,7 @@ export default function TenderInviteLink() {
                           {t('tenderFlow.additionalReqHint')}
                         </p>
                         <div className="space-y-4">
-                          {tender.formCards!.map((card) => {
+                          {tender.formCards!.map((card, cardIdx) => {
                             if (card.value === null || card.value === undefined || card.value === '') return null;
                             if (Array.isArray(card.value) && card.value.length === 0) return null;
                             return (
@@ -1112,7 +1142,7 @@ export default function TenderInviteLink() {
                                     ? <Layers className="h-3.5 w-3.5 text-indigo-500 flex-shrink-0" />
                                     : <Hash className="h-3.5 w-3.5 text-[#E25E45] flex-shrink-0" />}
                                   <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                                    {card.label}
+                                    {tx(`card_label_${cardIdx}`, card.label)}
                                   </span>
                                   {card.isRequired && (
                                     <span className="ml-auto text-[10px] font-bold text-red-400 uppercase tracking-wider">{t('tenderFlow.requiredBadge')}</span>
@@ -1126,10 +1156,10 @@ export default function TenderInviteLink() {
                                     </div>
                                   ) : card.type === 'custom-select' ? (
                                     <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium border border-indigo-100">
-                                      {card.value}
+                                      {tx(`card_value_${cardIdx}`, card.value)}
                                     </span>
                                   ) : (
-                                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">{card.value}</p>
+                                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">{tx(`card_value_${cardIdx}`, card.value)}</p>
                                   )}
                                 </div>
                               </div>
@@ -1543,7 +1573,7 @@ export default function TenderInviteLink() {
                           <Tag className="h-3 w-3 flex-shrink-0 text-indigo-500" />
                           <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.categoryLabel')}</span>
                         </div>
-                        <p className="text-xs font-bold text-gray-800 leading-tight">{tender.category}</p>
+                        <p className="text-xs font-bold text-gray-800 leading-tight">{tx('category', tender.category)}</p>
                       </div>
                     )}
                   </div>

@@ -198,6 +198,8 @@ export const tenders = pgTable("tenders", {
   language: text("language").default("en"),
   // Whether vendors can translate the published RFP to the other language
   allowTranslation: boolean("allow_translation").default(false),
+  // Pre-translated content keyed by language: { en: { title, description, ... }, ar: { ... } }
+  translatedContent: jsonb("translated_content").$type<Record<string, Record<string, string>>>(),
 
   // Invitation & Access
   invitationToken: varchar("invitation_token").notNull().unique(),
@@ -243,6 +245,31 @@ export const offerViews = pgTable("offer_views", {
   offerId: varchar("offer_id").notNull().references(() => offers.id),
   viewerId: varchar("viewer_id").notNull().references(() => users.id), // User who viewed the notification
   viewedAt: timestamp("viewed_at").defaultNow().notNull(),
+});
+
+// Proposal Analyses - AI-powered scoring and comparison of vendor proposals
+export const proposalAnalyses = pgTable("proposal_analyses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenderId: varchar("tender_id").notNull().references(() => tenders.id),
+  offerId: varchar("offer_id").notNull().references(() => offers.id),
+
+  scores: jsonb("scores").$type<Record<string, { score: number; justification: string }>>(),
+  overallScore: integer("overall_score"), // 0-100 weighted
+  extractedData: jsonb("extracted_data").$type<{
+    timeline?: string;
+    pricing?: { amount?: number; breakdown?: string };
+    keyStrengths?: string[];
+    weaknesses?: string[];
+    approach?: string;
+  }>(),
+
+  recommendation: text("recommendation"),
+  modelUsed: text("model_used"),
+  status: text("status").notNull().default("pending"), // 'pending', 'completed', 'failed', 'skipped'
+  errorMessage: text("error_message"),
+
+  analyzedAt: timestamp("analyzed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Invitations - Tender invitations to specific vendors
@@ -796,6 +823,9 @@ export type CreateTenderTemplate = z.infer<typeof createTenderTemplateSchema>;
 
 export type TenderQuestion = typeof tenderQuestions.$inferSelect;
 export type InsertTenderQuestion = z.infer<typeof insertTenderQuestionSchema>;
+
+export type ProposalAnalysis = typeof proposalAnalyses.$inferSelect;
+export type InsertProposalAnalysis = typeof proposalAnalyses.$inferInsert;
 
 // Chat models for AI integrations
 export * from "./models/chat";

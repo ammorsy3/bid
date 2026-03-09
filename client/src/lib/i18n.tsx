@@ -721,10 +721,10 @@ const translations = {
       evalTechnicalLabel: "Technical",
 
       // Language & Translation
-      rfpLanguageLabel: "RFP Language",
-      rfpLanguageDesc: "Choose the language this RFP will be published in",
-      allowTranslationLabel: "Allow vendors to translate",
-      allowTranslationDesc: "Vendors will see a language toggle to view the RFP in both English and Arabic",
+      rfpLanguageLabel: "Vendor Page Language",
+      rfpLanguageDesc: "Controls the interface language (labels, buttons) vendors see when they open the link — not the content you wrote",
+      allowTranslationLabel: "AI Translation",
+      allowTranslationDesc: "Automatically translate the RFP using AI so vendors can switch between English and Arabic",
       viewInEnglish: "View in English",
       viewInArabic: "عرض بالعربية",
       translating: "Translating...",
@@ -2027,10 +2027,10 @@ const translations = {
       evalTechnicalLabel: "التقني",
 
       // Language & Translation AR
-      rfpLanguageLabel: "لغة طلب العروض",
-      rfpLanguageDesc: "اختر اللغة التي سيتم نشر طلب العروض بها",
-      allowTranslationLabel: "السماح للموردين بالترجمة",
-      allowTranslationDesc: "سيرى الموردون خيار تبديل اللغة لعرض طلب العروض بالعربية والإنجليزية",
+      rfpLanguageLabel: "لغة صفحة المورد",
+      rfpLanguageDesc: "تتحكم بلغة الواجهة (العناوين، الأزرار) التي يراها الموردون عند فتح الرابط — وليس المحتوى الذي كتبته",
+      allowTranslationLabel: "الترجمة بالذكاء الاصطناعي",
+      allowTranslationDesc: "ترجمة طلب العروض تلقائياً بالذكاء الاصطناعي ليتمكن الموردون من التبديل بين العربية والإنجليزية",
       viewInEnglish: "View in English",
       viewInArabic: "عرض بالعربية",
       translating: "جارٍ الترجمة...",

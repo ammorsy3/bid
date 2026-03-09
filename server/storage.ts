@@ -48,7 +48,10 @@ import {
   type InsertTenderQuestion,
   errorLogs,
   type ErrorLog,
-  type InsertErrorLog
+  type InsertErrorLog,
+  proposalAnalyses,
+  type ProposalAnalysis,
+  type InsertProposalAnalysis
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ilike, or, isNull, sql, gte, count } from "drizzle-orm";
@@ -111,6 +114,7 @@ export interface IStorage {
   // OFFER OPERATIONS
   // ============================================================================
   createOffer(offer: InsertOffer): Promise<Offer>;
+  getOffer(id: string): Promise<Offer | undefined>;
   getOffersByTender(tenderId: string): Promise<(Offer & { company: Company; profile?: CompanyProfile })[]>;
   getOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender })[]>;
   getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null>;
@@ -209,6 +213,15 @@ export interface IStorage {
   // ============================================================================
   createErrorLog(log: InsertErrorLog): Promise<ErrorLog>;
   getErrorLogs(limit?: number): Promise<ErrorLog[]>;
+
+  // ============================================================================
+  // PROPOSAL ANALYSIS OPERATIONS
+  // ============================================================================
+  createProposalAnalysis(data: InsertProposalAnalysis): Promise<ProposalAnalysis>;
+  getProposalAnalysesByTender(tenderId: string): Promise<ProposalAnalysis[]>;
+  getProposalAnalysisByOffer(offerId: string): Promise<ProposalAnalysis | undefined>;
+  updateProposalAnalysis(id: string, updates: Partial<InsertProposalAnalysis>): Promise<ProposalAnalysis>;
+  deleteProposalAnalysesByTender(tenderId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -625,6 +638,11 @@ export class DatabaseStorage implements IStorage {
 
   async createOffer(insertOffer: InsertOffer): Promise<Offer> {
     const [offer] = await db.insert(offers).values(insertOffer).returning();
+    return offer;
+  }
+
+  async getOffer(id: string): Promise<Offer | undefined> {
+    const [offer] = await db.select().from(offers).where(eq(offers.id, id));
     return offer;
   }
 
@@ -1318,6 +1336,44 @@ export class DatabaseStorage implements IStorage {
       .from(errorLogs)
       .orderBy(desc(errorLogs.createdAt))
       .limit(limit);
+  }
+
+  // ============================================================================
+  // PROPOSAL ANALYSIS OPERATIONS
+  // ============================================================================
+
+  async createProposalAnalysis(data: InsertProposalAnalysis): Promise<ProposalAnalysis> {
+    const [analysis] = await db.insert(proposalAnalyses).values(data).returning();
+    return analysis;
+  }
+
+  async getProposalAnalysesByTender(tenderId: string): Promise<ProposalAnalysis[]> {
+    return await db
+      .select()
+      .from(proposalAnalyses)
+      .where(eq(proposalAnalyses.tenderId, tenderId))
+      .orderBy(desc(proposalAnalyses.overallScore));
+  }
+
+  async getProposalAnalysisByOffer(offerId: string): Promise<ProposalAnalysis | undefined> {
+    const [analysis] = await db
+      .select()
+      .from(proposalAnalyses)
+      .where(eq(proposalAnalyses.offerId, offerId));
+    return analysis;
+  }
+
+  async updateProposalAnalysis(id: string, updates: Partial<InsertProposalAnalysis>): Promise<ProposalAnalysis> {
+    const [updated] = await db
+      .update(proposalAnalyses)
+      .set(updates)
+      .where(eq(proposalAnalyses.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteProposalAnalysesByTender(tenderId: string): Promise<void> {
+    await db.delete(proposalAnalyses).where(eq(proposalAnalyses.tenderId, tenderId));
   }
 }
 

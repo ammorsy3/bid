@@ -13,6 +13,7 @@ import { ToastAction } from "@/components/ui/toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Tender } from "@shared/schema";
 import SubmitOfferModal from "@/components/submit-offer-modal";
+import ProposalComparison from "@/components/ProposalComparison";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 
@@ -1225,6 +1226,13 @@ export default function TenderDetails() {
                       </div>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* AI Proposal Comparison (owner only, when offers exist) */}
+              {isOwner && offers.length >= 1 && (
+                <div className="mt-6">
+                  <ProposalComparison tenderId={tender.id} offers={offers} />
                 </div>
               )}
 

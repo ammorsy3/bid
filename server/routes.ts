@@ -181,8 +181,8 @@ async function suggestTenderCategory(tender: {
   skills?: string[];
   deliverables?: any[];
 }): Promise<string | null> {
-  const openaiApiKey = process.env.OPENAI_API_KEY;
-  if (!openaiApiKey) return null;
+  const config = getOpenAIConfig();
+  if (!config) return null;
 
   const categoryList = VENDOR_CATEGORIES.join(", ");
   const context = [
@@ -194,11 +194,11 @@ async function suggestTenderCategory(tender: {
   ].filter(Boolean).join("\n");
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch(config.url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${openaiApiKey}`,
+        "Authorization": `Bearer ${config.key}`,
       },
       body: JSON.stringify({
         model: "gpt-4o",
@@ -221,6 +221,156 @@ async function suggestTenderCategory(tender: {
   } catch {
     return null;
   }
+}
+
+// Resolve OpenAI-compatible API endpoint and key.
+// Prefers the Replit AI integration; falls back to OPENAI_API_KEY.
+function getOpenAIConfig(): { url: string; key: string } | null {
+  const replitKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+  const replitBase = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
+  if (replitKey && replitBase) {
+    return { url: `${replitBase}/chat/completions`, key: replitKey };
+  }
+  const openaiKey = process.env.OPENAI_API_KEY;
+  if (openaiKey) {
+    return { url: "https://api.openai.com/v1/chat/completions", key: openaiKey };
+  }
+  return null;
+}
+
+// Translate an array of texts to the target language using OpenAI gpt-4o.
+// Returns the translated strings in the same order, or the originals on failure.
+async function translateTexts(texts: string[], targetLanguage: 'en' | 'ar'): Promise<string[]> {
+  const config = getOpenAIConfig();
+  if (!config || texts.length === 0) return texts;
+
+  const langName = targetLanguage === 'ar' ? 'Arabic' : 'English';
+  const numbered = texts.map((t, i) => `${i + 1}. ${t}`).join('\n');
+
+  try {
+    const response = await fetch(config.url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${config.key}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a professional procurement translator. You will receive a numbered list of texts. For each text, detect its language: if it is already in ${langName}, return it unchanged; otherwise translate it to ${langName}. Respond ONLY with the same numbered list preserving numbering and order. Do not add any commentary.`,
+          },
+          { role: "user", content: numbered },
+        ],
+        temperature: 0.2,
+        max_tokens: 4000,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Translation API error:', response.status, await response.text().catch(() => ''));
+      return texts;
+    }
+    const data = await response.json();
+    const raw = data.choices?.[0]?.message?.content?.trim() || '';
+
+    // Parse "N. text" lines back into array
+    const results: string[] = [...texts]; // fallback to originals
+    const lines = raw.split('\n');
+    let currentIdx = -1;
+    let currentLines: string[] = [];
+
+    const flush = () => {
+      if (currentIdx >= 0 && currentIdx < results.length) {
+        results[currentIdx] = currentLines.join('\n').trim();
+      }
+    };
+
+    for (const line of lines) {
+      const match = line.match(/^(\d+)\.\s*(.*)/);
+      if (match) {
+        flush();
+        currentIdx = parseInt(match[1], 10) - 1;
+        currentLines = [match[2]];
+      } else if (currentIdx >= 0) {
+        currentLines.push(line);
+      }
+    }
+    flush();
+
+    return results;
+  } catch {
+    return texts;
+  }
+}
+
+// Build translatedContent for a tender in BOTH directions (en + ar).
+// Handles mixed-language content by letting the AI detect each field's language.
+// Returns { en: { title, description, ... }, ar: { title, description, ... } }
+async function buildTenderTranslation(tender: any): Promise<Record<string, Record<string, string>> | null> {
+  const keys: string[] = [];
+  const texts: string[] = [];
+
+  if (tender.title) { keys.push('title'); texts.push(tender.title); }
+  if (tender.description) { keys.push('description'); texts.push(tender.description); }
+  if (tender.objective) { keys.push('objective'); texts.push(tender.objective); }
+  if (tender.category) { keys.push('category'); texts.push(tender.category); }
+
+  if (Array.isArray(tender.deliverables)) {
+    tender.deliverables.forEach((d: any, i: number) => {
+      const name = typeof d === 'string' ? d : d?.name;
+      if (name) { keys.push(`deliverable_name_${i}`); texts.push(name); }
+      if (typeof d !== 'string' && d?.description) {
+        keys.push(`deliverable_desc_${i}`); texts.push(d.description);
+      }
+    });
+  }
+
+  if (Array.isArray(tender.milestones)) {
+    tender.milestones.forEach((m: any, i: number) => {
+      if (m?.name) { keys.push(`milestone_name_${i}`); texts.push(m.name); }
+      if (m?.description) { keys.push(`milestone_desc_${i}`); texts.push(m.description); }
+    });
+  }
+
+  if (Array.isArray(tender.vendorRequirements)) {
+    tender.vendorRequirements.forEach((r: any, i: number) => {
+      if (r?.text) { keys.push(`vendor_req_${i}`); texts.push(r.text); }
+    });
+  }
+
+  if (Array.isArray(tender.skills)) {
+    tender.skills.forEach((s: string, i: number) => {
+      if (s) { keys.push(`skill_${i}`); texts.push(s); }
+    });
+  }
+
+  if (Array.isArray(tender.formCards)) {
+    tender.formCards.forEach((c: any, i: number) => {
+      if (c?.label) { keys.push(`card_label_${i}`); texts.push(c.label); }
+      if (typeof c?.value === 'string' && c.value) {
+        keys.push(`card_value_${i}`); texts.push(c.value);
+      }
+    });
+  }
+
+  if (texts.length === 0) return null;
+
+  // Translate to both languages in parallel
+  const [enTranslated, arTranslated] = await Promise.all([
+    translateTexts(texts, 'en'),
+    translateTexts(texts, 'ar'),
+  ]);
+
+  const enMap: Record<string, string> = {};
+  const arMap: Record<string, string> = {};
+  keys.forEach((key, idx) => {
+    enMap[key] = enTranslated[idx] || texts[idx];
+    arMap[key] = arTranslated[idx] || texts[idx];
+  });
+
+  return { en: enMap, ar: arMap };
 }
 
 // ============================================================================
@@ -917,11 +1067,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           if (suggestedCategory) {
             const updated = await storage.updateTender(tender.id, { category: suggestedCategory });
-            return res.json(updated ?? tender);
+            // Respond first, then translate asynchronously
+            res.json(updated ?? tender);
+            if (tenderData.allowTranslation) {
+              buildTenderTranslation({ ...(updated ?? tender), category: suggestedCategory })
+                .then(translatedContent => {
+                  if (translatedContent) {
+                    storage.updateTender(tender.id, { translatedContent }).catch(console.error);
+                  }
+                })
+                .catch(console.error);
+            }
+            return;
           }
         }
 
         res.json(tender);
+
+        // Translate asynchronously after responding so publish is not delayed
+        if (tenderData.allowTranslation) {
+          buildTenderTranslation(tender)
+            .then(translatedContent => {
+              if (translatedContent) {
+                storage.updateTender(tender.id, { translatedContent }).catch(console.error);
+              }
+            })
+            .catch(console.error);
+        }
       } catch (error) {
         console.error('Create tender error:', error);
         res.status(400).json({ message: "Invalid tender data" });
@@ -1067,6 +1239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         formCards: tender.formCards,
         language: tender.language || 'en',
         allowTranslation: tender.allowTranslation || false,
+        translatedContent: tender.translatedContent ?? null,
         createdAt: tender.createdAt,
         company: company ? {
           id: company.id,
@@ -1087,7 +1260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // TRANSLATION ENDPOINT
   // ============================================================================
 
-  // Translate text content for a tender (used by vendor-side language toggle)
+  // Translate text content for a tender (used by vendor-side language toggle as fallback)
   app.post("/api/translate", async (req, res) => {
     try {
       const { texts, targetLanguage } = req.body;
@@ -1100,35 +1273,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "targetLanguage must be 'en' or 'ar'" });
       }
 
-      // Simple translation pairs for common terms
-      const commonTranslations: Record<string, Record<string, string>> = {
-        en: {
-          'Not provided': 'غير متوفر',
-          'Not specified': 'غير محدد',
-          'Required': 'مطلوب',
-          'Optional': 'اختياري',
-        },
-        ar: {
-          'غير متوفر': 'Not provided',
-          'غير محدد': 'Not specified',
-          'مطلوب': 'Required',
-          'اختياري': 'Optional',
-        }
-      };
-
-      // For each text, attempt basic translation
-      // In production, this would call an AI translation API (e.g., Claude, GPT, Google Translate)
-      const translated = texts.map((text: string) => {
-        if (!text || text.trim() === '') return text;
-        // Check common translations first
-        if (commonTranslations[targetLanguage]?.[text]) {
-          return commonTranslations[targetLanguage][text];
-        }
-        // Return original text — in production, call an AI translation service here
-        return text;
-      });
-
-      res.json({ translations: translated });
+      const translations = await translateTexts(texts, targetLanguage as 'en' | 'ar');
+      res.json({ translations });
     } catch (error) {
       console.error('Translation error:', error);
       res.status(500).json({ message: "Translation failed" });
@@ -1515,6 +1661,385 @@ Response must be valid JSON with this exact structure:
       } catch (error) {
         console.error("AI category suggestion error:", error);
         res.status(500).json({ message: "Failed to suggest category." });
+      }
+    }
+  );
+
+  // ==========================================================================
+  // AI PROPOSAL ANALYSIS ROUTES
+  // ==========================================================================
+
+  // Get existing proposal analyses for a tender
+  app.get("/api/ai/proposal-analysis/:tenderId",
+    authenticateToken,
+    requireCompanyContext,
+    async (req: AuthRequest, res) => {
+      try {
+        const tender = await storage.getTender(req.params.tenderId);
+        if (!tender) return res.status(404).json({ message: "Tender not found" });
+        if (tender.companyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: "Only the tender owner can view analyses" });
+        }
+
+        const analyses = await storage.getProposalAnalysesByTender(req.params.tenderId);
+        // Join with offer + company data
+        const offersData = await storage.getOffersByTender(req.params.tenderId);
+        const enriched = analyses.map(analysis => {
+          const offerData = offersData.find(o => o.id === analysis.offerId);
+          return {
+            ...analysis,
+            offer: offerData ? {
+              id: offerData.id,
+              quotePrice: offerData.quotePrice,
+              notes: offerData.notes,
+              technicalFileUrl: offerData.technicalFileUrl,
+              financialFileUrl: offerData.financialFileUrl,
+              videoUrl: offerData.videoUrl,
+              status: offerData.status,
+              submittedAt: offerData.submittedAt,
+            } : null,
+            company: offerData ? {
+              id: offerData.company.id,
+              name: offerData.company.name,
+              category: offerData.company.category,
+              verificationStatus: offerData.company.verificationStatus,
+              displayName: (offerData as any).profile?.displayName,
+              logoUrl: (offerData as any).profile?.logoUrl,
+            } : null,
+          };
+        });
+
+        res.json(enriched);
+      } catch (error) {
+        console.error("Proposal analysis fetch error:", error);
+        res.status(500).json({ message: "Failed to fetch analyses" });
+      }
+    }
+  );
+
+  // Analyze all proposals for a tender
+  app.post("/api/ai/analyze-proposals/:tenderId",
+    authenticateToken,
+    requireCompanyContext,
+    async (req: AuthRequest, res) => {
+      try {
+        const config = getOpenAIConfig();
+        if (!config) {
+          return res.status(503).json({ message: "AI is not configured. Please set up an OpenAI API key." });
+        }
+
+        const tender = await storage.getTender(req.params.tenderId);
+        if (!tender) return res.status(404).json({ message: "Tender not found" });
+        if (tender.companyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: "Only the tender owner can analyze proposals" });
+        }
+
+        const offersData = await storage.getOffersByTender(req.params.tenderId);
+        if (offersData.length === 0) {
+          return res.status(400).json({ message: "No proposals to analyze" });
+        }
+
+        // Delete existing analyses for fresh run
+        await storage.deleteProposalAnalysesByTender(req.params.tenderId);
+
+        // Build evaluation criteria
+        let criteria: { name: string; weight: number }[] = [];
+        if (tender.evaluationCriteria && typeof tender.evaluationCriteria === 'object') {
+          const ec = tender.evaluationCriteria as any;
+          if (Array.isArray(ec.customCriteria)) {
+            criteria = ec.customCriteria.map((c: any) => ({
+              name: c.name || c.id || c,
+              weight: c.weight || 1,
+            }));
+          } else if (Array.isArray(ec)) {
+            criteria = ec.map((c: any) => ({
+              name: typeof c === 'string' ? c : (c.name || c.id || 'criterion'),
+              weight: c.weight || 1,
+            }));
+          }
+        }
+        if (criteria.length === 0) {
+          criteria = [
+            { name: "Financial Offer", weight: 1 },
+            { name: "Technical Approach", weight: 1 },
+            { name: "Clear Timeline", weight: 1 },
+          ];
+        }
+
+        const criteriaText = criteria.map(c => `- ${c.name} (weight: ${c.weight})`).join("\n");
+
+        const tenderContext = [
+          `Title: ${tender.title}`,
+          `Description: ${tender.description}`,
+          tender.budget ? `Budget: ${tender.budget} ${tender.currency || 'SAR'}` : null,
+          tender.objective ? `Objective: ${tender.objective}` : null,
+          tender.deliverables?.length ? `Deliverables: ${tender.deliverables.map(d => d.name).join(", ")}` : null,
+          tender.vendorRequirements?.length ? `Vendor Requirements: ${tender.vendorRequirements.map(r => `${r.text} (${r.type})`).join("; ")}` : null,
+          tender.duration ? `Duration: ${tender.duration}` : null,
+          tender.projectTimeline ? `Timeline: ${tender.projectTimeline}` : null,
+        ].filter(Boolean).join("\n");
+
+        // Analyze each offer
+        const analyses = [];
+        for (const offerData of offersData) {
+          const offer = offerData;
+          const companyName = (offerData as any).profile?.displayName || offerData.company.name;
+
+          // Check if video-only with no other data
+          const isVideoOnly = tender.submissionType === 'video_only' &&
+            !offer.quotePrice && !offer.notes && !offer.technicalFileUrl && !offer.financialFileUrl;
+
+          if (isVideoOnly) {
+            const analysis = await storage.createProposalAnalysis({
+              tenderId: tender.id,
+              offerId: offer.id,
+              status: "skipped",
+              errorMessage: "Video-only submission requires manual review",
+              createdAt: new Date(),
+            });
+            analyses.push(analysis);
+            continue;
+          }
+
+          // Extract text from files
+          let proposalText = "";
+          try {
+            const { fetchAndExtractFile } = await import("./textExtraction");
+
+            if (offer.technicalFileUrl) {
+              const techText = await fetchAndExtractFile(offer.technicalFileUrl);
+              if (techText) proposalText += `\n--- TECHNICAL PROPOSAL ---\n${techText}`;
+            }
+            if (offer.financialFileUrl) {
+              const finText = await fetchAndExtractFile(offer.financialFileUrl);
+              if (finText) proposalText += `\n--- FINANCIAL PROPOSAL ---\n${finText}`;
+            }
+            if (offer.combinedFileUrl) {
+              const combinedText = await fetchAndExtractFile(offer.combinedFileUrl);
+              if (combinedText) proposalText += `\n--- PROPOSAL DOCUMENT ---\n${combinedText}`;
+            }
+          } catch (err) {
+            console.error(`File extraction failed for offer ${offer.id}:`, err);
+          }
+
+          // Build offer context
+          const offerContext = [
+            `Vendor: ${companyName}`,
+            offer.quotePrice ? `Quoted Price: ${offer.quotePrice} SAR` : null,
+            offer.notes ? `Vendor Notes: ${offer.notes}` : null,
+            offer.videoUrl ? `Video presentation provided (requires manual review)` : null,
+            proposalText ? proposalText : (offer.technicalFileUrl || offer.financialFileUrl ? "Note: File content could not be extracted" : null),
+          ].filter(Boolean).join("\n");
+
+          try {
+            const aiResponse = await fetch(config.url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${config.key}`,
+              },
+              body: JSON.stringify({
+                model: "gpt-4o",
+                messages: [
+                  {
+                    role: "system",
+                    content: `You are an expert procurement evaluator. Analyze a vendor's proposal against the tender requirements and evaluation criteria.
+
+TENDER CONTEXT:
+${tenderContext}
+
+EVALUATION CRITERIA (score each 0-100):
+${criteriaText}
+
+Respond with ONLY valid JSON in this exact structure:
+{
+  "scores": {
+    "<criterion_name>": { "score": <0-100>, "justification": "<brief reason>" }
+  },
+  "overallScore": <0-100 weighted average>,
+  "extractedData": {
+    "timeline": "<extracted timeline or null>",
+    "pricing": { "amount": <number or null>, "breakdown": "<brief breakdown or null>" },
+    "keyStrengths": ["<strength1>", "<strength2>"],
+    "weaknesses": ["<weakness1>"],
+    "approach": "<brief summary of their approach>"
+  }
+}`
+                  },
+                  {
+                    role: "user",
+                    content: `Evaluate this proposal:\n\n${offerContext}`
+                  }
+                ],
+                temperature: 0.3,
+                max_tokens: 1000,
+              }),
+            });
+
+            if (!aiResponse.ok) {
+              throw new Error(`AI API returned ${aiResponse.status}`);
+            }
+
+            const aiData = await aiResponse.json();
+            const content = aiData.choices?.[0]?.message?.content;
+            const modelUsed = aiData.model || "gpt-4o";
+
+            if (!content) throw new Error("Empty AI response");
+
+            // Parse JSON from response
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) throw new Error("No JSON in AI response");
+
+            const parsed = JSON.parse(jsonMatch[0]);
+
+            const analysis = await storage.createProposalAnalysis({
+              tenderId: tender.id,
+              offerId: offer.id,
+              scores: parsed.scores || {},
+              overallScore: typeof parsed.overallScore === 'number' ? Math.round(parsed.overallScore) : null,
+              extractedData: parsed.extractedData || {},
+              modelUsed,
+              status: "completed",
+              analyzedAt: new Date(),
+              createdAt: new Date(),
+            });
+            analyses.push(analysis);
+          } catch (err: any) {
+            console.error(`AI analysis failed for offer ${offer.id}:`, err);
+            const analysis = await storage.createProposalAnalysis({
+              tenderId: tender.id,
+              offerId: offer.id,
+              status: "failed",
+              errorMessage: err.message || "Analysis failed",
+              createdAt: new Date(),
+            });
+            analyses.push(analysis);
+          }
+        }
+
+        // Run comparison prompt across all scored offers
+        const scoredAnalyses = analyses.filter(a => a.status === 'completed' && a.overallScore != null);
+        if (scoredAnalyses.length > 0) {
+          try {
+            const summaryLines = scoredAnalyses.map(a => {
+              const offerData = offersData.find(o => o.id === a.offerId);
+              const name = (offerData as any)?.profile?.displayName || offerData?.company.name || 'Unknown';
+              return `- ${name}: Overall ${a.overallScore}/100, Price: ${offerData?.quotePrice || 'N/A'} SAR`;
+            });
+
+            const compResponse = await fetch(config.url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${config.key}`,
+              },
+              body: JSON.stringify({
+                model: "gpt-4o",
+                messages: [
+                  {
+                    role: "system",
+                    content: `You are a procurement advisor. Given the scored proposals below, provide a concise recommendation (2-3 sentences) explaining which vendor is best and why. Consider score, price, and value for money. If there's only one proposal, comment on its quality.
+
+TENDER: ${tender.title}
+BUDGET: ${tender.budget || 'Not specified'} ${tender.currency || 'SAR'}
+
+SCORED PROPOSALS:
+${summaryLines.join("\n")}
+
+Respond with ONLY valid JSON: { "recommendation": "<your recommendation text>" }`
+                  },
+                  { role: "user", content: "Provide your recommendation." }
+                ],
+                temperature: 0.4,
+                max_tokens: 300,
+              }),
+            });
+
+            if (compResponse.ok) {
+              const compData = await compResponse.json();
+              const compContent = compData.choices?.[0]?.message?.content;
+              if (compContent) {
+                const compJson = compContent.match(/\{[\s\S]*\}/);
+                if (compJson) {
+                  const { recommendation } = JSON.parse(compJson[0]);
+                  if (recommendation) {
+                    for (const analysis of scoredAnalyses) {
+                      await storage.updateProposalAnalysis(analysis.id, { recommendation });
+                    }
+                  }
+                }
+              }
+            }
+          } catch (err) {
+            console.error("Comparison recommendation failed:", err);
+          }
+        }
+
+        // Return enriched analyses
+        const allAnalyses = await storage.getProposalAnalysesByTender(req.params.tenderId);
+        const enriched = allAnalyses.map(analysis => {
+          const offerData = offersData.find(o => o.id === analysis.offerId);
+          return {
+            ...analysis,
+            offer: offerData ? {
+              id: offerData.id,
+              quotePrice: offerData.quotePrice,
+              notes: offerData.notes,
+              videoUrl: offerData.videoUrl,
+              status: offerData.status,
+              submittedAt: offerData.submittedAt,
+            } : null,
+            company: offerData ? {
+              id: offerData.company.id,
+              name: offerData.company.name,
+              category: offerData.company.category,
+              verificationStatus: offerData.company.verificationStatus,
+              displayName: (offerData as any).profile?.displayName,
+              logoUrl: (offerData as any).profile?.logoUrl,
+            } : null,
+          };
+        });
+
+        res.json(enriched);
+      } catch (error) {
+        console.error("Proposal analysis error:", error);
+        res.status(500).json({ message: "Failed to analyze proposals" });
+      }
+    }
+  );
+
+  // Re-analyze a single offer
+  app.post("/api/ai/reanalyze-offer/:offerId",
+    authenticateToken,
+    requireCompanyContext,
+    async (req: AuthRequest, res) => {
+      try {
+        const config = getOpenAIConfig();
+        if (!config) {
+          return res.status(503).json({ message: "AI is not configured." });
+        }
+
+        const offer = await storage.getOffer(req.params.offerId);
+        if (!offer) return res.status(404).json({ message: "Offer not found" });
+
+        const tender = await storage.getTender(offer.tenderId);
+        if (!tender) return res.status(404).json({ message: "Tender not found" });
+        if (tender.companyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: "Only the tender owner can re-analyze" });
+        }
+
+        // Delete existing analysis
+        const existing = await storage.getProposalAnalysisByOffer(req.params.offerId);
+        if (existing) {
+          await storage.deleteProposalAnalysesByTender(tender.id);
+        }
+
+        // Redirect to full analysis endpoint for simplicity
+        // (re-analyzes all offers including this one and refreshes comparison)
+        res.json({ message: "Please use the full analysis endpoint to re-analyze all proposals", redirectTo: `/api/ai/analyze-proposals/${tender.id}` });
+      } catch (error) {
+        console.error("Re-analyze error:", error);
+        res.status(500).json({ message: "Failed to re-analyze" });
       }
     }
   );

@@ -1713,6 +1713,22 @@ Response must be valid JSON with this exact structure:
     }
   );
 
+  // Retry helper for AI API calls with exponential backoff
+  async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3): Promise<globalThis.Response> {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      const response = await fetch(url, options);
+      if (response.status === 429 && attempt < maxRetries) {
+        const retryAfter = response.headers.get('retry-after');
+        const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : Math.min(2000 * Math.pow(2, attempt), 30000);
+        console.log(`Rate limited (429), retrying in ${waitMs}ms (attempt ${attempt + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, waitMs));
+        continue;
+      }
+      return response;
+    }
+    throw new Error("Max retries exceeded for AI API call");
+  }
+
   // Shared helper: analyze a single offer with factual extraction prompt
   async function analyzeOfferWithAI(
     config: { url: string; key: string },
@@ -1784,7 +1800,7 @@ Response must be valid JSON with this exact structure:
     ].filter(Boolean).join("\n");
 
     try {
-      const aiResponse = await fetch(config.url, {
+      const aiResponse = await fetchWithRetry(config.url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

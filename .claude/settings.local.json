@@ -73,7 +73,8 @@
       "Bash(timeout 10 npx tsx server/routes.ts 2>&1 || true)",
       "Bash(npx tsx -e \"\nimport\\('./server/routes.ts'\\).then\\(\\(\\) => {\n  console.log\\('routes.ts imported OK'\\);\n}\\).catch\\(e => {\n  console.error\\('Import failed:', e.message\\);\n}\\);\n\" 2>&1)",
       "Bash(timeout 15 npx tsx server/index.ts 2>&1 | head -30 || true)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X POST http://localhost:5000/api/ai/analyze-offer/test123 2>&1)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X POST http://localhost:5000/api/ai/analyze-offer/test123 2>&1)",
+      "Bash(sleep 6 && curl -s -X POST http://localhost:5000/api/ai/analyze-offer/test -H \"Content-Type: application/json\" 2>&1)"
     ]
   }
 }

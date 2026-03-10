@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -224,6 +224,7 @@ interface Offer {
   companyId: string;
   technicalFileUrl: string | null;
   financialFileUrl: string | null;
+  combinedFileUrl: string | null;
   notes: string | null;
   quotePrice: number | null;
   videoUrl: string | null;
@@ -240,6 +241,19 @@ interface Offer {
     bio: string | null;
     logoUrl: string | null;
   };
+}
+
+interface OfferAnalysis {
+  id: string;
+  offerId: string;
+  status: string;
+  executiveSummary: string | null;
+  tableOfContents: { section: string; pageRange: string }[] | null;
+  criteriaMapping: Record<string, string> | null;
+  deliverables: string[] | null;
+  financial: { total?: number; breakdown?: { item: string; amount: number }[]; paymentTerms?: string; vat?: number } | null;
+  errorMessage: string | null;
+  analyzedAt: string | null;
 }
 
 export default function TenderDetails() {
@@ -394,26 +408,35 @@ export default function TenderDetails() {
     }
   });
 
-  const updateOfferStatus = useMutation({
-    mutationFn: async ({ offerId, status }: { offerId: string; status: string }) => {
-      return await apiRequest('PATCH', `/api/offers/${offerId}/status`, { status });
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/tenders', id, 'offers'] });
-      if (variables.status === 'accepted') {
-        queryClient.invalidateQueries({ queryKey: ['/api/vendors-base'] });
-      }
-      toast({
-        title: variables.status === 'accepted' ? "Proposal Accepted" : "Proposal Ignored",
-        description: variables.status === 'accepted'
-          ? "Vendor has been added to your Vendors Base."
-          : "This proposal has been marked as ignored.",
+  // Fetch existing AI analyses for this tender's offers
+  const { data: offerAnalyses = [] } = useQuery<OfferAnalysis[]>({
+    queryKey: ['/api/ai/proposal-analysis', id],
+    queryFn: async () => {
+      const res = await fetch(`/api/ai/proposal-analysis/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!user && !!id && !!isOwner,
+  });
+
+  // Per-offer AI analysis mutation
+  const analyzeOffer = useMutation({
+    mutationFn: async (offerId: string) => {
+      const res = await apiRequest('POST', `/api/ai/analyze-offer/${offerId}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/ai/proposal-analysis', id] });
+      toast({ title: "Analysis complete", description: "AI has extracted key facts from this proposal." });
     },
     onError: (error: Error) => {
-      toast({ title: "Failed to update proposal", description: error.message, variant: "destructive" });
+      toast({ title: "Analysis failed", description: error.message, variant: "destructive" });
     }
   });
+
+  const [expandedAnalyses, setExpandedAnalyses] = useState<Record<string, boolean>>({});
 
   const copyInvitationLink = async () => {
     if (!tender) return;
@@ -1144,28 +1167,21 @@ export default function TenderDetails() {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {offers.map((offer) => (
+                        {offers.map((offer) => {
+                          const analysis = offerAnalyses.find((a: any) => a.offerId === offer.id);
+                          const isAnalysisExpanded = expandedAnalyses[offer.id] || false;
+                          return (
                           <div key={offer.id}
-                            className={`rounded-xl border p-4 ${offer.status === 'accepted' ? 'border-green-200 bg-green-50' : offer.status === 'rejected' ? 'border-gray-200 bg-gray-50 opacity-60' : 'border-gray-200'}`}
+                            className="rounded-xl border border-gray-200 p-4"
                             data-testid={`card-offer-${offer.id}`}
                           >
-                            <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-4">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                                   <h4 className="font-semibold text-gray-900">{offer.profile?.displayName || offer.company.name}</h4>
                                   {offer.company.verificationStatus === 'verified' && (
                                     <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
                                       <CheckCircle2 className="h-3 w-3" /> Verified
-                                    </span>
-                                  )}
-                                  {offer.status === 'accepted' && (
-                                    <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full font-medium">
-                                      <CheckCircle className="h-3 w-3" /> Accepted
-                                    </span>
-                                  )}
-                                  {offer.status === 'rejected' && (
-                                    <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full font-medium">
-                                      <X className="h-3 w-3" /> Ignored
                                     </span>
                                   )}
                                 </div>
@@ -1180,6 +1196,11 @@ export default function TenderDetails() {
                                   <Button variant="outline" size="sm" onClick={() => setSelectedOffer(offer)} data-testid={`button-view-${offer.id}`}>
                                     <Eye className="h-3.5 w-3.5 mr-1" /> View Profile
                                   </Button>
+                                  {offer.combinedFileUrl && (
+                                    <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)} data-testid={`button-combined-${offer.id}`}>
+                                      <FileText className="h-3.5 w-3.5 mr-1" /> Proposal
+                                    </Button>
+                                  )}
                                   {offer.technicalFileUrl && (
                                     <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)} data-testid={`button-tech-${offer.id}`}>
                                       <FileText className="h-3.5 w-3.5 mr-1" /> Technical
@@ -1195,44 +1216,154 @@ export default function TenderDetails() {
                                       <Video className="h-3.5 w-3.5 mr-1" /> Video
                                     </Button>
                                   )}
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => analyzeOffer.mutate(offer.id)}
+                                    disabled={analyzeOffer.isPending}
+                                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                    data-testid={`button-ai-${offer.id}`}
+                                  >
+                                    {analyzeOffer.isPending && analyzeOffer.variables === offer.id ? (
+                                      <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                                    ) : (
+                                      <Sparkles className="h-3.5 w-3.5 mr-1" />
+                                    )}
+                                    {analysis ? 'Re-analyze' : 'Summarize with AI'}
+                                  </Button>
                                 </div>
                               </div>
-                              <div className="flex flex-col gap-2 flex-shrink-0">
-                                {offer.status === 'pending' && (
-                                  <>
-                                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                                      onClick={() => updateOfferStatus.mutate({ offerId: offer.id, status: 'accepted' })}
-                                      disabled={updateOfferStatus.isPending} data-testid={`button-accept-${offer.id}`}>
-                                      <CheckCircle className="h-3.5 w-3.5 mr-1" /> Accept
-                                    </Button>
-                                    <Button variant="outline" size="sm"
-                                      onClick={() => updateOfferStatus.mutate({ offerId: offer.id, status: 'rejected' })}
-                                      disabled={updateOfferStatus.isPending} data-testid={`button-ignore-${offer.id}`}>
-                                      <X className="h-3.5 w-3.5 mr-1" /> Ignore
-                                    </Button>
-                                  </>
-                                )}
-                                {offer.status !== 'pending' && (
-                                  <Button variant="ghost" size="sm" className="text-xs text-gray-400"
-                                    onClick={() => updateOfferStatus.mutate({ offerId: offer.id, status: 'pending' })}
-                                    disabled={updateOfferStatus.isPending} data-testid={`button-undo-${offer.id}`}>
-                                    Undo
-                                  </Button>
+                            </div>
+
+                            {/* Inline AI Analysis */}
+                            {analysis && analysis.status === 'completed' && (
+                              <div className="mt-4 border-t border-gray-100 pt-4">
+                                <button
+                                  onClick={() => setExpandedAnalyses(prev => ({ ...prev, [offer.id]: !prev[offer.id] }))}
+                                  className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 mb-3"
+                                >
+                                  <Sparkles className="h-3.5 w-3.5" />
+                                  AI Analysis
+                                  {isAnalysisExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                                </button>
+
+                                {isAnalysisExpanded && (
+                                  <div className="space-y-4 text-sm">
+                                    {/* Executive Summary */}
+                                    {analysis.executiveSummary && (
+                                      <div>
+                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Executive Summary</p>
+                                        <p className="text-gray-700 font-medium leading-relaxed">{analysis.executiveSummary}</p>
+                                      </div>
+                                    )}
+
+                                    {/* Table of Contents */}
+                                    {analysis.tableOfContents && analysis.tableOfContents.length > 0 && (
+                                      <div>
+                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Table of Contents</p>
+                                        <div className="space-y-1">
+                                          {analysis.tableOfContents.map((item: any, i: number) => (
+                                            <div key={i} className="flex justify-between text-xs px-2 py-1.5 bg-gray-50 rounded">
+                                              <span className="text-gray-700">{item.section}</span>
+                                              <span className="text-gray-400 font-mono">{item.pageRange}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Criteria Mapping */}
+                                    {analysis.criteriaMapping && Object.keys(analysis.criteriaMapping).length > 0 && (
+                                      <div>
+                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Criteria Mapping</p>
+                                        <div className="space-y-1">
+                                          {Object.entries(analysis.criteriaMapping).map(([criterion, pageRef]) => (
+                                            <div key={criterion} className="flex justify-between text-xs px-2 py-1.5 bg-gray-50 rounded">
+                                              <span className="text-gray-700">{criterion}</span>
+                                              <span className={`font-mono ${pageRef === 'Not Found' ? 'text-red-500 font-semibold' : 'text-gray-400'}`}>{pageRef as string}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Deliverables */}
+                                    {analysis.deliverables && analysis.deliverables.length > 0 && (
+                                      <div>
+                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Deliverables</p>
+                                        <ul className="list-disc list-inside space-y-0.5 text-gray-700 text-xs">
+                                          {analysis.deliverables.map((d: string, i: number) => (
+                                            <li key={i}>{d}</li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+
+                                    {/* Financial */}
+                                    {analysis.financial && (
+                                      <div>
+                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Financial</p>
+                                        <div className="space-y-1">
+                                          {analysis.financial.total != null && (
+                                            <div className="flex justify-between text-xs px-2 py-1.5 bg-gray-50 rounded">
+                                              <span className="text-gray-700 font-medium">Total</span>
+                                              <span className="font-semibold text-gray-900">SAR {analysis.financial.total.toLocaleString()}</span>
+                                            </div>
+                                          )}
+                                          {analysis.financial.vat != null && (
+                                            <div className="flex justify-between text-xs px-2 py-1.5 bg-gray-50 rounded">
+                                              <span className="text-gray-700">VAT</span>
+                                              <span className="text-gray-600">{analysis.financial.vat}%</span>
+                                            </div>
+                                          )}
+                                          {analysis.financial.paymentTerms && (
+                                            <div className="flex justify-between text-xs px-2 py-1.5 bg-gray-50 rounded">
+                                              <span className="text-gray-700">Payment Terms</span>
+                                              <span className="text-gray-600">{analysis.financial.paymentTerms}</span>
+                                            </div>
+                                          )}
+                                          {analysis.financial.breakdown && analysis.financial.breakdown.length > 0 && (
+                                            <div className="mt-2">
+                                              <p className="text-xs text-gray-500 mb-1">Breakdown</p>
+                                              {analysis.financial.breakdown.map((item: any, i: number) => (
+                                                <div key={i} className="flex justify-between text-xs px-2 py-1 border-b border-gray-100 last:border-0">
+                                                  <span className="text-gray-600">{item.item}</span>
+                                                  <span className="text-gray-800 font-medium">SAR {item.amount?.toLocaleString()}</span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {analysis.analyzedAt && (
+                                      <p className="text-[10px] text-gray-400">Analyzed {new Date(analysis.analyzedAt).toLocaleString()}</p>
+                                    )}
+                                  </div>
                                 )}
                               </div>
-                            </div>
+                            )}
+
+                            {analysis && analysis.status === 'failed' && (
+                              <div className="mt-3 flex items-center gap-2 text-xs text-red-500 bg-red-50 rounded-lg p-2">
+                                <AlertCircle className="h-3.5 w-3.5" />
+                                <span>Analysis failed: {analysis.errorMessage || 'Unknown error'}</span>
+                              </div>
+                            )}
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* AI Proposal Comparison (owner only, when offers exist) */}
-              {isOwner && offers.length >= 1 && (
+              {/* AI Proposal Comparison (owner only, when 2+ offers exist) */}
+              {isOwner && offers.length >= 2 && (
                 <div className="mt-6">
-                  <ProposalComparison tenderId={tender.id} offers={offers} />
+                  <ProposalComparison tenderId={tender.id} offers={offers} analyses={offerAnalyses} />
                 </div>
               )}
 
@@ -1498,7 +1629,19 @@ export default function TenderDetails() {
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex flex-wrap gap-2 pt-2">
+                {selectedOffer.combinedFileUrl && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => viewAuthenticatedFile(selectedOffer.combinedFileUrl!)}
+                    data-testid="button-modal-combined-file"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Proposal
+                  </Button>
+                )}
                 {selectedOffer.technicalFileUrl && (
                   <Button
                     variant="outline"

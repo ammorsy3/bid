@@ -65,7 +65,15 @@
       "Bash(sleep 8 && curl -s -H \"Authorization: Bearer invalid\" http://localhost:5000/api/ai/proposal-analysis/test123 2>&1)",
       "Bash(fuser -k 5000/tcp 2>/dev/null; pkill -9 -f \"tsx server\" 2>/dev/null; pkill -9 -f \"node.*vite\" 2>/dev/null; sleep 2; fuser 5000/tcp 2>/dev/null && echo \"STILL IN USE\" || echo \"Port 5000 is free\")",
       "Bash(netstat -tlnp)",
-      "Bash(npx tsx scripts/seed_and_test.ts 2>&1)"
+      "Bash(npx tsx scripts/seed_and_test.ts 2>&1)",
+      "Bash(node -e \"\nimport { PDFParse } from 'pdf-parse';\nconst p = new PDFParse\\({}\\);\nconst methods = Object.getOwnPropertyNames\\(Object.getPrototypeOf\\(p\\)\\).filter\\(n => n !== 'constructor'\\);\nconsole.log\\('Methods:', methods\\);\n\" 2>&1)",
+      "Bash(node -e \"\nimport { PDFParse } from 'pdf-parse';\nconst p = new PDFParse\\({}\\);\nconsole.log\\('getPageText:', p.getPageText.toString\\(\\).slice\\(0, 300\\)\\);\nconsole.log\\('---'\\);\nconsole.log\\('getText:', p.getText.toString\\(\\).slice\\(0, 300\\)\\);\n\" 2>&1)",
+      "Bash(node -e \"\nimport { PDFParse } from 'pdf-parse';\nconst p = new PDFParse\\({}\\);\n// Check getText return type - TextResult\nconsole.log\\(p.getText.toString\\(\\).slice\\(0, 600\\)\\);\n\" 2>&1)",
+      "Bash(npx tsx --eval \"\nimport { tenderSavings, proposalAnalyses } from './shared/schema';\nconsole.log\\('tenderSavings columns:', Object.keys\\(tenderSavings\\)\\);\nconsole.log\\('proposalAnalyses new columns:', \n  ['executiveSummary', 'tableOfContents', 'criteriaMapping', 'deliverables', 'financial']\n    .filter\\(col => col in proposalAnalyses\\)\n\\);\nconsole.log\\('OK'\\);\n\" 2>&1)",
+      "Bash(timeout 10 npx tsx server/routes.ts 2>&1 || true)",
+      "Bash(npx tsx -e \"\nimport\\('./server/routes.ts'\\).then\\(\\(\\) => {\n  console.log\\('routes.ts imported OK'\\);\n}\\).catch\\(e => {\n  console.error\\('Import failed:', e.message\\);\n}\\);\n\" 2>&1)",
+      "Bash(timeout 15 npx tsx server/index.ts 2>&1 | head -30 || true)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X POST http://localhost:5000/api/ai/analyze-offer/test123 2>&1)"
     ]
   }
 }

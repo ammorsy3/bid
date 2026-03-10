@@ -51,7 +51,10 @@ import {
   type InsertErrorLog,
   proposalAnalyses,
   type ProposalAnalysis,
-  type InsertProposalAnalysis
+  type InsertProposalAnalysis,
+  tenderSavings,
+  type TenderSavings,
+  type InsertTenderSavings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ilike, or, isNull, sql, gte, count } from "drizzle-orm";
@@ -222,6 +225,12 @@ export interface IStorage {
   getProposalAnalysisByOffer(offerId: string): Promise<ProposalAnalysis | undefined>;
   updateProposalAnalysis(id: string, updates: Partial<InsertProposalAnalysis>): Promise<ProposalAnalysis>;
   deleteProposalAnalysesByTender(tenderId: string): Promise<void>;
+
+  // ============================================================================
+  // TENDER SAVINGS OPERATIONS
+  // ============================================================================
+  createTenderSavings(data: InsertTenderSavings): Promise<TenderSavings>;
+  getTenderSavings(tenderId: string): Promise<TenderSavings | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1352,7 +1361,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(proposalAnalyses)
       .where(eq(proposalAnalyses.tenderId, tenderId))
-      .orderBy(desc(proposalAnalyses.overallScore));
+      .orderBy(desc(proposalAnalyses.analyzedAt));
   }
 
   async getProposalAnalysisByOffer(offerId: string): Promise<ProposalAnalysis | undefined> {
@@ -1374,6 +1383,25 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProposalAnalysesByTender(tenderId: string): Promise<void> {
     await db.delete(proposalAnalyses).where(eq(proposalAnalyses.tenderId, tenderId));
+  }
+
+  // ============================================================================
+  // TENDER SAVINGS OPERATIONS
+  // ============================================================================
+
+  async createTenderSavings(data: InsertTenderSavings): Promise<TenderSavings> {
+    const [savings] = await db.insert(tenderSavings).values(data).returning();
+    return savings;
+  }
+
+  async getTenderSavings(tenderId: string): Promise<TenderSavings | undefined> {
+    const [savings] = await db
+      .select()
+      .from(tenderSavings)
+      .where(eq(tenderSavings.tenderId, tenderId))
+      .orderBy(desc(tenderSavings.createdAt))
+      .limit(1);
+    return savings;
   }
 }
 

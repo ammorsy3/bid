@@ -1,10 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
-import { Calendar, Mail, Send } from "lucide-react";
+import { Calendar, FileText, Send } from "lucide-react";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import { Link } from "wouter";
+
+const SUBMISSION_TYPE_LABELS: Record<string, string> = {
+  quote_only: "Price Quote Only",
+  tech_fin_proposal: "Technical & Financial",
+  video_only: "Video Only",
+  tech_fin_with_video: "Tech & Fin + Video",
+};
 
 interface TenderCardProps {
   tender: {
@@ -13,8 +20,8 @@ interface TenderCardProps {
     description: string;
     deadline: string;
     status: string;
-    invitedCount: number;
     offersCount: number;
+    submissionType?: string | null;
     budget?: string | null;
   };
 }
@@ -74,10 +81,12 @@ export default function TenderCard({ tender }: TenderCardProps) {
             <Send className="w-4 h-4 mr-2" />
             <span>{tender.offersCount} offers</span>
           </div>
-          <div className="flex items-center">
-            <Mail className="w-4 h-4 mr-2" />
-            <span>{tender.invitedCount} invited</span>
-          </div>
+          {tender.submissionType && (
+            <div className="flex items-center">
+              <FileText className="w-4 h-4 mr-2" />
+              <span>{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</span>
+            </div>
+          )}
           {tender.budget && (
             <div className="flex items-center">
               <span className="text-neutral-500 mr-1">$</span>

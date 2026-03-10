@@ -72,6 +72,13 @@ interface JoinRequest {
   };
 }
 
+const SUBMISSION_TYPE_LABELS_DASH: Record<string, string> = {
+  quote_only: "Price Quote Only",
+  tech_fin_proposal: "Technical & Financial",
+  video_only: "Video Only",
+  tech_fin_with_video: "Tech & Fin + Video",
+};
+
 interface TenderWithCounts {
   id: string;
   title: string;
@@ -84,7 +91,7 @@ interface TenderWithCounts {
   invitationToken: string;
   createdAt: string;
   offersCount: number;
-  invitedCount: number;
+  submissionType: string | null;
 }
 
 interface MyOffer {
@@ -1536,10 +1543,12 @@ export default function Dashboard() {
                                     {tender.offersCount} {t('dashboard.offers')}
                                   </span>
                                 </div>
+                                {tender.submissionType && (
                                 <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                  <Mail className="h-4 w-4" />
-                                  <span>{tender.invitedCount} {t('dashboard.invited')}</span>
+                                  <FileText className="h-4 w-4" />
+                                  <span>{SUBMISSION_TYPE_LABELS_DASH[tender.submissionType] || tender.submissionType}</span>
                                 </div>
+                                )}
                                 <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <FileText className="h-4 w-4" />
                                   <span>{tender.budgetRange || tender.budget || t('dashboard.budget')}</span>

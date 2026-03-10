@@ -1,159 +1,184 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Sparkles, RotateCcw, AlertTriangle, Loader2, Video } from "lucide-react";
+import {
+  Sparkles,
+  Loader2,
+  TrendingUp,
+  TrendingDown,
+  Check,
+  Minus,
+  Eye,
+  Download,
+  X,
+  RotateCcw,
+  CheckCircle,
+} from "lucide-react";
+import { viewAuthenticatedFile } from "@/lib/downloadFile";
 
-interface ProposalAnalysis {
+interface OfferAnalysis {
   id: string;
-  tenderId: string;
   offerId: string;
-  scores: Record<string, { score: number; justification: string }> | null;
-  overallScore: number | null;
-  extractedData: {
-    timeline?: string;
-    pricing?: { amount?: number; breakdown?: string };
-    keyStrengths?: string[];
-    weaknesses?: string[];
-    approach?: string;
-  } | null;
-  recommendation: string | null;
   status: string;
+  executiveSummary: string | null;
+  tableOfContents: { section: string; pageRange: string }[] | null;
+  criteriaMapping: Record<string, string> | null;
+  deliverables: string[] | null;
+  financial: {
+    total?: number;
+    breakdown?: { item: string; amount: number }[];
+    paymentTerms?: string;
+    vat?: number;
+  } | null;
   errorMessage: string | null;
   analyzedAt: string | null;
-  offer: {
-    id: string;
-    quotePrice: number | null;
-    notes: string | null;
-    videoUrl: string | null;
-    status: string;
-    submittedAt: string;
-  } | null;
+}
+
+interface Offer {
+  id: string;
+  companyId: string;
+  technicalFileUrl: string | null;
+  financialFileUrl: string | null;
+  combinedFileUrl?: string | null;
+  quotePrice: number | null;
+  videoUrl: string | null;
+  submittedAt: string;
+  status: string;
   company: {
     id: string;
     name: string;
     category: string | null;
     verificationStatus: string;
+  };
+  profile?: {
     displayName: string | null;
+    bio: string | null;
     logoUrl: string | null;
-  } | null;
+  };
 }
 
-function getScoreColor(score: number): string {
-  if (score >= 80) return "text-green-600 bg-green-50";
-  if (score >= 60) return "text-yellow-600 bg-yellow-50";
-  return "text-red-600 bg-red-50";
+interface ProposalComparisonProps {
+  tenderId: string;
+  offers: Offer[];
+  analyses?: OfferAnalysis[];
 }
 
-function getScoreBarColor(score: number): string {
-  if (score >= 80) return "bg-green-500";
-  if (score >= 60) return "bg-yellow-500";
-  return "bg-red-500";
-}
-
-function ScoreCell({ score }: { score: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className={`text-sm font-semibold px-2 py-0.5 rounded ${getScoreColor(score)}`}>
-        {score}/100
-      </span>
-      <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full ${getScoreBarColor(score)}`}
-          style={{ width: `${score}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-export default function ProposalComparison({ tenderId, offers }: { tenderId: string; offers: any[] }) {
+export default function ProposalComparison({ tenderId, offers, analyses = [] }: ProposalComparisonProps) {
   const { toast } = useToast();
-  const [analyzing, setAnalyzing] = useState(false);
-
-  const { data: analyses, isLoading } = useQuery<ProposalAnalysis[]>({
-    queryKey: ["/api/ai/proposal-analysis", tenderId],
-    queryFn: async () => {
-      const response = await fetch(`/api/ai/proposal-analysis/${tenderId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      if (!response.ok) throw new Error("Failed to fetch analyses");
-      return response.json();
-    },
-    enabled: !!tenderId,
-  });
+  const [hiddenOffers, setHiddenOffers] = useState<Set<string>>(new Set());
+  const [selectedVendor, setSelectedVendor] = useState<string | null>(null);
 
   const analyzeMutation = useMutation({
     mutationFn: async () => {
-      setAnalyzing(true);
       const response = await apiRequest("POST", `/api/ai/analyze-proposals/${tenderId}`);
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/ai/proposal-analysis", tenderId] });
-      toast({ title: "Analysis complete", description: "AI has scored and compared all proposals." });
-      setAnalyzing(false);
+      toast({ title: "Analysis complete", description: "All proposals have been analyzed." });
     },
     onError: (error: Error) => {
       toast({ title: "Analysis failed", description: error.message, variant: "destructive" });
-      setAnalyzing(false);
     },
   });
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-5 w-5 animate-spin mr-2" />
-          <span className="text-muted-foreground">Loading analyses...</span>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const hasAnalyses = analyses && analyses.length > 0;
-  const scoredAnalyses = analyses?.filter(a => a.status === "completed" && a.overallScore != null) || [];
-  const skippedAnalyses = analyses?.filter(a => a.status === "skipped") || [];
-  const failedAnalyses = analyses?.filter(a => a.status === "failed") || [];
-  const recommendation = scoredAnalyses[0]?.recommendation;
-
-  // Collect all unique criteria names across all analyses
-  const allCriteria = new Set<string>();
-  scoredAnalyses.forEach(a => {
-    if (a.scores) Object.keys(a.scores).forEach(k => allCriteria.add(k));
+  const savingsMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", `/api/tenders/${tenderId}/savings`, data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Vendor selected",
+        description: `Savings recorded: SAR ${data.savingsAmount?.toLocaleString() || 0} (${data.savingsPercentage || 0}% savings)`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Failed to record savings", description: error.message, variant: "destructive" });
+    },
   });
 
-  // No analyses yet — show the trigger button
+  // Get completed analyses matched to offers
+  const completedAnalyses = analyses.filter(a => a.status === "completed");
+  const hasAnalyses = completedAnalyses.length > 0;
+
+  // Filter visible offers
+  const visibleOffers = offers.filter(o => !hiddenOffers.has(o.id));
+  const removedOffers = offers.filter(o => hiddenOffers.has(o.id));
+
+  // Build deliverables union
+  const allDeliverables = new Set<string>();
+  completedAnalyses.forEach(a => {
+    if (a.deliverables) a.deliverables.forEach(d => allDeliverables.add(d));
+  });
+
+  // Financial data per offer
+  const getFinancial = (offerId: string) => {
+    const analysis = completedAnalyses.find(a => a.offerId === offerId);
+    return analysis?.financial || null;
+  };
+
+  const getTotal = (offerId: string): number | null => {
+    const fin = getFinancial(offerId);
+    if (fin?.total) return fin.total;
+    const offer = offers.find(o => o.id === offerId);
+    return offer?.quotePrice || null;
+  };
+
+  // Find cheapest and most expensive
+  const totals = visibleOffers.map(o => ({ id: o.id, total: getTotal(o.id) })).filter(t => t.total != null) as { id: string; total: number }[];
+  const cheapestId = totals.length > 0 ? totals.reduce((min, t) => t.total < min.total ? t : min, totals[0]).id : null;
+  const mostExpensiveId = totals.length > 0 ? totals.reduce((max, t) => t.total > max.total ? t : max, totals[0]).id : null;
+  const highestPrice = totals.length > 0 ? Math.max(...totals.map(t => t.total)) : 0;
+  const lowestPrice = totals.length > 0 ? Math.min(...totals.map(t => t.total)) : 0;
+
+  const getVendorName = (offer: Offer) => offer.profile?.displayName || offer.company.name;
+
+  const handleSelectVendor = (offer: Offer) => {
+    const selectedPrice = getTotal(offer.id);
+    if (selectedPrice == null) return;
+
+    setSelectedVendor(offer.id);
+    savingsMutation.mutate({
+      selectedOfferId: offer.id,
+      selectedCompanyId: offer.companyId,
+      selectedPrice,
+      highestPrice,
+      lowestPrice,
+    });
+  };
+
+  // No analyses yet — show trigger
   if (!hasAnalyses) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-blue-500" />
-            AI Proposal Comparison
+            Proposal Comparison
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground mb-4 text-sm">
-            Let AI analyze and score each vendor proposal against your evaluation criteria,
-            extract key data points, and provide a side-by-side comparison with a recommendation.
+            Analyze all proposals to generate a side-by-side comparison of deliverables and financials.
           </p>
           <Button
             onClick={() => analyzeMutation.mutate()}
-            disabled={analyzing || offers.length === 0}
+            disabled={analyzeMutation.isPending || offers.length < 2}
           >
-            {analyzing ? (
+            {analyzeMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Analyzing {offers.length} proposal{offers.length !== 1 ? "s" : ""}...
+                Analyzing {offers.length} proposals...
               </>
             ) : (
               <>
                 <Sparkles className="h-4 w-4 mr-2" />
-                Compare & Score with AI
+                Analyze & Compare All
               </>
             )}
           </Button>
@@ -162,177 +187,243 @@ export default function ProposalComparison({ tenderId, offers }: { tenderId: str
     );
   }
 
-  // Show results
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-blue-500" />
-          AI Proposal Comparison
+          Proposal Comparison
         </CardTitle>
         <Button
           variant="outline"
           size="sm"
           onClick={() => analyzeMutation.mutate()}
-          disabled={analyzing}
+          disabled={analyzeMutation.isPending}
         >
-          {analyzing ? (
+          {analyzeMutation.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin mr-1" />
           ) : (
             <RotateCcw className="h-4 w-4 mr-1" />
           )}
-          Re-analyze
+          Re-analyze All
         </Button>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Recommendation */}
-        {recommendation && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start gap-2">
-              <Trophy className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="font-semibold text-blue-900 mb-1">AI Recommendation</h4>
-                <p className="text-blue-800 text-sm">{recommendation}</p>
-              </div>
+
+        {/* Section A: Deliverables Comparison */}
+        {allDeliverables.size > 0 && (
+          <div>
+            <h4 className="font-semibold text-sm text-gray-700 mb-3">Deliverables Comparison</h4>
+            <div className="overflow-x-auto border rounded-lg">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-gray-50">
+                    <th className="text-left p-3 font-medium text-muted-foreground min-w-[200px]">Deliverable</th>
+                    {visibleOffers.map(o => (
+                      <th key={o.id} className={`text-center p-3 font-medium min-w-[140px] ${selectedVendor === o.id ? 'bg-blue-50' : ''}`}>
+                        {getVendorName(o)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from(allDeliverables).map(deliverable => {
+                    return (
+                      <tr key={deliverable} className="border-b">
+                        <td className="p-3 text-xs text-gray-700">{deliverable}</td>
+                        {visibleOffers.map(o => {
+                          const analysis = completedAnalyses.find(a => a.offerId === o.id);
+                          const hasIt = analysis?.deliverables?.some(d =>
+                            d.toLowerCase().includes(deliverable.toLowerCase()) ||
+                            deliverable.toLowerCase().includes(d.toLowerCase())
+                          );
+                          return (
+                            <td key={o.id} className={`p-3 text-center ${selectedVendor === o.id ? 'bg-blue-50/50' : ''}`}>
+                              {hasIt ? (
+                                <Check className="h-4 w-4 text-green-500 mx-auto" />
+                              ) : (
+                                <Minus className="h-4 w-4 text-gray-300 mx-auto" />
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
-        {/* Comparison Table */}
-        {scoredAnalyses.length > 0 && (
+        {/* Section B: Financial Comparison */}
+        <div>
+          <h4 className="font-semibold text-sm text-gray-700 mb-3">Financial Comparison</h4>
           <div className="overflow-x-auto border rounded-lg">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="text-left p-3 font-medium text-muted-foreground min-w-[140px]">Criteria</th>
-                  {scoredAnalyses.map(a => (
-                    <th key={a.id} className="text-left p-3 font-medium min-w-[160px]">
-                      {a.company?.displayName || a.company?.name || "Unknown"}
+                  <th className="text-left p-3 font-medium text-muted-foreground min-w-[160px]">Item</th>
+                  {visibleOffers.map(o => (
+                    <th key={o.id} className={`text-right p-3 font-medium min-w-[140px] ${selectedVendor === o.id ? 'bg-blue-50' : ''}`}>
+                      <div className="flex items-center justify-end gap-1">
+                        {getVendorName(o)}
+                        {cheapestId === o.id && totals.length > 1 && <TrendingUp className="h-3.5 w-3.5 text-green-500" />}
+                        {mostExpensiveId === o.id && totals.length > 1 && cheapestId !== mostExpensiveId && <TrendingDown className="h-3.5 w-3.5 text-red-500" />}
+                      </div>
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {/* Overall Score Row */}
-                <tr className="border-b bg-gray-50/50 font-medium">
-                  <td className="p-3">Overall Score</td>
-                  {scoredAnalyses.map(a => (
-                    <td key={a.id} className="p-3">
-                      {a.overallScore != null ? <ScoreCell score={a.overallScore} /> : "—"}
-                    </td>
-                  ))}
-                </tr>
-
-                {/* Price Row */}
-                <tr className="border-b">
-                  <td className="p-3 text-muted-foreground">Price (SAR)</td>
-                  {scoredAnalyses.map(a => (
-                    <td key={a.id} className="p-3">
-                      {a.extractedData?.pricing?.amount
-                        ? a.extractedData.pricing.amount.toLocaleString()
-                        : a.offer?.quotePrice
-                        ? a.offer.quotePrice.toLocaleString()
-                        : "—"}
-                    </td>
-                  ))}
-                </tr>
-
-                {/* Timeline Row */}
-                <tr className="border-b">
-                  <td className="p-3 text-muted-foreground">Timeline</td>
-                  {scoredAnalyses.map(a => (
-                    <td key={a.id} className="p-3">
-                      {a.extractedData?.timeline || "—"}
-                    </td>
-                  ))}
-                </tr>
-
-                {/* Individual Criteria Scores */}
-                {Array.from(allCriteria).map(criterion => (
-                  <tr key={criterion} className="border-b">
-                    <td className="p-3 text-muted-foreground">{criterion}</td>
-                    {scoredAnalyses.map(a => (
-                      <td key={a.id} className="p-3">
-                        {a.scores?.[criterion] ? (
-                          <div>
-                            <ScoreCell score={a.scores[criterion].score} />
-                            <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">
-                              {a.scores[criterion].justification}
-                            </p>
-                          </div>
+                {/* Total Price */}
+                <tr className="border-b font-medium bg-gray-50/50">
+                  <td className="p-3">Total Price</td>
+                  {visibleOffers.map(o => {
+                    const total = getTotal(o.id);
+                    return (
+                      <td key={o.id} className={`p-3 text-right ${selectedVendor === o.id ? 'bg-blue-50/50' : ''}`}>
+                        {total != null ? (
+                          <span className={`font-semibold ${cheapestId === o.id && totals.length > 1 ? 'text-green-600' : mostExpensiveId === o.id && totals.length > 1 && cheapestId !== mostExpensiveId ? 'text-red-600' : 'text-gray-900'}`}>
+                            SAR {total.toLocaleString()}
+                          </span>
                         ) : "—"}
                       </td>
-                    ))}
-                  </tr>
-                ))}
-
-                {/* Key Strengths */}
-                <tr className="border-b">
-                  <td className="p-3 text-muted-foreground">Key Strengths</td>
-                  {scoredAnalyses.map(a => (
-                    <td key={a.id} className="p-3">
-                      {a.extractedData?.keyStrengths?.length ? (
-                        <ul className="list-disc list-inside text-xs space-y-0.5">
-                          {a.extractedData.keyStrengths.map((s, i) => (
-                            <li key={i}>{s}</li>
-                          ))}
-                        </ul>
-                      ) : "—"}
-                    </td>
-                  ))}
+                    );
+                  })}
                 </tr>
 
-                {/* Weaknesses */}
+                {/* VAT */}
                 <tr className="border-b">
-                  <td className="p-3 text-muted-foreground">Weaknesses</td>
-                  {scoredAnalyses.map(a => (
-                    <td key={a.id} className="p-3">
-                      {a.extractedData?.weaknesses?.length ? (
-                        <ul className="list-disc list-inside text-xs space-y-0.5">
-                          {a.extractedData.weaknesses.map((w, i) => (
-                            <li key={i}>{w}</li>
-                          ))}
-                        </ul>
-                      ) : "—"}
-                    </td>
-                  ))}
+                  <td className="p-3 text-muted-foreground">VAT</td>
+                  {visibleOffers.map(o => {
+                    const fin = getFinancial(o.id);
+                    return (
+                      <td key={o.id} className={`p-3 text-right ${selectedVendor === o.id ? 'bg-blue-50/50' : ''}`}>
+                        {fin?.vat != null ? `${fin.vat}%` : "—"}
+                      </td>
+                    );
+                  })}
+                </tr>
+
+                {/* Grand Total (incl. VAT) */}
+                <tr className="border-b">
+                  <td className="p-3 text-muted-foreground">Grand Total (incl. VAT)</td>
+                  {visibleOffers.map(o => {
+                    const fin = getFinancial(o.id);
+                    const total = getTotal(o.id);
+                    if (total != null && fin?.vat != null) {
+                      const grand = total * (1 + fin.vat / 100);
+                      return (
+                        <td key={o.id} className={`p-3 text-right font-medium ${selectedVendor === o.id ? 'bg-blue-50/50' : ''}`}>
+                          SAR {Math.round(grand).toLocaleString()}
+                        </td>
+                      );
+                    }
+                    return <td key={o.id} className={`p-3 text-right ${selectedVendor === o.id ? 'bg-blue-50/50' : ''}`}>—</td>;
+                  })}
+                </tr>
+
+                {/* Payment Terms */}
+                <tr className="border-b">
+                  <td className="p-3 text-muted-foreground">Payment Terms</td>
+                  {visibleOffers.map(o => {
+                    const fin = getFinancial(o.id);
+                    return (
+                      <td key={o.id} className={`p-3 text-right text-xs ${selectedVendor === o.id ? 'bg-blue-50/50' : ''}`}>
+                        {fin?.paymentTerms || "—"}
+                      </td>
+                    );
+                  })}
                 </tr>
               </tbody>
             </table>
           </div>
-        )}
 
-        {/* Skipped (video-only) offers */}
-        {skippedAnalyses.length > 0 && (
-          <div className="space-y-2">
-            {skippedAnalyses.map(a => (
-              <div key={a.id} className="flex items-center gap-2 text-sm text-muted-foreground bg-gray-50 rounded-lg p-3">
-                <Video className="h-4 w-4" />
-                <span className="font-medium">{a.company?.displayName || a.company?.name || "Unknown"}</span>
-                <Badge variant="outline" className="text-xs">Manual review required</Badge>
-                <span className="text-xs">— Video-only submission</span>
+          {/* Cost Savings Banner */}
+          {totals.length > 1 && highestPrice > lowestPrice && (
+            <div className="mt-3 flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg p-3">
+              <TrendingUp className="h-4 w-4 text-green-600 flex-shrink-0" />
+              <span className="text-sm text-green-800">
+                <span className="font-semibold">Potential savings:</span> SAR {(highestPrice - lowestPrice).toLocaleString()} between cheapest and most expensive offer
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Section C: Actions per vendor */}
+        <div>
+          <h4 className="font-semibold text-sm text-gray-700 mb-3">Actions</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {visibleOffers.map(o => (
+              <div key={o.id} className={`rounded-xl border p-4 space-y-3 ${selectedVendor === o.id ? 'border-blue-300 bg-blue-50/50' : 'border-gray-200'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-sm text-gray-900">{getVendorName(o)}</p>
+                    {o.company.category && <p className="text-xs text-gray-400">{o.company.category}</p>}
+                  </div>
+                  {selectedVendor === o.id && (
+                    <Badge className="bg-blue-100 text-blue-700 text-xs">Selected</Badge>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <Button variant="outline" size="sm" className="text-xs h-7"
+                    onClick={() => {
+                      const fileUrl = o.combinedFileUrl || o.technicalFileUrl;
+                      if (fileUrl) viewAuthenticatedFile(fileUrl);
+                    }}
+                    disabled={!o.combinedFileUrl && !o.technicalFileUrl}
+                  >
+                    <Download className="h-3 w-3 mr-1" /> PDF
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-xs h-7"
+                    onClick={() => setHiddenOffers(prev => new Set([...Array.from(prev), o.id]))}
+                  >
+                    <X className="h-3 w-3 mr-1" /> Remove
+                  </Button>
+                  {selectedVendor !== o.id && (
+                    <Button size="sm" className="text-xs h-7 bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={() => handleSelectVendor(o)}
+                      disabled={savingsMutation.isPending || getTotal(o.id) == null}
+                    >
+                      {savingsMutation.isPending ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      ) : (
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                      )}
+                      Select
+                    </Button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
-        )}
+        </div>
 
-        {/* Failed analyses */}
-        {failedAnalyses.length > 0 && (
-          <div className="space-y-2">
-            {failedAnalyses.map(a => (
-              <div key={a.id} className="flex items-center gap-2 text-sm text-red-600 bg-red-50 rounded-lg p-3">
-                <AlertTriangle className="h-4 w-4" />
-                <span className="font-medium">{a.company?.displayName || a.company?.name || "Unknown"}</span>
-                <span className="text-xs">— {a.errorMessage || "Analysis failed"}</span>
-              </div>
-            ))}
+        {/* Removed vendors */}
+        {removedOffers.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-gray-400 mb-2">Removed from comparison</p>
+            <div className="flex flex-wrap gap-2">
+              {removedOffers.map(o => (
+                <Button key={o.id} variant="outline" size="sm" className="text-xs"
+                  onClick={() => setHiddenOffers(prev => {
+                    const next = new Set(prev);
+                    next.delete(o.id);
+                    return next;
+                  })}
+                >
+                  <RotateCcw className="h-3 w-3 mr-1" /> {getVendorName(o)}
+                </Button>
+              ))}
+            </div>
           </div>
         )}
 
         {/* Analysis metadata */}
-        {scoredAnalyses[0]?.analyzedAt && (
+        {completedAnalyses[0]?.analyzedAt && (
           <p className="text-xs text-muted-foreground">
-            Last analyzed: {new Date(scoredAnalyses[0].analyzedAt).toLocaleString()}
+            Last analyzed: {new Date(completedAnalyses[0].analyzedAt).toLocaleString()}
           </p>
         )}
       </CardContent>

@@ -268,7 +268,30 @@ export const proposalAnalyses = pgTable("proposal_analyses", {
   status: text("status").notNull().default("pending"), // 'pending', 'completed', 'failed', 'skipped'
   errorMessage: text("error_message"),
 
+  // New factual extraction fields
+  executiveSummary: text("executive_summary"),
+  tableOfContents: jsonb("table_of_contents").$type<{ section: string; pageRange: string }[]>(),
+  criteriaMapping: jsonb("criteria_mapping").$type<Record<string, string>>(),
+  deliverables: jsonb("deliverables").$type<string[]>(),
+  financial: jsonb("financial").$type<{ total?: number; breakdown?: { item: string; amount: number }[]; paymentTerms?: string; vat?: number }>(),
+
   analyzedAt: timestamp("analyzed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Tender Savings - Track vendor selection and cost savings
+export const tenderSavings = pgTable("tender_savings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenderId: varchar("tender_id").notNull().references(() => tenders.id),
+  selectedOfferId: varchar("selected_offer_id").notNull().references(() => offers.id),
+  selectedCompanyId: varchar("selected_company_id").notNull().references(() => companies.id),
+  selectedPrice: integer("selected_price").notNull(),
+  highestPrice: integer("highest_price").notNull(),
+  lowestPrice: integer("lowest_price").notNull(),
+  savingsAmount: integer("savings_amount").notNull(),
+  savingsPercentage: integer("savings_percentage").notNull(),
+  selectedBy: varchar("selected_by").notNull().references(() => users.id),
+  selectedAt: timestamp("selected_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -826,6 +849,9 @@ export type InsertTenderQuestion = z.infer<typeof insertTenderQuestionSchema>;
 
 export type ProposalAnalysis = typeof proposalAnalyses.$inferSelect;
 export type InsertProposalAnalysis = typeof proposalAnalyses.$inferInsert;
+
+export type TenderSavings = typeof tenderSavings.$inferSelect;
+export type InsertTenderSavings = typeof tenderSavings.$inferInsert;
 
 // Chat models for AI integrations
 export * from "./models/chat";

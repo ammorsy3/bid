@@ -13,6 +13,11 @@ export async function extractTextFromBuffer(buffer: Buffer, contentType: string)
       const { PDFParse } = await import("pdf-parse");
       const parser = new PDFParse({ data: new Uint8Array(buffer) });
       const result = await parser.getText();
+      // Insert page markers for AI to reference page numbers
+      const pages = (result as any).pages || [];
+      if (pages.length > 0) {
+        return pages.map((p: any) => `--- PAGE ${p.num} ---\n${p.text}`).join("\n");
+      }
       return result.text || "";
     }
 

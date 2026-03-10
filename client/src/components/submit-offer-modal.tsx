@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { FileText, DollarSign, AlertTriangle, Clock, ClipboardList, Check, X, ShieldAlert, Video, Info, Files, File } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
-import { enUS } from "date-fns/locale";
+import { enUS, ar } from "date-fns/locale";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useAutosave, DraftStorage } from "@/lib/autosave";
 import { calculateFormProgress } from "@/lib/form-validation";
@@ -21,6 +21,7 @@ import { useFormKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { UploadResult } from "@uppy/core";
 import { useLocation } from "wouter";
+import { useI18n } from "@/lib/i18n";
 
 type SubmissionType = 'quote_only' | 'tech_fin_proposal' | 'video_only' | 'tech_fin_with_video';
 type UploadMode = 'combined' | 'separate';
@@ -87,12 +88,158 @@ type SubmitOfferForm = {
   notes?: string;
 };
 
-const SUBMISSION_TYPE_LABELS: Record<string, string> = {
-  quote_only: "Price Quote Only",
-  tech_fin_proposal: "Full Proposal (Technical + Financial)",
-  video_only: "Video Pitch Only",
-  tech_fin_with_video: "Full Proposal + Video",
-  document: "Document Submission",
+const SUBMISSION_TYPE_LABELS: Record<string, Record<string, string>> = {
+  en: {
+    quote_only: "Price Quote Only",
+    tech_fin_proposal: "Full Proposal (Technical + Financial)",
+    video_only: "Video Pitch Only",
+    tech_fin_with_video: "Full Proposal + Video",
+    document: "Document Submission",
+  },
+  ar: {
+    quote_only: "عرض سعر فقط",
+    tech_fin_proposal: "عرض كامل (فني + مالي)",
+    video_only: "عرض فيديو فقط",
+    tech_fin_with_video: "عرض كامل + فيديو",
+    document: "تقديم مستند",
+  },
+};
+
+const modalStrings: Record<string, Record<string, string>> = {
+  en: {
+    submitProposal: "Submit Proposal",
+    pressToSubmit: "Press",
+    toSubmit: "to submit",
+    toClose: "to close",
+    unsavedDraft: "You have an unsaved draft from earlier",
+    discard: "Discard",
+    loadDraft: "Load Draft",
+    alreadySubmitted: "Already Submitted",
+    alreadySubmittedDesc: "Your offer for this tender has already been submitted. You cannot submit multiple offers for the same tender.",
+    close: "Close",
+    submissionType: "Submission Type:",
+    videoRequired: "(Video required)",
+    priceQuote: "Price quote",
+    videoPitch: "Video pitch",
+    combinedProposal: "Combined proposal",
+    technicalProposal: "Technical proposal",
+    financialProposal: "Financial proposal",
+    tenderBudget: "Tender Budget:",
+    priceCompetitively: "Price your offer competitively",
+    verificationRequired: "Verification Required",
+    completePreQual: "Complete your pre-qualification to submit offers.",
+    completeProfile: "Complete Profile",
+    priceQuoteLabel: "Your Price Quote (SAR) *",
+    enterPrice: "Enter your price in SAR",
+    videoPitchUrl: "Video Pitch URL",
+    optional: "(Optional)",
+    videoPlaceholder: "https://youtube.com/watch?v=... or https://vimeo.com/...",
+    videoHelp: "Share a video explaining your approach, qualifications, and why you're the right fit for this project.",
+    uploadQuestion: "How would you like to upload your proposal?",
+    singleFile: "Single File",
+    singleFileDesc: "Both technical & financial in one document",
+    separateFiles: "Separate Files",
+    separateFilesDesc: "Upload technical & financial separately",
+    combinedLabel: "Combined Proposal (Technical + Financial) *",
+    uploadCombined: "Upload your combined proposal",
+    combinedHint: "One file containing both technical and financial sections \u2022 PDF, DOC, DOCX \u2022 Max 10MB",
+    technicalLabel: "Technical Proposal *",
+    uploadTechnical: "Upload technical proposal",
+    technicalHint: "PDF, DOC, DOCX \u2022 Max 10MB",
+    financialLabel: "Financial Proposal *",
+    uploadFinancial: "Upload financial proposal",
+    financialHint: "PDF, DOC, XLS \u2022 Max 10MB",
+    additionalNotes: "Additional Notes",
+    notesPlaceholder: "Any additional information, clarifications, or value propositions...",
+    submissionSummary: "Submission Summary",
+    tender: "Tender:",
+    client: "Client:",
+    deadline: "Deadline:",
+    uploadFormat: "Upload format:",
+    singleCombined: "Single combined file",
+    separateTechFin: "Separate technical & financial files",
+    warning: "Once submitted, you cannot modify your offer. Please review all documents carefully.",
+    cancel: "Cancel",
+    submitting: "Submitting...",
+    submitProposalBtn: "Submit Proposal",
+    draftLoaded: "Draft loaded",
+    draftLoadedDesc: "Your previous work has been restored",
+    draftDiscarded: "Draft discarded",
+    draftDiscardedDesc: "Starting with a fresh form",
+    uploadedTech: "Technical proposal uploaded successfully",
+    uploadedFin: "Financial proposal uploaded successfully",
+    uploadedCombined: "Proposal file uploaded successfully",
+    uploaded: "Uploaded!",
+    success: "Success!",
+    offerSubmitted: "Offer submitted successfully",
+  },
+  ar: {
+    submitProposal: "تقديم العرض",
+    pressToSubmit: "اضغط",
+    toSubmit: "للتقديم",
+    toClose: "للإغلاق",
+    unsavedDraft: "لديك مسودة غير محفوظة من قبل",
+    discard: "تجاهل",
+    loadDraft: "تحميل المسودة",
+    alreadySubmitted: "تم التقديم مسبقاً",
+    alreadySubmittedDesc: "تم تقديم عرضك لهذا المناقصة بالفعل. لا يمكنك تقديم عروض متعددة لنفس المناقصة.",
+    close: "إغلاق",
+    submissionType: "نوع التقديم:",
+    videoRequired: "(الفيديو مطلوب)",
+    priceQuote: "عرض السعر",
+    videoPitch: "فيديو العرض",
+    combinedProposal: "العرض المدمج",
+    technicalProposal: "العرض الفني",
+    financialProposal: "العرض المالي",
+    tenderBudget: "ميزانية المناقصة:",
+    priceCompetitively: "قدّم سعراً تنافسياً",
+    verificationRequired: "التحقق مطلوب",
+    completePreQual: "أكمل التأهيل المسبق لتقديم العروض.",
+    completeProfile: "إكمال الملف",
+    priceQuoteLabel: "عرض السعر (ريال سعودي) *",
+    enterPrice: "أدخل السعر بالريال السعودي",
+    videoPitchUrl: "رابط فيديو العرض",
+    optional: "(اختياري)",
+    videoPlaceholder: "https://youtube.com/watch?v=... أو https://vimeo.com/...",
+    videoHelp: "شارك فيديو يوضح منهجيتك ومؤهلاتك ولماذا أنت الأنسب لهذا المشروع.",
+    uploadQuestion: "كيف تود رفع عرضك؟",
+    singleFile: "ملف واحد",
+    singleFileDesc: "العرض الفني والمالي في مستند واحد",
+    separateFiles: "ملفات منفصلة",
+    separateFilesDesc: "رفع العرض الفني والمالي بشكل منفصل",
+    combinedLabel: "العرض المدمج (فني + مالي) *",
+    uploadCombined: "ارفع العرض المدمج",
+    combinedHint: "ملف واحد يحتوي على القسمين الفني والمالي \u2022 PDF, DOC, DOCX \u2022 حد أقصى 10 ميغابايت",
+    technicalLabel: "العرض الفني *",
+    uploadTechnical: "ارفع العرض الفني",
+    technicalHint: "PDF, DOC, DOCX \u2022 حد أقصى 10 ميغابايت",
+    financialLabel: "العرض المالي *",
+    uploadFinancial: "ارفع العرض المالي",
+    financialHint: "PDF, DOC, XLS \u2022 حد أقصى 10 ميغابايت",
+    additionalNotes: "ملاحظات إضافية",
+    notesPlaceholder: "أي معلومات إضافية أو توضيحات أو مقترحات قيمة...",
+    submissionSummary: "ملخص التقديم",
+    tender: "المناقصة:",
+    client: "العميل:",
+    deadline: "الموعد النهائي:",
+    uploadFormat: "صيغة الرفع:",
+    singleCombined: "ملف واحد مدمج",
+    separateTechFin: "ملفات فنية ومالية منفصلة",
+    warning: "بعد التقديم، لا يمكنك تعديل عرضك. يرجى مراجعة جميع المستندات بعناية.",
+    cancel: "إلغاء",
+    submitting: "جاري التقديم...",
+    submitProposalBtn: "تقديم العرض",
+    draftLoaded: "تم تحميل المسودة",
+    draftLoadedDesc: "تم استعادة عملك السابق",
+    draftDiscarded: "تم تجاهل المسودة",
+    draftDiscardedDesc: "بدء نموذج جديد",
+    uploadedTech: "تم رفع العرض الفني بنجاح",
+    uploadedFin: "تم رفع العرض المالي بنجاح",
+    uploadedCombined: "تم رفع ملف العرض بنجاح",
+    uploaded: "تم الرفع!",
+    success: "تم بنجاح!",
+    offerSubmitted: "تم تقديم العرض بنجاح",
+  },
 };
 
 interface SubmitOfferModalProps {
@@ -133,6 +280,9 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   const queryClient = useQueryClient();
   const { activeCompany, user } = useAuthStore();
   const [, navigate] = useLocation();
+  const { language, isRtl } = useI18n();
+  const s = (key: string) => modalStrings[language]?.[key] || modalStrings.en[key] || key;
+  const stLabel = (type: string) => SUBMISSION_TYPE_LABELS[language]?.[type] || SUBMISSION_TYPE_LABELS.en[type] || type;
   const [hasDraft, setHasDraft] = useState(false);
   const [showDraftPrompt, setShowDraftPrompt] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<{
@@ -217,7 +367,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   useEffect(() => {
     const updateCountdown = () => {
       const now = new Date();
-      const remaining = formatDistanceToNow(deadlineDate, { addSuffix: true, locale: enUS });
+      const remaining = formatDistanceToNow(deadlineDate, { addSuffix: true, locale: language === 'ar' ? ar : enUS });
       const urgent = deadlineDate.getTime() - now.getTime() < 24 * 60 * 60 * 1000;
       
       setTimeRemaining(remaining);
@@ -260,8 +410,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     onSuccess: () => {
       clearDraft();
       toast({
-        title: "Success!",
-        description: "Offer submitted successfully",
+        title: s('success'),
+        description: s('offerSubmitted'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
       queryClient.invalidateQueries({ queryKey: ['/api/my-offers'] });
@@ -300,8 +450,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
       form.reset(draft.data);
       setShowDraftPrompt(false);
       toast({
-        title: "Draft loaded",
-        description: "Your previous work has been restored",
+        title: s('draftLoaded'),
+        description: s('draftLoadedDesc'),
       });
     }
   }
@@ -311,8 +461,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     setShowDraftPrompt(false);
     setHasDraft(false);
     toast({
-      title: "Draft discarded",
-      description: "Starting with a fresh form",
+      title: s('draftDiscarded'),
+      description: s('draftDiscardedDesc'),
     });
   }
 
@@ -332,7 +482,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
       const { objectPath } = await metadataResponse.json();
       form.setValue('technicalFileUrl', objectPath, { shouldValidate: true, shouldDirty: true });
       setUploadedFiles(prev => ({ ...prev, technical: result.successful![0].name }));
-      toast({ title: "Uploaded!", description: "Technical proposal uploaded successfully" });
+      toast({ title: s('uploaded'), description: s('uploadedTech') });
     }
   };
 
@@ -343,7 +493,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
       const { objectPath } = await metadataResponse.json();
       form.setValue('financialFileUrl', objectPath, { shouldValidate: true, shouldDirty: true });
       setUploadedFiles(prev => ({ ...prev, financial: result.successful![0].name }));
-      toast({ title: "Uploaded!", description: "Financial proposal uploaded successfully" });
+      toast({ title: s('uploaded'), description: s('uploadedFin') });
     }
   };
 
@@ -354,7 +504,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
       const { objectPath } = await metadataResponse.json();
       form.setValue('combinedFileUrl', objectPath, { shouldValidate: true, shouldDirty: true });
       setUploadedFiles(prev => ({ ...prev, combined: result.successful![0].name }));
-      toast({ title: "Uploaded!", description: "Proposal file uploaded successfully" });
+      toast({ title: s('uploaded'), description: s('uploadedCombined') });
     }
   };
 
@@ -368,23 +518,24 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className={`max-w-3xl max-h-[90vh] overflow-y-auto ${isRtl ? 'text-right' : ''}`} dir={isRtl ? 'rtl' : 'ltr'}>
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-semibold text-neutral-900 flex items-center gap-2">
+          <div className={`flex items-center justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
+            <DialogTitle className={`text-2xl font-semibold text-neutral-900 flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
               <ClipboardList className="h-6 w-6 text-[#E25E45]" />
-              Submit Proposal
+              {s('submitProposal')}
             </DialogTitle>
-            <DraftIndicator 
+            <DraftIndicator
               lastSaved={lastSaved}
               isSaving={isSaving}
               hasDraft={hasDraft}
               onLoadDraft={handleLoadDraft}
+              language={language}
             />
           </div>
           <p className="text-neutral-600 mt-2">{tender.title} - {requester.company || requester.name}</p>
           <p className="text-sm text-neutral-600 mt-1">
-            Press <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-300 rounded text-xs">Ctrl+Enter</kbd> to submit • <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-300 rounded text-xs">Esc</kbd> to close
+            {s('pressToSubmit')} <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-300 rounded text-xs">Ctrl+Enter</kbd> {s('toSubmit')} • <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-300 rounded text-xs">Esc</kbd> {s('toClose')}
           </p>
         </DialogHeader>
 
@@ -392,13 +543,13 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
           <Alert className="bg-primary-50 border-primary-200">
             <ClipboardList className="h-4 w-4 text-primary-600" />
             <AlertDescription className="flex items-center justify-between">
-              <span className="text-primary-900">You have an unsaved draft from earlier</span>
+              <span className="text-primary-900">{s('unsavedDraft')}</span>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={handleDiscardDraft}>
-                  Discard
+                  {s('discard')}
                 </Button>
                 <Button size="sm" onClick={handleLoadDraft} className="bg-primary-600 hover:bg-primary-700">
-                  Load Draft
+                  {s('loadDraft')}
                 </Button>
               </div>
             </AlertDescription>
@@ -410,12 +561,12 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success-100 mb-4">
               <Check className="h-8 w-8 text-success-600" />
             </div>
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">Already Submitted</h3>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">{s('alreadySubmitted')}</h3>
             <p className="text-center text-neutral-600 mb-6">
-              Your offer for this tender has already been submitted. You cannot submit multiple offers for the same tender.
+              {s('alreadySubmittedDesc')}
             </p>
             <Button variant="outline" onClick={handleClose} className="w-full sm:w-auto">
-              Close
+              {s('close')}
             </Button>
           </div>
         ) : (
@@ -425,10 +576,10 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               <Alert className="bg-blue-50 border-blue-200">
                 <Info className="h-4 w-4 text-blue-600" />
                 <AlertDescription>
-                  <strong className="text-blue-900">Submission Type:</strong>{' '}
-                  <span className="text-blue-800">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</span>
+                  <strong className="text-blue-900">{s('submissionType')}</strong>{' '}
+                  <span className="text-blue-800">{stLabel(tender.submissionType)}</span>
                   {tender.videoRequired && tender.submissionType === 'tech_fin_with_video' && (
-                    <span className="text-orange-600 ml-2">(Video required)</span>
+                    <span className={`text-orange-600 ${isRtl ? 'mr-2' : 'ml-2'}`}>{s('videoRequired')}</span>
                   )}
                 </AlertDescription>
               </Alert>
@@ -438,27 +589,28 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               <div className="flex-1">
                 <FormProgress
                   progress={progress}
+                  language={language}
                   steps={
                     showQuoteField
-                      ? [{ label: 'Price quote', completed: !!formValues.quotePrice }]
+                      ? [{ label: s('priceQuote'), completed: !!formValues.quotePrice }]
                       : showVideoField && !showTechFinFields
-                      ? [{ label: 'Video pitch', completed: !!formValues.videoUrl }]
+                      ? [{ label: s('videoPitch'), completed: !!formValues.videoUrl }]
                       : showVideoField && showTechFinFields
                       ? uploadMode === 'combined'
                         ? [
-                            { label: 'Combined proposal', completed: !!formValues.combinedFileUrl },
-                            { label: 'Video pitch', completed: !!formValues.videoUrl || !tender.videoRequired },
+                            { label: s('combinedProposal'), completed: !!formValues.combinedFileUrl },
+                            { label: s('videoPitch'), completed: !!formValues.videoUrl || !tender.videoRequired },
                           ]
                         : [
-                            { label: 'Technical proposal', completed: !!formValues.technicalFileUrl && !form.formState.errors.technicalFileUrl },
-                            { label: 'Financial proposal', completed: !!formValues.financialFileUrl && !form.formState.errors.financialFileUrl },
-                            { label: 'Video pitch', completed: !!formValues.videoUrl || !tender.videoRequired },
+                            { label: s('technicalProposal'), completed: !!formValues.technicalFileUrl && !form.formState.errors.technicalFileUrl },
+                            { label: s('financialProposal'), completed: !!formValues.financialFileUrl && !form.formState.errors.financialFileUrl },
+                            { label: s('videoPitch'), completed: !!formValues.videoUrl || !tender.videoRequired },
                           ]
                       : uploadMode === 'combined'
-                        ? [{ label: 'Combined proposal', completed: !!formValues.combinedFileUrl }]
+                        ? [{ label: s('combinedProposal'), completed: !!formValues.combinedFileUrl }]
                         : [
-                            { label: 'Technical proposal', completed: !!formValues.technicalFileUrl && !form.formState.errors.technicalFileUrl },
-                            { label: 'Financial proposal', completed: !!formValues.financialFileUrl && !form.formState.errors.financialFileUrl },
+                            { label: s('technicalProposal'), completed: !!formValues.technicalFileUrl && !form.formState.errors.technicalFileUrl },
+                            { label: s('financialProposal'), completed: !!formValues.financialFileUrl && !form.formState.errors.financialFileUrl },
                           ]
                   }
                 />
@@ -473,7 +625,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               <Alert>
                 <DollarSign className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Tender Budget:</strong> {tender.budget} • Price your offer competitively
+                  <strong>{s('tenderBudget')}</strong> {tender.budget} • {s('priceCompetitively')}
                 </AlertDescription>
               </Alert>
             )}
@@ -484,8 +636,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                 <AlertDescription>
                   <div className="flex items-center justify-between">
                     <div>
-                      <strong className="text-error-900">Verification Required</strong>
-                      <p className="text-sm text-error-800 mt-1">Complete your pre-qualification to submit offers.</p>
+                      <strong className="text-error-900">{s('verificationRequired')}</strong>
+                      <p className="text-sm text-error-800 mt-1">{s('completePreQual')}</p>
                     </div>
                     <Button 
                       size="sm" 
@@ -496,7 +648,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                       }}
                       data-testid="button-prequalify"
                     >
-                      Complete Profile
+                      {s('completeProfile')}
                     </Button>
                   </div>
                 </AlertDescription>
@@ -511,14 +663,15 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                 name="quotePrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Your Price Quote (SAR) *</FormLabel>
+                    <FormLabel>{s('priceQuoteLabel')}</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                        <DollarSign className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400`} />
                         <input
                           type="number"
-                          placeholder="Enter your price in SAR"
-                          className="w-full pl-10 pr-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          placeholder={s('enterPrice')}
+                          className={`w-full ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
+                          dir="ltr"
                           value={field.value ?? ''}
                           onChange={(e) => {
                             const val = e.target.value;
@@ -546,22 +699,23 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Video Pitch URL {tender.videoRequired || tender.submissionType === 'video_only' ? '*' : '(Optional)'}
+                      {s('videoPitchUrl')} {tender.videoRequired || tender.submissionType === 'video_only' ? '*' : s('optional')}
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Video className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                        <Video className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400`} />
                         <input
                           type="url"
-                          placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
-                          className="w-full pl-10 pr-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          placeholder={s('videoPlaceholder')}
+                          dir="ltr"
+                          className={`w-full ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
                           data-testid="input-video-url"
                           {...field}
                         />
                       </div>
                     </FormControl>
                     <p className="text-xs text-neutral-500 mt-1">
-                      Share a video explaining your approach, qualifications, and why you're the right fit for this project.
+                      {s('videoHelp')}
                     </p>
                     <FormMessage />
                   </FormItem>
@@ -572,7 +726,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
             {showUploadModeChoice && (
               <>
                 <div>
-                  <p className="text-sm font-medium text-neutral-700 mb-3">How would you like to upload your proposal?</p>
+                  <p className="text-sm font-medium text-neutral-700 mb-3">{s('uploadQuestion')}</p>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
@@ -587,8 +741,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                         <File className={`h-5 w-5 ${uploadMode === 'combined' ? 'text-[#E25E45]' : 'text-neutral-400'}`} />
                       </div>
                       <div>
-                        <p className={`text-sm font-medium ${uploadMode === 'combined' ? 'text-[#E25E45]' : 'text-neutral-700'}`}>Single File</p>
-                        <p className="text-xs text-neutral-500">Both technical & financial in one document</p>
+                        <p className={`text-sm font-medium ${uploadMode === 'combined' ? 'text-[#E25E45]' : 'text-neutral-700'}`}>{s('singleFile')}</p>
+                        <p className="text-xs text-neutral-500">{s('singleFileDesc')}</p>
                       </div>
                     </button>
                     <button
@@ -604,8 +758,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                         <Files className={`h-5 w-5 ${uploadMode === 'separate' ? 'text-[#E25E45]' : 'text-neutral-400'}`} />
                       </div>
                       <div>
-                        <p className={`text-sm font-medium ${uploadMode === 'separate' ? 'text-[#E25E45]' : 'text-neutral-700'}`}>Separate Files</p>
-                        <p className="text-xs text-neutral-500">Upload technical & financial separately</p>
+                        <p className={`text-sm font-medium ${uploadMode === 'separate' ? 'text-[#E25E45]' : 'text-neutral-700'}`}>{s('separateFiles')}</p>
+                        <p className="text-xs text-neutral-500">{s('separateFilesDesc')}</p>
                       </div>
                     </button>
                   </div>
@@ -617,7 +771,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                     name="combinedFileUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Combined Proposal (Technical + Financial) *</FormLabel>
+                        <FormLabel>{s('combinedLabel')}</FormLabel>
                         <FormControl>
                           <div className="space-y-2">
                             <ObjectUploader
@@ -632,8 +786,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                               <div className="flex flex-col items-center gap-2">
                                 <File className="h-6 w-6 text-neutral-400" />
                                 <div className="text-center">
-                                  <p className="text-sm text-neutral-600">Upload your combined proposal</p>
-                                  <p className="text-xs text-neutral-500">One file containing both technical and financial sections • PDF, DOC, DOCX • Max 10MB</p>
+                                  <p className="text-sm text-neutral-600">{s('uploadCombined')}</p>
+                                  <p className="text-xs text-neutral-500">{s('combinedHint')}</p>
                                 </div>
                               </div>
                             </ObjectUploader>
@@ -658,7 +812,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                       name="technicalFileUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Technical Proposal *</FormLabel>
+                          <FormLabel>{s('technicalLabel')}</FormLabel>
                           <FormControl>
                             <div className="space-y-2">
                               <ObjectUploader
@@ -673,8 +827,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                                 <div className="flex flex-col items-center gap-2">
                                   <FileText className="h-6 w-6 text-neutral-400" />
                                   <div className="text-center">
-                                    <p className="text-sm text-neutral-600">Upload technical proposal</p>
-                                    <p className="text-xs text-neutral-500">PDF, DOC, DOCX • Max 10MB</p>
+                                    <p className="text-sm text-neutral-600">{s('uploadTechnical')}</p>
+                                    <p className="text-xs text-neutral-500">{s('technicalHint')}</p>
                                   </div>
                                 </div>
                               </ObjectUploader>
@@ -696,7 +850,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                       name="financialFileUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Financial Proposal *</FormLabel>
+                          <FormLabel>{s('financialLabel')}</FormLabel>
                           <FormControl>
                             <div className="space-y-2">
                               <ObjectUploader
@@ -711,8 +865,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                                 <div className="flex flex-col items-center gap-2">
                                   <DollarSign className="h-6 w-6 text-neutral-400" />
                                   <div className="text-center">
-                                    <p className="text-sm text-neutral-600">Upload financial proposal</p>
-                                    <p className="text-xs text-neutral-500">PDF, DOC, XLS • Max 10MB</p>
+                                    <p className="text-sm text-neutral-600">{s('uploadFinancial')}</p>
+                                    <p className="text-xs text-neutral-500">{s('financialHint')}</p>
                                   </div>
                                 </div>
                               </ObjectUploader>
@@ -738,12 +892,12 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Additional Notes</FormLabel>
+                  <FormLabel>{s('additionalNotes')}</FormLabel>
                   <FormControl>
-                    <SmartTextarea 
+                    <SmartTextarea
                       rows={4}
                       maxLength={500}
-                      placeholder="Any additional information, clarifications, or value propositions..." 
+                      placeholder={s('notesPlaceholder')} 
                       error={form.formState.errors.notes}
                       isDirty={form.formState.dirtyFields.notes}
                       data-testid="input-notes"
@@ -756,26 +910,26 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
             />
 
             <div className="bg-neutral-50 rounded-lg p-4">
-              <h4 className="font-medium text-neutral-900 mb-2">Submission Summary</h4>
+              <h4 className="font-medium text-neutral-900 mb-2">{s('submissionSummary')}</h4>
               <div className="space-y-2 text-sm text-neutral-600">
                 <div className="flex justify-between">
-                  <span>Tender:</span>
+                  <span>{s('tender')}</span>
                   <span className="font-medium">{tender.title}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Client:</span>
+                  <span>{s('client')}</span>
                   <span className="font-medium">{requester.company || requester.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Deadline:</span>
+                  <span>{s('deadline')}</span>
                   <span className={`font-medium ${isUrgent ? 'text-error-600' : 'text-warning-600'}`}>
-                    {format(deadlineDate, 'MMM d, yyyy h:mm a', { locale: enUS })}
+                    {format(deadlineDate, 'MMM d, yyyy h:mm a', { locale: language === 'ar' ? ar : enUS })}
                   </span>
                 </div>
                 {showTechFinFields && (
                   <div className="flex justify-between">
-                    <span>Upload format:</span>
-                    <span className="font-medium">{uploadMode === 'combined' ? 'Single combined file' : 'Separate technical & financial files'}</span>
+                    <span>{s('uploadFormat')}</span>
+                    <span className="font-medium">{uploadMode === 'combined' ? s('singleCombined') : s('separateTechFin')}</span>
                   </div>
                 )}
               </div>
@@ -784,19 +938,19 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
             <div className="flex items-center space-x-3 p-4 bg-warning-50 rounded-lg border border-warning-200">
               <AlertTriangle className="h-5 w-5 text-warning-600 flex-shrink-0" />
               <p className="text-sm text-warning-800">
-                Once submitted, you cannot modify your offer. Please review all documents carefully.
+                {s('warning')}
               </p>
             </div>
 
             <div className="flex space-x-4 pt-4 border-t border-neutral-200">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handleClose} 
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
                 className="flex-1"
                 data-testid="button-cancel"
               >
-                Cancel
+                {s('cancel')}
               </Button>
               <Button
                 type="submit"
@@ -805,7 +959,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                 disabled={submitOfferMutation.isPending || progress < 100 || !canSubmitOffer}
                 data-testid="button-submit-offer"
               >
-                {submitOfferMutation.isPending ? "Submitting..." : !canSubmitOffer ? "Verification Required" : "Submit Proposal"}
+                {submitOfferMutation.isPending ? s('submitting') : !canSubmitOffer ? s('verificationRequired') : s('submitProposalBtn')}
               </Button>
             </div>
           </form>

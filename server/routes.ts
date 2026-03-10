@@ -201,7 +201,7 @@ async function suggestTenderCategory(tender: {
         "Authorization": `Bearer ${config.key}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -250,7 +250,7 @@ async function translateTexts(texts: string[], targetLanguage: 'en' | 'ar'): Pro
         "Authorization": `Bearer ${config.key}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -1553,7 +1553,7 @@ ${voiceNoteUrl ? "Note: Client has provided a voice note with additional details
             "Authorization": `Bearer ${openaiApiKey}`,
           },
           body: JSON.stringify({
-            model: "gpt-4o",
+            model: "gpt-4o-mini",
             messages: [
               {
                 role: "system",
@@ -1807,7 +1807,7 @@ Response must be valid JSON with this exact structure:
           "Authorization": `Bearer ${config.key}`,
         },
         body: JSON.stringify({
-          model: "gpt-4o",
+          model: "gpt-4o-mini",
           messages: [
             {
               role: "system",

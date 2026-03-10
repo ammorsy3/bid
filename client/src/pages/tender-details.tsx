@@ -427,9 +427,13 @@ export default function TenderDetails() {
       const res = await apiRequest('POST', `/api/ai/analyze-offer/${offerId}`);
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/ai/proposal-analysis', id] });
-      toast({ title: "Analysis complete", description: "AI has extracted key facts from this proposal." });
+      if (data?.status === 'failed') {
+        toast({ title: "Analysis failed", description: data.errorMessage || "Could not analyze this proposal.", variant: "destructive" });
+      } else {
+        toast({ title: "Analysis complete", description: "AI has extracted key facts from this proposal." });
+      }
     },
     onError: (error: Error) => {
       toast({ title: "Analysis failed", description: error.message, variant: "destructive" });

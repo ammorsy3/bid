@@ -28,7 +28,7 @@ const Landing = () => {
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link href="/signup">
                 <Button size="lg" className="bg-[#E25E45] hover:bg-[#d04a32] text-white px-8 h-12 text-base">
-                  Create an RFP
+                  Try Bid
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>

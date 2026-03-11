@@ -17,7 +17,6 @@ import SubmitOfferModal from "@/components/submit-offer-modal";
 import ProposalComparison from "@/components/ProposalComparison";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
-import Navbar from "@/components/navbar";
 
 const SUBMISSION_TYPE_LABELS: Record<string, string> = {
   quote_only: "Price Quote Only",
@@ -522,7 +521,7 @@ export default function TenderDetails() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[#E25E45]" />
       </div>
     );
@@ -530,7 +529,7 @@ export default function TenderDetails() {
 
   if (!tender) {
     return (
-      <div className="min-h-screen bg-neutral-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
@@ -586,10 +585,9 @@ export default function TenderDetails() {
   const durationDisplay = getDurationDisplay() !== 'Not specified' ? getDurationDisplay() : null;
 
   return (
-    <div className="min-h-screen bg-neutral-50" dir={isTenderRtl ? "rtl" : "ltr"}>
-      <Navbar />
+    <div className="min-h-screen bg-white" dir={isTenderRtl ? "rtl" : "ltr"}>
       {/* Hero Header */}
-      <div className="bg-white border-b border-neutral-200">
+      <div className="bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
           <Button
             variant="ghost"
@@ -655,7 +653,8 @@ export default function TenderDetails() {
       </div>
 
       {/* Content Area */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <div className="bg-gray-50 min-h-[60vh]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_288px] gap-6">
 
             {/* Main document column */}
@@ -1444,6 +1443,7 @@ export default function TenderDetails() {
 
           </div>
         </div>
+      </div>
 
       {/* Submit Offer Modal */}
       {tender && !isOwner && (

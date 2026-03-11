@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { FileText, Inbox, BarChart3, Send, Users, Search, ClipboardList, Trophy, ArrowRight } from "lucide-react";
+import { FileText, Inbox, BarChart3, ArrowRight } from "lucide-react";
 
 const Landing = () => {
   return (
@@ -79,41 +79,6 @@ const Landing = () => {
           </div>
         </section>
 
-        <section className="py-20 px-6">
-          <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
-            <div className="rounded-2xl border border-gray-200 p-8">
-              <h3 className="text-xs font-semibold text-[#E25E45] uppercase tracking-widest mb-5">For Requesters</h3>
-              <ul className="space-y-4">
-                {[
-                  { icon: ClipboardList, text: "Create RFPs" },
-                  { icon: Send, text: "Invite vendors" },
-                  { icon: BarChart3, text: "Compare proposals" },
-                  { icon: Trophy, text: "Award projects" },
-                ].map((item) => (
-                  <li key={item.text} className="flex items-center gap-3 text-gray-700">
-                    <item.icon className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-sm">{item.text}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-2xl border border-gray-200 p-8">
-              <h3 className="text-xs font-semibold text-[#E25E45] uppercase tracking-widest mb-5">For Vendors</h3>
-              <ul className="space-y-4">
-                {[
-                  { icon: Search, text: "Discover tenders" },
-                  { icon: FileText, text: "Submit proposals" },
-                  { icon: Users, text: "Track opportunities" },
-                ].map((item) => (
-                  <li key={item.text} className="flex items-center gap-3 text-gray-700">
-                    <item.icon className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-sm">{item.text}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </section>
       </main>
       <footer className="border-t border-gray-100 py-10 px-6">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">

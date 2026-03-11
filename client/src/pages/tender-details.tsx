@@ -5,9 +5,10 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -427,11 +428,12 @@ export default function TenderDetails() {
       const res = await apiRequest('POST', `/api/ai/analyze-offer/${offerId}`);
       return res.json();
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: any, offerId: string) => {
       queryClient.invalidateQueries({ queryKey: ['/api/ai/proposal-analysis', id] });
       if (data?.status === 'failed') {
         toast({ title: "Analysis failed", description: data.errorMessage || "Could not analyze this proposal.", variant: "destructive" });
       } else {
+        setAnalysisDrawerOfferId(offerId);
         toast({ title: "Analysis complete", description: "AI has extracted key facts from this proposal." });
       }
     },
@@ -440,7 +442,7 @@ export default function TenderDetails() {
     }
   });
 
-  const [expandedAnalyses, setExpandedAnalyses] = useState<Record<string, boolean>>({});
+  const [analysisDrawerOfferId, setAnalysisDrawerOfferId] = useState<string | null>(null);
 
   const copyInvitationLink = async () => {
     if (!tender) return;
@@ -598,22 +600,53 @@ export default function TenderDetails() {
           </Button>
 
           <div className="mt-4">
-            <div className="flex items-center gap-3 mb-1 flex-wrap">
-              <Badge className={`${statusBadge.className} text-xs px-2.5 py-0.5`} data-testid="badge-status">
-                {statusBadge.label}
-              </Badge>
-              {isExpired && isTenderOpen && (
-                <Badge className="bg-red-100 text-red-700 text-xs px-2.5 py-0.5">Deadline Passed</Badge>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-1 flex-wrap">
+                  <Badge className={`${statusBadge.className} text-xs px-2.5 py-0.5`} data-testid="badge-status">
+                    {statusBadge.label}
+                  </Badge>
+                  {isExpired && isTenderOpen && (
+                    <Badge className="bg-red-100 text-red-700 text-xs px-2.5 py-0.5">Deadline Passed</Badge>
+                  )}
+                </div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Project Title</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2" data-testid="text-tender-title">
+                  {tender.title}
+                </h1>
+                <div className="flex items-center gap-3 text-gray-400 text-sm">
+                  {tender.createdAt && <span>Published {formatDate(tender.createdAt)}</span>}
+                  <span>·</span>
+                  <span className="font-mono text-xs">RFP-{tender.id?.slice(0, 8).toUpperCase()}</span>
+                </div>
+              </div>
+
+              {isOwner && (
+                <div className="flex items-center gap-2 flex-shrink-0 pt-1">
+                  {tender.status === 'draft' && (
+                    <Button className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                      onClick={() => updateStatus.mutate('published')} disabled={updateStatus.isPending} data-testid="button-publish">
+                      Publish
+                    </Button>
+                  )}
+                  {(tender.status === 'draft' || tender.status === 'published') && (
+                    <Button variant="outline" onClick={() => setLocation(`/tenders/${tender.id}/edit`)} data-testid="button-edit">
+                      <Edit className="h-4 w-4 mr-1.5" /> Edit
+                    </Button>
+                  )}
+                  {tender.status === 'published' && (
+                    <Button variant="outline" onClick={() => updateStatus.mutate('closed')}
+                      disabled={updateStatus.isPending} data-testid="button-close">
+                      Close
+                    </Button>
+                  )}
+                  <Button variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => { if (confirm('Are you sure you want to delete this tender? This action cannot be undone.')) { deleteTender.mutate(); } }}
+                    disabled={deleteTender.isPending} data-testid="button-delete">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               )}
-            </div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Project Title</p>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2" data-testid="text-tender-title">
-              {tender.title}
-            </h1>
-            <div className="flex items-center gap-3 text-gray-400 text-sm">
-              {tender.createdAt && <span>Published {formatDate(tender.createdAt)}</span>}
-              <span>·</span>
-              <span className="font-mono text-xs">RFP-{tender.id?.slice(0, 8).toUpperCase()}</span>
             </div>
           </div>
         </div>
@@ -1173,7 +1206,6 @@ export default function TenderDetails() {
                       <div className="space-y-4">
                         {offers.map((offer) => {
                           const analysis = offerAnalyses.find((a: any) => a.offerId === offer.id);
-                          const isAnalysisExpanded = expandedAnalyses[offer.id] || false;
                           return (
                           <div key={offer.id}
                             className="rounded-xl border border-gray-200 p-4"
@@ -1220,134 +1252,37 @@ export default function TenderDetails() {
                                       <Video className="h-3.5 w-3.5 mr-1" /> Video
                                     </Button>
                                   )}
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => analyzeOffer.mutate(offer.id)}
-                                    disabled={analyzeOffer.isPending}
-                                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                                    data-testid={`button-ai-${offer.id}`}
-                                  >
-                                    {analyzeOffer.isPending && analyzeOffer.variables === offer.id ? (
-                                      <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
-                                    ) : (
+                                  {analysis && analysis.status === 'completed' ? (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setAnalysisDrawerOfferId(offer.id)}
+                                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                      data-testid={`button-ai-view-${offer.id}`}
+                                    >
                                       <Sparkles className="h-3.5 w-3.5 mr-1" />
-                                    )}
-                                    {analysis ? 'Re-analyze' : 'Summarize with AI'}
-                                  </Button>
+                                      View AI Summary
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => analyzeOffer.mutate(offer.id)}
+                                      disabled={analyzeOffer.isPending}
+                                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                      data-testid={`button-ai-${offer.id}`}
+                                    >
+                                      {analyzeOffer.isPending && analyzeOffer.variables === offer.id ? (
+                                        <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                                      ) : (
+                                        <Sparkles className="h-3.5 w-3.5 mr-1" />
+                                      )}
+                                      Summarize with AI
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                             </div>
-
-                            {/* Inline AI Analysis */}
-                            {analysis && analysis.status === 'completed' && (
-                              <div className="mt-4 border-t border-gray-100 pt-4">
-                                <button
-                                  onClick={() => setExpandedAnalyses(prev => ({ ...prev, [offer.id]: !prev[offer.id] }))}
-                                  className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 mb-3"
-                                >
-                                  <Sparkles className="h-3.5 w-3.5" />
-                                  AI Analysis
-                                  {isAnalysisExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                                </button>
-
-                                {isAnalysisExpanded && (
-                                  <div className="space-y-4 text-sm">
-                                    {/* Executive Summary */}
-                                    {analysis.executiveSummary && (
-                                      <div>
-                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Executive Summary</p>
-                                        <p className="text-gray-700 font-medium leading-relaxed">{analysis.executiveSummary}</p>
-                                      </div>
-                                    )}
-
-                                    {/* Table of Contents */}
-                                    {analysis.tableOfContents && analysis.tableOfContents.length > 0 && (
-                                      <div>
-                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Table of Contents</p>
-                                        <div className="space-y-1">
-                                          {analysis.tableOfContents.map((item: any, i: number) => (
-                                            <div key={i} className="flex justify-between text-xs px-2 py-1.5 bg-gray-50 rounded">
-                                              <span className="text-gray-700">{item.section}</span>
-                                              <span className="text-gray-400 font-mono">{item.pageRange}</span>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* Criteria Mapping */}
-                                    {analysis.criteriaMapping && Object.keys(analysis.criteriaMapping).length > 0 && (
-                                      <div>
-                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Criteria Mapping</p>
-                                        <div className="space-y-1">
-                                          {Object.entries(analysis.criteriaMapping).map(([criterion, pageRef]) => (
-                                            <div key={criterion} className="flex justify-between text-xs px-2 py-1.5 bg-gray-50 rounded">
-                                              <span className="text-gray-700">{criterion}</span>
-                                              <span className={`font-mono ${pageRef === 'Not Found' ? 'text-red-500 font-semibold' : 'text-gray-400'}`}>{pageRef as string}</span>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* Deliverables */}
-                                    {analysis.deliverables && analysis.deliverables.length > 0 && (
-                                      <div>
-                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Deliverables</p>
-                                        <ul className="list-disc list-inside space-y-0.5 text-gray-700 text-xs">
-                                          {analysis.deliverables.map((d: string, i: number) => (
-                                            <li key={i}>{d}</li>
-                                          ))}
-                                        </ul>
-                                      </div>
-                                    )}
-
-                                    {/* Financial */}
-                                    {analysis.financial && (
-                                      <div>
-                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Financial</p>
-                                        <div className="space-y-1">
-                                          {analysis.financial.total != null && (
-                                            <div className="flex justify-between text-xs px-2 py-1.5 bg-gray-50 rounded">
-                                              <span className="text-gray-700 font-medium">Total</span>
-                                              <span className="font-semibold text-gray-900">SAR {analysis.financial.total.toLocaleString()}</span>
-                                            </div>
-                                          )}
-                                          {analysis.financial.vat != null && (
-                                            <div className="flex justify-between text-xs px-2 py-1.5 bg-gray-50 rounded">
-                                              <span className="text-gray-700">VAT</span>
-                                              <span className="text-gray-600">{analysis.financial.vat}%</span>
-                                            </div>
-                                          )}
-                                          {analysis.financial.paymentTerms && (
-                                            <div className="flex justify-between text-xs px-2 py-1.5 bg-gray-50 rounded">
-                                              <span className="text-gray-700">Payment Terms</span>
-                                              <span className="text-gray-600">{analysis.financial.paymentTerms}</span>
-                                            </div>
-                                          )}
-                                          {analysis.financial.breakdown && analysis.financial.breakdown.length > 0 && (
-                                            <div className="mt-2">
-                                              <p className="text-xs text-gray-500 mb-1">Breakdown</p>
-                                              {analysis.financial.breakdown.map((item: any, i: number) => (
-                                                <div key={i} className="flex justify-between text-xs px-2 py-1 border-b border-gray-100 last:border-0">
-                                                  <span className="text-gray-600">{item.item}</span>
-                                                  <span className="text-gray-800 font-medium">SAR {item.amount?.toLocaleString()}</span>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {analysis.analyzedAt && (
-                                      <p className="text-[10px] text-gray-400">Analyzed {new Date(analysis.analyzedAt).toLocaleString()}</p>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            )}
 
                             {analysis && analysis.status === 'failed' && (
                               <div className="mt-3 flex items-center gap-2 text-xs text-red-500 bg-red-50 rounded-lg p-2">
@@ -1456,36 +1391,6 @@ export default function TenderDetails() {
                   </div>
                 )}
 
-                {/* Owner: Actions */}
-                {isOwner && (
-                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Actions</p>
-                    <div className="space-y-2">
-                      {tender.status === 'draft' && (
-                        <Button className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white"
-                          onClick={() => updateStatus.mutate('published')} disabled={updateStatus.isPending} data-testid="button-publish">
-                          Publish Tender
-                        </Button>
-                      )}
-                      {(tender.status === 'draft' || tender.status === 'published') && (
-                        <Button variant="outline" className="w-full" onClick={() => setLocation(`/tenders/${tender.id}/edit`)} data-testid="button-edit">
-                          <Edit className="h-4 w-4 mr-2" /> Edit Tender
-                        </Button>
-                      )}
-                      {tender.status === 'published' && (
-                        <Button variant="outline" className="w-full" onClick={() => updateStatus.mutate('closed')}
-                          disabled={updateStatus.isPending} data-testid="button-close">
-                          Close Tender
-                        </Button>
-                      )}
-                      <Button variant="outline" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => { if (confirm('Are you sure you want to delete this tender? This action cannot be undone.')) { deleteTender.mutate(); } }}
-                        disabled={deleteTender.isPending} data-testid="button-delete">
-                        <Trash2 className="h-4 w-4 mr-2" /> Delete Tender
-                      </Button>
-                    </div>
-                  </div>
-                )}
 
                 {/* Vendor: Submit CTA */}
                 {!isOwner && activeCompany && (
@@ -1686,6 +1591,154 @@ export default function TenderDetails() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* AI Analysis Drawer */}
+      <Sheet open={!!analysisDrawerOfferId} onOpenChange={(open) => !open && setAnalysisDrawerOfferId(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+          {(() => {
+            const drawerOffer = offers.find(o => o.id === analysisDrawerOfferId);
+            const drawerAnalysis = offerAnalyses.find((a: any) => a.offerId === analysisDrawerOfferId);
+            if (!drawerOffer || !drawerAnalysis) return null;
+            return (
+              <>
+                <SheetHeader className="pb-4 border-b border-gray-100">
+                  <SheetTitle className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-blue-500" />
+                    AI Analysis
+                  </SheetTitle>
+                  <SheetDescription>
+                    {drawerOffer.profile?.displayName || drawerOffer.company.name}
+                    {drawerOffer.company.category && ` · ${drawerOffer.company.category}`}
+                  </SheetDescription>
+                </SheetHeader>
+
+                <div className="space-y-6 pt-6">
+                  {/* Re-analyze button */}
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => analyzeOffer.mutate(drawerOffer.id)}
+                      disabled={analyzeOffer.isPending}
+                      className="text-xs"
+                    >
+                      {analyzeOffer.isPending && analyzeOffer.variables === drawerOffer.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      ) : (
+                        <Sparkles className="h-3 w-3 mr-1" />
+                      )}
+                      Re-analyze
+                    </Button>
+                  </div>
+
+                  {/* Executive Summary */}
+                  {drawerAnalysis.executiveSummary && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Executive Summary</p>
+                      <p className="text-sm text-gray-700 font-medium leading-relaxed bg-blue-50 rounded-lg p-3 border border-blue-100">
+                        {drawerAnalysis.executiveSummary}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Table of Contents */}
+                  {drawerAnalysis.tableOfContents && drawerAnalysis.tableOfContents.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Table of Contents</p>
+                      <div className="space-y-1">
+                        {drawerAnalysis.tableOfContents.map((item: any, i: number) => (
+                          <div key={i} className="flex justify-between text-sm px-3 py-2 bg-gray-50 rounded-lg">
+                            <span className="text-gray-700">{item.section}</span>
+                            <span className="text-gray-400 font-mono text-xs">{item.pageRange}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Criteria Mapping */}
+                  {drawerAnalysis.criteriaMapping && Object.keys(drawerAnalysis.criteriaMapping).length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Criteria Mapping</p>
+                      <div className="space-y-1">
+                        {Object.entries(drawerAnalysis.criteriaMapping).map(([criterion, pageRef]) => (
+                          <div key={criterion} className="flex justify-between text-sm px-3 py-2 bg-gray-50 rounded-lg">
+                            <span className="text-gray-700">{criterion}</span>
+                            <span className={`font-mono text-xs ${pageRef === 'Not Found' ? 'text-red-500 font-semibold' : 'text-gray-400'}`}>
+                              {pageRef as string}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Deliverables */}
+                  {drawerAnalysis.deliverables && drawerAnalysis.deliverables.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Deliverables</p>
+                      <ul className="space-y-1.5">
+                        {drawerAnalysis.deliverables.map((d: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                            <span className="flex-shrink-0 w-5 h-5 rounded bg-gray-100 text-gray-500 text-xs font-mono flex items-center justify-center mt-0.5">{i + 1}</span>
+                            {d}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Financial */}
+                  {drawerAnalysis.financial && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Financial</p>
+                      <div className="rounded-lg border border-gray-200 overflow-hidden">
+                        {drawerAnalysis.financial.total != null && (
+                          <div className="flex justify-between text-sm px-3 py-2.5 bg-gray-50 border-b border-gray-200">
+                            <span className="text-gray-700 font-medium">Total</span>
+                            <span className="font-bold text-gray-900">SAR {drawerAnalysis.financial.total.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {drawerAnalysis.financial.vat != null && (
+                          <div className="flex justify-between text-sm px-3 py-2 border-b border-gray-100">
+                            <span className="text-gray-600">VAT</span>
+                            <span className="text-gray-700">{drawerAnalysis.financial.vat}%</span>
+                          </div>
+                        )}
+                        {drawerAnalysis.financial.paymentTerms && (
+                          <div className="flex justify-between text-sm px-3 py-2 border-b border-gray-100">
+                            <span className="text-gray-600">Payment Terms</span>
+                            <span className="text-gray-700 text-right max-w-[60%]">{drawerAnalysis.financial.paymentTerms}</span>
+                          </div>
+                        )}
+                        {drawerAnalysis.financial.breakdown && drawerAnalysis.financial.breakdown.length > 0 && (
+                          <>
+                            <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
+                              <span className="text-xs font-semibold text-gray-500 uppercase">Breakdown</span>
+                            </div>
+                            {drawerAnalysis.financial.breakdown.map((item: any, i: number) => (
+                              <div key={i} className="flex justify-between text-sm px-3 py-2 border-b border-gray-100 last:border-0">
+                                <span className="text-gray-600">{item.item}</span>
+                                <span className="text-gray-800 font-medium">SAR {item.amount?.toLocaleString()}</span>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {drawerAnalysis.analyzedAt && (
+                    <p className="text-xs text-gray-400 pt-2 border-t border-gray-100">
+                      Analyzed {new Date(drawerAnalysis.analyzedAt).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

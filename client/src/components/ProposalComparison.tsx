@@ -17,7 +17,14 @@ import {
   X,
   RotateCcw,
   CheckCircle,
+  MoreHorizontal,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 
 interface OfferAnalysis {
@@ -265,11 +272,47 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
                 <tr className="border-b bg-gray-50">
                   <th className="text-left p-3 font-medium text-muted-foreground min-w-[160px]">Item</th>
                   {visibleOffers.map(o => (
-                    <th key={o.id} className={`text-right p-3 font-medium min-w-[140px] ${selectedVendor === o.id ? 'bg-blue-50' : ''}`}>
-                      <div className="flex items-center justify-end gap-1">
-                        {getVendorName(o)}
-                        {cheapestId === o.id && totals.length > 1 && <TrendingUp className="h-3.5 w-3.5 text-green-500" />}
-                        {mostExpensiveId === o.id && totals.length > 1 && cheapestId !== mostExpensiveId && <TrendingDown className="h-3.5 w-3.5 text-red-500" />}
+                    <th key={o.id} className={`text-right p-3 font-medium min-w-[160px] ${selectedVendor === o.id ? 'bg-blue-50' : ''}`}>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <div className="flex items-center gap-1">
+                          {getVendorName(o)}
+                          {cheapestId === o.id && totals.length > 1 && <TrendingUp className="h-3.5 w-3.5 text-green-500" />}
+                          {mostExpensiveId === o.id && totals.length > 1 && cheapestId !== mostExpensiveId && <TrendingDown className="h-3.5 w-3.5 text-red-500" />}
+                          {selectedVendor === o.id && <Badge className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0">Selected</Badge>}
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 font-normal text-gray-400 hover:text-gray-700">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                const fileUrl = o.combinedFileUrl || o.technicalFileUrl;
+                                if (fileUrl) viewAuthenticatedFile(fileUrl);
+                              }}
+                              disabled={!o.combinedFileUrl && !o.technicalFileUrl}
+                            >
+                              <Download className="h-4 w-4 mr-2" /> View PDF
+                            </DropdownMenuItem>
+                            {selectedVendor !== o.id && (
+                              <DropdownMenuItem
+                                onClick={() => handleSelectVendor(o)}
+                                disabled={savingsMutation.isPending || getTotal(o.id) == null}
+                                className="text-blue-600 focus:text-blue-600"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" /> Select Vendor
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                              onClick={() => setHiddenOffers(prev => new Set([...Array.from(prev), o.id]))}
+                              className="text-red-500 focus:text-red-500"
+                            >
+                              <X className="h-4 w-4 mr-2" /> Remove
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </th>
                   ))}
@@ -306,24 +349,6 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
                   })}
                 </tr>
 
-                {/* Grand Total (incl. VAT) */}
-                <tr className="border-b">
-                  <td className="p-3 text-muted-foreground">Grand Total (incl. VAT)</td>
-                  {visibleOffers.map(o => {
-                    const fin = getFinancial(o.id);
-                    const total = getTotal(o.id);
-                    if (total != null && fin?.vat != null) {
-                      const grand = total * (1 + fin.vat / 100);
-                      return (
-                        <td key={o.id} className={`p-3 text-right font-medium ${selectedVendor === o.id ? 'bg-blue-50/50' : ''}`}>
-                          SAR {Math.round(grand).toLocaleString()}
-                        </td>
-                      );
-                    }
-                    return <td key={o.id} className={`p-3 text-right ${selectedVendor === o.id ? 'bg-blue-50/50' : ''}`}>—</td>;
-                  })}
-                </tr>
-
                 {/* Payment Terms */}
                 <tr className="border-b">
                   <td className="p-3 text-muted-foreground">Payment Terms</td>
@@ -351,54 +376,6 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
           )}
         </div>
 
-        {/* Section C: Actions per vendor */}
-        <div>
-          <h4 className="font-semibold text-sm text-gray-700 mb-3">Actions</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {visibleOffers.map(o => (
-              <div key={o.id} className={`rounded-xl border p-4 space-y-3 ${selectedVendor === o.id ? 'border-blue-300 bg-blue-50/50' : 'border-gray-200'}`}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-sm text-gray-900">{getVendorName(o)}</p>
-                    {o.company.category && <p className="text-xs text-gray-400">{o.company.category}</p>}
-                  </div>
-                  {selectedVendor === o.id && (
-                    <Badge className="bg-blue-100 text-blue-700 text-xs">Selected</Badge>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  <Button variant="outline" size="sm" className="text-xs h-7"
-                    onClick={() => {
-                      const fileUrl = o.combinedFileUrl || o.technicalFileUrl;
-                      if (fileUrl) viewAuthenticatedFile(fileUrl);
-                    }}
-                    disabled={!o.combinedFileUrl && !o.technicalFileUrl}
-                  >
-                    <Download className="h-3 w-3 mr-1" /> PDF
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs h-7"
-                    onClick={() => setHiddenOffers(prev => new Set([...Array.from(prev), o.id]))}
-                  >
-                    <X className="h-3 w-3 mr-1" /> Remove
-                  </Button>
-                  {selectedVendor !== o.id && (
-                    <Button size="sm" className="text-xs h-7 bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => handleSelectVendor(o)}
-                      disabled={savingsMutation.isPending || getTotal(o.id) == null}
-                    >
-                      {savingsMutation.isPending ? (
-                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                      ) : (
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                      )}
-                      Select
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Removed vendors */}
         {removedOffers.length > 0 && (

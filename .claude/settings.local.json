@@ -74,7 +74,12 @@
       "Bash(npx tsx -e \"\nimport\\('./server/routes.ts'\\).then\\(\\(\\) => {\n  console.log\\('routes.ts imported OK'\\);\n}\\).catch\\(e => {\n  console.error\\('Import failed:', e.message\\);\n}\\);\n\" 2>&1)",
       "Bash(timeout 15 npx tsx server/index.ts 2>&1 | head -30 || true)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X POST http://localhost:5000/api/ai/analyze-offer/test123 2>&1)",
-      "Bash(sleep 6 && curl -s -X POST http://localhost:5000/api/ai/analyze-offer/test -H \"Content-Type: application/json\" 2>&1)"
+      "Bash(sleep 6 && curl -s -X POST http://localhost:5000/api/ai/analyze-offer/test -H \"Content-Type: application/json\" 2>&1)",
+      "Bash(env | grep -i \"openai\\\\|ai_key\\\\|api_key\\\\|GROQ\\\\|TOGETHER\\\\|ANTHROPIC\" | sed 's/=.*/=***/' 2>/dev/null)",
+      "Bash(sleep 5 && curl -s -X POST http://localhost:5000/api/ai/analyze-offer/test -H \"Content-Type: application/json\" 2>&1)",
+      "Bash(lsof -ti:5000 | xargs kill -9 2>/dev/null; sleep 1; echo \"Port 5000 freed\")",
+      "Bash(fuser -k 5000/tcp 2>/dev/null || ss -tlnp | grep 5000)",
+      "Bash(pkill -f \"tsx server/index\" 2>/dev/null; sleep 2; curl -s http://localhost:5000 2>&1 || echo \"Port is free now\")"
     ]
   }
 }

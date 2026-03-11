@@ -201,6 +201,10 @@ export const tenders = pgTable("tenders", {
   // Pre-translated content keyed by language: { en: { title, description, ... }, ar: { ... } }
   translatedContent: jsonb("translated_content").$type<Record<string, Record<string, string>>>(),
 
+  // Cached RFP requirements extracted by AI — English and Arabic versions
+  rfpRequirements: jsonb("rfp_requirements").$type<string[]>(),
+  rfpRequirementsAr: jsonb("rfp_requirements_ar").$type<string[]>(),
+
   // Invitation & Access
   invitationToken: varchar("invitation_token").notNull().unique(),
   

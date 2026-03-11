@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
+import { useI18n } from "@/lib/i18n";
 
 interface OfferAnalysis {
   id: string;
@@ -82,12 +83,13 @@ const VENDOR_COLORS = [
 
 export default function ProposalComparison({ tenderId, offers, analyses = [] }: ProposalComparisonProps) {
   const { toast } = useToast();
+  const { language } = useI18n();
   const [hiddenOffers, setHiddenOffers] = useState<Set<string>>(new Set());
   const [selectedVendor, setSelectedVendor] = useState<string | null>(null);
 
   const analyzeMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", `/api/ai/analyze-proposals/${tenderId}`);
+      const response = await apiRequest("POST", `/api/ai/analyze-proposals/${tenderId}`, { language });
       return response.json();
     },
     onSuccess: () => {
@@ -442,10 +444,10 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
               </>
             )}
 
-            {/* ─── Criteria coverage section ──────────────────────────── */}
+            {/* ─── Requirements coverage section ──────────────────────── */}
             {allCriteria.size > 0 && (
               <>
-                <SectionHeader label="Criteria Coverage" icon={Sparkles} />
+                <SectionHeader label="Requirements Coverage" icon={Sparkles} />
                 {Array.from(allCriteria).map((criterion, cIdx) => (
                   <tr key={criterion} className={`border-b border-gray-100 hover:bg-gray-50/40 transition-colors ${cIdx % 2 === 1 ? 'bg-gray-50/20' : ''}`}>
                     <td className={`${LABEL_W} sticky left-0 ${cIdx % 2 === 1 ? 'bg-gray-50/80' : 'bg-white'} px-4 py-2.5 text-xs text-gray-600 border-r border-gray-100 leading-snug`}>
@@ -454,13 +456,20 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
                     {visibleOffers.map(offer => {
                       const analysis = completedAnalyses.find(a => a.offerId === offer.id);
                       const ref = analysis?.criteriaMapping?.[criterion];
-                      const found = ref && ref !== 'Not Found';
+                      const found = ref && ref !== 'Not Found' && ref !== 'غير موجود';
                       return (
                         <td key={offer.id} className={`${COL_W} px-4 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${selectedVendor === offer.id ? 'bg-blue-50/30' : ''}`}>
                           {found ? (
-                            <span className="inline-block text-[10px] font-mono font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md">{ref}</span>
+                            <div className="flex flex-col items-center gap-0.5">
+                              <div className="h-5 w-5 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center">
+                                <Check className="h-3 w-3 text-emerald-600" />
+                              </div>
+                              <span className="text-[9px] font-mono text-emerald-600">{ref}</span>
+                            </div>
                           ) : ref === 'Not Found' ? (
-                            <span className="text-[10px] font-medium text-red-400">Not found</span>
+                            <div className="h-5 w-5 rounded-full bg-red-100 border border-red-200 flex items-center justify-center mx-auto">
+                              <X className="h-3 w-3 text-red-500" />
+                            </div>
                           ) : (
                             <span className="text-gray-300 text-xs">—</span>
                           )}

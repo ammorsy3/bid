@@ -39,7 +39,7 @@ export default function App() {
             <Route path="/" component={Landing} />
             <Route path="/login" component={Login} />
             <Route path="/signup" component={Register} />
-            <Route path="/onboarding" component={CompanyOnboarding} />
+            <Route path="/company-onboarding" component={CompanyOnboarding} />
             <Route path="/dashboard" component={Dashboard} />
             <Route path="/admin/dashboard" component={AdminDashboard} />
             <Route path="/admin/vendors" component={AdminVendors} />

@@ -431,8 +431,8 @@ export default function TenderReview() {
       }
       if (card.type === "project-dates") {
         const parts = [];
-        if (card.value.startDate) parts.push(`${t('tenderFlow.startLabel')} ${card.value.startDate}`);
-        if (card.value.endDate) parts.push(`${t('tenderFlow.endLabel')} ${card.value.endDate}`);
+        if (card.value.startDate) parts.push(`${t('tenderFlow.startLabelColon')} ${card.value.startDate}`);
+        if (card.value.endDate) parts.push(`${t('tenderFlow.endLabelColon')} ${card.value.endDate}`);
         if (card.value.deliveryDate) parts.push(`${t('tenderFlow.deliveryLabel')} ${card.value.deliveryDate}`);
         return parts.length > 0 ? parts.join("  ·  ") : t('tenderFlow.notProvided');
       }

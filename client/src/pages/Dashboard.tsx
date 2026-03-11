@@ -2784,7 +2784,7 @@ export default function Dashboard() {
                 className="flex-1"
                 onClick={() => {
                   setShowCompanyProfileDialog(false);
-                  setLocation('/onboarding');
+                  setLocation('/company-onboarding');
                 }}
               >
                 <Edit className="h-4 w-4 mr-2" />

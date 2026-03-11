@@ -1737,11 +1737,218 @@ Response must be valid JSON with this exact structure:
     throw new Error("Max retries exceeded for AI API call");
   }
 
-  // Shared helper: analyze a single offer with factual extraction prompt
+  // ─── Agent 1: RFP Analyst ───────────────────────────────────────────────────
+  // Runs ONCE per tender. Reads only RFP data and extracts a list of
+  // specific, concrete, measurable requirements. Result is cached on the tender.
+  async function extractRFPRequirements(
+    config: { url: string; key: string },
+    tender: any,
+    language: 'en' | 'ar' = 'en',
+  ): Promise<string[]> {
+    const lines: string[] = [];
+
+    if (tender.deliverables && Array.isArray(tender.deliverables)) {
+      tender.deliverables.forEach((d: any) => {
+        lines.push(`Deliverable: ${d.name}${d.description ? ' — ' + d.description : ''}${d.quantity ? ' (Qty: ' + d.quantity + ' ' + (d.unit || '') + ')' : ''}`);
+      });
+    }
+    if (tender.vendorRequirements && Array.isArray(tender.vendorRequirements)) {
+      tender.vendorRequirements.forEach((r: any) => {
+        lines.push(`[${r.type?.toUpperCase() || 'REQUIREMENT'}] ${r.text}`);
+      });
+    }
+    if (tender.evaluationCriteria && typeof tender.evaluationCriteria === 'object') {
+      const ec = tender.evaluationCriteria as any;
+      if (Array.isArray(ec.requirements)) {
+        ec.requirements.forEach((r: any) => lines.push(`Criterion: ${r.categoryId}/${r.requirementId}: ${r.value}`));
+      }
+      if (Array.isArray(ec.customCriteria)) {
+        ec.customCriteria.forEach((c: any) => lines.push(`Criterion: ${c.text || c.name}`));
+      }
+    }
+    if (tender.milestones && Array.isArray(tender.milestones)) {
+      tender.milestones.forEach((m: any) => {
+        lines.push(`Milestone: ${m.name}${m.amount ? ' — SAR ' + m.amount : ''}${m.dueDate ? ' (due: ' + m.dueDate + ')' : ''}`);
+      });
+    }
+
+    const rfpContext = [
+      `Title: ${tender.title}`,
+      `Description: ${tender.description}`,
+      tender.budget ? `Budget: ${tender.budget} ${tender.currency || 'SAR'}` : null,
+      lines.length > 0 ? lines.join("\n") : null,
+    ].filter(Boolean).join("\n\n");
+
+    const aiResponse = await fetchWithRetry(config.url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${config.key}` },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `${language === 'ar' ? 'CRITICAL INSTRUCTION: You MUST respond entirely in Arabic (Saudi dialect, formal Modern Standard Arabic). Every word of your output must be in Arabic. Do not use English under any circumstances.\n\n' : ''}You are an RFP analyst. Your only job is to read a tender/RFP and extract a list of specific, concrete, measurable requirements that any winning vendor must address.
+
+Rules:
+- Extract 5–15 requirements. Be specific — not "technical capability" but "ISO 27001 certification".
+- Include: certifications, quantities, budgets, timelines, deliverable specs, mandatory qualifications.
+- Each requirement must be a short phrase (3–10 words), not a sentence.
+${language === 'ar' ? '- اكتب كل المتطلبات باللغة العربية فقط. مثال: ["شهادة جودة ISO 27001", "ميزانية 500,000 ريال", "5 تقارير شهرية", "شهادة GOSI"]\n- أجب بمصفوفة JSON فقط.' : '- Respond with ONLY a JSON array of strings. Example: ["GOSI certificate", "SAR 500,000 budget cap", "5 monthly reports", "ISO 27001 certification"]'}`,
+          },
+          {
+            role: "user",
+            content: `Extract the specific requirements from this RFP:\n\n${rfpContext}`,
+          },
+        ],
+        temperature: 0.1,
+        max_tokens: 600,
+      }),
+    });
+
+    if (!aiResponse.ok) throw new Error(`RFP Agent returned ${aiResponse.status}`);
+    const data = await aiResponse.json();
+    const content = data.choices?.[0]?.message?.content || "";
+    const match = content.match(/\[[\s\S]*\]/);
+    if (!match) return [];
+    try {
+      const parsed = JSON.parse(match[0]);
+      return Array.isArray(parsed) ? parsed.filter((r: any) => typeof r === 'string') : [];
+    } catch {
+      return [];
+    }
+  }
+
+  // ─── Agent 2: Proposal Extractor ────────────────────────────────────────────
+  // Runs once per offer. Reads ONLY the vendor's proposal document and extracts
+  // raw facts: structure, deliverables, and financials. No RFP context needed.
+  async function extractProposalFacts(
+    config: { url: string; key: string },
+    companyName: string,
+    proposalText: string,
+    quotePrice?: number | null,
+    notes?: string | null,
+    language: 'en' | 'ar' = 'en',
+  ): Promise<{
+    executiveSummary: string | null;
+    tableOfContents: { section: string; pageRange: string }[] | null;
+    deliverables: string[] | null;
+    financial: { total?: number; breakdown?: { item: string; amount: number }[]; paymentTerms?: string; vat?: number } | null;
+  }> {
+    const offerContext = [
+      `Vendor: ${companyName}`,
+      quotePrice ? `Quoted Price: ${quotePrice} SAR` : null,
+      notes ? `Vendor Notes: ${notes}` : null,
+      proposalText || "Note: No proposal document provided",
+    ].filter(Boolean).join("\n\n");
+
+    const aiResponse = await fetchWithRetry(config.url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${config.key}` },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `${language === 'ar' ? 'CRITICAL INSTRUCTION: You MUST respond entirely in Arabic (Saudi dialect, formal Modern Standard Arabic). Every text field in your JSON output must be written in Arabic. Numbers remain as numbers. Do not use English for any text value.\n\n' : ''}You are a proposal document extractor. Your only job is to read a vendor's proposal and extract its factual content.
+
+Extract facts only. No opinions, no scores, no comparisons to any RFP.
+
+Respond with ONLY valid JSON in this exact structure:
+{
+  "executiveSummary": "${language === 'ar' ? '<4 أسطر كحد أقصى. حقائق فقط. ماذا اقترح المورد؟>' : '<4 lines max. Factual. What the vendor proposed.>'}",
+  "tableOfContents": [{ "section": "${language === 'ar' ? 'اسم القسم بالعربية' : '...'}", "pageRange": "..." }],
+  "deliverables": ["${language === 'ar' ? '<التسليمات كما وردت في العرض بالعربية>' : '<verbatim deliverable from proposal>'}"],
+  "financial": { "total": <number or null>, "breakdown": [{ "item": "${language === 'ar' ? 'اسم البند بالعربية' : '...'}", "amount": <number> }], "paymentTerms": "${language === 'ar' ? '<شروط الدفع بالعربية أو null>' : '<string or null>'}", "vat": <number or null> }
+}`,
+          },
+          {
+            role: "user",
+            content: `Extract facts from this proposal:\n\n${offerContext}`,
+          },
+        ],
+        temperature: 0.1,
+        max_tokens: 1500,
+      }),
+    });
+
+    if (!aiResponse.ok) throw new Error(`Proposal Extractor returned ${aiResponse.status}`);
+    const data = await aiResponse.json();
+    const content = data.choices?.[0]?.message?.content || "";
+    const match = content.match(/\{[\s\S]*\}/);
+    if (!match) return { executiveSummary: null, tableOfContents: null, deliverables: null, financial: null };
+    try {
+      const parsed = JSON.parse(match[0]);
+      return {
+        executiveSummary: parsed.executiveSummary || null,
+        tableOfContents: parsed.tableOfContents || null,
+        deliverables: parsed.deliverables || null,
+        financial: parsed.financial || null,
+      };
+    } catch {
+      return { executiveSummary: null, tableOfContents: null, deliverables: null, financial: null };
+    }
+  }
+
+  // ─── Agent 3: Requirements Checker ──────────────────────────────────────────
+  // Runs once per offer. Given the RFP requirements list (from Agent 1) and the
+  // proposal text, determines which requirements are addressed and on which page.
+  async function checkRequirementsCoverage(
+    config: { url: string; key: string },
+    requirements: string[],
+    proposalText: string,
+    language: 'en' | 'ar' = 'en',
+  ): Promise<Record<string, string>> {
+    if (requirements.length === 0 || !proposalText) return {};
+
+    const aiResponse = await fetchWithRetry(config.url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${config.key}` },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `${language === 'ar' ? 'CRITICAL INSTRUCTION: You MUST respond entirely in Arabic. Use the exact Arabic requirement strings as JSON keys. Page references must use Arabic: "صفحة X". Not found must be: "غير موجود". Do not use English.\n\n' : ''}You are a compliance checker. You are given a list of RFP requirements and a vendor's proposal. For each requirement, find the exact page in the proposal where it is addressed.
+
+Rules:
+- If addressed, respond with ${language === 'ar' ? '"صفحة X" (مثال: "صفحة 4") أو "صفحات X–Y"' : '"page X" (e.g. "page 4") or "pages X–Y"'}.
+- If not addressed anywhere in the proposal, respond with ${language === 'ar' ? '"غير موجود"' : '"Not Found"'}.
+- Be strict — only mark as found if the proposal explicitly addresses it.
+- Use the requirement strings exactly as given as JSON keys.
+Respond with ONLY a JSON object. Example:
+${language === 'ar' ? '{ "شهادة GOSI": "صفحة 7", "شهادة ISO 27001": "غير موجود", "5 تقارير شهرية": "صفحة 12" }' : '{ "GOSI certificate": "page 7", "ISO 27001 certification": "Not Found", "5 monthly reports": "page 12" }'}`,
+          },
+          {
+            role: "user",
+            content: `RFP Requirements:\n${requirements.map((r, i) => `${i + 1}. ${r}`).join("\n")}\n\nProposal:\n${proposalText}`,
+          },
+        ],
+        temperature: 0.1,
+        max_tokens: 800,
+      }),
+    });
+
+    if (!aiResponse.ok) throw new Error(`Requirements Checker returned ${aiResponse.status}`);
+    const data = await aiResponse.json();
+    const content = data.choices?.[0]?.message?.content || "";
+    const match = content.match(/\{[\s\S]*\}/);
+    if (!match) return {};
+    try {
+      const parsed = JSON.parse(match[0]);
+      return typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+
+  // ─── Orchestrator ────────────────────────────────────────────────────────────
+  // Coordinates the 3 agents for a single offer. Agent 1 result is cached on
+  // the tender so it only runs once even when analyzing multiple vendors.
   async function analyzeOfferWithAI(
     config: { url: string; key: string },
     tender: any,
     offerData: any,
+    language: 'en' | 'ar' = 'en',
   ) {
     const companyName = (offerData as any).profile?.displayName || offerData.company.name;
 
@@ -1759,130 +1966,72 @@ Response must be valid JSON with this exact structure:
       });
     }
 
-    // Build criteria names
-    let criteriaNames: string[] = [];
-    if (tender.evaluationCriteria && typeof tender.evaluationCriteria === 'object') {
-      const ec = tender.evaluationCriteria as any;
-      if (Array.isArray(ec.customCriteria)) {
-        criteriaNames = ec.customCriteria.map((c: any) => c.name || c.text || c.id || String(c));
-      } else if (Array.isArray(ec.weights)) {
-        criteriaNames = ec.weights.map((w: any) => w.categoryId || w.name || String(w));
-      } else if (Array.isArray(ec)) {
-        criteriaNames = ec.map((c: any) => typeof c === 'string' ? c : (c.name || c.id || 'criterion'));
+    // ── Step 1: Get RFP requirements (Agent 1) — run once, reuse for all vendors
+    // Cache is keyed by language: rfpRequirements (en) / rfpRequirementsAr (ar)
+    const cacheKey = language === 'ar' ? 'rfpRequirementsAr' : 'rfpRequirements';
+    let requirements: string[] = tender[cacheKey] || [];
+    if (requirements.length === 0) {
+      try {
+        requirements = await extractRFPRequirements(config, tender, language);
+        await storage.updateTender(tender.id, { [cacheKey]: requirements } as any);
+        tender[cacheKey] = requirements;
+      } catch (err) {
+        console.error(`Agent 1 (RFP Analyst) failed for tender ${tender.id}:`, err);
       }
     }
 
-    const tenderContext = [
-      `Title: ${tender.title}`,
-      `Description: ${tender.description}`,
-      tender.budget ? `Budget: ${tender.budget} ${tender.currency || 'SAR'}` : null,
-      criteriaNames.length > 0 ? `Criteria: ${criteriaNames.join(", ")}` : null,
-    ].filter(Boolean).join("\n");
-
-    // Extract text from files
+    // ── Step 2: Extract proposal text (shared input for Agents 2 & 3)
     let proposalText = "";
     try {
       const { fetchAndExtractFile } = await import("./textExtraction");
       if (offerData.combinedFileUrl) {
-        const combinedText = await fetchAndExtractFile(offerData.combinedFileUrl);
-        if (combinedText) proposalText += `\n--- PROPOSAL DOCUMENT ---\n${combinedText}`;
+        const t = await fetchAndExtractFile(offerData.combinedFileUrl);
+        if (t) proposalText += `\n--- PROPOSAL DOCUMENT ---\n${t}`;
       }
       if (offerData.technicalFileUrl) {
-        const techText = await fetchAndExtractFile(offerData.technicalFileUrl);
-        if (techText) proposalText += `\n--- TECHNICAL PROPOSAL ---\n${techText}`;
+        const t = await fetchAndExtractFile(offerData.technicalFileUrl);
+        if (t) proposalText += `\n--- TECHNICAL PROPOSAL ---\n${t}`;
       }
       if (offerData.financialFileUrl) {
-        const finText = await fetchAndExtractFile(offerData.financialFileUrl);
-        if (finText) proposalText += `\n--- FINANCIAL PROPOSAL ---\n${finText}`;
+        const t = await fetchAndExtractFile(offerData.financialFileUrl);
+        if (t) proposalText += `\n--- FINANCIAL PROPOSAL ---\n${t}`;
       }
     } catch (err) {
       console.error(`File extraction failed for offer ${offerData.id}:`, err);
     }
 
-    const offerContext = [
-      `Vendor: ${companyName}`,
-      offerData.quotePrice ? `Quoted Price: ${offerData.quotePrice} SAR` : null,
-      offerData.notes ? `Vendor Notes: ${offerData.notes}` : null,
-      offerData.videoUrl ? `Video presentation provided (requires manual review)` : null,
-      proposalText || (offerData.technicalFileUrl || offerData.financialFileUrl ? "Note: File content could not be extracted" : null),
-    ].filter(Boolean).join("\n");
-
     try {
-      const aiResponse = await fetchWithRetry(config.url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${config.key}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `You are a procurement document analyst. Tone: bold and sharp — every word costs money.
-Extract facts only. No opinions, no scores, no recommendations.
+      // ── Step 3: Run Agent 2 and Agent 3 in parallel
+      const [facts, criteriaMapping] = await Promise.all([
+        extractProposalFacts(config, companyName, proposalText, offerData.quotePrice, offerData.notes, language),
+        checkRequirementsCoverage(config, requirements, proposalText, language),
+      ]);
 
-TENDER CONTEXT:
-${tenderContext}
+      const modelUsed = "gpt-4o-mini";
 
-Respond with ONLY valid JSON in this exact structure:
-{
-  "executiveSummary": "<4 lines max. Factual. What the vendor proposed.>",
-  "tableOfContents": [{ "section": "...", "pageRange": "..." }],
-  "criteriaMapping": { "<criterion>": "page X" | "Not Found" },
-  "deliverables": ["<verbatim from proposal>"],
-  "financial": { "total": <number or null>, "breakdown": [{ "item": "...", "amount": <number> }], "paymentTerms": "<string or null>", "vat": <number or null> }
-}`
-            },
-            {
-              role: "user",
-              content: `Analyze this proposal:\n\n${offerContext}`
-            }
-          ],
-          temperature: 0.2,
-          max_tokens: 2000,
-        }),
-      });
-
-      if (!aiResponse.ok) {
-        throw new Error(`AI API returned ${aiResponse.status}`);
-      }
-
-      const aiData = await aiResponse.json();
-      const content = aiData.choices?.[0]?.message?.content;
-      const modelUsed = aiData.model || "gpt-4o";
-
-      if (!content) throw new Error("Empty AI response");
-
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("No JSON in AI response");
-
-      const parsed = JSON.parse(jsonMatch[0]);
-
-      // Delete existing analysis for this offer
       const existing = await storage.getProposalAnalysisByOffer(offerData.id);
       if (existing) {
         await storage.updateProposalAnalysis(existing.id, {
-          executiveSummary: parsed.executiveSummary || null,
-          tableOfContents: parsed.tableOfContents || null,
-          criteriaMapping: parsed.criteriaMapping || null,
-          deliverables: parsed.deliverables || null,
-          financial: parsed.financial || null,
+          executiveSummary: facts.executiveSummary,
+          tableOfContents: facts.tableOfContents,
+          criteriaMapping: Object.keys(criteriaMapping).length > 0 ? criteriaMapping : null,
+          deliverables: facts.deliverables,
+          financial: facts.financial,
           modelUsed,
           status: "completed",
           analyzedAt: new Date(),
         });
-        return { ...existing, ...parsed, status: "completed" };
+        return { ...existing, ...facts, criteriaMapping, status: "completed" };
       }
 
       return await storage.createProposalAnalysis({
         tenderId: tender.id,
         offerId: offerData.id,
-        executiveSummary: parsed.executiveSummary || null,
-        tableOfContents: parsed.tableOfContents || null,
-        criteriaMapping: parsed.criteriaMapping || null,
-        deliverables: parsed.deliverables || null,
-        financial: parsed.financial || null,
+        executiveSummary: facts.executiveSummary,
+        tableOfContents: facts.tableOfContents,
+        criteriaMapping: Object.keys(criteriaMapping).length > 0 ? criteriaMapping : null,
+        deliverables: facts.deliverables,
+        financial: facts.financial,
         modelUsed,
         status: "completed",
         analyzedAt: new Date(),
@@ -1933,7 +2082,8 @@ Respond with ONLY valid JSON in this exact structure:
         const offerData = offersData.find(o => o.id === offer.id);
         if (!offerData) return res.status(404).json({ message: "Offer data not found" });
 
-        const analysis = await analyzeOfferWithAI(config, tender, offerData);
+        const outputLanguage: 'en' | 'ar' = req.body?.language === 'ar' ? 'ar' : 'en';
+        const analysis = await analyzeOfferWithAI(config, tender, offerData, outputLanguage);
         res.json(analysis);
       } catch (error) {
         console.error("Single offer analysis error:", error);
@@ -1967,9 +2117,11 @@ Respond with ONLY valid JSON in this exact structure:
         // Delete existing analyses for fresh run
         await storage.deleteProposalAnalysesByTender(req.params.tenderId);
 
+        const outputLanguage: 'en' | 'ar' = req.body?.language === 'ar' ? 'ar' : 'en';
+
         // Analyze each offer using the shared helper
         for (const offerData of offersData) {
-          await analyzeOfferWithAI(config, tender, offerData);
+          await analyzeOfferWithAI(config, tender, offerData, outputLanguage);
         }
 
         // Return enriched analyses

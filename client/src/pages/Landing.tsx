@@ -18,13 +18,10 @@ const Landing = () => {
           </div>
         </div>
       </nav>
-
       <main>
         <section className="pt-32 pb-20 px-6">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight leading-tight">
-              Bid — A Simpler Way to Run Tenders
-            </h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight leading-tight">Bid — Sourcing Redefined.</h1>
             <p className="mt-5 text-lg text-gray-500 max-w-xl mx-auto">
               Create RFPs, receive proposals, compare vendors, and award projects in one platform.
             </p>
@@ -122,7 +119,6 @@ const Landing = () => {
           </div>
         </section>
       </main>
-
       <footer className="border-t border-gray-100 py-10 px-6">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="text-lg font-bold text-[#E25E45]">Bid</span>

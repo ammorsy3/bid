@@ -79,7 +79,16 @@
       "Bash(sleep 5 && curl -s -X POST http://localhost:5000/api/ai/analyze-offer/test -H \"Content-Type: application/json\" 2>&1)",
       "Bash(lsof -ti:5000 | xargs kill -9 2>/dev/null; sleep 1; echo \"Port 5000 freed\")",
       "Bash(fuser -k 5000/tcp 2>/dev/null || ss -tlnp | grep 5000)",
-      "Bash(pkill -f \"tsx server/index\" 2>/dev/null; sleep 2; curl -s http://localhost:5000 2>&1 || echo \"Port is free now\")"
+      "Bash(pkill -f \"tsx server/index\" 2>/dev/null; sleep 2; curl -s http://localhost:5000 2>&1 || echo \"Port is free now\")",
+      "Read(//home/runner/.claude/**)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\({k:v for k,v in d.items\\(\\) if ''''key'''' not in k.lower\\(\\) and ''''token'''' not in k.lower\\(\\) and ''''secret'''' not in k.lower\\(\\)}\\)\")",
+      "Bash(env | grep -iE \"ANTHROPIC|CLAUDE\" | sed 's/=.*/=<set>/')",
+      "Bash(cat ~/.claude.json 2>/dev/null | python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); keys=list\\(d.keys\\(\\)\\); print\\('Keys:', keys\\)\" 2>/dev/null)",
+      "Bash(node -e \"const d=require\\(require\\('os'\\).homedir\\(\\)+'/.claude.json'\\); const safe=Object.fromEntries\\(Object.entries\\(d\\).filter\\(\\([k]\\)=>!['oauthToken','apiKey','accessToken','refreshToken','sessionKey'].some\\(s=>k.toLowerCase\\(\\).includes\\(s.toLowerCase\\(\\)\\)\\)\\)\\); console.log\\(JSON.stringify\\(Object.keys\\(d\\)\\)\\)\")",
+      "Bash(node -e \"const fs=require\\('fs'\\); const d=JSON.parse\\(fs.readFileSync\\(require\\('os'\\).homedir\\(\\)+'/.claude/.credentials.json','utf8'\\)\\); console.log\\('Keys:', Object.keys\\(d\\)\\); if\\(d.claudeAiOauth\\) console.log\\('OAuth keys:', Object.keys\\(d.claudeAiOauth\\)\\);\")",
+      "Bash(node -e \"const fs=require\\('fs'\\); const d=JSON.parse\\(fs.readFileSync\\(require\\('os'\\).homedir\\(\\)+'/.claude/.credentials.json','utf8'\\)\\); const exp=d.claudeAiOauth.expiresAt; console.log\\('expiresAt:', exp, '=', new Date\\(exp\\).toISOString\\(\\)\\);\")",
+      "Bash(cat /home/runner/workspace/replit.nix 2>/dev/null || echo \"No replit.nix\"; ls /home/runner/workspace/.replit* 2>/dev/null)",
+      "WebFetch(domain:www.aitmpl.com)"
     ]
   }
 }

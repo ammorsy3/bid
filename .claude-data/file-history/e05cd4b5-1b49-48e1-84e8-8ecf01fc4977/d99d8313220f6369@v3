@@ -1,0 +1,500 @@
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import {
+  Sparkles,
+  Loader2,
+  TrendingUp,
+  Check,
+  Minus,
+  X,
+  RotateCcw,
+  CheckCircle,
+  MoreHorizontal,
+  DollarSign,
+  FileText,
+  Award,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { viewAuthenticatedFile } from "@/lib/downloadFile";
+
+interface OfferAnalysis {
+  id: string;
+  offerId: string;
+  status: string;
+  executiveSummary: string | null;
+  tableOfContents: { section: string; pageRange: string }[] | null;
+  criteriaMapping: Record<string, string> | null;
+  deliverables: string[] | null;
+  financial: {
+    total?: number;
+    breakdown?: { item: string; amount: number }[];
+    paymentTerms?: string;
+    vat?: number;
+  } | null;
+  errorMessage: string | null;
+  analyzedAt: string | null;
+}
+
+interface Offer {
+  id: string;
+  companyId: string;
+  technicalFileUrl: string | null;
+  financialFileUrl: string | null;
+  combinedFileUrl?: string | null;
+  quotePrice: number | null;
+  videoUrl: string | null;
+  submittedAt: string;
+  status: string;
+  company: {
+    id: string;
+    name: string;
+    category: string | null;
+    verificationStatus: string;
+  };
+  profile?: {
+    displayName: string | null;
+    bio: string | null;
+    logoUrl: string | null;
+  };
+}
+
+interface ProposalComparisonProps {
+  tenderId: string;
+  offers: Offer[];
+  analyses?: OfferAnalysis[];
+}
+
+const VENDOR_COLORS = [
+  'from-[#E25E45] to-[#FF8A6B]',
+  'from-indigo-500 to-violet-500',
+  'from-emerald-500 to-teal-500',
+  'from-amber-500 to-orange-400',
+  'from-sky-500 to-blue-500',
+];
+
+export default function ProposalComparison({ tenderId, offers, analyses = [] }: ProposalComparisonProps) {
+  const { toast } = useToast();
+  const [hiddenOffers, setHiddenOffers] = useState<Set<string>>(new Set());
+  const [selectedVendor, setSelectedVendor] = useState<string | null>(null);
+
+  const analyzeMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", `/api/ai/analyze-proposals/${tenderId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ai/proposal-analysis", tenderId] });
+      toast({ title: "Analysis complete", description: "All proposals have been analyzed." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Analysis failed", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const savingsMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", `/api/tenders/${tenderId}/savings`, data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Vendor selected",
+        description: `Savings recorded: SAR ${data.savingsAmount?.toLocaleString() || 0} (${data.savingsPercentage || 0}% savings)`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Failed to record savings", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const completedAnalyses = analyses.filter(a => a.status === "completed");
+  const hasAnalyses = completedAnalyses.length > 0;
+  const visibleOffers = offers.filter(o => !hiddenOffers.has(o.id));
+  const removedOffers = offers.filter(o => hiddenOffers.has(o.id));
+
+  const allDeliverables = new Set<string>();
+  completedAnalyses.forEach(a => {
+    if (a.deliverables) a.deliverables.forEach(d => allDeliverables.add(d));
+  });
+
+  const allCriteria = new Set<string>();
+  completedAnalyses.forEach(a => {
+    if (a.criteriaMapping) Object.keys(a.criteriaMapping).forEach(k => allCriteria.add(k));
+  });
+
+  const getFinancial = (offerId: string) => completedAnalyses.find(a => a.offerId === offerId)?.financial || null;
+  const getTotal = (offerId: string): number | null => {
+    const fin = getFinancial(offerId);
+    if (fin?.total) return fin.total;
+    return offers.find(o => o.id === offerId)?.quotePrice || null;
+  };
+
+  const totals = visibleOffers.map(o => ({ id: o.id, total: getTotal(o.id) })).filter(t => t.total != null) as { id: string; total: number }[];
+  const cheapestId = totals.length > 1 ? totals.reduce((min, t) => t.total < min.total ? t : min, totals[0]).id : null;
+  const mostExpensiveId = totals.length > 1 ? totals.reduce((max, t) => t.total > max.total ? t : max, totals[0]).id : null;
+  const highestPrice = totals.length > 0 ? Math.max(...totals.map(t => t.total)) : 0;
+  const lowestPrice = totals.length > 0 ? Math.min(...totals.map(t => t.total)) : 0;
+
+  const getVendorName = (offer: Offer) => offer.profile?.displayName || offer.company.name;
+
+  const handleSelectVendor = (offer: Offer) => {
+    const selectedPrice = getTotal(offer.id);
+    if (selectedPrice == null) return;
+    setSelectedVendor(offer.id);
+    savingsMutation.mutate({ selectedOfferId: offer.id, selectedCompanyId: offer.companyId, selectedPrice, highestPrice, lowestPrice });
+  };
+
+  // ─── Empty state ─────────────────────────────────────────────────────────────
+  if (!hasAnalyses) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+        <div className="p-8 text-center">
+          <div className="h-12 w-12 rounded-xl bg-[#E25E45]/10 border border-[#E25E45]/20 flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="h-6 w-6 text-[#E25E45]" />
+          </div>
+          <h3 className="text-sm font-bold text-gray-900 mb-1">AI Proposal Comparison</h3>
+          <p className="text-sm text-gray-500 mb-5 max-w-sm mx-auto">
+            Analyze all {offers.length} proposals to unlock a side-by-side comparison of deliverables, financials, and criteria coverage.
+          </p>
+          <Button
+            onClick={() => analyzeMutation.mutate()}
+            disabled={analyzeMutation.isPending || offers.length < 2}
+            className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+          >
+            {analyzeMutation.isPending ? (
+              <><Loader2 className="h-4 w-4 animate-spin mr-2" />Analyzing {offers.length} proposals...</>
+            ) : (
+              <><Sparkles className="h-4 w-4 mr-2" />Analyze & Compare All</>
+            )}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const SectionHeader = ({ label, icon: Icon }: { label: string; icon: any }) => (
+    <tr>
+      <td colSpan={visibleOffers.length + 1} className="px-0 pb-0 pt-0">
+        <div className="flex items-center gap-2.5 px-4 py-2.5 bg-gray-50 border-y border-gray-100">
+          <div className="h-3.5 w-0.5 rounded-full bg-[#E25E45]" />
+          <Icon className="h-3 w-3 text-gray-400" />
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</span>
+        </div>
+      </td>
+    </tr>
+  );
+
+  const LABEL_W = "w-40 min-w-[160px]";
+  const COL_MIN = "min-w-[150px]";
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      {/* Coral gradient top strip */}
+      <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+
+      {/* ── Card header ─────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#E25E45] text-white text-xs font-bold">
+            <Sparkles className="h-3 w-3" />
+          </div>
+          <div>
+            <span className="text-sm font-bold text-gray-900">Proposal Comparison</span>
+            <span className="text-xs text-gray-400 ml-2">{visibleOffers.length} vendors</span>
+          </div>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => analyzeMutation.mutate()} disabled={analyzeMutation.isPending} className="text-xs h-7">
+          {analyzeMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RotateCcw className="h-3 w-3 mr-1" />}
+          Re-analyze
+        </Button>
+      </div>
+
+      {/* ── Savings banner ──────────────────────────────────────────────── */}
+      {totals.length > 1 && highestPrice > lowestPrice && (
+        <div className="mx-5 mt-4 flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
+          <TrendingUp className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+          <span className="text-sm text-emerald-800">
+            <span className="font-bold">SAR {(highestPrice - lowestPrice).toLocaleString()}</span>
+            {" "}potential savings · {Math.round(((highestPrice - lowestPrice) / highestPrice) * 100)}% spread across offers
+          </span>
+        </div>
+      )}
+
+      {/* ── Comparison table ─────────────────────────────────────────────── */}
+      <div className="overflow-x-auto mt-4">
+        <table className="w-full border-collapse" style={{ minWidth: `${160 + visibleOffers.length * 150}px` }}>
+          <thead>
+            <tr className="border-b border-gray-200">
+              {/* Empty label cell */}
+              <th className={`${LABEL_W} sticky left-0 z-20 bg-white border-r border-gray-100`} />
+
+              {/* Vendor compact header cells */}
+              {visibleOffers.map((offer, idx) => {
+                const gradient = VENDOR_COLORS[idx % VENDOR_COLORS.length];
+                const total = getTotal(offer.id);
+                const isCheapest = cheapestId === offer.id;
+                const isSelected = selectedVendor === offer.id;
+                const name = getVendorName(offer);
+
+                return (
+                  <th
+                    key={offer.id}
+                    className={`${COL_MIN} p-0 align-top border-r border-gray-100 last:border-r-0`}
+                  >
+                    <div className={`px-3 py-3 ${isSelected ? 'bg-blue-50/60' : 'bg-white'}`}>
+                      {/* Avatar + name row */}
+                      <div className="flex items-center gap-2 mb-2">
+                        {offer.profile?.logoUrl ? (
+                          <img src={offer.profile.logoUrl} alt="" className="h-8 w-8 rounded-lg object-cover flex-shrink-0 ring-1 ring-gray-200" />
+                        ) : (
+                          <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                            <span className="text-white text-[10px] font-bold leading-none">{name.slice(0, 2).toUpperCase()}</span>
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-gray-900 truncate leading-tight">{name}</p>
+                          {offer.company.category && (
+                            <p className="text-[10px] text-gray-400 truncate leading-tight">{offer.company.category}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Price + badges on one line */}
+                      <div className="flex items-center justify-between gap-1 mb-1.5">
+                        {total != null ? (
+                          <span className={`text-xs font-bold ${isCheapest ? 'text-emerald-700' : 'text-gray-800'}`}>
+                            SAR {total.toLocaleString()}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-gray-400">No price</span>
+                        )}
+                        <div className="flex gap-0.5 flex-shrink-0">
+                          {isCheapest && (
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full border border-emerald-200">
+                              <Award className="h-2 w-2" /> Best
+                            </span>
+                          )}
+                          {isSelected && (
+                            <span className="text-[9px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full border border-blue-200">
+                              ✓ Selected
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Price bar */}
+                      {total != null && highestPrice > 0 && (
+                        <div className="h-1 bg-gray-100 rounded-full overflow-hidden mb-2">
+                          <div
+                            className={`h-full rounded-full transition-all ${isCheapest ? 'bg-emerald-500' : isSelected ? 'bg-blue-400' : 'bg-gray-300'}`}
+                            style={{ width: `${(total / highestPrice) * 100}%` }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1">
+                        {isSelected ? (
+                          <div className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-md py-1 px-2">
+                            <CheckCircle className="h-2.5 w-2.5" /> Selected
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            className="flex-1 h-6 text-[10px] bg-gray-900 hover:bg-gray-700 text-white px-2 font-medium"
+                            onClick={() => handleSelectVendor(offer)}
+                            disabled={savingsMutation.isPending || total == null}
+                          >
+                            <CheckCircle className="h-2.5 w-2.5 mr-1" /> Select
+                          </Button>
+                        )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-6 w-6 p-0 border-gray-200">
+                              <MoreHorizontal className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-44">
+                            <DropdownMenuItem
+                              onClick={() => { const f = offer.combinedFileUrl || offer.technicalFileUrl; if (f) viewAuthenticatedFile(f); }}
+                              disabled={!offer.combinedFileUrl && !offer.technicalFileUrl}
+                            >
+                              <FileText className="h-4 w-4 mr-2" /> View Proposal
+                            </DropdownMenuItem>
+                            {offer.financialFileUrl && (
+                              <DropdownMenuItem onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}>
+                                <DollarSign className="h-4 w-4 mr-2" /> View Financial
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                              onClick={() => setHiddenOffers(prev => new Set([...Array.from(prev), offer.id]))}
+                              className="text-red-500 focus:text-red-500"
+                            >
+                              <X className="h-4 w-4 mr-2" /> Remove
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+
+          <tbody>
+            {/* ─── Financial section ──────────────────────────────────── */}
+            <SectionHeader label="Financial" icon={DollarSign} />
+
+            {/* Total Price */}
+            <tr className="border-b border-gray-100 hover:bg-gray-50/40 transition-colors">
+              <td className={`${LABEL_W} sticky left-0 bg-white px-4 py-3 text-xs font-semibold text-gray-700 border-r border-gray-100`}>
+                Total Price
+              </td>
+              {visibleOffers.map(offer => {
+                const total = getTotal(offer.id);
+                const isCheapest = cheapestId === offer.id;
+                const isMostExp = mostExpensiveId === offer.id && cheapestId !== mostExpensiveId;
+                return (
+                  <td key={offer.id} className={`px-4 py-3 text-center border-r border-gray-100 last:border-r-0 ${selectedVendor === offer.id ? 'bg-blue-50/30' : ''}`}>
+                    {total != null ? (
+                      <span className={`text-sm font-bold ${isCheapest ? 'text-emerald-700' : isMostExp ? 'text-red-500' : 'text-gray-900'}`}>
+                        SAR {total.toLocaleString()}
+                      </span>
+                    ) : <span className="text-gray-300 text-xs">—</span>}
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* VAT */}
+            <tr className="border-b border-gray-100 hover:bg-gray-50/40 transition-colors">
+              <td className={`${LABEL_W} sticky left-0 bg-white px-4 py-3 text-xs font-medium text-gray-500 border-r border-gray-100`}>VAT</td>
+              {visibleOffers.map(offer => {
+                const fin = getFinancial(offer.id);
+                return (
+                  <td key={offer.id} className={`px-4 py-3 text-center text-sm border-r border-gray-100 last:border-r-0 ${selectedVendor === offer.id ? 'bg-blue-50/30' : ''}`}>
+                    {fin?.vat != null ? <span className="font-medium text-gray-800">{fin.vat}%</span> : <span className="text-gray-300">—</span>}
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* Payment Terms */}
+            <tr className="border-b border-gray-100 hover:bg-gray-50/40 transition-colors">
+              <td className={`${LABEL_W} sticky left-0 bg-white px-4 py-3 text-xs font-medium text-gray-500 border-r border-gray-100`}>Payment Terms</td>
+              {visibleOffers.map(offer => {
+                const fin = getFinancial(offer.id);
+                return (
+                  <td key={offer.id} className={`px-4 py-3 text-center text-xs border-r border-gray-100 last:border-r-0 ${selectedVendor === offer.id ? 'bg-blue-50/30' : ''}`}>
+                    {fin?.paymentTerms ? <span className="text-gray-700">{fin.paymentTerms}</span> : <span className="text-gray-300">—</span>}
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* ─── Deliverables section ───────────────────────────────── */}
+            {allDeliverables.size > 0 && (
+              <>
+                <SectionHeader label="Deliverables Coverage" icon={Check} />
+                {Array.from(allDeliverables).map((deliverable, dIdx) => (
+                  <tr key={deliverable} className={`border-b border-gray-100 hover:bg-gray-50/40 transition-colors ${dIdx % 2 === 1 ? 'bg-gray-50/20' : ''}`}>
+                    <td className={`${LABEL_W} sticky left-0 ${dIdx % 2 === 1 ? 'bg-gray-50/80' : 'bg-white'} px-4 py-2.5 text-xs text-gray-600 border-r border-gray-100 leading-snug`}>
+                      {deliverable}
+                    </td>
+                    {visibleOffers.map(offer => {
+                      const analysis = completedAnalyses.find(a => a.offerId === offer.id);
+                      const hasIt = analysis?.deliverables?.some(d =>
+                        d.toLowerCase().includes(deliverable.toLowerCase()) ||
+                        deliverable.toLowerCase().includes(d.toLowerCase())
+                      );
+                      return (
+                        <td key={offer.id} className={`px-4 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${selectedVendor === offer.id ? 'bg-blue-50/30' : ''}`}>
+                          <div className="flex justify-center">
+                            {hasIt ? (
+                              <div className="h-5 w-5 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center">
+                                <Check className="h-3 w-3 text-emerald-600" />
+                              </div>
+                            ) : (
+                              <div className="h-5 w-5 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
+                                <Minus className="h-3 w-3 text-gray-300" />
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </>
+            )}
+
+            {/* ─── Criteria coverage section ──────────────────────────── */}
+            {allCriteria.size > 0 && (
+              <>
+                <SectionHeader label="Criteria Coverage" icon={Sparkles} />
+                {Array.from(allCriteria).map((criterion, cIdx) => (
+                  <tr key={criterion} className={`border-b border-gray-100 hover:bg-gray-50/40 transition-colors ${cIdx % 2 === 1 ? 'bg-gray-50/20' : ''}`}>
+                    <td className={`${LABEL_W} sticky left-0 ${cIdx % 2 === 1 ? 'bg-gray-50/80' : 'bg-white'} px-4 py-2.5 text-xs text-gray-600 border-r border-gray-100 leading-snug`}>
+                      {criterion}
+                    </td>
+                    {visibleOffers.map(offer => {
+                      const analysis = completedAnalyses.find(a => a.offerId === offer.id);
+                      const ref = analysis?.criteriaMapping?.[criterion];
+                      const found = ref && ref !== 'Not Found';
+                      return (
+                        <td key={offer.id} className={`px-4 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${selectedVendor === offer.id ? 'bg-blue-50/30' : ''}`}>
+                          {found ? (
+                            <span className="inline-block text-[10px] font-mono font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md">{ref}</span>
+                          ) : ref === 'Not Found' ? (
+                            <span className="text-[10px] font-medium text-red-400">Not found</span>
+                          ) : (
+                            <span className="text-gray-300 text-xs">—</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </>
+            )}
+
+            <tr><td colSpan={visibleOffers.length + 1} className="h-2" /></tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* ── Footer ──────────────────────────────────────────────────────── */}
+      {(removedOffers.length > 0 || completedAnalyses[0]?.analyzedAt) && (
+        <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between gap-4 flex-wrap">
+          {removedOffers.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-gray-400">Removed:</span>
+              {removedOffers.map(o => (
+                <Button key={o.id} variant="outline" size="sm" className="text-xs h-6 px-2"
+                  onClick={() => setHiddenOffers(prev => { const n = new Set(prev); n.delete(o.id); return n; })}
+                >
+                  <RotateCcw className="h-2.5 w-2.5 mr-1" /> {getVendorName(o)}
+                </Button>
+              ))}
+            </div>
+          )}
+          {completedAnalyses[0]?.analyzedAt && (
+            <p className="text-xs text-gray-400 ml-auto">
+              Analyzed {new Date(completedAnalyses[0].analyzedAt).toLocaleString()}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

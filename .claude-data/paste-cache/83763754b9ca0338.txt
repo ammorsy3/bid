@@ -1,0 +1,402 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+11:33:18 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 17 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+11:33:24 PM [vite] warning: Duplicate key "notSpecified" in object literal
+906|        moreThanSixMonths: "More than 6 months",
+907|        disclosedUponQualification: "Disclosed upon qualification",
+908|        notSpecified: "Not specified",
+   |        ^
+909|        loginRequired: "Login Required",
+910|        loginRequiredDesc: "Please login or create an account to submit a proposal.",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:24 PM [vite] warning: Duplicate key "startLabel" in object literal
+927|        projectDescriptionLabel: "Project Description",
+928|        projectDurationLabel: "Project Duration",
+929|        startLabel: "Start",
+   |        ^
+930|        endLabel: "End",
+931|        projectObjectiveLabel: "Project Objective",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:24 PM [vite] warning: Duplicate key "endLabel" in object literal
+928|        projectDurationLabel: "Project Duration",
+929|        startLabel: "Start",
+930|        endLabel: "End",
+   |        ^
+931|        projectObjectiveLabel: "Project Objective",
+932|        deliverablesLabel: "Deliverables",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:24 PM [vite] warning: Duplicate key "requiredSkillsLabel" in object literal
+935|        attachmentsHint: "Supporting documents provided by the requester. Review these before preparing your proposal.",
+936|        logInToDownload: "Log in to download",
+937|        requiredSkillsLabel: "Required Skills",
+   |        ^
+938|        milestonesPayments: "Milestones & Payments",
+939|        milestonesPaymentsHint: "Payments are released upon completion and acceptance of each milestone.",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:24 PM [vite] warning: Duplicate key "requiredBadge" in object literal
+940|        totalMilestoneValue: "Total milestone value",
+941|        additionalReqHint: "The requester has specified additional requirements for this project. Address these in your proposal.",
+942|        requiredBadge: "Required",
+   |        ^
+943|        scoreDistribution: "Score Distribution",
+944|        additionalCriteriaLabel: "Additional Criteria",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:24 PM [vite] warning: Duplicate key "mandatoryLabel" in object literal
+951|        eligibilityRequirements: "Eligibility Requirements",
+952|        eligibilityHint: "Your company must meet the following requirements to be eligible for this opportunity.",
+953|        mandatoryLabel: "Mandatory",
+   |        ^
+954|        mandatoryHint: "must meet all to be eligible",
+955|        preferredLabel: "Preferred",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:24 PM [vite] warning: Duplicate key "preferredLabel" in object literal
+953|        mandatoryLabel: "Mandatory",
+954|        mandatoryHint: "must meet all to be eligible",
+955|        preferredLabel: "Preferred",
+   |        ^
+956|        preferredHint: "strengthens your proposal",
+957|        preferredBadge: "Preferred",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:24 PM [vite] warning: Duplicate key "notSpecified" in object literal
+2212|        moreThanSixMonths: "أكثر من 6 أشهر",
+2213|        disclosedUponQualification: "يُفصح عنها بعد التأهيل",
+2214|        notSpecified: "غير محدد",
+   |        ^
+2215|        loginRequired: "تسجيل الدخول مطلوب",
+2216|        loginRequiredDesc: "يرجى تسجيل الدخول أو إنشاء حساب لتقديم عرض.",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:24 PM [vite] warning: Duplicate key "startLabel" in object literal
+2233|        projectDescriptionLabel: "وصف المشروع",
+2234|        projectDurationLabel: "مدة المشروع",
+2235|        startLabel: "البداية",
+   |        ^
+2236|        endLabel: "النهاية",
+2237|        projectObjectiveLabel: "هدف المشروع",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:24 PM [vite] warning: Duplicate key "endLabel" in object literal
+2234|        projectDurationLabel: "مدة المشروع",
+2235|        startLabel: "البداية",
+2236|        endLabel: "النهاية",
+   |        ^
+2237|        projectObjectiveLabel: "هدف المشروع",
+2238|        deliverablesLabel: "المخرجات",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:24 PM [vite] warning: Duplicate key "requiredSkillsLabel" in object literal
+2241|        attachmentsHint: "وثائق داعمة مقدمة من الجهة الطالبة. راجعها قبل إعداد عرضك.",
+2242|        logInToDownload: "سجّل دخولك للتحميل",
+2243|        requiredSkillsLabel: "المهارات المطلوبة",
+   |        ^
+2244|        milestonesPayments: "المراحل والمدفوعات",
+2245|        milestonesPaymentsHint: "يتم صرف المدفوعات عند إتمام كل مرحلة والموافقة عليها.",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:24 PM [vite] warning: Duplicate key "requiredBadge" in object literal
+2246|        totalMilestoneValue: "إجمالي قيمة المراحل",
+2247|        additionalReqHint: "حددت الجهة الطالبة متطلبات إضافية لهذا المشروع. يرجى تضمينها في عرضك.",
+2248|        requiredBadge: "مطلوب",
+   |        ^
+2249|        scoreDistribution: "توزيع الدرجات",
+2250|        additionalCriteriaLabel: "معايير إضافية",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:24 PM [vite] warning: Duplicate key "mandatoryLabel" in object literal
+2257|        eligibilityRequirements: "متطلبات الأهلية",
+2258|        eligibilityHint: "يجب أن تستوفي شركتك المتطلبات التالية لتكون مؤهلة لهذه الفرصة.",
+2259|        mandatoryLabel: "إلزامي",
+   |        ^
+2260|        mandatoryHint: "يجب استيفاء جميعها للتأهل",
+2261|        preferredLabel: "مفضّل",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:24 PM [vite] warning: Duplicate key "preferredLabel" in object literal
+2259|        mandatoryLabel: "إلزامي",
+2260|        mandatoryHint: "يجب استيفاء جميعها للتأهل",
+2261|        preferredLabel: "مفضّل",
+   |        ^
+2262|        preferredHint: "يعزز عرضك",
+2263|        preferredBadge: "مفضّل",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+11:33:30 PM [express] GET /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b 304 in 1084ms :: {"id":"b…
+11:33:30 PM [express] GET /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/my-offer 304 in 1050ms
+11:33:30 PM [express] GET /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/questions 304 in 1057ms :…
+11:33:30 PM [express] GET /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/offers 304 in 1060ms :: […
+11:33:30 PM [express] GET /api/ai/proposal-analysis/bfd8855e-7341-48dc-8a10-0fc1331b132b 304 in 14ms …
+12:02:56 AM [vite] hmr update /src/pages/tender-details.tsx, /src/index.css?v=d6ko0bNb9N2JjuHd4wn6
+12:03:05 AM [vite] hmr update /src/pages/tender-details.tsx, /src/index.css?v=d6ko0bNb9N2JjuHd4wn6 (x2)
+12:03:24 AM [express] GET /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/my-offer 304 in 37ms
+12:03:24 AM [express] GET /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b 304 in 32ms :: {"id":"bfd…
+12:03:24 AM [express] GET /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/questions 304 in 28ms :: …
+12:03:24 AM [express] GET /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/offers 304 in 34ms :: [{"…
+12:03:24 AM [express] GET /api/ai/proposal-analysis/bfd8855e-7341-48dc-8a10-0fc1331b132b 304 in 10ms …
+12:03:29 AM [express] GET /api/join-requests 304 in 48ms :: []
+12:03:29 AM [express] GET /api/my-offers 304 in 88ms :: []
+12:03:29 AM [express] GET /api/my-tenders/offers 304 in 184ms :: [{"id":"4e13ceb4-e3d7-402a-827b-0f87…
+12:03:29 AM [express] GET /api/tenders 304 in 190ms :: [{"id":"88bedd44-2072-47f9-a8bc-3f0daa5b4120",…
+12:03:30 AM [express] GET /api/onboarding-tasks 304 in 386ms :: {"hasTender":true,"hasCompletedProfil…
+12:03:30 AM [express] GET /api/vendors-base 304 in 585ms :: [{"id":"50810be2-2927-4241-af1d-6f1d3280e…
+12:03:32 AM [express] GET /api/tenders/88bedd44-2072-47f9-a8bc-3f0daa5b4120 304 in 6ms :: {"id":"88be…
+12:03:32 AM [express] GET /api/tenders/88bedd44-2072-47f9-a8bc-3f0daa5b4120/questions 304 in 6ms :: []
+12:03:32 AM [express] GET /api/tenders/88bedd44-2072-47f9-a8bc-3f0daa5b4120/my-offer 304 in 7ms
+12:03:32 AM [express] GET /api/tenders/88bedd44-2072-47f9-a8bc-3f0daa5b4120/offers 304 in 10ms :: []
+12:03:32 AM [express] GET /api/ai/proposal-analysis/88bedd44-2072-47f9-a8bc-3f0daa5b4120 200 in 10ms …
+12:05:17 AM [vite] hmr update /src/components/ProposalComparison.tsx, /src/index.css?v=d6ko0bNb9N2JjuHd4wn6
+12:05:26 AM [vite] hmr update /src/components/ProposalComparison.tsx, /src/index.css?v=d6ko0bNb9N2JjuHd4wn6 (x2)
+12:05:40 AM [express] POST /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/savings 200 in 170ms :: …
+12:05:42 AM [express] POST /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/savings 200 in 12ms :: {…
+12:07:27 AM [vite] hmr update /src/components/ProposalComparison.tsx, /src/index.css?v=d6ko0bNb9N2JjuHd4wn6 (x3)
+12:07:41 AM [vite] hmr update /src/components/ProposalComparison.tsx, /src/index.css?v=d6ko0bNb9N2JjuHd4wn6 (x4)
+12:07:43 AM [vite] ✨ new dependencies optimized: @radix-ui/react-dropdown-menu
+12:07:43 AM [vite] ✨ optimized dependencies changed. reloading
+12:07:46 AM [vite] warning: Duplicate key "notSpecified" in object literal
+906|        moreThanSixMonths: "More than 6 months",
+907|        disclosedUponQualification: "Disclosed upon qualification",
+908|        notSpecified: "Not specified",
+   |        ^
+909|        loginRequired: "Login Required",
+910|        loginRequiredDesc: "Please login or create an account to submit a proposal.",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:07:46 AM [vite] warning: Duplicate key "startLabel" in object literal
+927|        projectDescriptionLabel: "Project Description",
+928|        projectDurationLabel: "Project Duration",
+929|        startLabel: "Start",
+   |        ^
+930|        endLabel: "End",
+931|        projectObjectiveLabel: "Project Objective",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:07:46 AM [vite] warning: Duplicate key "endLabel" in object literal
+928|        projectDurationLabel: "Project Duration",
+929|        startLabel: "Start",
+930|        endLabel: "End",
+   |        ^
+931|        projectObjectiveLabel: "Project Objective",
+932|        deliverablesLabel: "Deliverables",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:07:46 AM [vite] warning: Duplicate key "requiredSkillsLabel" in object literal
+935|        attachmentsHint: "Supporting documents provided by the requester. Review these before preparing your proposal.",
+936|        logInToDownload: "Log in to download",
+937|        requiredSkillsLabel: "Required Skills",
+   |        ^
+938|        milestonesPayments: "Milestones & Payments",
+939|        milestonesPaymentsHint: "Payments are released upon completion and acceptance of each milestone.",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:07:46 AM [vite] warning: Duplicate key "requiredBadge" in object literal
+940|        totalMilestoneValue: "Total milestone value",
+941|        additionalReqHint: "The requester has specified additional requirements for this project. Address these in your proposal.",
+942|        requiredBadge: "Required",
+   |        ^
+943|        scoreDistribution: "Score Distribution",
+944|        additionalCriteriaLabel: "Additional Criteria",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:07:46 AM [vite] warning: Duplicate key "mandatoryLabel" in object literal
+951|        eligibilityRequirements: "Eligibility Requirements",
+952|        eligibilityHint: "Your company must meet the following requirements to be eligible for this opportunity.",
+953|        mandatoryLabel: "Mandatory",
+   |        ^
+954|        mandatoryHint: "must meet all to be eligible",
+955|        preferredLabel: "Preferred",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:07:46 AM [vite] warning: Duplicate key "preferredLabel" in object literal
+953|        mandatoryLabel: "Mandatory",
+954|        mandatoryHint: "must meet all to be eligible",
+955|        preferredLabel: "Preferred",
+   |        ^
+956|        preferredHint: "strengthens your proposal",
+957|        preferredBadge: "Preferred",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:07:46 AM [vite] warning: Duplicate key "notSpecified" in object literal
+2212|        moreThanSixMonths: "أكثر من 6 أشهر",
+2213|        disclosedUponQualification: "يُفصح عنها بعد التأهيل",
+2214|        notSpecified: "غير محدد",
+   |        ^
+2215|        loginRequired: "تسجيل الدخول مطلوب",
+2216|        loginRequiredDesc: "يرجى تسجيل الدخول أو إنشاء حساب لتقديم عرض.",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:07:46 AM [vite] warning: Duplicate key "startLabel" in object literal
+2233|        projectDescriptionLabel: "وصف المشروع",
+2234|        projectDurationLabel: "مدة المشروع",
+2235|        startLabel: "البداية",
+   |        ^
+2236|        endLabel: "النهاية",
+2237|        projectObjectiveLabel: "هدف المشروع",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:07:46 AM [vite] warning: Duplicate key "endLabel" in object literal
+2234|        projectDurationLabel: "مدة المشروع",
+2235|        startLabel: "البداية",
+2236|        endLabel: "النهاية",
+   |        ^
+2237|        projectObjectiveLabel: "هدف المشروع",
+2238|        deliverablesLabel: "المخرجات",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:07:46 AM [vite] warning: Duplicate key "requiredSkillsLabel" in object literal
+2241|        attachmentsHint: "وثائق داعمة مقدمة من الجهة الطالبة. راجعها قبل إعداد عرضك.",
+2242|        logInToDownload: "سجّل دخولك للتحميل",
+2243|        requiredSkillsLabel: "المهارات المطلوبة",
+   |        ^
+2244|        milestonesPayments: "المراحل والمدفوعات",
+2245|        milestonesPaymentsHint: "يتم صرف المدفوعات عند إتمام كل مرحلة والموافقة عليها.",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:07:46 AM [vite] warning: Duplicate key "requiredBadge" in object literal
+2246|        totalMilestoneValue: "إجمالي قيمة المراحل",
+2247|        additionalReqHint: "حددت الجهة الطالبة متطلبات إضافية لهذا المشروع. يرجى تضمينها في عرضك.",
+2248|        requiredBadge: "مطلوب",
+   |        ^
+2249|        scoreDistribution: "توزيع الدرجات",
+2250|        additionalCriteriaLabel: "معايير إضافية",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:07:46 AM [vite] warning: Duplicate key "mandatoryLabel" in object literal
+2257|        eligibilityRequirements: "متطلبات الأهلية",
+2258|        eligibilityHint: "يجب أن تستوفي شركتك المتطلبات التالية لتكون مؤهلة لهذه الفرصة.",
+2259|        mandatoryLabel: "إلزامي",
+   |        ^
+2260|        mandatoryHint: "يجب استيفاء جميعها للتأهل",
+2261|        preferredLabel: "مفضّل",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:07:46 AM [vite] warning: Duplicate key "preferredLabel" in object literal
+2259|        mandatoryLabel: "إلزامي",
+2260|        mandatoryHint: "يجب استيفاء جميعها للتأهل",
+2261|        preferredLabel: "مفضّل",
+   |        ^
+2262|        preferredHint: "يعزز عرضك",
+2263|        preferredBadge: "مفضّل",
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/i18n.tsx
+12:08:09 AM [express] GET /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/questions 304 in 27ms :: …
+12:08:09 AM [express] GET /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b 304 in 28ms :: {"id":"bfd…
+12:08:09 AM [express] GET /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/my-offer 304 in 27ms
+12:08:09 AM [express] GET /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/offers 304 in 29ms :: [{"…
+12:08:09 AM [express] GET /api/ai/proposal-analysis/bfd8855e-7341-48dc-8a10-0fc1331b132b 304 in 10ms …
+12:10:52 AM [express] POST /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/savings 200 in 55ms :: {…
+12:11:01 AM [express] POST /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/savings 200 in 11ms :: {…
+12:11:33 AM [express] POST /api/tenders/bfd8855e-7341-48dc-8a10-0fc1331b132b/savings 200 in 25ms :: {…
+12:19:44 AM [vite] hmr update /src/pages/tender-details.tsx, /src/index.css?v=d6ko0bNb9N2JjuHd4wn6
+12:19:49 AM [vite] hmr update /src/pages/tender-details.tsx, /src/index.css?v=d6ko0bNb9N2JjuHd4wn6 (x2)
+12:19:53 AM [vite] hmr update /src/pages/tender-details.tsx, /src/index.css?v=d6ko0bNb9N2JjuHd4wn6 (x3)
+12:19:53 AM [vite] Internal server error: /home/runner/workspace/client/src/pages/tender-details.tsx: Unexpected token, expected "," (1449:6)
+
+  1447 |       </div>
+  1448 |
+> 1449 |       {/* Submit Offer Modal */}
+       |       ^
+  1450 |       {tender && !isOwner && (
+  1451 |         <SubmitOfferModal
+  1452 |           isOpen={isSubmitOfferModalOpen}
+  Plugin: vite:react-babel
+  File: /home/runner/workspace/client/src/pages/tender-details.tsx:1449:6
+  1447|        </div>
+  1448|  
+  1449|        {/* Submit Offer Modal */}
+     |        ^
+  1450|        {tender && !isOwner && (
+  1451|          <SubmitOfferModal
+      at toParseError (/home/runner/workspace/node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at raise (/home/runner/workspace/node_modules/@babel/parser/src/tokenizer/index.ts:1497:19)
+      at unexpected (/home/runner/workspace/node_modules/@babel/parser/src/tokenizer/index.ts:1537:16)
+      at expect (/home/runner/workspace/node_modules/@babel/parser/src/parser/util.ts:157:12)
+      at parseParenAndDistinguishExpression (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:1747:14)
+      at parseExprAtom (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:1131:21)
+      at parseExprAtom (/home/runner/workspace/node_modules/@babel/parser/src/plugins/jsx/index.ts:583:22)
+      at parseExprSubscripts (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:714:23)
+      at parseUpdate (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:693:21)
+      at parseMaybeUnary (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:655:23)
+      at parseMaybeUnary (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3735:20)
+      at parseMaybeUnaryOrPrivate (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:389:14)
+      at parseExprOps (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:401:23)
+      at parseMaybeConditional (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:356:23)
+      at parseMaybeAssign (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:298:21)
+      at parseMaybeAssign (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3607:22)
+      at parseExpressionBase (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:221:23)
+      at callback (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:212:39)
+      at allowInAnd (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:3112:16)
+      at parseExpression (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:212:17)
+      at parseReturnStatement (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1091:28)
+      at parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:498:21)
+      at parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3056:20)
+      at parseStatementLike (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:437:17)
+      at parseStatementListItem (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:386:17)
+      at parseBlockOrModuleBlockBody (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1420:16)
+      at parseBlockBody (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1393:10)
+      at parseBlock (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1361:10)
+      at parseFunctionBody (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:2557:24)
+      at parseFunctionBodyAndFinish (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:2526:10)
+      at parseFunctionBodyAndFinish (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:2538:20)
+      at callback (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1667:12)
+      at withSmartMixTopicForbiddingContext (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:3091:14)
+      at parseFunction (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1665:10)
+      at parseExportDefaultExpression (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:2536:19)
+      at parseExportDefaultExpression (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:2998:20)
+      at parseExport (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:2420:25)
+      at parseExport (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:2968:22)
+      at parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:610:25)
+      at parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3056:20)
+      at parseStatementLike (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:437:17)
+      at parseModuleItem (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:374:17)
+      at parseBlockOrModuleBlockBody (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1419:16)
+      at parseBlockBody (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1393:10)
+      at parseProgram (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:225:10)
+      at parseTopLevel (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at parse (/home/runner/workspace/node_modules/@babel/parser/src/parser/index.ts:90:10)
+      at parse (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:4192:20)
+      at parse (/home/runner/workspace/node_modules/@babel/parser/src/index.ts:92:38)
+      at parser (/home/runner/workspace/node_modules/@babel/core/src/parser/index.ts:28:19)
+npm notice
+npm notice New minor version of npm available! 11.7.0 -> 11.11.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.0
+npm notice To update run: npm install -g npm@11.11.0
+npm notice

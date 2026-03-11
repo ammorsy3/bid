@@ -214,6 +214,26 @@ function AudioPlayer({ src }: { src: string }) {
   );
 }
 
+function VendorAvatar({ logoUrl, name, className, gradient }: { logoUrl?: string | null; name: string; className: string; gradient: string }) {
+  const [failed, setFailed] = useState(false);
+  const initials = name.slice(0, 2).toUpperCase();
+  if (logoUrl && !failed) {
+    return (
+      <img
+        src={logoUrl}
+        alt={name}
+        className={className}
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+  return (
+    <div className={`${className} bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+      <span className="text-white font-bold text-base leading-none">{initials}</span>
+    </div>
+  );
+}
+
 interface TenderWithCounts extends Tender {
   offersCount: number;
   invitedCount: number;
@@ -585,24 +605,24 @@ export default function TenderDetails() {
   const durationDisplay = getDurationDisplay() !== 'Not specified' ? getDurationDisplay() : null;
 
   return (
-    <div className="min-h-screen bg-white" dir={isTenderRtl ? "rtl" : "ltr"}>
+    <div className="min-h-screen bg-gray-50" dir={isTenderRtl ? "rtl" : "ltr"}>
       {/* Hero Header */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+      <div className="bg-white border-b border-gray-200" style={{ backgroundImage: 'radial-gradient(circle, rgba(156,163,175,0.35) 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <Button
             variant="ghost"
             onClick={() => setLocation('/dashboard')}
-            className="mb-4 -ml-2 text-gray-500 hover:text-gray-700"
+            className="mb-6 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-white/80"
             data-testid="button-back"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
 
-          <div className="mt-4">
+          <div>
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-1 flex-wrap">
+                <div className="flex items-center gap-3 mb-3 flex-wrap">
                   <Badge className={`${statusBadge.className} text-xs px-2.5 py-0.5`} data-testid="badge-status">
                     {statusBadge.label}
                   </Badge>
@@ -610,37 +630,37 @@ export default function TenderDetails() {
                     <Badge className="bg-red-100 text-red-700 text-xs px-2.5 py-0.5">Deadline Passed</Badge>
                   )}
                 </div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Project Title</p>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2" data-testid="text-tender-title">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">
+                  Request for Proposal · <span className="font-mono">RFP-{tender.id?.slice(0, 8).toUpperCase()}</span>
+                </p>
+                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-3" data-testid="text-tender-title">
                   {tender.title}
                 </h1>
                 <div className="flex items-center gap-3 text-gray-400 text-sm">
                   {tender.createdAt && <span>Published {formatDate(tender.createdAt)}</span>}
-                  <span>·</span>
-                  <span className="font-mono text-xs">RFP-{tender.id?.slice(0, 8).toUpperCase()}</span>
                 </div>
               </div>
 
               {isOwner && (
                 <div className="flex items-center gap-2 flex-shrink-0 pt-1">
                   {tender.status === 'draft' && (
-                    <Button className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                    <Button className="bg-[#E25E45] hover:bg-[#d54d35] text-white shadow-sm"
                       onClick={() => updateStatus.mutate('published')} disabled={updateStatus.isPending} data-testid="button-publish">
                       Publish
                     </Button>
                   )}
                   {(tender.status === 'draft' || tender.status === 'published') && (
-                    <Button variant="outline" onClick={() => setLocation(`/tenders/${tender.id}/edit`)} data-testid="button-edit">
+                    <Button variant="outline" className="bg-white/80" onClick={() => setLocation(`/tenders/${tender.id}/edit`)} data-testid="button-edit">
                       <Edit className="h-4 w-4 mr-1.5" /> Edit
                     </Button>
                   )}
                   {tender.status === 'published' && (
-                    <Button variant="outline" onClick={() => updateStatus.mutate('closed')}
+                    <Button variant="outline" className="bg-white/80" onClick={() => updateStatus.mutate('closed')}
                       disabled={updateStatus.isPending} data-testid="button-close">
                       Close
                     </Button>
                   )}
-                  <Button variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  <Button variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 bg-white/80"
                     onClick={() => { if (confirm('Are you sure you want to delete this tender? This action cannot be undone.')) { deleteTender.mutate(); } }}
                     disabled={deleteTender.isPending} data-testid="button-delete">
                     <Trash2 className="h-4 w-4" />
@@ -649,11 +669,38 @@ export default function TenderDetails() {
               )}
             </div>
           </div>
+
+          {/* Hero metadata strip */}
+          <div className="flex items-center gap-5 mt-5 pt-4 border-t border-gray-200/70 flex-wrap">
+            {tender.category && (
+              <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                <Tag className="h-3 w-3" /><span>{tender.category}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5 text-xs text-gray-400">
+              <Calendar className="h-3 w-3" /><span>Deadline {formatDate(tender.deadline)}</span>
+            </div>
+            {getBudgetDisplay() && (
+              <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                <DollarSign className="h-3 w-3" /><span>{getBudgetDisplay()}</span>
+              </div>
+            )}
+            {durationDisplay && (
+              <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                <Clock className="h-3 w-3" /><span>{durationDisplay}</span>
+              </div>
+            )}
+            {isOwner && (
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#E25E45] ml-auto">
+                <Users className="h-3 w-3" /><span>{offers.length} proposal{offers.length !== 1 ? 's' : ''} received</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Content Area */}
-      <div className="bg-gray-50 min-h-[60vh]">
+      <div className="bg-gray-50/80 min-h-[60vh]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_288px] gap-6">
 
@@ -661,8 +708,8 @@ export default function TenderDetails() {
             <div>
 
               {/* Table of Contents */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
-                <div className="flex">
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 p-1.5">
+                <div className="flex gap-1 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
                   {tocSections.map((section, idx) => {
                     const Icon = section.icon;
                     const isActive = activeSection === section.id;
@@ -670,13 +717,13 @@ export default function TenderDetails() {
                       <button
                         key={section.id}
                         onClick={() => scrollToSection(section.id)}
-                        className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-3 text-sm font-medium transition-all ${
+                        className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                           isActive
-                            ? 'bg-[#E25E45] text-white'
-                            : 'bg-gray-50 border-r border-gray-200 text-gray-500 hover:bg-white hover:shadow-sm hover:text-gray-800'
+                            ? 'bg-[#E25E45] text-white shadow-sm'
+                            : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
                         }`}
                       >
-                        <span className={`text-xs font-mono ${isActive ? 'text-white/70' : 'text-gray-300'}`}>{idx + 1}</span>
+                        <span className={`text-[10px] font-mono tabular-nums leading-none ${isActive ? 'text-white/60' : 'text-gray-300'}`}>{String(idx + 1).padStart(2, '0')}</span>
                         <Icon className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline">{section.label}</span>
                       </button>
@@ -692,16 +739,18 @@ export default function TenderDetails() {
                 <div id="section-description" className="p-6 sm:p-8 scroll-mt-24">
                   <TDSectionHeader index={sectionNumber('description')} title="Project Scope" />
 
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Project Description</p>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Description</p>
                   <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px] mb-6" data-testid="text-description">
                     {tender.description}
                   </p>
 
                   {durationDisplay && (
                     <div className="mb-6">
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Project Duration</p>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-blue-400 flex-shrink-0" />
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="h-3.5 w-3.5 text-[#E25E45]" />
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Project Duration</p>
+                      </div>
+                      <div className="flex items-center gap-2.5">
                         <span className="font-semibold text-gray-800 text-[15px]">{durationDisplay}</span>
                         {(tender.startDate || tender.endDate) && (
                           <span className="text-gray-400 text-sm">
@@ -714,20 +763,22 @@ export default function TenderDetails() {
 
                   {tender.objective && (
                     <div className="mb-8">
-                      <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <Target className="h-4 w-4" /> Project Objective
-                      </h3>
-                      <div className="p-5 bg-blue-50 border border-blue-100 rounded-xl">
-                        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{String(tender.objective)}</p>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Target className="h-3.5 w-3.5 text-[#E25E45]" />
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Project Objective</p>
+                      </div>
+                      <div className="pl-4 border-l-2 border-[#E25E45]/30 py-0.5">
+                        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]">{String(tender.objective)}</p>
                       </div>
                     </div>
                   )}
 
                   {hasDeliverables && (
                     <div className="mb-8">
-                      <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-2">
-                        <ListChecks className="h-4 w-4" /> Deliverables
-                      </h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <ListChecks className="h-3.5 w-3.5 text-[#E25E45]" />
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Deliverables</p>
+                      </div>
                       <p className="text-xs text-gray-400 mb-4">Address each item with pricing and timeline in your proposal.</p>
                       <div className="space-y-2.5">
                         {(tender.deliverables as any[]).map((deliverable: any, index: number) => {
@@ -764,9 +815,10 @@ export default function TenderDetails() {
 
                   {hasSkills && (
                     <div className={hasMilestones ? "mb-8" : ""}>
-                      <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <Tag className="h-4 w-4" /> Required Skills
-                      </h3>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Tag className="h-3.5 w-3.5 text-[#E25E45]" />
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Required Skills</p>
+                      </div>
                       <div className="flex flex-wrap gap-2">
                         {tender.skills!.map((skill, index) => (
                           <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium border border-indigo-100">
@@ -780,9 +832,10 @@ export default function TenderDetails() {
                   {/* Milestones & Payments (inline within scope) */}
                   {!!hasMilestones && (
                     <div>
-                      <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-2">
-                        <Flag className="h-4 w-4" /> Milestones & Payments
-                      </h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Flag className="h-3.5 w-3.5 text-[#E25E45]" />
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Milestones & Payments</p>
+                      </div>
                       <p className="text-xs text-gray-400 mb-4">Payments are released upon completion and acceptance of each milestone.</p>
                       <div className="relative">
                         <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-[#E25E45] to-[#FF8A6B] rounded-full" />
@@ -823,7 +876,7 @@ export default function TenderDetails() {
 
                 {(tender.voiceNoteUrl || tender.videoUrl) && (
                   <>
-                    <div className="mx-6 sm:mx-8 border-t border-gray-100" />
+                    <div className="mx-6 sm:mx-8 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
                     <div id="section-context" className="p-6 sm:p-8 scroll-mt-24">
                       <TDSectionHeader index={sectionNumber('context')} title="Additional Context" />
                       <div className="space-y-4">
@@ -856,23 +909,26 @@ export default function TenderDetails() {
 
                 {tender.submissionType && (
                   <>
-                    <div className="mx-6 sm:mx-8 border-t border-gray-100" />
+                    <div className="mx-6 sm:mx-8 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
                     <div id="section-submission" className="p-6 sm:p-8 scroll-mt-24">
                       <TDSectionHeader index={sectionNumber('submission')} title="Submission Requirements" />
-                      <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl mb-4">
-                        <div className="p-2.5 bg-blue-100 rounded-lg flex-shrink-0">
-                          <FileText className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</p>
-                          <p className="text-sm text-gray-600 mt-0.5">
-                            {tender.submissionType === 'quote_only' && "Submit a detailed price quote with itemized costs for each deliverable"}
-                            {tender.submissionType === 'tech_fin_proposal' && "Submit a comprehensive technical approach document and a separate financial proposal"}
-                            {tender.submissionType === 'video_only' && "Record and submit a video pitch (max 10 minutes) presenting your approach"}
-                            {tender.submissionType === 'tech_fin_with_video' && "Submit full technical and financial proposal documents accompanied by a video pitch"}
-                            {tender.submissionType === 'document_only' && "Submit your proposal as a single document covering scope, approach, timeline, and pricing"}
-                            {tender.submissionType === 'both' && "Submit both a video presentation and a written document detailing your proposal"}
-                          </p>
+                      <div className="rounded-xl border border-gray-200 overflow-hidden mb-4">
+                        <div className="h-0.5 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+                        <div className="flex items-center gap-3 p-4 bg-gray-50">
+                          <div className="p-2 bg-white rounded-lg border border-gray-200 flex-shrink-0 shadow-sm">
+                            <FileText className="h-4 w-4 text-gray-600" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900 text-sm">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {tender.submissionType === 'quote_only' && "Submit a detailed price quote with itemized costs for each deliverable"}
+                              {tender.submissionType === 'tech_fin_proposal' && "Submit a comprehensive technical approach document and a separate financial proposal"}
+                              {tender.submissionType === 'video_only' && "Record and submit a video pitch (max 10 minutes) presenting your approach"}
+                              {tender.submissionType === 'tech_fin_with_video' && "Submit full technical and financial proposal documents accompanied by a video pitch"}
+                              {tender.submissionType === 'document_only' && "Submit your proposal as a single document covering scope, approach, timeline, and pricing"}
+                              {tender.submissionType === 'both' && "Submit both a video presentation and a written document detailing your proposal"}
+                            </p>
+                          </div>
                         </div>
                       </div>
                       {tender.videoRequired && (
@@ -891,7 +947,7 @@ export default function TenderDetails() {
 
                 {hasEvalCriteria && (
                   <>
-                    <div className="mx-6 sm:mx-8 border-t border-gray-100" />
+                    <div className="mx-6 sm:mx-8 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
                     <div id="section-evaluation" className="p-6 sm:p-8 scroll-mt-24">
                       <TDSectionHeader index={sectionNumber('evaluation')} title="Evaluation Criteria" />
                       <p className="text-sm text-gray-400 mb-6">Proposals will be scored against these criteria. Ensure your submission clearly addresses each category.</p>
@@ -1047,7 +1103,7 @@ export default function TenderDetails() {
 
                 {hasInquiryMethod && (
                   <>
-                    <div className="mx-6 sm:mx-8 border-t border-gray-100" />
+                    <div className="mx-6 sm:mx-8 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
                     <div id="section-inquiry" className="p-6 sm:p-8 scroll-mt-24">
                       <TDSectionHeader index={sectionNumber('inquiry')} title="Questions & Clarifications" />
                       <p className="text-sm text-gray-400 mb-6">
@@ -1190,77 +1246,157 @@ export default function TenderDetails() {
               {/* Proposals (owner only) */}
               {isOwner && (
                 <div className="mt-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden" id="section-proposals">
-                  <div className="p-6 sm:p-8 scroll-mt-24">
-                    <TDSectionHeader index={sectionNumber('proposals')} title={`Proposals (${offers.length})`} />
+                  <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-0 scroll-mt-24">
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-mono text-gray-300 bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                          {sectionNumber('proposals')}.0
+                        </span>
+                        <h2 className="text-xl font-bold text-gray-900">Proposals</h2>
+                        {offers.length > 0 && (
+                          <span className="inline-flex items-center justify-center h-6 min-w-[24px] px-2 rounded-full bg-gray-900 text-white text-xs font-bold">
+                            {offers.length}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="px-6 sm:px-8 pb-6 sm:pb-8">
                     {loadingOffers ? (
                       <div className="flex justify-center py-10">
                         <Loader2 className="h-6 w-6 animate-spin text-[#E25E45]" />
                       </div>
                     ) : offers.length === 0 ? (
-                      <div className="text-center py-12 text-gray-400">
-                        <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                        <p className="font-medium text-gray-500">No proposals received yet</p>
-                        <p className="text-sm mt-1">Share the invitation link with vendors to start receiving proposals</p>
+                      <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl">
+                        <div className="h-14 w-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                          <Users className="h-7 w-7 text-gray-300" />
+                        </div>
+                        <p className="font-semibold text-gray-500">No proposals received yet</p>
+                        <p className="text-sm text-gray-400 mt-1">Share the invitation link with vendors to start receiving proposals</p>
                       </div>
                     ) : (
-                      <div className="space-y-4">
-                        {offers.map((offer) => {
+                      <div className="space-y-3">
+                        {offers.map((offer, offerIdx) => {
                           const analysis = offerAnalyses.find((a: any) => a.offerId === offer.id);
+                          const initials = (offer.profile?.displayName || offer.company.name).slice(0, 2).toUpperCase();
+                          const accentColors = [
+                            'from-[#E25E45] to-[#FF8A6B]',
+                            'from-indigo-500 to-purple-500',
+                            'from-emerald-500 to-teal-500',
+                            'from-amber-500 to-orange-500',
+                            'from-sky-500 to-blue-500',
+                          ];
+                          const accent = accentColors[offerIdx % accentColors.length];
                           return (
                           <div key={offer.id}
-                            className="rounded-xl border border-gray-200 p-4"
+                            className="rounded-xl border border-gray-200 bg-white hover:border-gray-300 hover:shadow-md transition-all duration-200 overflow-hidden"
                             data-testid={`card-offer-${offer.id}`}
                           >
-                            <div className="flex items-start gap-4">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                  <h4 className="font-semibold text-gray-900">{offer.profile?.displayName || offer.company.name}</h4>
-                                  {offer.company.verificationStatus === 'verified' && (
-                                    <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                                      <CheckCircle2 className="h-3 w-3" /> Verified
-                                    </span>
-                                  )}
+                            {/* Top accent strip */}
+                            <div className={`h-0.5 w-full bg-gradient-to-r ${accent}`} />
+
+                            <div className="p-5">
+                              <div className="flex items-start gap-4">
+                                {/* Avatar */}
+                                <div className="flex-shrink-0">
+                                  <VendorAvatar
+                                    logoUrl={offer.profile?.logoUrl}
+                                    name={initials}
+                                    className="h-12 w-12 rounded-xl object-cover ring-1 ring-black/10 shadow-sm"
+                                    gradient={accent}
+                                  />
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">
-                                  {offer.company.category && <span>{offer.company.category} · </span>}
-                                  Submitted {formatDate(offer.submittedAt)}
-                                </p>
-                                {offer.quotePrice && (
-                                  <p className="text-sm font-semibold text-[#E25E45]">SAR {offer.quotePrice.toLocaleString()}</p>
-                                )}
-                                <div className="flex flex-wrap gap-2 mt-3">
-                                  <Button variant="outline" size="sm" onClick={() => setSelectedOffer(offer)} data-testid={`button-view-${offer.id}`}>
-                                    <Eye className="h-3.5 w-3.5 mr-1" /> View Profile
+
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                      <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                                        <h4 className="font-bold text-gray-900 text-base leading-tight">{offer.profile?.displayName || offer.company.name}</h4>
+                                        {offer.company.verificationStatus === 'verified' && (
+                                          <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex-shrink-0">
+                                            <CheckCircle2 className="h-3 w-3" /> Verified
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p className="text-xs text-gray-400">
+                                        {offer.company.category && <span className="font-medium text-gray-500">{offer.company.category} · </span>}
+                                        Submitted {formatDate(offer.submittedAt)}
+                                      </p>
+                                    </div>
+                                    {offer.quotePrice && (
+                                      <div className="flex-shrink-0 text-right">
+                                        <p className="text-xl font-bold text-gray-900">SAR {offer.quotePrice.toLocaleString()}</p>
+                                        <p className="text-xs text-gray-400 mt-0.5">Quoted price</p>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Submission type chips */}
+                                  <div className="flex flex-wrap gap-1.5 mt-3">
+                                    {offer.combinedFileUrl && (
+                                      <span className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2 py-1 rounded-md font-medium">
+                                        <FileText className="h-3 w-3" /> Combined Proposal
+                                      </span>
+                                    )}
+                                    {offer.technicalFileUrl && (
+                                      <span className="inline-flex items-center gap-1 text-xs bg-purple-50 text-purple-700 border border-purple-100 px-2 py-1 rounded-md font-medium">
+                                        <FileText className="h-3 w-3" /> Technical
+                                      </span>
+                                    )}
+                                    {offer.financialFileUrl && (
+                                      <span className="inline-flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-1 rounded-md font-medium">
+                                        <DollarSign className="h-3 w-3" /> Financial
+                                      </span>
+                                    )}
+                                    {offer.videoUrl && (
+                                      <span className="inline-flex items-center gap-1 text-xs bg-orange-50 text-orange-700 border border-orange-100 px-2 py-1 rounded-md font-medium">
+                                        <Video className="h-3 w-3" /> Video Pitch
+                                      </span>
+                                    )}
+                                    {analysis && analysis.status === 'completed' && (
+                                      <span className="inline-flex items-center gap-1 text-xs bg-sky-50 text-sky-700 border border-sky-100 px-2 py-1 rounded-md font-medium">
+                                        <Sparkles className="h-3 w-3" /> AI Analyzed
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Action row */}
+                              <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+                                <Button variant="outline" size="sm" onClick={() => setSelectedOffer(offer)} className="text-xs font-medium h-8" data-testid={`button-view-${offer.id}`}>
+                                  <Eye className="h-3.5 w-3.5 mr-1.5" /> View Profile
+                                </Button>
+                                {offer.combinedFileUrl && (
+                                  <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)} className="text-xs h-8" data-testid={`button-combined-${offer.id}`}>
+                                    <FileText className="h-3.5 w-3.5 mr-1.5" /> Proposal
                                   </Button>
-                                  {offer.combinedFileUrl && (
-                                    <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)} data-testid={`button-combined-${offer.id}`}>
-                                      <FileText className="h-3.5 w-3.5 mr-1" /> Proposal
-                                    </Button>
-                                  )}
-                                  {offer.technicalFileUrl && (
-                                    <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)} data-testid={`button-tech-${offer.id}`}>
-                                      <FileText className="h-3.5 w-3.5 mr-1" /> Technical
-                                    </Button>
-                                  )}
-                                  {offer.financialFileUrl && (
-                                    <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)} data-testid={`button-fin-${offer.id}`}>
-                                      <DollarSign className="h-3.5 w-3.5 mr-1" /> Financial
-                                    </Button>
-                                  )}
-                                  {offer.videoUrl && (
-                                    <Button variant="outline" size="sm" onClick={() => window.open(offer.videoUrl!, '_blank')} data-testid={`button-video-${offer.id}`}>
-                                      <Video className="h-3.5 w-3.5 mr-1" /> Video
-                                    </Button>
-                                  )}
+                                )}
+                                {offer.technicalFileUrl && (
+                                  <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)} className="text-xs h-8" data-testid={`button-tech-${offer.id}`}>
+                                    <FileText className="h-3.5 w-3.5 mr-1.5" /> Technical
+                                  </Button>
+                                )}
+                                {offer.financialFileUrl && (
+                                  <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)} className="text-xs h-8" data-testid={`button-fin-${offer.id}`}>
+                                    <DollarSign className="h-3.5 w-3.5 mr-1.5" /> Financial
+                                  </Button>
+                                )}
+                                {offer.videoUrl && (
+                                  <Button variant="outline" size="sm" onClick={() => window.open(offer.videoUrl!, '_blank')} className="text-xs h-8" data-testid={`button-video-${offer.id}`}>
+                                    <Video className="h-3.5 w-3.5 mr-1.5" /> Video
+                                  </Button>
+                                )}
+                                <div className="ml-auto">
                                   {analysis && analysis.status === 'completed' ? (
                                     <Button
                                       variant="outline"
                                       size="sm"
                                       onClick={() => setAnalysisDrawerOfferId(offer.id)}
-                                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                      className="text-xs text-blue-600 border-blue-200 hover:bg-blue-50 h-8"
                                       data-testid={`button-ai-view-${offer.id}`}
                                     >
-                                      <Sparkles className="h-3.5 w-3.5 mr-1" />
+                                      <Sparkles className="h-3.5 w-3.5 mr-1.5" />
                                       View AI Summary
                                     </Button>
                                   ) : (
@@ -1269,13 +1405,13 @@ export default function TenderDetails() {
                                       size="sm"
                                       onClick={() => analyzeOffer.mutate(offer.id)}
                                       disabled={analyzeOffer.isPending}
-                                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                      className="text-xs text-blue-600 border-blue-200 hover:bg-blue-50 h-8"
                                       data-testid={`button-ai-${offer.id}`}
                                     >
                                       {analyzeOffer.isPending && analyzeOffer.variables === offer.id ? (
-                                        <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                                        <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
                                       ) : (
-                                        <Sparkles className="h-3.5 w-3.5 mr-1" />
+                                        <Sparkles className="h-3.5 w-3.5 mr-1.5" />
                                       )}
                                       Summarize with AI
                                     </Button>
@@ -1285,8 +1421,8 @@ export default function TenderDetails() {
                             </div>
 
                             {analysis && analysis.status === 'failed' && (
-                              <div className="mt-3 flex items-center gap-2 text-xs text-red-500 bg-red-50 rounded-lg p-2">
-                                <AlertCircle className="h-3.5 w-3.5" />
+                              <div className="mx-5 mb-4 flex items-center gap-2 text-xs text-red-500 bg-red-50 rounded-lg p-2 border border-red-100">
+                                <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                                 <span>Analysis failed: {analysis.errorMessage || 'Unknown error'}</span>
                               </div>
                             )}
@@ -1314,79 +1450,102 @@ export default function TenderDetails() {
               <div className="sticky top-20 space-y-4">
 
                 {/* At a Glance */}
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">At a Glance</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className={`rounded-lg p-2.5 border ${isExpired ? 'bg-gray-50 border-gray-100' : daysRemaining <= 3 ? 'bg-orange-50/50 border-orange-100' : 'bg-gray-50 border-gray-100'}`}>
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Calendar className={`h-3 w-3 flex-shrink-0 ${isExpired ? 'text-red-400' : daysRemaining <= 3 ? 'text-orange-500' : 'text-[#E25E45]'}`} />
-                        <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Deadline</span>
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">At a Glance</p>
+                  </div>
+                  <div className="p-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Deadline */}
+                      <div className={`col-span-2 rounded-xl p-3 border ${isExpired ? 'bg-red-50 border-red-100' : daysRemaining <= 3 ? 'bg-orange-50 border-orange-100' : 'bg-gray-50 border-gray-100'}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className={`h-3.5 w-3.5 ${isExpired ? 'text-red-500' : daysRemaining <= 3 ? 'text-orange-500' : 'text-[#E25E45]'}`} />
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Deadline</span>
+                          </div>
+                          {!isExpired ? (
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${daysRemaining <= 3 ? 'bg-orange-200 text-orange-700' : 'bg-gray-200 text-gray-600'}`}>{daysRemaining}d left</span>
+                          ) : (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-200 text-red-700">Expired</span>
+                          )}
+                        </div>
+                        <p className={`text-sm font-bold mt-1 ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-700' : 'text-gray-800'}`}>{formatDate(tender.deadline)}</p>
                       </div>
-                      <p className={`text-xs font-bold leading-tight ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-gray-800'}`}>
-                        {formatDate(tender.deadline)}
-                      </p>
-                      {!isExpired && <p className="text-[10px] text-gray-400 mt-0.5">{daysRemaining}d left</p>}
+
+                      {/* Budget */}
+                      <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Budget</span>
+                        </div>
+                        <p className="text-xs font-bold text-gray-800 leading-tight">{getBudgetDisplay()}</p>
+                      </div>
+
+                      {/* Duration */}
+                      {durationDisplay && (
+                        <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Clock className="h-3.5 w-3.5 text-blue-500" />
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Duration</span>
+                          </div>
+                          <p className="text-xs font-bold text-gray-800 leading-tight">{durationDisplay}</p>
+                        </div>
+                      )}
+
+                      {/* Format */}
+                      {tender.submissionType && (
+                        <div className={`bg-gray-50 rounded-xl p-3 border border-gray-100 ${!durationDisplay ? 'col-span-2' : ''}`}>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <FileText className="h-3.5 w-3.5 text-purple-500" />
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Format</span>
+                          </div>
+                          <p className="text-xs font-bold text-gray-800 leading-tight">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</p>
+                        </div>
+                      )}
+
+                      {/* Category */}
+                      {tender.category && (
+                        <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Tag className="h-3.5 w-3.5 text-indigo-500" />
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Category</span>
+                          </div>
+                          <p className="text-xs font-bold text-gray-800 leading-tight">{tender.category}</p>
+                        </div>
+                      )}
+
+                      {/* Proposals count */}
+                      {isOwner && (
+                        <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Users className="h-3.5 w-3.5 text-gray-400" />
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Proposals</span>
+                          </div>
+                          <p className="text-lg font-bold text-gray-900 leading-tight">{offers.length}</p>
+                        </div>
+                      )}
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <DollarSign className="h-3 w-3 flex-shrink-0 text-emerald-500" />
-                        <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Budget</span>
-                      </div>
-                      <p className="text-xs font-bold text-gray-800 leading-tight">{getBudgetDisplay()}</p>
-                    </div>
-                    {durationDisplay && (
-                      <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Clock className="h-3 w-3 flex-shrink-0 text-blue-500" />
-                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Duration</span>
-                        </div>
-                        <p className="text-xs font-bold text-gray-800 leading-tight">{durationDisplay}</p>
-                      </div>
-                    )}
-                    {tender.submissionType && (
-                      <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <FileText className="h-3 w-3 flex-shrink-0 text-purple-500" />
-                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Format</span>
-                        </div>
-                        <p className="text-xs font-bold text-gray-800 leading-tight">{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</p>
-                      </div>
-                    )}
-                    {tender.category && (
-                      <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100 col-span-2">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Tag className="h-3 w-3 flex-shrink-0 text-indigo-500" />
-                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Category</span>
-                        </div>
-                        <p className="text-xs font-bold text-gray-800 leading-tight">{tender.category}</p>
-                      </div>
-                    )}
-                    {isOwner && (
-                      <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100 col-span-2">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Users className="h-3 w-3 flex-shrink-0 text-gray-400" />
-                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">Proposals</span>
-                        </div>
-                        <p className="text-xs font-bold text-gray-800 leading-tight">{offers.length} received</p>
-                      </div>
-                    )}
                   </div>
                 </div>
 
                 {/* Owner: Invitation Link */}
                 {isOwner && (
-                  <div className="bg-blue-50 rounded-2xl border border-blue-200 p-4">
-                    <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-2">Invitation Link</p>
-                    <div className="bg-white rounded-lg p-2.5 mb-3 border border-blue-100">
-                      <code className="text-xs break-all text-gray-600" data-testid="text-invitation-link">{invitationLink}</code>
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/60">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Invitation Link</p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button onClick={copyInvitationLink} size="sm" className="flex-1 text-xs" data-testid="button-copy-link">
-                        {copiedLink ? <><Check className="h-3.5 w-3.5 mr-1" /> Copied!</> : <><Copy className="h-3.5 w-3.5 mr-1" /> Copy Link</>}
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => window.open(invitationLink, '_blank')} data-testid="button-open-link">
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </Button>
+                    <div className="p-4">
+                      <div className="bg-gray-50 rounded-lg p-2.5 mb-3 border border-gray-200">
+                        <code className="text-xs break-all text-gray-500" data-testid="text-invitation-link">{invitationLink}</code>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button onClick={copyInvitationLink} size="sm" className="flex-1 text-xs bg-gray-900 hover:bg-gray-800 text-white" data-testid="button-copy-link">
+                          {copiedLink ? <><Check className="h-3.5 w-3.5 mr-1" /> Copied!</> : <><Copy className="h-3.5 w-3.5 mr-1" /> Copy Link</>}
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => window.open(invitationLink, '_blank')} data-testid="button-open-link">
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1394,45 +1553,61 @@ export default function TenderDetails() {
 
                 {/* Vendor: Submit CTA */}
                 {!isOwner && activeCompany && (
-                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
+                  <div className="rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                     {hasSubmittedOffer ? (
-                      <>
-                        <p className="text-sm font-semibold text-gray-900 mb-1">Proposal Submitted</p>
-                        <p className="text-xs text-gray-400 mb-4">Submitted on {myOffer?.submittedAt ? formatDate(myOffer.submittedAt) : 'N/A'}</p>
-                        <div className="flex items-center justify-center py-3 bg-green-50 rounded-xl border border-green-100">
-                          <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                          <span className="text-sm font-medium text-green-700">Under review</span>
+                      <div className="bg-white p-5">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-900 leading-tight">Proposal Submitted</p>
+                            <p className="text-xs text-gray-400">Submitted {myOffer?.submittedAt ? formatDate(myOffer.submittedAt) : 'N/A'}</p>
+                          </div>
                         </div>
-                      </>
+                        <div className="flex items-center gap-2 px-3 py-2.5 bg-green-50 rounded-xl border border-green-100">
+                          <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-xs font-semibold text-green-700">Under review by requester</span>
+                        </div>
+                      </div>
                     ) : isExpired ? (
-                      <>
-                        <p className="text-sm font-semibold text-gray-900 mb-1">Submissions Closed</p>
-                        <p className="text-xs text-gray-400 mb-4">The deadline for this RFP has passed.</p>
-                      </>
+                      <div className="bg-gray-50 p-5">
+                        <p className="text-sm font-bold text-gray-700 mb-1">Submissions Closed</p>
+                        <p className="text-xs text-gray-400">The deadline for this RFP has passed.</p>
+                      </div>
                     ) : !isTenderOpen ? (
-                      <>
-                        <p className="text-sm font-semibold text-gray-900 mb-1">Not Accepting Submissions</p>
-                        <p className="text-xs text-gray-400 mb-4">This RFP is not currently open.</p>
-                      </>
+                      <div className="bg-gray-50 p-5">
+                        <p className="text-sm font-bold text-gray-700 mb-1">Not Accepting Submissions</p>
+                        <p className="text-xs text-gray-400">This RFP is not currently open.</p>
+                      </div>
                     ) : !companyCanSubmit ? (
-                      <>
-                        <p className="text-sm font-semibold text-gray-900 mb-1">Complete Your Profile</p>
+                      <div className="bg-white p-5">
+                        <p className="text-sm font-bold text-gray-900 mb-1">Complete Your Profile</p>
                         <p className="text-xs text-gray-400 mb-4">Your company must be verified to submit proposals.</p>
                         <Button variant="outline" className="w-full text-sm" onClick={() => setLocation('/company-onboarding')} data-testid="button-complete-profile">
                           Complete Profile
                         </Button>
-                      </>
+                      </div>
                     ) : (
-                      <>
-                        <p className="text-sm font-semibold text-gray-900 mb-1">Ready to Submit?</p>
-                        <p className="text-xs text-gray-400 mb-4">
-                          {daysRemaining <= 7 ? `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining` : `Deadline: ${formatDate(tender.deadline)}`}
-                        </p>
-                        <Button className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white py-5 text-sm font-semibold rounded-xl"
-                          onClick={() => setIsSubmitOfferModalOpen(true)} data-testid="button-submit-offer">
-                          <Send className="h-4 w-4 mr-2" /> Submit Proposal
-                        </Button>
-                      </>
+                      <div className="bg-white">
+                        <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+                        <div className="p-5">
+                          <p className="text-xs font-bold text-[#E25E45] uppercase tracking-widest mb-1">Ready to bid?</p>
+                          <p className="text-sm font-bold text-gray-900 mb-0.5">Submit Your Proposal</p>
+                          <p className="text-xs text-gray-400 mb-4">
+                            {daysRemaining <= 7
+                              ? <span className="text-orange-600 font-semibold">{daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining</span>
+                              : `Deadline: ${formatDate(tender.deadline)}`}
+                          </p>
+                          <Button
+                            className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white font-semibold rounded-xl h-11"
+                            onClick={() => setIsSubmitOfferModalOpen(true)}
+                            data-testid="button-submit-offer"
+                          >
+                            <Send className="h-4 w-4 mr-2" /> Submit Proposal
+                          </Button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
@@ -1470,149 +1645,168 @@ export default function TenderDetails() {
 
       {/* View Company Profile Dialog */}
       <Dialog open={!!selectedOffer} onOpenChange={(open) => !open && setSelectedOffer(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {selectedOffer?.profile?.logoUrl && (
-                <img
-                  src={selectedOffer.profile.logoUrl}
-                  alt=""
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-              )}
-              {selectedOffer?.profile?.displayName || selectedOffer?.company.name}
-              {selectedOffer?.company.verificationStatus === 'verified' && (
-                <Badge variant="secondary" className="text-xs ml-2">Verified</Badge>
-              )}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedOffer?.company.category || 'Company Profile'}
-            </DialogDescription>
-          </DialogHeader>
-
+        <DialogContent className="max-w-lg p-0 overflow-hidden">
           {selectedOffer && (
-            <div className="space-y-4">
-              {selectedOffer.profile?.bio && (
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">About</h4>
-                  <p className="text-sm">{selectedOffer.profile.bio}</p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Company Name</h4>
-                  <p className="text-sm">{selectedOffer.company.name}</p>
-                </div>
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Category</h4>
-                  <p className="text-sm">{selectedOffer.company.category || 'Not specified'}</p>
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <h4 className="font-medium text-sm text-muted-foreground mb-2">Proposal Details</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Submitted</span>
-                    <span>{new Date(selectedOffer.submittedAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}</span>
+            <>
+              {/* Header banner */}
+              <div className="bg-gray-50 border-b border-gray-200 px-6 pt-6 pb-8" style={{ backgroundImage: 'radial-gradient(circle, rgba(156,163,175,0.35) 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <VendorAvatar
+                      logoUrl={selectedOffer.profile?.logoUrl}
+                      name={(selectedOffer.profile?.displayName || selectedOffer.company.name).slice(0, 2).toUpperCase()}
+                      className="h-16 w-16 rounded-2xl object-cover ring-2 ring-gray-200 shadow-sm"
+                      gradient="from-[#E25E45] to-[#FF8A6B]"
+                    />
                   </div>
-                  {selectedOffer.quotePrice && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Quote Price</span>
-                      <span className="font-semibold text-[#E25E45]">SAR {selectedOffer.quotePrice.toLocaleString()}</span>
+                  <div className="flex-1 min-w-0 pt-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <h2 className="text-lg font-bold text-gray-900 leading-tight">
+                        {selectedOffer.profile?.displayName || selectedOffer.company.name}
+                      </h2>
+                      {selectedOffer.company.verificationStatus === 'verified' && (
+                        <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full">
+                          <CheckCircle2 className="h-3 w-3" /> Verified
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500">{selectedOffer.company.category || 'Company'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="px-6 pb-6 -mt-4">
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+
+                  {/* Bio */}
+                  {selectedOffer.profile?.bio && (
+                    <div className="px-5 py-4 border-b border-gray-100">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">About</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{selectedOffer.profile.bio}</p>
                     </div>
                   )}
-                  {selectedOffer.notes && (
-                    <div>
-                      <span className="text-sm text-muted-foreground">Notes:</span>
-                      <p className="text-sm mt-1">{selectedOffer.notes}</p>
+
+                  {/* Proposal details */}
+                  <div className="px-5 py-4 border-b border-gray-100">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Proposal Details</p>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-500 flex items-center gap-2">
+                          <Calendar className="h-3.5 w-3.5 text-gray-300" /> Submitted
+                        </span>
+                        <span className="text-sm font-medium text-gray-800">
+                          {new Date(selectedOffer.submittedAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </span>
+                      </div>
+                      {selectedOffer.quotePrice && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500 flex items-center gap-2">
+                            <DollarSign className="h-3.5 w-3.5 text-gray-300" /> Quote Price
+                          </span>
+                          <span className="text-lg font-bold text-gray-900">
+                            SAR {selectedOffer.quotePrice.toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                      {selectedOffer.notes && (
+                        <div className="pt-1">
+                          <p className="text-xs text-gray-400 mb-1">Notes</p>
+                          <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3">{selectedOffer.notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Documents */}
+                  {(selectedOffer.combinedFileUrl || selectedOffer.technicalFileUrl || selectedOffer.financialFileUrl || selectedOffer.videoUrl) && (
+                    <div className="px-5 py-4">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Documents</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {selectedOffer.combinedFileUrl && (
+                          <button
+                            onClick={() => viewAuthenticatedFile(selectedOffer.combinedFileUrl!)}
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-blue-100 bg-blue-50 hover:bg-blue-100 transition-colors text-left"
+                            data-testid="button-modal-combined-file"
+                          >
+                            <FileText className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                            <span className="text-xs font-medium text-blue-700">Proposal</span>
+                          </button>
+                        )}
+                        {selectedOffer.technicalFileUrl && (
+                          <button
+                            onClick={() => viewAuthenticatedFile(selectedOffer.technicalFileUrl!)}
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-purple-100 bg-purple-50 hover:bg-purple-100 transition-colors text-left"
+                            data-testid="button-modal-tech-file"
+                          >
+                            <FileText className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                            <span className="text-xs font-medium text-purple-700">Technical</span>
+                          </button>
+                        )}
+                        {selectedOffer.financialFileUrl && (
+                          <button
+                            onClick={() => viewAuthenticatedFile(selectedOffer.financialFileUrl!)}
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-emerald-100 bg-emerald-50 hover:bg-emerald-100 transition-colors text-left"
+                            data-testid="button-modal-fin-file"
+                          >
+                            <DollarSign className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                            <span className="text-xs font-medium text-emerald-700">Financial</span>
+                          </button>
+                        )}
+                        {selectedOffer.videoUrl && (
+                          <button
+                            onClick={() => window.open(selectedOffer.videoUrl!, '_blank')}
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-orange-100 bg-orange-50 hover:bg-orange-100 transition-colors text-left"
+                          >
+                            <Video className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                            <span className="text-xs font-medium text-orange-700">Video Pitch</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
-
-              <div className="flex flex-wrap gap-2 pt-2">
-                {selectedOffer.combinedFileUrl && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => viewAuthenticatedFile(selectedOffer.combinedFileUrl!)}
-                    data-testid="button-modal-combined-file"
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Proposal
-                  </Button>
-                )}
-                {selectedOffer.technicalFileUrl && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => viewAuthenticatedFile(selectedOffer.technicalFileUrl!)}
-                    data-testid="button-modal-tech-file"
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Technical Proposal
-                  </Button>
-                )}
-                {selectedOffer.financialFileUrl && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => viewAuthenticatedFile(selectedOffer.financialFileUrl!)}
-                    data-testid="button-modal-fin-file"
-                  >
-                    <DollarSign className="h-4 w-4 mr-2" />
-                    Financial Proposal
-                  </Button>
-                )}
-                {selectedOffer.videoUrl && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => window.open(selectedOffer.videoUrl!, '_blank')}
-                  >
-                    <Video className="h-4 w-4 mr-2" />
-                    Video Pitch
-                  </Button>
-                )}
-              </div>
-            </div>
+            </>
           )}
+          {/* Hidden DialogHeader for accessibility */}
+          <DialogHeader className="sr-only">
+            <DialogTitle>{selectedOffer?.profile?.displayName || selectedOffer?.company.name}</DialogTitle>
+            <DialogDescription>{selectedOffer?.company.category || 'Company Profile'}</DialogDescription>
+          </DialogHeader>
         </DialogContent>
       </Dialog>
 
       {/* AI Analysis Drawer */}
       <Sheet open={!!analysisDrawerOfferId} onOpenChange={(open) => !open && setAnalysisDrawerOfferId(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto p-0">
           {(() => {
             const drawerOffer = offers.find(o => o.id === analysisDrawerOfferId);
             const drawerAnalysis = offerAnalyses.find((a: any) => a.offerId === analysisDrawerOfferId);
             if (!drawerOffer || !drawerAnalysis) return null;
             return (
               <>
-                <SheetHeader className="pb-4 border-b border-gray-100">
-                  <SheetTitle className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-blue-500" />
-                    AI Analysis
-                  </SheetTitle>
-                  <SheetDescription>
-                    {drawerOffer.profile?.displayName || drawerOffer.company.name}
-                    {drawerOffer.company.category && ` · ${drawerOffer.company.category}`}
-                  </SheetDescription>
-                </SheetHeader>
+                {/* Drawer header */}
+                <div className="px-6 pt-6 pb-5 border-b border-gray-100 bg-gray-50">
+                  <SheetHeader>
+                    <SheetTitle className="flex items-center gap-2 text-gray-900">
+                      <div className="h-7 w-7 rounded-lg bg-blue-100 border border-blue-200 flex items-center justify-center">
+                        <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+                      </div>
+                      AI Analysis
+                    </SheetTitle>
+                    <SheetDescription className="text-gray-500">
+                      {drawerOffer.profile?.displayName || drawerOffer.company.name}
+                      {drawerOffer.company.category && ` · ${drawerOffer.company.category}`}
+                    </SheetDescription>
+                  </SheetHeader>
+                </div>
 
-                <div className="space-y-6 pt-6">
+                <div className="space-y-6 p-6">
                   {/* Re-analyze button */}
                   <div className="flex justify-end">
                     <Button
@@ -1745,11 +1939,14 @@ export default function TenderDetails() {
 
 function TDSectionHeader({ index, title }: { index: number; title: string }) {
   return (
-    <div className="flex items-center gap-3 mb-5">
-      <span className="text-xs font-mono text-gray-300 bg-gray-50 px-2 py-1 rounded border border-gray-100">
-        {index}.0
-      </span>
-      <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+    <div className="flex items-start gap-3 mb-6">
+      <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#E25E45]/10 border border-[#E25E45]/20 flex-shrink-0 mt-0.5">
+        <span className="text-[11px] font-bold text-[#E25E45] font-mono leading-none">{index}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <h2 className="text-xl font-bold text-gray-900 leading-tight">{title}</h2>
+        <div className="mt-1.5 h-px bg-gradient-to-r from-[#E25E45]/25 via-gray-200/60 to-transparent" />
+      </div>
     </div>
   );
 }

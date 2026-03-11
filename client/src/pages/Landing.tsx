@@ -32,11 +32,7 @@ const Landing = () => {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/signup">
-                <Button size="lg" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 h-12 text-base">
-                  Submit a Proposal
-                </Button>
-              </Link>
+
             </div>
           </div>
         </section>

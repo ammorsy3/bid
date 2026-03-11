@@ -15,7 +15,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
-  isAdmin: boolean("is_admin").default(false).notNull(), // Platform admins (global, not tied to companies)
+  isAdmin: boolean("is_admin").default(false).notNull(),
   
   // Profile fields
   profilePictureUrl: text("profile_picture_url"),
@@ -23,7 +23,15 @@ export const users = pgTable("users", {
   timezone: text("timezone"),
   linkedinUrl: text("linkedin_url"),
   phoneNumber: text("phone_number"),
-  tenderInquiryEmail: text("tender_inquiry_email"), // Custom email for tender inquiries (if different from account email)
+  tenderInquiryEmail: text("tender_inquiry_email"),
+
+  // Legacy columns (preserved from old role-based schema)
+  role: text("role"),
+  company: text("company"),
+  expertise: text("expertise"),
+  rating: integer("rating"),
+  verificationStatus: text("verification_status"),
+  onboardingState: text("onboarding_state"),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -119,8 +127,11 @@ export const userCompanies = pgTable("user_companies", {
 // Tenders - RFX/procurement requests
 export const tenders = pgTable("tenders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  companyId: varchar("company_id").notNull().references(() => companies.id), // Company issuing tender
-  createdBy: varchar("created_by").notNull().references(() => users.id), // User who created it
+  companyId: varchar("company_id").references(() => companies.id),
+  createdBy: varchar("created_by").references(() => users.id),
+  
+  // Legacy columns (preserved from old role-based schema)
+  requesterId: varchar("requester_id"),
   
   // Tender Details
   title: text("title").notNull(),
@@ -315,27 +326,34 @@ export const invitations = pgTable("invitations", {
 // Vendors Base - Private catalog of approved vendors per requester company
 export const vendorsBase = pgTable("vendors_base", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  requesterCompanyId: varchar("requester_company_id").notNull().references(() => companies.id),
-  vendorCompanyId: varchar("vendor_company_id").notNull().references(() => companies.id),
-  joinMethod: text("join_method").notNull(), // 'invitation' | 'traction' | 'tender_invite'
+  requesterCompanyId: varchar("requester_company_id").references(() => companies.id),
+  vendorCompanyId: varchar("vendor_company_id").references(() => companies.id),
+  joinMethod: text("join_method").notNull(),
   
-  addedBy: varchar("added_by").references(() => users.id), // User who approved/added
+  addedBy: varchar("added_by").references(() => users.id),
   addedAt: timestamp("added_at").defaultNow().notNull(),
+
+  // Legacy columns (preserved from old role-based schema)
+  requesterId: varchar("requester_id"),
+  vendorId: varchar("vendor_id"),
 });
 
 // Join Requests - Vendor applications to join requester's vendor base
 export const joinRequests = pgTable("join_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  requesterCompanyId: varchar("requester_company_id").notNull().references(() => companies.id),
-  vendorCompanyId: varchar("vendor_company_id").notNull().references(() => companies.id),
-  createdBy: varchar("created_by").notNull().references(() => users.id), // Vendor user who submitted
+  requesterCompanyId: varchar("requester_company_id").references(() => companies.id),
+  vendorCompanyId: varchar("vendor_company_id").references(() => companies.id),
+  createdBy: varchar("created_by").references(() => users.id),
   
   // Status
-  status: text("status").notNull().default("pending"), // 'pending', 'approved', 'rejected'
+  status: text("status").notNull().default("pending"),
   rejectionReason: text("rejection_reason"),
   
-  decidedBy: varchar("decided_by").references(() => users.id), // User who approved/rejected
+  decidedBy: varchar("decided_by").references(() => users.id),
   decidedAt: timestamp("decided_at"),
+  
+  // Legacy columns (preserved from old role-based schema)
+  requesterId: varchar("requester_id"),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -464,6 +482,46 @@ export const errorLogs = pgTable("error_logs", {
 
 export type ErrorLog = typeof errorLogs.$inferSelect;
 export type InsertErrorLog = typeof errorLogs.$inferInsert;
+
+// ============================================================================
+// LEGACY TABLES - Preserved from old role-based schema (production data)
+// ============================================================================
+
+export const requesterProfiles = pgTable("requester_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id"),
+  companyName: text("company_name"),
+  industry: text("industry"),
+  description: text("description"),
+  logoUrl: text("logo_url"),
+  website: text("website"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const analyticsEvents = pgTable("analytics_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventType: text("event_type"),
+  userId: varchar("user_id"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const vendorQualifications = pgTable("vendor_qualifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  vendorId: varchar("vendor_id"),
+  qualificationType: text("qualification_type"),
+  status: text("status"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const adminSetupToken = pgTable("admin_setup_token", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  token: text("token"),
+  used: boolean("used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
 
 // ============================================================================
 // RELATIONS

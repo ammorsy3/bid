@@ -560,7 +560,7 @@ export default function Dashboard() {
 
   return (
     <SidebarProvider>
-      <Sidebar collapsible="icon" side={isRtl ? "right" : "left"} className={isRtl ? "border-l" : "border-r"}>
+      <Sidebar collapsible="icon" side={isRtl ? "right" : "left"} className={isRtl ? "border-l border-gray-200 dark:border-gray-800" : "border-r border-gray-200 dark:border-gray-800"}>
         {/* Brand accent strip */}
         <div className="h-0.5 bg-gradient-to-r from-[#E8614D] to-[#F19A8F] flex-shrink-0" />
         <SidebarHeader className="border-b px-4 py-4">

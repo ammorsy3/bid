@@ -295,6 +295,15 @@ export default function TenderDetails() {
 
   const canManage = activeCompany && ['owner', 'admin'].includes(activeCompany.role);
 
+  const [qaProfileCompany, setQaProfileCompany] = useState<{
+    name: string;
+    displayName?: string;
+    category?: string;
+    verificationStatus?: string;
+    logoUrl?: string;
+    bio?: string;
+  } | null>(null);
+
   const { data: qaQuestions = [] } = useQuery<Array<{
     id: string;
     question: string;
@@ -302,6 +311,12 @@ export default function TenderDetails() {
     answeredAt: string | null;
     createdAt: string;
     askedByCompanyName?: string;
+    askedByCompanyId?: string;
+    askedByCompanyCategory?: string;
+    askedByCompanyVerification?: string;
+    askedByCompanyLogoUrl?: string;
+    askedByCompanyDisplayName?: string;
+    askedByCompanyBio?: string;
   }>>({
     queryKey: ['/api/tenders', id, 'questions'],
     queryFn: async () => {
@@ -1138,13 +1153,46 @@ export default function TenderDetails() {
                             <div key={q.id} className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                               <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
                                 <div className="flex items-start gap-2">
-                                  <HelpCircle className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                  {q.askedByCompanyName ? (
+                                    q.askedByCompanyLogoUrl ? (
+                                      <img src={q.askedByCompanyLogoUrl} alt="" className="h-8 w-8 rounded-lg object-cover ring-1 ring-gray-200 flex-shrink-0 mt-0.5" />
+                                    ) : (
+                                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#E25E45] to-[#FF8A6B] flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-white text-[10px] font-bold leading-none">{(q.askedByCompanyDisplayName || q.askedByCompanyName).slice(0, 2).toUpperCase()}</span>
+                                      </div>
+                                    )
+                                  ) : (
+                                    <HelpCircle className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                  )}
                                   <div className="flex-1 min-w-0">
+                                    {q.askedByCompanyName && (
+                                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                                        <span className="text-xs font-bold text-gray-800 dark:text-gray-200">{q.askedByCompanyDisplayName || q.askedByCompanyName}</span>
+                                        {q.askedByCompanyVerification === 'verified' && (
+                                          <span className="inline-flex items-center gap-0.5 text-[9px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full font-medium">
+                                            <CheckCircle2 className="h-2.5 w-2.5" /> {t('tenderFlow.verifiedBadge')}
+                                          </span>
+                                        )}
+                                        <button
+                                          onClick={() => setQaProfileCompany({
+                                            name: q.askedByCompanyName!,
+                                            displayName: q.askedByCompanyDisplayName,
+                                            category: q.askedByCompanyCategory,
+                                            verificationStatus: q.askedByCompanyVerification,
+                                            logoUrl: q.askedByCompanyLogoUrl,
+                                            bio: q.askedByCompanyBio,
+                                          })}
+                                          className="text-[10px] text-[#E25E45] hover:text-[#d54d35] font-semibold flex items-center gap-0.5 transition-colors"
+                                        >
+                                          <Eye className="h-3 w-3" /> {t('tenderFlow.viewProfile')}
+                                        </button>
+                                      </div>
+                                    )}
                                     <p className="text-sm text-gray-900 dark:text-white">{q.question}</p>
                                     <p className="text-xs text-gray-400 mt-1">
                                       {t('tenderFlow.askedLabel')} {new Date(q.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' })}
-                                      {q.askedByCompanyName && (
-                                        <span className={`${isRtl ? 'mr-1' : 'ml-1'} text-gray-500`}> {t('tenderFlow.byLabel')} {q.askedByCompanyName}</span>
+                                      {q.askedByCompanyCategory && (
+                                        <span className={`${isRtl ? 'mr-1' : 'ml-1'} text-gray-500`}>· {q.askedByCompanyCategory}</span>
                                       )}
                                     </p>
                                   </div>
@@ -1784,6 +1832,63 @@ export default function TenderDetails() {
           <DialogHeader className="sr-only">
             <DialogTitle>{selectedOffer?.profile?.displayName || selectedOffer?.company.name}</DialogTitle>
             <DialogDescription>{selectedOffer?.company.category || 'Company Profile'}</DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      {/* Q&A Vendor Profile Dialog */}
+      <Dialog open={!!qaProfileCompany} onOpenChange={(open) => !open && setQaProfileCompany(null)}>
+        <DialogContent className="max-w-md p-0 overflow-hidden">
+          {qaProfileCompany && (
+            <>
+              <div className="bg-gray-50 border-b border-gray-200 px-6 pt-6 pb-8" style={{ backgroundImage: 'radial-gradient(circle, rgba(156,163,175,0.35) 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    {qaProfileCompany.logoUrl ? (
+                      <img src={qaProfileCompany.logoUrl} alt="" className="h-16 w-16 rounded-2xl object-cover ring-2 ring-gray-200 shadow-sm" />
+                    ) : (
+                      <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-[#E25E45] to-[#FF8A6B] flex items-center justify-center ring-2 ring-gray-200 shadow-sm">
+                        <span className="text-white text-lg font-bold">{(qaProfileCompany.displayName || qaProfileCompany.name).slice(0, 2).toUpperCase()}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 pt-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <h2 className="text-lg font-bold text-gray-900 leading-tight">
+                        {qaProfileCompany.displayName || qaProfileCompany.name}
+                      </h2>
+                      {qaProfileCompany.verificationStatus === 'verified' && (
+                        <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full">
+                          <CheckCircle2 className="h-3 w-3" /> {t('tenderFlow.verifiedBadge')}
+                        </span>
+                      )}
+                    </div>
+                    {qaProfileCompany.category && (
+                      <p className="text-sm text-gray-500">{qaProfileCompany.category}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 pb-6 -mt-4">
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                  {qaProfileCompany.bio && (
+                    <div className="px-5 py-4">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t('tenderFlow.aboutLabel')}</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{qaProfileCompany.bio}</p>
+                    </div>
+                  )}
+                  {!qaProfileCompany.bio && (
+                    <div className="px-5 py-6 text-center">
+                      <p className="text-sm text-gray-400 italic">{t('tenderFlow.noProfileInfo')}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+          <DialogHeader className="sr-only">
+            <DialogTitle>{qaProfileCompany?.displayName || qaProfileCompany?.name}</DialogTitle>
+            <DialogDescription>{qaProfileCompany?.category || 'Company Profile'}</DialogDescription>
           </DialogHeader>
         </DialogContent>
       </Dialog>

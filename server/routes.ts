@@ -1323,7 +1323,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         if (isOwner && q.askedByCompanyId) {
           const company = await storage.getCompany(q.askedByCompanyId);
-          if (company) base.askedByCompanyName = company.name;
+          if (company) {
+            base.askedByCompanyName = company.name;
+            base.askedByCompanyId = company.id;
+            base.askedByCompanyCategory = company.category;
+            base.askedByCompanyVerification = company.verificationStatus;
+            const profile = await storage.getCompanyProfile(company.id);
+            if (profile) {
+              base.askedByCompanyLogoUrl = profile.logoUrl;
+              base.askedByCompanyDisplayName = profile.displayName;
+              base.askedByCompanyBio = profile.bio;
+            }
+          }
         }
         return base;
       }));

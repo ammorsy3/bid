@@ -83,7 +83,7 @@ const VENDOR_COLORS = [
 
 export default function ProposalComparison({ tenderId, offers, analyses = [] }: ProposalComparisonProps) {
   const { toast } = useToast();
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const [hiddenOffers, setHiddenOffers] = useState<Set<string>>(new Set());
   const [selectedVendor, setSelectedVendor] = useState<string | null>(null);
 
@@ -94,10 +94,10 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/ai/proposal-analysis", tenderId] });
-      toast({ title: "Analysis complete", description: "All proposals have been analyzed." });
+      toast({ title: t('tenderFlow.analysisCompleteTitle'), description: t('tenderFlow.allProposalsAnalyzedDesc') });
     },
     onError: (error: Error) => {
-      toast({ title: "Analysis failed", description: error.message, variant: "destructive" });
+      toast({ title: t('tenderFlow.analysisFailedDesc'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -108,12 +108,12 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
     },
     onSuccess: (data) => {
       toast({
-        title: "Vendor selected",
-        description: `Savings recorded: SAR ${data.savingsAmount?.toLocaleString() || 0} (${data.savingsPercentage || 0}% savings)`,
+        title: t('tenderFlow.vendorSelected'),
+        description: `${t('tenderFlow.savingsRecorded')}: ${t('tenderFlow.sarCurrency')} ${data.savingsAmount?.toLocaleString() || 0} (${data.savingsPercentage || 0}% ${t('tenderFlow.savingsAmount')})`,
       });
     },
     onError: (error: Error) => {
-      toast({ title: "Failed to record savings", description: error.message, variant: "destructive" });
+      toast({ title: t('tenderFlow.failedRecordSavings'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -163,9 +163,9 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
           <div className="h-12 w-12 rounded-xl bg-[#E25E45]/10 border border-[#E25E45]/20 flex items-center justify-center mx-auto mb-4">
             <Sparkles className="h-6 w-6 text-[#E25E45]" />
           </div>
-          <h3 className="text-sm font-bold text-gray-900 mb-1">AI Proposal Comparison</h3>
+          <h3 className="text-sm font-bold text-gray-900 mb-1">{t('tenderFlow.proposalComparisonEmpty')}</h3>
           <p className="text-sm text-gray-500 mb-5 max-w-sm mx-auto">
-            Analyze all {offers.length} proposals to unlock a side-by-side comparison of deliverables, financials, and criteria coverage.
+            {t('tenderFlow.proposalComparisonEmptyDesc').replace('{count}', String(offers.length))}
           </p>
           <Button
             onClick={() => analyzeMutation.mutate()}
@@ -173,9 +173,9 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
             className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
           >
             {analyzeMutation.isPending ? (
-              <><Loader2 className="h-4 w-4 animate-spin mr-2" />Analyzing {offers.length} proposals...</>
+              <><Loader2 className="h-4 w-4 animate-spin mr-2" />{t('tenderFlow.analyzingProposals').replace('{count}', String(offers.length))}</>
             ) : (
-              <><Sparkles className="h-4 w-4 mr-2" />Analyze & Compare All</>
+              <><Sparkles className="h-4 w-4 mr-2" />{t('tenderFlow.analyzeCompareAll')}</>
             )}
           </Button>
         </div>
@@ -211,13 +211,13 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
             <Sparkles className="h-3 w-3" />
           </div>
           <div>
-            <span className="text-sm font-bold text-gray-900">Proposal Comparison</span>
-            <span className="text-xs text-gray-400 ml-2">{visibleOffers.length} vendors</span>
+            <span className="text-sm font-bold text-gray-900">{t('tenderFlow.proposalComparisonTitle')}</span>
+            <span className="text-xs text-gray-400 ml-2">{t('tenderFlow.vendorsCount').replace('{count}', String(visibleOffers.length))}</span>
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={() => analyzeMutation.mutate()} disabled={analyzeMutation.isPending} className="text-xs h-7">
           {analyzeMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RotateCcw className="h-3 w-3 mr-1" />}
-          Re-analyze
+          {t('tenderFlow.reAnalyze')}
         </Button>
       </div>
 
@@ -226,8 +226,8 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
         <div className="mx-5 mt-4 flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
           <TrendingUp className="h-4 w-4 text-emerald-600 flex-shrink-0" />
           <span className="text-sm text-emerald-800">
-            <span className="font-bold">SAR {(highestPrice - lowestPrice).toLocaleString()}</span>
-            {" "}potential savings · {Math.round(((highestPrice - lowestPrice) / highestPrice) * 100)}% spread across offers
+            <span className="font-bold">{t('tenderFlow.sarCurrency')} {(highestPrice - lowestPrice).toLocaleString()}</span>
+            {" "}{t('tenderFlow.potentialSavings')} · {Math.round(((highestPrice - lowestPrice) / highestPrice) * 100)}% {t('tenderFlow.spreadAcrossOffers')}
           </span>
         </div>
       )}
@@ -278,20 +278,20 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
                       <div className="flex items-center justify-between gap-1 mb-1.5">
                         {total != null ? (
                           <span className={`text-xs font-bold ${isCheapest ? 'text-emerald-700' : 'text-gray-800'}`}>
-                            SAR {total.toLocaleString()}
+                            {t('tenderFlow.sarCurrency')} {total.toLocaleString()}
                           </span>
                         ) : (
-                          <span className="text-[10px] text-gray-400">No price</span>
+                          <span className="text-[10px] text-gray-400">{t('tenderFlow.noPrice')}</span>
                         )}
                         <div className="flex gap-0.5 flex-shrink-0">
                           {isCheapest && (
                             <span className="inline-flex items-center gap-0.5 text-[9px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full border border-emerald-200">
-                              <Award className="h-2 w-2" /> Best
+                              <Award className="h-2 w-2" /> {t('tenderFlow.bestLabel')}
                             </span>
                           )}
                           {isSelected && (
                             <span className="text-[9px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full border border-blue-200">
-                              ✓ Selected
+                              ✓ {t('tenderFlow.selectedLabel')}
                             </span>
                           )}
                         </div>
@@ -311,7 +311,7 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
                       <div className="flex items-center gap-1">
                         {isSelected ? (
                           <div className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-md py-1 px-2">
-                            <CheckCircle className="h-2.5 w-2.5" /> Selected
+                            <CheckCircle className="h-2.5 w-2.5" /> {t('tenderFlow.selectedLabel')}
                           </div>
                         ) : (
                           <Button
@@ -320,7 +320,7 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
                             onClick={() => handleSelectVendor(offer)}
                             disabled={savingsMutation.isPending || total == null}
                           >
-                            <CheckCircle className="h-2.5 w-2.5 mr-1" /> Select
+                            <CheckCircle className="h-2.5 w-2.5 mr-1" /> {t('tenderFlow.selectBtn')}
                           </Button>
                         )}
                         <DropdownMenu>
@@ -334,18 +334,18 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
                               onClick={() => { const f = offer.combinedFileUrl || offer.technicalFileUrl; if (f) viewAuthenticatedFile(f); }}
                               disabled={!offer.combinedFileUrl && !offer.technicalFileUrl}
                             >
-                              <FileText className="h-4 w-4 mr-2" /> View Proposal
+                              <FileText className="h-4 w-4 mr-2" /> {t('tenderFlow.viewProposal')}
                             </DropdownMenuItem>
                             {offer.financialFileUrl && (
                               <DropdownMenuItem onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}>
-                                <DollarSign className="h-4 w-4 mr-2" /> View Financial
+                                <DollarSign className="h-4 w-4 mr-2" /> {t('tenderFlow.viewFinancial')}
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuItem
                               onClick={() => setHiddenOffers(prev => new Set([...Array.from(prev), offer.id]))}
                               className="text-red-500 focus:text-red-500"
                             >
-                              <X className="h-4 w-4 mr-2" /> Remove
+                              <X className="h-4 w-4 mr-2" /> {t('tenderFlow.removeLabel')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -359,12 +359,12 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
 
           <tbody>
             {/* ─── Financial section ──────────────────────────────────── */}
-            <SectionHeader label="Financial" icon={DollarSign} />
+            <SectionHeader label={t('tenderFlow.financialSection')} icon={DollarSign} />
 
             {/* Total Price */}
             <tr className="border-b border-gray-100 hover:bg-gray-50/40 transition-colors">
               <td className={`${LABEL_W} sticky left-0 bg-white px-4 py-3 text-xs font-semibold text-gray-700 border-r border-gray-100`}>
-                Total Price
+                {t('tenderFlow.totalPrice')}
               </td>
               {visibleOffers.map(offer => {
                 const total = getTotal(offer.id);
@@ -374,7 +374,7 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
                   <td key={offer.id} className={`${COL_W} px-4 py-3 text-center border-r border-gray-100 last:border-r-0 ${selectedVendor === offer.id ? 'bg-blue-50/30' : ''}`}>
                     {total != null ? (
                       <span className={`text-sm font-bold ${isCheapest ? 'text-emerald-700' : isMostExp ? 'text-red-500' : 'text-gray-900'}`}>
-                        SAR {total.toLocaleString()}
+                        {t('tenderFlow.sarCurrency')} {total.toLocaleString()}
                       </span>
                     ) : <span className="text-gray-300 text-xs">—</span>}
                   </td>
@@ -384,7 +384,7 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
 
             {/* VAT */}
             <tr className="border-b border-gray-100 hover:bg-gray-50/40 transition-colors">
-              <td className={`${LABEL_W} sticky left-0 bg-white px-4 py-3 text-xs font-medium text-gray-500 border-r border-gray-100`}>VAT</td>
+              <td className={`${LABEL_W} sticky left-0 bg-white px-4 py-3 text-xs font-medium text-gray-500 border-r border-gray-100`}>{t('tenderFlow.vatLabel')}</td>
               {visibleOffers.map(offer => {
                 const fin = getFinancial(offer.id);
                 return (
@@ -397,7 +397,7 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
 
             {/* Payment Terms */}
             <tr className="border-b border-gray-100 hover:bg-gray-50/40 transition-colors">
-              <td className={`${LABEL_W} sticky left-0 bg-white px-4 py-3 text-xs font-medium text-gray-500 border-r border-gray-100`}>Payment Terms</td>
+              <td className={`${LABEL_W} sticky left-0 bg-white px-4 py-3 text-xs font-medium text-gray-500 border-r border-gray-100`}>{t('tenderFlow.paymentTerms')}</td>
               {visibleOffers.map(offer => {
                 const fin = getFinancial(offer.id);
                 return (
@@ -411,7 +411,7 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
             {/* ─── Deliverables section ───────────────────────────────── */}
             {allDeliverables.size > 0 && (
               <>
-                <SectionHeader label="Deliverables Coverage" icon={Check} />
+                <SectionHeader label={t('tenderFlow.deliverablesCoverage')} icon={Check} />
                 {Array.from(allDeliverables).map((deliverable, dIdx) => (
                   <tr key={deliverable} className={`border-b border-gray-100 hover:bg-gray-50/40 transition-colors ${dIdx % 2 === 1 ? 'bg-gray-50/20' : ''}`}>
                     <td className={`${LABEL_W} sticky left-0 ${dIdx % 2 === 1 ? 'bg-gray-50/80' : 'bg-white'} px-4 py-2.5 text-xs text-gray-600 border-r border-gray-100 leading-snug`}>
@@ -447,7 +447,7 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
             {/* ─── Requirements coverage section ──────────────────────── */}
             {allCriteria.size > 0 && (
               <>
-                <SectionHeader label="Requirements Coverage" icon={Sparkles} />
+                <SectionHeader label={t('tenderFlow.requirementsCoverage')} icon={Sparkles} />
                 {Array.from(allCriteria).map((criterion, cIdx) => (
                   <tr key={criterion} className={`border-b border-gray-100 hover:bg-gray-50/40 transition-colors ${cIdx % 2 === 1 ? 'bg-gray-50/20' : ''}`}>
                     <td className={`${LABEL_W} sticky left-0 ${cIdx % 2 === 1 ? 'bg-gray-50/80' : 'bg-white'} px-4 py-2.5 text-xs text-gray-600 border-r border-gray-100 leading-snug`}>
@@ -491,7 +491,7 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
         <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between gap-4 flex-wrap">
           {removedOffers.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-gray-400">Removed:</span>
+              <span className="text-xs text-gray-400">{t('tenderFlow.removedLabel')}</span>
               {removedOffers.map(o => (
                 <Button key={o.id} variant="outline" size="sm" className="text-xs h-6 px-2"
                   onClick={() => setHiddenOffers(prev => { const n = new Set(prev); n.delete(o.id); return n; })}
@@ -503,7 +503,7 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
           )}
           {completedAnalyses[0]?.analyzedAt && (
             <p className="text-xs text-gray-400 ml-auto">
-              Analyzed {new Date(completedAnalyses[0].analyzedAt).toLocaleString()}
+              {t('tenderFlow.analyzedLabel')} {new Date(completedAnalyses[0].analyzedAt).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')}
             </p>
           )}
         </div>

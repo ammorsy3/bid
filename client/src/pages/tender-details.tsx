@@ -321,10 +321,10 @@ export default function TenderDetails() {
     onSuccess: (_, vars) => {
       setAnswerText(prev => { const copy = { ...prev }; delete copy[vars.questionId]; return copy; });
       queryClient.invalidateQueries({ queryKey: ['/api/tenders', id, 'questions'] });
-      toast({ title: "Answer submitted", description: "Your answer is now visible to all vendors." });
+      toast({ title: t('tenderFlow.answerSubmittedToast'), description: t('tenderFlow.answerSubmittedDesc') });
     },
     onError: (error: Error) => {
-      toast({ title: "Failed to submit answer", description: error.message, variant: "destructive" });
+      toast({ title: t('tenderFlow.failedSubmitAnswerToast'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -401,21 +401,21 @@ export default function TenderDetails() {
       if (status === 'published' && tender?.invitationToken) {
         const inviteLink = `${window.location.origin}/invite/${tender.invitationToken}`;
         toast({
-          title: "Published!",
-          description: "Tender is now live and accepting proposals",
+          title: t('tenderFlow.publishedToast'),
+          description: t('tenderFlow.publishedToastDesc'),
           action: (
-            <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
-              <Copy className="h-3 w-3 mr-1" /> Copy Link
+            <ToastAction altText={t('tenderFlow.copyLinkAlt')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderFlow.linkCopiedToast') }); }}>
+              <Copy className="h-3 w-3 mr-1" /> {t('tenderFlow.copyLink')}
             </ToastAction>
           ),
           duration: 10000,
         });
       } else {
-        toast({ title: "Status updated", description: "Tender status has been updated successfully" });
+        toast({ title: t('tenderFlow.statusUpdatedToast'), description: t('tenderFlow.statusUpdatedDesc') });
       }
     },
     onError: (error: Error) => {
-      toast({ title: "Failed to update status", description: error.message, variant: "destructive" });
+      toast({ title: t('tenderFlow.failedUpdateStatusToast'), description: error.message, variant: "destructive" });
     }
   });
 
@@ -425,11 +425,11 @@ export default function TenderDetails() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
-      toast({ title: "Tender deleted", description: "The tender has been removed" });
+      toast({ title: t('tenderFlow.tenderDeletedToast'), description: t('tenderFlow.tenderDeletedDesc') });
       setLocation('/dashboard');
     },
     onError: (error: Error) => {
-      toast({ title: "Failed to delete", description: error.message, variant: "destructive" });
+      toast({ title: t('tenderFlow.failedDeleteToast'), description: error.message, variant: "destructive" });
     }
   });
 
@@ -455,14 +455,14 @@ export default function TenderDetails() {
     onSuccess: (data: any, offerId: string) => {
       queryClient.invalidateQueries({ queryKey: ['/api/ai/proposal-analysis', id] });
       if (data?.status === 'failed') {
-        toast({ title: "Analysis failed", description: data.errorMessage || "Could not analyze this proposal.", variant: "destructive" });
+        toast({ title: t('tenderFlow.analysisFailedToast'), description: data.errorMessage || t('tenderFlow.analysisFailedDesc'), variant: "destructive" });
       } else {
         setAnalysisDrawerOfferId(offerId);
-        toast({ title: "Analysis complete", description: "AI has extracted key facts from this proposal." });
+        toast({ title: t('tenderFlow.analysisCompleteToast'), description: t('tenderFlow.analysisCompleteDesc') });
       }
     },
     onError: (error: Error) => {
-      toast({ title: "Analysis failed", description: error.message, variant: "destructive" });
+      toast({ title: t('tenderFlow.analysisFailedToast'), description: error.message, variant: "destructive" });
     }
   });
 
@@ -475,15 +475,15 @@ export default function TenderDetails() {
       await navigator.clipboard.writeText(invitationLink);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
-      toast({ title: "Copied!", description: "Invitation link copied to clipboard" });
+      toast({ title: t('tenderFlow.copiedToast'), description: t('tenderFlow.copiedToastDesc') });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to copy link", variant: "destructive" });
+      toast({ title: t('tenderFlow.failedCopyToast'), description: t('tenderFlow.failedCopyDesc'), variant: "destructive" });
     }
   };
 
   const formatDate = (dateStr: string | Date) => {
     const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric'
@@ -493,13 +493,13 @@ export default function TenderDetails() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'published':
-        return { className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300', label: 'Open' };
+        return { className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300', label: t('tenderFlow.statusOpen') };
       case 'draft':
-        return { className: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300', label: 'Draft' };
+        return { className: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300', label: t('tenderFlow.statusDraft') };
       case 'closed':
-        return { className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', label: 'Closed' };
+        return { className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', label: t('tenderFlow.statusClosed') };
       case 'cancelled':
-        return { className: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300', label: 'Cancelled' };
+        return { className: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300', label: t('tenderFlow.statusCancelled') };
       default:
         return { className: 'bg-gray-100 text-gray-800', label: status };
     }
@@ -516,19 +516,19 @@ export default function TenderDetails() {
       if (months <= 6) return DURATION_LABELS["3to6"]?.[language];
       return DURATION_LABELS["6plus"]?.[language];
     }
-    return language === 'ar' ? 'غير محدد' : 'Not specified';
+    return t('tenderFlow.notSpecified');
   };
 
   const getBudgetDisplay = () => {
     if (!tender) return null;
     const showPrice = tender.showPriceToVendors !== false;
-    const sar = language === 'ar' ? 'ريال' : 'SAR';
+    const sar = t('tenderFlow.sarCurrency');
 
     if (!showPrice && !isOwner) {
       if (tender.projectSize) {
         return PROJECT_SIZE_LABELS[tender.projectSize]?.[language] || tender.projectSize;
       }
-      return language === 'ar' ? "تُفصح الميزانية بعد التأهيل" : "Budget disclosed upon qualification";
+      return t('tenderFlow.budgetDisclosedUponQualification');
     }
 
     if (tender.budgetMin && tender.budgetMax) {
@@ -541,7 +541,7 @@ export default function TenderDetails() {
       }
       return tender.budget;
     }
-    return tender.budgetRange || (language === 'ar' ? 'غير محدد' : 'Not specified');
+    return tender.budgetRange || t('tenderFlow.notSpecified');
   };
 
   if (isLoading) {
@@ -558,13 +558,13 @@ export default function TenderDetails() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
-              <h3 className="text-xl font-semibold mb-2">Tender not found</h3>
+              <h3 className="text-xl font-semibold mb-2">{t('tenderFlow.tenderNotFoundTitle')}</h3>
               <p className="text-muted-foreground mb-4">
-                The tender you're looking for doesn't exist or you don't have access to it.
+                {t('tenderFlow.tenderNotFoundMessage')}
               </p>
               <Button onClick={() => setLocation('/dashboard')}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
+                <ArrowLeft className={`h-4 w-4 ${isRtl ? 'ml-2 rotate-180' : 'mr-2'}`} />
+                {t('tenderFlow.backToDashboard')}
               </Button>
             </CardContent>
           </Card>
@@ -589,12 +589,12 @@ export default function TenderDetails() {
   const hasInquiryMethod = !!tender.inquiryType;
 
   const tocSections = [
-    { id: 'description', label: 'Project Scope',             icon: FileText,    show: true },
-    { id: 'context',     label: 'Context',                   icon: Mic,         show: !!(tender.voiceNoteUrl || tender.videoUrl) },
-    { id: 'submission',  label: 'Submission',                icon: Send,        show: !!tender.submissionType },
-    { id: 'evaluation',  label: 'Evaluation',                icon: Star,        show: hasEvalCriteria },
-    { id: 'inquiry',     label: 'Q&A',                       icon: HelpCircle,  show: hasInquiryMethod },
-    ...(isOwner ? [{ id: 'proposals', label: 'Proposals', icon: Users, show: true }] : []),
+    { id: 'description', label: t('tenderFlow.projectScope'),       icon: FileText,    show: true },
+    { id: 'context',     label: t('tenderFlow.tocContext'),         icon: Mic,         show: !!(tender.voiceNoteUrl || tender.videoUrl) },
+    { id: 'submission',  label: t('tenderFlow.tocSubmission'),      icon: Send,        show: !!tender.submissionType },
+    { id: 'evaluation',  label: t('tenderFlow.tocEvaluation'),      icon: Star,        show: hasEvalCriteria },
+    { id: 'inquiry',     label: t('tenderFlow.tocQA'),              icon: HelpCircle,  show: hasInquiryMethod },
+    ...(isOwner ? [{ id: 'proposals', label: t('tenderFlow.tocProposals'), icon: Users, show: true }] : []),
   ].filter(s => s.show);
 
   const sectionNumber = (id: string) => {
@@ -666,7 +666,7 @@ export default function TenderDetails() {
                     </Button>
                   )}
                   <Button variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 bg-white/80"
-                    onClick={() => { if (confirm('Are you sure you want to delete this tender? This action cannot be undone.')) { deleteTender.mutate(); } }}
+                    onClick={() => { if (confirm(t('tenderFlow.deleteConfirm'))) { deleteTender.mutate(); } }}
                     disabled={deleteTender.isPending} data-testid="button-delete">
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -683,7 +683,7 @@ export default function TenderDetails() {
               </div>
             )}
             <div className="flex items-center gap-1.5 text-xs text-gray-400">
-              <Calendar className="h-3 w-3" /><span>Deadline {formatDate(tender.deadline)}</span>
+              <Calendar className="h-3 w-3" /><span>{t('tenderFlow.deadlineOn')} {formatDate(tender.deadline)}</span>
             </div>
             {getBudgetDisplay() && (
               <div className="flex items-center gap-1.5 text-xs text-gray-400">
@@ -696,8 +696,8 @@ export default function TenderDetails() {
               </div>
             )}
             {isOwner && (
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#E25E45] ml-auto">
-                <Users className="h-3 w-3" /><span>{offers.length} proposal{offers.length !== 1 ? 's' : ''} received</span>
+              <div className={`flex items-center gap-1.5 text-xs font-semibold text-[#E25E45] ${isRtl ? 'mr-auto' : 'ml-auto'}`}>
+                <Users className="h-3 w-3" /><span>{offers.length} {offers.length !== 1 ? t('tenderFlow.proposalsReceived') : t('tenderFlow.proposalReceived')}</span>
               </div>
             )}
           </div>
@@ -770,7 +770,7 @@ export default function TenderDetails() {
                     <div className="mb-8">
                       <div className="flex items-center gap-2 mb-3">
                         <Target className="h-3.5 w-3.5 text-[#E25E45]" />
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('tenderFlow.projectObjective')}</p>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('tenderFlow.projectObjectiveTitle')}</p>
                       </div>
                       <div className="pl-4 border-l-2 border-[#E25E45]/30 py-0.5">
                         <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]">{String(tender.objective)}</p>
@@ -784,7 +784,7 @@ export default function TenderDetails() {
                         <ListChecks className="h-3.5 w-3.5 text-[#E25E45]" />
                         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{t('tenderFlow.deliverablesSection')}</p>
                       </div>
-                      <p className="text-xs text-gray-400 mb-4">{language === 'ar' ? 'وضّح كل بند مع التسعير والجدول الزمني في عرضك.' : 'Address each item with pricing and timeline in your proposal.'}</p>
+                      <p className="text-xs text-gray-400 mb-4">{t('tenderFlow.addressEachItem')}</p>
                       <div className="space-y-2.5">
                         {(tender.deliverables as any[]).map((deliverable: any, index: number) => {
                           if (typeof deliverable === 'string') {
@@ -822,7 +822,7 @@ export default function TenderDetails() {
                     <div className={hasMilestones ? "mb-8" : ""}>
                       <div className="flex items-center gap-2 mb-3">
                         <Tag className="h-3.5 w-3.5 text-[#E25E45]" />
-                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Required Skills</p>
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{t('tenderFlow.requiredSkillsLabel')}</p>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {tender.skills!.map((skill, index) => (
@@ -839,9 +839,9 @@ export default function TenderDetails() {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <Flag className="h-3.5 w-3.5 text-[#E25E45]" />
-                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Milestones & Payments</p>
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{t('tenderFlow.milestonesPayments')}</p>
                       </div>
-                      <p className="text-xs text-gray-400 mb-4">Payments are released upon completion and acceptance of each milestone.</p>
+                      <p className="text-xs text-gray-400 mb-4">{t('tenderFlow.paymentsReleasedHint')}</p>
                       <div className="relative">
                         <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-[#E25E45] to-[#FF8A6B] rounded-full" />
                         <div className="space-y-4">
@@ -855,11 +855,11 @@ export default function TenderDetails() {
                                 {milestone.description && <p className="text-sm text-gray-600 mt-0.5">{milestone.description}</p>}
                                 {milestone.dueDate && (
                                   <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" /> Due: {formatDate(milestone.dueDate)}
+                                    <Calendar className="h-3 w-3" /> {t('tenderFlow.dueLabel')} {formatDate(milestone.dueDate)}
                                   </p>
                                 )}
                                 {milestone.amount && (
-                                  <p className="text-xs text-[#E25E45] mt-1 font-medium">SAR {Number(milestone.amount).toLocaleString()}</p>
+                                  <p className="text-xs text-[#E25E45] mt-1 font-medium">{t('tenderFlow.sarCurrency')} {Number(milestone.amount).toLocaleString()}</p>
                                 )}
                               </div>
                             </div>
@@ -868,9 +868,9 @@ export default function TenderDetails() {
                       </div>
                       {(tender.milestones as any[]).some((m: any) => m.amount) && (
                         <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between px-2">
-                          <span className="text-sm font-semibold text-gray-700">Total Project Value</span>
+                          <span className="text-sm font-semibold text-gray-700">{t('tenderFlow.totalMilestoneValue')}</span>
                           <span className="text-base font-bold text-[#E25E45]">
-                            SAR {(tender.milestones as any[]).reduce((sum: number, m: any) => sum + (Number(m.amount) || 0), 0).toLocaleString()}
+                            {t('tenderFlow.sarCurrency')} {(tender.milestones as any[]).reduce((sum: number, m: any) => sum + (Number(m.amount) || 0), 0).toLocaleString()}
                           </span>
                         </div>
                       )}
@@ -883,13 +883,13 @@ export default function TenderDetails() {
                   <>
                     <div className="mx-6 sm:mx-8 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
                     <div id="section-context" className="p-6 sm:p-8 scroll-mt-24">
-                      <TDSectionHeader index={sectionNumber('context')} title={language === 'ar' ? 'سياق إضافي' : 'Additional Context'} />
+                      <TDSectionHeader index={sectionNumber('context')} title={t('tenderFlow.additionalContextTitle')} />
                       <div className="space-y-4">
                         {tender.voiceNoteUrl && (
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                               <Mic className="h-4 w-4 text-pink-500" />
-                              <span>{language === 'ar' ? 'ملاحظة صوتية من صاحب المشروع' : 'Voice Note from Requester'}</span>
+                              <span>{t('tenderFlow.voiceNoteFromRequester')}</span>
                             </div>
                             <AudioPlayer src={tender.voiceNoteUrl} />
                           </div>
@@ -898,12 +898,12 @@ export default function TenderDetails() {
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                               <Video className="h-4 w-4 text-blue-500" />
-                              <span>{language === 'ar' ? 'شرح فيديو' : 'Video Explanation'}</span>
+                              <span>{t('tenderFlow.videoExplanationTitle')}</span>
                             </div>
                             <a href={tender.videoUrl.startsWith('http') ? tender.videoUrl : `https://${tender.videoUrl}`} target="_blank" rel="noopener noreferrer"
                               className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
                               data-testid="link-video">
-                              <ExternalLink className="h-4 w-4" /> {language === 'ar' ? 'مشاهدة الفيديو' : 'Watch Video'}
+                              <ExternalLink className="h-4 w-4" /> {t('tenderFlow.watchVideo')}
                             </a>
                           </div>
                         )}
@@ -916,7 +916,7 @@ export default function TenderDetails() {
                   <>
                     <div className="mx-6 sm:mx-8 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
                     <div id="section-submission" className="p-6 sm:p-8 scroll-mt-24">
-                      <TDSectionHeader index={sectionNumber('submission')} title={language === 'ar' ? 'متطلبات التقديم' : 'Submission Requirements'} />
+                      <TDSectionHeader index={sectionNumber('submission')} title={t('tenderFlow.submissionRequirementsTitle')} />
                       <div className="rounded-xl border border-gray-200 overflow-hidden mb-4">
                         <div className="h-0.5 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
                         <div className="flex items-center gap-3 p-4 bg-gray-50">
@@ -926,20 +926,13 @@ export default function TenderDetails() {
                           <div>
                             <p className="font-semibold text-gray-900 text-sm">{SUBMISSION_TYPE_LABELS[tender.submissionType]?.[language] || tender.submissionType}</p>
                             <p className="text-xs text-gray-500 mt-0.5">
-                              {language === 'ar' ? ({
-                                quote_only: "قدّم عرض سعر تفصيلي مع تكلفة كل بند من التسليمات",
-                                tech_fin_proposal: "قدّم مستند منهجية فنية ومقترح مالي منفصل",
-                                video_only: "سجّل وقدّم عرض فيديو (10 دقائق كحد أقصى) يوضح منهجيتك",
-                                tech_fin_with_video: "قدّم العرض الفني والمالي مع فيديو داعم",
-                                document_only: "قدّم عرضك كمستند واحد يشمل النطاق والمنهجية والجدول الزمني والتسعير",
-                                both: "قدّم عرض فيديو ومستند مكتوب يوضح عرضك",
-                              } as Record<string, string>)[tender.submissionType!] : ({
-                                quote_only: "Submit a detailed price quote with itemized costs for each deliverable",
-                                tech_fin_proposal: "Submit a comprehensive technical approach document and a separate financial proposal",
-                                video_only: "Record and submit a video pitch (max 10 minutes) presenting your approach",
-                                tech_fin_with_video: "Submit full technical and financial proposal documents accompanied by a video pitch",
-                                document_only: "Submit your proposal as a single document covering scope, approach, timeline, and pricing",
-                                both: "Submit both a video presentation and a written document detailing your proposal",
+                              {({
+                                quote_only: t('tenderFlow.submDescQuoteOnly'),
+                                tech_fin_proposal: t('tenderFlow.submDescTechFin'),
+                                video_only: t('tenderFlow.submDescVideoOnly'),
+                                tech_fin_with_video: t('tenderFlow.submDescTechFinVideo'),
+                                document_only: t('tenderFlow.submDescDocOnly'),
+                                both: t('tenderFlow.submDescBoth'),
                               } as Record<string, string>)[tender.submissionType!]}
                             </p>
                           </div>
@@ -948,12 +941,12 @@ export default function TenderDetails() {
                       {tender.videoRequired && (
                         <div className="flex items-center gap-2 px-4 py-3 bg-orange-50 rounded-xl border border-orange-200 mb-4">
                           <Video className="h-4 w-4 text-orange-500 flex-shrink-0" />
-                          <span className="text-sm font-medium text-orange-800">{language === 'ar' ? 'تقديم الفيديو إلزامي لهذا الطلب' : 'Video submission is mandatory for this RFP'}</span>
+                          <span className="text-sm font-medium text-orange-800">{t('tenderFlow.videoMandatoryOwner')}</span>
                         </div>
                       )}
                       <div className="flex items-center gap-2 text-xs text-gray-400">
                         <Calendar className="h-3.5 w-3.5" />
-                        <span>{language === 'ar' ? 'آخر موعد للتقديم:' : 'Submission deadline:'} <span className={`font-semibold ${isExpired ? 'text-red-500' : 'text-gray-600'}`}>{formatDate(tender.deadline)}</span></span>
+                        <span>{t('tenderFlow.submissionDeadlinePrefix')} <span className={`font-semibold ${isExpired ? 'text-red-500' : 'text-gray-600'}`}>{formatDate(tender.deadline)}</span></span>
                       </div>
                     </div>
                   </>
@@ -963,8 +956,8 @@ export default function TenderDetails() {
                   <>
                     <div className="mx-6 sm:mx-8 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
                     <div id="section-evaluation" className="p-6 sm:p-8 scroll-mt-24">
-                      <TDSectionHeader index={sectionNumber('evaluation')} title={language === 'ar' ? 'معايير التقييم' : 'Evaluation Criteria'} />
-                      <p className="text-sm text-gray-400 mb-6">{language === 'ar' ? 'سيتم تقييم العروض وفقاً لهذه المعايير. تأكد من أن عرضك يغطي كل فئة بوضوح.' : 'Proposals will be scored against these criteria. Ensure your submission clearly addresses each category.'}</p>
+                      <TDSectionHeader index={sectionNumber('evaluation')} title={t('tenderFlow.evaluationCriteriaTitle2')} />
+                      <p className="text-sm text-gray-400 mb-6">{t('tenderFlow.evaluationHintOwner')}</p>
                   {Array.isArray(evalCriteria) ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {evalCriteria.map((criteria: any, index: number) => {
@@ -990,7 +983,7 @@ export default function TenderDetails() {
                       {(evalCriteria.weights?.length > 0 || evalCriteria.customCriteria?.length > 0) && (
                         <div className="mb-6">
                           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <BarChart className="h-3.5 w-3.5" /> {language === 'ar' ? 'توزيع الدرجات' : 'Score Distribution'}
+                            <BarChart className="h-3.5 w-3.5" /> {t('tenderFlow.scoreDistribution')}
                           </p>
                           <div className="flex rounded-full overflow-hidden h-3 mb-3 gap-0.5">
                             {(evalCriteria.weights || []).map((w: any, i: number) => (
@@ -1100,7 +1093,7 @@ export default function TenderDetails() {
                       })}
                       {evalCriteria.customCriteria?.length > 0 && (
                         <div className="space-y-2 pt-2">
-                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">{language === 'ar' ? 'معايير مخصصة' : 'Custom Criteria'}</p>
+                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">{t('tenderFlow.customCriteriaSection')}</p>
                           {evalCriteria.customCriteria.map((c: any) => (
                             <div key={c.id} className="flex items-center justify-between px-4 py-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/30">
                               <span className="text-sm text-gray-800 dark:text-gray-200">{c.text}</span>
@@ -1119,11 +1112,11 @@ export default function TenderDetails() {
                   <>
                     <div className="mx-6 sm:mx-8 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
                     <div id="section-inquiry" className="p-6 sm:p-8 scroll-mt-24">
-                      <TDSectionHeader index={sectionNumber('inquiry')} title={language === 'ar' ? 'الأسئلة والتوضيحات' : 'Questions & Clarifications'} />
+                      <TDSectionHeader index={sectionNumber('inquiry')} title={t('tenderFlow.questionsAndClarifications')} />
                       <p className="text-sm text-gray-400 mb-6">
                         {tender.inquiryType === 'inside_bid'
-                          ? (language === 'ar' ? 'يمكن للموردين طرح أسئلة مجهولة. إجاباتك تُشارك مع جميع المشاركين.' : 'Vendors can ask anonymous questions. Your answers are shared with all participants.')
-                          : (language === 'ar' ? 'تواصل مع صاحب المشروع مباشرة لأي استفسارات حول هذا الطلب.' : 'Contact the requester directly for any clarifications about this RFP.')}
+                          ? t('tenderFlow.qaInsideBidDesc')
+                          : t('tenderFlow.qaContactDesc')}
                       </p>
                   {tender.inquiryType === 'inside_bid' && (
                     <div className="space-y-4">
@@ -1132,14 +1125,14 @@ export default function TenderDetails() {
                           <Shield className="h-4 w-4 text-green-600 dark:text-green-400" />
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {language === 'ar' ? 'يمكن للموردين طرح أسئلة مجهولة على هذا الطلب. إجاباتك ستكون مرئية لجميع المشاركين.' : 'Vendors can ask anonymous questions on this RFP. Your answers will be visible to all participants.'}
+                          {t('tenderFlow.qaAnonymousInfo')}
                         </p>
                       </div>
 
                       {qaQuestions.length > 0 ? (
                         <div className="space-y-3">
                           <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {language === 'ar' ? `${qaQuestions.length} سؤال من الموردين` : `${qaQuestions.length} question${qaQuestions.length !== 1 ? 's' : ''} from vendors`}
+                            {qaQuestions.length} {qaQuestions.length !== 1 ? t('tenderFlow.questionsFromVendors') : t('tenderFlow.questionFromVendors')}
                           </p>
                           {qaQuestions.map((q) => (
                             <div key={q.id} className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -1149,9 +1142,9 @@ export default function TenderDetails() {
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm text-gray-900 dark:text-white">{q.question}</p>
                                     <p className="text-xs text-gray-400 mt-1">
-                                      {language === 'ar' ? 'سُئل' : 'Asked'} {new Date(q.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' })}
+                                      {t('tenderFlow.askedLabel')} {new Date(q.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' })}
                                       {q.askedByCompanyName && (
-                                        <span className="ml-1 text-gray-500"> by {q.askedByCompanyName}</span>
+                                        <span className={`${isRtl ? 'mr-1' : 'ml-1'} text-gray-500`}> {t('tenderFlow.byLabel')} {q.askedByCompanyName}</span>
                                       )}
                                     </p>
                                   </div>
@@ -1162,7 +1155,7 @@ export default function TenderDetails() {
                                   <div className="flex items-start gap-2">
                                     <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-0.5">{language === 'ar' ? 'إجابتك' : 'Your answer'}</p>
+                                      <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-0.5">{t('tenderFlow.yourAnswer')}</p>
                                       <p className="text-sm text-gray-800 dark:text-gray-200">{q.answer}</p>
                                     </div>
                                   </div>
@@ -1170,7 +1163,7 @@ export default function TenderDetails() {
                               ) : canManage ? (
                                 <div className="px-4 py-3 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 space-y-2">
                                   <Textarea
-                                    placeholder={language === 'ar' ? 'اكتب إجابتك...' : 'Type your answer...'}
+                                    placeholder={t('tenderFlow.typeAnswerPlaceholder')}
                                     value={answerText[q.id] || ''}
                                     onChange={(e) => setAnswerText(prev => ({ ...prev, [q.id]: e.target.value }))}
                                     rows={2}
@@ -1184,7 +1177,7 @@ export default function TenderDetails() {
                                       className="bg-green-600 hover:bg-green-700"
                                     >
                                       {answerQuestion.isPending ? <Loader2 className={`h-3 w-3 animate-spin ${isRtl ? 'ml-1' : 'mr-1'}`} /> : <Send className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />}
-                                      {language === 'ar' ? 'أجب' : 'Answer'}
+                                      {t('tenderFlow.answerBtn')}
                                     </Button>
                                   </div>
                                 </div>
@@ -1192,7 +1185,7 @@ export default function TenderDetails() {
                                 <div className="px-4 py-2.5 bg-amber-50/50 dark:bg-amber-900/10 border-t border-gray-100 dark:border-gray-700">
                                   <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                                     <Clock className="h-3 w-3" />
-                                    {language === 'ar' ? 'بانتظار الإجابة' : 'Awaiting answer'}
+                                    {t('tenderFlow.awaitingAnswer')}
                                   </p>
                                 </div>
                               )}
@@ -1200,7 +1193,7 @@ export default function TenderDetails() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 italic">No questions have been asked yet.</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 italic">{t('tenderFlow.noQuestionsOwner')}</p>
                       )}
                     </div>
                   )}
@@ -1208,7 +1201,7 @@ export default function TenderDetails() {
                   {tender.inquiryType === 'email_whatsapp' && (
                     <div className="space-y-3">
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                        Reach out directly to the requester using the contact details below:
+                        {t('tenderFlow.reachOutDirectly')}
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {tender.emailContact && (
@@ -1266,7 +1259,7 @@ export default function TenderDetails() {
                         <span className="text-xs font-mono text-gray-300 bg-gray-50 px-2 py-1 rounded border border-gray-100">
                           {sectionNumber('proposals')}.0
                         </span>
-                        <h2 className="text-xl font-bold text-gray-900">Proposals</h2>
+                        <h2 className="text-xl font-bold text-gray-900">{t('tenderFlow.proposalsHeading')}</h2>
                         {offers.length > 0 && (
                           <span className="inline-flex items-center justify-center h-6 min-w-[24px] px-2 rounded-full bg-gray-900 text-white text-xs font-bold">
                             {offers.length}
@@ -1285,8 +1278,8 @@ export default function TenderDetails() {
                         <div className="h-14 w-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
                           <Users className="h-7 w-7 text-gray-300" />
                         </div>
-                        <p className="font-semibold text-gray-500">{language === 'ar' ? 'لم تصل أي عروض بعد' : 'No proposals received yet'}</p>
-                        <p className="text-sm text-gray-400 mt-1">{language === 'ar' ? 'شارك رابط الدعوة مع الموردين لبدء استقبال العروض' : 'Share the invitation link with vendors to start receiving proposals'}</p>
+                        <p className="font-semibold text-gray-500">{t('tenderFlow.noProposalsYet')}</p>
+                        <p className="text-sm text-gray-400 mt-1">{t('tenderFlow.shareInvitationHint')}</p>
                       </div>
                     ) : (
                       <div className="space-y-3">
@@ -1328,19 +1321,19 @@ export default function TenderDetails() {
                                         <h4 className="font-bold text-gray-900 text-base leading-tight">{offer.profile?.displayName || offer.company.name}</h4>
                                         {offer.company.verificationStatus === 'verified' && (
                                           <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex-shrink-0">
-                                            <CheckCircle2 className="h-3 w-3" /> Verified
+                                            <CheckCircle2 className="h-3 w-3" /> {t('tenderFlow.verifiedBadge')}
                                           </span>
                                         )}
                                       </div>
                                       <p className="text-xs text-gray-400">
                                         {offer.company.category && <span className="font-medium text-gray-500">{offer.company.category} · </span>}
-                                        {language === 'ar' ? 'قُدّم' : 'Submitted'} {formatDate(offer.submittedAt)}
+                                        {t('tenderFlow.submittedOn')} {formatDate(offer.submittedAt)}
                                       </p>
                                     </div>
                                     {offer.quotePrice && (
                                       <div className="flex-shrink-0 text-right">
-                                        <p className="text-xl font-bold text-gray-900">SAR {offer.quotePrice.toLocaleString()}</p>
-                                        <p className="text-xs text-gray-400 mt-0.5">Quoted price</p>
+                                        <p className="text-xl font-bold text-gray-900">{t('tenderFlow.sarCurrency')} {offer.quotePrice.toLocaleString()}</p>
+                                        <p className="text-xs text-gray-400 mt-0.5">{t('tenderFlow.quotedPriceLabel')}</p>
                                       </div>
                                     )}
                                   </div>
@@ -1575,50 +1568,50 @@ export default function TenderDetails() {
                             <CheckCircle className="h-4 w-4 text-green-600" />
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-gray-900 leading-tight">Proposal Submitted</p>
-                            <p className="text-xs text-gray-400">Submitted {myOffer?.submittedAt ? formatDate(myOffer.submittedAt) : 'N/A'}</p>
+                            <p className="text-sm font-bold text-gray-900 leading-tight">{t('tenderFlow.proposalSubmittedTitle')}</p>
+                            <p className="text-xs text-gray-400">{t('tenderFlow.submittedOn')} {myOffer?.submittedAt ? formatDate(myOffer.submittedAt) : 'N/A'}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 px-3 py-2.5 bg-green-50 rounded-xl border border-green-100">
                           <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                          <span className="text-xs font-semibold text-green-700">Under review by requester</span>
+                          <span className="text-xs font-semibold text-green-700">{t('tenderFlow.underReviewByRequester')}</span>
                         </div>
                       </div>
                     ) : isExpired ? (
                       <div className="bg-gray-50 p-5">
-                        <p className="text-sm font-bold text-gray-700 mb-1">Submissions Closed</p>
-                        <p className="text-xs text-gray-400">The deadline for this RFP has passed.</p>
+                        <p className="text-sm font-bold text-gray-700 mb-1">{t('tenderFlow.submissionsClosedTitle')}</p>
+                        <p className="text-xs text-gray-400">{t('tenderFlow.submissionsClosedMessage')}</p>
                       </div>
                     ) : !isTenderOpen ? (
                       <div className="bg-gray-50 p-5">
-                        <p className="text-sm font-bold text-gray-700 mb-1">Not Accepting Submissions</p>
-                        <p className="text-xs text-gray-400">This RFP is not currently open.</p>
+                        <p className="text-sm font-bold text-gray-700 mb-1">{t('tenderFlow.notAcceptingTitle')}</p>
+                        <p className="text-xs text-gray-400">{t('tenderFlow.notAcceptingMessage')}</p>
                       </div>
                     ) : !companyCanSubmit ? (
                       <div className="bg-white p-5">
-                        <p className="text-sm font-bold text-gray-900 mb-1">Complete Your Profile</p>
-                        <p className="text-xs text-gray-400 mb-4">Your company must be verified to submit proposals.</p>
+                        <p className="text-sm font-bold text-gray-900 mb-1">{t('tenderFlow.completeYourProfile')}</p>
+                        <p className="text-xs text-gray-400 mb-4">{t('tenderFlow.completeProfileDesc')}</p>
                         <Button variant="outline" className="w-full text-sm" onClick={() => setLocation('/company-onboarding')} data-testid="button-complete-profile">
-                          Complete Profile
+                          {t('tenderFlow.completeProfileBtn')}
                         </Button>
                       </div>
                     ) : (
                       <div className="bg-white">
                         <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
                         <div className="p-5">
-                          <p className="text-xs font-bold text-[#E25E45] uppercase tracking-widest mb-1">Ready to bid?</p>
-                          <p className="text-sm font-bold text-gray-900 mb-0.5">Submit Your Proposal</p>
+                          <p className="text-xs font-bold text-[#E25E45] uppercase tracking-widest mb-1">{t('tenderFlow.readyToBidLabel')}</p>
+                          <p className="text-sm font-bold text-gray-900 mb-0.5">{t('tenderFlow.submitYourProposal')}</p>
                           <p className="text-xs text-gray-400 mb-4">
                             {daysRemaining <= 7
-                              ? <span className="text-orange-600 font-semibold">{daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining</span>
-                              : `Deadline: ${formatDate(tender.deadline)}`}
+                              ? <span className="text-orange-600 font-semibold">{daysRemaining} {daysRemaining !== 1 ? t('tenderFlow.daysRemainingText') : t('tenderFlow.dayRemainingText')}</span>
+                              : `${t('tenderFlow.deadlineOn')}: ${formatDate(tender.deadline)}`}
                           </p>
                           <Button
                             className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white font-semibold rounded-xl h-11"
                             onClick={() => setIsSubmitOfferModalOpen(true)}
                             data-testid="button-submit-offer"
                           >
-                            <Send className="h-4 w-4 mr-2" /> Submit Proposal
+                            <Send className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} /> {t('tenderFlow.submitProposal')}
                           </Button>
                         </div>
                       </div>
@@ -1680,11 +1673,11 @@ export default function TenderDetails() {
                       </h2>
                       {selectedOffer.company.verificationStatus === 'verified' && (
                         <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full">
-                          <CheckCircle2 className="h-3 w-3" /> Verified
+                          <CheckCircle2 className="h-3 w-3" /> {t('tenderFlow.verifiedBadge')}
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500">{selectedOffer.company.category || 'Company'}</p>
+                    <p className="text-sm text-gray-500">{selectedOffer.company.category || ''}</p>
                   </div>
                 </div>
               </div>
@@ -1696,21 +1689,21 @@ export default function TenderDetails() {
                   {/* Bio */}
                   {selectedOffer.profile?.bio && (
                     <div className="px-5 py-4 border-b border-gray-100">
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">About</p>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t('tenderFlow.aboutLabel')}</p>
                       <p className="text-sm text-gray-700 leading-relaxed">{selectedOffer.profile.bio}</p>
                     </div>
                   )}
 
                   {/* Proposal details */}
                   <div className="px-5 py-4 border-b border-gray-100">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Proposal Details</p>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{t('tenderFlow.proposalDetailsLabel')}</p>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-500 flex items-center gap-2">
-                          <Calendar className="h-3.5 w-3.5 text-gray-300" /> Submitted
+                          <Calendar className="h-3.5 w-3.5 text-gray-300" /> {t('tenderFlow.submittedOn')}
                         </span>
                         <span className="text-sm font-medium text-gray-800">
-                          {new Date(selectedOffer.submittedAt).toLocaleDateString('en-US', {
+                          {new Date(selectedOffer.submittedAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',
@@ -1720,16 +1713,16 @@ export default function TenderDetails() {
                       {selectedOffer.quotePrice && (
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-500 flex items-center gap-2">
-                            <DollarSign className="h-3.5 w-3.5 text-gray-300" /> Quote Price
+                            <DollarSign className="h-3.5 w-3.5 text-gray-300" /> {t('tenderFlow.quotePriceLabel')}
                           </span>
                           <span className="text-lg font-bold text-gray-900">
-                            SAR {selectedOffer.quotePrice.toLocaleString()}
+                            {t('tenderFlow.sarCurrency')} {selectedOffer.quotePrice.toLocaleString()}
                           </span>
                         </div>
                       )}
                       {selectedOffer.notes && (
                         <div className="pt-1">
-                          <p className="text-xs text-gray-400 mb-1">Notes</p>
+                          <p className="text-xs text-gray-400 mb-1">{t('tenderFlow.notesLabel')}</p>
                           <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3">{selectedOffer.notes}</p>
                         </div>
                       )}
@@ -1739,7 +1732,7 @@ export default function TenderDetails() {
                   {/* Documents */}
                   {(selectedOffer.combinedFileUrl || selectedOffer.technicalFileUrl || selectedOffer.financialFileUrl || selectedOffer.videoUrl) && (
                     <div className="px-5 py-4">
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Documents</p>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{t('tenderFlow.documentsLabel')}</p>
                       <div className="grid grid-cols-2 gap-2">
                         {selectedOffer.combinedFileUrl && (
                           <button
@@ -1748,7 +1741,7 @@ export default function TenderDetails() {
                             data-testid="button-modal-combined-file"
                           >
                             <FileText className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                            <span className="text-xs font-medium text-blue-700">Proposal</span>
+                            <span className="text-xs font-medium text-blue-700">{t('tenderFlow.proposalLabel')}</span>
                           </button>
                         )}
                         {selectedOffer.technicalFileUrl && (
@@ -1758,7 +1751,7 @@ export default function TenderDetails() {
                             data-testid="button-modal-tech-file"
                           >
                             <FileText className="h-4 w-4 text-purple-600 flex-shrink-0" />
-                            <span className="text-xs font-medium text-purple-700">Technical</span>
+                            <span className="text-xs font-medium text-purple-700">{t('tenderFlow.technicalLabel')}</span>
                           </button>
                         )}
                         {selectedOffer.financialFileUrl && (
@@ -1768,7 +1761,7 @@ export default function TenderDetails() {
                             data-testid="button-modal-fin-file"
                           >
                             <DollarSign className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                            <span className="text-xs font-medium text-emerald-700">Financial</span>
+                            <span className="text-xs font-medium text-emerald-700">{t('tenderFlow.financialFileLabel')}</span>
                           </button>
                         )}
                         {selectedOffer.videoUrl && (
@@ -1777,7 +1770,7 @@ export default function TenderDetails() {
                             className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-orange-100 bg-orange-50 hover:bg-orange-100 transition-colors text-left"
                           >
                             <Video className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                            <span className="text-xs font-medium text-orange-700">Video Pitch</span>
+                            <span className="text-xs font-medium text-orange-700">{t('tenderFlow.videoPitchLabel')}</span>
                           </button>
                         )}
                       </div>
@@ -1916,7 +1909,7 @@ export default function TenderDetails() {
                         {drawerAnalysis.financial.total != null && (
                           <div className="flex justify-between text-sm px-3 py-2.5 bg-gray-50 border-b border-gray-200">
                             <span className="text-gray-700 font-medium">{t('tenderFlow.totalLabel')}</span>
-                            <span className="font-bold text-gray-900">SAR {drawerAnalysis.financial.total.toLocaleString()}</span>
+                            <span className="font-bold text-gray-900">{t('tenderFlow.sarCurrency')} {drawerAnalysis.financial.total.toLocaleString()}</span>
                           </div>
                         )}
                         {drawerAnalysis.financial.vat != null && (
@@ -1939,7 +1932,7 @@ export default function TenderDetails() {
                             {drawerAnalysis.financial.breakdown.map((item: any, i: number) => (
                               <div key={i} className="flex justify-between text-sm px-3 py-2 border-b border-gray-100 last:border-0">
                                 <span className="text-gray-600">{item.item}</span>
-                                <span className="text-gray-800 font-medium">SAR {item.amount?.toLocaleString()}</span>
+                                <span className="text-gray-800 font-medium">{t('tenderFlow.sarCurrency')} {item.amount?.toLocaleString()}</span>
                               </div>
                             ))}
                           </>

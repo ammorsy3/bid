@@ -152,6 +152,83 @@ interface IncomingOffer {
 }
 
 // Component for sidebar header with logo/toggle swap on hover when collapsed
+function ChatHistorySidebar() {
+  const [, setLocation] = useLocation();
+  const { t } = useI18n();
+  const { data: chatSessions } = useQuery<any[]>({
+    queryKey: ["/api/ai-chat-sessions"],
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/ai-chat-sessions/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-chat-sessions"] });
+    },
+  });
+
+  const sessions = chatSessions || [];
+  if (sessions.length === 0) return null;
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return t('common.today') || "Today";
+    if (diffDays === 1) return t('common.yesterday') || "Yesterday";
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return d.toLocaleDateString();
+  };
+
+  return (
+    <SidebarGroup>
+      <div className="px-3 py-2 flex items-center justify-between group-data-[collapsible=icon]:hidden">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          {t('dashboard.aiChatHistory') || "AI Chat History"}
+        </span>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-5 w-5"
+          onClick={() => setLocation("/tenders/new/ai")}
+        >
+          <Plus className="h-3 w-3" />
+        </Button>
+      </div>
+      <SidebarGroupContent>
+        <SidebarMenu className="space-y-0.5">
+          {sessions.slice(0, 10).map((session: any) => (
+            <SidebarMenuItem key={session.id}>
+              <SidebarMenuButton
+                tooltip={session.title}
+                onClick={() => setLocation(`/tenders/new/ai?session=${session.id}`)}
+                className="py-2 text-sm rounded-lg hover:bg-muted group/chat"
+              >
+                <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
+                <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
+                  <span className="text-sm truncate block">{session.title}</span>
+                  <span className="text-[10px] text-muted-foreground">{formatDate(session.updatedAt)}</span>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteMutation.mutate(session.id);
+                  }}
+                  className="opacity-0 group-hover/chat:opacity-100 shrink-0 p-0.5 hover:text-destructive transition-opacity group-data-[collapsible=icon]:hidden"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+}
+
 function SidebarLogoToggle() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -556,6 +633,8 @@ export default function Dashboard() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+
+          <ChatHistorySidebar />
         </SidebarContent>
 
         <SidebarFooter className="border-t px-4 py-4">

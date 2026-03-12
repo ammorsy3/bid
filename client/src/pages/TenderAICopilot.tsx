@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -217,6 +218,8 @@ const taskSteps = [
 
 export default function TenderAICopilot() {
   const [, navigate] = useLocation();
+  const searchString = useSearch();
+  const sessionParam = new URLSearchParams(searchString).get("session");
   const { activeCompany, user } = useAuthStore();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -234,8 +237,85 @@ export default function TenderAICopilot() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasAddedStreamingActivity = useRef(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const sessionPromise = useRef<Promise<string | null> | null>(null);
+  const loadedSessionRef = useRef<string | null>(null);
 
   const firstName = user?.name?.split(" ")[0] || user?.username || "there";
+
+  useEffect(() => {
+    if (sessionParam && sessionParam !== loadedSessionRef.current) {
+      loadedSessionRef.current = sessionParam;
+      const loadSession = async () => {
+        try {
+          const res = await apiRequest("GET", `/api/ai-chat-sessions/${sessionParam}`);
+          const data = await res.json();
+          setMessages(data.messages?.length ? data.messages.map((m: any) => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            suggestions: m.suggestions || undefined,
+            tenderData: m.tenderData || undefined,
+          })) : []);
+          if (data.tenderData) {
+            setTenderDraft(data.tenderData as Record<string, any>);
+          }
+          setSessionId(sessionParam);
+        } catch (e) {
+          console.error("Failed to load session:", e);
+        }
+      };
+      loadSession();
+    } else if (!sessionParam && loadedSessionRef.current) {
+      loadedSessionRef.current = null;
+      setSessionId(null);
+      setMessages([]);
+      setTenderDraft({});
+      setIsReady(false);
+      setOrbState("idle");
+      setStatusText("Ready to help you create an RFP");
+      setCurrentStep(0);
+      setActivityLog([]);
+      sessionPromise.current = null;
+    }
+  }, [sessionParam]);
+
+  const ensureSession = useCallback(async (firstMessage?: string): Promise<string | null> => {
+    if (sessionId) return sessionId;
+    if (sessionPromise.current) return sessionPromise.current;
+    const promise = (async () => {
+      try {
+        const title = firstMessage
+          ? firstMessage.slice(0, 60) + (firstMessage.length > 60 ? "..." : "")
+          : "New AI Chat";
+        const res = await apiRequest("POST", "/api/ai-chat-sessions", { title });
+        const session = await res.json();
+        setSessionId(session.id);
+        queryClient.invalidateQueries({ queryKey: ["/api/ai-chat-sessions"] });
+        return session.id as string;
+      } catch (e) {
+        console.error("Failed to create session:", e);
+        return null;
+      } finally {
+        sessionPromise.current = null;
+      }
+    })();
+    sessionPromise.current = promise;
+    return promise;
+  }, [sessionId]);
+
+  const persistMessage = useCallback(async (sid: string, role: string, content: string, suggestions?: string[], tData?: Record<string, any>) => {
+    try {
+      await apiRequest("POST", `/api/ai-chat-sessions/${sid}/messages`, {
+        role,
+        content,
+        suggestions: suggestions || null,
+        tenderData: tData || null,
+      });
+    } catch (e) {
+      console.error("Failed to persist message:", e);
+    }
+  }, []);
 
   const { data: companyProfile } = useQuery({
     queryKey: ["/api/companies", activeCompany?.id, "profile"],
@@ -280,13 +360,14 @@ export default function TenderAICopilot() {
     );
   }, []);
 
-  const processStreamResponse = async (response: Response) => {
+  const processStreamResponse = async (response: Response, sid?: string | null) => {
     const reader = response.body?.getReader();
     if (!reader) return;
 
     const decoder = new TextDecoder();
     let buffer = "";
     let fullContent = "";
+    let latestTenderData: Record<string, any> | null = null;
     const messageId = Date.now().toString();
 
     // Reset the streaming activity flag
@@ -351,8 +432,10 @@ export default function TenderAICopilot() {
             );
 
             if (parsed.tenderData) {
-              setTenderDraft((prev) => ({ ...prev, ...parsed.tenderData }));
-              // Add specific activity based on what was updated
+              setTenderDraft((prev) => {
+                latestTenderData = { ...prev, ...parsed.tenderData };
+                return latestTenderData;
+              });
               const updatedFields = Object.keys(parsed.tenderData);
               if (updatedFields.includes('title')) {
                 addActivity("generating", "Generated RFP title", parsed.tenderData.title);
@@ -415,6 +498,14 @@ export default function TenderAICopilot() {
         }
       }
     }
+
+    if (sid && fullContent) {
+      persistMessage(sid, "assistant", fullContent);
+      if (latestTenderData && Object.keys(latestTenderData).length > 0) {
+        apiRequest("PATCH", `/api/ai-chat-sessions/${sid}`, { tenderData: latestTenderData }).catch(() => {});
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-chat-sessions"] });
+    }
   };
 
   const sendInitialMessage = async () => {
@@ -423,6 +514,8 @@ export default function TenderAICopilot() {
     setStatusText("Getting ready to help you...");
 
     try {
+      const sid = await ensureSession("RFP Creation Assistant");
+
       const response = await fetch("/api/copilot/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -434,7 +527,7 @@ export default function TenderAICopilot() {
         }),
       });
 
-      await processStreamResponse(response);
+      await processStreamResponse(response, sid);
     } catch (error) {
       console.error("Error sending initial message:", error);
       setOrbState("error");
@@ -461,6 +554,11 @@ export default function TenderAICopilot() {
     setCurrentStep(0);
 
     try {
+      const sid = await ensureSession(content.trim());
+      if (sid) {
+        persistMessage(sid, "user", content.trim());
+      }
+
       const chatHistory = messages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -477,7 +575,7 @@ export default function TenderAICopilot() {
         }),
       });
 
-      await processStreamResponse(response);
+      await processStreamResponse(response, sid);
     } catch (error) {
       console.error("Error sending message:", error);
       setOrbState("error");
@@ -547,6 +645,9 @@ export default function TenderAICopilot() {
     setStatusText("Ready to help you create an RFP");
     setCurrentStep(0);
     setActivityLog([]);
+    setSessionId(null);
+    sessionPromise.current = null;
+    loadedSessionRef.current = null;
   };
 
   const handleOrbClick = () => {

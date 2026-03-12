@@ -95,6 +95,14 @@ Centralized error logging captures both client-side and server-side errors into 
 - **Data captured**: userId, companyId, source (client/server), HTTP method, path, status code, error message, stack trace, user agent, metadata
 - **Frontend utility**: `client/src/lib/errorLogger.ts` — `reportError()` function and `setupGlobalErrorHandlers()` for window-level error capture
 
+### AI Copilot Chat History
+Persistent chat history for AI Copilot conversations.
+- **Database tables**: `ai_chat_sessions` (user_id, company_id, title, tender_data) and `ai_chat_messages` (session_id, role, content, suggestions, tender_data)
+- **API routes**: `GET/POST /api/ai-chat-sessions`, `GET/PATCH/DELETE /api/ai-chat-sessions/:id`, `POST /api/ai-chat-sessions/:id/messages` (all authenticated, user-scoped)
+- **Frontend persistence**: `TenderAICopilot.tsx` auto-creates sessions on first message, persists user/assistant messages, and saves tender draft data
+- **Dashboard sidebar**: `ChatHistorySidebar` component shows recent AI chat sessions with click-to-resume and delete functionality
+- **Session loading**: Supports `?session=<id>` URL param to resume previous conversations
+
 ### Date Localization
 Date displays use language-aware locale formatting (`en-US` for English, `ar-SA` for Arabic).
 

@@ -54,7 +54,13 @@ import {
   type InsertProposalAnalysis,
   tenderSavings,
   type TenderSavings,
-  type InsertTenderSavings
+  type InsertTenderSavings,
+  aiChatSessions,
+  aiChatMessages,
+  type AiChatSession,
+  type InsertAiChatSession,
+  type AiChatMessage,
+  type InsertAiChatMessage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ilike, or, isNull, sql, gte, count } from "drizzle-orm";
@@ -231,6 +237,17 @@ export interface IStorage {
   // ============================================================================
   createTenderSavings(data: InsertTenderSavings): Promise<TenderSavings>;
   getTenderSavings(tenderId: string): Promise<TenderSavings | undefined>;
+
+  // ============================================================================
+  // AI CHAT HISTORY OPERATIONS
+  // ============================================================================
+  getAiChatSessions(userId: string, companyId?: string): Promise<AiChatSession[]>;
+  getAiChatSession(id: string): Promise<AiChatSession | undefined>;
+  createAiChatSession(session: InsertAiChatSession): Promise<AiChatSession>;
+  updateAiChatSession(id: string, updates: Partial<InsertAiChatSession>): Promise<AiChatSession>;
+  deleteAiChatSession(id: string): Promise<void>;
+  getAiChatMessages(sessionId: string): Promise<AiChatMessage[]>;
+  createAiChatMessage(message: InsertAiChatMessage): Promise<AiChatMessage>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1402,6 +1419,61 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(tenderSavings.createdAt))
       .limit(1);
     return savings;
+  }
+  // ============================================================================
+  // AI CHAT HISTORY OPERATIONS
+  // ============================================================================
+
+  async getAiChatSessions(userId: string, companyId?: string): Promise<AiChatSession[]> {
+    const conditions = [eq(aiChatSessions.userId, userId)];
+    if (companyId) {
+      conditions.push(eq(aiChatSessions.companyId, companyId));
+    }
+    return db
+      .select()
+      .from(aiChatSessions)
+      .where(and(...conditions))
+      .orderBy(desc(aiChatSessions.updatedAt));
+  }
+
+  async getAiChatSession(id: string): Promise<AiChatSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(aiChatSessions)
+      .where(eq(aiChatSessions.id, id));
+    return session;
+  }
+
+  async createAiChatSession(session: InsertAiChatSession): Promise<AiChatSession> {
+    const [created] = await db.insert(aiChatSessions).values(session).returning();
+    return created;
+  }
+
+  async updateAiChatSession(id: string, updates: Partial<InsertAiChatSession>): Promise<AiChatSession> {
+    const [updated] = await db
+      .update(aiChatSessions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(aiChatSessions.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteAiChatSession(id: string): Promise<void> {
+    await db.delete(aiChatMessages).where(eq(aiChatMessages.sessionId, id));
+    await db.delete(aiChatSessions).where(eq(aiChatSessions.id, id));
+  }
+
+  async getAiChatMessages(sessionId: string): Promise<AiChatMessage[]> {
+    return db
+      .select()
+      .from(aiChatMessages)
+      .where(eq(aiChatMessages.sessionId, sessionId))
+      .orderBy(aiChatMessages.createdAt);
+  }
+
+  async createAiChatMessage(message: InsertAiChatMessage): Promise<AiChatMessage> {
+    const [created] = await db.insert(aiChatMessages).values(message).returning();
+    return created;
   }
 }
 

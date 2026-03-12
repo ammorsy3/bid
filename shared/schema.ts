@@ -524,6 +524,36 @@ export const adminSetupToken = pgTable("admin_setup_token", {
 });
 
 // ============================================================================
+// AI COPILOT CHAT HISTORY
+// ============================================================================
+
+export const aiChatSessions = pgTable("ai_chat_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  companyId: varchar("company_id").references(() => companies.id),
+  title: text("title").notNull(),
+  tenderId: varchar("tender_id").references(() => tenders.id),
+  tenderData: jsonb("tender_data"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const aiChatMessages = pgTable("ai_chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().references(() => aiChatSessions.id, { onDelete: 'cascade' }),
+  role: text("role").notNull(),
+  content: text("content").notNull(),
+  suggestions: jsonb("suggestions").$type<string[]>(),
+  tenderData: jsonb("tender_data"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type AiChatSession = typeof aiChatSessions.$inferSelect;
+export type InsertAiChatSession = typeof aiChatSessions.$inferInsert;
+export type AiChatMessage = typeof aiChatMessages.$inferSelect;
+export type InsertAiChatMessage = typeof aiChatMessages.$inferInsert;
+
+// ============================================================================
 // RELATIONS
 // ============================================================================
 

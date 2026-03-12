@@ -3192,6 +3192,110 @@ ${language === 'ar' ? '{ "شهادة GOSI": "صفحة 7", "شهادة ISO 27001"
   registerCopilotRoutes(app);
 
   // ============================================================================
+  // AI CHAT HISTORY
+  // ============================================================================
+
+  app.get("/api/ai-chat-sessions", authenticateToken, async (req, res) => {
+    try {
+      const sessions = await storage.getAiChatSessions(
+        req.auth!.userId,
+        req.auth!.activeCompanyId || undefined
+      );
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error fetching AI chat sessions:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get("/api/ai-chat-sessions/:id", authenticateToken, async (req, res) => {
+    try {
+      const session = await storage.getAiChatSession(req.params.id);
+      if (!session || session.userId !== req.auth!.userId) {
+        return res.status(404).json({ message: "Session not found" });
+      }
+      const messages = await storage.getAiChatMessages(req.params.id);
+      res.json({ ...session, messages });
+    } catch (error) {
+      console.error("Error fetching AI chat session:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/ai-chat-sessions", authenticateToken, async (req, res) => {
+    try {
+      const session = await storage.createAiChatSession({
+        userId: req.auth!.userId,
+        companyId: req.auth!.activeCompanyId || null,
+        title: req.body.title || "New Chat",
+        tenderId: req.body.tenderId || null,
+        tenderData: req.body.tenderData || null,
+      });
+      res.status(201).json(session);
+    } catch (error) {
+      console.error("Error creating AI chat session:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.patch("/api/ai-chat-sessions/:id", authenticateToken, async (req, res) => {
+    try {
+      const session = await storage.getAiChatSession(req.params.id);
+      if (!session || session.userId !== req.auth!.userId) {
+        return res.status(404).json({ message: "Session not found" });
+      }
+      const allowedFields: Record<string, any> = {};
+      if (req.body.title) allowedFields.title = String(req.body.title).slice(0, 200);
+      if (req.body.tenderData !== undefined) allowedFields.tenderData = req.body.tenderData;
+      const updated = await storage.updateAiChatSession(req.params.id, allowedFields);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating AI chat session:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.delete("/api/ai-chat-sessions/:id", authenticateToken, async (req, res) => {
+    try {
+      const session = await storage.getAiChatSession(req.params.id);
+      if (!session || session.userId !== req.auth!.userId) {
+        return res.status(404).json({ message: "Session not found" });
+      }
+      await storage.deleteAiChatSession(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting AI chat session:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/ai-chat-sessions/:id/messages", authenticateToken, async (req, res) => {
+    try {
+      const session = await storage.getAiChatSession(req.params.id);
+      if (!session || session.userId !== req.auth!.userId) {
+        return res.status(404).json({ message: "Session not found" });
+      }
+      const role = req.body.role;
+      const content = req.body.content;
+      if (!role || !content || !["user", "assistant"].includes(role)) {
+        return res.status(400).json({ message: "Invalid role or content" });
+      }
+      const message = await storage.createAiChatMessage({
+        sessionId: req.params.id,
+        role,
+        content: String(content),
+        suggestions: Array.isArray(req.body.suggestions) ? req.body.suggestions : null,
+        tenderData: req.body.tenderData || null,
+      });
+      await storage.updateAiChatSession(req.params.id, {});
+      res.status(201).json(message);
+    } catch (error) {
+      console.error("Error creating AI chat message:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ============================================================================
   // ERROR LOGGING
   // ============================================================================
 

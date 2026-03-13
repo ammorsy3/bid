@@ -1848,6 +1848,49 @@ Rules:
     }
   }
 
+  // ─── Translation helper: EN requirements → AR requirements ─────────────────
+  // Translates the canonical English requirement list to Arabic for display,
+  // keeping a 1:1 mapping so coverage results are consistent across languages.
+  async function translateRequirements(
+    config: { url: string; key: string },
+    enRequirements: string[],
+  ): Promise<string[]> {
+    const aiResponse = await fetchWithRetry(config.url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${config.key}` },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `أنت مترجم متخصص في مصطلحات المشتريات والمناقصات السعودية. ترجم كل عنصر من الإنجليزية إلى العربية بأسلوب سعودي رسمي. حافظ على نفس عدد العناصر وبنفس الترتيب. استخدم المصطلحات السعودية المعتمدة (مثل: "شهادة GOSI"، "سجل تجاري"، "شهادة زكاة"). أجب بمصفوفة JSON فقط.`,
+          },
+          {
+            role: "user",
+            content: `Translate these procurement requirements to Arabic:\n${JSON.stringify(enRequirements)}`,
+          },
+        ],
+        temperature: 0.1,
+        max_tokens: 600,
+      }),
+    });
+
+    if (!aiResponse.ok) throw new Error(`Translation returned ${aiResponse.status}`);
+    const data = await aiResponse.json();
+    const content = data.choices?.[0]?.message?.content || "";
+    const match = content.match(/\[[\s\S]*\]/);
+    if (!match) return enRequirements;
+    try {
+      const parsed = JSON.parse(match[0]);
+      if (!Array.isArray(parsed) || parsed.length !== enRequirements.length) return enRequirements;
+      const allStrings = parsed.every((r: any) => typeof r === 'string' && r.trim().length > 0);
+      if (!allStrings) return enRequirements;
+      return parsed as string[];
+    } catch {
+      return enRequirements;
+    }
+  }
+
   // ─── Agent 2: Proposal Extractor ────────────────────────────────────────────
   // Runs once per offer. Reads ONLY the vendor's proposal document and extracts
   // raw facts: structure, deliverables, and financials. No RFP context needed.
@@ -2026,18 +2069,33 @@ Respond with ONLY a JSON object. Example:
       });
     }
 
-    // ── Step 1: Get RFP requirements (Agent 1) — run once, reuse for all vendors
-    // Cache is keyed by language: rfpRequirements (en) / rfpRequirementsAr (ar)
-    const cacheKey = language === 'ar' ? 'rfpRequirementsAr' : 'rfpRequirements';
-    let requirements: string[] = tender[cacheKey] || [];
-    if (requirements.length === 0) {
+    // ── Step 1: Get RFP requirements (Agent 1) — always extract in English first
+    // to ensure consistency, then translate for Arabic display.
+    let enRequirements: string[] = tender.rfpRequirements || [];
+    if (enRequirements.length === 0) {
       try {
-        requirements = await extractRFPRequirements(config, tender, language);
-        await storage.updateTender(tender.id, { [cacheKey]: requirements } as any);
-        tender[cacheKey] = requirements;
+        enRequirements = await extractRFPRequirements(config, tender, 'en');
+        await storage.updateTender(tender.id, { rfpRequirements: enRequirements } as any);
+        tender.rfpRequirements = enRequirements;
       } catch (err) {
         console.error(`Agent 1 (RFP Analyst) failed for tender ${tender.id}:`, err);
       }
+    }
+
+    let requirements = enRequirements;
+    if (language === 'ar' && enRequirements.length > 0) {
+      let arRequirements: string[] = tender.rfpRequirementsAr || [];
+      if (arRequirements.length === 0) {
+        try {
+          arRequirements = await translateRequirements(config, enRequirements);
+          await storage.updateTender(tender.id, { rfpRequirementsAr: arRequirements } as any);
+          tender.rfpRequirementsAr = arRequirements;
+        } catch (err) {
+          console.error(`Requirements translation failed for tender ${tender.id}:`, err);
+          arRequirements = enRequirements;
+        }
+      }
+      requirements = arRequirements;
     }
 
     // ── Step 2: Extract proposal text (shared input for Agents 2 & 3)
@@ -2062,10 +2120,31 @@ Respond with ONLY a JSON object. Example:
 
     try {
       // ── Step 3: Run Agent 2 and Agent 3 in parallel
-      const [facts, criteriaMapping] = await Promise.all([
+      // Agent 3 always checks against ENGLISH requirements for consistency,
+      // then we remap keys to display language (Arabic) if needed.
+      const [facts, enCriteriaMapping] = await Promise.all([
         extractProposalFacts(config, companyName, proposalText, offerData.quotePrice, offerData.notes, language),
-        checkRequirementsCoverage(config, requirements, proposalText, language),
+        checkRequirementsCoverage(config, enRequirements, proposalText, 'en'),
       ]);
+
+      let criteriaMapping = enCriteriaMapping;
+      if (language === 'ar' && requirements.length === enRequirements.length) {
+        const remapped: Record<string, string> = {};
+        for (let i = 0; i < enRequirements.length; i++) {
+          const enKey = enRequirements[i];
+          const arKey = requirements[i];
+          const value = enCriteriaMapping[enKey];
+          if (value === undefined) {
+            remapped[arKey] = 'غير موجود';
+          } else {
+            const normalized = value.trim().toLowerCase();
+            const translatedValue = normalized === 'not found' ? 'غير موجود'
+              : value.replace(/^pages?\s/i, (m: string) => m.toLowerCase().startsWith('pages') ? 'صفحات ' : 'صفحة ');
+            remapped[arKey] = translatedValue;
+          }
+        }
+        criteriaMapping = remapped;
+      }
 
       const modelUsed = "gpt-4o-mini";
 
@@ -2179,11 +2258,11 @@ Respond with ONLY a JSON object. Example:
 
         const outputLanguage: 'en' | 'ar' = req.body?.language === 'ar' ? 'ar' : 'en';
 
-        // Clear cached RFP requirements for this language so Agent 1 re-runs with
-        // the current prompt (important when switching language or after prompt updates)
-        const cacheKey = outputLanguage === 'ar' ? 'rfpRequirementsAr' : 'rfpRequirements';
-        await storage.updateTender(req.params.tenderId, { [cacheKey]: null } as any);
-        (tender as any)[cacheKey] = null;
+        // Clear both EN and AR cached requirements so Agent 1 re-runs from scratch
+        // and the Arabic translation is regenerated from the new English list
+        await storage.updateTender(req.params.tenderId, { rfpRequirements: null, rfpRequirementsAr: null } as any);
+        (tender as any).rfpRequirements = null;
+        (tender as any).rfpRequirementsAr = null;
 
         // Analyze each offer using the shared helper
         for (const offerData of offersData) {

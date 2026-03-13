@@ -88,7 +88,9 @@
       "Bash(node -e \"const fs=require\\('fs'\\); const d=JSON.parse\\(fs.readFileSync\\(require\\('os'\\).homedir\\(\\)+'/.claude/.credentials.json','utf8'\\)\\); console.log\\('Keys:', Object.keys\\(d\\)\\); if\\(d.claudeAiOauth\\) console.log\\('OAuth keys:', Object.keys\\(d.claudeAiOauth\\)\\);\")",
       "Bash(node -e \"const fs=require\\('fs'\\); const d=JSON.parse\\(fs.readFileSync\\(require\\('os'\\).homedir\\(\\)+'/.claude/.credentials.json','utf8'\\)\\); const exp=d.claudeAiOauth.expiresAt; console.log\\('expiresAt:', exp, '=', new Date\\(exp\\).toISOString\\(\\)\\);\")",
       "Bash(cat /home/runner/workspace/replit.nix 2>/dev/null || echo \"No replit.nix\"; ls /home/runner/workspace/.replit* 2>/dev/null)",
-      "WebFetch(domain:www.aitmpl.com)"
+      "WebFetch(domain:www.aitmpl.com)",
+      "Bash(npx drizzle-kit:*)",
+      "Bash(npx tsx:*)"
     ]
   }
 }

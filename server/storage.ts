@@ -61,6 +61,9 @@ import {
   type InsertAiChatSession,
   type AiChatMessage,
   type InsertAiChatMessage,
+  negotiationActions,
+  type NegotiationAction,
+  type InsertNegotiationAction,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ilike, or, isNull, sql, gte, count } from "drizzle-orm";
@@ -248,6 +251,15 @@ export interface IStorage {
   deleteAiChatSession(id: string): Promise<void>;
   getAiChatMessages(sessionId: string): Promise<AiChatMessage[]>;
   createAiChatMessage(message: InsertAiChatMessage): Promise<AiChatMessage>;
+
+  // ============================================================================
+  // NEGOTIATION ACTION OPERATIONS
+  // ============================================================================
+  createNegotiationAction(action: InsertNegotiationAction): Promise<NegotiationAction>;
+  getNegotiationActionsByTender(tenderId: string): Promise<(NegotiationAction & { company: Company })[]>;
+  getNegotiationActionsByOffer(offerId: string): Promise<NegotiationAction[]>;
+  getLatestNegotiationAction(tenderId: string, offerId: string, actionType: string): Promise<NegotiationAction | undefined>;
+  allowOfferResubmission(offerId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1474,6 +1486,61 @@ export class DatabaseStorage implements IStorage {
   async createAiChatMessage(message: InsertAiChatMessage): Promise<AiChatMessage> {
     const [created] = await db.insert(aiChatMessages).values(message).returning();
     return created;
+  }
+
+  // ============================================================================
+  // NEGOTIATION ACTION OPERATIONS
+  // ============================================================================
+
+  async createNegotiationAction(action: InsertNegotiationAction): Promise<NegotiationAction> {
+    const [created] = await db.insert(negotiationActions).values(action).returning();
+    return created;
+  }
+
+  async getNegotiationActionsByTender(tenderId: string): Promise<(NegotiationAction & { company: Company })[]> {
+    const results = await db
+      .select({
+        action: negotiationActions,
+        company: companies,
+      })
+      .from(negotiationActions)
+      .innerJoin(companies, eq(negotiationActions.companyId, companies.id))
+      .where(eq(negotiationActions.tenderId, tenderId))
+      .orderBy(desc(negotiationActions.createdAt));
+
+    return results.map(r => ({
+      ...r.action,
+      company: r.company,
+    }));
+  }
+
+  async getNegotiationActionsByOffer(offerId: string): Promise<NegotiationAction[]> {
+    return await db
+      .select()
+      .from(negotiationActions)
+      .where(eq(negotiationActions.offerId, offerId))
+      .orderBy(desc(negotiationActions.createdAt));
+  }
+
+  async getLatestNegotiationAction(tenderId: string, offerId: string, actionType: string): Promise<NegotiationAction | undefined> {
+    const [action] = await db
+      .select()
+      .from(negotiationActions)
+      .where(and(
+        eq(negotiationActions.tenderId, tenderId),
+        eq(negotiationActions.offerId, offerId),
+        eq(negotiationActions.actionType, actionType),
+      ))
+      .orderBy(desc(negotiationActions.createdAt))
+      .limit(1);
+    return action;
+  }
+
+  async allowOfferResubmission(offerId: string): Promise<void> {
+    await db
+      .update(offers)
+      .set({ resubmissionAllowed: true })
+      .where(eq(offers.id, offerId));
   }
 }
 

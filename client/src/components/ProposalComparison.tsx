@@ -3,6 +3,8 @@ import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Sparkles,
   Loader2,
@@ -16,6 +18,11 @@ import {
   DollarSign,
   FileText,
   Award,
+  Percent,
+  Phone,
+  Mail,
+  Clock,
+  MousePointerClick,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -23,8 +30,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import { useI18n } from "@/lib/i18n";
+import ResubmissionDialog from "./negotiation/ResubmissionDialog";
+import DiscountDialog from "./negotiation/DiscountDialog";
+import AwardDialog from "./negotiation/AwardDialog";
+import ContactDialog from "./negotiation/ContactDialog";
+import FreeMessageDialog from "./negotiation/FreeMessageDialog";
 
 interface OfferAnalysis {
   id: string;
@@ -67,10 +85,24 @@ interface Offer {
   };
 }
 
+interface NegotiationActionData {
+  id: string;
+  offerId: string;
+  companyId: string;
+  actionType: string;
+  message: string;
+  status: string;
+  createdAt: string;
+}
+
 interface ProposalComparisonProps {
   tenderId: string;
   offers: Offer[];
   analyses?: OfferAnalysis[];
+  negotiationMode?: boolean;
+  tenderTitle?: string;
+  tenderCompanyName?: string;
+  negotiationActions?: NegotiationActionData[];
 }
 
 const VENDOR_COLORS = [
@@ -81,11 +113,72 @@ const VENDOR_COLORS = [
   'from-sky-500 to-blue-500',
 ];
 
-export default function ProposalComparison({ tenderId, offers, analyses = [] }: ProposalComparisonProps) {
+export default function ProposalComparison({
+  tenderId, offers, analyses = [],
+  negotiationMode = false, tenderTitle = '', tenderCompanyName = '', negotiationActions = [],
+}: ProposalComparisonProps) {
   const { toast } = useToast();
   const { language, t } = useI18n();
   const [hiddenOffers, setHiddenOffers] = useState<Set<string>>(new Set());
   const [selectedVendor, setSelectedVendor] = useState<string | null>(null);
+
+  // Negotiation state
+  const [checkedVendors, setCheckedVendors] = useState<Set<string>>(new Set());
+  const [activeDialog, setActiveDialog] = useState<'resubmission' | 'discount' | 'award' | 'contact' | 'free_message' | null>(null);
+
+  const toggleVendor = (offerId: string) => {
+    setCheckedVendors(prev => {
+      const next = new Set(prev);
+      if (next.has(offerId)) next.delete(offerId);
+      else next.add(offerId);
+      return next;
+    });
+  };
+
+  const checkedOffers = offers.filter(o => checkedVendors.has(o.id));
+
+  const getActionBadges = (offerId: string) => {
+    const offerActions = negotiationActions.filter(a => a.offerId === offerId);
+    const types = new Set(offerActions.map(a => a.actionType));
+    const badges: { label: string; color: string }[] = [];
+    if (types.has('resubmission_request')) badges.push({ label: t('tenderFlow.resubmissionRequested'), color: 'bg-amber-100 text-amber-700 border-amber-200' });
+    if (types.has('discount_request')) badges.push({ label: t('tenderFlow.discountRequested'), color: 'bg-purple-100 text-purple-700 border-purple-200' });
+    if (types.has('award')) badges.push({ label: t('tenderFlow.awardedBadge'), color: 'bg-emerald-100 text-emerald-700 border-emerald-200' });
+    if (types.has('rejection')) badges.push({ label: t('tenderFlow.rejectedBadge'), color: 'bg-red-100 text-red-700 border-red-200' });
+    if (types.has('free_message')) badges.push({ label: t('tenderFlow.messageSentBadge'), color: 'bg-blue-100 text-blue-700 border-blue-200' });
+    return badges;
+  };
+
+  const isOfferAwarded = (offerId: string) =>
+    negotiationActions.some(a => a.offerId === offerId && a.actionType === 'award');
+
+  const ACTION_META: Record<string, { icon: any; color: string; label: () => string }> = {
+    resubmission_request: { icon: RotateCcw, color: 'text-amber-600 bg-amber-50 border-amber-200', label: () => t('tenderFlow.resubmissionRequested') },
+    discount_request:     { icon: Percent,   color: 'text-purple-600 bg-purple-50 border-purple-200', label: () => t('tenderFlow.discountRequested') },
+    award:                { icon: Award,     color: 'text-emerald-600 bg-emerald-50 border-emerald-200', label: () => t('tenderFlow.awardedBadge') },
+    rejection:            { icon: X,         color: 'text-red-600 bg-red-50 border-red-200', label: () => t('tenderFlow.rejectedBadge') },
+    free_message:         { icon: Mail,      color: 'text-blue-600 bg-blue-50 border-blue-200', label: () => t('tenderFlow.messageSentBadge') },
+  };
+
+  const sortedNegotiationActions = [...negotiationActions].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  const negotiationMutation = useMutation({
+    mutationFn: async (data: { actions: any[] }) => {
+      const response = await apiRequest("POST", `/api/tenders/${tenderId}/negotiation-actions`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders', tenderId, 'negotiation-actions'] });
+      setCheckedVendors(new Set());
+      setActiveDialog(null);
+      toast({ title: t('tenderFlow.actionSentTitle'), description: t('tenderFlow.actionSentDesc') });
+    },
+    onError: (error: Error) => {
+      toast({ title: t('tenderFlow.actionFailedTitle'), description: error.message, variant: "destructive" });
+    },
+  });
 
   const analyzeMutation = useMutation({
     mutationFn: async () => {
@@ -196,7 +289,7 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
   );
 
   const isScrollable = visibleOffers.length >= 3;
-  const LABEL_W = isScrollable ? "w-40 min-w-[160px] max-w-[160px]" : "w-40 min-w-[160px]";
+  const LABEL_W = "w-40 min-w-[160px] max-w-[160px]";
   const COL_W = isScrollable ? "w-[200px] min-w-[200px] max-w-[200px]" : "";
 
   return (
@@ -235,7 +328,7 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
       {/* ── Comparison table ─────────────────────────────────────────────── */}
       <div className="overflow-x-auto mt-4">
         <table
-          className={`border-collapse ${isScrollable ? 'table-fixed' : 'w-full'}`}
+          className="border-collapse table-fixed w-full"
           style={isScrollable ? { width: `${160 + visibleOffers.length * 200}px` } : undefined}
         >
           <thead>
@@ -254,11 +347,18 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
                 return (
                   <th
                     key={offer.id}
-                    className={`${COL_W} p-0 align-top border-r border-gray-100 last:border-r-0`}
+                    className={`${COL_W} p-0 align-top border-r border-gray-100 last:border-r-0 ${isOfferAwarded(offer.id) ? 'border-t-2 border-t-emerald-500' : ''}`}
                   >
-                    <div className={`px-3 py-3 ${isSelected ? 'bg-blue-50/60' : 'bg-white'}`}>
+                    <div className={`px-3 py-3 ${isOfferAwarded(offer.id) ? 'bg-emerald-50/60' : negotiationMode && checkedVendors.has(offer.id) ? 'bg-[#E25E45]/5 ring-2 ring-[#E25E45]/20 ring-inset' : isSelected ? 'bg-blue-50/60' : 'bg-white'}`}>
                       {/* Avatar + name row */}
                       <div className="flex items-center gap-2 mb-2">
+                        {negotiationMode && (
+                          <Checkbox
+                            checked={checkedVendors.has(offer.id)}
+                            onCheckedChange={() => toggleVendor(offer.id)}
+                            className="flex-shrink-0"
+                          />
+                        )}
                         {offer.profile?.logoUrl ? (
                           <img src={offer.profile.logoUrl} alt="" className="h-8 w-8 rounded-lg object-cover flex-shrink-0 ring-1 ring-gray-200" />
                         ) : (
@@ -273,6 +373,17 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
                           )}
                         </div>
                       </div>
+
+                      {/* Negotiation history badges */}
+                      {negotiationMode && getActionBadges(offer.id).length > 0 && (
+                        <div className="flex flex-wrap gap-0.5 mb-1.5">
+                          {getActionBadges(offer.id).map((badge, i) => (
+                            <span key={i} className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full border ${badge.color}`}>
+                              {badge.label}
+                            </span>
+                          ))}
+                        </div>
+                      )}
 
                       {/* Price + badges on one line */}
                       <div className="flex items-center justify-between gap-1 mb-1.5">
@@ -307,49 +418,51 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
                         </div>
                       )}
 
-                      {/* Actions */}
-                      <div className="flex items-center gap-1">
-                        {isSelected ? (
-                          <div className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-md py-1 px-2">
-                            <CheckCircle className="h-2.5 w-2.5" /> {t('tenderFlow.selectedLabel')}
-                          </div>
-                        ) : (
-                          <Button
-                            size="sm"
-                            className="flex-1 h-6 text-[10px] bg-gray-900 hover:bg-gray-700 text-white px-2 font-medium"
-                            onClick={() => handleSelectVendor(offer)}
-                            disabled={savingsMutation.isPending || total == null}
-                          >
-                            <CheckCircle className="h-2.5 w-2.5 mr-1" /> {t('tenderFlow.selectBtn')}
-                          </Button>
-                        )}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-6 w-6 p-0 border-gray-200">
-                              <MoreHorizontal className="h-3 w-3" />
+                      {/* Actions - hidden in negotiation mode */}
+                      {!negotiationMode && (
+                        <div className="flex items-center gap-1">
+                          {isSelected ? (
+                            <div className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-md py-1 px-2">
+                              <CheckCircle className="h-2.5 w-2.5" /> {t('tenderFlow.selectedLabel')}
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              className="flex-1 h-6 text-[10px] bg-[#E25E45] hover:bg-[#d54d35] text-white px-2 font-medium"
+                              onClick={() => handleSelectVendor(offer)}
+                              disabled={savingsMutation.isPending || total == null}
+                            >
+                              <CheckCircle className="h-2.5 w-2.5 mr-1" /> {t('tenderFlow.selectBtn')}
                             </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44">
-                            <DropdownMenuItem
-                              onClick={() => { const f = offer.combinedFileUrl || offer.technicalFileUrl; if (f) viewAuthenticatedFile(f); }}
-                              disabled={!offer.combinedFileUrl && !offer.technicalFileUrl}
-                            >
-                              <FileText className="h-4 w-4 mr-2" /> {t('tenderFlow.viewProposal')}
-                            </DropdownMenuItem>
-                            {offer.financialFileUrl && (
-                              <DropdownMenuItem onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}>
-                                <DollarSign className="h-4 w-4 mr-2" /> {t('tenderFlow.viewFinancial')}
+                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm" className="h-6 w-6 p-0 border-gray-200">
+                                <MoreHorizontal className="h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44">
+                              <DropdownMenuItem
+                                onClick={() => { const f = offer.combinedFileUrl || offer.technicalFileUrl; if (f) viewAuthenticatedFile(f); }}
+                                disabled={!offer.combinedFileUrl && !offer.technicalFileUrl}
+                              >
+                                <FileText className="h-4 w-4 mr-2" /> {t('tenderFlow.viewProposal')}
                               </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem
-                              onClick={() => setHiddenOffers(prev => new Set([...Array.from(prev), offer.id]))}
-                              className="text-red-500 focus:text-red-500"
-                            >
-                              <X className="h-4 w-4 mr-2" /> {t('tenderFlow.removeLabel')}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                              {offer.financialFileUrl && (
+                                <DropdownMenuItem onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}>
+                                  <DollarSign className="h-4 w-4 mr-2" /> {t('tenderFlow.viewFinancial')}
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem
+                                onClick={() => setHiddenOffers(prev => new Set([...Array.from(prev), offer.id]))}
+                                className="text-red-500 focus:text-red-500"
+                              >
+                                <X className="h-4 w-4 mr-2" /> {t('tenderFlow.removeLabel')}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      )}
                     </div>
                   </th>
                 );
@@ -485,6 +598,214 @@ export default function ProposalComparison({ tenderId, offers, analyses = [] }: 
           </tbody>
         </table>
       </div>
+
+      {/* ── Negotiation Action Bar ──────────────────────────────────────── */}
+      {negotiationMode && checkedVendors.size > 0 && (
+        <div className="mx-5 mt-3 mb-1 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 flex-wrap">
+          <span className="text-xs font-semibold text-gray-600 mr-1">
+            {t('tenderFlow.vendorsSelected').replace('{count}', String(checkedVendors.size))}
+          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setActiveDialog('resubmission')}>
+              <RotateCcw className="h-3 w-3" /> {t('tenderFlow.requestResubmission')}
+            </Button>
+            <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setActiveDialog('discount')}>
+              <Percent className="h-3 w-3" /> {t('tenderFlow.requestDiscount')}
+            </Button>
+            <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setActiveDialog('free_message')}>
+              <Mail className="h-3 w-3" /> {t('tenderFlow.sendMessage')}
+            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                      onClick={() => setActiveDialog('award')}
+                      disabled={checkedVendors.size !== 1}
+                    >
+                      <Award className="h-3 w-3" /> {t('tenderFlow.awardBtn')}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {checkedVendors.size !== 1 && (
+                  <TooltipContent side="top" className="text-xs">
+                    {t('tenderFlow.awardTooltip')}
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs gap-1"
+                      onClick={() => setActiveDialog('contact')}
+                      disabled={checkedVendors.size !== 1}
+                    >
+                      <Phone className="h-3 w-3" /> {t('tenderFlow.contactBtn')}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {checkedVendors.size !== 1 && (
+                  <TooltipContent side="top" className="text-xs">
+                    {t('tenderFlow.contactTooltip')}
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
+      )}
+
+      {/* ── Negotiation hint ────────────────────────────────────────────── */}
+      {negotiationMode && checkedVendors.size === 0 && (
+        <div className="mx-5 mt-3 mb-1 flex items-center gap-2 text-xs text-gray-400">
+          <MousePointerClick className="h-3.5 w-3.5 flex-shrink-0" />
+          <span>{t('tenderFlow.negotiationHint')}</span>
+        </div>
+      )}
+
+      {/* ── Negotiation history log ──────────────────────────────────────── */}
+      {negotiationMode && negotiationActions.length > 0 && (
+        <div className="mx-5 mt-4 mb-1 border border-gray-100 rounded-xl overflow-hidden">
+          <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+            <Clock className="h-3.5 w-3.5 text-gray-400" />
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('tenderFlow.negotiationHistory')}</span>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {sortedNegotiationActions.map((action) => {
+              const meta = ACTION_META[action.actionType];
+              const vendor = offers.find(o => o.id === action.offerId);
+              const vendorName = vendor ? getVendorName(vendor) : '—';
+              const Icon = meta?.icon || Mail;
+              return (
+                <div key={action.id} className="px-4 py-3 flex items-start gap-3">
+                  <div className={`mt-0.5 h-6 w-6 rounded-full border flex items-center justify-center flex-shrink-0 ${meta?.color || 'text-gray-500 bg-gray-50 border-gray-200'}`}>
+                    <Icon className="h-3 w-3" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-semibold text-gray-800">{vendorName}</span>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${meta?.color || 'text-gray-500 bg-gray-50 border-gray-200'}`}>
+                        {meta?.label() || action.actionType}
+                      </span>
+                    </div>
+                    {action.message && (
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">{action.message}</p>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-gray-300 flex-shrink-0 mt-0.5">
+                    {new Date(action.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Negotiation Dialogs ──────────────────────────────────────────── */}
+      {negotiationMode && (
+        <>
+          <ResubmissionDialog
+            open={activeDialog === 'resubmission'}
+            onOpenChange={(open) => !open && setActiveDialog(null)}
+            vendorNames={checkedOffers.map(o => getVendorName(o))}
+            tenderTitle={tenderTitle}
+            tenderCompanyName={tenderCompanyName}
+            tenderId={tenderId}
+            isPending={negotiationMutation.isPending}
+            onSubmit={(data) => {
+              negotiationMutation.mutate({
+                actions: checkedOffers.map(o => ({
+                  offerId: o.id,
+                  companyId: o.companyId,
+                  actionType: 'resubmission_request',
+                  message: data.message,
+                  comment: data.comment,
+                  metadata: data.metadata,
+                })),
+              });
+            }}
+          />
+          <DiscountDialog
+            open={activeDialog === 'discount'}
+            onOpenChange={(open) => !open && setActiveDialog(null)}
+            vendorNames={checkedOffers.map(o => getVendorName(o))}
+            tenderTitle={tenderTitle}
+            tenderCompanyName={tenderCompanyName}
+            tenderId={tenderId}
+            isPending={negotiationMutation.isPending}
+            onSubmit={(data) => {
+              negotiationMutation.mutate({
+                actions: checkedOffers.map(o => ({
+                  offerId: o.id,
+                  companyId: o.companyId,
+                  actionType: 'discount_request',
+                  message: data.message,
+                  comment: data.comment,
+                  metadata: data.metadata,
+                })),
+              });
+            }}
+          />
+          {checkedOffers.length === 1 && (
+            <>
+              <AwardDialog
+                open={activeDialog === 'award'}
+                onOpenChange={(open) => !open && setActiveDialog(null)}
+                vendorName={getVendorName(checkedOffers[0])}
+                otherVendorNames={visibleOffers.filter(o => o.id !== checkedOffers[0].id).map(o => getVendorName(o))}
+                tenderTitle={tenderTitle}
+                tenderCompanyName={tenderCompanyName}
+                tenderId={tenderId}
+                isPending={negotiationMutation.isPending}
+                onSubmit={(data) => {
+                  negotiationMutation.mutate({
+                    actions: [{
+                      offerId: checkedOffers[0].id,
+                      companyId: checkedOffers[0].companyId,
+                      actionType: 'award',
+                      message: data.message,
+                      comment: data.comment,
+                      metadata: data.metadata,
+                    }],
+                  });
+                }}
+              />
+              <ContactDialog
+                open={activeDialog === 'contact'}
+                onOpenChange={(open) => !open && setActiveDialog(null)}
+                offerId={checkedOffers[0].id}
+                vendorName={getVendorName(checkedOffers[0])}
+              />
+            </>
+          )}
+          <FreeMessageDialog
+            open={activeDialog === 'free_message'}
+            onOpenChange={(open) => !open && setActiveDialog(null)}
+            vendorNames={checkedOffers.map(o => getVendorName(o))}
+            isPending={negotiationMutation.isPending}
+            onSubmit={(data) => {
+              negotiationMutation.mutate({
+                actions: checkedOffers.map(o => ({
+                  offerId: o.id,
+                  companyId: o.companyId,
+                  actionType: 'free_message',
+                  message: data.message,
+                  comment: data.comment,
+                })),
+              });
+            }}
+          />
+        </>
+      )}
 
       {/* ── Footer ──────────────────────────────────────────────────────── */}
       {(removedOffers.length > 0 || completedAnalyses[0]?.analyzedAt) && (

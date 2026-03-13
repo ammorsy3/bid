@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, Handshake } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -306,6 +306,7 @@ export default function TenderDetails() {
   const [answerText, setAnswerText] = useState<Record<string, string>>({});
   const [expandedEvalCategories, setExpandedEvalCategories] = useState<Record<string, boolean>>({});
   const [activeSection, setActiveSection] = useState<string>('description');
+  const [isNegotiationMode, setIsNegotiationMode] = useState(false);
 
   const canManage = activeCompany && ['owner', 'admin'].includes(activeCompany.role);
 
@@ -460,6 +461,19 @@ export default function TenderDetails() {
       return res.json();
     },
     enabled: !!user && !!id && !!isOwner,
+  });
+
+  // Fetch negotiation actions for this tender
+  const { data: negotiationActions = [] } = useQuery<any[]>({
+    queryKey: ['/api/tenders', id, 'negotiation-actions'],
+    queryFn: async () => {
+      const res = await fetch(`/api/tenders/${id}/negotiation-actions`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!user && !!id && !!isOwner && tender?.status === 'closed',
   });
 
   // Per-offer AI analysis mutation
@@ -1484,10 +1498,65 @@ export default function TenderDetails() {
                 </div>
               )}
 
+              {/* Negotiation Banner (owner only, closed tender with 2+ offers) */}
+              {isOwner && tender.status === 'closed' && offers.length >= 2 && (
+                <div className="mt-6">
+                  {!isNegotiationMode ? (
+                    <div
+                      className="relative overflow-hidden border border-[#E25E45]/20 rounded-2xl p-6 flex items-center justify-between gap-4 flex-wrap shadow-sm"
+                      style={{ backgroundColor: '#FFF8F7', backgroundImage: 'radial-gradient(circle, #e8c5be 1px, transparent 1px)', backgroundSize: '18px 18px' }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-xl bg-[#E25E45]/10 border border-[#E25E45]/20 flex items-center justify-center flex-shrink-0">
+                          <Handshake className="h-6 w-6 text-[#E25E45]" />
+                        </div>
+                        <div>
+                          <h3 className="text-gray-900 font-bold text-base">{t('tenderFlow.negotiateBannerTitle')}</h3>
+                          <p className="text-gray-500 text-sm mt-0.5">{t('tenderFlow.negotiateBannerDesc')}</p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => setIsNegotiationMode(true)}
+                        className="bg-[#E25E45] hover:bg-[#d54d35] text-white px-6 h-10 text-sm font-semibold shadow-lg"
+                        data-testid="button-negotiate"
+                      >
+                        <Handshake className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                        {t('tenderFlow.startNegotiation')}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="bg-[#E25E45]/5 border-2 border-[#E25E45]/20 rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-[#E25E45]/10 flex items-center justify-center flex-shrink-0">
+                          <Handshake className="h-4 w-4 text-[#E25E45]" />
+                        </div>
+                        <span className="text-sm font-semibold text-gray-800">{t('tenderFlow.negotiationModeActive')}</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsNegotiationMode(false)}
+                        className="text-sm h-8"
+                        data-testid="button-exit-negotiate"
+                      >
+                        {t('tenderFlow.exitNegotiation')}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* AI Proposal Comparison (owner only, when 2+ offers exist) */}
               {isOwner && offers.length >= 2 && (
                 <div className="mt-6">
-                  <ProposalComparison tenderId={tender.id} offers={offers} analyses={offerAnalyses} />
+                  <ProposalComparison
+                    tenderId={tender.id}
+                    offers={offers}
+                    analyses={offerAnalyses}
+                    negotiationMode={isNegotiationMode}
+                    tenderTitle={tender.title}
+                    tenderCompanyName={activeCompany?.name || ''}
+                    negotiationActions={negotiationActions}
+                  />
                 </div>
               )}
 
@@ -1505,23 +1574,22 @@ export default function TenderDetails() {
                   </div>
                   <div className="p-3">
                     <div className="grid grid-cols-2 gap-2">
-                      {/* Deadline */}
-                      <div className={`col-span-2 rounded-xl p-3 border ${isExpired ? 'bg-red-50 border-red-100' : daysRemaining <= 3 ? 'bg-orange-50 border-orange-100' : 'bg-gray-50 border-gray-100'}`}>
-                        <div className="flex items-center justify-between">
+                      {/* Row 1: Deadline | Budget */}
+                      <div className={`rounded-xl p-3 border ${isExpired ? 'bg-red-50 border-red-100' : daysRemaining <= 3 ? 'bg-orange-50 border-orange-100' : 'bg-gray-50 border-gray-100'}`}>
+                        <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-1.5">
                             <Calendar className={`h-3.5 w-3.5 ${isExpired ? 'text-red-500' : daysRemaining <= 3 ? 'text-orange-500' : 'text-[#E25E45]'}`} />
                             <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.deadlineLabel')}</span>
                           </div>
-                          {!isExpired ? (
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${daysRemaining <= 3 ? 'bg-orange-200 text-orange-700' : 'bg-gray-200 text-gray-600'}`}>{daysRemaining}{t('tenderFlow.daysLeftLabel')}</span>
-                          ) : (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-200 text-red-700">{t('tenderFlow.expiredLabel')}</span>
-                          )}
                         </div>
-                        <p className={`text-sm font-bold mt-1 ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-700' : 'text-gray-800'}`}>{formatDate(tender.deadline)}</p>
+                        <p className={`text-xs font-bold leading-tight ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-700' : 'text-gray-800'}`}>{formatDate(tender.deadline)}</p>
+                        {!isExpired ? (
+                          <span className={`mt-1 inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full ${daysRemaining <= 3 ? 'bg-orange-200 text-orange-700' : 'bg-gray-200 text-gray-600'}`}>{daysRemaining}{t('tenderFlow.daysLeftLabel')}</span>
+                        ) : (
+                          <span className="mt-1 inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-red-200 text-red-700">{t('tenderFlow.expiredLabel')}</span>
+                        )}
                       </div>
 
-                      {/* Budget */}
                       <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
                         <div className="flex items-center gap-1.5 mb-1">
                           <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
@@ -1530,44 +1598,28 @@ export default function TenderDetails() {
                         <p className="text-xs font-bold text-gray-800 leading-tight">{getBudgetDisplay()}</p>
                       </div>
 
-                      {/* Duration */}
-                      {durationDisplay && (
-                        <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <Clock className="h-3.5 w-3.5 text-blue-500" />
-                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.durationLabel')}</span>
-                          </div>
-                          <p className="text-xs font-bold text-gray-800 leading-tight">{durationDisplay}</p>
+                      {/* Row 2: Category | Format */}
+                      <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Tag className="h-3.5 w-3.5 text-indigo-500" />
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.categoryLabel')}</span>
                         </div>
-                      )}
+                        <p className="text-xs font-bold text-gray-800 leading-tight">{tender.category || '—'}</p>
+                      </div>
 
-                      {/* Format */}
-                      {tender.submissionType && (
-                        <div className={`bg-gray-50 rounded-xl p-3 border border-gray-100 ${!durationDisplay ? 'col-span-2' : ''}`}>
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <FileText className="h-3.5 w-3.5 text-purple-500" />
-                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.formatLabel')}</span>
-                          </div>
-                          <p className="text-xs font-bold text-gray-800 leading-tight">{SUBMISSION_TYPE_LABELS[tender.submissionType]?.[language] || tender.submissionType}</p>
+                      <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <FileText className="h-3.5 w-3.5 text-purple-500" />
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.formatLabel')}</span>
                         </div>
-                      )}
+                        <p className="text-xs font-bold text-gray-800 leading-tight">{tender.submissionType ? (SUBMISSION_TYPE_LABELS[tender.submissionType]?.[language] || tender.submissionType) : '—'}</p>
+                      </div>
 
-                      {/* Category */}
-                      {tender.category && (
-                        <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <Tag className="h-3.5 w-3.5 text-indigo-500" />
-                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.categoryLabel')}</span>
-                          </div>
-                          <p className="text-xs font-bold text-gray-800 leading-tight">{tender.category}</p>
-                        </div>
-                      )}
-
-                      {/* Proposals count */}
+                      {/* Row 3: Proposals (full width, owner only) */}
                       {isOwner && (
-                        <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                        <div className="col-span-2 bg-gray-50 rounded-xl p-3 border border-gray-100">
                           <div className="flex items-center gap-1.5 mb-1">
-                            <Users className="h-3.5 w-3.5 text-gray-400" />
+                            <Users className="h-3.5 w-3.5 text-[#E25E45]" />
                             <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.proposalsLabel')}</span>
                           </div>
                           <p className="text-lg font-bold text-gray-900 leading-tight">{offers.length}</p>
@@ -1588,7 +1640,7 @@ export default function TenderDetails() {
                         <code className="text-xs break-all text-gray-500" data-testid="text-invitation-link">{invitationLink}</code>
                       </div>
                       <div className="flex gap-2">
-                        <Button onClick={copyInvitationLink} size="sm" className="flex-1 text-xs bg-gray-900 hover:bg-gray-800 text-white" data-testid="button-copy-link">
+                        <Button onClick={copyInvitationLink} size="sm" className="flex-1 text-xs bg-[#E25E45] hover:bg-[#d54d35] text-white" data-testid="button-copy-link">
                           {copiedLink ? <><Check className={`h-3.5 w-3.5 ${isRtl ? 'ml-1' : 'mr-1'}`} /> {t('tenderFlow.copied')}</> : <><Copy className={`h-3.5 w-3.5 ${isRtl ? 'ml-1' : 'mr-1'}`} /> {t('tenderFlow.copyLink')}</>}
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => window.open(invitationLink, '_blank')} data-testid="button-open-link">

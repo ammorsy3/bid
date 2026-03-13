@@ -1163,6 +1163,77 @@ const translations = {
       failedRecordSavings: "Failed to record savings",
       analysisCompleteTitle: "Analysis complete",
       allProposalsAnalyzedDesc: "All proposals have been analyzed.",
+
+      // Negotiation & Award
+      negotiateBtn: "Negotiate",
+      exitNegotiation: "Exit Negotiation",
+      startNegotiation: "Start Negotiation",
+      negotiateBannerTitle: "Ready to negotiate?",
+      negotiateBannerDesc: "Select vendors, request resubmissions, negotiate discounts, or award the contract.",
+      negotiationModeActive: "Negotiation mode is active — select vendors below to take action",
+      vendorsSelected: "{count} vendor(s) selected",
+      requestResubmission: "Request Resubmission",
+      requestDiscount: "Request Discount",
+      sendMessage: "Send Message",
+      awardBtn: "Award",
+      contactBtn: "Contact",
+      awardTooltip: "Select exactly one vendor to award",
+      contactTooltip: "Select exactly one vendor to view contact info",
+      negotiationHint: "Check vendors in the table above to take actions",
+      negotiationHistory: "Negotiation History",
+
+      // Negotiation dialogs
+      requestResubmissionTitle: "Request Resubmission",
+      requestDiscountTitle: "Request Discount",
+      awardDialogTitle: "Award Vendor",
+      sendMessageTitle: "Send Message",
+      contactInfoTitle: "Vendor Contact Info",
+      messageLabel: "Message",
+      commentLabel: "Internal Comment",
+      commentPlaceholder: "Optional internal note (not sent to vendor)",
+      sendingTo: "Sending to",
+      awardingTo: "Awarding to",
+      cancelBtn: "Cancel",
+      sendRequestBtn: "Send Request",
+      sendMessageBtn: "Send Message",
+      confirmAwardBtn: "Confirm Award",
+      closeDialogBtn: "Close",
+
+      // Resubmission dialog
+      resubmissionDefaultMsg: "{orgName} is requesting you to resubmit your proposal for \"{tenderTitle}\".",
+      allowResubmissionLabel: "Allow vendor to resubmit proposal",
+      requestQualificationLabel: "Request updated qualification files",
+
+      // Discount dialog
+      discountDefaultMsg: "{orgName} kindly requests you to review and revise the pricing for \"{tenderTitle}\".",
+      discountPercentLabel: "Requested Discount %",
+      discountPercentPlaceholder: "e.g. 10",
+
+      // Award dialog
+      awardDefaultMsg: "Congratulations! {orgName} is pleased to award {vendorName} the contract for \"{tenderTitle}\".",
+      rejectionDefaultMsg: "Thank you for submitting your proposal for \"{tenderTitle}\". After careful evaluation, {orgName} has selected another vendor for this tender.",
+      awardMessageLabel: "Award Message",
+      rejectionMessageLabel: "Rejection Message (to other vendors)",
+      rejectionWarning: "Rejection notifications will be automatically sent to all other participating vendors.",
+      vendorsToReject: "Vendors to be notified",
+
+      // Free message dialog
+      freeMessagePlaceholder: "Type your message to the vendor(s)...",
+
+      // Contact dialog
+      noContactInfo: "No contact information available",
+
+      // History badges
+      resubmissionRequested: "Resubmission Requested",
+      discountRequested: "Discount Requested",
+      awardedBadge: "Awarded",
+      rejectedBadge: "Rejected",
+      messageSentBadge: "Message Sent",
+
+      // Action feedback
+      actionSentTitle: "Action sent",
+      actionSentDesc: "Your negotiation action has been recorded successfully.",
+      actionFailedTitle: "Action failed",
     },
     admin: {
       adminDashboard: "Admin Dashboard",
@@ -2625,6 +2696,77 @@ const translations = {
       failedRecordSavings: "فشل في تسجيل الوفورات",
       analysisCompleteTitle: "اكتمل التحليل",
       allProposalsAnalyzedDesc: "تم تحليل جميع العروض.",
+
+      // Negotiation & Award
+      negotiateBtn: "تفاوض",
+      exitNegotiation: "إنهاء التفاوض",
+      startNegotiation: "بدء التفاوض",
+      negotiateBannerTitle: "جاهز للتفاوض؟",
+      negotiateBannerDesc: "حدد الموردين، اطلب إعادة تقديم، تفاوض على خصومات، أو رسّي العقد.",
+      negotiationModeActive: "وضع التفاوض مُفعّل — حدد الموردين أدناه لاتخاذ إجراء",
+      vendorsSelected: "{count} مورد(ين) محدد",
+      requestResubmission: "طلب إعادة تقديم",
+      requestDiscount: "طلب خصم",
+      sendMessage: "إرسال رسالة",
+      awardBtn: "ترسية",
+      contactBtn: "تواصل",
+      awardTooltip: "اختر موردًا واحدًا فقط للترسية",
+      contactTooltip: "اختر موردًا واحدًا فقط لعرض بيانات التواصل",
+      negotiationHint: "حدد موردين من الجدول أعلاه لاتخاذ إجراء",
+      negotiationHistory: "سجل التفاوض",
+
+      // Negotiation dialogs
+      requestResubmissionTitle: "طلب إعادة تقديم العرض",
+      requestDiscountTitle: "طلب خصم",
+      awardDialogTitle: "ترسية المورد",
+      sendMessageTitle: "إرسال رسالة",
+      contactInfoTitle: "بيانات التواصل مع المورد",
+      messageLabel: "الرسالة",
+      commentLabel: "ملاحظة داخلية",
+      commentPlaceholder: "ملاحظة اختيارية (لن تُرسل للمورد)",
+      sendingTo: "إرسال إلى",
+      awardingTo: "ترسية إلى",
+      cancelBtn: "إلغاء",
+      sendRequestBtn: "إرسال الطلب",
+      sendMessageBtn: "إرسال الرسالة",
+      confirmAwardBtn: "تأكيد الترسية",
+      closeDialogBtn: "إغلاق",
+
+      // Resubmission dialog
+      resubmissionDefaultMsg: "تطلب {orgName} منكم إعادة تقديم عرضكم لمناقصة \"{tenderTitle}\".",
+      allowResubmissionLabel: "السماح للمورد بإعادة تقديم العرض",
+      requestQualificationLabel: "طلب ملفات التأهيل المحدثة",
+
+      // Discount dialog
+      discountDefaultMsg: "تطلب {orgName} منكم مراجعة وتعديل التسعير المقدم لمناقصة \"{tenderTitle}\".",
+      discountPercentLabel: "نسبة الخصم المطلوبة %",
+      discountPercentPlaceholder: "مثال: 10",
+
+      // Award dialog
+      awardDefaultMsg: "تهانينا! يسرّ {orgName} إبلاغكم بترسية عقد \"{tenderTitle}\" على {vendorName}.",
+      rejectionDefaultMsg: "شكراً لتقديمكم عرضكم لمناقصة \"{tenderTitle}\". بعد التقييم الدقيق، اختارت {orgName} مورداً آخر لهذه المناقصة.",
+      awardMessageLabel: "رسالة الترسية",
+      rejectionMessageLabel: "رسالة الرفض (للموردين الآخرين)",
+      rejectionWarning: "سيتم إرسال إشعارات الرفض تلقائياً لجميع الموردين المشاركين الآخرين.",
+      vendorsToReject: "الموردون المعنيون بالإشعار",
+
+      // Free message dialog
+      freeMessagePlaceholder: "اكتب رسالتك للمورد(ين)...",
+
+      // Contact dialog
+      noContactInfo: "لا تتوفر معلومات تواصل",
+
+      // History badges
+      resubmissionRequested: "طُلبت إعادة التقديم",
+      discountRequested: "طُلب خصم",
+      awardedBadge: "تمت الترسية",
+      rejectedBadge: "مرفوض",
+      messageSentBadge: "تم إرسال رسالة",
+
+      // Action feedback
+      actionSentTitle: "تم الإرسال",
+      actionSentDesc: "تم تسجيل إجراء التفاوض بنجاح.",
+      actionFailedTitle: "فشل الإجراء",
     },
     admin: {
       adminDashboard: "لوحة تحكم المشرف",

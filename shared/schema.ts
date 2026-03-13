@@ -246,8 +246,11 @@ export const offers = pgTable("offers", {
   // Status Gates
   conditionalSubmission: boolean("conditional_submission").default(false).notNull(), // Was company unverified at submission?
   
+  // Resubmission
+  resubmissionAllowed: boolean("resubmission_allowed").default(false).notNull(),
+
   // Proposal Status
-  status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'rejected'
+  status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'rejected', 'superseded'
   decidedBy: varchar("decided_by").references(() => users.id),
   decidedAt: timestamp("decided_at"),
   
@@ -384,6 +387,26 @@ export const awards = pgTable("awards", {
   awardedBy: varchar("awarded_by").references(() => users.id),
   awardedAt: timestamp("awarded_at"),
   
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Negotiation Actions - Communication between requester and vendors during negotiation phase
+export const negotiationActions = pgTable("negotiation_actions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenderId: varchar("tender_id").notNull().references(() => tenders.id),
+  offerId: varchar("offer_id").notNull().references(() => offers.id),
+  companyId: varchar("company_id").notNull().references(() => companies.id),
+  actionType: text("action_type").notNull(),
+  // 'resubmission_request' | 'discount_request' | 'award' | 'rejection' | 'free_message'
+  message: text("message").notNull(),
+  comment: text("comment"),
+  metadata: jsonb("metadata").$type<{
+    discountPercentage?: number;
+    resubmissionOptions?: { allowResubmission: boolean; requestQualificationFiles: boolean };
+    rejectionMessage?: string;
+  }>(),
+  status: text("status").notNull().default("sent"), // 'sent' | 'acknowledged' | 'completed'
+  createdBy: varchar("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -613,6 +636,7 @@ export const tendersRelations = relations(tenders, ({ one, many }) => ({
   offers: many(offers),
   invitations: many(invitations),
   awards: many(awards),
+  negotiationActions: many(negotiationActions),
 }));
 
 export const offersRelations = relations(offers, ({ one }) => ({
@@ -683,6 +707,25 @@ export const awardsRelations = relations(awards, ({ one }) => ({
   offer: one(offers, {
     fields: [awards.offerId],
     references: [offers.id],
+  }),
+}));
+
+export const negotiationActionsRelations = relations(negotiationActions, ({ one }) => ({
+  tender: one(tenders, {
+    fields: [negotiationActions.tenderId],
+    references: [tenders.id],
+  }),
+  offer: one(offers, {
+    fields: [negotiationActions.offerId],
+    references: [offers.id],
+  }),
+  company: one(companies, {
+    fields: [negotiationActions.companyId],
+    references: [companies.id],
+  }),
+  createdByUser: one(users, {
+    fields: [negotiationActions.createdBy],
+    references: [users.id],
   }),
 }));
 
@@ -881,6 +924,12 @@ export const insertTenderQuestionSchema = createInsertSchema(tenderQuestions).om
   createdAt: true,
 });
 
+// Negotiation Action schemas
+export const insertNegotiationActionSchema = createInsertSchema(negotiationActions).omit({
+  id: true,
+  createdAt: true,
+});
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -938,6 +987,9 @@ export type CreateTenderTemplate = z.infer<typeof createTenderTemplateSchema>;
 
 export type TenderQuestion = typeof tenderQuestions.$inferSelect;
 export type InsertTenderQuestion = z.infer<typeof insertTenderQuestionSchema>;
+
+export type NegotiationAction = typeof negotiationActions.$inferSelect;
+export type InsertNegotiationAction = z.infer<typeof insertNegotiationActionSchema>;
 
 export type ProposalAnalysis = typeof proposalAnalyses.$inferSelect;
 export type InsertProposalAnalysis = typeof proposalAnalyses.$inferInsert;

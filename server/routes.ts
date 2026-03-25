@@ -17,6 +17,7 @@ import {
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import { registerCopilotRoutes } from "./replit_integrations/copilot";
+import { sendNewOfferNotification } from "./email";
 
 // Configure multer for file uploads (memory storage)
 const upload = multer({
@@ -2408,6 +2409,32 @@ Respond with ONLY a JSON object. Example:
         }
 
         res.json(offer);
+
+        // Fire-and-forget: email notification to tender owner company admins
+        (async () => {
+          try {
+            const members = await storage.getCompanyMembers(tender.companyId);
+            const adminMembers = members.filter(
+              m => m.roleInCompany === 'owner' || m.roleInCompany === 'admin'
+            );
+            const recipients = adminMembers
+              .filter(m => m.user.email)
+              .map(m => ({ email: m.user.email, name: m.user.name || undefined }));
+
+            const vendorProfile = await storage.getCompanyProfile(req.auth!.activeCompanyId!);
+            const vendorDisplayName = vendorProfile?.displayName || company.name;
+
+            await sendNewOfferNotification({
+              tenderTitle: tender.title || 'Untitled Tender',
+              tenderId: tender.id,
+              vendorCompanyName: vendorDisplayName,
+              submittedAt: new Date(),
+              recipients,
+            });
+          } catch (emailErr) {
+            console.error('[Email] New offer notification failed:', emailErr);
+          }
+        })();
       } catch (error) {
         console.error('Submit offer error:', error);
         res.status(400).json({ message: "Invalid offer data" });

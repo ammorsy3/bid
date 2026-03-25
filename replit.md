@@ -87,6 +87,14 @@ Comprehensive administrative control panel with operational capabilities:
 - **Audit Logging**: Complete audit trail with before/after snapshots
 - **Event-First Analytics**: Real-time metric calculations from database aggregations
 
+### Email Notifications (Postmark)
+Transactional email notifications via the Postmark API.
+- **Service module**: `server/email.ts` — wraps Postmark HTTP API with `sendNewOfferNotification()`
+- **Trigger**: When a vendor submits an offer (`POST /api/tenders/:id/offers`), all owner/admin members of the tender's company receive an email notification
+- **Email content**: Tender title, vendor company name, submission timestamp, CTA link to tender details
+- **Config**: `POSTMARK_API_TOKEN` env secret, from address `info@bidapp.sa`, message stream `system`
+- **Behavior**: Fire-and-forget (async, does not block response), failures logged but do not affect submission flow
+
 ### Error Logging System
 Centralized error logging captures both client-side and server-side errors into the `error_logs` database table.
 - **Client errors**: Unhandled JS exceptions, unhandled promise rejections, and failed API responses are automatically reported via `POST /api/errors`

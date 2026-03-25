@@ -55,8 +55,9 @@ function buildNewOfferEmailHtml(params: {
   submittedAt: string;
   tenderUrl: string;
   recipientName?: string;
+  logoUrl?: string;
 }): string {
-  const { tenderTitle, vendorCompanyName, submittedAt, tenderUrl, recipientName } = params;
+  const { tenderTitle, vendorCompanyName, submittedAt, tenderUrl, recipientName, logoUrl } = params;
 
   return `<!DOCTYPE html>
 <html dir="ltr" lang="en">
@@ -74,16 +75,10 @@ function buildNewOfferEmailHtml(params: {
         <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
           <tr>
             <td align="center">
-              <table role="presentation" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="background-color:#E25E45;width:36px;height:36px;border-radius:10px;text-align:center;vertical-align:middle;">
-                    <span style="color:#ffffff;font-size:18px;font-weight:800;line-height:36px;">B</span>
-                  </td>
-                  <td style="padding-left:10px;">
-                    <span style="color:#18181b;font-size:20px;font-weight:700;letter-spacing:-0.5px;">Bid</span>
-                  </td>
-                </tr>
-              </table>
+              ${logoUrl
+                ? `<img src="${logoUrl}" alt="Bid" width="120" style="display:block;height:auto;max-height:48px;width:auto;max-width:120px;" />`
+                : `<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background-color:#E25E45;width:36px;height:36px;border-radius:10px;text-align:center;vertical-align:middle;"><span style="color:#ffffff;font-size:18px;font-weight:800;line-height:36px;">B</span></td><td style="padding-left:10px;"><span style="color:#18181b;font-size:20px;font-weight:700;letter-spacing:-0.5px;">Bid</span></td></tr></table>`
+              }
             </td>
           </tr>
         </table>
@@ -254,6 +249,7 @@ export async function sendNewOfferNotification(params: {
     minute: "2-digit",
   });
 
+  const logoUrl = `${baseUrl}/bid-logo.png`;
   const subject = `New Proposal Received — ${tenderTitle}`;
 
   for (const recipient of recipients) {
@@ -263,6 +259,7 @@ export async function sendNewOfferNotification(params: {
       submittedAt: formattedDate,
       tenderUrl,
       recipientName: recipient.name,
+      logoUrl,
     });
 
     sendEmail(recipient.email, subject, html).catch(err => {

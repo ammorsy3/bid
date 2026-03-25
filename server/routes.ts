@@ -2428,7 +2428,7 @@ Respond with ONLY a JSON object. Example:
               tenderTitle: tender.title || 'Untitled Tender',
               tenderId: tender.id,
               vendorCompanyName: vendorDisplayName,
-              submittedAt: new Date(),
+              submittedAt: offer.submittedAt ? new Date(offer.submittedAt) : new Date(),
               recipients,
             });
           } catch (emailErr) {

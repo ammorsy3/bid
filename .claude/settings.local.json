@@ -90,7 +90,20 @@
       "Bash(cat /home/runner/workspace/replit.nix 2>/dev/null || echo \"No replit.nix\"; ls /home/runner/workspace/.replit* 2>/dev/null)",
       "WebFetch(domain:www.aitmpl.com)",
       "Bash(npx drizzle-kit:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "WebFetch(domain:stitch.withgoogle.com)",
+      "Bash(claude mcp:*)",
+      "mcp__stitch__list_projects",
+      "Skill(update-config)",
+      "WebFetch(domain:github.com)",
+      "Bash(node:*)",
+      "mcp__stitch__create_project",
+      "mcp__stitch__generate_screen_from_text",
+      "WebFetch(domain:contribution.usercontent.google.com)",
+      "Bash(find /home/runner/workspace -type f \\\\\\(-name *email* -o -name *mail* -o -name *notification* \\\\\\) \\\\\\(-name *.ts -o -name *.tsx -o -name *.js \\\\\\))"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "stitch"
+  ]
 }

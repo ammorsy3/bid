@@ -25,13 +25,13 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription, PopoverBody, PopoverFooter } from "@/components/ui/popover";
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
@@ -264,6 +264,12 @@ export default function Dashboard() {
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [verificationFilter, setVerificationFilter] = useState<string>("all");
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
+  const [showTendersBlur, setShowTendersBlur] = useState(true);
+  const [showSentBlur, setShowSentBlur] = useState(true);
+  const [showReceivedBlur, setShowReceivedBlur] = useState(true);
+  const tendersScrollRef = useRef<HTMLDivElement>(null);
+  const sentScrollRef = useRef<HTMLDivElement>(null);
+  const receivedScrollRef = useRef<HTMLDivElement>(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showCompanyProfileDialog, setShowCompanyProfileDialog] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(() => {
@@ -375,6 +381,20 @@ export default function Dashboard() {
     }
   });
 
+  // Tenders eligible for negotiation: closed, 2+ offers, no accepted offer
+  const tendersReadyToNegotiate = tenders.filter(t =>
+    t.status === 'closed' &&
+    t.offersCount >= 2 &&
+    !incomingOffers.some(o => o.tenderId === t.id && o.status === 'accepted')
+  );
+
+  // Helper: update blur visibility based on viewport scrollability + position
+  const checkBlur = useCallback((ref: React.RefObject<HTMLDivElement | null>, setFn: (v: boolean) => void) => {
+    const el = ref.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+    if (!el) return;
+    setFn(el.scrollHeight > el.clientHeight + 10 && el.scrollHeight - el.scrollTop - el.clientHeight > 10);
+  }, []);
+
   // Filter tenders based on search and status
   const filteredTenders = tenders.filter(tender => {
     const matchesSearch = !tenderSearchQuery || 
@@ -383,6 +403,10 @@ export default function Dashboard() {
     const matchesFilter = tenderFilter === 'all' || tender.status === tenderFilter;
     return matchesSearch && matchesFilter;
   });
+
+  useEffect(() => { checkBlur(tendersScrollRef, setShowTendersBlur); }, [filteredTenders, checkBlur]);
+  useEffect(() => { checkBlur(sentScrollRef, setShowSentBlur); }, [myOffers, checkBlur]);
+  useEffect(() => { checkBlur(receivedScrollRef, setShowReceivedBlur); }, [incomingOffers, checkBlur]);
 
   // Derived unique values for vendor filters
   const uniqueCategories = Array.from(new Set(vendors.map(v => v.category).filter(Boolean))).sort();
@@ -1064,6 +1088,63 @@ export default function Dashboard() {
               </div>
             )}
 
+            {/* ── Ready to Negotiate Banner ───────────────────────────── */}
+            {canManage && tendersReadyToNegotiate.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12, duration: 0.35, ease: "easeOut" }}
+                className="border-2 border-[#E25E45]/20 rounded-2xl overflow-hidden"
+                style={{
+                  backgroundColor: '#FFF8F7',
+                  backgroundImage: 'radial-gradient(circle, #e8c5be 1px, transparent 1px)',
+                  backgroundSize: '18px 18px',
+                }}
+              >
+                <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+                <div className="p-5">
+                  <div className={`flex items-center gap-3 mb-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <div className="h-10 w-10 rounded-xl bg-[#E25E45]/10 border border-[#E25E45]/20 flex items-center justify-center flex-shrink-0">
+                      <Handshake className="h-5 w-5 text-[#E25E45]" />
+                    </div>
+                    <div className={isRtl ? 'text-right' : ''}>
+                      <h3 className="font-semibold text-gray-900">{t('dashboard.readyToNegotiateTitle')}</h3>
+                      <p className="text-sm text-gray-500">
+                        {t('dashboard.readyToNegotiateDesc').replace('{count}', String(tendersReadyToNegotiate.length))}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {tendersReadyToNegotiate.slice(0, 3).map(tender => (
+                      <div key={tender.id} className={`bg-white rounded-xl border border-[#E25E45]/10 p-3 flex items-center justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className={isRtl ? 'text-right' : ''}>
+                          <p className="font-medium text-sm text-gray-900">{tender.title}</p>
+                          <p className="text-xs text-gray-500">
+                            {t('dashboard.proposalsCount').replace('{count}', String(tender.offersCount))}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          className="bg-[#E25E45] hover:bg-[#d54d35] text-white flex-shrink-0"
+                          onClick={() => setLocation(`/tenders/${tender.id}`)}
+                        >
+                          {t('dashboard.negotiateNowBtn')} →
+                        </Button>
+                      </div>
+                    ))}
+                    {tendersReadyToNegotiate.length > 3 && (
+                      <p
+                        className={`text-xs text-[#E25E45] cursor-pointer hover:underline ${isRtl ? 'text-right' : 'text-left'} px-1`}
+                        onClick={() => setActiveTab('tenders')}
+                      >
+                        and {tendersReadyToNegotiate.length - 3} more →
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* ── Demo Banner ─────────────────────────────────────────── */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -1565,12 +1646,16 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="relative w-full h-[600px] border rounded-lg">
-                  <ScrollArea className="h-full">
+                <div ref={tendersScrollRef} className="relative w-full h-[600px] border rounded-lg">
+                  <ScrollArea
+                    className="h-full"
+                    onScrollCapture={() => checkBlur(tendersScrollRef, setShowTendersBlur)}
+                  >
                     <div className="space-y-4 p-4">
                       {filteredTenders.map((tender) => {
                         const statusBadge = getStatusBadge(tender.status);
                         const isDeadlineSoon = new Date(tender.deadline).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000;
+                        const isReadyToNegotiate = tender.status === 'closed' && tender.offersCount >= 2 && !incomingOffers.some(o => o.tenderId === tender.id && o.status === 'accepted');
                         const getSpotlightColor = (status: string): 'blue' | 'purple' | 'green' | 'red' | 'orange' => {
                           switch (status) {
                             case 'published': return 'green';
@@ -1602,6 +1687,11 @@ export default function Dashboard() {
                                     <Badge className={statusBadge.className} data-testid={`badge-status-${tender.id}`}>
                                       {statusBadge.label}
                                     </Badge>
+                                    {isReadyToNegotiate && (
+                                      <span className="text-[9px] font-bold bg-[#E25E45] text-white px-2 py-0.5 rounded-full animate-pulse">
+                                        {t('dashboard.negotiateBadge')}
+                                      </span>
+                                    )}
                                   </div>
                                   <p className="text-sm font-medium text-neutral-600 line-clamp-2" data-testid={`text-tender-description-${tender.id}`}>
                                     {tender.description}
@@ -1684,7 +1774,9 @@ export default function Dashboard() {
                       })}
                     </div>
                   </ScrollArea>
-                  <ProgressiveBlur position="bottom" height="21%" />
+                  <motion.div animate={{ opacity: showTendersBlur ? 1 : 0 }} transition={{ duration: 0.3 }}>
+                    <ProgressiveBlur position="bottom" height="21%" />
+                  </motion.div>
                 </div>
               )}
             </TabsContent>
@@ -1728,8 +1820,11 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="relative w-full h-[600px] border rounded-lg">
-                    <ScrollArea className="h-full">
+                  <div ref={sentScrollRef} className="relative w-full h-[600px] border rounded-lg">
+                    <ScrollArea
+                      className="h-full"
+                      onScrollCapture={() => checkBlur(sentScrollRef, setShowSentBlur)}
+                    >
                       <div className="space-y-4 p-4">
                         {myOffers.map((offer) => {
                           const isExpired = new Date(offer.tender.deadline) < new Date();
@@ -1866,7 +1961,9 @@ export default function Dashboard() {
                         })}
                       </div>
                     </ScrollArea>
-                    <ProgressiveBlur position="bottom" height="21%" />
+                    <motion.div animate={{ opacity: showSentBlur ? 1 : 0 }} transition={{ duration: 0.3 }}>
+                      <ProgressiveBlur position="bottom" height="21%" />
+                    </motion.div>
                   </div>
                 )}
               </TabsContent>
@@ -1888,8 +1985,11 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="relative w-full h-[600px] border rounded-lg">
-                    <ScrollArea className="h-full">
+                  <div ref={receivedScrollRef} className="relative w-full h-[600px] border rounded-lg">
+                    <ScrollArea
+                      className="h-full"
+                      onScrollCapture={() => checkBlur(receivedScrollRef, setShowReceivedBlur)}
+                    >
                       <div className="space-y-4 p-4">
                         {incomingOffers.map((offer) => {
                       const isExpired = new Date(offer.tender.deadline) < new Date();
@@ -1969,96 +2069,67 @@ export default function Dashboard() {
                                   <p className="text-sm mt-2 text-muted-foreground italic">"{offer.notes}"</p>
                                 )}
                               </div>
-                              <div className="flex flex-col gap-2 ml-4">
-                                <div className="flex gap-2 flex-wrap">
+                              <div className={`grid grid-cols-2 gap-2 ${isRtl ? 'mr-4' : 'ml-4'} flex-shrink-0`}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className={!(offer.combinedFileUrl || offer.technicalFileUrl || offer.financialFileUrl || offer.videoUrl) ? 'col-span-2' : ''}
+                                  onClick={() => setSelectedProposal(offer)}
+                                  data-testid={`button-view-offer-${offer.id}`}
+                                >
+                                  <Eye className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                  {t('dashboard.view')}
+                                </Button>
+                                {offer.combinedFileUrl && (
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setSelectedProposal(offer)}
-                                    data-testid={`button-view-offer-${offer.id}`}
+                                    onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)}
+                                    title={t('dashboard.combinedProposalLabel')}
                                   >
-                                    <Eye className="h-4 w-4 mr-1" />
-                                    {t('dashboard.view')}
+                                    <FileText className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                    {t('dashboard.proposalLabel')}
                                   </Button>
-                                  {offer.combinedFileUrl && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)}
-                                      title={t('dashboard.combinedProposalLabel')}
-                                    >
-                                      <FileText className="h-4 w-4 mr-1" />
-                                      {t('dashboard.proposalLabel')}
-                                    </Button>
-                                  )}
-                                  {offer.technicalFileUrl && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
-                                      title={t('dashboard.technicalProposal')}
-                                    >
-                                      <FileText className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                                  {offer.financialFileUrl && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
-                                      title={t('dashboard.financialProposal')}
-                                    >
-                                      <DollarSign className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                                  {offer.videoUrl && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => window.open(offer.videoUrl!, '_blank')}
-                                      title={t('dashboard.videoPitchLabel')}
-                                    >
-                                      <Video className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                                </div>
-                                {offer.status === 'pending' && (
-                                  <div className={`flex gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                    <Button 
-                                      size="sm"
-                                      className="bg-green-600 hover:bg-green-700 text-white"
-                                      onClick={() => updateOfferStatus.mutate({ offerId: offer.id, status: 'accepted' })}
-                                      disabled={updateOfferStatus.isPending}
-                                      data-testid={`button-accept-offer-${offer.id}`}
-                                    >
-                                      <Check className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
-                                      {t('dashboard.accept')}
-                                    </Button>
-                                    <Button 
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-gray-600 hover:bg-gray-100"
-                                      onClick={() => updateOfferStatus.mutate({ offerId: offer.id, status: 'rejected' })}
-                                      disabled={updateOfferStatus.isPending}
-                                      data-testid={`button-ignore-offer-${offer.id}`}
-                                    >
-                                      <X className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
-                                      {t('dashboard.ignore')}
-                                    </Button>
-                                  </div>
                                 )}
-                                {offer.status !== 'pending' && (
-                                  <Button 
-                                    variant="ghost"
+                                {offer.technicalFileUrl && (
+                                  <Button
+                                    variant="outline"
                                     size="sm"
-                                    className="text-xs text-muted-foreground"
-                                    onClick={() => updateOfferStatus.mutate({ offerId: offer.id, status: 'pending' })}
-                                    disabled={updateOfferStatus.isPending}
-                                    data-testid={`button-undo-offer-${offer.id}`}
+                                    onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
+                                    title={t('dashboard.technicalProposal')}
                                   >
-                                    {t('dashboard.undoDecision')}
+                                    <FileText className="h-4 w-4" />
                                   </Button>
                                 )}
+                                {offer.financialFileUrl && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
+                                    title={t('dashboard.financialProposal')}
+                                  >
+                                    <DollarSign className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {offer.videoUrl && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => window.open(offer.videoUrl!, '_blank')}
+                                    title={t('dashboard.videoPitchLabel')}
+                                  >
+                                    <Video className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  className="col-span-2 bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                                  onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
+                                  data-testid={`button-review-tender-${offer.id}`}
+                                >
+                                  <ExternalLink className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                  {t('dashboard.viewTender')}
+                                </Button>
                               </div>
                             </div>
                           </CardContent>
@@ -2067,7 +2138,9 @@ export default function Dashboard() {
                         })}
                       </div>
                     </ScrollArea>
-                    <ProgressiveBlur position="bottom" height="21%" />
+                    <motion.div animate={{ opacity: showReceivedBlur ? 1 : 0 }} transition={{ duration: 0.3 }}>
+                      <ProgressiveBlur position="bottom" height="21%" />
+                    </motion.div>
                   </div>
                 )}
               </TabsContent>

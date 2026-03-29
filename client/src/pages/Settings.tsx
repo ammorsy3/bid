@@ -181,16 +181,8 @@ export default function Settings() {
     }
   });
 
-  const saveLanguageMutation = useMutation({
-    mutationFn: async (lang: string) => {
-      if (!user) return;
-      return apiRequest('PATCH', '/api/user/profile', { name: user.name, language: lang });
-    },
-  });
-
   const handleLanguageChange = (value: string) => {
     setLanguage(value as Language);
-    saveLanguageMutation.mutate(value);
   };
 
   const updateCompanyMutation = useMutation({

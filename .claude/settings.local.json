@@ -106,7 +106,8 @@
       "Bash(__NEW_LINE_3e95026ab427006d__ sed:*)",
       "Bash(curl:*)",
       "Bash(lsof -ti:5000)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(echo:*)"
     ]
   },
   "enabledMcpjsonServers": [

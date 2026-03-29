@@ -63,10 +63,22 @@ interface AuthState {
   updateCompanies: (companies: Company[], activeCompany: Company | null) => void;
 }
 
-// Sync user's DB language preference into localStorage so i18n picks it up
-function syncLanguageFromUser(user: User | null) {
-  if (user?.language === 'ar' || user?.language === 'en') {
+// Sync language between DB and localStorage.
+// DB is source of truth if it has a value; otherwise push localStorage value to DB.
+function syncLanguageFromUser(user: User | null, token: string | null) {
+  if (!user) return;
+  const localLang = localStorage.getItem('language') as 'en' | 'ar' | null;
+
+  if (user.language === 'ar' || user.language === 'en') {
+    // DB has a value — use it as source of truth
     localStorage.setItem('language', user.language);
+  } else if ((localLang === 'ar' || localLang === 'en') && token) {
+    // DB has no value but localStorage does — push to DB
+    fetch('/api/user/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name: user.name, language: localLang }),
+    }).catch(() => {});
   }
 }
 
@@ -99,7 +111,7 @@ export const useAuthStore = create<AuthState>()(
 
           // Set authorization header for future requests
           localStorage.setItem('token', data.token);
-          syncLanguageFromUser(data.user);
+          syncLanguageFromUser(data.user, data.token);
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -154,7 +166,7 @@ export const useAuthStore = create<AuthState>()(
               activeCompany: data.companies.find((c: Company) => c.id === data.activeCompanyId) || null,
               companies: data.companies || []
             });
-            syncLanguageFromUser(data.user);
+            syncLanguageFromUser(data.user, token);
           } else {
             localStorage.removeItem('token');
             set({ 

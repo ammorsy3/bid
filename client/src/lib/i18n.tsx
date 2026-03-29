@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { useAuthStore } from './auth';
 
 export type Language = 'en' | 'ar';
 
@@ -3089,10 +3090,20 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return (saved === 'ar' ? 'ar' : 'en') as Language;
   });
 
-  const setLanguage = (lang: Language) => {
+  const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('language', lang);
-  };
+
+    // Persist to DB so emails and server-side features use the correct language
+    const { user, token } = useAuthStore.getState();
+    if (user && token) {
+      fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name: user.name, language: lang }),
+      }).catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;

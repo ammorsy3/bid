@@ -51,7 +51,13 @@ async function sendEmail(to: string | string[], subject: string, htmlBody: strin
 }
 
 function getBaseUrl(appBaseUrl?: string): string {
-  return appBaseUrl || `https://${process.env.REPLIT_DOMAINS?.split(",")[0] || "bidapp.sa"}`;
+  if (appBaseUrl) return appBaseUrl;
+  const domains = process.env.REPLIT_DOMAINS;
+  if (domains) {
+    const primary = domains.split(",")[0];
+    if (primary) return `https://${primary}`;
+  }
+  return "https://bidapp.sa";
 }
 
 // =============================================================================

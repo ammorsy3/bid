@@ -1,0 +1,62 @@
+
+● Great question. Enterprise companies handle this in a few
+  ways, ranked by deliverability impact:
+
+  1. Hosted image URL (best approach)
+  Reference your logo as a regular <img> tag pointing to a
+  publicly hosted URL on your own domain. This is what
+  Postmark themselves recommend.
+
+  <img src="https://bidapp.sa/logo.png" alt="Bid" />
+
+  - No attachments, no base64 bloat, no spam triggers
+  - Email clients fetch it on open (most modern clients do
+  this)
+  - You can update the logo without resending emails
+
+  2. What to avoid:
+  - Inline base64 — bloats email size, many clients strip
+  it, hurts deliverability
+  - CID attachments — adds MIME parts, increases spam score,
+   inconsistent rendering
+  - SVG — most email clients block SVG entirely
+
+  Your current setup already does option 1 in spirit — the
+  buildEmailHtml template renders a CSS-styled "B" box as
+  the logo (<span style="...">B</span>). But you want the
+  actual Bid logo image instead.
+
+  What you need to do:
+  1. Host the logo PNG on your domain (e.g.,
+  https://bidapp.sa/logo.png) — keep it small (under 20KB,
+  ~200px wide)
+  2. Replace the text-based logo block in the email template
+   with an <img> tag pointing to that URL
+  3. Always include alt="Bid" as fallback for clients that
+  block images by default
+
+  Want me to update the email template to use a hosted logo
+  URL?
+
+❯ But still, man, I think that even just your URLS        
+decrease email delievery, you know?                       
+
+● You're right — some email clients block remote images by default, and too many external URLs can hurt deliverability scores.
+
+  But here's the thing: your emails already have external URLs (the CTA button links to bidapp.sa/tenders/..., the footer links to privacy policy, help
+  center, etc.). One more <img> pointing to your own domain doesn't meaningfully change the picture.
+
+  What actually matters for deliverability with Postmark:
+
+  - SPF, DKIM, DMARC properly configured on bidapp.sa — this is 90% of the battle
+  - Dedicated IP / verified sender domain in Postmark
+  - Low complaint rate — only email users who expect it
+  - Consistent sending volume — don't spike from 0 to 1000 emails
+
+  A single <img> on your own authenticated domain is standard practice. Gmail, Notion, Linear, Stripe — they all do hosted logo images in transactional
+  emails.
+
+  The text-based "B" logo you have now is actually fine too if you prefer zero images. But if you want the real logo, a hosted <img> is the correct approach
+  — it won't hurt your deliverability given your emails already contain multiple links to bidapp.sa.
+
+  Want me to swap in the real logo?

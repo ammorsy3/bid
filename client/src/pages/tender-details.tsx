@@ -351,10 +351,16 @@ export default function TenderDetails() {
       const response = await fetch(`/api/tenders/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("token");
+        useAuthStore.getState().logout();
+        throw new Error("Session expired");
+      }
       if (!response.ok) throw new Error("Failed to fetch tender");
       return response.json();
     },
     enabled: !!user && !!id,
+    retry: false,
   });
 
   const { data: offers = [], isLoading: loadingOffers } = useQuery<Offer[]>({
@@ -573,6 +579,16 @@ export default function TenderDetails() {
     }
     return tender.budgetRange || t('tenderFlow.notSpecified');
   };
+
+  if (!user) {
+    const returnPath = `/tenders/${id}`;
+    setLocation(`/login?redirect=${encodeURIComponent(returnPath)}`);
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#E25E45]" />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

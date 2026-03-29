@@ -17,7 +17,21 @@ import {
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import { registerCopilotRoutes } from "./replit_integrations/copilot";
-import { sendNewOfferNotification } from "./email";
+import {
+  sendNewOfferNotification,
+  sendOfferDecisionNotification,
+  sendAwardNotification,
+  sendNegotiationActionNotification,
+  sendAwardBlockedNotification,
+  sendTenderStatusNotification,
+  sendTenderCreatedNotification,
+  sendTenderClosedToVendorsNotification,
+  sendTenderQuestionNotification,
+  sendTenderAnswerNotification,
+  sendCompanyVerificationNotification,
+  sendJoinRequestNotification,
+  sendJoinRequestDecisionNotification,
+} from "./email";
 
 // Configure multer for file uploads (memory storage)
 const upload = multer({
@@ -482,7 +496,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           jobTitle: user.jobTitle,
           timezone: user.timezone,
           linkedinUrl: user.linkedinUrl,
-          phoneNumber: user.phoneNumber
+          phoneNumber: user.phoneNumber,
+          language: user.language || 'en',
         },
         activeCompany: defaultCompany ? {
           id: defaultCompany.company.id,
@@ -540,7 +555,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           jobTitle: user.jobTitle,
           timezone: user.timezone,
           linkedinUrl: user.linkedinUrl,
-          phoneNumber: user.phoneNumber
+          phoneNumber: user.phoneNumber,
+          language: user.language || 'en',
         },
         activeCompanyId: req.auth!.activeCompanyId,
         companies: userCompanies.map(uc => ({
@@ -571,7 +587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update user profile (name and additional fields)
   app.patch("/api/user/profile", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const { name, jobTitle, timezone, linkedinUrl, phoneNumber } = req.body;
+      const { name, jobTitle, timezone, linkedinUrl, phoneNumber, language } = req.body;
 
       if (!name || typeof name !== 'string') {
         return res.status(400).json({ message: "Name is required" });
@@ -587,6 +603,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (timezone !== undefined) updates.timezone = timezone || null;
       if (linkedinUrl !== undefined) updates.linkedinUrl = linkedinUrl || null;
       if (phoneNumber !== undefined) updates.phoneNumber = phoneNumber || null;
+      if (language === 'en' || language === 'ar') updates.language = language;
 
       await storage.updateUser(req.auth!.userId, updates);
 
@@ -1072,7 +1089,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (suggestedCategory) {
             const updated = await storage.updateTender(tender.id, { category: suggestedCategory });
             // Respond first, then translate asynchronously
-            res.json(updated ?? tender);
+            const finalTender = updated ?? tender;
+            res.json(finalTender);
+
+            // Fire-and-forget: notify team that a new tender was published
+            (async () => {
+              try {
+                const members = await storage.getCompanyMembers(req.auth!.activeCompanyId!);
+                const recipients = members
+                  .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+                  .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+                console.log(`[Email] Tender created — sending to ${recipients.length} recipient(s):`, recipients.map(r => r.email));
+                await sendTenderCreatedNotification({
+                  tenderTitle: finalTender.title || 'Untitled Tender',
+                  tenderId: finalTender.id,
+                  recipients,
+                });
+              } catch (emailErr) {
+                console.error('[Email] Tender created notification failed:', emailErr);
+              }
+            })();
+
             if (tenderData.allowTranslation) {
               buildTenderTranslation({ ...(updated ?? tender), category: suggestedCategory })
                 .then(translatedContent => {
@@ -1087,6 +1124,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         res.json(tender);
+
+        // Fire-and-forget: notify team that a new tender was published
+        (async () => {
+          try {
+            const members = await storage.getCompanyMembers(req.auth!.activeCompanyId!);
+            const recipients = members
+              .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            console.log(`[Email] Tender created — sending to ${recipients.length} recipient(s):`, recipients.map(r => r.email));
+            await sendTenderCreatedNotification({
+              tenderTitle: tender.title || 'Untitled Tender',
+              tenderId: tender.id,
+              recipients,
+            });
+          } catch (emailErr) {
+            console.error('[Email] Tender created notification failed:', emailErr);
+          }
+        })();
 
         // Translate asynchronously after responding so publish is not delayed
         if (tenderData.allowTranslation) {
@@ -1395,6 +1450,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           answeredAt: created.answeredAt,
           createdAt: created.createdAt,
         });
+
+        // Fire-and-forget: notify tender owner admins of new question
+        (async () => {
+          try {
+            const members = await storage.getCompanyMembers(tender.companyId!);
+            const recipients = members
+              .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            await sendTenderQuestionNotification({
+              tenderTitle: tender.title || 'Untitled Tender',
+              tenderId: tender.id,
+              questionText: created.question,
+              recipients,
+            });
+          } catch (emailErr) {
+            console.error('[Email] Tender question notification failed:', emailErr);
+          }
+        })();
       } catch (error) {
         console.error('Post tender question error:', error);
         res.status(500).json({ message: "Server error" });
@@ -1432,6 +1505,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           answeredAt: updated.answeredAt,
           createdAt: updated.createdAt,
         });
+
+        // Fire-and-forget: notify all vendors who submitted offers that Q&A was updated
+        (async () => {
+          try {
+            const offers = await storage.getOffersByTender(req.params.id);
+            const uniqueCompanyIds = Array.from(new Set(offers.map(o => o.companyId)));
+            const vendorRecipients: { email: string; name?: string; language?: 'en' | 'ar' }[] = [];
+            for (const companyId of uniqueCompanyIds) {
+              const members = await storage.getCompanyMembers(companyId);
+              for (const m of members) {
+                if ((m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email) {
+                  vendorRecipients.push({ email: m.user.email, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' });
+                }
+              }
+            }
+            await sendTenderAnswerNotification({
+              tenderTitle: tender.title || 'Untitled Tender',
+              tenderId: tender.id,
+              questionText: updated.question,
+              answerText: updated.answer || '',
+              vendorRecipients,
+            });
+          } catch (emailErr) {
+            console.error('[Email] Tender answer notification failed:', emailErr);
+          }
+        })();
       } catch (error) {
         console.error('Answer tender question error:', error);
         res.status(500).json({ message: "Server error" });
@@ -1509,6 +1608,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         await storage.updateTenderStatus(req.params.id, status);
         res.json({ success: true });
+
+        // Fire-and-forget: status change notifications
+        (async () => {
+          try {
+            // Always notify requester team
+            const members = await storage.getCompanyMembers(tender.companyId!);
+            const requesterRecipients = members
+              .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+
+            if (['published', 'closed', 'cancelled'].includes(status)) {
+              await sendTenderStatusNotification({
+                newStatus: status as 'published' | 'closed' | 'cancelled',
+                tenderTitle: tender.title || 'Untitled Tender',
+                tenderId: tender.id,
+                recipients: requesterRecipients,
+              });
+            }
+
+            // When closing, also notify all vendors who submitted offers
+            if (status === 'closed') {
+              const requesterProfile = await storage.getCompanyProfile(tender.companyId!);
+              const requesterCompany = await storage.getCompany(tender.companyId!);
+              const requesterName = requesterProfile?.displayName || requesterCompany?.name || 'Unknown';
+
+              const offers = await storage.getOffersByTender(tender.id);
+              const uniqueCompanyIds = Array.from(new Set(offers.map(o => o.companyId)));
+              const vendorRecipients: { email: string; name?: string; language?: 'en' | 'ar' }[] = [];
+              for (const companyId of uniqueCompanyIds) {
+                const vendorMembers = await storage.getCompanyMembers(companyId);
+                for (const m of vendorMembers) {
+                  if ((m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email) {
+                    vendorRecipients.push({ email: m.user.email, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' });
+                  }
+                }
+              }
+              await sendTenderClosedToVendorsNotification({
+                tenderTitle: tender.title || 'Untitled Tender',
+                tenderId: tender.id,
+                requesterCompanyName: requesterName,
+                vendorRecipients,
+              });
+            }
+          } catch (emailErr) {
+            console.error('[Email] Tender status notification failed:', emailErr);
+          }
+        })();
       } catch (error) {
         console.error('Update tender status error:', error);
         res.status(500).json({ message: "Server error" });
@@ -2419,7 +2565,7 @@ Respond with ONLY a JSON object. Example:
             );
             const recipients = adminMembers
               .filter(m => m.user.email)
-              .map(m => ({ email: m.user.email, name: m.user.name || undefined }));
+              .map(m => ({ email: m.user.email, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
 
             const vendorProfile = await storage.getCompanyProfile(req.auth!.activeCompanyId!);
             const vendorDisplayName = vendorProfile?.displayName || company.name;
@@ -2597,6 +2743,33 @@ Respond with ONLY a JSON object. Example:
         });
         
         res.json(updatedOffer);
+
+        // Fire-and-forget: notify vendor of decision (accepted or rejected)
+        if (status === 'accepted' || status === 'rejected') {
+          (async () => {
+            try {
+              const tender = await storage.getTender(offer.tenderId);
+              const requesterProfile = await storage.getCompanyProfile(req.auth!.activeCompanyId!);
+              const requesterCompany = await storage.getCompany(req.auth!.activeCompanyId!);
+              const requesterName = requesterProfile?.displayName || requesterCompany?.name || 'Unknown';
+
+              const vendorMembers = await storage.getCompanyMembers(offer.companyId);
+              const recipients = vendorMembers
+                .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+                .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+
+              await sendOfferDecisionNotification({
+                outcome: status,
+                tenderTitle: tender?.title || 'Untitled Tender',
+                tenderId: offer.tenderId,
+                requesterCompanyName: requesterName,
+                recipients,
+              });
+            } catch (emailErr) {
+              console.error('[Email] Offer decision notification failed:', emailErr);
+            }
+          })();
+        }
       } catch (error) {
         console.error('Update offer status error:', error);
         res.status(500).json({ message: "Server error" });
@@ -2751,6 +2924,7 @@ Respond with ONLY a JSON object. Example:
         }
 
         const createdActions = [];
+        const autoRejectedVendors: { companyId: string; message: string }[] = [];
 
         for (const action of actions) {
           // Validate actionType
@@ -2794,11 +2968,13 @@ Respond with ONLY a JSON object. Example:
             await storage.updateOfferStatus(action.offerId, 'accepted', req.auth!.userId);
 
             // Create award record
+            const awardedVendorCompany = await storage.getCompany(action.companyId);
+            const awardStatus = awardedVendorCompany?.verificationStatus === 'verified' ? 'awarded' : 'blocked';
             await storage.createAward({
               tenderId: req.params.tenderId,
               companyId: action.companyId,
               offerId: action.offerId,
-              status: 'awarded',
+              status: awardStatus,
               awardedBy: req.auth!.userId,
               awardedAt: new Date(),
             });
@@ -2832,12 +3008,81 @@ Respond with ONLY a JSON object. Example:
                   status: 'sent',
                   createdBy: req.auth!.userId,
                 });
+                autoRejectedVendors.push({ companyId: otherOffer.companyId, message: rejectionMessage });
               }
             }
           }
         }
 
         res.json(createdActions);
+
+        // Fire-and-forget: email notifications for each action
+        (async () => {
+          try {
+            const requesterProfile = await storage.getCompanyProfile(req.auth!.activeCompanyId!);
+            const requesterCompany = await storage.getCompany(req.auth!.activeCompanyId!);
+            const requesterName = requesterProfile?.displayName || requesterCompany?.name || 'Unknown';
+
+            for (const action of createdActions) {
+              const vendorMembers = await storage.getCompanyMembers(action.companyId);
+              const vendorRecipients = vendorMembers
+                .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+                .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+
+              if (action.actionType === 'award') {
+                const awardedVendorCompany = await storage.getCompany(action.companyId);
+                if (awardedVendorCompany?.verificationStatus === 'verified') {
+                  // Notify winning vendor
+                  await sendAwardNotification({
+                    tenderTitle: tender.title || 'Untitled Tender',
+                    tenderId: tender.id,
+                    requesterCompanyName: requesterName,
+                    recipients: vendorRecipients,
+                  });
+                } else {
+                  // Notify requester that award is blocked
+                  const requesterMembers = await storage.getCompanyMembers(req.auth!.activeCompanyId!);
+                  const requesterRecipients = requesterMembers
+                    .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+                    .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+                  await sendAwardBlockedNotification({
+                    tenderTitle: tender.title || 'Untitled Tender',
+                    tenderId: tender.id,
+                    vendorCompanyName: awardedVendorCompany?.name || 'Unknown Vendor',
+                    recipients: requesterRecipients,
+                  });
+                }
+              } else if (['resubmission_request', 'discount_request', 'free_message', 'rejection'].includes(action.actionType)) {
+                await sendNegotiationActionNotification({
+                  actionType: action.actionType as 'resubmission_request' | 'discount_request' | 'free_message' | 'rejection',
+                  tenderTitle: tender.title || 'Untitled Tender',
+                  tenderId: tender.id,
+                  requesterCompanyName: requesterName,
+                  message: action.message,
+                  recipients: vendorRecipients,
+                });
+              }
+            }
+
+            // Notify auto-rejected vendors
+            for (const { companyId, message } of autoRejectedVendors) {
+              const vendorMembers = await storage.getCompanyMembers(companyId);
+              const vendorRecipients = vendorMembers
+                .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+                .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              await sendNegotiationActionNotification({
+                actionType: 'rejection',
+                tenderTitle: tender.title || 'Untitled Tender',
+                tenderId: tender.id,
+                requesterCompanyName: requesterName,
+                message,
+                recipients: vendorRecipients,
+              });
+            }
+          } catch (emailErr) {
+            console.error('[Email] Negotiation action notification failed:', emailErr);
+          }
+        })();
       } catch (error) {
         console.error('Create negotiation action error:', error);
         res.status(500).json({ message: "Server error" });
@@ -2987,6 +3232,30 @@ Respond with ONLY a JSON object. Example:
         });
 
         res.json({ ...updated, message: "Vendor approved and added to your base" });
+
+        // Fire-and-forget: notify vendor of approval
+        (async () => {
+          try {
+            const vendorMembers = await storage.getCompanyMembers(joinRequest.vendorCompanyId!);
+            const recipients = vendorMembers
+              .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const requesterProfile = await storage.getCompanyProfile(joinRequest.requesterCompanyId!);
+            const requesterCompany = await storage.getCompany(joinRequest.requesterCompanyId!);
+            const requesterName = requesterProfile?.displayName || requesterCompany?.name || 'Unknown';
+            const vendorProfile = await storage.getCompanyProfile(joinRequest.vendorCompanyId!);
+            const vendorCompany = await storage.getCompany(joinRequest.vendorCompanyId!);
+            const vendorName = vendorProfile?.displayName || vendorCompany?.name || 'Unknown';
+            await sendJoinRequestDecisionNotification({
+              decision: 'approved',
+              vendorCompanyName: vendorName,
+              requesterCompanyName: requesterName,
+              recipients,
+            });
+          } catch (emailErr) {
+            console.error('[Email] Join request approval notification failed:', emailErr);
+          }
+        })();
       } catch (error) {
         console.error('Approve join request error:', error);
         res.status(500).json({ message: "Server error" });
@@ -3023,6 +3292,30 @@ Respond with ONLY a JSON object. Example:
         });
 
         res.json({ ...updated, message: "Join request rejected" });
+
+        // Fire-and-forget: notify vendor of rejection
+        (async () => {
+          try {
+            const vendorMembers = await storage.getCompanyMembers(joinRequest.vendorCompanyId!);
+            const recipients = vendorMembers
+              .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const requesterProfile = await storage.getCompanyProfile(joinRequest.requesterCompanyId!);
+            const requesterCompany = await storage.getCompany(joinRequest.requesterCompanyId!);
+            const requesterName = requesterProfile?.displayName || requesterCompany?.name || 'Unknown';
+            const vendorProfile = await storage.getCompanyProfile(joinRequest.vendorCompanyId!);
+            const vendorCompany = await storage.getCompany(joinRequest.vendorCompanyId!);
+            const vendorName = vendorProfile?.displayName || vendorCompany?.name || 'Unknown';
+            await sendJoinRequestDecisionNotification({
+              decision: 'rejected',
+              vendorCompanyName: vendorName,
+              requesterCompanyName: requesterName,
+              recipients,
+            });
+          } catch (emailErr) {
+            console.error('[Email] Join request rejection notification failed:', emailErr);
+          }
+        })();
       } catch (error) {
         console.error('Reject join request error:', error);
         res.status(500).json({ message: "Server error" });
@@ -3117,10 +3410,30 @@ Respond with ONLY a JSON object. Example:
           metadata: { slug, requesterCompanyId: result.company.id }
         });
 
-        res.json({ 
-          ...joinRequest, 
-          message: "Request sent to " + result.company.name 
+        res.json({
+          ...joinRequest,
+          message: "Request sent to " + result.company.name
         });
+
+        // Fire-and-forget: notify requester company admins of new join request
+        (async () => {
+          try {
+            const requesterMembers = await storage.getCompanyMembers(result.company.id);
+            const recipients = requesterMembers
+              .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const vendorProfile = await storage.getCompanyProfile(req.auth!.activeCompanyId!);
+            const vendorCompany = await storage.getCompany(req.auth!.activeCompanyId!);
+            const vendorName = vendorProfile?.displayName || vendorCompany?.name || 'Unknown Vendor';
+            await sendJoinRequestNotification({
+              vendorCompanyName: vendorName,
+              requesterCompanyName: result.displayName || result.company.name,
+              recipients,
+            });
+          } catch (emailErr) {
+            console.error('[Email] Join request notification failed:', emailErr);
+          }
+        })();
       } catch (error) {
         console.error('Submit join request error:', error);
         res.status(400).json({ message: "Failed to submit join request" });
@@ -3351,6 +3664,26 @@ Respond with ONLY a JSON object. Example:
       const { notes } = req.body;
       await storage.verifyCompany(companyId, req.auth!.userId, notes);
       res.json({ message: "Company verified successfully" });
+
+      // Fire-and-forget: notify company owners/admins of verification
+      (async () => {
+        try {
+          const members = await storage.getCompanyMembers(companyId);
+          const recipients = members
+            .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+            .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+          const profile = await storage.getCompanyProfile(companyId);
+          const company = await storage.getCompany(companyId);
+          const companyName = profile?.displayName || company?.name || 'Your Company';
+          await sendCompanyVerificationNotification({
+            outcome: 'verified',
+            companyName,
+            recipients,
+          });
+        } catch (emailErr) {
+          console.error('[Email] Company verification notification failed:', emailErr);
+        }
+      })();
     } catch (error) {
       console.error('Verify company error:', error);
       res.status(500).json({ message: "Server error" });
@@ -3367,6 +3700,27 @@ Respond with ONLY a JSON object. Example:
       }
       await storage.rejectCompany(companyId, reason, req.auth!.userId);
       res.json({ message: "Company rejected" });
+
+      // Fire-and-forget: notify company owners/admins of rejection
+      (async () => {
+        try {
+          const members = await storage.getCompanyMembers(companyId);
+          const recipients = members
+            .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+            .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+          const profile = await storage.getCompanyProfile(companyId);
+          const company = await storage.getCompany(companyId);
+          const companyName = profile?.displayName || company?.name || 'Your Company';
+          await sendCompanyVerificationNotification({
+            outcome: 'rejected',
+            companyName,
+            rejectionReason: reason,
+            recipients,
+          });
+        } catch (emailErr) {
+          console.error('[Email] Company rejection notification failed:', emailErr);
+        }
+      })();
     } catch (error) {
       console.error('Reject company error:', error);
       res.status(500).json({ message: "Server error" });

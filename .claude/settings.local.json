@@ -100,7 +100,13 @@
       "mcp__stitch__create_project",
       "mcp__stitch__generate_screen_from_text",
       "WebFetch(domain:contribution.usercontent.google.com)",
-      "Bash(find /home/runner/workspace -type f \\\\\\(-name *email* -o -name *mail* -o -name *notification* \\\\\\) \\\\\\(-name *.ts -o -name *.tsx -o -name *.js \\\\\\))"
+      "Bash(find /home/runner/workspace -type f \\\\\\(-name *email* -o -name *mail* -o -name *notification* \\\\\\) \\\\\\(-name *.ts -o -name *.tsx -o -name *.js \\\\\\))",
+      "Bash(printenv)",
+      "Bash(sed -i \"s/\\\\.map\\(m => \\({ email: m\\\\.user\\\\.email as string, name: m\\\\.user\\\\.name || undefined, userId: m\\\\.userId }\\)\\)/.map\\(m => \\({ email: m.user.email as string, name: m.user.name || undefined, userId: m.userId, language: \\(m.user.language || ''en''\\) as ''en'' | ''ar'' }\\)\\)/g\" /home/runner/workspace/server/routes.ts)",
+      "Bash(__NEW_LINE_3e95026ab427006d__ sed:*)",
+      "Bash(curl:*)",
+      "Bash(lsof -ti:5000)",
+      "Bash(npm run:*)"
     ]
   },
   "enabledMcpjsonServers": [

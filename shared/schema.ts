@@ -24,6 +24,7 @@ export const users = pgTable("users", {
   linkedinUrl: text("linkedin_url"),
   phoneNumber: text("phone_number"),
   tenderInquiryEmail: text("tender_inquiry_email"),
+  language: text("language").default("en"),
 
   // Legacy columns (preserved from old role-based schema)
   role: text("role"),

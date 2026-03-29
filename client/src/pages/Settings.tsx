@@ -181,6 +181,18 @@ export default function Settings() {
     }
   });
 
+  const saveLanguageMutation = useMutation({
+    mutationFn: async (lang: string) => {
+      if (!user) return;
+      return apiRequest('PATCH', '/api/user/profile', { name: user.name, language: lang });
+    },
+  });
+
+  const handleLanguageChange = (value: string) => {
+    setLanguage(value as Language);
+    saveLanguageMutation.mutate(value);
+  };
+
   const updateCompanyMutation = useMutation({
     mutationFn: async (data: { displayName?: string; bio?: string }) => {
       return apiRequest('PATCH', '/api/company/profile', data);
@@ -632,7 +644,7 @@ export default function Settings() {
                           {t('settings.languageHelper')}
                         </p>
                       </div>
-                      <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
+                      <Select value={language} onValueChange={handleLanguageChange}>
                         <SelectTrigger className="w-40" data-testid="select-language">
                           <SelectValue />
                         </SelectTrigger>

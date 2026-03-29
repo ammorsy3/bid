@@ -18,6 +18,7 @@ interface User {
   linkedinUrl: string | null;
   phoneNumber: string | null;
   tenderInquiryEmail: string | null;
+  language: 'en' | 'ar' | null;
 }
 
 interface CompanyProfile {
@@ -62,6 +63,13 @@ interface AuthState {
   updateCompanies: (companies: Company[], activeCompany: Company | null) => void;
 }
 
+// Sync user's DB language preference into localStorage so i18n picks it up
+function syncLanguageFromUser(user: User | null) {
+  if (user?.language === 'ar' || user?.language === 'en') {
+    localStorage.setItem('language', user.language);
+  }
+}
+
 // ============================================================================
 // AUTH STORE
 // ============================================================================
@@ -81,16 +89,17 @@ export const useAuthStore = create<AuthState>()(
           const response = await apiRequest('POST', '/api/auth/login', { email, password });
           const data = await response.json();
           
-          set({ 
-            user: data.user, 
+          set({
+            user: data.user,
             token: data.token,
             activeCompany: data.activeCompany || null,
             companies: data.companies || [],
-            isLoading: false 
+            isLoading: false
           });
 
           // Set authorization header for future requests
           localStorage.setItem('token', data.token);
+          syncLanguageFromUser(data.user);
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -139,12 +148,13 @@ export const useAuthStore = create<AuthState>()(
           
           if (response.ok) {
             const data = await response.json();
-            set({ 
-              user: data.user, 
+            set({
+              user: data.user,
               token,
               activeCompany: data.companies.find((c: Company) => c.id === data.activeCompanyId) || null,
               companies: data.companies || []
             });
+            syncLanguageFromUser(data.user);
           } else {
             localStorage.removeItem('token');
             set({ 

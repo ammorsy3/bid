@@ -23,6 +23,7 @@ import {
   Mail,
   Clock,
   MousePointerClick,
+  AlertTriangle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -103,6 +104,7 @@ interface ProposalComparisonProps {
   tenderTitle?: string;
   tenderCompanyName?: string;
   negotiationActions?: NegotiationActionData[];
+  submissionType?: string;
 }
 
 const VENDOR_COLORS = [
@@ -116,6 +118,7 @@ const VENDOR_COLORS = [
 export default function ProposalComparison({
   tenderId, offers, analyses = [],
   negotiationMode = false, tenderTitle = '', tenderCompanyName = '', negotiationActions = [],
+  submissionType = '',
 }: ProposalComparisonProps) {
   const { toast } = useToast();
   const { language, t } = useI18n();
@@ -125,6 +128,7 @@ export default function ProposalComparison({
   // Negotiation state
   const [checkedVendors, setCheckedVendors] = useState<Set<string>>(new Set());
   const [activeDialog, setActiveDialog] = useState<'resubmission' | 'discount' | 'award' | 'contact' | 'free_message' | null>(null);
+  const [directAwardOfferId, setDirectAwardOfferId] = useState<string | null>(null);
 
   const toggleVendor = (offerId: string) => {
     setCheckedVendors(prev => {
@@ -173,6 +177,7 @@ export default function ProposalComparison({
       queryClient.invalidateQueries({ queryKey: ['/api/tenders', tenderId, 'negotiation-actions'] });
       setCheckedVendors(new Set());
       setActiveDialog(null);
+      setDirectAwardOfferId(null);
       toast({ title: t('tenderFlow.actionSentTitle'), description: t('tenderFlow.actionSentDesc') });
     },
     onError: (error: Error) => {
@@ -212,6 +217,10 @@ export default function ProposalComparison({
 
   const completedAnalyses = analyses.filter(a => a.status === "completed");
   const hasAnalyses = completedAnalyses.length > 0;
+  const isVideoOnlyFormat = submissionType === 'video_only';
+  const isQuoteOnly = submissionType === 'quote_only';
+  const allSkipped = analyses.length > 0 && analyses.every(a => a.status === 'skipped');
+  const cannotAnalyze = isVideoOnlyFormat || allSkipped || isQuoteOnly;
   const visibleOffers = offers.filter(o => !hiddenOffers.has(o.id));
   const removedOffers = offers.filter(o => hiddenOffers.has(o.id));
 
@@ -247,31 +256,206 @@ export default function ProposalComparison({
     savingsMutation.mutate({ selectedOfferId: offer.id, selectedCompanyId: offer.companyId, selectedPrice, highestPrice, lowestPrice });
   };
 
-  // ─── Empty state ─────────────────────────────────────────────────────────────
-  if (!hasAnalyses) {
+  // ─── No-analysis state (simplified table with direct award) ─────────────────
+  // quote_only bypasses this: it always renders the full table using offer.quotePrice
+  if (!hasAnalyses && !isQuoteOnly) {
+    const directAwardOffer = directAwardOfferId ? visibleOffers.find(o => o.id === directAwardOfferId) : null;
     return (
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
-        <div className="p-8 text-center">
-          <div className="h-12 w-12 rounded-xl bg-[#E25E45]/10 border border-[#E25E45]/20 flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="h-6 w-6 text-[#E25E45]" />
+
+        {/* Card header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#E25E45] text-white text-xs font-bold">
+              <Sparkles className="h-3 w-3" />
+            </div>
+            <div>
+              <span className="text-sm font-bold text-gray-900">{t('tenderFlow.proposalComparisonTitle')}</span>
+              <span className="text-xs text-gray-400 ml-2">{t('tenderFlow.vendorsCount').replace('{count}', String(visibleOffers.length))}</span>
+            </div>
           </div>
-          <h3 className="text-sm font-bold text-gray-900 mb-1">{t('tenderFlow.proposalComparisonEmpty')}</h3>
-          <p className="text-sm text-gray-500 mb-5 max-w-sm mx-auto">
-            {t('tenderFlow.proposalComparisonEmptyDesc').replace('{count}', String(offers.length))}
-          </p>
-          <Button
-            onClick={() => analyzeMutation.mutate()}
-            disabled={analyzeMutation.isPending || offers.length < 2}
-            className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
-          >
-            {analyzeMutation.isPending ? (
-              <><Loader2 className="h-4 w-4 animate-spin mr-2" />{t('tenderFlow.analyzingProposals').replace('{count}', String(offers.length))}</>
-            ) : (
-              <><Sparkles className="h-4 w-4 mr-2" />{t('tenderFlow.analyzeCompareAll')}</>
-            )}
-          </Button>
+          {!cannotAnalyze && (
+            <Button
+              onClick={() => analyzeMutation.mutate()}
+              disabled={analyzeMutation.isPending || offers.length < 2}
+              className="bg-[#E25E45] hover:bg-[#d54d35] text-white text-xs h-7"
+              size="sm"
+            >
+              {analyzeMutation.isPending ? (
+                <><Loader2 className="h-3 w-3 animate-spin mr-1" />{t('tenderFlow.analyzingProposals').replace('{count}', String(offers.length))}</>
+              ) : (
+                <><Sparkles className="h-3 w-3 mr-1" />{t('tenderFlow.analyzeCompareAll')}</>
+              )}
+            </Button>
+          )}
         </div>
+
+        {/* Banner */}
+        {cannotAnalyze ? (
+          <div className="px-5 py-3 bg-amber-50 border-b border-amber-100 flex items-center gap-2 text-sm text-amber-800">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" />
+            <span>
+              {isVideoOnlyFormat
+                ? t('tenderFlow.videoOnlyAnalysisNotice')
+                : t('tenderFlow.allSkippedAnalysisNotice')}
+            </span>
+          </div>
+        ) : (
+          <div className="px-5 py-3 bg-blue-50 border-b border-blue-100 flex items-center gap-2 text-sm text-blue-700">
+            <Sparkles className="h-4 w-4 shrink-0 text-blue-500" />
+            <span>{t('tenderFlow.proposalComparisonEmptyDesc').replace('{count}', String(offers.length))}</span>
+          </div>
+        )}
+
+        {/* Simplified proposals list */}
+        <div className="divide-y divide-gray-50">
+          {visibleOffers.map((offer, idx) => {
+            const gradient = VENDOR_COLORS[idx % VENDOR_COLORS.length];
+            const name = getVendorName(offer);
+            const awarded = isOfferAwarded(offer.id);
+
+            return (
+              <div key={offer.id} className={`flex items-center gap-4 px-5 py-4 ${awarded ? 'bg-emerald-50/40' : 'hover:bg-gray-50/50'}`}>
+                {/* Avatar + name */}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  {offer.profile?.logoUrl ? (
+                    <img src={offer.profile.logoUrl} alt="" className="h-9 w-9 rounded-lg object-cover flex-shrink-0 ring-1 ring-gray-200" />
+                  ) : (
+                    <div className={`h-9 w-9 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                      <span className="text-white text-[10px] font-bold leading-none">{name.slice(0, 2).toUpperCase()}</span>
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
+                    {offer.company.category && (
+                      <p className="text-xs text-gray-400 truncate">{offer.company.category}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Submission details */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {offer.videoUrl && (
+                    <a
+                      href={offer.videoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 border border-blue-200 rounded-md px-2 py-1 hover:bg-blue-50"
+                    >
+                      <FileText className="h-3 w-3" /> {t('tenderFlow.watchVideo')}
+                    </a>
+                  )}
+                  {(offer.combinedFileUrl || offer.technicalFileUrl) && (
+                    <button
+                      onClick={() => { const f = offer.combinedFileUrl || offer.technicalFileUrl; if (f) viewAuthenticatedFile(f); }}
+                      className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-800 border border-gray-200 rounded-md px-2 py-1 hover:bg-gray-50"
+                    >
+                      <FileText className="h-3 w-3" /> {t('tenderFlow.viewProposal')}
+                    </button>
+                  )}
+                  {offer.quotePrice != null && (
+                    <span className="text-xs font-bold text-gray-800">{t('tenderFlow.sarCurrency')} {offer.quotePrice.toLocaleString()}</span>
+                  )}
+                </div>
+
+                {/* Negotiation history badges */}
+                {negotiationMode && getActionBadges(offer.id).length > 0 && (
+                  <div className="flex flex-wrap gap-0.5 flex-shrink-0">
+                    {getActionBadges(offer.id).map((badge, i) => (
+                      <span key={i} className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full border ${badge.color}`}>
+                        {badge.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Award button (negotiation mode only) */}
+                {negotiationMode && (
+                  awarded ? (
+                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full border border-emerald-200 flex items-center gap-1 flex-shrink-0">
+                      <Award className="h-3 w-3" /> {t('tenderFlow.awardedBadge')}
+                    </span>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-50 flex-shrink-0"
+                      onClick={() => { setDirectAwardOfferId(offer.id); setActiveDialog('award'); }}
+                    >
+                      <Award className="h-3 w-3" /> {t('tenderFlow.awardBtn')}
+                    </Button>
+                  )
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Negotiation history log */}
+        {negotiationMode && negotiationActions.length > 0 && (
+          <div className="mx-5 mt-4 mb-4 border border-gray-100 rounded-xl overflow-hidden">
+            <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+              <Clock className="h-3.5 w-3.5 text-gray-400" />
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('tenderFlow.negotiationHistory')}</span>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {sortedNegotiationActions.map((action) => {
+                const meta = ACTION_META[action.actionType];
+                const vendor = offers.find(o => o.id === action.offerId);
+                const vendorName = vendor ? getVendorName(vendor) : '—';
+                const Icon = meta?.icon || Mail;
+                return (
+                  <div key={action.id} className="px-4 py-3 flex items-start gap-3">
+                    <div className={`mt-0.5 h-6 w-6 rounded-full border flex items-center justify-center flex-shrink-0 ${meta?.color || 'text-gray-500 bg-gray-50 border-gray-200'}`}>
+                      <Icon className="h-3 w-3" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-gray-800">{vendorName}</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${meta?.color || 'text-gray-500 bg-gray-50 border-gray-200'}`}>
+                          {meta?.label() || action.actionType}
+                        </span>
+                      </div>
+                      {action.message && (
+                        <p className="text-xs text-gray-400 mt-0.5 truncate">{action.message}</p>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-gray-300 flex-shrink-0 mt-0.5">
+                      {new Date(action.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* AwardDialog for direct award (no-analysis path) */}
+        {negotiationMode && directAwardOffer && (
+          <AwardDialog
+            open={activeDialog === 'award'}
+            onOpenChange={(open) => { if (!open) { setActiveDialog(null); setDirectAwardOfferId(null); } }}
+            vendorName={getVendorName(directAwardOffer)}
+            otherVendorNames={visibleOffers.filter(o => o.id !== directAwardOffer.id).map(o => getVendorName(o))}
+            tenderTitle={tenderTitle}
+            tenderCompanyName={tenderCompanyName}
+            tenderId={tenderId}
+            isPending={negotiationMutation.isPending}
+            onSubmit={(data) => {
+              negotiationMutation.mutate({
+                actions: [{
+                  offerId: directAwardOffer.id,
+                  companyId: directAwardOffer.companyId,
+                  actionType: 'award',
+                  message: data.message,
+                  comment: data.comment,
+                  metadata: data.metadata,
+                }],
+              });
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -308,10 +492,16 @@ export default function ProposalComparison({
             <span className="text-xs text-gray-400 ml-2">{t('tenderFlow.vendorsCount').replace('{count}', String(visibleOffers.length))}</span>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => analyzeMutation.mutate()} disabled={analyzeMutation.isPending} className="text-xs h-7">
-          {analyzeMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RotateCcw className="h-3 w-3 mr-1" />}
-          {t('tenderFlow.reAnalyze')}
-        </Button>
+        {isQuoteOnly ? (
+          <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1">
+            {t('tenderFlow.priceComparisonLabel')}
+          </span>
+        ) : (
+          <Button variant="outline" size="sm" onClick={() => analyzeMutation.mutate()} disabled={analyzeMutation.isPending} className="text-xs h-7">
+            {analyzeMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RotateCcw className="h-3 w-3 mr-1" />}
+            {t('tenderFlow.reAnalyze')}
+          </Button>
+        )}
       </div>
 
       {/* ── Savings banner ──────────────────────────────────────────────── */}
@@ -416,6 +606,18 @@ export default function ProposalComparison({
                             style={{ width: `${(total / highestPrice) * 100}%` }}
                           />
                         </div>
+                      )}
+
+                      {/* Watch Video link — always visible when videoUrl exists */}
+                      {offer.videoUrl && (
+                        <a
+                          href={offer.videoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mb-1.5 flex items-center justify-center gap-1 text-[10px] text-blue-600 hover:text-blue-800 border border-blue-200 rounded-md px-2 py-1 hover:bg-blue-50 w-full"
+                        >
+                          <FileText className="h-2.5 w-2.5" /> {t('tenderFlow.watchVideo')}
+                        </a>
                       )}
 
                       {/* Actions - hidden in negotiation mode */}

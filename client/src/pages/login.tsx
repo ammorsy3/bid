@@ -1,6 +1,4 @@
-import { Button } from "@/components/ui/button";
 import { NeonButton } from "@/components/ui/neon-button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
@@ -11,6 +9,7 @@ import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
+import { Building2, Shield, Users } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -25,7 +24,7 @@ export default function Login() {
   const { login, isLoading, user, activeCompany } = useAuthStore();
   const { toast } = useToast();
   const { t } = useI18n();
-  
+
   const urlParams = new URLSearchParams(search);
   const invitationToken = urlParams.get('token');
   const redirectUrl = urlParams.get('redirect');
@@ -40,6 +39,16 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
+      // If email not verified, go to verification
+      if (!user.emailVerified) {
+        if (redirectUrl) {
+          localStorage.setItem('postOnboardingRedirect', decodeURIComponent(redirectUrl));
+        } else if (invitationToken) {
+          localStorage.setItem('postOnboardingRedirect', `/invite/${invitationToken}`);
+        }
+        setLocation("/verify-email");
+        return;
+      }
       // If user has a company, go to redirect or dashboard
       if (activeCompany) {
         if (invitationToken) {
@@ -50,13 +59,13 @@ export default function Login() {
           setLocation("/dashboard");
         }
       } else {
-        // User needs to create a company - store redirect for after onboarding
+        // User needs to create a company
         if (redirectUrl) {
           localStorage.setItem('postOnboardingRedirect', decodeURIComponent(redirectUrl));
         } else if (invitationToken) {
           localStorage.setItem('postOnboardingRedirect', `/invite/${invitationToken}`);
         }
-        setLocation("/company-onboarding");
+        setLocation("/onboarding");
       }
     }
   }, [user, activeCompany, setLocation, invitationToken, redirectUrl]);
@@ -68,7 +77,6 @@ export default function Login() {
         title: t('common.success'),
         description: t('auth.loginSuccess'),
       });
-      // Redirect is handled by useEffect which watches user and activeCompany changes
     } catch (error) {
       toast({
         title: t('common.error'),
@@ -79,13 +87,77 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-primary-600 mb-2">Bid</CardTitle>
-          <p className="text-neutral-600">{t('auth.signInTitle')}</p>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen flex">
+      {/* Left Panel - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
+        </div>
+        <div className="relative z-10 flex flex-col justify-center px-16 text-white">
+          <div className="mb-12">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-lg">B</span>
+              </div>
+              <span className="text-2xl font-bold tracking-tight">Bid</span>
+            </div>
+            <h1 className="text-4xl font-bold leading-tight mb-4">
+              Welcome back
+            </h1>
+            <p className="text-lg text-white/70 leading-relaxed">
+              Sign in to manage your tenders, track proposals, and collaborate with your team.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Building2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-1">Company Workspaces</h3>
+                <p className="text-sm text-white/60">Organize your team and manage multiple projects under one roof.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-1">Vendor Management</h3>
+                <p className="text-sm text-white/60">Build your vendor base and invite suppliers to bid on your projects.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Shield className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-1">Secure & Compliant</h3>
+                <p className="text-sm text-white/60">Built for Saudi businesses with CR verification and compliance tools.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel - Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-neutral-50">
+        <div className="w-full max-w-md">
+          {/* Mobile logo */}
+          <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
+            <div className="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-lg">B</span>
+            </div>
+            <span className="text-xl font-bold text-neutral-900">Bid</span>
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-neutral-900 mb-2">Sign in to your account</h2>
+            <p className="text-neutral-500">Enter your credentials to continue.</p>
+          </div>
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -116,22 +188,22 @@ export default function Login() {
                 )}
               />
 
-              <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full" disabled={isLoading}>
+              <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full mt-6" disabled={isLoading}>
                 {isLoading ? t('auth.signingIn') : t('auth.signIn')}
               </NeonButton>
             </form>
           </Form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-neutral-600">
+            <p className="text-sm text-neutral-500">
               {t('auth.noAccount')}{" "}
-              <Link href="/register" className="text-primary-600 hover:text-primary-700 font-medium">
+              <Link href="/signup" className="text-primary-600 hover:text-primary-700 font-medium">
                 {t('auth.signUp')}
               </Link>
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

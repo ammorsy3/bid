@@ -1572,6 +1572,7 @@ export default function TenderDetails() {
                     tenderTitle={tender.title}
                     tenderCompanyName={activeCompany?.name || ''}
                     negotiationActions={negotiationActions}
+                    submissionType={tender.submissionType}
                   />
                 </div>
               )}

@@ -19,6 +19,7 @@ interface User {
   phoneNumber: string | null;
   tenderInquiryEmail: string | null;
   language: 'en' | 'ar' | null;
+  emailVerified: boolean;
 }
 
 interface CompanyProfile {

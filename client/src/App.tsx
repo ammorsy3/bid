@@ -7,6 +7,11 @@ import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import CompanyOnboarding from "@/pages/CompanyOnboarding";
+import VerifyEmail from "@/pages/verify-email";
+import OnboardingChoice from "@/pages/onboarding/index";
+import CompanyBasics from "@/pages/onboarding/company-basics";
+import CompanyProfile from "@/pages/onboarding/company-profile";
+import InviteTeam from "@/pages/onboarding/invite-team";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminVendors from "@/pages/AdminVendors";
 import AdminJoinRequests from "@/pages/AdminJoinRequests";
@@ -40,6 +45,11 @@ export default function App() {
             <Route path="/login" component={Login} />
             <Route path="/signup" component={Register} />
             <Route path="/company-onboarding" component={CompanyOnboarding} />
+            <Route path="/verify-email" component={VerifyEmail} />
+            <Route path="/onboarding" component={OnboardingChoice} />
+            <Route path="/onboarding/company-basics" component={CompanyBasics} />
+            <Route path="/onboarding/company-profile" component={CompanyProfile} />
+            <Route path="/onboarding/invite-team" component={InviteTeam} />
             <Route path="/dashboard" component={Dashboard} />
             <Route path="/admin/dashboard" component={AdminDashboard} />
             <Route path="/admin/vendors" component={AdminVendors} />

@@ -10,6 +10,48 @@ function getPostmarkToken(): string | null {
   return process.env.POSTMARK_API_TOKEN || null;
 }
 
+function getPostmarkAuthToken(): string | null {
+  return process.env.POSTMARK_AUTH_TOKEN || process.env.POSTMARK_API_TOKEN || null;
+}
+
+async function sendAuthEmail(to: string, subject: string, htmlBody: string): Promise<boolean> {
+  const token = getPostmarkAuthToken();
+  if (!token) {
+    console.warn("[Email] No Postmark token set — skipping auth email send");
+    return false;
+  }
+
+  try {
+    const response = await fetch(POSTMARK_API_URL, {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-Postmark-Server-Token": token,
+      },
+      body: JSON.stringify({
+        From: FROM_EMAIL,
+        To: to,
+        Subject: subject,
+        HtmlBody: htmlBody,
+        MessageStream: "auth",
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(`[Email] Postmark auth returned ${response.status}: ${errorBody}`);
+      return false;
+    }
+
+    console.log(`[Email] Auth email sent to ${to}: "${subject}"`);
+    return true;
+  } catch (err) {
+    console.error("[Email] Failed to send auth email:", err);
+    return false;
+  }
+}
+
 async function sendEmail(to: string | string[], subject: string, htmlBody: string): Promise<boolean> {
   const token = getPostmarkToken();
   if (!token) {
@@ -286,10 +328,11 @@ export async function sendNewOfferNotification(params: {
   tenderId: string;
   vendorCompanyName: string;
   submittedAt: Date;
+  proposalCount: number;
   recipients: { email: string; name?: string; language?: Lang }[];
   appBaseUrl?: string;
 }): Promise<void> {
-  const { tenderTitle, tenderId, vendorCompanyName, submittedAt, recipients, appBaseUrl } = params;
+  const { tenderTitle, tenderId, vendorCompanyName, submittedAt, proposalCount, recipients, appBaseUrl } = params;
 
   if (recipients.length === 0) {
     console.log("[Email] No recipients for new offer notification — skipping");
@@ -298,6 +341,7 @@ export async function sendNewOfferNotification(params: {
 
   const baseUrl = getBaseUrl(appBaseUrl);
   const tenderUrl = `${baseUrl}/tenders/${tenderId}`;
+  const isMilestone = proposalCount > 1;
 
   for (const recipient of recipients) {
     const lang: Lang = recipient.language || 'en';
@@ -308,25 +352,52 @@ export async function sendNewOfferNotification(params: {
       hour: "2-digit", minute: "2-digit",
     });
 
-    const subject = isAr
-      ? `عرض جديد تم استلامه — ${tenderTitle}`
-      : `New Proposal Received — ${tenderTitle}`;
+    const subject = isMilestone
+      ? (isAr
+          ? `لديك ${proposalCount} عروض على مناقصتك — ${tenderTitle}`
+          : `You've received ${proposalCount} proposals — ${tenderTitle}`)
+      : (isAr
+          ? `عرض جديد تم استلامه — ${tenderTitle}`
+          : `New Proposal Received — ${tenderTitle}`);
+
+    const headline = isMilestone
+      ? (isAr ? `وصلت إلى ${proposalCount} عروض` : `${proposalCount} Proposals Received`)
+      : (isAr ? "تم استلام عرض جديد" : "New Proposal Received");
+
+    const subheadline = isMilestone
+      ? (isAr ? `مناقصتك تستقطب الاهتمام.` : `Your tender is gaining traction.`)
+      : (isAr ? "قدّم مورد عرضاً لمناقصتك." : "A vendor has submitted a proposal to your tender.");
+
+    const bodyText = isMilestone
+      ? (isAr
+          ? `مناقصتك تسير بشكل رائع — لقد وصلت إلى ${proposalCount} عروض مقدمة. توجه إلى لوحة التحكم لمراجعتها وتقييمها.`
+          : `Your tender is doing great — you've now reached ${proposalCount} submitted proposals. Head to your dashboard to review and evaluate them.`)
+      : (isAr
+          ? "خبر رائع — تم تقديم عرض جديد لإحدى مناقصاتك النشطة. راجع التفاصيل أدناه وانتقل إلى لوحة التحكم لتقييمه."
+          : "Great news — a new proposal has been submitted to one of your active tenders. Review the details below and head to your dashboard to evaluate it.");
+
+    const details = isMilestone
+      ? [
+          { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة"          : "Tender",            value: tenderTitle },
+          { iconEmoji: "&#128202;", iconBg: "#EFF6FF", label: isAr ? "إجمالي العروض"     : "Total Proposals",   value: String(proposalCount) },
+          { iconEmoji: "&#127970;", iconBg: "#F0FDF4", label: isAr ? "آخر عرض من"        : "Latest Proposal By", value: vendorCompanyName },
+          { iconEmoji: "&#128337;", iconBg: "#F5F3FF", label: isAr ? "تاريخ التقديم"     : "Submitted",         value: formattedDate },
+        ]
+      : [
+          { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة"        : "Tender",    value: tenderTitle },
+          { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: isAr ? "المورد"          : "Vendor",    value: vendorCompanyName },
+          { iconEmoji: "&#128337;", iconBg: "#F0FDF4", label: isAr ? "تاريخ التقديم"   : "Submitted", value: formattedDate },
+        ];
 
     const html = buildEmailHtml({
       language: lang,
       iconEmoji: "&#128203;",
       iconBg: "#FFF1EE",
-      headline:    isAr ? "تم استلام عرض جديد"                   : "New Proposal Received",
-      subheadline: isAr ? "قدّم مورد عرضاً لمناقصتك."             : "A vendor has submitted a proposal to your tender.",
+      headline,
+      subheadline,
       recipientName: recipient.name,
-      bodyText: isAr
-        ? "خبر رائع — تم تقديم عرض جديد لإحدى مناقصاتك النشطة. راجع التفاصيل أدناه وانتقل إلى لوحة التحكم لتقييمه."
-        : "Great news — a new proposal has been submitted to one of your active tenders. Review the details below and head to your dashboard to evaluate it.",
-      details: [
-        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة"        : "Tender",    value: tenderTitle },
-        { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: isAr ? "المورد"          : "Vendor",    value: vendorCompanyName },
-        { iconEmoji: "&#128337;", iconBg: "#F0FDF4", label: isAr ? "تاريخ التقديم"   : "Submitted", value: formattedDate },
-      ],
+      bodyText,
+      details,
       ctaLabel:   isAr ? "عرض المناقصة" : "View Tender",
       ctaUrl: tenderUrl,
       ctaColor: BRAND_COLOR,
@@ -400,10 +471,11 @@ export async function sendAwardNotification(params: {
   tenderTitle: string;
   tenderId: string;
   requesterCompanyName: string;
+  message?: string;
   recipients: { email: string; name?: string; language?: Lang }[];
   appBaseUrl?: string;
 }): Promise<void> {
-  const { tenderTitle, tenderId, requesterCompanyName, recipients, appBaseUrl } = params;
+  const { tenderTitle, tenderId, requesterCompanyName, message, recipients, appBaseUrl } = params;
   if (recipients.length === 0) return;
 
   const baseUrl = getBaseUrl(appBaseUrl);
@@ -417,6 +489,15 @@ export async function sendAwardNotification(params: {
       ? `تهانينا — لقد فزت بالعقد: ${tenderTitle}`
       : `Congratulations — You've Been Awarded: ${tenderTitle}`;
 
+    const details: { iconEmoji: string; iconBg: string; label: string; value: string }[] = [
+      { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة"      : "Tender",     value: tenderTitle },
+      { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: isAr ? "ممنوح بواسطة"  : "Awarded by", value: requesterCompanyName },
+    ];
+
+    if (message) {
+      details.push({ iconEmoji: "&#128172;", iconBg: "#F0FDF4", label: isAr ? "رسالة من المشتري" : "Message from Buyer", value: message });
+    }
+
     const html = buildEmailHtml({
       language: lang,
       iconEmoji: "&#127942;",
@@ -427,10 +508,7 @@ export async function sendAwardNotification(params: {
       bodyText: isAr
         ? "تهانينا! تم اختيار عرضك وأُعلن فوزك رسمياً بهذا العقد. يرجى تسجيل الدخول لمراجعة التفاصيل والتنسيق مع المشتري."
         : "Congratulations! Your proposal has been selected and you have been officially awarded this contract. Please log in to your dashboard to review the details and coordinate next steps with the buyer.",
-      details: [
-        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة"      : "Tender",     value: tenderTitle },
-        { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: isAr ? "ممنوح بواسطة"  : "Awarded by", value: requesterCompanyName },
-      ],
+      details,
       ctaLabel:  isAr ? "عرض تفاصيل الترسية" : "View Award Details",
       ctaUrl: tenderUrl,
       ctaColor: "#f59e0b",
@@ -992,4 +1070,93 @@ export async function sendJoinRequestDecisionNotification(params: {
     });
     sendEmail(recipient.email, subject, html).catch(err => console.error(`[Email] Failed to send to ${recipient.email}:`, err));
   }
+}
+
+// =============================================================================
+// EMAIL VERIFICATION OTP
+// =============================================================================
+
+export async function sendVerificationOTP(params: {
+  email: string;
+  otp: string;
+  recipientName?: string;
+  language?: Lang;
+}): Promise<boolean> {
+  const { email, otp, recipientName, language = 'en' } = params;
+  const isAr = language === 'ar';
+
+  const subject = isAr ? `${otp} — رمز التحقق من بِد` : `${otp} — Your Bid verification code`;
+
+  const html = buildEmailHtml({
+    iconEmoji: "&#128274;",
+    iconBg: "#EFF6FF",
+    headline: isAr ? "تحقق من بريدك الإلكتروني" : "Verify your email",
+    subheadline: isAr ? "أدخل الرمز أدناه لتأكيد عنوان بريدك الإلكتروني" : "Enter the code below to confirm your email address",
+    recipientName,
+    bodyText: isAr
+      ? `رمز التحقق الخاص بك هو:<div style="margin:24px 0;text-align:center;"><span style="font-size:32px;font-weight:800;letter-spacing:8px;color:#18181b;background:#f4f4f5;padding:16px 32px;border-radius:12px;display:inline-block;">${otp}</span></div><p style="color:#71717a;font-size:13px;">هذا الرمز صالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، يمكنك تجاهل هذا البريد.</p>`
+      : `Your verification code is:<div style="margin:24px 0;text-align:center;"><span style="font-size:32px;font-weight:800;letter-spacing:8px;color:#18181b;background:#f4f4f5;padding:16px 32px;border-radius:12px;display:inline-block;">${otp}</span></div><p style="color:#71717a;font-size:13px;">This code is valid for 10 minutes. If you didn't request this, you can safely ignore this email.</p>`,
+    ctaLabel: isAr ? "فتح بِد" : "Open Bid",
+    ctaUrl: getBaseUrl(),
+    reasonText: isAr
+      ? "لقد تلقيت هذا البريد لأنك أنشأت حساباً على منصة بِد."
+      : "You received this email because you created an account on Bid.",
+    language,
+  });
+
+  return sendAuthEmail(email, subject, html);
+}
+
+// =============================================================================
+// TEAM INVITATION EMAIL
+// =============================================================================
+
+export async function sendTeamInviteEmail(params: {
+  email: string;
+  inviterName: string;
+  companyName: string;
+  role: string;
+  inviteToken: string;
+  appBaseUrl?: string;
+  language?: Lang;
+}): Promise<boolean> {
+  const { email, inviterName, companyName, role, inviteToken, appBaseUrl, language = 'en' } = params;
+  const isAr = language === 'ar';
+  const baseUrl = getBaseUrl(appBaseUrl);
+
+  const roleLabel = isAr
+    ? ({ admin: 'مسؤول', member: 'عضو', viewer: 'مشاهد' } as Record<string, string>)[role] || role
+    : role.charAt(0).toUpperCase() + role.slice(1);
+
+  const subject = isAr
+    ? `${inviterName} دعاك للانضمام إلى ${companyName} على بِد`
+    : `${inviterName} invited you to join ${companyName} on Bid`;
+
+  const signupUrl = `${baseUrl}/signup?token=${inviteToken}&redirect=${encodeURIComponent(`/onboarding`)}`;
+
+  const html = buildEmailHtml({
+    iconEmoji: "&#129309;",
+    iconBg: "#F0FDF4",
+    headline: isAr ? "لقد تمت دعوتك!" : "You've been invited!",
+    subheadline: isAr
+      ? `${inviterName} يريد منك الانضمام إلى فريقهم على بِد`
+      : `${inviterName} wants you to join their team on Bid`,
+    bodyText: isAr
+      ? `لقد تمت دعوتك للانضمام إلى <strong>${companyName}</strong> بصفتك <strong>${roleLabel}</strong>. انقر على الزر أدناه لإنشاء حسابك والانضمام إلى الفريق.`
+      : `You've been invited to join <strong>${companyName}</strong> as a <strong>${roleLabel}</strong>. Click the button below to create your account and join the team.`,
+    details: [
+      { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: isAr ? "الشركة" : "Company", value: companyName },
+      { iconEmoji: "&#128100;", iconBg: "#F0FDF4", label: isAr ? "الدور" : "Role", value: roleLabel },
+      { iconEmoji: "&#128228;", iconBg: "#FFF7ED", label: isAr ? "دعوة من" : "Invited by", value: inviterName },
+    ],
+    ctaLabel: isAr ? "قبول الدعوة" : "Accept Invitation",
+    ctaUrl: signupUrl,
+    ctaColor: "#16a34a",
+    reasonText: isAr
+      ? `لقد تلقيت هذا البريد لأن ${inviterName} دعاك للانضمام إلى ${companyName} على منصة بِد.`
+      : `You received this email because ${inviterName} invited you to join ${companyName} on Bid.`,
+    language,
+  });
+
+  return sendEmail(email, subject, html);
 }

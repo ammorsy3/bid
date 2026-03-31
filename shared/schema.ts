@@ -26,6 +26,11 @@ export const users = pgTable("users", {
   tenderInquiryEmail: text("tender_inquiry_email"),
   language: text("language").default("en"),
 
+  // Email verification
+  emailVerified: boolean("email_verified").default(false).notNull(),
+  emailVerificationCode: text("email_verification_code"),
+  emailVerificationExpiry: timestamp("email_verification_expiry"),
+
   // Legacy columns (preserved from old role-based schema)
   role: text("role"),
   company: text("company"),
@@ -790,6 +795,9 @@ export const insertUserSchema = createInsertSchema(users).omit({
 
 export const registerUserSchema = insertUserSchema.omit({
   isAdmin: true,
+  emailVerified: true,
+  emailVerificationCode: true,
+  emailVerificationExpiry: true,
 });
 
 // Company schemas

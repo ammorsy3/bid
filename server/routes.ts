@@ -22,7 +22,6 @@ import {
   sendOfferDecisionNotification,
   sendAwardNotification,
   sendNegotiationActionNotification,
-  sendAwardBlockedNotification,
   sendTenderStatusNotification,
   sendTenderCreatedNotification,
   sendTenderClosedToVendorsNotification,
@@ -31,6 +30,8 @@ import {
   sendCompanyVerificationNotification,
   sendJoinRequestNotification,
   sendJoinRequestDecisionNotification,
+  sendVerificationOTP,
+  sendTeamInviteEmail,
 } from "./email";
 
 // Configure multer for file uploads (memory storage)
@@ -440,13 +441,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
           jobTitle: user.jobTitle,
           timezone: user.timezone,
           linkedinUrl: user.linkedinUrl,
-          phoneNumber: user.phoneNumber
+          phoneNumber: user.phoneNumber,
+          emailVerified: user.emailVerified,
         },
         companies: [] // Empty - user needs to create or join
       });
     } catch (error) {
       console.error('Registration error:', error);
       res.status(400).json({ message: "Invalid user data" });
+    }
+  });
+
+  // Send OTP verification email
+  app.post("/api/auth/send-otp", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = await storage.getUser(req.auth!.userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      if (user.emailVerified) {
+        return res.status(400).json({ message: "Email already verified" });
+      }
+
+      // Generate 6-digit OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      // Store OTP on user record
+      await storage.updateUser(user.id, {
+        emailVerificationCode: otp,
+        emailVerificationExpiry: expiry,
+      });
+
+      // Send via Postmark auth stream
+      await sendVerificationOTP({
+        email: user.email,
+        otp,
+        recipientName: user.name,
+        language: (user.language as 'en' | 'ar') || 'en',
+      });
+
+      res.json({ message: "Verification code sent" });
+    } catch (error) {
+      console.error('Send OTP error:', error);
+      res.status(500).json({ message: "Failed to send verification code" });
+    }
+  });
+
+  // Verify OTP
+  app.post("/api/auth/verify-otp", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { code } = req.body;
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({ message: "Verification code is required" });
+      }
+
+      const user = await storage.getUser(req.auth!.userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      if (user.emailVerified) {
+        return res.status(400).json({ message: "Email already verified" });
+      }
+
+      if (!user.emailVerificationCode || !user.emailVerificationExpiry) {
+        return res.status(400).json({ message: "No verification code found. Please request a new one." });
+      }
+
+      if (new Date() > new Date(user.emailVerificationExpiry)) {
+        return res.status(400).json({ message: "Verification code has expired. Please request a new one." });
+      }
+
+      if (user.emailVerificationCode !== code) {
+        return res.status(400).json({ message: "Invalid verification code" });
+      }
+
+      // Mark email as verified and clear OTP fields
+      await storage.updateUser(user.id, {
+        emailVerified: true,
+        emailVerificationCode: null,
+        emailVerificationExpiry: null,
+      });
+
+      res.json({ message: "Email verified successfully", verified: true });
+    } catch (error) {
+      console.error('Verify OTP error:', error);
+      res.status(500).json({ message: "Failed to verify code" });
     }
   });
 
@@ -498,6 +576,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           linkedinUrl: user.linkedinUrl,
           phoneNumber: user.phoneNumber,
           language: user.language || 'en',
+          emailVerified: user.emailVerified,
         },
         activeCompany: defaultCompany ? {
           id: defaultCompany.company.id,
@@ -557,6 +636,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           linkedinUrl: user.linkedinUrl,
           phoneNumber: user.phoneNumber,
           language: user.language || 'en',
+          emailVerified: user.emailVerified,
         },
         activeCompanyId: req.auth!.activeCompanyId,
         companies: userCompanies.map(uc => ({
@@ -883,6 +963,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Create company error:', error);
       res.status(400).json({ message: "Invalid company data" });
+    }
+  });
+
+  // Invite team members to company
+  app.post("/api/companies/:companyId/invite-team", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const { companyId } = req.params;
+      const { invitations } = req.body; // Array of { email, role }
+
+      if (!Array.isArray(invitations) || invitations.length === 0) {
+        return res.status(400).json({ message: "At least one invitation is required" });
+      }
+
+      if (invitations.length > 20) {
+        return res.status(400).json({ message: "Maximum 20 invitations at a time" });
+      }
+
+      // Verify the user is admin/owner of this company
+      const userRole = await storage.getUserRoleInCompany(req.auth!.userId, companyId);
+      if (!userRole || !['owner', 'admin'].includes(userRole)) {
+        return res.status(403).json({ message: "Only owners and admins can invite team members" });
+      }
+
+      const company = await storage.getCompany(companyId);
+      if (!company) {
+        return res.status(404).json({ message: "Company not found" });
+      }
+
+      const inviter = await storage.getUser(req.auth!.userId);
+      if (!inviter) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const validRoles = ['admin', 'member', 'viewer'];
+      const results: { email: string; status: string }[] = [];
+
+      for (const inv of invitations) {
+        const { email, role } = inv;
+        if (!email || !role || !validRoles.includes(role)) {
+          results.push({ email: email || 'unknown', status: 'invalid' });
+          continue;
+        }
+
+        // Check if user already exists and is in this company
+        const existingUser = await storage.getUserByEmail(email);
+        if (existingUser) {
+          const existingMembership = await storage.getUserRoleInCompany(existingUser.id, companyId);
+          if (existingMembership) {
+            results.push({ email, status: 'already_member' });
+            continue;
+          }
+        }
+
+        // Generate invite token
+        const inviteToken = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+        // Send invitation email
+        sendTeamInviteEmail({
+          email,
+          inviterName: inviter.name,
+          companyName: company.name,
+          role,
+          inviteToken,
+          language: (inviter.language as 'en' | 'ar') || 'en',
+        }).catch(err => console.error(`[Email] Failed to send team invite to ${email}:`, err));
+
+        results.push({ email, status: 'sent' });
+      }
+
+      res.json({ results });
+    } catch (error) {
+      console.error('Team invite error:', error);
+      res.status(500).json({ message: "Failed to send invitations" });
     }
   });
 
@@ -2556,9 +2709,15 @@ Respond with ONLY a JSON object. Example:
 
         res.json(offer);
 
-        // Fire-and-forget: email notification to tender owner company admins
+        // Fire-and-forget: email notification to tender owner at proposal milestones (1st, 5th, 10th, 15th, ...)
         (async () => {
           try {
+            const allOffers = await storage.getOffersByTender(tender.id);
+            const proposalCount = allOffers.length;
+
+            // Only notify on the 1st proposal, then every 5th (5, 10, 15, 20, ...)
+            if (proposalCount !== 1 && proposalCount % 5 !== 0) return;
+
             const members = await storage.getCompanyMembers(tender.companyId);
             const adminMembers = members.filter(
               m => m.roleInCompany === 'owner' || m.roleInCompany === 'admin'
@@ -2575,6 +2734,7 @@ Respond with ONLY a JSON object. Example:
               tenderId: tender.id,
               vendorCompanyName: vendorDisplayName,
               submittedAt: offer.submittedAt ? new Date(offer.submittedAt) : new Date(),
+              proposalCount,
               recipients,
             });
           } catch (emailErr) {
@@ -2967,14 +3127,12 @@ Respond with ONLY a JSON object. Example:
             // Accept the winning offer
             await storage.updateOfferStatus(action.offerId, 'accepted', req.auth!.userId);
 
-            // Create award record
-            const awardedVendorCompany = await storage.getCompany(action.companyId);
-            const awardStatus = awardedVendorCompany?.verificationStatus === 'verified' ? 'awarded' : 'blocked';
+            // Create award record — always awarded regardless of vendor verification status
             await storage.createAward({
               tenderId: req.params.tenderId,
               companyId: action.companyId,
               offerId: action.offerId,
-              status: awardStatus,
+              status: 'awarded',
               awardedBy: req.auth!.userId,
               awardedAt: new Date(),
             });
@@ -3030,29 +3188,15 @@ Respond with ONLY a JSON object. Example:
                 .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
 
               if (action.actionType === 'award') {
-                const awardedVendorCompany = await storage.getCompany(action.companyId);
-                if (awardedVendorCompany?.verificationStatus === 'verified') {
-                  // Notify winning vendor
-                  await sendAwardNotification({
-                    tenderTitle: tender.title || 'Untitled Tender',
-                    tenderId: tender.id,
-                    requesterCompanyName: requesterName,
-                    recipients: vendorRecipients,
-                  });
-                } else {
-                  // Notify requester that award is blocked
-                  const requesterMembers = await storage.getCompanyMembers(req.auth!.activeCompanyId!);
-                  const requesterRecipients = requesterMembers
-                    .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-                    .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
-                  await sendAwardBlockedNotification({
-                    tenderTitle: tender.title || 'Untitled Tender',
-                    tenderId: tender.id,
-                    vendorCompanyName: awardedVendorCompany?.name || 'Unknown Vendor',
-                    recipients: requesterRecipients,
-                  });
-                }
-              } else if (['resubmission_request', 'discount_request', 'free_message', 'rejection'].includes(action.actionType)) {
+                // Notify winning vendor unconditionally
+                await sendAwardNotification({
+                  tenderTitle: tender.title || 'Untitled Tender',
+                  tenderId: tender.id,
+                  requesterCompanyName: requesterName,
+                  message: action.message || undefined,
+                  recipients: vendorRecipients,
+                });
+              } else if (['resubmission_request', 'discount_request', 'free_message'].includes(action.actionType)) {
                 await sendNegotiationActionNotification({
                   actionType: action.actionType as 'resubmission_request' | 'discount_request' | 'free_message' | 'rejection',
                   tenderTitle: tender.title || 'Untitled Tender',
@@ -3064,21 +3208,7 @@ Respond with ONLY a JSON object. Example:
               }
             }
 
-            // Notify auto-rejected vendors
-            for (const { companyId, message } of autoRejectedVendors) {
-              const vendorMembers = await storage.getCompanyMembers(companyId);
-              const vendorRecipients = vendorMembers
-                .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-                .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
-              await sendNegotiationActionNotification({
-                actionType: 'rejection',
-                tenderTitle: tender.title || 'Untitled Tender',
-                tenderId: tender.id,
-                requesterCompanyName: requesterName,
-                message,
-                recipients: vendorRecipients,
-              });
-            }
+            // Auto-rejected vendors are NOT notified by email — no inbox spam for non-selected vendors
           } catch (emailErr) {
             console.error('[Email] Negotiation action notification failed:', emailErr);
           }

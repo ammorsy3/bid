@@ -20,6 +20,7 @@ interface User {
   tenderInquiryEmail: string | null;
   language: 'en' | 'ar' | null;
   emailVerified: boolean;
+  otpVerified: boolean;
 }
 
 interface CompanyProfile {

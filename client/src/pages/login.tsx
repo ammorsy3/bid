@@ -39,8 +39,8 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      // If email not verified, go to verification
-      if (!user.emailVerified) {
+      // If OTP not verified for this session, go to verification
+      if (!user.otpVerified) {
         if (redirectUrl) {
           localStorage.setItem('postOnboardingRedirect', decodeURIComponent(redirectUrl));
         } else if (invitationToken) {
@@ -73,6 +73,8 @@ export default function Login() {
   const onSubmit = async (data: LoginForm) => {
     try {
       await login(data.email, data.password);
+      // Mark that login already sent the OTP so verify-email doesn't double-send
+      sessionStorage.setItem('otp_sent_by_login', 'true');
       toast({
         title: t('common.success'),
         description: t('auth.loginSuccess'),

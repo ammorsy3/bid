@@ -42,18 +42,18 @@ export default function Register() {
     },
   });
 
+  // If user is already logged in and verified, send them where they need to go.
+  // But don't redirect if they just arrived — let them create a new account (they can log out).
   useEffect(() => {
-    if (user) {
-      // Store redirect URL for after onboarding
-      if (redirectUrl) {
-        localStorage.setItem('postOnboardingRedirect', decodeURIComponent(redirectUrl));
-      } else if (invitationToken) {
-        localStorage.setItem('postOnboardingRedirect', `/invite/${invitationToken}`);
+    if (user && user.otpVerified) {
+      const { activeCompany } = useAuthStore.getState();
+      if (activeCompany) {
+        setLocation("/dashboard");
+      } else {
+        setLocation("/onboarding");
       }
-      // Send to email verification first
-      setLocation("/verify-email");
     }
-  }, [user, setLocation, invitationToken, redirectUrl]);
+  }, []);
 
   const onSubmit = async (data: RegisterForm) => {
     try {

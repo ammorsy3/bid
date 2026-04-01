@@ -111,7 +111,10 @@
       "Bash(find /home/runner/workspace -type f \\\\\\(-name *.ts -o -name *.tsx -o -name *.js \\\\\\) ! -path */.local/* ! -path */node_modules/*)",
       "Bash(find /home/runner/workspace -type f \\\\\\(-name routes.ts -o -name *negotiation* -o -name *award* -o -name *analyze* -o -name *compare* -o -name *credits* \\\\\\))",
       "Bash(pkill -f \"tsx.*server\")",
-      "Bash(fuser -k 5000/tcp)"
+      "Bash(fuser -k 5000/tcp)",
+      "Bash(ls /home/runner/workspace/logs*)",
+      "Read(//tmp/**)",
+      "Bash(ls /home/runner/workspace/.env*)"
     ]
   },
   "enabledMcpjsonServers": [

@@ -60,7 +60,7 @@ export default function CompanyBasics() {
 
   useEffect(() => {
     if (!user) setLocation("/signup");
-    else if (!user.emailVerified) setLocation("/verify-email");
+    else if (!user.otpVerified) setLocation("/verify-email");
   }, [user, setLocation]);
 
   const onSubmit = (data: CompanyBasicsForm) => {

@@ -31,6 +31,13 @@ export const users = pgTable("users", {
   emailVerificationCode: text("email_verification_code"),
   emailVerificationExpiry: timestamp("email_verification_expiry"),
 
+  // OTP security: rate limiting & lockout
+  otpVerified: boolean("otp_verified").default(false).notNull(),
+  otpFailedAttempts: integer("otp_failed_attempts").default(0).notNull(),
+  otpLockedUntil: timestamp("otp_locked_until"),
+  otpSendCount: integer("otp_send_count").default(0).notNull(),
+  otpSendWindowStart: timestamp("otp_send_window_start"),
+
   // Legacy columns (preserved from old role-based schema)
   role: text("role"),
   company: text("company"),

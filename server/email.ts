@@ -1104,7 +1104,11 @@ export async function sendVerificationOTP(params: {
     language,
   });
 
-  return sendAuthEmail(email, subject, html);
+  const sent = await sendAuthEmail(email, subject, html);
+  if (!sent) {
+    throw new Error("Failed to send OTP email");
+  }
+  return true;
 }
 
 // =============================================================================

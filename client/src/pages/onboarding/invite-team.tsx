@@ -48,7 +48,7 @@ export default function InviteTeam() {
 
   useEffect(() => {
     if (!user) { setLocation("/signup"); return; }
-    if (!user.emailVerified) { setLocation("/verify-email"); return; }
+    if (!user.otpVerified) { setLocation("/verify-email"); return; }
     if (!draft.step1Complete) { setLocation("/onboarding/company-basics"); return; }
   }, [user, setLocation]);
 

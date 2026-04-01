@@ -15,7 +15,7 @@ export default function OnboardingChoice() {
       setLocation("/signup");
       return;
     }
-    if (!user.emailVerified) {
+    if (!user.otpVerified) {
       setLocation("/verify-email");
       return;
     }

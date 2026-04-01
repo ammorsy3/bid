@@ -20,6 +20,9 @@ export default function VerifyEmail() {
   const [otpSent, setOtpSent] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  // Check if we arrived from login (OTP already sent server-side)
+  const otpAlreadySent = sessionStorage.getItem('otp_sent_by_login') === 'true';
+
   // Redirect if not logged in
   useEffect(() => {
     if (!user) {
@@ -27,16 +30,22 @@ export default function VerifyEmail() {
       return;
     }
     // If already verified, skip to onboarding
-    if (user.emailVerified) {
+    if (user.otpVerified) {
       setLocation("/onboarding");
       return;
     }
   }, [user, setLocation]);
 
-  // Send OTP on mount
+  // Send OTP on mount (skip if login already sent it)
   useEffect(() => {
-    if (user && !user.emailVerified && !otpSent) {
-      sendOTP();
+    if (user && !user.otpVerified && !otpSent) {
+      if (otpAlreadySent) {
+        // Login endpoint already sent OTP — don't double-send
+        sessionStorage.removeItem('otp_sent_by_login');
+        setResendCooldown(60);
+      } else {
+        sendOTP();
+      }
       setOtpSent(true);
     }
   }, [user]);
@@ -53,8 +62,16 @@ export default function VerifyEmail() {
     try {
       await apiRequest('POST', '/api/auth/send-otp', {});
       setResendCooldown(60);
-    } catch (error) {
-      console.error('Failed to send OTP:', error);
+    } catch (error: any) {
+      if (error.message?.includes("Too many")) {
+        toast({
+          title: "Rate limited",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        console.error('Failed to send OTP:', error);
+      }
     }
   };
 
@@ -122,7 +139,18 @@ export default function VerifyEmail() {
           title: "Email verified",
           description: "Your email has been verified successfully.",
         });
-        setLocation("/onboarding");
+
+        // Route based on user state: existing user with company → dashboard, otherwise → onboarding
+        const { activeCompany } = useAuthStore.getState();
+        const redirect = localStorage.getItem('postOnboardingRedirect');
+        if (redirect) {
+          localStorage.removeItem('postOnboardingRedirect');
+          setLocation(redirect);
+        } else if (activeCompany && activeCompany.onboardingState === 'completed') {
+          setLocation("/dashboard");
+        } else {
+          setLocation("/onboarding");
+        }
       }
     } catch (error: any) {
       toast({

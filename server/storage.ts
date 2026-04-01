@@ -67,6 +67,9 @@ import {
   teamInvitations,
   type TeamInvitation,
   type InsertTeamInvitation,
+  trustedBrowsers,
+  type TrustedBrowser,
+  type InsertTrustedBrowser,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ilike, or, isNull, sql, gte, count } from "drizzle-orm";
@@ -109,6 +112,13 @@ export interface IStorage {
   updateUserRole(userId: string, companyId: string, role: string): Promise<UserCompany>;
   removeUserFromCompany(userId: string, companyId: string): Promise<void>;
   getUserRoleInCompany(userId: string, companyId: string): Promise<string | null>;
+
+  // ============================================================================
+  // TRUSTED BROWSER OPERATIONS
+  // ============================================================================
+  createTrustedBrowser(data: InsertTrustedBrowser): Promise<TrustedBrowser>;
+  getTrustedBrowser(token: string, userId: string): Promise<TrustedBrowser | undefined>;
+  deleteTrustedBrowsersForUser(userId: string): Promise<void>;
 
   // ============================================================================
   // TEAM INVITATION OPERATIONS
@@ -552,6 +562,31 @@ export class DatabaseStorage implements IStorage {
         isNull(userCompanies.deletedAt)
       ));
     return result?.role || null;
+  }
+
+  // ============================================================================
+  // TRUSTED BROWSER OPERATIONS
+  // ============================================================================
+
+  async createTrustedBrowser(data: InsertTrustedBrowser): Promise<TrustedBrowser> {
+    const [result] = await db.insert(trustedBrowsers).values(data).returning();
+    return result;
+  }
+
+  async getTrustedBrowser(token: string, userId: string): Promise<TrustedBrowser | undefined> {
+    const [result] = await db
+      .select()
+      .from(trustedBrowsers)
+      .where(and(
+        eq(trustedBrowsers.token, token),
+        eq(trustedBrowsers.userId, userId),
+        gte(trustedBrowsers.expiresAt, new Date())
+      ));
+    return result || undefined;
+  }
+
+  async deleteTrustedBrowsersForUser(userId: string): Promise<void> {
+    await db.delete(trustedBrowsers).where(eq(trustedBrowsers.userId, userId));
   }
 
   // ============================================================================

@@ -57,7 +57,7 @@ interface AuthState {
   isLoading: boolean;
   
   // Actions
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, trustedBrowserToken?: string) => Promise<void>;
   register: (userData: any) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
@@ -97,10 +97,10 @@ export const useAuthStore = create<AuthState>()(
       companies: [],
       isLoading: false,
 
-      login: async (email: string, password: string) => {
+      login: async (email: string, password: string, trustedBrowserToken?: string) => {
         set({ isLoading: true });
         try {
-          const response = await apiRequest('POST', '/api/auth/login', { email, password });
+          const response = await apiRequest('POST', '/api/auth/login', { email, password, trustedBrowserToken });
           const data = await response.json();
           
           set({
@@ -143,9 +143,11 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         localStorage.removeItem('token');
-        set({ 
-          user: null, 
-          token: null, 
+        // Note: trustedBrowserToken is intentionally kept — it should survive logout
+        // so the user doesn't need OTP again on re-login within 7 days
+        set({
+          user: null,
+          token: null,
           activeCompany: null,
           companies: []
         });

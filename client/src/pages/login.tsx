@@ -7,9 +7,10 @@ import { z } from "zod";
 import { Link, useLocation, useSearch } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { Building2, Shield, Users } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -24,6 +25,7 @@ export default function Login() {
   const { login, isLoading, user, activeCompany } = useAuthStore();
   const { toast } = useToast();
   const { t } = useI18n();
+  const [rememberDevice, setRememberDevice] = useState(false);
 
   const urlParams = new URLSearchParams(search);
   const invitationToken = urlParams.get('token');
@@ -72,9 +74,14 @@ export default function Login() {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      await login(data.email, data.password);
+      // Pass trusted browser token if one exists
+      const trustedToken = localStorage.getItem('trustedBrowserToken');
+      await login(data.email, data.password, trustedToken || undefined);
       // Mark that login already sent the OTP so verify-email doesn't double-send
       sessionStorage.setItem('otp_sent_by_login', 'true');
+      if (rememberDevice) {
+        sessionStorage.setItem('remember_browser', 'true');
+      }
       toast({
         title: t('common.success'),
         description: t('auth.loginSuccess'),
@@ -190,7 +197,19 @@ export default function Login() {
                 )}
               />
 
-              <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full mt-6" disabled={isLoading}>
+              <div className="flex items-center gap-2 mt-4">
+                <Checkbox
+                  id="rememberDevice"
+                  checked={rememberDevice}
+                  onCheckedChange={(checked) => setRememberDevice(checked as boolean)}
+                  data-testid="checkbox-remember"
+                />
+                <label htmlFor="rememberDevice" className="text-sm text-neutral-600 cursor-pointer select-none">
+                  Remember this device for 7 days
+                </label>
+              </div>
+
+              <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full mt-4" disabled={isLoading}>
                 {isLoading ? t('auth.signingIn') : t('auth.signIn')}
               </NeonButton>
             </form>

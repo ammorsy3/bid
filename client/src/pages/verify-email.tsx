@@ -130,10 +130,16 @@ export default function VerifyEmail() {
 
     setLoading(true);
     try {
-      const response = await apiRequest('POST', '/api/auth/verify-otp', { code: verificationCode });
+      const rememberBrowser = sessionStorage.getItem('remember_browser') === 'true';
+      const response = await apiRequest('POST', '/api/auth/verify-otp', { code: verificationCode, rememberBrowser });
       const data = await response.json();
 
       if (data.verified) {
+        // Store trusted browser token if returned
+        if (data.trustedBrowserToken) {
+          localStorage.setItem('trustedBrowserToken', data.trustedBrowserToken);
+        }
+        sessionStorage.removeItem('remember_browser');
         await checkAuth();
         toast({
           title: "Email verified",

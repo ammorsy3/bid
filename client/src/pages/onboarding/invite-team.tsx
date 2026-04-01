@@ -8,7 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
-import { ArrowLeft, Users, Plus, X, Loader2, CheckCircle2, Rocket } from "lucide-react";
+import { ArrowLeft, Users, Plus, X, Loader2, Rocket } from "lucide-react";
+import OnboardingLayout from "@/components/onboarding-layout";
 
 const DRAFT_KEY = "onboarding-draft";
 
@@ -158,155 +159,124 @@ export default function InviteTeam() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-12 px-4">
-      <div className="max-w-xl mx-auto">
-        {/* Step indicator */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 justify-center mb-6">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">B</span>
+    <OnboardingLayout step={3}>
+      <Card>
+        <CardContent className="pt-8 pb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
+              <Users className="w-5 h-5 text-emerald-600" />
             </div>
-            <span className="text-lg font-bold text-neutral-900">Bid</span>
-          </div>
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
-              <span className="text-sm text-neutral-500">Basics</span>
-            </div>
-            <div className="w-8 h-px bg-primary-300" />
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
-              <span className="text-sm text-neutral-500">Profile</span>
-            </div>
-            <div className="w-8 h-px bg-primary-300" />
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">3</div>
-              <span className="text-sm font-medium text-neutral-900">Team</span>
+            <div>
+              <h2 className="text-xl font-bold text-neutral-900">Invite your team</h2>
+              <p className="text-sm text-neutral-500">Add colleagues to your workspace</p>
             </div>
           </div>
-        </div>
 
-        <Card>
-          <CardContent className="pt-8 pb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
-                <Users className="w-5 h-5 text-emerald-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-neutral-900">Invite your team</h2>
-                <p className="text-sm text-neutral-500">Add colleagues to your workspace</p>
-              </div>
-            </div>
-
-            <div className="space-y-3 mb-6">
-              {invitations.map((inv, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Input
-                    type="email"
-                    placeholder="colleague@company.com"
-                    value={inv.email}
-                    onChange={(e) => updateInvitation(index, 'email', e.target.value)}
-                    className="flex-1"
+          <div className="space-y-3 mb-6">
+            {invitations.map((inv, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <Input
+                  type="email"
+                  placeholder="colleague@company.com"
+                  value={inv.email}
+                  onChange={(e) => updateInvitation(index, 'email', e.target.value)}
+                  className="flex-1"
+                  disabled={loading}
+                />
+                <Select
+                  value={inv.role}
+                  onValueChange={(value) => updateInvitation(index, 'role', value)}
+                  disabled={loading}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="member">Member</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                  </SelectContent>
+                </Select>
+                {invitations.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeRow(index)}
                     disabled={loading}
-                  />
-                  <Select
-                    value={inv.role}
-                    onValueChange={(value) => updateInvitation(index, 'role', value)}
-                    disabled={loading}
+                    className="flex-shrink-0"
                   >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="viewer">Viewer</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {invitations.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeRow(index)}
-                      disabled={loading}
-                      className="flex-shrink-0"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {invitations.length < 10 && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addRow}
-                disabled={loading}
-                className="mb-6"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add another
-              </Button>
-            )}
-
-            <div className="bg-neutral-50 rounded-lg p-4 mb-6">
-              <h4 className="text-sm font-medium text-neutral-700 mb-2">Roles explained</h4>
-              <div className="space-y-1 text-xs text-neutral-500">
-                <p><span className="font-medium text-neutral-600">Admin</span> — Can manage tenders, vendors, and company settings</p>
-                <p><span className="font-medium text-neutral-600">Member</span> — Can view and participate in tenders</p>
-                <p><span className="font-medium text-neutral-600">Viewer</span> — Read-only access to tenders and reports</p>
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
-            </div>
+            ))}
+          </div>
 
-            <div className="flex justify-between pt-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setLocation("/onboarding/company-profile")}
-                disabled={loading}
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Button>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleSkip}
-                  disabled={loading}
-                  className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors disabled:opacity-50"
-                >
-                  Skip, I'll do this later
-                </button>
-                <Button
-                  onClick={handleSubmitWithInvites}
-                  size="lg"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Setting up...
-                    </>
-                  ) : (
-                    <>
-                      Complete Setup
-                      <Rocket className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              </div>
+          {invitations.length < 10 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addRow}
+              disabled={loading}
+              className="mb-6"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add another
+            </Button>
+          )}
+
+          <div className="bg-neutral-50 rounded-lg p-4 mb-6">
+            <h4 className="text-sm font-medium text-neutral-700 mb-2">Roles explained</h4>
+            <div className="space-y-1 text-xs text-neutral-500">
+              <p><span className="font-medium text-neutral-600">Admin</span> — Can manage tenders, vendors, and company settings</p>
+              <p><span className="font-medium text-neutral-600">Member</span> — Can view and participate in tenders</p>
+              <p><span className="font-medium text-neutral-600">Viewer</span> — Read-only access to tenders and reports</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          </div>
+
+          <div className="flex justify-between pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setLocation("/onboarding/company-profile")}
+              disabled={loading}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleSkip}
+                disabled={loading}
+                className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors disabled:opacity-50"
+              >
+                Skip, I'll do this later
+              </button>
+              <Button
+                onClick={handleSubmitWithInvites}
+                size="lg"
+                disabled={loading}
+                className="bg-[#E25E45] hover:bg-[#d04a32]"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Setting up...
+                  </>
+                ) : (
+                  <>
+                    Complete Setup
+                    <Rocket className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </OnboardingLayout>
   );
 }

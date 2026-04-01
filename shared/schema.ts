@@ -374,6 +374,15 @@ export const joinRequests = pgTable("join_requests", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Trusted Browsers - Remember device for OTP skip
+export const trustedBrowsers = pgTable("trusted_browsers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  token: varchar("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Team Invitations - Inviting users to join a company
 export const teamInvitations = pgTable("team_invitations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1026,6 +1035,9 @@ export type InsertProposalAnalysis = typeof proposalAnalyses.$inferInsert;
 
 export type TenderSavings = typeof tenderSavings.$inferSelect;
 export type InsertTenderSavings = typeof tenderSavings.$inferInsert;
+
+export type TrustedBrowser = typeof trustedBrowsers.$inferSelect;
+export type InsertTrustedBrowser = typeof trustedBrowsers.$inferInsert;
 
 export type TeamInvitation = typeof teamInvitations.$inferSelect;
 export type InsertTeamInvitation = typeof teamInvitations.$inferInsert;

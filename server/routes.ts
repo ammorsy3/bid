@@ -511,7 +511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Verify OTP
   app.post("/api/auth/verify-otp", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const { code } = req.body;
+      const { code, rememberBrowser } = req.body;
       if (!code || typeof code !== 'string') {
         return res.status(400).json({ message: "Verification code is required" });
       }
@@ -575,7 +575,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         otpLockedUntil: null as any,
       });
 
-      res.json({ message: "Email verified successfully", verified: true });
+      // Generate trusted browser token if requested
+      let trustedBrowserToken: string | undefined;
+      if (rememberBrowser) {
+        trustedBrowserToken = crypto.randomBytes(32).toString('hex');
+        await storage.createTrustedBrowser({
+          userId: user.id,
+          token: trustedBrowserToken,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        });
+      }
+
+      res.json({
+        message: "Email verified successfully",
+        verified: true,
+        trustedBrowserToken,
+      });
     } catch (error) {
       console.error('Verify OTP error:', error);
       res.status(500).json({ message: "Failed to verify code" });
@@ -585,8 +600,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Login
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { email, password } = req.body;
-      
+      const { email, password, trustedBrowserToken } = req.body;
+
       const user = await storage.getUserByEmail(email);
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
@@ -597,46 +612,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Generate cryptographically secure OTP for login verification
-      const otp = crypto.randomInt(100000, 999999).toString();
-      const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-      // Rate limit: max 5 OTP requests per 15-minute window for login too
-      const now = new Date();
-      const windowMs = 15 * 60 * 1000;
-      const windowStart = user.otpSendWindowStart ? new Date(user.otpSendWindowStart) : null;
-      let sendCount = user.otpSendCount || 0;
-
-      if (!windowStart || now.getTime() - windowStart.getTime() > windowMs) {
-        sendCount = 0;
+      // Check if this is a trusted browser — skip OTP if valid
+      let skipOtp = false;
+      if (trustedBrowserToken) {
+        const trusted = await storage.getTrustedBrowser(trustedBrowserToken, user.id);
+        if (trusted) {
+          skipOtp = true;
+        }
       }
 
-      if (sendCount >= 5) {
-        return res.status(429).json({ message: "Too many login attempts. Please try again later." });
-      }
-
-      // Set otpVerified=false instead of resetting emailVerified — preserves email verification status
-      await storage.updateUser(user.id, {
-        otpVerified: false,
-        emailVerificationCode: otp,
-        emailVerificationExpiry: expiry,
-        otpFailedAttempts: 0,
-        otpLockedUntil: null as any,
-        otpSendCount: sendCount + 1,
-        otpSendWindowStart: sendCount === 0 ? now : (windowStart || now),
-      });
-
-      // Send OTP email — await to ensure delivery before responding
-      try {
-        await sendVerificationOTP({
-          email: user.email,
-          otp,
-          recipientName: user.name,
-          language: (user.language as 'en' | 'ar') || 'en',
+      if (skipOtp) {
+        // Trusted browser: mark OTP as verified, skip email
+        await storage.updateUser(user.id, {
+          otpVerified: true,
         });
-      } catch (emailErr) {
-        console.error('[Email] Failed to send login OTP:', emailErr);
-        return res.status(500).json({ message: "Failed to send verification code. Please try again." });
+      } else {
+        // Generate cryptographically secure OTP for login verification
+        const otp = crypto.randomInt(100000, 999999).toString();
+        const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+        // Rate limit: max 5 OTP requests per 15-minute window for login too
+        const now = new Date();
+        const windowMs = 15 * 60 * 1000;
+        const windowStart = user.otpSendWindowStart ? new Date(user.otpSendWindowStart) : null;
+        let sendCount = user.otpSendCount || 0;
+
+        if (!windowStart || now.getTime() - windowStart.getTime() > windowMs) {
+          sendCount = 0;
+        }
+
+        if (sendCount >= 5) {
+          return res.status(429).json({ message: "Too many login attempts. Please try again later." });
+        }
+
+        // Set otpVerified=false instead of resetting emailVerified — preserves email verification status
+        await storage.updateUser(user.id, {
+          otpVerified: false,
+          emailVerificationCode: otp,
+          emailVerificationExpiry: expiry,
+          otpFailedAttempts: 0,
+          otpLockedUntil: null as any,
+          otpSendCount: sendCount + 1,
+          otpSendWindowStart: sendCount === 0 ? now : (windowStart || now),
+        });
+
+        // Send OTP email — await to ensure delivery before responding
+        try {
+          await sendVerificationOTP({
+            email: user.email,
+            otp,
+            recipientName: user.name,
+            language: (user.language as 'en' | 'ar') || 'en',
+          });
+        } catch (emailErr) {
+          console.error('[Email] Failed to send login OTP:', emailErr);
+          return res.status(500).json({ message: "Failed to send verification code. Please try again." });
+        }
       }
 
       // Get user's companies
@@ -660,7 +691,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         token,
-        requiresOTP: true,
+        requiresOTP: !skipOtp,
         user: {
           id: user.id,
           username: user.username,
@@ -674,7 +705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phoneNumber: user.phoneNumber,
           language: user.language || 'en',
           emailVerified: user.emailVerified,
-          otpVerified: false, // Always false until OTP verified
+          otpVerified: skipOtp, // true if trusted browser, false until OTP verified
         },
         activeCompany: defaultCompany ? {
           id: defaultCompany.company.id,

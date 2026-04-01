@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Upload, User, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft } from "lucide-react";
+import { X, Upload, User, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -56,6 +56,12 @@ export default function Settings() {
   const [companyBio, setCompanyBio] = useState(activeCompany?.profile?.bio || '');
   const [companyLogo, setCompanyLogo] = useState<File | null>(null);
   const [companyLogoPreview, setCompanyLogoPreview] = useState<string | null>(activeCompany?.profile?.logoUrl || null);
+
+  // Team invite state
+  const [inviteRows, setInviteRows] = useState<{ email: string; role: string }[]>([
+    { email: '', role: 'member' },
+  ]);
+  const [inviteResults, setInviteResults] = useState<{ email: string; status: string }[] | null>(null);
 
   const [theme, setTheme] = useState<ThemeOption>(() => {
     const saved = localStorage.getItem('theme');
@@ -278,6 +284,46 @@ export default function Settings() {
       });
     }
   });
+
+  const inviteTeamMutation = useMutation({
+    mutationFn: async (invitations: { email: string; role: string }[]) => {
+      const response = await apiRequest('POST', `/api/companies/${activeCompany!.id}/invite-team`, { invitations });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setInviteResults(data.results);
+      const sentCount = data.results.filter((r: any) => r.status === 'sent').length;
+      if (sentCount > 0) {
+        toast({
+          title: "Invitations sent",
+          description: `${sentCount} invitation(s) sent successfully.`,
+        });
+      }
+      // Reset rows after sending
+      setInviteRows([{ email: '', role: 'member' }]);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to send invitations",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSendInvites = () => {
+    const validInvites = inviteRows.filter(r => r.email.trim() && r.email.includes('@'));
+    if (validInvites.length === 0) {
+      toast({
+        title: "No valid emails",
+        description: "Please enter at least one valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setInviteResults(null);
+    inviteTeamMutation.mutate(validInvites);
+  };
 
   const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -793,6 +839,126 @@ export default function Settings() {
 
                 </CardContent>
               </Card>
+
+              {/* Invite Team Members */}
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <UserPlus className="h-5 w-5" />
+                  Invite Team Members
+                </h2>
+                <Card>
+                  <CardContent className="pt-6 space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Invite people to join <span className="font-medium text-neutral-700">{activeCompany.name}</span>. They'll receive an email with a link to accept the invitation.
+                    </p>
+
+                    {/* Invite rows */}
+                    <div className="space-y-3">
+                      {inviteRows.map((row, index) => (
+                        <div key={index} className="flex items-center gap-3">
+                          <div className="flex-1">
+                            <Input
+                              type="email"
+                              placeholder="colleague@company.com"
+                              value={row.email}
+                              onChange={(e) => {
+                                const updated = [...inviteRows];
+                                updated[index].email = e.target.value;
+                                setInviteRows(updated);
+                              }}
+                              data-testid={`input-invite-email-${index}`}
+                            />
+                          </div>
+                          <Select
+                            value={row.role}
+                            onValueChange={(value) => {
+                              const updated = [...inviteRows];
+                              updated[index].role = value;
+                              setInviteRows(updated);
+                            }}
+                          >
+                            <SelectTrigger className="w-32" data-testid={`select-invite-role-${index}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="member">Member</SelectItem>
+                              <SelectItem value="viewer">Viewer</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {inviteRows.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setInviteRows(inviteRows.filter((_, i) => i !== index))}
+                              className="text-muted-foreground hover:text-red-500"
+                              data-testid={`button-remove-invite-${index}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add another row */}
+                    {inviteRows.length < 10 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setInviteRows([...inviteRows, { email: '', role: 'member' }])}
+                        data-testid="button-add-invite-row"
+                      >
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Add another
+                      </Button>
+                    )}
+
+                    {/* Results */}
+                    {inviteResults && (
+                      <div className="border rounded-lg p-3 space-y-2 bg-neutral-50">
+                        {inviteResults.map((result, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm">
+                            {result.status === 'sent' ? (
+                              <Mail className="h-4 w-4 text-green-500" />
+                            ) : result.status === 'already_member' ? (
+                              <Shield className="h-4 w-4 text-blue-500" />
+                            ) : (
+                              <X className="h-4 w-4 text-red-500" />
+                            )}
+                            <span className="font-medium">{result.email}</span>
+                            <span className="text-muted-foreground">
+                              {result.status === 'sent' && '— Invitation sent'}
+                              {result.status === 'already_member' && '— Already a member'}
+                              {result.status === 'invalid' && '— Invalid'}
+                              {result.status === 'email_failed' && '— Email delivery failed'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Send button */}
+                    <Button
+                      onClick={handleSendInvites}
+                      disabled={inviteTeamMutation.isPending || inviteRows.every(r => !r.email.trim())}
+                      data-testid="button-send-invites"
+                    >
+                      {inviteTeamMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="h-4 w-4 mr-2" />
+                          Send Invitations
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
         </div>

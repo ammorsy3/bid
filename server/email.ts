@@ -1,6 +1,6 @@
 const POSTMARK_API_URL = "https://api.postmarkapp.com/email";
 const FROM_EMAIL = "info@bidapp.sa";
-const MESSAGE_STREAM = "system";
+const MESSAGE_STREAM = "outbound";
 const PRIVACY_POLICY_URL = "https://bidapp.sa/privacy";
 const HELP_CENTER_URL = "https://bidapp.sa/help";
 const COMPANY_LEGAL = "Bid International Ltd.";
@@ -1136,7 +1136,7 @@ export async function sendTeamInviteEmail(params: {
     ? `${inviterName} دعاك للانضمام إلى ${companyName} على بِد`
     : `${inviterName} invited you to join ${companyName} on Bid`;
 
-  const signupUrl = `${baseUrl}/signup?token=${inviteToken}&redirect=${encodeURIComponent(`/onboarding`)}`;
+  const signupUrl = `${baseUrl}/team-invite/${inviteToken}`;
 
   const html = buildEmailHtml({
     iconEmoji: "&#129309;",
@@ -1162,5 +1162,9 @@ export async function sendTeamInviteEmail(params: {
     language,
   });
 
-  return sendEmail(email, subject, html);
+  const sent = await sendEmail(email, subject, html);
+  if (!sent) {
+    throw new Error("Failed to send team invitation email");
+  }
+  return true;
 }

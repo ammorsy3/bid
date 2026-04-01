@@ -1115,26 +1115,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        // Generate invite token
-        const inviteToken = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        // Generate cryptographically secure invite token
+        const inviteToken = crypto.randomBytes(32).toString('hex');
+
+        // Persist invitation in database (expires in 7 days)
+        await storage.createTeamInvitation({
+          companyId,
+          email,
+          role,
+          token: inviteToken,
+          invitedBy: req.auth!.userId,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        });
 
         // Send invitation email
-        sendTeamInviteEmail({
-          email,
-          inviterName: inviter.name,
-          companyName: company.name,
-          role,
-          inviteToken,
-          language: (inviter.language as 'en' | 'ar') || 'en',
-        }).catch(err => console.error(`[Email] Failed to send team invite to ${email}:`, err));
-
-        results.push({ email, status: 'sent' });
+        try {
+          await sendTeamInviteEmail({
+            email,
+            inviterName: inviter.name,
+            companyName: company.name,
+            role,
+            inviteToken,
+            language: (inviter.language as 'en' | 'ar') || 'en',
+          });
+          results.push({ email, status: 'sent' });
+        } catch (emailErr) {
+          console.error(`[Email] Failed to send team invite to ${email}:`, emailErr);
+          results.push({ email, status: 'email_failed' });
+        }
       }
 
       res.json({ results });
     } catch (error) {
       console.error('Team invite error:', error);
       res.status(500).json({ message: "Failed to send invitations" });
+    }
+  });
+
+  // Get team invitation details by token (public — no auth required so the page can load)
+  app.get("/api/team-invitations/:token", async (req, res) => {
+    try {
+      const invitation = await storage.getTeamInvitationByToken(req.params.token);
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+
+      if (invitation.status !== 'pending') {
+        return res.status(400).json({ message: "This invitation has already been used" });
+      }
+
+      if (new Date() > new Date(invitation.expiresAt)) {
+        return res.status(400).json({ message: "This invitation has expired" });
+      }
+
+      res.json({
+        id: invitation.id,
+        email: invitation.email,
+        role: invitation.role,
+        companyName: invitation.company.name,
+        companyId: invitation.company.id,
+        inviterName: invitation.inviter.name,
+        expiresAt: invitation.expiresAt,
+      });
+    } catch (error) {
+      console.error('Get team invitation error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Accept team invitation
+  app.post("/api/team-invitations/:token/accept", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const invitation = await storage.getTeamInvitationByToken(req.params.token);
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+
+      if (invitation.status !== 'pending') {
+        return res.status(400).json({ message: "This invitation has already been used" });
+      }
+
+      if (new Date() > new Date(invitation.expiresAt)) {
+        return res.status(400).json({ message: "This invitation has expired" });
+      }
+
+      const user = await storage.getUser(req.auth!.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Verify the invitation is for this user's email
+      if (user.email.toLowerCase() !== invitation.email.toLowerCase()) {
+        return res.status(403).json({ message: "This invitation was sent to a different email address" });
+      }
+
+      // Check if already a member
+      const existingRole = await storage.getUserRoleInCompany(user.id, invitation.companyId);
+      if (existingRole) {
+        // Mark invitation as accepted anyway
+        await storage.updateTeamInvitation(invitation.id, { status: 'accepted', acceptedAt: new Date() } as any);
+        return res.status(400).json({ message: "You are already a member of this company" });
+      }
+
+      // Add user to company with the invited role
+      await storage.addUserToCompany({
+        userId: user.id,
+        companyId: invitation.companyId,
+        roleInCompany: invitation.role,
+        invitedBy: invitation.invitedBy,
+      });
+
+      // Mark invitation as accepted
+      await storage.updateTeamInvitation(invitation.id, { status: 'accepted', acceptedAt: new Date() } as any);
+
+      // Generate new token with the new company as active
+      const token = generateToken({
+        userId: user.id,
+        activeCompanyId: invitation.companyId,
+        roleInCompany: invitation.role,
+        isAdmin: user.isAdmin,
+      });
+
+      const company = invitation.company;
+      const profile = await storage.getCompanyProfile(company.id);
+
+      res.json({
+        message: "Invitation accepted successfully",
+        token,
+        activeCompany: {
+          id: company.id,
+          name: company.name,
+          slug: company.slug,
+          verificationStatus: company.verificationStatus,
+          onboardingState: company.onboardingState,
+          role: invitation.role,
+          profile: profile || null,
+        },
+      });
+    } catch (error) {
+      console.error('Accept team invitation error:', error);
+      res.status(500).json({ message: "Failed to accept invitation" });
     }
   });
 

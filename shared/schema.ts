@@ -374,6 +374,20 @@ export const joinRequests = pgTable("join_requests", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Team Invitations - Inviting users to join a company
+export const teamInvitations = pgTable("team_invitations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id),
+  email: text("email").notNull(),
+  role: text("role").notNull(), // 'admin', 'member', 'viewer'
+  token: varchar("token").notNull().unique(),
+  invitedBy: varchar("invited_by").notNull().references(() => users.id),
+  status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'expired'
+  expiresAt: timestamp("expires_at").notNull(),
+  acceptedAt: timestamp("accepted_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Invitation Links - Direct vendor invites (instant add to base)
 export const invitationLinks = pgTable("invitation_links", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1012,6 +1026,9 @@ export type InsertProposalAnalysis = typeof proposalAnalyses.$inferInsert;
 
 export type TenderSavings = typeof tenderSavings.$inferSelect;
 export type InsertTenderSavings = typeof tenderSavings.$inferInsert;
+
+export type TeamInvitation = typeof teamInvitations.$inferSelect;
+export type InsertTeamInvitation = typeof teamInvitations.$inferInsert;
 
 // Chat models for AI integrations
 export * from "./models/chat";

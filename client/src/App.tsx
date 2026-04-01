@@ -31,6 +31,7 @@ import TenderFormFill from "@/pages/TenderFormFill";
 import TenderReview from "@/pages/TenderReview";
 import TenderAICopilot from "@/pages/TenderAICopilot";
 import TenderInviteLink from "@/pages/TenderInviteLink";
+import TeamInvite from "@/pages/team-invite";
 import TractionLink from "@/pages/TractionLink";
 import Landing from "@/pages/Landing";
 import Settings from "@/pages/Settings";
@@ -68,6 +69,7 @@ export default function App() {
             <Route path="/tenders/new/fill" component={TenderFormFill} />
             <Route path="/tenders/new/review" component={TenderReview} />
             <Route path="/invite/:id" component={TenderInviteLink} />
+            <Route path="/team-invite/:token" component={TeamInvite} />
             <Route path="/tenders/:id/edit" component={TenderEditPage} />
             <Route path="/tenders/:id" component={TenderDetails} />
             <Route path="/traction/:slug" component={TractionLink} />

@@ -64,6 +64,9 @@ import {
   negotiationActions,
   type NegotiationAction,
   type InsertNegotiationAction,
+  teamInvitations,
+  type TeamInvitation,
+  type InsertTeamInvitation,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ilike, or, isNull, sql, gte, count } from "drizzle-orm";
@@ -106,6 +109,14 @@ export interface IStorage {
   updateUserRole(userId: string, companyId: string, role: string): Promise<UserCompany>;
   removeUserFromCompany(userId: string, companyId: string): Promise<void>;
   getUserRoleInCompany(userId: string, companyId: string): Promise<string | null>;
+
+  // ============================================================================
+  // TEAM INVITATION OPERATIONS
+  // ============================================================================
+  createTeamInvitation(invitation: InsertTeamInvitation): Promise<TeamInvitation>;
+  getTeamInvitationByToken(token: string): Promise<(TeamInvitation & { company: Company; inviter: User }) | undefined>;
+  updateTeamInvitation(id: string, updates: Partial<InsertTeamInvitation>): Promise<TeamInvitation>;
+  getPendingTeamInvitationForEmail(email: string, companyId: string): Promise<TeamInvitation | undefined>;
 
   // ============================================================================
   // TENDER OPERATIONS
@@ -541,6 +552,52 @@ export class DatabaseStorage implements IStorage {
         isNull(userCompanies.deletedAt)
       ));
     return result?.role || null;
+  }
+
+  // ============================================================================
+  // TEAM INVITATION OPERATIONS
+  // ============================================================================
+
+  async createTeamInvitation(invitation: InsertTeamInvitation): Promise<TeamInvitation> {
+    const [result] = await db.insert(teamInvitations).values(invitation).returning();
+    return result;
+  }
+
+  async getTeamInvitationByToken(token: string): Promise<(TeamInvitation & { company: Company; inviter: User }) | undefined> {
+    const [result] = await db
+      .select({
+        invitation: teamInvitations,
+        company: companies,
+        inviter: users,
+      })
+      .from(teamInvitations)
+      .innerJoin(companies, eq(teamInvitations.companyId, companies.id))
+      .innerJoin(users, eq(teamInvitations.invitedBy, users.id))
+      .where(eq(teamInvitations.token, token));
+
+    if (!result) return undefined;
+    return {
+      ...result.invitation,
+      company: result.company,
+      inviter: result.inviter,
+    };
+  }
+
+  async updateTeamInvitation(id: string, updates: Partial<InsertTeamInvitation>): Promise<TeamInvitation> {
+    const [result] = await db.update(teamInvitations).set(updates).where(eq(teamInvitations.id, id)).returning();
+    return result;
+  }
+
+  async getPendingTeamInvitationForEmail(email: string, companyId: string): Promise<TeamInvitation | undefined> {
+    const [result] = await db
+      .select()
+      .from(teamInvitations)
+      .where(and(
+        eq(teamInvitations.email, email),
+        eq(teamInvitations.companyId, companyId),
+        eq(teamInvitations.status, 'pending')
+      ));
+    return result || undefined;
   }
 
   // ============================================================================

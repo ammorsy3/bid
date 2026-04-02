@@ -131,10 +131,12 @@ export default function Settings() {
     };
   }, [firstName, lastName, jobTitle, timezone, linkedinUrl, phoneNumber]);
 
-  // Auto-save company info with debounce
+  const canManageCompany = activeCompany && ['owner', 'admin'].includes(activeCompany.role || '');
+
   const autoSaveCompanyTimeout = useRef<NodeJS.Timeout | null>(null);
   
   const autoSaveCompanyInfo = useCallback(() => {
+    if (!canManageCompany) return;
     if (autoSaveCompanyTimeout.current) {
       clearTimeout(autoSaveCompanyTimeout.current);
     }
@@ -146,7 +148,7 @@ export default function Settings() {
         });
       }
     }, 1000);
-  }, [companyDisplayName, companyBio]);
+  }, [companyDisplayName, companyBio, canManageCompany]);
 
   useEffect(() => {
     autoSaveCompanyInfo();
@@ -779,7 +781,7 @@ export default function Settings() {
                       <Button 
                         variant="outline" 
                         onClick={() => companyLogoInputRef.current?.click()}
-                        disabled={uploadCompanyLogoMutation.isPending}
+                        disabled={uploadCompanyLogoMutation.isPending || !canManageCompany}
                         data-testid="button-upload-logo"
                       >
                         <Upload className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
@@ -805,6 +807,7 @@ export default function Settings() {
                       id="companyDisplayName"
                       value={companyDisplayName}
                       onChange={(e) => setCompanyDisplayName(e.target.value)}
+                      disabled={!canManageCompany}
                       data-testid="input-company-name"
                     />
                   </div>
@@ -820,6 +823,7 @@ export default function Settings() {
                       onChange={(e) => setCompanyBio(e.target.value)}
                       placeholder={t('settings.companyBioPlaceholder')}
                       rows={4}
+                      disabled={!canManageCompany}
                       data-testid="input-company-bio"
                     />
                   </div>
@@ -840,7 +844,8 @@ export default function Settings() {
                 </CardContent>
               </Card>
 
-              {/* Invite Team Members */}
+              {/* Invite Team Members (owners/admins only) */}
+              {canManageCompany && (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
                   <UserPlus className="h-5 w-5" />
@@ -959,6 +964,7 @@ export default function Settings() {
                   </CardContent>
                 </Card>
               </div>
+              )}
             </div>
           )}
         </div>

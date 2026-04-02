@@ -1356,6 +1356,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get company members
+  app.get("/api/companies/:companyId/members", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const { companyId } = req.params;
+      const callerRole = await storage.getUserRoleInCompany(req.auth!.userId, companyId);
+      if (!callerRole) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      const members = await storage.getCompanyMembers(companyId);
+      res.json(members.map(m => ({
+        userId: m.userId,
+        name: m.user.name,
+        email: m.user.email,
+        profilePictureUrl: m.user.profilePictureUrl,
+        role: m.roleInCompany,
+        joinedAt: m.joinedAt,
+      })));
+    } catch (error) {
+      console.error('Get company members error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Update member role
+  app.patch("/api/companies/:companyId/members/:userId/role", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const { companyId, userId } = req.params;
+      const { role } = req.body;
+
+      const callerRole = await storage.getUserRoleInCompany(req.auth!.userId, companyId);
+      if (!callerRole || (callerRole !== 'owner' && callerRole !== 'admin')) {
+        return res.status(403).json({ message: "Only owners and admins can change roles" });
+      }
+
+      if (!['admin', 'member', 'viewer'].includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+
+      if (userId === req.auth!.userId) {
+        return res.status(400).json({ message: "You cannot change your own role" });
+      }
+
+      const targetRole = await storage.getUserRoleInCompany(userId, companyId);
+      if (!targetRole) {
+        return res.status(404).json({ message: "Member not found" });
+      }
+
+      if (targetRole === 'owner') {
+        return res.status(403).json({ message: "Cannot change the owner's role" });
+      }
+
+      if (callerRole === 'admin' && targetRole === 'admin') {
+        return res.status(403).json({ message: "Admins cannot change other admins' roles" });
+      }
+
+      await storage.updateUserRole(userId, companyId, role);
+      res.json({ message: "Role updated successfully" });
+    } catch (error) {
+      console.error('Update member role error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Remove member from company
+  app.delete("/api/companies/:companyId/members/:userId", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const { companyId, userId } = req.params;
+
+      const callerRole = await storage.getUserRoleInCompany(req.auth!.userId, companyId);
+      if (!callerRole || (callerRole !== 'owner' && callerRole !== 'admin')) {
+        return res.status(403).json({ message: "Only owners and admins can remove members" });
+      }
+
+      if (userId === req.auth!.userId) {
+        return res.status(400).json({ message: "You cannot remove yourself" });
+      }
+
+      const targetRole = await storage.getUserRoleInCompany(userId, companyId);
+      if (!targetRole) {
+        return res.status(404).json({ message: "Member not found" });
+      }
+
+      if (targetRole === 'owner') {
+        return res.status(403).json({ message: "Cannot remove the company owner" });
+      }
+
+      if (callerRole === 'admin' && targetRole === 'admin') {
+        return res.status(403).json({ message: "Admins cannot remove other admins" });
+      }
+
+      await storage.removeUserFromCompany(userId, companyId);
+      res.json({ message: "Member removed successfully" });
+    } catch (error) {
+      console.error('Remove member error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Switch active company
   app.post("/api/companies/switch/:companyId", authenticateToken, async (req: AuthRequest, res) => {
     try {

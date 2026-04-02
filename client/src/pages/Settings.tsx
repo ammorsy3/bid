@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Upload, User, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield } from "lucide-react";
+import { X, Upload, User, Users, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield, Crown, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -33,6 +35,137 @@ const LANGUAGES = [
 type ThemeOption = "light" | "dark" | "system";
 
 type SettingsTab = "account" | "company";
+
+interface TeamMember {
+  userId: string;
+  name: string;
+  email: string;
+  profilePictureUrl: string | null;
+  role: string;
+  joinedAt: string;
+}
+
+function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { companyId: string; canManage: boolean; currentUserId: string; isRtl: boolean }) {
+  const { toast } = useToast();
+
+  const { data: members = [], isLoading } = useQuery<TeamMember[]>({
+    queryKey: ['/api/companies', companyId, 'members'],
+    queryFn: async () => {
+      const res = await fetch(`/api/companies/${companyId}/members`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (!res.ok) throw new Error('Failed to fetch members');
+      return res.json();
+    },
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      return apiRequest('PATCH', `/api/companies/${companyId}/members/${userId}/role`, { role });
+    },
+    onSuccess: () => {
+      toast({ title: "Role updated" });
+      queryClient.invalidateQueries({ queryKey: ['/api/companies', companyId, 'members'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Failed to update role", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const removeMemberMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      return apiRequest('DELETE', `/api/companies/${companyId}/members/${userId}`);
+    },
+    onSuccess: () => {
+      toast({ title: "Member removed" });
+      queryClient.invalidateQueries({ queryKey: ['/api/companies', companyId, 'members'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Failed to remove member", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const roleColors: Record<string, string> = {
+    owner: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+    admin: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+    member: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    viewer: 'bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400',
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold flex items-center gap-2">
+        <Users className="h-5 w-5" />
+        Team Members
+        {!isLoading && <span className="text-sm font-normal text-muted-foreground">({members.length})</span>}
+      </h2>
+      <Card>
+        <CardContent className="pt-6">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : members.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No team members found</p>
+          ) : (
+            <div className="space-y-3">
+              {members.map((member) => (
+                <div key={member.userId} className={`flex items-center gap-3 p-3 rounded-lg border ${member.userId === currentUserId ? 'bg-primary/5 border-primary/20' : 'hover:bg-muted/50'} ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  {member.profilePictureUrl ? (
+                    <img src={member.profilePictureUrl} alt={member.name} className="h-10 w-10 rounded-full object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-sm flex-shrink-0">
+                      {member.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className={`flex-1 min-w-0 ${isRtl ? 'text-right' : ''}`}>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm truncate">{member.name}</span>
+                      {member.userId === currentUserId && <span className="text-xs text-muted-foreground">(you)</span>}
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{member.email}</p>
+                  </div>
+                  <Badge className={`${roleColors[member.role] || roleColors.member} capitalize flex-shrink-0`}>
+                    {member.role === 'owner' && <Crown className="h-3 w-3 mr-1" />}
+                    {member.role}
+                  </Badge>
+                  {canManage && member.userId !== currentUserId && member.role !== 'owner' && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align={isRtl ? 'start' : 'end'}>
+                        {['admin', 'member', 'viewer'].filter(r => r !== member.role).map(role => (
+                          <DropdownMenuItem
+                            key={role}
+                            onClick={() => updateRoleMutation.mutate({ userId: member.userId, role })}
+                          >
+                            <Shield className="h-4 w-4 mr-2" />
+                            Make {role.charAt(0).toUpperCase() + role.slice(1)}
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => removeMemberMutation.mutate(member.userId)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Remove
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export default function Settings() {
   const { user, activeCompany, checkAuth } = useAuthStore();
@@ -843,6 +976,9 @@ export default function Settings() {
 
                 </CardContent>
               </Card>
+
+              {/* Team Members */}
+              <TeamMembersSection companyId={activeCompany.id} canManage={!!canManageCompany} currentUserId={user.id} isRtl={isRtl} />
 
               {/* Invite Team Members (owners/admins only) */}
               {canManageCompany && (

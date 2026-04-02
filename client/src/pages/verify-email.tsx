@@ -62,15 +62,23 @@ export default function VerifyEmail() {
     try {
       await apiRequest('POST', '/api/auth/send-otp', {});
       setResendCooldown(60);
+      toast({
+        title: "Code sent",
+        description: `We sent a verification code to ${user?.email}.`,
+      });
     } catch (error: any) {
       if (error.message?.includes("Too many")) {
         toast({
           title: "Rate limited",
-          description: error.message,
+          description: "Too many attempts. Please wait before requesting another code.",
           variant: "destructive",
         });
       } else {
-        console.error('Failed to send OTP:', error);
+        toast({
+          title: "Couldn't send code",
+          description: "Something went wrong sending the verification email. Please use the resend button.",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -78,10 +86,6 @@ export default function VerifyEmail() {
   const handleResend = async () => {
     if (resendCooldown > 0) return;
     await sendOTP();
-    toast({
-      title: "Code sent",
-      description: "A new verification code has been sent to your email.",
-    });
   };
 
   const handleInput = (index: number, value: string) => {

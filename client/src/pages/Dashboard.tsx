@@ -25,7 +25,8 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -250,7 +251,7 @@ function SidebarLogoToggle() {
 }
 
 export default function Dashboard() {
-  const { user, activeCompany, companies, logout } = useAuthStore();
+  const { user, activeCompany, companies, logout, switchCompany } = useAuthStore();
   const [, setLocation] = useLocation();
   const { t, isRtl, language, setLanguage } = useI18n();
     const [searchQuery, setSearchQuery] = useState("");
@@ -591,15 +592,60 @@ export default function Dashboard() {
         <SidebarHeader className="border-b px-4 py-4">
           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
             <SidebarLogoToggle />
-            <div className={`flex-1 min-w-0 group-data-[collapsible=icon]:hidden ${isRtl ? 'text-right' : ''}`}>
-              <h2 className="font-semibold text-sm truncate">
-                {activeCompany.profile?.displayName || activeCompany.name}
-              </h2>
-              <p className="text-xs text-muted-foreground truncate">
-                {userRole.charAt(0).toUpperCase() + userRole.slice(1)} • {activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-              </p>
-            </div>
-            {/* Show toggle button only when expanded */}
+            {companies.length > 1 ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className={`flex-1 min-w-0 group-data-[collapsible=icon]:hidden flex items-center gap-1 hover:bg-muted/50 rounded-md px-2 py-1 -mx-2 transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="font-semibold text-sm truncate">
+                        {activeCompany.profile?.displayName || activeCompany.name}
+                      </h2>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {userRole.charAt(0).toUpperCase() + userRole.slice(1)} • {activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      </p>
+                    </div>
+                    <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align={isRtl ? 'end' : 'start'} className="w-64">
+                  {companies.map((company: any) => (
+                    <DropdownMenuItem
+                      key={company.id}
+                      onClick={async () => {
+                        if (company.id !== activeCompany.id) {
+                          try {
+                            await switchCompany(company.id);
+                            queryClient.invalidateQueries();
+                            toast({ title: `Switched to ${company.name}` });
+                          } catch {
+                            toast({ title: "Failed to switch company", variant: "destructive" });
+                          }
+                        }
+                      }}
+                      className={`flex items-center gap-3 py-2 ${company.id === activeCompany.id ? 'bg-primary/5' : ''}`}
+                    >
+                      <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center text-primary font-medium text-xs flex-shrink-0">
+                        {(company.profile?.displayName || company.name).charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{company.profile?.displayName || company.name}</p>
+                        <p className="text-xs text-muted-foreground capitalize">{company.role}</p>
+                      </div>
+                      {company.id === activeCompany.id && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className={`flex-1 min-w-0 group-data-[collapsible=icon]:hidden ${isRtl ? 'text-right' : ''}`}>
+                <h2 className="font-semibold text-sm truncate">
+                  {activeCompany.profile?.displayName || activeCompany.name}
+                </h2>
+                <p className="text-xs text-muted-foreground truncate">
+                  {userRole.charAt(0).toUpperCase() + userRole.slice(1)} • {activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                </p>
+              </div>
+            )}
             <SidebarTrigger className={`${isRtl ? 'mr-auto' : 'ml-auto'} flex-shrink-0 group-data-[collapsible=icon]:hidden`} />
           </div>
         </SidebarHeader>

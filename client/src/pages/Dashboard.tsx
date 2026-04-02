@@ -293,8 +293,9 @@ export default function Dashboard() {
   }
 
   // Check if user is owner or admin (can create tenders, manage vendors)
-  const canManage = ['owner', 'admin'].includes(activeCompany.role);
-  const isOwner = activeCompany.role === 'owner';
+  const userRole = activeCompany.role || 'viewer';
+  const canManage = ['owner', 'admin'].includes(userRole);
+  const isOwner = userRole === 'owner';
 
   // Fetch vendors in base
   const { data: vendors = [], isLoading: loadingVendors } = useQuery<VendorProfile[]>({
@@ -595,7 +596,7 @@ export default function Dashboard() {
                 {activeCompany.profile?.displayName || activeCompany.name}
               </h2>
               <p className="text-xs text-muted-foreground truncate">
-                {activeCompany.role.charAt(0).toUpperCase() + activeCompany.role.slice(1)} • {activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                {userRole.charAt(0).toUpperCase() + userRole.slice(1)} • {activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
               </p>
             </div>
             {/* Show toggle button only when expanded */}
@@ -2867,7 +2868,7 @@ export default function Dashboard() {
                 </Badge>
               )}
               <Badge variant="outline" className="capitalize">
-                {t(`dashboard.${activeCompany.role}`)}
+                {t(`dashboard.${userRole}`)}
               </Badge>
               {activeCompany.onboardingState === 'completed' && (
                 <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">

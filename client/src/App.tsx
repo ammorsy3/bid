@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { Router, Route, Switch } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { I18nProvider } from "@/lib/i18n";
+import { useAuthStore } from "@/lib/auth";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -37,6 +39,11 @@ import Landing from "@/pages/Landing";
 import Settings from "@/pages/Settings";
 
 export default function App() {
+  const checkAuth = useAuthStore((s) => s.checkAuth);
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>

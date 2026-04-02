@@ -470,8 +470,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           emailVerified: user.emailVerified,
           otpVerified: user.otpVerified,
         },
-        companies: autoJoinedCompany ? [{ ...autoJoinedCompany, roleInCompany: 'member' }] : [],
-        autoJoinedCompany: autoJoinedCompany ?? null,
+        companies: autoJoinedCompany ? [{
+          id: autoJoinedCompany.id,
+          name: autoJoinedCompany.name,
+          slug: autoJoinedCompany.slug,
+          legalName: autoJoinedCompany.legalName,
+          crNumber: autoJoinedCompany.crNumber,
+          vatNumber: autoJoinedCompany.vatNumber,
+          city: autoJoinedCompany.city,
+          category: autoJoinedCompany.category,
+          verificationStatus: autoJoinedCompany.verificationStatus,
+          onboardingState: autoJoinedCompany.onboardingState,
+          role: 'member',
+          profile: null
+        }] : [],
+        autoJoinedCompany: autoJoinedCompany ? {
+          id: autoJoinedCompany.id,
+          name: autoJoinedCompany.name,
+          slug: autoJoinedCompany.slug,
+          legalName: autoJoinedCompany.legalName,
+          crNumber: autoJoinedCompany.crNumber,
+          vatNumber: autoJoinedCompany.vatNumber,
+          city: autoJoinedCompany.city,
+          category: autoJoinedCompany.category,
+          verificationStatus: autoJoinedCompany.verificationStatus,
+          onboardingState: autoJoinedCompany.onboardingState,
+          role: 'member',
+          profile: null
+        } : null,
       });
     } catch (error: any) {
       console.error('Registration error:', error);

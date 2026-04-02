@@ -527,9 +527,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.json({ message: "Verification code sent" });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Send OTP error:', error);
-      res.status(500).json({ message: "Failed to send verification code" });
+      const message = error?.message?.includes("inactive")
+        ? error.message
+        : "Failed to send verification code";
+      res.status(500).json({ message });
     }
   });
 

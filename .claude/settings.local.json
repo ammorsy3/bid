@@ -115,7 +115,11 @@
       "Bash(ls /home/runner/workspace/logs*)",
       "Read(//tmp/**)",
       "Bash(ls /home/runner/workspace/.env*)",
-      "Bash(NODE_ENV=development tsx server/index.ts)"
+      "Bash(NODE_ENV=development tsx server/index.ts)",
+      "Bash(pkill -f \"tsx server\")",
+      "Bash(nohup tsx:*)",
+      "Bash(ls -la /home/runner/workspace/.env*)",
+      "Bash(git:*)"
     ]
   },
   "enabledMcpjsonServers": [

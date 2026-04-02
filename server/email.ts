@@ -17,11 +17,20 @@ function getPostmarkAuthToken(): string | null {
 async function sendAuthEmail(to: string, subject: string, htmlBody: string): Promise<boolean> {
   const token = getPostmarkAuthToken();
   if (!token) {
-    console.warn("[Email] No Postmark token set — skipping auth email send");
+    console.error("[Email] No Postmark token set — skipping auth email send. POSTMARK_AUTH_TOKEN:", !!process.env.POSTMARK_AUTH_TOKEN, "POSTMARK_API_TOKEN:", !!process.env.POSTMARK_API_TOKEN);
     return false;
   }
 
+  const payload = {
+    From: FROM_EMAIL,
+    To: to,
+    Subject: subject,
+    HtmlBody: htmlBody,
+    MessageStream: "auth",
+  };
+
   try {
+    console.log(`[Email] Sending auth email to ${to}, subject: "${subject}", token: ${token.slice(0, 8)}...`);
     const response = await fetch(POSTMARK_API_URL, {
       method: "POST",
       headers: {
@@ -29,22 +38,25 @@ async function sendAuthEmail(to: string, subject: string, htmlBody: string): Pro
         "Content-Type": "application/json",
         "X-Postmark-Server-Token": token,
       },
-      body: JSON.stringify({
-        From: FROM_EMAIL,
-        To: to,
-        Subject: subject,
-        HtmlBody: htmlBody,
-        MessageStream: "auth",
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
       const errorBody = await response.text();
       console.error(`[Email] Postmark auth returned ${response.status}: ${errorBody}`);
+      try {
+        const parsed = JSON.parse(errorBody);
+        if (parsed.ErrorCode === 406) {
+          throw new Error("This email address has been marked as inactive by our email provider. Please use a different email or contact support.");
+        }
+      } catch (e) {
+        if (e instanceof Error && e.message.includes("inactive")) throw e;
+      }
       return false;
     }
 
-    console.log(`[Email] Auth email sent to ${to}: "${subject}"`);
+    const result = await response.json();
+    console.log(`[Email] Auth email sent to ${to}: "${subject}" — MessageID: ${result.MessageID}`);
     return true;
   } catch (err) {
     console.error("[Email] Failed to send auth email:", err);

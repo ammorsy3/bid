@@ -74,9 +74,16 @@ export default function VerifyEmail() {
           variant: "destructive",
         });
       } else {
+        let description = "Something went wrong. Please use the resend button.";
+        try {
+          const raw = error?.message ?? '';
+          const jsonStr = raw.includes(': ') ? raw.slice(raw.indexOf(': ') + 2) : raw;
+          const parsed = JSON.parse(jsonStr);
+          if (parsed?.message) description = parsed.message;
+        } catch {}
         toast({
           title: "Couldn't send code",
-          description: "Something went wrong sending the verification email. Please use the resend button.",
+          description,
           variant: "destructive",
         });
       }

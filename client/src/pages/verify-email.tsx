@@ -28,9 +28,13 @@ export default function VerifyEmail() {
       setLocation("/signup");
       return;
     }
-    // If already verified, skip to onboarding
     if (user.otpVerified) {
-      setLocation("/onboarding");
+      const { activeCompany } = useAuthStore.getState();
+      if (activeCompany) {
+        setLocation("/dashboard");
+      } else {
+        setLocation("/onboarding");
+      }
       return;
     }
   }, [user, setLocation]);
@@ -157,13 +161,12 @@ export default function VerifyEmail() {
           description: "Your email has been verified successfully.",
         });
 
-        // Route based on user state: existing user with company → dashboard, otherwise → onboarding
         const { activeCompany } = useAuthStore.getState();
         const redirect = localStorage.getItem('postOnboardingRedirect');
         if (redirect) {
           localStorage.removeItem('postOnboardingRedirect');
           setLocation(redirect);
-        } else if (activeCompany && activeCompany.onboardingState === 'completed') {
+        } else if (activeCompany) {
           setLocation("/dashboard");
         } else {
           setLocation("/onboarding");

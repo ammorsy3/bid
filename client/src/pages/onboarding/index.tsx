@@ -20,8 +20,7 @@ export default function OnboardingChoice() {
       setLocation("/verify-email");
       return;
     }
-    // If they already have a company, go to dashboard
-    if (activeCompany && activeCompany.onboardingState === 'completed') {
+    if (activeCompany) {
       setLocation("/dashboard");
       return;
     }

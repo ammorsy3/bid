@@ -435,15 +435,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let autoJoinedCompany = null;
 
       if (!FREE_EMAIL_DOMAINS.has(emailDomain)) {
-        const matchedCompany = await storage.getCompanyByEmailDomain(emailDomain);
-        if (matchedCompany) {
-          await storage.addUserToCompany({
-            userId: user.id,
-            companyId: matchedCompany.id,
-            roleInCompany: 'member',
-            invitedBy: null,
-          });
-          autoJoinedCompany = matchedCompany;
+        try {
+          const matchedCompany = await storage.getCompanyByEmailDomain(emailDomain);
+          if (matchedCompany) {
+            await storage.addUserToCompany({
+              userId: user.id,
+              companyId: matchedCompany.id,
+              roleInCompany: 'member',
+              invitedBy: null,
+            });
+            autoJoinedCompany = matchedCompany;
+            console.log(`Auto-join: user ${user.id} (${userData.email}) joined company ${matchedCompany.id} (${matchedCompany.name}) via domain ${emailDomain}`);
+            await storage.logProductEvent({
+              eventType: 'user_auto_joined',
+              companyId: matchedCompany.id,
+              userId: user.id,
+              metadata: { emailDomain, companyName: matchedCompany.name }
+            }).catch(() => {});
+          } else {
+            console.log(`Auto-join: no company found for domain ${emailDomain}`);
+          }
+        } catch (autoJoinError) {
+          console.error(`Auto-join failed for domain ${emailDomain}:`, autoJoinError);
         }
       }
 

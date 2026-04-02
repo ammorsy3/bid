@@ -36,10 +36,18 @@ export default function CompanyOnboarding() {
     category: ""
   });
 
-  // Determine current state
+  const userRole = activeCompany?.role || 'viewer';
+  const canEditCompany = ['owner', 'admin'].includes(userRole);
+
   const isCreating = !activeCompany;
-  const isCompletingDraft = activeCompany && activeCompany.onboardingState === 'draft';
-  const isEditingCompleted = activeCompany && activeCompany.onboardingState === 'completed';
+  const isCompletingDraft = activeCompany && activeCompany.onboardingState === 'draft' && canEditCompany;
+  const isEditingCompleted = activeCompany && activeCompany.onboardingState === 'completed' && canEditCompany;
+
+  useEffect(() => {
+    if (activeCompany && !canEditCompany) {
+      setLocation('/dashboard');
+    }
+  }, [activeCompany, canEditCompany, setLocation]);
 
   // Pre-populate form when completing draft or editing completed profile
   useEffect(() => {

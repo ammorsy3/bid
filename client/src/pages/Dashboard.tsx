@@ -1254,7 +1254,8 @@ export default function Dashboard() {
                         </AccordionContent>
                       </AccordionItem>
 
-                      {/* Task 2: Complete Company Profile */}
+                      {/* Task 2: Complete Company Profile (only for owners/admins) */}
+                      {canManage && (
                       <AccordionItem value="task-2" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'border-[#E8614D] bg-[#E8614D]/5 dark:bg-[#E8614D]/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -1291,6 +1292,7 @@ export default function Dashboard() {
                           </div>
                         </AccordionContent>
                       </AccordionItem>
+                      )}
 
                       {/* Task 3: Upload Profile Picture */}
                       <AccordionItem value="task-3" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasProfilePicture ? 'border-[#E8614D] bg-[#E8614D]/5 dark:bg-[#E8614D]/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
@@ -2932,6 +2934,7 @@ export default function Dashboard() {
 
             {/* Action Buttons */}
             <div className="flex gap-2 pt-2 border-t">
+              {canManage && (
               <Button
                 variant="outline"
                 className="flex-1"
@@ -2943,6 +2946,7 @@ export default function Dashboard() {
                 <Edit className="h-4 w-4 mr-2" />
                 {t('dashboard.edit')}
               </Button>
+              )}
               <Button
                 variant="outline"
                 className="flex-1"

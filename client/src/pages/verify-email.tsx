@@ -20,8 +20,7 @@ export default function VerifyEmail() {
   const [otpSent, setOtpSent] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Check if we arrived from login (OTP already sent server-side)
-  const otpAlreadySent = sessionStorage.getItem('otp_sent_by_login') === 'true';
+  const otpSendAttempted = useRef(false);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -38,10 +37,11 @@ export default function VerifyEmail() {
 
   // Send OTP on mount (skip if login already sent it)
   useEffect(() => {
-    if (user && !user.otpVerified && !otpSent) {
-      if (otpAlreadySent) {
-        // Login endpoint already sent OTP — don't double-send
-        sessionStorage.removeItem('otp_sent_by_login');
+    if (user && !user.otpVerified && !otpSent && !otpSendAttempted.current) {
+      otpSendAttempted.current = true;
+      const loginAlreadySent = sessionStorage.getItem('otp_sent_by_login') === 'true';
+      sessionStorage.removeItem('otp_sent_by_login');
+      if (loginAlreadySent) {
         setResendCooldown(60);
       } else {
         sendOTP();

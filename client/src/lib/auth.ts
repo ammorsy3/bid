@@ -125,13 +125,13 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await apiRequest('POST', '/api/auth/register', userData);
           const data = await response.json();
-          
-          set({ 
-            user: data.user, 
+
+          set({
+            user: data.user,
             token: data.token,
-            activeCompany: null, // No company yet
-            companies: [],
-            isLoading: false 
+            activeCompany: data.autoJoinedCompany ?? null,
+            companies: data.companies ?? [],
+            isLoading: false
           });
 
           localStorage.setItem('token', data.token);

@@ -825,6 +825,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
 
 export const registerUserSchema = insertUserSchema.omit({
   isAdmin: true,
+  username: true,
   emailVerified: true,
   emailVerificationCode: true,
   emailVerificationExpiry: true,

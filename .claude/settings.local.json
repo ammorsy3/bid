@@ -114,7 +114,8 @@
       "Bash(fuser -k 5000/tcp)",
       "Bash(ls /home/runner/workspace/logs*)",
       "Read(//tmp/**)",
-      "Bash(ls /home/runner/workspace/.env*)"
+      "Bash(ls /home/runner/workspace/.env*)",
+      "Bash(NODE_ENV=development tsx server/index.ts)"
     ]
   },
   "enabledMcpjsonServers": [

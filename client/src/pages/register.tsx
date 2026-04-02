@@ -13,10 +13,13 @@ import { useI18n } from "@/lib/i18n";
 import { Building2, Shield, Users, Zap } from "lucide-react";
 
 const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string(),
   name: z.string().min(2, "Name must be at least 2 characters"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 type RegisterForm = z.infer<typeof registerSchema>;
@@ -35,9 +38,9 @@ export default function Register() {
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: "",
       email: "",
       password: "",
+      confirmPassword: "",
       name: "",
     },
   });
@@ -57,7 +60,8 @@ export default function Register() {
 
   const onSubmit = async (data: RegisterForm) => {
     try {
-      await register(data);
+      const { confirmPassword: _, ...registerData } = data;
+      await register(registerData);
       toast({
         title: t('common.success'),
         description: t('auth.registerSuccess'),
@@ -167,20 +171,6 @@ export default function Register() {
 
               <FormField
                 control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('auth.username')}</FormLabel>
-                    <FormControl>
-                      <Input data-testid="input-username" placeholder={t('auth.usernamePlaceholder')} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
@@ -201,6 +191,20 @@ export default function Register() {
                     <FormLabel>{t('auth.password')}</FormLabel>
                     <FormControl>
                       <Input data-testid="input-password" type="password" placeholder={t('auth.passwordCreatePlaceholder')} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input data-testid="input-confirm-password" type="password" placeholder="Re-enter your password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

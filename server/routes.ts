@@ -416,21 +416,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Hash password
       const hashedPassword = await bcrypt.hash(userData.password, 10);
+      const username = userData.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '') + '_' + Math.random().toString(36).slice(2, 7);
       const user = await storage.createUser({
         ...userData,
+        username,
         password: hashedPassword,
         isAdmin: false
       });
 
-      // For now, return token with no active company (user needs to create/join one)
+      // Domain-based auto-join: check if another company already has members with the same domain
+      const FREE_EMAIL_DOMAINS = new Set([
+        'gmail.com','yahoo.com','hotmail.com','outlook.com','live.com',
+        'icloud.com','me.com','aol.com','protonmail.com','mail.com',
+        'yandex.com','zoho.com','gmx.com','msn.com','hotmail.co.uk',
+        'yahoo.co.uk','yahoo.co.in','rediffmail.com'
+      ]);
+      const emailDomain = userData.email.split('@')[1].toLowerCase();
+      let autoJoinedCompany = null;
+
+      if (!FREE_EMAIL_DOMAINS.has(emailDomain)) {
+        const matchedCompany = await storage.getCompanyByEmailDomain(emailDomain);
+        if (matchedCompany) {
+          await storage.addUserToCompany({
+            userId: user.id,
+            companyId: matchedCompany.id,
+            roleInCompany: 'member',
+            invitedBy: null,
+          });
+          autoJoinedCompany = matchedCompany;
+        }
+      }
+
       const token = generateToken({
         userId: user.id,
-        activeCompanyId: null,
-        roleInCompany: null,
+        activeCompanyId: autoJoinedCompany?.id ?? null,
+        roleInCompany: autoJoinedCompany ? 'member' : null,
         isAdmin: false
       });
 
-      res.json({ 
+      res.json({
         token,
         user: {
           id: user.id,
@@ -446,9 +470,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           emailVerified: user.emailVerified,
           otpVerified: user.otpVerified,
         },
-        companies: [] // Empty - user needs to create or join
+        companies: autoJoinedCompany ? [{ ...autoJoinedCompany, roleInCompany: 'member' }] : [],
+        autoJoinedCompany: autoJoinedCompany ?? null,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
       res.status(400).json({ message: "Invalid user data" });
     }

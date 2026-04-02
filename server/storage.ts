@@ -80,6 +80,7 @@ export interface IStorage {
   // ============================================================================
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getCompanyByEmailDomain(domain: string): Promise<(Company) | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<InsertUser>): Promise<User>;
 
@@ -296,6 +297,24 @@ export class DatabaseStorage implements IStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
+  }
+
+  async getCompanyByEmailDomain(domain: string): Promise<Company | undefined> {
+    const [result] = await db
+      .select({ company: companies })
+      .from(users)
+      .innerJoin(userCompanies, and(
+        eq(userCompanies.userId, users.id),
+        isNull(userCompanies.deletedAt)
+      ))
+      .innerJoin(companies, and(
+        eq(companies.id, userCompanies.companyId),
+        isNull(companies.deletedAt)
+      ))
+      .where(ilike(users.email, `%@${domain}`))
+      .orderBy(desc(userCompanies.joinedAt))
+      .limit(1);
+    return result?.company;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

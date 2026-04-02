@@ -72,10 +72,17 @@ export default function Register() {
         localStorage.setItem('postOnboardingRedirect', `/invite/${invitationToken}`);
       }
       setLocation("/verify-email");
-    } catch (error) {
+    } catch (error: any) {
+      let description = t('auth.registerError');
+      try {
+        const raw = error?.message ?? '';
+        const jsonStr = raw.includes(': ') ? raw.slice(raw.indexOf(': ') + 2) : raw;
+        const parsed = JSON.parse(jsonStr);
+        if (parsed?.message) description = parsed.message;
+      } catch {}
       toast({
         title: t('common.error'),
-        description: t('auth.registerError'),
+        description,
         variant: "destructive",
       });
     }

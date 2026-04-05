@@ -35,6 +35,8 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+import { usePageTour } from "@/lib/tour";
+import { AI_COPILOT_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 import { ToastAction } from "@/components/ui/toast";
 import { AIAgentOrb, OrbState } from "@/components/ui/ai-agent-orb";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
@@ -222,6 +224,17 @@ export default function TenderAICopilot() {
   const sessionParam = new URLSearchParams(searchString).get("session");
   const { activeCompany, user } = useAuthStore();
   const { toast } = useToast();
+
+  const _lang = localStorage.getItem('language') ?? 'en';
+  const _isRtl = _lang === 'ar';
+  const { overlay: tourOverlay } = usePageTour({
+    tourId: 'ai-copilot',
+    userId: user?.id ?? '',
+    steps: getSteps(AI_COPILOT_TOUR_STEPS, _lang),
+    isRtl: _isRtl,
+    autoStart: !!user,
+    autoStartDelay: 1500,
+  });
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -660,6 +673,7 @@ export default function TenderAICopilot() {
   const progressPercentage = isReady ? 100 : hasPreviewContent ? 60 : messages.length > 0 ? 30 : 0;
 
   return (
+    <>
     <div className="h-screen flex flex-col bg-white dark:bg-gray-950 relative overflow-hidden">
       {/* Flickering Grid Background - matches /tenders/new */}
       <div className="absolute inset-0 z-0">
@@ -709,6 +723,7 @@ export default function TenderAICopilot() {
               size="icon"
               onClick={() => setShowPreview(!showPreview)}
               className="text-gray-500"
+              data-tour="preview-toggle"
             >
               {showPreview ? (
                 <PanelRightClose className="h-5 w-5" />
@@ -753,12 +768,14 @@ export default function TenderAICopilot() {
                   transition={{ duration: 0.5 }}
                 >
                   {/* AI Orb - same size as /tenders/new (100) */}
+                  <div data-tour="chat-orb">
                   <AIAgentOrb
                     state={orbState}
                     size={100}
                     statusText={statusText}
                     onClick={handleOrbClick}
                   />
+                  </div>
 
                   {/* Welcome Message */}
                   <motion.div
@@ -781,6 +798,7 @@ export default function TenderAICopilot() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
+                    data-tour="quick-actions"
                   >
                     {quickActions.map((action, idx) => (
                       <motion.button
@@ -1265,5 +1283,7 @@ export default function TenderAICopilot() {
         </AnimatePresence>
       </div>
     </div>
+    {tourOverlay}
+    </>
   );
 }

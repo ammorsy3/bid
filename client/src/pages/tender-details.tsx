@@ -18,6 +18,8 @@ import ProposalComparison from "@/components/ProposalComparison";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import { useI18n } from "@/lib/i18n";
+import { usePageTour } from "@/lib/tour";
+import { TENDER_DETAILS_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 
 const SUBMISSION_TYPE_LABELS: Record<string, Record<string, string>> = {
   quote_only: { en: "Price Quote Only", ar: "عرض سعر فقط" },
@@ -392,6 +394,15 @@ export default function TenderDetails() {
   const isTenderRtl = tenderLanguage === 'ar';
   const isRtl = language === 'ar';
 
+  const { overlay: tourOverlay } = usePageTour({
+    tourId: 'tender-details',
+    userId: user?.id ?? '',
+    steps: getSteps(TENDER_DETAILS_TOUR_STEPS, language),
+    isRtl,
+    autoStart: !!user && !!tender,
+    autoStartDelay: 1500,
+  });
+
   const { data: requesterProfile } = useQuery<{
     company: { id: string; name: string; category: string | null; verificationStatus: string };
     profile: { displayName: string | null; bio: string | null; logoUrl: string | null } | null;
@@ -656,6 +667,7 @@ export default function TenderDetails() {
   const durationDisplay = getDurationDisplay() !== 'Not specified' ? getDurationDisplay() : null;
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50" dir={isRtl ? "rtl" : "ltr"}>
       {/* Hero Header */}
       <div className="bg-white border-b border-gray-200" style={{ backgroundImage: 'radial-gradient(circle, rgba(156,163,175,0.35) 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
@@ -1324,7 +1336,7 @@ export default function TenderDetails() {
 
               {/* Proposals (owner only) */}
               {isOwner && (
-                <div className="mt-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden" id="section-proposals">
+                <div className="mt-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden" id="section-proposals" data-tour="offers-section">
                   <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-0 scroll-mt-24">
                     <div className="flex items-center justify-between mb-5">
                       <div className="flex items-center gap-3">
@@ -1521,6 +1533,7 @@ export default function TenderDetails() {
                     <div
                       className="relative overflow-hidden border border-[#E25E45]/20 rounded-2xl p-6 flex items-center justify-between gap-4 flex-wrap shadow-sm"
                       style={{ backgroundColor: '#FFF8F7', backgroundImage: 'radial-gradient(circle, #e8c5be 1px, transparent 1px)', backgroundSize: '18px 18px' }}
+                      data-tour="negotiate-banner"
                     >
                       <div className="flex items-center gap-4">
                         <div className="h-12 w-12 rounded-xl bg-[#E25E45]/10 border border-[#E25E45]/20 flex items-center justify-center flex-shrink-0">
@@ -1563,7 +1576,7 @@ export default function TenderDetails() {
 
               {/* AI Proposal Comparison (owner only, when 2+ offers exist) */}
               {isOwner && offers.length >= 2 && (
-                <div className="mt-6">
+                <div className="mt-6" data-tour="proposal-comparison">
                   <ProposalComparison
                     tenderId={tender.id}
                     offers={offers}
@@ -2156,6 +2169,8 @@ export default function TenderDetails() {
         </SheetContent>
       </Sheet>
     </div>
+    {tourOverlay}
+    </>
   );
 }
 

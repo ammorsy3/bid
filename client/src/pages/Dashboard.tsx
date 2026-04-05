@@ -34,7 +34,7 @@ import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription, PopoverBody, PopoverFooter } from "@/components/ui/popover";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useDashboardTour } from "@/lib/tour";
-import { getDashboardTourSteps } from "@/lib/tour-steps";
+import { DASHBOARD_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
@@ -285,7 +285,7 @@ export default function Dashboard() {
   // ── First-time user guided tour ──────────────────────────────────────────
   const { overlay: tourOverlay, tourDismissed, retake: retakeTour } = useDashboardTour({
     userId: user?.id ?? '',
-    steps: getDashboardTourSteps((language as 'en' | 'ar') ?? 'en'),
+    steps: getSteps(DASHBOARD_TOUR_STEPS, language),
     isRtl,
     autoStart: !!user,
   });

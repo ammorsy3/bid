@@ -13,13 +13,15 @@ import { format } from "date-fns";
 import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
+import { TourBanner } from "@/lib/tour";
+import { TOUR_BANNERS } from "@/lib/tour-steps";
 
 type SubmissionType = "quote_only" | "tech_fin_proposal" | "video_only" | "tech_fin_with_video";
 type InquiryType = "inside_bid" | "email_whatsapp";
 
 export default function TenderSubmissionProcessStep() {
   const [, navigate] = useLocation();
-  const { t, language } = useI18n();
+  const { t, language, isRtl } = useI18n();
   const dateLocale = language === 'ar' ? arLocale : undefined;
   const { user, checkAuth } = useAuthStore();
   const { toast } = useToast();
@@ -239,6 +241,13 @@ export default function TenderSubmissionProcessStep() {
           </div>
 
           <div>
+            <TourBanner
+              tourId="hint-submission-process"
+              userId={user?.id ?? ''}
+              title={TOUR_BANNERS.submissionProcess[language === 'ar' ? 'ar' : 'en'].title}
+              body={TOUR_BANNERS.submissionProcess[language === 'ar' ? 'ar' : 'en'].body}
+              isRtl={isRtl}
+            />
             <Card className="border-0 shadow-xl overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
 

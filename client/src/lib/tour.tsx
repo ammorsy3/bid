@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, ArrowLeft } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, Lightbulb } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,15 +21,15 @@ interface SpotlightRect {
 
 // ─── localStorage helpers ─────────────────────────────────────────────────────
 
-const tourKey = (userId: string) => `bid-guide-${userId}`;
+const tourKey = (tourId: string, userId: string) => `bid-guide-${tourId}-${userId}`;
 
-function markDismissed(userId: string) {
-  localStorage.setItem(tourKey(userId), JSON.stringify({ dismissed: true }));
+function markDismissed(tourId: string, userId: string) {
+  localStorage.setItem(tourKey(tourId, userId), JSON.stringify({ dismissed: true }));
 }
 
-export function isTourDismissed(userId: string): boolean {
+export function isTourDismissed(tourId: string, userId: string): boolean {
   try {
-    const raw = localStorage.getItem(tourKey(userId));
+    const raw = localStorage.getItem(tourKey(tourId, userId));
     if (!raw) return false;
     return JSON.parse(raw).dismissed === true;
   } catch {
@@ -37,8 +37,8 @@ export function isTourDismissed(userId: string): boolean {
   }
 }
 
-export function resetTour(userId: string) {
-  localStorage.removeItem(tourKey(userId));
+export function resetTour(tourId: string, userId: string) {
+  localStorage.removeItem(tourKey(tourId, userId));
 }
 
 // ─── Card position calculation ────────────────────────────────────────────────
@@ -183,7 +183,7 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
       {/* Skip tour */}
       <button
         onClick={onDismiss}
-        className="absolute top-4 right-4 flex items-center gap-1.5 text-white/70 hover:text-white text-sm transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
+        className={`absolute top-4 flex items-center gap-2 text-sm font-medium text-white bg-white/15 hover:bg-white/25 border border-white/30 hover:border-white/50 backdrop-blur-sm transition-all px-4 py-2 rounded-full shadow-lg ${isRtl ? 'left-4' : 'right-4'}`}
         style={{ zIndex: 1 }}
       >
         <X className="h-3.5 w-3.5" />
@@ -273,59 +273,57 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
   );
 }
 
-// ─── useDashboardTour hook ────────────────────────────────────────────────────
-// Self-contained hook — no Provider needed. Returns overlay JSX + control functions.
+// ─── usePageTour hook ─────────────────────────────────────────────────────────
+// Generic spotlight tour for any page. Each tourId tracks dismissal independently.
 
-interface UseDashboardTourOptions {
+interface UsePageTourOptions {
+  tourId: string; // unique key per page/tour e.g. 'dashboard', 'tender-create'
   userId: string;
   steps: TourStep[];
   isRtl: boolean;
-  autoStart?: boolean; // start automatically if not dismissed (default: true)
-  autoStartDelay?: number; // ms before auto-starting (default: 1200)
+  autoStart?: boolean;
+  autoStartDelay?: number;
 }
 
-export function useDashboardTour({
+export function usePageTour({
+  tourId,
   userId,
   steps,
   isRtl,
   autoStart = true,
   autoStartDelay = 1200,
-}: UseDashboardTourOptions) {
+}: UsePageTourOptions) {
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [tourDismissed, setTourDismissed] = useState(() => isTourDismissed(userId));
+  const [tourDismissed, setTourDismissed] = useState(() => isTourDismissed(tourId, userId));
 
-  // Auto-start on mount if not dismissed
   useEffect(() => {
-    if (!autoStart || isTourDismissed(userId)) return;
+    if (!autoStart || !userId || isTourDismissed(tourId, userId)) return;
     const t = setTimeout(() => {
       setCurrentStep(0);
       setIsActive(true);
     }, autoStartDelay);
     return () => clearTimeout(t);
-  }, [userId, autoStart, autoStartDelay]);
+  }, [tourId, userId, autoStart, autoStartDelay]);
 
   const dismiss = useCallback(() => {
     setIsActive(false);
-    markDismissed(userId);
+    markDismissed(tourId, userId);
     setTourDismissed(true);
-  }, [userId]);
+  }, [tourId, userId]);
 
   const next = useCallback(() => {
-    setCurrentStep(s => {
-      if (s >= steps.length - 1) return s;
-      return s + 1;
-    });
+    setCurrentStep(s => (s >= steps.length - 1 ? s : s + 1));
   }, [steps.length]);
 
   const prev = useCallback(() => setCurrentStep(s => Math.max(0, s - 1)), []);
 
   const retake = useCallback(() => {
-    resetTour(userId);
+    resetTour(tourId, userId);
     setTourDismissed(false);
     setCurrentStep(0);
     setIsActive(true);
-  }, [userId]);
+  }, [tourId, userId]);
 
   const overlay =
     isActive && steps.length > 0 ? (
@@ -340,4 +338,57 @@ export function useDashboardTour({
     ) : null;
 
   return { overlay, isActive, tourDismissed, retake };
+}
+
+// Backwards-compatible alias used by Dashboard
+export const useDashboardTour = (opts: Omit<UsePageTourOptions, 'tourId'>) =>
+  usePageTour({ ...opts, tourId: 'dashboard' });
+
+// ─── TourBanner ───────────────────────────────────────────────────────────────
+// Lightweight dismissible hint banner for wizard-step pages (no spotlight).
+
+interface TourBannerProps {
+  tourId: string;
+  userId: string;
+  title: string;
+  body: string;
+  isRtl?: boolean;
+}
+
+export function TourBanner({ tourId, userId, title, body, isRtl = false }: TourBannerProps) {
+  const [visible, setVisible] = useState(() => !isTourDismissed(tourId, userId));
+
+  const dismiss = useCallback(() => {
+    markDismissed(tourId, userId);
+    setVisible(false);
+  }, [tourId, userId]);
+
+  if (!visible || !userId) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.2 }}
+        className={`flex items-start gap-3 px-4 py-3 mb-5 rounded-xl border border-[#E8614D]/20 bg-[#FFF8F6] dark:bg-[#E8614D]/10 dark:border-[#E8614D]/25 ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+      >
+        <div className="flex-shrink-0 mt-0.5">
+          <Lightbulb className="h-4 w-4 text-[#E8614D]" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{title}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">{body}</p>
+        </div>
+        <button
+          onClick={dismiss}
+          className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors mt-0.5"
+          aria-label="Dismiss hint"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </motion.div>
+    </AnimatePresence>
+  );
 }

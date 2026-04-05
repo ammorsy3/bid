@@ -5,14 +5,26 @@ import { AILoader } from "@/components/ui/ai-loader";
 import { useAuthStore } from "@/lib/auth";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { useI18n } from "@/lib/i18n";
+import { usePageTour } from "@/lib/tour";
+import { TENDER_CREATE_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 
 export default function TenderCreateChoice() {
   const [, setLocation] = useLocation();
   const { user } = useAuthStore();
-  const { t } = useI18n();
+  const { t, isRtl, language } = useI18n();
   const firstName = user?.name?.split(' ')[0] || user?.username || 'there';
 
+  const { overlay: tourOverlay } = usePageTour({
+    tourId: 'tender-create',
+    userId: user?.id ?? '',
+    steps: getSteps(TENDER_CREATE_TOUR_STEPS, language),
+    isRtl,
+    autoStart: !!user,
+    autoStartDelay: 800,
+  });
+
   return (
+    <>
     <div className="relative min-h-screen bg-white flex flex-col overflow-hidden">
       <div className="absolute inset-0 z-0">
         <FlickeringGrid
@@ -59,6 +71,7 @@ export default function TenderCreateChoice() {
                 onClick={() => setLocation("/tenders/new/ai")}
                 className="w-full h-12 bg-[#E25E45] hover:bg-[#d54d35] text-white text-base font-medium rounded-lg"
                 data-testid="button-create-with-ai"
+                data-tour="ai-choice"
               >
                 <Sparkles className="h-5 w-5 mr-2" />
                 {t('tenderFlow.getStartedWithAI')}
@@ -69,6 +82,7 @@ export default function TenderCreateChoice() {
                 onClick={() => setLocation("/tenders/new/manual")}
                 className="w-full h-12 border-gray-300 text-gray-700 hover:bg-gray-50 text-base font-medium rounded-lg"
                 data-testid="button-create-manually"
+                data-tour="manual-choice"
               >
                 {t('tenderFlow.createMyself')}
               </Button>
@@ -77,5 +91,7 @@ export default function TenderCreateChoice() {
         </main>
       </div>
     </div>
+    {tourOverlay}
+    </>
   );
 }

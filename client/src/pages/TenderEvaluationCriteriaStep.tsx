@@ -7,6 +7,9 @@ import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { ENTERPRISE_CRITERIA_CATEGORIES, CRITERIA_TRANSLATIONS_AR } from "@/lib/evaluation-criteria-data";
 import { useI18n } from "@/lib/i18n";
+import { useAuthStore } from "@/lib/auth";
+import { TourBanner } from "@/lib/tour";
+import { TOUR_BANNERS } from "@/lib/tour-steps";
 
 // ── Evaluation criteria types ────────────────────────────────────────────────
 
@@ -71,6 +74,7 @@ const PRESET_KEY_MAP: Record<string, string> = {
 export default function TenderEvaluationCriteriaStep() {
   const [, navigate] = useLocation();
   const { t, language } = useI18n();
+  const { user } = useAuthStore();
   const isAr = language === 'ar';
   const tr = (id: string, field: 'name' | 'label' | 'description') =>
     isAr ? (CRITERIA_TRANSLATIONS_AR[id]?.[field] ?? undefined) : undefined;
@@ -295,6 +299,13 @@ export default function TenderEvaluationCriteriaStep() {
 
           {/* Right: Two stacked cards */}
           <div className="space-y-6">
+            <TourBanner
+              tourId="hint-evaluation-criteria"
+              userId={user?.id ?? ''}
+              title={TOUR_BANNERS.evaluationCriteria[isAr ? 'ar' : 'en'].title}
+              body={TOUR_BANNERS.evaluationCriteria[isAr ? 'ar' : 'en'].body}
+              isRtl={isAr}
+            />
 
             {/* ── Card 1: Evaluation Criteria ─────────────────────────────── */}
             <Card className="border-0 shadow-xl overflow-hidden">

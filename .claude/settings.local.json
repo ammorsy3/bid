@@ -119,7 +119,11 @@
       "Bash(pkill -f \"tsx server\")",
       "Bash(nohup tsx:*)",
       "Bash(ls -la /home/runner/workspace/.env*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(ls -1 /home/runner/workspace/client/src/components/ui/*.tsx)",
+      "Bash(wc -l /home/runner/workspace/client/src/pages/*.tsx /home/runner/workspace/server/*.ts)",
+      "Bash(ls /home/runner/workspace/*.json)",
+      "Bash(ls /home/runner/workspace/client/*.json)"
     ]
   },
   "enabledMcpjsonServers": [

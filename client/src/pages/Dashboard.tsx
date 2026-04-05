@@ -33,6 +33,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription, PopoverBody, PopoverFooter } from "@/components/ui/popover";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useDashboardTour } from "@/lib/tour";
+import { getDashboardTourSteps } from "@/lib/tour-steps";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
@@ -279,6 +281,15 @@ export default function Dashboard() {
     return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
   });
   const { toast } = useToast();
+
+  // ── First-time user guided tour ──────────────────────────────────────────
+  const { overlay: tourOverlay, tourDismissed, retake: retakeTour } = useDashboardTour({
+    userId: user?.id ?? '',
+    steps: getDashboardTourSteps((language as 'en' | 'ar') ?? 'en'),
+    isRtl,
+    autoStart: !!user,
+  });
+
   const dotColor = currentTheme === 'dark'
     ? 'rgba(139, 92, 246, 0.15)'
     : 'rgba(156, 163, 175, 0.3)';
@@ -585,6 +596,7 @@ export default function Dashboard() {
   ];
 
   return (
+    <>
     <SidebarProvider>
       <Sidebar collapsible="icon" side={isRtl ? "right" : "left"} className={isRtl ? "border-l border-gray-200 dark:border-gray-800" : "border-r border-gray-200 dark:border-gray-800"}>
         {/* Brand accent strip */}
@@ -661,6 +673,7 @@ export default function Dashboard() {
                       onClick={() => setLocation("/tenders/new")}
                       tooltip={t('dashboard.createTender')}
                       data-testid="sidebar-create-tender"
+                      data-tour="create-tender"
                       className="py-3 text-base rounded-lg bg-[#E8614D] text-white hover:bg-[#D44D3A] hover:text-white"
                     >
                       <Plus className="h-5 w-5 text-white" />
@@ -684,7 +697,7 @@ export default function Dashboard() {
           )}
 
           {/* Navigation Items */}
-          <SidebarGroup>
+          <SidebarGroup data-tour="sidebar-nav">
             <SidebarGroupContent>
               <SidebarMenu className="space-y-2">
                 {sidebarItems.filter(item => item.show).map((item) => (
@@ -711,7 +724,7 @@ export default function Dashboard() {
         <SidebarFooter className="border-t px-4 py-4">
           <Popover>
             <PopoverTrigger asChild>
-              <button className={`flex items-center gap-3 w-full hover:bg-accent rounded-md p-1 -m-1 transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`} data-testid="button-user-menu">
+              <button className={`flex items-center gap-3 w-full hover:bg-accent rounded-md p-1 -m-1 transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`} data-testid="button-user-menu" data-tour="user-menu">
                 <div className="relative flex-shrink-0">
                   {user.profilePictureUrl ? (
                     <img 
@@ -987,6 +1000,18 @@ export default function Dashboard() {
               </div>
             </PopoverContent>
           </Popover>
+
+          {/* Take a tour — only shown after dismissal */}
+          {tourDismissed && (
+            <button
+              onClick={retakeTour}
+              className={`mt-3 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full px-1 group-data-[collapsible=icon]:hidden ${isRtl ? 'flex-row-reverse' : ''}`}
+              data-testid="button-retake-tour"
+            >
+              <HelpCircle className="h-3.5 w-3.5 flex-shrink-0" />
+              <span>{isRtl ? 'جولة تعريفية' : 'Take a tour'}</span>
+            </button>
+          )}
         </SidebarFooter>
       </Sidebar>
 
@@ -1075,7 +1100,7 @@ export default function Dashboard() {
 
             {/* ── Stat Cards Row ──────────────────────────────────────── */}
             {canManage && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" data-tour="dashboard-tabs">
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1229,6 +1254,7 @@ export default function Dashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2, duration: 0.35, ease: "easeOut" }}
                   className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden"
+                  data-tour="onboarding-tasks"
                 >
                   {/* Brand top strip */}
                   <div className="h-1 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]" />
@@ -3010,5 +3036,9 @@ export default function Dashboard() {
       </Dialog>
       </SidebarInset>
     </SidebarProvider>
+
+    {/* First-time user guided tour overlay */}
+    {tourOverlay}
+    </>
   );
 }

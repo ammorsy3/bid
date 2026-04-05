@@ -1,5 +1,6 @@
 {pkgs}: {
   deps = [
+    pkgs.sox
     pkgs.gh
     pkgs.haskellPackages.github
   ];

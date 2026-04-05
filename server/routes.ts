@@ -1077,6 +1077,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ==========================================================================
+  // TOUR PROGRESS ROUTES
+  // ==========================================================================
+
+  // Get all dismissed tours for the current user
+  app.get("/api/tour-progress", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const dismissed = await storage.getDismissedTours(req.auth!.userId);
+      res.json(dismissed);
+    } catch (error) {
+      console.error('Get tour progress error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Reset a tour (for "Take the tour again")
+  app.delete("/api/tour-progress/:tourId", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { tourId } = req.params;
+      await storage.resetTourProgress(req.auth!.userId, tourId);
+      res.json({ message: "OK" });
+    } catch (error) {
+      console.error('Reset tour error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Mark a tour as dismissed
+  app.post("/api/tour-progress/:tourId", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { tourId } = req.params;
+      if (!tourId || typeof tourId !== 'string') {
+        return res.status(400).json({ message: "Invalid tourId" });
+      }
+      await storage.dismissTour(req.auth!.userId, tourId);
+      res.json({ message: "OK" });
+    } catch (error) {
+      console.error('Dismiss tour error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ==========================================================================
   // COMPANY ROUTES
   // ==========================================================================
 

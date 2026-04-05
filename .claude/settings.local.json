@@ -123,7 +123,8 @@
       "Bash(ls -1 /home/runner/workspace/client/src/components/ui/*.tsx)",
       "Bash(wc -l /home/runner/workspace/client/src/pages/*.tsx /home/runner/workspace/server/*.ts)",
       "Bash(ls /home/runner/workspace/*.json)",
-      "Bash(ls /home/runner/workspace/client/*.json)"
+      "Bash(ls /home/runner/workspace/client/*.json)",
+      "Bash(ls -1 /home/runner/workspace/client/src/pages/*.tsx)"
     ]
   },
   "enabledMcpjsonServers": [

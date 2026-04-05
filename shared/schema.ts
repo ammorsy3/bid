@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, boolean, jsonb, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, boolean, jsonb, integer, uniqueIndex } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -464,6 +464,18 @@ export const productEvents = pgTable("product_events", {
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Tour Progress - tracks which guided tours a user has completed/dismissed
+export const tourProgress = pgTable("tour_progress", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  tourId: text("tour_id").notNull(), // e.g. 'dashboard', 'tender-create', 'ai-copilot'
+  dismissedAt: timestamp("dismissed_at").defaultNow().notNull(),
+}, (t) => ({
+  uniq: uniqueIndex("tour_progress_user_tour_uniq").on(t.userId, t.tourId),
+}));
+
+export type TourProgressRecord = typeof tourProgress.$inferSelect;
 
 // Tender Templates - User-saved form structures
 export const tenderTemplates = pgTable("tender_templates", {

@@ -218,9 +218,70 @@ export const TENDER_DETAILS_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
   ],
 };
 
+// ─── Settings ─────────────────────────────────────────────────────────────────
+
+export const SETTINGS_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
+  en: [
+    {
+      id: 'settings-account-tab',
+      target: '[data-tour="settings-account-tab"]',
+      title: 'Your personal profile',
+      body: 'Upload a profile picture, set your job title, timezone, and language. This info is visible to your team and vendors.',
+      placement: 'right',
+    },
+    {
+      id: 'settings-company-tab',
+      target: '[data-tour="settings-company-tab"]',
+      title: 'Your company profile',
+      body: 'Add your company logo, display name, and bio. A complete company profile builds trust with vendors and speeds up verification.',
+      placement: 'right',
+    },
+    {
+      id: 'settings-team-section',
+      target: '[data-tour="settings-team-section"]',
+      title: 'Manage your team',
+      body: 'Invite teammates and assign roles. Owners and Admins can create tenders and manage vendors. Members and Viewers have read-only access.',
+      placement: 'top',
+    },
+  ],
+  ar: [
+    {
+      id: 'settings-account-tab',
+      target: '[data-tour="settings-account-tab"]',
+      title: 'ملفك الشخصي',
+      body: 'ارفع صورة شخصية وحدد مسماك الوظيفي ومنطقتك الزمنية ولغتك. هذه المعلومات مرئية لفريقك والموردين.',
+      placement: 'left',
+    },
+    {
+      id: 'settings-company-tab',
+      target: '[data-tour="settings-company-tab"]',
+      title: 'ملف شركتك',
+      body: 'أضف شعار شركتك واسمها ونبذة عنها. الملف الكامل يبني الثقة مع الموردين ويسرع عملية التحقق.',
+      placement: 'left',
+    },
+    {
+      id: 'settings-team-section',
+      target: '[data-tour="settings-team-section"]',
+      title: 'إدارة فريقك',
+      body: 'ادعُ زملاءك وحدد أدوارهم. المالكون والمسؤولون يمكنهم إنشاء المناقصات وإدارة الموردين. الأعضاء والمشاهدون لديهم صلاحية القراءة فقط.',
+      placement: 'top',
+    },
+  ],
+};
+
 // ─── Banner content (wizard step pages) ──────────────────────────────────────
 
 export const TOUR_BANNERS = {
+  tenderReview: {
+    en: {
+      title: 'Almost ready to launch',
+      body: 'This is exactly how vendors will see your tender. Required fields are marked ★ — all must be filled before you can publish.',
+    },
+    ar: {
+      title: 'على وشك الإطلاق',
+      body: 'هذا بالضبط ما سيراه الموردون في مناقصتك. الحقول المطلوبة مميزة بـ★ — يجب ملؤها جميعاً قبل النشر.',
+    },
+  },
   submissionProcess: {
     en: {
       title: 'Choosing how vendors submit',

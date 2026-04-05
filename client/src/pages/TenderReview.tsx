@@ -23,6 +23,9 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Switch } from "@/components/ui/switch";
 import { StepIndicator } from "@/components/form-builder/StepIndicator";
 import { useI18n, type Language } from "@/lib/i18n";
+import { useAuthStore } from "@/lib/auth";
+import { TourBanner } from "@/lib/tour";
+import { TOUR_BANNERS } from "@/lib/tour-steps";
 
 const TENDER_STATE_KEY = "tender_form_state";
 
@@ -30,7 +33,8 @@ export default function TenderReview() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { theme } = useTheme();
-  const { t } = useI18n();
+  const { t, language, isRtl } = useI18n();
+  const { user } = useAuthStore();
   const [cards, setCards] = useState<FormCard[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -503,6 +507,17 @@ export default function TenderReview() {
             {t('tenderFlow.reviewRfpSubtitle')}
           </p>
         </div>
+
+        {/* ── Onboarding hint ────────────────────────────────── */}
+        {user && (
+          <TourBanner
+            tourId="hint-tender-review"
+            userId={user.id}
+            title={TOUR_BANNERS.tenderReview[language === 'ar' ? 'ar' : 'en'].title}
+            body={TOUR_BANNERS.tenderReview[language === 'ar' ? 'ar' : 'en'].body}
+            isRtl={isRtl}
+          />
+        )}
 
         {/* ── RFP Language & Translation Settings ────────────── */}
         <div className="mb-6 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg p-6 space-y-5">

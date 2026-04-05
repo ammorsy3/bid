@@ -70,6 +70,7 @@ import {
   trustedBrowsers,
   type TrustedBrowser,
   type InsertTrustedBrowser,
+  tourProgress,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ilike, or, isNull, sql, gte, count } from "drizzle-orm";
@@ -1652,6 +1653,29 @@ export class DatabaseStorage implements IStorage {
       .update(offers)
       .set({ resubmissionAllowed: true })
       .where(eq(offers.id, offerId));
+  }
+
+  // ── Tour Progress ────────────────────────────────────────────────────────────
+
+  async getDismissedTours(userId: string): Promise<string[]> {
+    const rows = await db
+      .select({ tourId: tourProgress.tourId })
+      .from(tourProgress)
+      .where(eq(tourProgress.userId, userId));
+    return rows.map(r => r.tourId);
+  }
+
+  async dismissTour(userId: string, tourId: string): Promise<void> {
+    await db
+      .insert(tourProgress)
+      .values({ userId, tourId })
+      .onConflictDoNothing();
+  }
+
+  async resetTourProgress(userId: string, tourId: string): Promise<void> {
+    await db
+      .delete(tourProgress)
+      .where(and(eq(tourProgress.userId, userId), eq(tourProgress.tourId, tourId)));
   }
 }
 

@@ -19,11 +19,11 @@ interface SpotlightRect {
   height: number;
 }
 
-// ─── localStorage helpers ─────────────────────────────────────────────────────
+// ─── localStorage helpers (local cache) ──────────────────────────────────────
 
 const tourKey = (tourId: string, userId: string) => `bid-guide-${tourId}-${userId}`;
 
-function markDismissed(tourId: string, userId: string) {
+function markDismissedLocal(tourId: string, userId: string) {
   localStorage.setItem(tourKey(tourId, userId), JSON.stringify({ dismissed: true }));
 }
 
@@ -39,6 +39,42 @@ export function isTourDismissed(tourId: string, userId: string): boolean {
 
 export function resetTour(tourId: string, userId: string) {
   localStorage.removeItem(tourKey(tourId, userId));
+}
+
+// ─── API helpers ──────────────────────────────────────────────────────────────
+
+function getToken(): string | null {
+  return localStorage.getItem('token');
+}
+
+/** Fetch all dismissed tour IDs for the user and cache them in localStorage. */
+async function syncTourProgressFromServer(userId: string): Promise<void> {
+  const token = getToken();
+  if (!token || !userId) return;
+  try {
+    const res = await fetch('/api/tour-progress', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return;
+    const dismissed: string[] = await res.json();
+    dismissed.forEach(tourId => markDismissedLocal(tourId, userId));
+  } catch {
+    // Silently fail — localStorage cache is still the fallback
+  }
+}
+
+/** Persist a single tour dismissal to the server. */
+async function persistDismissalToServer(tourId: string): Promise<void> {
+  const token = getToken();
+  if (!token) return;
+  try {
+    await fetch(`/api/tour-progress/${tourId}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    // Silently fail — local state is already updated
+  }
 }
 
 // ─── Card position calculation ────────────────────────────────────────────────
@@ -297,19 +333,36 @@ export function usePageTour({
   const [currentStep, setCurrentStep] = useState(0);
   const [tourDismissed, setTourDismissed] = useState(() => isTourDismissed(tourId, userId));
 
+  // Sync dismissal state from server on mount (populates localStorage cache)
+  useEffect(() => {
+    if (!userId) return;
+    syncTourProgressFromServer(userId).then(() => {
+      const dismissed = isTourDismissed(tourId, userId);
+      if (dismissed) {
+        setTourDismissed(true);
+        setIsActive(false);
+      }
+    });
+  }, [tourId, userId]);
+
+  // Auto-start after delay if not dismissed (uses localStorage as fast check)
   useEffect(() => {
     if (!autoStart || !userId || isTourDismissed(tourId, userId)) return;
     const t = setTimeout(() => {
-      setCurrentStep(0);
-      setIsActive(true);
+      // Re-check after sync may have updated localStorage
+      if (!isTourDismissed(tourId, userId)) {
+        setCurrentStep(0);
+        setIsActive(true);
+      }
     }, autoStartDelay);
     return () => clearTimeout(t);
   }, [tourId, userId, autoStart, autoStartDelay]);
 
   const dismiss = useCallback(() => {
     setIsActive(false);
-    markDismissed(tourId, userId);
+    markDismissedLocal(tourId, userId);  // instant local update
     setTourDismissed(true);
+    persistDismissalToServer(tourId);    // async DB write
   }, [tourId, userId]);
 
   const next = useCallback(() => {
@@ -319,7 +372,15 @@ export function usePageTour({
   const prev = useCallback(() => setCurrentStep(s => Math.max(0, s - 1)), []);
 
   const retake = useCallback(() => {
-    resetTour(tourId, userId);
+    resetTour(tourId, userId);              // clear localStorage
+    // Clear from DB too (DELETE then re-enable)
+    const token = getToken();
+    if (token) {
+      fetch(`/api/tour-progress/${tourId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
     setTourDismissed(false);
     setCurrentStep(0);
     setIsActive(true);
@@ -358,9 +419,18 @@ interface TourBannerProps {
 export function TourBanner({ tourId, userId, title, body, isRtl = false }: TourBannerProps) {
   const [visible, setVisible] = useState(() => !isTourDismissed(tourId, userId));
 
+  // Sync from server on mount — hide if already dismissed on another device
+  useEffect(() => {
+    if (!userId) return;
+    syncTourProgressFromServer(userId).then(() => {
+      if (isTourDismissed(tourId, userId)) setVisible(false);
+    });
+  }, [tourId, userId]);
+
   const dismiss = useCallback(() => {
-    markDismissed(tourId, userId);
+    markDismissedLocal(tourId, userId);
     setVisible(false);
+    persistDismissalToServer(tourId);
   }, [tourId, userId]);
 
   if (!visible || !userId) return null;

@@ -15,6 +15,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n, type Language } from "@/lib/i18n";
+import { usePageTour } from "@/lib/tour";
+import { SETTINGS_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 
 const TIMEZONES = [
   { value: "Asia/Riyadh", label: "Riyadh (GMT+3)" },
@@ -175,6 +177,15 @@ export default function Settings() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const companyLogoInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<SettingsTab>("account");
+
+  const { overlay: tourOverlay, tourDismissed, retake: retakeTour } = usePageTour({
+    tourId: 'settings',
+    userId: user?.id ?? '',
+    steps: getSteps(SETTINGS_TOUR_STEPS, language),
+    isRtl,
+    autoStart: !!user,
+    autoStartDelay: 900,
+  });
 
   const [firstName, setFirstName] = useState(user?.name?.split(' ')[0] || '');
   const [lastName, setLastName] = useState(user?.name?.split(' ').slice(1).join(' ') || '');
@@ -517,6 +528,7 @@ export default function Settings() {
   ];
 
   return (
+    <>
     <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 flex ${isRtl ? 'flex-row-reverse' : ''}`}>
       {/* Sidebar - Left for LTR, Right for RTL */}
       <div className={`w-64 bg-white dark:bg-gray-800 flex flex-col ${isRtl ? 'border-l' : 'border-r'}`}>
@@ -549,11 +561,12 @@ export default function Settings() {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${isRtl ? 'text-right' : 'text-left'} ${
-                activeTab === item.id 
-                  ? 'bg-[#E25E45]/10 text-[#E25E45]' 
+                activeTab === item.id
+                  ? 'bg-[#E25E45]/10 text-[#E25E45]'
                   : 'hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
               data-testid={`sidebar-${item.id}`}
+              data-tour={item.id === 'account' ? 'settings-account-tab' : item.id === 'company' ? 'settings-company-tab' : undefined}
             >
               {item.isUser ? (
                 <div className="h-6 w-6 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
@@ -978,7 +991,9 @@ export default function Settings() {
               </Card>
 
               {/* Team Members */}
-              <TeamMembersSection companyId={activeCompany.id} canManage={!!canManageCompany} currentUserId={user.id} isRtl={isRtl} />
+              <div data-tour="settings-team-section">
+                <TeamMembersSection companyId={activeCompany.id} canManage={!!canManageCompany} currentUserId={user.id} isRtl={isRtl} />
+              </div>
 
               {/* Invite Team Members (owners/admins only) */}
               {canManageCompany && (
@@ -1106,5 +1121,7 @@ export default function Settings() {
         </div>
       </div>
     </div>
+    {tourOverlay}
+    </>
   );
 }

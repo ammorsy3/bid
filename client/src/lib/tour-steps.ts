@@ -218,6 +218,57 @@ export const TENDER_DETAILS_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
   ],
 };
 
+// ─── Vendors Base ─────────────────────────────────────────────────────────────
+
+export const VENDORS_BASE_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
+  en: [
+    {
+      id: 'vendors-tabs',
+      target: '[data-tour="vendors-tabs"]',
+      title: 'Your vendor database',
+      body: 'Two tabs, two jobs: "Vendors" is your approved list you can invite to any tender. "Join Requests" is where vendors who found your company page ask to be added.',
+      placement: 'bottom',
+    },
+    {
+      id: 'vendors-search',
+      target: '[data-tour="vendors-search"]',
+      title: 'Find any vendor instantly',
+      body: 'Search by company name, contact name, or category. The results update as you type — no need to press Enter.',
+      placement: 'bottom',
+    },
+    {
+      id: 'vendors-requests-tab',
+      target: '[data-tour="vendors-requests-tab"]',
+      title: 'Review new applications',
+      body: 'When a vendor requests to join your base you\'ll see a badge here. Approve to add them to your list, or reject with a reason that gets sent to them by email.',
+      placement: 'bottom',
+    },
+  ],
+  ar: [
+    {
+      id: 'vendors-tabs',
+      target: '[data-tour="vendors-tabs"]',
+      title: 'قاعدة بيانات الموردين',
+      body: 'علامتا تبويب، مهمتان: "الموردون" قائمتك المعتمدة التي يمكنك دعوتهم لأي مناقصة. "طلبات الانضمام" يطلب فيها الموردون الانضمام لشركتك.',
+      placement: 'bottom',
+    },
+    {
+      id: 'vendors-search',
+      target: '[data-tour="vendors-search"]',
+      title: 'ابحث عن أي مورد فوراً',
+      body: 'ابحث باسم الشركة أو اسم جهة الاتصال أو الفئة. تتحدث النتائج أثناء الكتابة دون الحاجة للضغط على Enter.',
+      placement: 'bottom',
+    },
+    {
+      id: 'vendors-requests-tab',
+      target: '[data-tour="vendors-requests-tab"]',
+      title: 'مراجعة الطلبات الجديدة',
+      body: 'عندما يطلب مورد الانضمام لقاعدتك سترى شارة هنا. وافق لإضافته لقائمتك، أو ارفض مع سبب يُرسل له عبر البريد الإلكتروني.',
+      placement: 'bottom',
+    },
+  ],
+};
+
 // ─── Settings ─────────────────────────────────────────────────────────────────
 
 export const SETTINGS_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
@@ -300,6 +351,36 @@ export const TOUR_BANNERS = {
     ar: {
       title: 'تحديد أوزان التسجيل',
       body: 'وزّع 100% على معايير الخبرة والمالية والتقنية. بمجرد أن تصل إلى 100%، ستتمكن من الوصول إلى قسم متطلبات الموردين أدناه.',
+    },
+  },
+  formBuilder: {
+    en: {
+      title: 'Build your tender structure',
+      body: 'Drag cards from the left panel onto the canvas to add sections. Required cards (marked ★) must stay. Add optional ones like Budget or Milestones to get richer proposals from vendors.',
+    },
+    ar: {
+      title: 'ابنِ هيكل مناقصتك',
+      body: 'اسحب البطاقات من اللوحة اليسرى إلى منطقة البناء. البطاقات المطلوبة (المميزة بـ★) إلزامية. أضف البطاقات الاختيارية مثل الميزانية أو المراحل للحصول على عروض أكثر تفصيلاً.',
+    },
+  },
+  formFill: {
+    en: {
+      title: 'Fill in your tender details',
+      body: 'Complete every required field — these are what vendors will read before submitting a proposal. The more detail you provide, the better the proposals you\'ll receive.',
+    },
+    ar: {
+      title: 'أدخل تفاصيل مناقصتك',
+      body: 'أكمل كل الحقول المطلوبة — هذا ما سيقرأه الموردون قبل تقديم عروضهم. كلما قدمت تفاصيل أكثر، كلما حصلت على عروض أفضل.',
+    },
+  },
+  negotiationMode: {
+    en: {
+      title: 'You\'re in negotiation mode',
+      body: 'You can now send a counter-offer, request a revised submission, or open a private chat with any vendor — without committing to an award yet. Exit when you\'re ready to decide.',
+    },
+    ar: {
+      title: 'أنت الآن في وضع التفاوض',
+      body: 'يمكنك الآن إرسال عرض مضاد أو طلب تقديم معدّل أو فتح محادثة خاصة مع أي مورد — دون الالتزام بالإحالة بعد. اخرج من الوضع عندما تكون مستعداً للقرار.',
     },
   },
 };

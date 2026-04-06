@@ -216,16 +216,6 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
         <div className="absolute inset-0 bg-black/55" />
       )}
 
-      {/* Skip tour */}
-      <button
-        onClick={onDismiss}
-        className={`absolute top-4 flex items-center gap-2 text-sm font-medium text-white bg-white/15 hover:bg-white/25 border border-white/30 hover:border-white/50 backdrop-blur-sm transition-all px-4 py-2 rounded-full shadow-lg ${isRtl ? 'left-4' : 'right-4'}`}
-        style={{ zIndex: 1 }}
-      >
-        <X className="h-3.5 w-3.5" />
-        {isRtl ? 'تخطي الجولة' : 'Skip tour'}
-      </button>
-
       {/* Tour card */}
       <AnimatePresence mode="wait">
         {cardPos && (
@@ -249,9 +239,18 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
             </div>
 
             <div className="p-5">
-              <p className="text-[11px] font-bold text-[#E8614D] uppercase tracking-widest mb-2">
-                {isRtl ? `خطوة ${currentStep + 1} من ${steps.length}` : `Step ${currentStep + 1} of ${steps.length}`}
-              </p>
+              <div className={`flex items-center justify-between mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                <p className="text-[11px] font-bold text-[#E8614D] uppercase tracking-widest">
+                  {isRtl ? `خطوة ${currentStep + 1} من ${steps.length}` : `Step ${currentStep + 1} of ${steps.length}`}
+                </p>
+                <button
+                  onClick={onDismiss}
+                  className="flex items-center gap-1 text-xs font-medium text-[#E8614D] hover:text-white bg-[#E8614D]/10 hover:bg-[#E8614D] border border-[#E8614D]/30 hover:border-[#E8614D] transition-all px-2.5 py-1 rounded-full"
+                >
+                  <X className="h-3 w-3" />
+                  {isRtl ? 'تخطي' : 'Skip'}
+                </button>
+              </div>
 
               <h3 className={`font-bold text-gray-900 dark:text-white text-[15px] mb-2 leading-snug ${isRtl ? 'text-right' : ''}`}>
                 {step.title}

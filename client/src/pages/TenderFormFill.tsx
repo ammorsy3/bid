@@ -16,13 +16,17 @@ import { FormCard, getCardDefinition, FIELD_INSIGHTS } from "@/lib/form-builder-
 import { CardInputRenderer } from "@/components/form-builder/CardInputRenderer";
 import { StepIndicator } from "@/components/form-builder/StepIndicator";
 import { useI18n } from "@/lib/i18n";
+import { useAuthStore } from "@/lib/auth";
+import { TourBanner } from "@/lib/tour";
+import { TOUR_BANNERS } from "@/lib/tour-steps";
 
 const TENDER_STATE_KEY = "tender_form_state";
 
 export default function TenderFormFill() {
   const [, navigate] = useLocation();
   const { theme } = useTheme();
-  const { t } = useI18n();
+  const { t, language, isRtl } = useI18n();
+  const { user } = useAuthStore();
   const [cards, setCards] = useState<FormCard[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -190,6 +194,17 @@ export default function TenderFormFill() {
             {t('tenderFlow.fillRfpSubtitle')}
           </p>
         </div>
+
+        {/* ── Onboarding hint ────────────────────────────────────── */}
+        {user && (
+          <TourBanner
+            tourId="hint-form-fill"
+            userId={user.id}
+            title={TOUR_BANNERS.formFill[language === 'ar' ? 'ar' : 'en'].title}
+            body={TOUR_BANNERS.formFill[language === 'ar' ? 'ar' : 'en'].body}
+            isRtl={isRtl}
+          />
+        )}
 
         {/* ── Progress bar ───────────────────────────────────────── */}
         <div className="mb-8 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">

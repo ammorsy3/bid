@@ -18,8 +18,8 @@ import ProposalComparison from "@/components/ProposalComparison";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import { useI18n } from "@/lib/i18n";
-import { usePageTour } from "@/lib/tour";
-import { TENDER_DETAILS_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
+import { usePageTour, TourBanner } from "@/lib/tour";
+import { TENDER_DETAILS_TOUR_STEPS, TOUR_BANNERS, getSteps } from "@/lib/tour-steps";
 
 const SUBMISSION_TYPE_LABELS: Record<string, Record<string, string>> = {
   quote_only: { en: "Price Quote Only", ar: "عرض سعر فقط" },
@@ -1554,21 +1554,32 @@ export default function TenderDetails() {
                       </Button>
                     </div>
                   ) : (
-                    <div className="bg-[#E25E45]/5 border-2 border-[#E25E45]/20 rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-[#E25E45]/10 flex items-center justify-center flex-shrink-0">
-                          <Handshake className="h-4 w-4 text-[#E25E45]" />
+                    <div className="space-y-3">
+                      <div className="bg-[#E25E45]/5 border-2 border-[#E25E45]/20 rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-lg bg-[#E25E45]/10 flex items-center justify-center flex-shrink-0">
+                            <Handshake className="h-4 w-4 text-[#E25E45]" />
+                          </div>
+                          <span className="text-sm font-semibold text-gray-800">{t('tenderFlow.negotiationModeActive')}</span>
                         </div>
-                        <span className="text-sm font-semibold text-gray-800">{t('tenderFlow.negotiationModeActive')}</span>
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsNegotiationMode(false)}
+                          className="text-sm h-8"
+                          data-testid="button-exit-negotiate"
+                        >
+                          {t('tenderFlow.exitNegotiation')}
+                        </Button>
                       </div>
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsNegotiationMode(false)}
-                        className="text-sm h-8"
-                        data-testid="button-exit-negotiate"
-                      >
-                        {t('tenderFlow.exitNegotiation')}
-                      </Button>
+                      {user && (
+                        <TourBanner
+                          tourId="hint-negotiation-mode"
+                          userId={user.id}
+                          title={TOUR_BANNERS.negotiationMode[language === 'ar' ? 'ar' : 'en'].title}
+                          body={TOUR_BANNERS.negotiationMode[language === 'ar' ? 'ar' : 'en'].body}
+                          isRtl={isRtl}
+                        />
+                      )}
                     </div>
                   )}
                 </div>

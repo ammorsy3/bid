@@ -141,12 +141,12 @@ export default function VendorsBase() {
       </div>
 
       <Tabs defaultValue="vendors" className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-md grid-cols-2" data-tour="vendors-tabs">
           <TabsTrigger value="vendors" className="gap-2" data-testid="tab-vendors">
             <Users className="h-4 w-4" />
             Vendors ({vendors.length})
           </TabsTrigger>
-          <TabsTrigger value="requests" className="gap-2" data-testid="tab-requests">
+          <TabsTrigger value="requests" className="gap-2" data-testid="tab-requests" data-tour="vendors-requests-tab">
             <UserPlus className="h-4 w-4" />
             Join Requests
             {pendingRequests.length > 0 && (
@@ -160,7 +160,7 @@ export default function VendorsBase() {
         {/* Vendors Tab */}
         <TabsContent value="vendors" className="space-y-6">
           {/* Search */}
-          <Card>
+          <Card data-tour="vendors-search">
             <CardContent className="pt-6">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

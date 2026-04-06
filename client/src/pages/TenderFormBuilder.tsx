@@ -1,6 +1,9 @@
 import { useState, useCallback, useRef, useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useLocation } from "wouter";
+import { useAuthStore } from "@/lib/auth";
+import { TourBanner } from "@/lib/tour";
+import { TOUR_BANNERS } from "@/lib/tour-steps";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext,
@@ -38,7 +41,8 @@ const TENDER_STATE_KEY = "tender_form_state";
 
 export default function TenderFormBuilder() {
   const [, navigate] = useLocation();
-  const { t } = useI18n();
+  const { t, language, isRtl } = useI18n();
+  const { user } = useAuthStore();
 
   // Initialize cards - check for saved template/state first, then fall back to required cards
   const [cards, setCards] = useState<FormCard[]>(() => {
@@ -276,6 +280,19 @@ export default function TenderFormBuilder() {
             </div>
           </div>
         </header>
+
+        {/* Onboarding hint */}
+        {user && (
+          <div className="flex-shrink-0 px-6 pt-3">
+            <TourBanner
+              tourId="hint-form-builder"
+              userId={user.id}
+              title={TOUR_BANNERS.formBuilder[language === 'ar' ? 'ar' : 'en'].title}
+              body={TOUR_BANNERS.formBuilder[language === 'ar' ? 'ar' : 'en'].body}
+              isRtl={isRtl}
+            />
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">

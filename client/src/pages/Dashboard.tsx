@@ -33,8 +33,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription, PopoverBody, PopoverFooter } from "@/components/ui/popover";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useDashboardTour } from "@/lib/tour";
-import { DASHBOARD_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
+import { useDashboardTour, usePageTour } from "@/lib/tour";
+import { DASHBOARD_TOUR_STEPS, VENDORS_BASE_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
@@ -288,6 +288,16 @@ export default function Dashboard() {
     steps: getSteps(DASHBOARD_TOUR_STEPS, language),
     isRtl,
     autoStart: !!user,
+  });
+
+  // ── Vendors tab tour (fires first time user opens the vendors tab) ────────
+  const { overlay: vendorsTourOverlay } = usePageTour({
+    tourId: 'vendors-base',
+    userId: user?.id ?? '',
+    steps: getSteps(VENDORS_BASE_TOUR_STEPS, language),
+    isRtl,
+    autoStart: !!user && activeTab === 'vendors',
+    autoStartDelay: 800,
   });
 
   const dotColor = currentTheme === 'dark'
@@ -2233,12 +2243,12 @@ export default function Dashboard() {
               </div>
 
               <Tabs defaultValue="vendors-list" className="space-y-4">
-                <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsList className="grid w-full max-w-md grid-cols-2" data-tour="vendors-tabs">
                   <TabsTrigger value="vendors-list" className="gap-2" data-testid="tab-vendors-list">
                     <Users className="h-4 w-4" />
                     {t('dashboard.vendorsBase')} ({vendors.length})
                   </TabsTrigger>
-                  <TabsTrigger value="join-requests" className="gap-2" data-testid="tab-join-requests">
+                  <TabsTrigger value="join-requests" className="gap-2" data-testid="tab-join-requests" data-tour="vendors-requests-tab">
                     <UserPlus className="h-4 w-4" />
                     {t('dashboard.pendingRequests')}
                     {pendingRequests.length > 0 && (
@@ -2252,7 +2262,7 @@ export default function Dashboard() {
                 {/* Vendors List Sub-Tab */}
                 <TabsContent value="vendors-list" className="space-y-4">
                   {/* Search */}
-                  <Card>
+                  <Card data-tour="vendors-search">
                     <CardContent className="pt-6">
                       <div className="relative">
                         <Search className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground`} />
@@ -3039,6 +3049,8 @@ export default function Dashboard() {
 
     {/* First-time user guided tour overlay */}
     {tourOverlay}
+    {/* Vendors tab tour overlay */}
+    {vendorsTourOverlay}
     </>
   );
 }

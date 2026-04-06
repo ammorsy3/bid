@@ -245,9 +245,9 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
                 </p>
                 <button
                   onClick={onDismiss}
-                  className="flex items-center gap-1 text-xs font-medium text-[#E8614D] hover:text-white bg-[#E8614D]/10 hover:bg-[#E8614D] border border-[#E8614D]/30 hover:border-[#E8614D] transition-all px-2.5 py-1 rounded-full"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#E8614D] hover:bg-[#D44D3A] transition-all px-3 py-1.5 rounded-lg shadow-sm"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-3.5 w-3.5" />
                   {isRtl ? 'تخطي' : 'Skip'}
                 </button>
               </div>

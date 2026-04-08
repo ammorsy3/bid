@@ -14,6 +14,7 @@ import OnboardingChoice from "@/pages/onboarding/index";
 import CompanyBasics from "@/pages/onboarding/company-basics";
 import CompanyProfile from "@/pages/onboarding/company-profile";
 import InviteTeam from "@/pages/onboarding/invite-team";
+import CompanyDocuments from "@/pages/onboarding/company-documents";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminVendors from "@/pages/AdminVendors";
 import AdminJoinRequests from "@/pages/AdminJoinRequests";
@@ -58,6 +59,7 @@ export default function App() {
             <Route path="/onboarding/company-basics" component={CompanyBasics} />
             <Route path="/onboarding/company-profile" component={CompanyProfile} />
             <Route path="/onboarding/invite-team" component={InviteTeam} />
+            <Route path="/onboarding/company-documents" component={CompanyDocuments} />
             <Route path="/dashboard" component={Dashboard} />
             <Route path="/admin/dashboard" component={AdminDashboard} />
             <Route path="/admin/vendors" component={AdminVendors} />

@@ -64,6 +64,9 @@ import {
   negotiationActions,
   type NegotiationAction,
   type InsertNegotiationAction,
+  companyDocuments,
+  type CompanyDocument,
+  type InsertCompanyDocument,
   teamInvitations,
   type TeamInvitation,
   type InsertTeamInvitation,
@@ -653,6 +656,19 @@ export class DatabaseStorage implements IStorage {
         eq(teamInvitations.status, 'pending')
       ));
     return result || undefined;
+  }
+
+  // ============================================================================
+  // COMPANY DOCUMENT OPERATIONS
+  // ============================================================================
+
+  async createCompanyDocument(doc: InsertCompanyDocument): Promise<CompanyDocument> {
+    const [result] = await db.insert(companyDocuments).values(doc).returning();
+    return result;
+  }
+
+  async getCompanyDocuments(companyId: string): Promise<CompanyDocument[]> {
+    return db.select().from(companyDocuments).where(eq(companyDocuments.companyId, companyId));
   }
 
   // ============================================================================

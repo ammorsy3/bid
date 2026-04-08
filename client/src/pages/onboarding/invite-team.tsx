@@ -130,10 +130,10 @@ export default function InviteTeam() {
 
       toast({
         title: "Company created!",
-        description: "Your workspace is ready. Welcome to Bid.",
+        description: "Almost done — upload your verification documents.",
       });
 
-      setLocation(getPostOnboardingRedirect());
+      setLocation('/onboarding/company-documents');
     } catch (error: any) {
       toast({
         title: "Something went wrong",

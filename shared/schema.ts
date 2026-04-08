@@ -116,6 +116,22 @@ export const companyProfiles = pgTable("company_profiles", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Company Documents - Uploaded verification documents
+export const companyDocuments = pgTable("company_documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id),
+  documentType: text("document_type").notNull(), // 'cr_certificate' | 'vat_certificate' | 'gosi_certificate' | 'national_address_certificate' | 'other'
+  fileUrl: text("file_url").notNull(),            // /objects/uploads/{uuid} path
+  originalName: text("original_name"),            // display file name
+  label: text("label"),                           // custom label for 'other' type
+  uploadedBy: varchar("uploaded_by").notNull().references(() => users.id),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+});
+
+export const insertCompanyDocumentSchema = createInsertSchema(companyDocuments);
+export type CompanyDocument = typeof companyDocuments.$inferSelect;
+export type InsertCompanyDocument = typeof companyDocuments.$inferInsert;
+
 // User-Company Junction - Many-to-many with roles
 export const userCompanies = pgTable("user_companies", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

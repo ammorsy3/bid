@@ -1662,6 +1662,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // ==========================================================================
+  // COMPANY DOCUMENT ROUTES
+  // ==========================================================================
+
+  // Upload a company verification document
+  app.post("/api/companies/:companyId/documents",
+    authenticateToken,
+    async (req: AuthRequest, res) => {
+      try {
+        const { companyId } = req.params;
+        const userId = req.auth!.userId;
+
+        // Verify user belongs to this company
+        const role = await storage.getUserRoleInCompany(userId, companyId);
+        if (!role) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+
+        const { documentType, fileUrl, originalName, label } = req.body;
+
+        if (!documentType || !fileUrl) {
+          return res.status(400).json({ message: "documentType and fileUrl are required" });
+        }
+
+        const validTypes = ['cr_certificate', 'vat_certificate', 'gosi_certificate', 'national_address_certificate', 'other'];
+        if (!validTypes.includes(documentType)) {
+          return res.status(400).json({ message: "Invalid document type" });
+        }
+
+        const doc = await storage.createCompanyDocument({
+          companyId,
+          documentType,
+          fileUrl,
+          originalName: originalName || null,
+          label: label || null,
+          uploadedBy: userId,
+        });
+
+        res.status(201).json(doc);
+      } catch (error) {
+        console.error('Create company document error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  // Get all documents for a company
+  app.get("/api/companies/:companyId/documents",
+    authenticateToken,
+    async (req: AuthRequest, res) => {
+      try {
+        const { companyId } = req.params;
+        const userId = req.auth!.userId;
+
+        // Allow company members or platform admins
+        if (!req.auth!.isAdmin) {
+          const role = await storage.getUserRoleInCompany(userId, companyId);
+          if (!role) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        }
+
+        const docs = await storage.getCompanyDocuments(companyId);
+        res.json(docs);
+      } catch (error) {
+        console.error('Get company documents error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  // ==========================================================================
   // TENDER ROUTES
   // ==========================================================================
 

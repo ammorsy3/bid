@@ -1769,6 +1769,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const tenderData = createTenderSchema.parse(req.body);
 
+        // Require CR certificate before creating a tender
+        const companyDocs = await storage.getCompanyDocuments(req.auth!.activeCompanyId!);
+        const hasCrCertificate = companyDocs.some(doc => doc.documentType === 'cr_certificate');
+        if (!hasCrCertificate) {
+          return res.status(403).json({
+            message: "Please verify your company before creating tenders. Upload your Commercial Registration certificate in Settings.",
+            requiresVerification: true,
+          });
+        }
+
         // Generate invitation token
         const invitationToken = Math.random().toString(36).substring(2) + 
                                 Math.random().toString(36).substring(2);

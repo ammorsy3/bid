@@ -68,6 +68,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
   const [invitationCopied, setInvitationCopied] = useState(false);
   const [showDraftPrompt, setShowDraftPrompt] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
+  const [showVerificationGate, setShowVerificationGate] = useState(false);
 
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -139,7 +140,9 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
       });
     },
     onError: (error: any) => {
-      if (error?.requiresProfile) {
+      if (error?.requiresVerification) {
+        setShowVerificationGate(true);
+      } else if (error?.requiresProfile) {
         toast({
           title: "Profile Required",
           description: "Please complete your company profile before creating tenders",
@@ -167,6 +170,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
     setInvitationCopied(false);
     setShowDraftPrompt(false);
     setHasDraft(false);
+    setShowVerificationGate(false);
   }
 
   function handleLoadDraft() {
@@ -238,6 +242,56 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
     handleClose();
     window.location.href = `/tenders/${createdTender.id}`;
   };
+
+  // Show verification gate if company hasn't uploaded documents yet
+  if (showVerificationGate) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">Verify Your Company First</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5 py-2">
+            <div className="flex items-start gap-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Info className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-amber-900 mb-1">Company verification required</p>
+                <p className="text-sm text-amber-700">
+                  To create tenders, your company needs to have a Commercial Registration (CR) certificate on file. This helps ensure all parties on the platform are legitimate businesses.
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-neutral-700">What you need to upload:</p>
+              <ul className="text-sm text-neutral-600 space-y-1.5">
+                <li className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#E25E45] flex-shrink-0" />
+                  Commercial Registration (CR) certificate — required
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-neutral-300 flex-shrink-0" />
+                  VAT certificate, GOSI certificate — optional
+                </li>
+              </ul>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" onClick={handleClose} className="flex-1">
+                Maybe later
+              </Button>
+              <Button
+                onClick={() => { handleClose(); navigate('/settings?tab=company'); }}
+                className="flex-1 bg-[#E25E45] hover:bg-[#d04a32]"
+              >
+                Go to Settings
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   // Show success state with invitation link after creation
   if (createdTender) {

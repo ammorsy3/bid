@@ -110,17 +110,14 @@ export default function CompanyDocuments() {
 
   const handleNext = () => {
     // Draft already saved on each upload — just navigate
-    setLocation("/onboarding/company-profile");
-  };
-
-  const handleSkip = () => {
-    saveDraft({ documents: {}, documentNames: {} });
+    // If no documents uploaded, save empty so the draft is still marked as complete
+    if (Object.keys(uploaded).length === 0) {
+      saveDraft({ documents: {}, documentNames: {} });
+    }
     setLocation("/onboarding/company-profile");
   };
 
   if (!user) return null;
-
-  const crUploaded = !!uploaded['cr_certificate'];
 
   return (
     <OnboardingLayout step={2}>
@@ -137,7 +134,7 @@ export default function CompanyDocuments() {
           </div>
 
           <p className="text-sm text-neutral-400 mb-6">
-            These documents help us verify your company. The CR certificate is required; others can be added later.
+            These documents are used to verify your company. You can skip this step and upload them later — you'll need them before creating your first tender.
           </p>
 
           <div className="space-y-4">
@@ -155,8 +152,8 @@ export default function CompanyDocuments() {
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-sm font-medium text-neutral-900">{slot.label}</span>
                         {slot.required && (
-                          <span className="text-xs font-medium text-[#E25E45] bg-[#E25E45]/10 px-1.5 py-0.5 rounded">
-                            Required
+                          <span className="text-xs font-medium text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded">
+                            For verification
                           </span>
                         )}
                       </div>
@@ -197,24 +194,14 @@ export default function CompanyDocuments() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleSkip}
-                className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors"
-              >
-                Skip for now
-              </button>
-              <Button
-                onClick={handleNext}
-                disabled={!crUploaded}
-                size="lg"
-                className="bg-[#E25E45] hover:bg-[#d04a32]"
-              >
-                Next
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
+            <Button
+              onClick={handleNext}
+              size="lg"
+              className="bg-[#E25E45] hover:bg-[#d04a32]"
+            >
+              Next
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         </CardContent>
       </Card>

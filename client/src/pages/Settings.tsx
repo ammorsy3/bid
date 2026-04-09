@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Upload, User, Users, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield, Crown, MoreVertical } from "lucide-react";
+import { X, Upload, User, Users, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield, Crown, MoreVertical, FileCheck2, CheckCircle2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,6 +17,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useI18n, type Language } from "@/lib/i18n";
 import { usePageTour } from "@/lib/tour";
 import { SETTINGS_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
+import { ObjectUploader } from "@/components/ObjectUploader";
+import type { UploadResult } from "@/components/ObjectUploader";
 
 const TIMEZONES = [
   { value: "Asia/Riyadh", label: "Riyadh (GMT+3)" },
@@ -37,6 +39,13 @@ const LANGUAGES = [
 type ThemeOption = "light" | "dark" | "system";
 
 type SettingsTab = "account" | "company";
+
+const VERIFICATION_DOCUMENT_SLOTS = [
+  { type: 'cr_certificate', label: 'Commercial Registration (CR)', description: 'Saudi CR certificate issued by the Ministry of Commerce', required: true },
+  { type: 'vat_certificate', label: 'VAT Certificate', description: 'VAT registration certificate from ZATCA', required: false },
+  { type: 'gosi_certificate', label: 'GOSI Certificate', description: 'General Organization for Social Insurance certificate', required: false },
+  { type: 'national_address_certificate', label: 'National Address Certificate', description: 'Registered national address from Saudi Post', required: false },
+];
 
 interface TeamMember {
   userId: string;
@@ -176,7 +185,12 @@ export default function Settings() {
   const { t, language, setLanguage, isRtl } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const companyLogoInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<SettingsTab>("account");
+  const [activeTab, setActiveTab] = useState<SettingsTab>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    return (tab === 'company' ? 'company' : 'account') as SettingsTab;
+  });
+  const [docUploadedTypes, setDocUploadedTypes] = useState<Set<string>>(new Set());
 
   const { overlay: tourOverlay, tourDismissed, retake: retakeTour } = usePageTour({
     tourId: 'settings',
@@ -471,6 +485,49 @@ export default function Settings() {
       });
     },
   });
+
+  const { data: companyDocuments = [] } = useQuery<{ id: string; documentType: string; fileUrl: string; originalName: string | null }[]>({
+    queryKey: ['/api/companies', activeCompany?.id, 'documents'],
+    queryFn: async () => {
+      if (!activeCompany?.id) return [];
+      const res = await apiRequest('GET', `/api/companies/${activeCompany.id}/documents`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!activeCompany?.id && activeTab === 'company',
+  });
+
+  const saveDocumentMutation = useMutation({
+    mutationFn: async ({ documentType, fileUrl, originalName }: { documentType: string; fileUrl: string; originalName?: string }) => {
+      const res = await apiRequest('POST', `/api/companies/${activeCompany!.id}/documents`, { documentType, fileUrl, originalName });
+      if (!res.ok) throw new Error('Failed to save document');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompany?.id, 'documents'] });
+    },
+  });
+
+  const handleDocumentUploadComplete = (docType: string) => async (result: UploadResult) => {
+    if (!result.successful?.[0]) return;
+    try {
+      const uploadURL = result.successful[0].uploadURL;
+      const fileName = result.successful[0].name || docType;
+      const metaRes = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
+      const { objectPath } = await metaRes.json();
+      await saveDocumentMutation.mutateAsync({ documentType: docType, fileUrl: objectPath, originalName: fileName });
+      setDocUploadedTypes(prev => new Set([...prev, docType]));
+      toast({ title: "Document uploaded", description: `${fileName} has been saved.` });
+    } catch {
+      toast({ title: "Upload failed", description: "Could not save the document. Please try again.", variant: "destructive" });
+    }
+  };
+
+  const handleGetUploadURL = async () => {
+    const response = await apiRequest('POST', '/api/objects/upload', {});
+    const data = await response.json();
+    return { method: 'PUT' as const, url: data.uploadURL };
+  };
 
   const handleSendInvites = () => {
     const validInvites = inviteRows.filter(r => r.email.trim() && r.email.includes('@'));
@@ -1131,6 +1188,72 @@ export default function Settings() {
                 </Card>
               </div>
               )}
+
+              {/* Verification Documents */}
+              <div id="verification">
+                <Card>
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
+                        <FileCheck2 className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">Verification Documents</CardTitle>
+                        <CardDescription className="text-xs">Required to create tenders on the platform</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {VERIFICATION_DOCUMENT_SLOTS.map((slot) => {
+                      const existingDoc = companyDocuments.find(d => d.documentType === slot.type);
+                      const justUploaded = docUploadedTypes.has(slot.type);
+                      const isUploaded = !!existingDoc || justUploaded;
+                      return (
+                        <div
+                          key={slot.type}
+                          className={`border rounded-xl p-4 transition-colors ${isUploaded ? 'border-green-200 bg-green-50/40' : 'border-neutral-200 bg-white'}`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className="text-sm font-medium text-neutral-900">{slot.label}</span>
+                                {slot.required && !isUploaded && (
+                                  <span className="text-xs font-medium text-[#E25E45] bg-[#E25E45]/10 px-1.5 py-0.5 rounded">
+                                    Required for tenders
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-neutral-400">{slot.description}</p>
+                              {isUploaded && (
+                                <p className="text-xs text-green-600 flex items-center gap-1 mt-1.5">
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                  {existingDoc?.originalName || 'Uploaded'}
+                                </p>
+                              )}
+                            </div>
+                            {canManageCompany && (
+                              <ObjectUploader
+                                maxNumberOfFiles={1}
+                                maxFileSize={10485760}
+                                allowedFileTypes={['.pdf', '.jpg', '.jpeg', '.png']}
+                                onGetUploadParameters={handleGetUploadURL}
+                                onComplete={handleDocumentUploadComplete(slot.type)}
+                                buttonVariant="outline"
+                                buttonClassName="shrink-0"
+                              >
+                                <div className="flex items-center gap-1.5 text-sm">
+                                  <Upload className="h-3.5 w-3.5" />
+                                  {isUploaded ? 'Replace' : 'Upload'}
+                                </div>
+                              </ObjectUploader>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
         </div>

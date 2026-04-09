@@ -130,7 +130,7 @@ export default function TractionLink() {
   ];
 
   const hasSocialLinks = data.profile.socialLinks?.website || data.profile.socialLinks?.linkedin;
-  const hasCompanyDetails = data.profile.bio || data.company.city || data.company.category || hasSocialLinks;
+  const hasCompanyDetails = data.profile.bio || data.company.city || data.company.category || hasSocialLinks || (data.profile.tags && data.profile.tags.length > 0);
 
   /* ── Success state ── */
   if (joinBase.isSuccess) {

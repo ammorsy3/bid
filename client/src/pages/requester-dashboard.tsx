@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Send, Users, Clock, User, Copy, ExternalLink, UserPlus } from "lucide-react";
+import { FileText, Send, Users, Clock, User, Copy, ExternalLink, UserPlus, ShieldAlert } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import type { Tender } from "@shared/schema";
@@ -32,11 +33,22 @@ interface RequesterProfile {
 }
 
 export default function RequesterDashboard() {
-  const { user } = useAuthStore();
+  const { user, activeCompany } = useAuthStore();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { t } = useI18n();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [showUnverifiedDialog, setShowUnverifiedDialog] = useState(false);
+
+  const isVerified = activeCompany?.verificationStatus === 'verified';
+
+  function handleCreateTenderClick() {
+    if (!isVerified) {
+      setShowUnverifiedDialog(true);
+    } else {
+      setIsCreateModalOpen(true);
+    }
+  }
 
   const { data: tenders, isLoading } = useQuery<Tender[]>({
     queryKey: ['/api/tenders'],
@@ -114,7 +126,7 @@ export default function RequesterDashboard() {
               {t('dashboard.manageProfile')}
             </Button>
             <Button
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={handleCreateTenderClick}
               className="bg-[#f33c20] hover:bg-[#d63519] text-white px-6 py-3 rounded-lg font-semibold"
               data-testid="button-create-tender"
             >
@@ -267,7 +279,7 @@ export default function RequesterDashboard() {
           <div className="text-center py-12">
             <p className="text-neutral-600 mb-4">{t('dashboard.noTendersCreated')}</p>
             <Button
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={handleCreateTenderClick}
               className="bg-[#f33c20] hover:bg-[#d63519]"
             >
               {t('dashboard.createFirstTender')}
@@ -286,6 +298,63 @@ export default function RequesterDashboard() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
+
+      <Dialog open={showUnverifiedDialog} onOpenChange={setShowUnverifiedDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
+              <ShieldAlert className="h-5 w-5 text-amber-500" />
+              {activeCompany?.verificationStatus === 'under_review'
+                ? t('dashboard.verificationPending')
+                : activeCompany?.verificationStatus === 'rejected'
+                  ? t('dashboard.verificationRejected')
+                  : t('dashboard.verificationRequired')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="flex items-start gap-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <ShieldAlert className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                {activeCompany?.verificationStatus === 'under_review' ? (
+                  <>
+                    <p className="text-sm font-medium text-amber-900 mb-1">{t('dashboard.verificationPending')}</p>
+                    <p className="text-sm text-amber-700">{t('dashboard.verificationUnderReviewDesc')}</p>
+                  </>
+                ) : activeCompany?.verificationStatus === 'rejected' ? (
+                  <>
+                    <p className="text-sm font-medium text-amber-900 mb-1">{t('dashboard.verificationRejected')}</p>
+                    <p className="text-sm text-amber-700">{t('dashboard.verificationRejectedDesc')}</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium text-amber-900 mb-1">{t('dashboard.verificationRequired')}</p>
+                    <p className="text-sm text-amber-700">{t('dashboard.verificationNotVerifiedDesc')}</p>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowUnverifiedDialog(false)}
+                className="flex-1"
+              >
+                {t('dashboard.goBack')}
+              </Button>
+              {activeCompany?.verificationStatus !== 'under_review' && (
+                <Button
+                  onClick={() => { setShowUnverifiedDialog(false); navigate('/settings?tab=company'); }}
+                  className="flex-1 bg-[#f33c20] hover:bg-[#d63519]"
+                >
+                  {t('dashboard.uploadDocuments')}
+                </Button>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -25,7 +25,7 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
@@ -275,6 +275,7 @@ export default function Dashboard() {
   const receivedScrollRef = useRef<HTMLDivElement>(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showCompanyProfileDialog, setShowCompanyProfileDialog] = useState(false);
+  const [showUnverifiedDialog, setShowUnverifiedDialog] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(() => {
     const saved = localStorage.getItem('theme');
     if (saved) return saved;
@@ -318,6 +319,15 @@ export default function Dashboard() {
   const userRole = activeCompany.role || 'viewer';
   const canManage = ['owner', 'admin'].includes(userRole);
   const isOwner = userRole === 'owner';
+  const isCompanyVerified = activeCompany.verificationStatus === 'verified';
+
+  function handleCreateTender() {
+    if (!isCompanyVerified) {
+      setShowUnverifiedDialog(true);
+    } else {
+      setLocation('/tenders/new');
+    }
+  }
 
   // Fetch vendors in base
   const { data: vendors = [], isLoading: loadingVendors } = useQuery<VendorProfile[]>({
@@ -680,7 +690,7 @@ export default function Dashboard() {
                 <SidebarMenu className="space-y-2">
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => setLocation("/tenders/new")}
+                      onClick={handleCreateTender}
                       tooltip={t('dashboard.createTender')}
                       data-testid="sidebar-create-tender"
                       data-tour="create-tender"
@@ -1365,7 +1375,7 @@ export default function Dashboard() {
                               <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.task1Desc')}</p>
                               <Button
                                 className="bg-[#E8614D] hover:bg-[#D44D3A] text-white"
-                                onClick={() => setLocation('/tenders/new')}
+                                onClick={handleCreateTender}
                                 data-testid="button-task-create-tender"
                               >
                                 {t('dashboard.task1Action')}
@@ -1676,7 +1686,7 @@ export default function Dashboard() {
                         <Button
                           variant="outline"
                           className="w-full justify-start h-10 border-2 border-gray-200 dark:border-gray-700 hover:border-[#E8614D] hover:text-[#E8614D] hover:bg-[#E8614D]/5 transition-all duration-200"
-                          onClick={() => setLocation('/tenders/new')}
+                          onClick={handleCreateTender}
                           data-testid="button-create-tender"
                         >
                           <Plus className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
@@ -1711,8 +1721,8 @@ export default function Dashboard() {
                     {t('dashboard.tendersDesc')}
                   </p>
                 </div>
-                <ParticleButton 
-                  onSuccess={() => setLocation('/tenders/new')}
+                <ParticleButton
+                  onSuccess={handleCreateTender}
                   successDuration={600}
                   particleColor="bg-blue-400"
                   className="bg-blue-600 hover:bg-blue-700"
@@ -1766,7 +1776,7 @@ export default function Dashboard() {
                     </p>
                     {!tenderSearchQuery && tenderFilter === 'all' && (
                       <Button 
-                        onClick={() => setLocation('/tenders/new')}
+                        onClick={handleCreateTender}
                         className="bg-blue-600 hover:bg-blue-700"
                         data-testid="button-create-first-tender"
                       >
@@ -3092,6 +3102,70 @@ export default function Dashboard() {
       </Dialog>
       </SidebarInset>
     </SidebarProvider>
+
+    {/* Verification required dialog */}
+    <Dialog open={showUnverifiedDialog} onOpenChange={setShowUnverifiedDialog}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
+            <ShieldAlert className="h-5 w-5 text-amber-500" />
+            {activeCompany.verificationStatus === 'under_review'
+              ? t('dashboard.verificationPending')
+              : activeCompany.verificationStatus === 'rejected'
+                ? t('dashboard.verificationRejected')
+                : t('dashboard.verificationRequired')}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="flex items-start gap-4 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl">
+            <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/50 rounded-full flex items-center justify-center flex-shrink-0">
+              <ShieldAlert className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              {activeCompany.verificationStatus === 'under_review' ? (
+                <>
+                  <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mb-1">{t('dashboard.verificationPending')}</p>
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    {t('dashboard.verificationUnderReviewDesc')}
+                  </p>
+                </>
+              ) : activeCompany.verificationStatus === 'rejected' ? (
+                <>
+                  <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mb-1">{t('dashboard.verificationRejected')}</p>
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    {t('dashboard.verificationRejectedDesc')}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mb-1">{t('dashboard.verificationRequired')}</p>
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    {t('dashboard.verificationNotVerifiedDesc')}
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowUnverifiedDialog(false)}
+              className="flex-1"
+            >
+              {t('dashboard.goBack')}
+            </Button>
+            {activeCompany.verificationStatus !== 'under_review' && (
+              <Button
+                onClick={() => { setShowUnverifiedDialog(false); setLocation('/settings?tab=company'); }}
+                className="flex-1 bg-[#E8614D] hover:bg-[#D44D3A]"
+              >
+                {t('dashboard.uploadDocuments')}
+              </Button>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
 
     {/* First-time user guided tour overlay */}
     {tourOverlay}

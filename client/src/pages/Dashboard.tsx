@@ -732,13 +732,45 @@ export default function Dashboard() {
         </SidebarContent>
 
         <SidebarFooter className="border-t px-4 py-4">
+          {/* Verification banner — shown for unverified/pending/rejected companies */}
+          {activeCompany.verificationStatus === 'not_verified' && (
+            <div className="mb-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
+              <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-0.5">Company not verified</p>
+              <p className="text-xs text-amber-700 dark:text-amber-400 mb-1.5 leading-snug">Upload your documents to unlock features like creating tenders and submitting proposals.</p>
+              <button
+                onClick={() => setLocation('/settings?tab=company')}
+                className="text-xs font-semibold text-amber-800 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900"
+              >
+                Verify now →
+              </button>
+            </div>
+          )}
+          {activeCompany.verificationStatus === 'under_review' && (
+            <div className="mb-3 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
+              <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 mb-0.5">Verification in progress</p>
+              <p className="text-xs text-blue-700 dark:text-blue-400 leading-snug">Your documents are under review. You'll be notified once your company is verified.</p>
+            </div>
+          )}
+          {activeCompany.verificationStatus === 'rejected' && (
+            <div className="mb-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
+              <p className="text-xs font-semibold text-red-800 dark:text-red-300 mb-0.5">Verification rejected</p>
+              <p className="text-xs text-red-700 dark:text-red-400 mb-1.5 leading-snug">Your documents were not accepted. Please re-upload them to try again.</p>
+              <button
+                onClick={() => setLocation('/settings?tab=company')}
+                className="text-xs font-semibold text-red-800 dark:text-red-300 underline underline-offset-2 hover:text-red-900"
+              >
+                Re-upload documents →
+              </button>
+            </div>
+          )}
+
           <Popover>
             <PopoverTrigger asChild>
               <button className={`flex items-center gap-3 w-full hover:bg-accent rounded-md p-1 -m-1 transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`} data-testid="button-user-menu" data-tour="user-menu">
                 <div className="relative flex-shrink-0">
                   {user.profilePictureUrl ? (
-                    <img 
-                      src={user.profilePictureUrl} 
+                    <img
+                      src={user.profilePictureUrl}
                       alt={user.name || user.username}
                       className="h-8 w-8 rounded-full object-cover"
                     />
@@ -748,18 +780,32 @@ export default function Dashboard() {
                     </div>
                   )}
                   {activeCompany.verificationStatus === 'verified' ? (
-                    <div 
+                    <div
                       className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center border-2 border-white dark:border-gray-800"
                       title={t('dashboard.verified')}
                     >
                       <Check className="h-3 w-3 text-white" />
                     </div>
-                  ) : (
-                    <div 
-                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-yellow-500 flex items-center justify-center"
-                      title={t('dashboard.verificationPending')}
+                  ) : activeCompany.verificationStatus === 'under_review' ? (
+                    <div
+                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-blue-400 flex items-center justify-center"
+                      title="Verification in progress"
                     >
                       <Clock className="h-2.5 w-2.5 text-white" />
+                    </div>
+                  ) : activeCompany.verificationStatus === 'rejected' ? (
+                    <div
+                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 flex items-center justify-center"
+                      title="Verification rejected"
+                    >
+                      <XCircle className="h-2.5 w-2.5 text-white" />
+                    </div>
+                  ) : (
+                    <div
+                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-amber-500 flex items-center justify-center"
+                      title="Not verified"
+                    >
+                      <X className="h-2.5 w-2.5 text-white" />
                     </div>
                   )}
                 </div>

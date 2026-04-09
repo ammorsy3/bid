@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { ObjectUploader } from "@/components/ObjectUploader";
-import { ArrowLeft, ArrowRight, FileCheck2, Upload, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileCheck2, Upload, CheckCircle2, SkipForward } from "lucide-react";
 import type { UploadResult } from "@/components/ObjectUploader";
 import OnboardingLayout from "@/components/onboarding-layout";
 
@@ -129,13 +129,18 @@ export default function CompanyDocuments() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-neutral-900">Verification Documents</h2>
-              <p className="text-sm text-neutral-500">Upload your company documents for review</p>
+              <p className="text-sm text-neutral-500">Completely optional — skip this if you're not ready</p>
             </div>
           </div>
 
-          <p className="text-sm text-neutral-400 mb-6">
-            These documents are used to verify your company. You can skip this step and upload them later — you'll need them before creating your first tender.
-          </p>
+          <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-4 mb-6">
+            <p className="text-sm text-neutral-600 mb-2">
+              You don't need to upload anything right now. Feel free to skip this step entirely and come back to it later from your settings.
+            </p>
+            <p className="text-sm text-neutral-500">
+              Uploading these documents lets us verify your company, which unlocks features like creating tenders, submitting proposals, and more. Until then, you can explore the platform freely.
+            </p>
+          </div>
 
           <div className="space-y-4">
             {DOCUMENT_SLOTS.map((slot) => {
@@ -152,8 +157,8 @@ export default function CompanyDocuments() {
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-sm font-medium text-neutral-900">{slot.label}</span>
                         {slot.required && (
-                          <span className="text-xs font-medium text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded">
-                            For verification
+                          <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                            Needed for verification
                           </span>
                         )}
                       </div>
@@ -194,14 +199,26 @@ export default function CompanyDocuments() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <Button
-              onClick={handleNext}
-              size="lg"
-              className="bg-[#E25E45] hover:bg-[#d04a32]"
-            >
-              Next
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            {Object.keys(uploaded).length === 0 ? (
+              <Button
+                onClick={handleNext}
+                size="lg"
+                variant="outline"
+                className="text-neutral-600"
+              >
+                <SkipForward className="mr-2 h-4 w-4" />
+                Skip for now
+              </Button>
+            ) : (
+              <Button
+                onClick={handleNext}
+                size="lg"
+                className="bg-[#E25E45] hover:bg-[#d04a32]"
+              >
+                Continue
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

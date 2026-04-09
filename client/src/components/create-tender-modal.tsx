@@ -249,7 +249,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Verify Your Company First</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">Company Verification Required</DialogTitle>
           </DialogHeader>
           <div className="space-y-5 py-2">
             <div className="flex items-start gap-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
@@ -257,14 +257,14 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 <Info className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-amber-900 mb-1">Company verification required</p>
+                <p className="text-sm font-medium text-amber-900 mb-1">Your company isn't verified yet</p>
                 <p className="text-sm text-amber-700">
-                  To create tenders, your company needs to have a Commercial Registration (CR) certificate on file. This helps ensure all parties on the platform are legitimate businesses.
+                  Creating tenders, submitting proposals, and other key actions require a verified company. Upload your Commercial Registration (CR) certificate to get verified — it only takes a moment.
                 </p>
               </div>
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium text-neutral-700">What you need to upload:</p>
+              <p className="text-sm font-medium text-neutral-700">To unlock verified features, upload:</p>
               <ul className="text-sm text-neutral-600 space-y-1.5">
                 <li className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#E25E45] flex-shrink-0" />
@@ -284,7 +284,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 onClick={() => { handleClose(); navigate('/settings?tab=company'); }}
                 className="flex-1 bg-[#E25E45] hover:bg-[#d04a32]"
               >
-                Go to Settings
+                Upload Documents
               </Button>
             </div>
           </div>

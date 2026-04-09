@@ -1146,7 +1146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const company = await storage.createCompany({
         ...companyData,
         slug,
-        verificationStatus: 'under_review',
+        verificationStatus: 'not_verified',
         onboardingState: 'draft'
       });
 
@@ -1189,7 +1189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventType: 'company_created',
         companyId: company.id,
         userId: req.auth!.userId,
-        metadata: { verificationStatus: 'under_review' }
+        metadata: { verificationStatus: 'not_verified' }
       });
 
       res.json({
@@ -1723,6 +1723,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           uploadedBy: userId,
         });
 
+        // Move to under_review when documents are first uploaded
+        const company = await storage.getCompany(companyId);
+        if (company && company.verificationStatus === 'not_verified') {
+          await storage.updateCompany(companyId, { verificationStatus: 'under_review' });
+        }
+
         res.status(201).json(doc);
       } catch (error) {
         console.error('Create company document error:', error);
@@ -1769,12 +1775,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const tenderData = createTenderSchema.parse(req.body);
 
-        // Require CR certificate before creating a tender
-        const companyDocs = await storage.getCompanyDocuments(req.auth!.activeCompanyId!);
-        const hasCrCertificate = companyDocs.some(doc => doc.documentType === 'cr_certificate');
-        if (!hasCrCertificate) {
+        // Require verified company before creating a tender
+        const activeCompany = await storage.getCompany(req.auth!.activeCompanyId!);
+        if (!activeCompany || activeCompany.verificationStatus !== 'verified') {
           return res.status(403).json({
-            message: "Please verify your company before creating tenders. Upload your Commercial Registration certificate in Settings.",
+            message: "Your company must be verified before creating tenders. Upload your documents in Settings to begin the verification process.",
             requiresVerification: true,
           });
         }
@@ -3211,10 +3216,11 @@ Respond with ONLY a JSON object. Example:
           });
         }
 
-        // Check verification status - allow verified and under_review
-        if (company.verificationStatus !== 'verified' && company.verificationStatus !== 'under_review') {
+        // Require verified company before submitting proposals
+        if (company.verificationStatus !== 'verified') {
           return res.status(403).json({
-            message: "Company must complete profile and submit for verification to submit proposals",
+            message: "Your company must be verified before submitting proposals. Upload your documents in Settings to begin the verification process.",
+            requiresVerification: true,
             verificationStatus: company.verificationStatus
           });
         }

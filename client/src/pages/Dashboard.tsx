@@ -160,6 +160,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
   const defaultSlug = companyName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
   const [slug, setSlug] = useState(defaultSlug);
   const [isEditing, setIsEditing] = useState(false);
+  const [slugTaken, setSlugTaken] = useState(false);
 
   const createSlugMutation = useMutation({
     mutationFn: async (slugValue: string) => {
@@ -168,10 +169,15 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
     },
     onSuccess: (data) => {
       toast({ title: "Traction link created!", description: `Your link is now live at /traction/${data.slug}` });
+      setSlugTaken(false);
       checkAuth();
     },
     onError: (error: Error) => {
-      toast({ title: "Failed to create link", description: error.message, variant: "destructive" });
+      if (error.message.includes('already taken')) {
+        setSlugTaken(true);
+      } else {
+        toast({ title: "Something went wrong", description: error.message, variant: "destructive" });
+      }
     }
   });
 
@@ -192,13 +198,28 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
             <span className="text-sm text-muted-foreground whitespace-nowrap">/traction/</span>
             <Input
               value={slug}
-              onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+              onChange={(e) => {
+                setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
+                setSlugTaken(false);
+              }}
               placeholder="your-company"
-              className="font-mono text-sm"
+              className={`font-mono text-sm ${slugTaken ? 'border-amber-300 focus-visible:ring-amber-200' : ''}`}
               maxLength={50}
               data-testid="input-traction-slug"
             />
           </div>
+          {slugTaken && (
+            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              <HelpCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs text-amber-700 font-medium">"{slug}" is already taken</p>
+                <p className="text-xs text-amber-600 mt-0.5">
+                  Try <button className="underline font-medium hover:text-amber-800" onClick={() => { setSlug(`${slug}-co`); setSlugTaken(false); }}>{slug}-co</button>,{' '}
+                  <button className="underline font-medium hover:text-amber-800" onClick={() => { setSlug(`${slug}-${Math.floor(Math.random() * 99) + 1}`); setSlugTaken(false); }}>{slug}-{Math.floor(Math.random() * 99) + 1}</button>, or something unique to your brand
+                </p>
+              </div>
+            </div>
+          )}
           <div className={`flex gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
             <Button
               size="sm"
@@ -209,7 +230,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
             >
               {createSlugMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Link'}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
+            <Button size="sm" variant="ghost" onClick={() => { setIsEditing(false); setSlugTaken(false); }}>Cancel</Button>
           </div>
         </div>
       ) : (

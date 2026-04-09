@@ -89,7 +89,6 @@ export default function InviteTeam() {
       if (draft.logoUrl) companyData.logoUrl = draft.logoUrl;
       if (draft.bio) companyData.bio = draft.bio;
       if (draft.websiteUrl) companyData.websiteUrl = draft.websiteUrl;
-      if (draft.linkedinUrl) companyData.linkedinUrl = draft.linkedinUrl;
 
       const companyResponse = await apiRequest('POST', '/api/companies', companyData);
       if (!companyResponse.ok) {
@@ -102,6 +101,18 @@ export default function InviteTeam() {
       // Update auth token
       localStorage.setItem('token', companyResult.token);
       await checkAuth();
+
+      // Save user's LinkedIn URL to their profile if provided
+      if (draft.linkedinUrl) {
+        try {
+          await apiRequest('PATCH', '/api/user/profile', {
+            name: user?.name || user?.username || 'User',
+            linkedinUrl: draft.linkedinUrl,
+          });
+        } catch (err) {
+          console.error('Failed to save LinkedIn URL:', err);
+        }
+      }
 
       // Upload verification documents saved during onboarding
       const savedDocs: Record<string, string> = draft.documents || {};

@@ -1125,7 +1125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create company (and auto-add creator as owner)
   app.post("/api/companies", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const { logoUrl, bio, websiteUrl, linkedinUrl, ...rest } = req.body;
+      const { logoUrl, bio, websiteUrl, ...rest } = req.body;
       const companyData = createCompanySchema.parse(rest);
       
       // Check CR number uniqueness
@@ -1153,7 +1153,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Build social links from profile data
       const socialLinks: Record<string, string> = {};
       if (websiteUrl) socialLinks.website = websiteUrl;
-      if (linkedinUrl) socialLinks.linkedin = linkedinUrl;
 
       // Create profile with any provided profile data (logo, bio, etc.)
       const profile = await storage.createCompanyProfile({

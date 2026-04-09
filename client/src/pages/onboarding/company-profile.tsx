@@ -70,7 +70,7 @@ export default function CompanyProfile() {
       logoUrl: draft.logoUrl || "",
       bio: draft.bio || "",
       websiteUrl: draft.websiteUrl || "",
-      linkedinUrl: draft.linkedinUrl || "",
+      linkedinUrl: draft.linkedinUrl || user?.linkedinUrl || "",
     },
   });
 
@@ -221,9 +221,9 @@ export default function CompanyProfile() {
                   name="linkedinUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>LinkedIn</FormLabel>
+                      <FormLabel>Your LinkedIn</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://linkedin.com/company/..." {...field} data-testid="input-linkedin" />
+                        <Input placeholder="https://linkedin.com/in/yourname" {...field} data-testid="input-linkedin" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

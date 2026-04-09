@@ -7,7 +7,7 @@ import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { ArrowLeft, FileCheck2, Upload, CheckCircle2, Loader2 } from "lucide-react";
-import type { UploadResult } from "@uppy/core";
+import type { UploadResult } from "@/components/ObjectUploader";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 const DRAFT_KEY = "onboarding-draft";

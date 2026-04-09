@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { calculateFormProgress } from "@/lib/form-validation";
 import { Building2, Sparkles } from "lucide-react";
 import { useLocation } from "wouter";
-import type { UploadResult } from "@uppy/core";
+import type { UploadResult } from "@/components/ObjectUploader";
 
 const requesterProfileSchema = z.object({
   companyName: z.string().min(2, "Company name is required").max(120),

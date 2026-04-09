@@ -19,7 +19,7 @@ import { useAutosave, DraftStorage } from "@/lib/autosave";
 import { calculateFormProgress } from "@/lib/form-validation";
 import { useFormKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import type { UploadResult } from "@uppy/core";
+import type { UploadResult } from "@/components/ObjectUploader";
 import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
 

@@ -20,7 +20,7 @@ import { calculateFormProgress } from "@/lib/form-validation";
 import { CheckCircle2, Building2, FileText, User, Sparkles, Upload } from "lucide-react";
 import { useLocation } from "wouter";
 import { VENDOR_CATEGORIES } from "@shared/schema";
-import type { UploadResult } from "@uppy/core";
+import type { UploadResult } from "@/components/ObjectUploader";
 
 // Helper to count words in bio
 const countWords = (text: string) => text.trim().split(/\s+/).filter(word => word.length > 0).length;

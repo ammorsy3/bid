@@ -12,8 +12,8 @@ import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { ObjectUploader } from "@/components/ObjectUploader";
-import { ArrowRight, ArrowLeft, Palette, Upload, CheckCircle2 } from "lucide-react";
-import type { UploadResult } from "@uppy/core";
+import { ArrowRight, ArrowLeft, Palette, Upload, Building2 } from "lucide-react";
+import type { UploadResult } from "@/components/ObjectUploader";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 const DRAFT_KEY = "onboarding-draft";
@@ -44,7 +44,7 @@ export default function CompanyProfile() {
   const [, setLocation] = useLocation();
   const { user } = useAuthStore();
   const { t } = useI18n();
-  const [uploadedLogo, setUploadedLogo] = useState<string | null>(null);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
 
   const draft = getDraft();
 
@@ -71,13 +71,25 @@ export default function CompanyProfile() {
     return { method: 'PUT' as const, url: data.uploadURL };
   };
 
-  const handleLogoUpload = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+  const handleLogoUpload = async (result: UploadResult) => {
     if (result.successful && result.successful[0]) {
       const uploadURL = result.successful[0].uploadURL;
       const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
       const { objectPath } = await metadataResponse.json();
       form.setValue('logoUrl', objectPath, { shouldValidate: true });
-      setUploadedLogo(result.successful[0].name || 'Logo uploaded');
+
+      // Fetch the stored image with auth to generate a local preview URL
+      try {
+        const token = localStorage.getItem("token");
+        const imgRes = await fetch(objectPath, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const blob = await imgRes.blob();
+        const prev = URL.createObjectURL(blob);
+        setLogoPreviewUrl(prev);
+      } catch {
+        // preview failed — not critical
+      }
     }
   };
 
@@ -112,31 +124,42 @@ export default function CompanyProfile() {
               <FormField
                 control={form.control}
                 name="logoUrl"
-                render={({ field }) => (
+                render={() => (
                   <FormItem>
                     <FormLabel>Company Logo</FormLabel>
                     <FormControl>
-                      <div className="space-y-2">
-                        <ObjectUploader
-                          maxNumberOfFiles={1}
-                          maxFileSize={5242880}
-                          allowedFileTypes={['.jpg', '.jpeg', '.png']}
-                          onGetUploadParameters={handleGetUploadURL}
-                          onComplete={handleLogoUpload}
-                          buttonVariant="outline"
-                          buttonClassName="w-full"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Upload className="h-4 w-4" />
-                            <span>Upload Logo</span>
-                          </div>
-                        </ObjectUploader>
-                        {uploadedLogo && (
-                          <p className="text-sm text-green-600 flex items-center gap-1">
-                            <CheckCircle2 className="h-4 w-4" />
-                            {uploadedLogo}
-                          </p>
-                        )}
+                      <div className="flex items-center gap-4">
+                        {/* Logo preview */}
+                        <div className="w-20 h-20 rounded-2xl border-2 border-neutral-200 bg-neutral-50 flex items-center justify-center overflow-hidden shrink-0">
+                          {logoPreviewUrl ? (
+                            <img
+                              src={logoPreviewUrl}
+                              alt="Company logo"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Building2 className="w-8 h-8 text-neutral-300" />
+                          )}
+                        </div>
+
+                        {/* Upload control */}
+                        <div className="flex-1 space-y-1.5">
+                          <ObjectUploader
+                            maxNumberOfFiles={1}
+                            maxFileSize={5242880}
+                            allowedFileTypes={['.jpg', '.jpeg', '.png']}
+                            onGetUploadParameters={handleGetUploadURL}
+                            onComplete={handleLogoUpload}
+                            buttonVariant="outline"
+                            buttonClassName="w-full"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Upload className="h-4 w-4" />
+                              <span>{logoPreviewUrl ? "Change Logo" : "Upload Logo"}</span>
+                            </div>
+                          </ObjectUploader>
+                          <p className="text-xs text-neutral-400">JPG or PNG, max 5MB</p>
+                        </div>
                       </div>
                     </FormControl>
                     <FormMessage />

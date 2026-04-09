@@ -1199,9 +1199,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profile
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Create company error:', error);
-      res.status(400).json({ message: "Invalid company data" });
+      if (error?.name === 'ZodError') {
+        const firstIssue = error.errors?.[0];
+        const message = firstIssue
+          ? `${firstIssue.path.join('.')}: ${firstIssue.message}`
+          : "Invalid company data";
+        return res.status(400).json({ message, errors: error.errors });
+      }
+      if (error?.code === '23505') {
+        const constraint = error?.constraint || '';
+        if (constraint.includes('vat_number')) {
+          return res.status(400).json({ message: "A company with this VAT number already exists" });
+        }
+        if (constraint.includes('cr_number')) {
+          return res.status(400).json({ message: "A company with this CR number already exists" });
+        }
+        return res.status(400).json({ message: "A company with these details already exists" });
+      }
+      res.status(500).json({ message: error?.message || "Failed to create company" });
     }
   });
 

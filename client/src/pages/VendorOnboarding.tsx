@@ -15,7 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { ChevronLeft, ChevronRight, Loader2, CheckCircle2, Upload } from "lucide-react";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { VENDOR_CATEGORIES } from "@shared/schema";
-import type { UploadResult } from "@uppy/core";
+import type { UploadResult } from "@/components/ObjectUploader";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 

@@ -72,15 +72,20 @@ export default function InviteTeam() {
   const createCompanyAndFinish = async (sendInvites: boolean) => {
     setLoading(true);
     try {
-      // Create company from draft data
-      const companyData = {
+      // Validate required draft fields before hitting the API
+      if (!draft.name || !draft.legalName || !draft.crNumber) {
+        throw new Error("Missing required company information. Please go back and complete Company Basics.");
+      }
+
+      // Create company from draft data — only include optional fields when non-empty
+      const companyData: Record<string, string> = {
         name: draft.name,
         legalName: draft.legalName,
         crNumber: draft.crNumber,
-        vatNumber: draft.vatNumber || undefined,
-        city: draft.city,
-        category: draft.category,
       };
+      if (draft.vatNumber) companyData.vatNumber = draft.vatNumber;
+      if (draft.city) companyData.city = draft.city;
+      if (draft.category) companyData.category = draft.category;
 
       const companyResponse = await apiRequest('POST', '/api/companies', companyData);
       if (!companyResponse.ok) {

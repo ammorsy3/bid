@@ -1020,6 +1020,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Set/update traction slug
+  app.patch("/api/company/traction-slug", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const companyId = req.auth!.activeCompanyId!;
+      const role = req.auth!.roleInCompany;
+      if (role !== 'owner' && role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { slug } = req.body;
+      if (!slug || typeof slug !== 'string') {
+        return res.status(400).json({ message: "Slug is required" });
+      }
+
+      const sanitized = slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+      if (sanitized.length < 2 || sanitized.length > 50) {
+        return res.status(400).json({ message: "Slug must be between 2 and 50 characters" });
+      }
+
+      const existing = await storage.getCompanyProfileByTractionSlug(sanitized);
+      if (existing && existing.companyId !== companyId) {
+        return res.status(409).json({ message: "This slug is already taken. Try a different one." });
+      }
+
+      await storage.updateCompanyProfile(companyId, { tractionSlug: sanitized });
+
+      res.json({ slug: sanitized, message: "Traction link updated" });
+    } catch (error) {
+      console.error('Update traction slug error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Upload company logo
   app.post("/api/company/logo", authenticateToken, requireCompanyContext, upload.single('file'), async (req: AuthRequest, res) => {
     try {

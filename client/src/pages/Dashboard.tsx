@@ -154,6 +154,80 @@ interface IncomingOffer {
   };
 }
 
+function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl: boolean }) {
+  const { toast } = useToast();
+  const { checkAuth } = useAuthStore();
+  const defaultSlug = companyName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  const [slug, setSlug] = useState(defaultSlug);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const createSlugMutation = useMutation({
+    mutationFn: async (slugValue: string) => {
+      const res = await apiRequest('PATCH', '/api/company/traction-slug', { slug: slugValue });
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      toast({ title: "Traction link created!", description: `Your link is now live at /traction/${data.slug}` });
+      checkAuth();
+    },
+    onError: (error: Error) => {
+      toast({ title: "Failed to create link", description: error.message, variant: "destructive" });
+    }
+  });
+
+  return (
+    <div className="space-y-3">
+      <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+        <div className="w-8 h-8 rounded-lg bg-[#E8614D]/10 flex items-center justify-center">
+          <Link2 className="h-4 w-4 text-[#E8614D]" />
+        </div>
+        <div className={isRtl ? 'text-right' : ''}>
+          <p className="text-sm font-semibold">Create your Traction Link</p>
+          <p className="text-xs text-muted-foreground">A shareable page where vendors can apply to join your network</p>
+        </div>
+      </div>
+      {isEditing ? (
+        <div className="space-y-2">
+          <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">/traction/</span>
+            <Input
+              value={slug}
+              onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+              placeholder="your-company"
+              className="font-mono text-sm"
+              maxLength={50}
+              data-testid="input-traction-slug"
+            />
+          </div>
+          <div className={`flex gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+            <Button
+              size="sm"
+              onClick={() => createSlugMutation.mutate(slug)}
+              disabled={!slug.trim() || slug.length < 2 || createSlugMutation.isPending}
+              className="bg-[#E8614D] hover:bg-[#d4553f] text-white"
+              data-testid="button-create-traction"
+            >
+              {createSlugMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Link'}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
+          </div>
+        </div>
+      ) : (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsEditing(true)}
+          className="border-[#E8614D]/30 text-[#E8614D] hover:bg-[#E8614D]/5"
+          data-testid="button-setup-traction"
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Set up Traction Link
+        </Button>
+      )}
+    </div>
+  );
+}
+
 // Component for sidebar header with logo/toggle swap on hover when collapsed
 function ChatHistorySidebar() {
   const [, setLocation] = useLocation();
@@ -2297,6 +2371,52 @@ export default function Dashboard() {
                   {t('dashboard.vendorsBaseDesc')}
                 </p>
               </div>
+
+              {/* Traction Link Card */}
+              <Card className="border-dashed">
+                <CardContent className="pt-6">
+                  {activeCompany?.profile?.tractionSlug ? (
+                    <div className="space-y-3">
+                      <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className="w-8 h-8 rounded-lg bg-[#E8614D]/10 flex items-center justify-center">
+                          <Link2 className="h-4 w-4 text-[#E8614D]" />
+                        </div>
+                        <div className={isRtl ? 'text-right' : ''}>
+                          <p className="text-sm font-semibold">Your Traction Link</p>
+                          <p className="text-xs text-muted-foreground">Share this link with vendors to invite them</p>
+                        </div>
+                      </div>
+                      <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className="flex-1 bg-muted rounded-lg px-3 py-2 text-sm font-mono truncate">
+                          {window.location.origin}/traction/{activeCompany.profile.tractionSlug}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/traction/${activeCompany.profile?.tractionSlug}`);
+                            toast({ title: "Link copied!", description: "Traction link copied to clipboard." });
+                          }}
+                          data-testid="button-copy-traction-link"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <a
+                          href={`/traction/${activeCompany.profile.tractionSlug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button variant="outline" size="sm" data-testid="button-preview-traction">
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+                  ) : (
+                    <TractionSlugSetup companyName={activeCompany?.name || ''} isRtl={isRtl} />
+                  )}
+                </CardContent>
+              </Card>
 
               <Tabs defaultValue="vendors-list" className="space-y-4">
                 <TabsList className="grid w-full max-w-md grid-cols-2" data-tour="vendors-tabs">

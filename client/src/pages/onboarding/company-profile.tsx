@@ -48,12 +48,21 @@ export default function CompanyProfile() {
 
   const draft = getDraft();
 
-  // Redirect if step 1 not completed
   useEffect(() => {
     if (!user) { setLocation("/signup"); return; }
     if (!user.otpVerified) { setLocation("/verify-email"); return; }
     if (!draft.step1Complete) { setLocation("/onboarding/company-basics"); return; }
   }, [user, setLocation]);
+
+  useEffect(() => {
+    if (draft.logoUrl && !logoPreviewUrl) {
+      const token = localStorage.getItem("token");
+      fetch(draft.logoUrl, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.blob())
+        .then(blob => setLogoPreviewUrl(URL.createObjectURL(blob)))
+        .catch(() => {});
+    }
+  }, []);
 
   const form = useForm<CompanyProfileForm>({
     resolver: zodResolver(companyProfileSchema),

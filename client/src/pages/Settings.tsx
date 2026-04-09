@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Upload, User, Users, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield, Crown, MoreVertical, FileCheck2, CheckCircle2 } from "lucide-react";
+import { X, Upload, User, Users, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield, Crown, MoreVertical, FileCheck2, CheckCircle2, Palette, Eye, ExternalLink, Zap } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -230,6 +230,28 @@ export default function Settings() {
     }
   }, [activeCompany?.profile?.logoUrl]);
 
+  const [tractionTheme, setTractionTheme] = useState<{
+    themeId: 'classic' | 'modern' | 'bold' | 'minimal';
+    primaryColor: string;
+    accentColor: string;
+    headerStyle: string;
+    ctaText?: string;
+    welcomeHeading?: string;
+    welcomeSubtext?: string;
+  }>(() => {
+    const existing = activeCompany?.profile?.tractionTheme as any;
+    return existing || { themeId: 'modern', primaryColor: '#E8614D', accentColor: '#1a1a2e', headerStyle: 'gradient' };
+  });
+
+  useEffect(() => {
+    const existing = activeCompany?.profile?.tractionTheme as any;
+    if (existing) {
+      setTractionTheme(existing);
+    } else {
+      setTractionTheme({ themeId: 'modern', primaryColor: '#E8614D', accentColor: '#1a1a2e', headerStyle: 'gradient' });
+    }
+  }, [activeCompany?.id, activeCompany?.profile?.tractionTheme]);
+
   // Team invite state
   const [inviteRows, setInviteRows] = useState<{ email: string; role: string }[]>([
     { email: '', role: 'member' },
@@ -381,6 +403,27 @@ export default function Settings() {
     onError: (error: Error) => {
       toast({
         title: "Failed to update company",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  const saveThemeMutation = useMutation({
+    mutationFn: async (themeData: typeof tractionTheme) => {
+      return apiRequest('PATCH', '/api/company/profile', { tractionTheme: themeData });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Theme saved",
+        description: "Your Traction Page theme has been updated.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      checkAuth();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to save theme",
         description: error.message,
         variant: "destructive",
       });
@@ -1184,6 +1227,202 @@ export default function Settings() {
                         </>
                       )}
                     </Button>
+                  </CardContent>
+                </Card>
+              </div>
+              )}
+
+              {/* Traction Page Theme */}
+              {canManageCompany && activeCompany?.profile?.tractionSlug && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  Traction Page
+                </h2>
+                <Card>
+                  <CardContent className="pt-6 space-y-6">
+                    <p className="text-sm text-muted-foreground">
+                      Customize how your Vendor Registration page looks. Vendors will see this when they visit your Traction Link.
+                    </p>
+
+                    {/* Theme Picker */}
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">Theme</Label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {([
+                          { id: 'classic' as const, name: 'Classic', desc: 'Clean & professional', headerStyle: 'clean', preview: 'bg-white border-2' },
+                          { id: 'modern' as const, name: 'Modern', desc: 'Gradient hero', headerStyle: 'gradient', preview: 'bg-gradient-to-br from-orange-400 to-purple-600' },
+                          { id: 'bold' as const, name: 'Bold', desc: 'Full-color header', headerStyle: 'solid', preview: 'bg-[#E8614D]' },
+                          { id: 'minimal' as const, name: 'Minimal', desc: 'Typography-focused', headerStyle: 'clean', preview: 'bg-gray-50 border-2' },
+                        ]).map(th => (
+                          <button
+                            key={th.id}
+                            onClick={() => setTractionTheme(prev => ({ ...prev, themeId: th.id, headerStyle: th.headerStyle }))}
+                            className={`relative rounded-xl p-3 text-left transition-all border-2 ${
+                              tractionTheme.themeId === th.id
+                                ? 'border-[#E8614D] ring-2 ring-[#E8614D]/20'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <div className={`h-12 rounded-lg mb-2 ${th.preview}`} style={
+                              th.id === 'modern' ? { background: `linear-gradient(135deg, ${tractionTheme.primaryColor}, ${tractionTheme.accentColor})` } :
+                              th.id === 'bold' ? { background: tractionTheme.primaryColor } : undefined
+                            } />
+                            <p className="text-xs font-semibold text-gray-900">{th.name}</p>
+                            <p className="text-[10px] text-gray-400">{th.desc}</p>
+                            {tractionTheme.themeId === th.id && (
+                              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#E8614D] flex items-center justify-center">
+                                <Check className="h-3 w-3 text-white" />
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Color Customization */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium mb-2 block">Primary Color</Label>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="color"
+                            value={tractionTheme.primaryColor}
+                            onChange={(e) => setTractionTheme(prev => ({ ...prev, primaryColor: e.target.value }))}
+                            className="w-10 h-10 rounded-lg border cursor-pointer"
+                          />
+                          <Input
+                            value={tractionTheme.primaryColor}
+                            onChange={(e) => setTractionTheme(prev => ({ ...prev, primaryColor: e.target.value }))}
+                            className="font-mono text-sm"
+                            maxLength={7}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium mb-2 block">Accent Color</Label>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="color"
+                            value={tractionTheme.accentColor}
+                            onChange={(e) => setTractionTheme(prev => ({ ...prev, accentColor: e.target.value }))}
+                            className="w-10 h-10 rounded-lg border cursor-pointer"
+                          />
+                          <Input
+                            value={tractionTheme.accentColor}
+                            onChange={(e) => setTractionTheme(prev => ({ ...prev, accentColor: e.target.value }))}
+                            className="font-mono text-sm"
+                            maxLength={7}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Custom Text */}
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium mb-1.5 block">CTA Button Text</Label>
+                        <Input
+                          value={tractionTheme.ctaText || ''}
+                          onChange={(e) => setTractionTheme(prev => ({ ...prev, ctaText: e.target.value || undefined }))}
+                          placeholder="Apply to Join"
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium mb-1.5 block">Welcome Heading</Label>
+                        <Input
+                          value={tractionTheme.welcomeHeading || ''}
+                          onChange={(e) => setTractionTheme(prev => ({ ...prev, welcomeHeading: e.target.value || undefined }))}
+                          placeholder={`Join ${activeCompany.name}'s Vendor Network`}
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium mb-1.5 block">Welcome Subtext</Label>
+                        <Textarea
+                          value={tractionTheme.welcomeSubtext || ''}
+                          onChange={(e) => setTractionTheme(prev => ({ ...prev, welcomeSubtext: e.target.value || undefined }))}
+                          placeholder="Get access to tender opportunities and become a trusted partner."
+                          className="text-sm resize-none"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Mini Preview */}
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">Preview</Label>
+                      <div className="rounded-xl border overflow-hidden">
+                        {/* Mini hero */}
+                        <div className="p-4 text-center" style={
+                          tractionTheme.themeId === 'modern' ? { background: `linear-gradient(135deg, ${tractionTheme.primaryColor}, ${tractionTheme.accentColor})` } :
+                          tractionTheme.themeId === 'bold' ? { background: tractionTheme.primaryColor } :
+                          { background: '#f9fafb' }
+                        }>
+                          <div className={`w-8 h-8 rounded-lg mx-auto mb-2 flex items-center justify-center ${
+                            tractionTheme.themeId === 'modern' || tractionTheme.themeId === 'bold' ? 'bg-white/20' : 'bg-gray-200'
+                          }`}>
+                            <Building2 className={`h-4 w-4 ${
+                              tractionTheme.themeId === 'modern' || tractionTheme.themeId === 'bold' ? 'text-white' : 'text-gray-500'
+                            }`} />
+                          </div>
+                          <p className={`text-xs font-bold ${
+                            tractionTheme.themeId === 'modern' || tractionTheme.themeId === 'bold' ? 'text-white' : 'text-gray-900'
+                          }`}>
+                            {tractionTheme.welcomeHeading || `Join ${activeCompany.name}'s Vendor Network`}
+                          </p>
+                        </div>
+                        {/* Mini content */}
+                        <div className="p-3 bg-white space-y-2">
+                          <div className="flex gap-2">
+                            {[1,2,3].map(i => (
+                              <div key={i} className="flex-1 rounded-lg p-2 border border-gray-100">
+                                <div className="w-4 h-4 rounded mb-1" style={{ background: `${tractionTheme.primaryColor}20` }}>
+                                  <Zap className="w-2.5 h-2.5 m-[3px]" style={{ color: tractionTheme.primaryColor }} />
+                                </div>
+                                <div className="h-1.5 bg-gray-100 rounded w-3/4" />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="text-center pt-1">
+                            <div className="inline-block px-4 py-1.5 rounded-lg text-[10px] font-semibold text-white"
+                              style={{ background: tractionTheme.primaryColor }}>
+                              {tractionTheme.ctaText || 'Apply to Join'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-3 pt-2">
+                      <Button
+                        onClick={() => saveThemeMutation.mutate(tractionTheme)}
+                        disabled={saveThemeMutation.isPending}
+                        style={{ background: '#E8614D' }}
+                        className="text-white"
+                      >
+                        {saveThemeMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          'Save Theme'
+                        )}
+                      </Button>
+                      <a
+                        href={`/traction/${activeCompany.profile?.tractionSlug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Preview Page
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
                   </CardContent>
                 </Card>
               </div>

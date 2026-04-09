@@ -32,6 +32,15 @@ interface CompanyProfile {
   socialLinks: Record<string, string> | null;
   isPublic: boolean;
   tractionSlug: string | null;
+  tractionTheme: {
+    themeId: string;
+    primaryColor: string;
+    accentColor: string;
+    headerStyle: string;
+    ctaText?: string;
+    welcomeHeading?: string;
+    welcomeSubtext?: string;
+  } | null;
 }
 
 interface Company {

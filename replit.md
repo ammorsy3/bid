@@ -111,6 +111,15 @@ Persistent chat history for AI Copilot conversations.
 - **Dashboard sidebar**: `ChatHistorySidebar` component shows recent AI chat sessions with click-to-resume and delete functionality
 - **Session loading**: Supports `?session=<id>` URL param to resume previous conversations
 
+### Traction Page Theme Customization
+Companies can customize their public vendor registration page (Traction Link) with pre-built themes.
+- **Schema**: `company_profiles.tractionTheme` jsonb field stores: themeId, primaryColor, accentColor, headerStyle, ctaText, welcomeHeading, welcomeSubtext
+- **Themes**: 4 pre-built themes — Classic (clean white), Modern (gradient hero), Bold (full-color header), Minimal (typography-focused)
+- **Settings UI**: Theme picker with color customization, custom text fields, and live mini-preview in Settings > Company tab (visible to owners/admins with a traction slug)
+- **API**: `PATCH /api/company/profile` accepts `tractionTheme` with server-side validation (themeId enum, hex color regex, text length limits)
+- **Public page**: `TractionLink.tsx` applies theme dynamically — hero section, cards, CTA button, and benefit cards all themed
+- **Files**: `client/src/pages/TractionLink.tsx`, `client/src/pages/Settings.tsx`, `server/routes.ts`
+
 ### Date Localization
 Date displays use language-aware locale formatting (`en-US` for English, `ar-SA` for Arabic).
 

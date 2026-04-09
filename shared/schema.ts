@@ -110,7 +110,16 @@ export const companyProfiles = pgTable("company_profiles", {
   isPublic: boolean("is_public").default(true).notNull(),
   
   // Vendors Base (for requesters)
-  tractionSlug: text("traction_slug").unique(), // For traction link: /r/{slug}
+  tractionSlug: text("traction_slug").unique(),
+  tractionTheme: jsonb("traction_theme").$type<{
+    themeId: 'classic' | 'modern' | 'bold' | 'minimal';
+    primaryColor: string;
+    accentColor: string;
+    headerStyle: 'clean' | 'gradient' | 'solid' | 'image';
+    ctaText?: string;
+    welcomeHeading?: string;
+    welcomeSubtext?: string;
+  }>(),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

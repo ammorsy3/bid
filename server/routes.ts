@@ -966,7 +966,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/company/profile", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
     try {
       const companyId = req.auth!.activeCompanyId!;
-      const { displayName, bio } = req.body;
+      const { displayName, bio, tractionTheme } = req.body;
 
       // Verify user has admin access
       const role = req.auth!.roleInCompany;
@@ -980,10 +980,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Company profile not found" });
       }
 
-      await storage.updateCompanyProfile(companyId, {
+      const updates: any = {
         displayName: displayName || profile.displayName,
         bio: bio !== undefined ? bio : profile.bio
-      });
+      };
+      if (tractionTheme !== undefined) {
+        const validThemeIds = ['classic', 'modern', 'bold', 'minimal'];
+        const validHeaderStyles = ['clean', 'gradient', 'solid', 'image'];
+        const hexColorRegex = /^#[0-9a-fA-F]{6}$/;
+        if (tractionTheme && typeof tractionTheme === 'object') {
+          if (!validThemeIds.includes(tractionTheme.themeId)) {
+            return res.status(400).json({ message: "Invalid theme ID" });
+          }
+          if (!hexColorRegex.test(tractionTheme.primaryColor) || !hexColorRegex.test(tractionTheme.accentColor)) {
+            return res.status(400).json({ message: "Invalid color format. Use #RRGGBB." });
+          }
+          if (tractionTheme.headerStyle && !validHeaderStyles.includes(tractionTheme.headerStyle)) {
+            return res.status(400).json({ message: "Invalid header style" });
+          }
+          if (tractionTheme.ctaText && tractionTheme.ctaText.length > 50) {
+            return res.status(400).json({ message: "CTA text too long (max 50 chars)" });
+          }
+          if (tractionTheme.welcomeHeading && tractionTheme.welcomeHeading.length > 100) {
+            return res.status(400).json({ message: "Welcome heading too long (max 100 chars)" });
+          }
+          if (tractionTheme.welcomeSubtext && tractionTheme.welcomeSubtext.length > 300) {
+            return res.status(400).json({ message: "Welcome subtext too long (max 300 chars)" });
+          }
+        }
+        updates.tractionTheme = tractionTheme;
+      }
+
+      await storage.updateCompanyProfile(companyId, updates);
 
       res.json({ message: "Company profile updated successfully" });
     } catch (error) {
@@ -1606,7 +1634,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Access denied" });
         }
 
-        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category } = req.body;
+        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme } = req.body;
 
         // Get current company
         const company = await storage.getCompany(companyId);
@@ -1674,6 +1702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (bio !== undefined) profileUpdates.bio = bio;
         if (logoUrl !== undefined) profileUpdates.logoUrl = logoUrl;
         if (socialLinks !== undefined) profileUpdates.socialLinks = socialLinks;
+        if (tractionTheme !== undefined) profileUpdates.tractionTheme = tractionTheme;
 
         const profile = await storage.updateCompanyProfile(companyId, profileUpdates);
 
@@ -4053,7 +4082,9 @@ Respond with ONLY a JSON object. Example:
           displayName: result.displayName,
           bio: result.bio,
           logoUrl: result.logoUrl,
-          socialLinks: result.socialLinks
+          headerUrl: result.headerUrl,
+          socialLinks: result.socialLinks,
+          tractionTheme: result.tractionTheme || null
         }
       });
     } catch (error) {

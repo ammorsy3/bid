@@ -115,7 +115,7 @@ export default function CompanyProfile() {
   if (!user) return null;
 
   return (
-    <OnboardingLayout step={2}>
+    <OnboardingLayout step={3}>
       <Card>
         <CardContent className="pt-8 pb-8">
           <div className="flex items-center gap-3 mb-6">
@@ -235,7 +235,7 @@ export default function CompanyProfile() {
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setLocation("/onboarding/company-basics")}
+                  onClick={() => setLocation("/onboarding/company-documents")}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back

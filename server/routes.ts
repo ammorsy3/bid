@@ -1125,7 +1125,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create company (and auto-add creator as owner)
   app.post("/api/companies", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const companyData = createCompanySchema.parse(req.body);
+      const { logoUrl, bio, websiteUrl, linkedinUrl, ...rest } = req.body;
+      const companyData = createCompanySchema.parse(rest);
       
       // Check CR number uniqueness
       const existingCompany = await storage.getCompanyByCrNumber(companyData.crNumber);
@@ -1149,16 +1150,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         onboardingState: 'draft'
       });
 
-      // Create default profile
+      // Build social links from profile data
+      const socialLinks: Record<string, string> = {};
+      if (websiteUrl) socialLinks.website = websiteUrl;
+      if (linkedinUrl) socialLinks.linkedin = linkedinUrl;
+
+      // Create profile with any provided profile data (logo, bio, etc.)
       const profile = await storage.createCompanyProfile({
         companyId: company.id,
         displayName: companyData.name,
-        bio: null,
+        bio: bio || null,
         tags: [],
-        logoUrl: null,
+        logoUrl: logoUrl || null,
         headerUrl: null,
         brochureUrl: null,
-        socialLinks: {},
+        socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : {},
         isPublic: false,
         tractionSlug: null
       });
@@ -1601,7 +1607,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Access denied" });
         }
 
-        const { displayName, bio, legalName, crNumber, vatNumber, city, category } = req.body;
+        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category } = req.body;
 
         // Get current company
         const company = await storage.getCompany(companyId);
@@ -1667,6 +1673,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const profileUpdates: any = {};
         if (displayName) profileUpdates.displayName = displayName;
         if (bio !== undefined) profileUpdates.bio = bio;
+        if (logoUrl !== undefined) profileUpdates.logoUrl = logoUrl;
+        if (socialLinks !== undefined) profileUpdates.socialLinks = socialLinks;
 
         const profile = await storage.updateCompanyProfile(companyId, profileUpdates);
 

@@ -199,7 +199,22 @@ export default function Settings() {
   const [companyDisplayName, setCompanyDisplayName] = useState(activeCompany?.profile?.displayName || activeCompany?.name || '');
   const [companyBio, setCompanyBio] = useState(activeCompany?.profile?.bio || '');
   const [companyLogo, setCompanyLogo] = useState<File | null>(null);
-  const [companyLogoPreview, setCompanyLogoPreview] = useState<string | null>(activeCompany?.profile?.logoUrl || null);
+  const [companyLogoPreview, setCompanyLogoPreview] = useState<string | null>(null);
+
+  // Resolve logo URL — protected /objects/... paths need auth headers
+  useEffect(() => {
+    const logoUrl = activeCompany?.profile?.logoUrl;
+    if (!logoUrl) { setCompanyLogoPreview(null); return; }
+    if (logoUrl.startsWith('/objects/')) {
+      const token = localStorage.getItem('token');
+      fetch(logoUrl, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.blob())
+        .then(blob => setCompanyLogoPreview(URL.createObjectURL(blob)))
+        .catch(() => setCompanyLogoPreview(null));
+    } else {
+      setCompanyLogoPreview(logoUrl);
+    }
+  }, [activeCompany?.profile?.logoUrl]);
 
   // Team invite state
   const [inviteRows, setInviteRows] = useState<{ email: string; role: string }[]>([

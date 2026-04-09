@@ -3,14 +3,14 @@ import { FileText, BarChart3, Shield, Zap } from "lucide-react";
 
 interface OnboardingLayoutProps {
   children: ReactNode;
-  step?: number; // 0 = choice, 1 = basics, 2 = profile, 3 = team, 4 = documents
+  step?: number; // 0 = choice, 1 = basics, 2 = documents, 3 = profile, 4 = team
 }
 
 const STEPS = [
   { label: "Basics", num: 1 },
-  { label: "Profile", num: 2 },
-  { label: "Team", num: 3 },
-  { label: "Documents", num: 4 },
+  { label: "Documents", num: 2 },
+  { label: "Profile", num: 3 },
+  { label: "Team", num: 4 },
 ];
 
 export default function OnboardingLayout({ children, step }: OnboardingLayoutProps) {

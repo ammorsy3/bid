@@ -77,8 +77,8 @@ export default function InviteTeam() {
         throw new Error("Missing required company information. Please go back and complete Company Basics.");
       }
 
-      // Create company from draft data — only include optional fields when non-empty
-      const companyData: Record<string, string> = {
+      // Create company from draft data — include profile data so logo/bio are saved in one request
+      const companyData: Record<string, any> = {
         name: draft.name,
         legalName: draft.legalName,
         crNumber: draft.crNumber,
@@ -86,6 +86,10 @@ export default function InviteTeam() {
       if (draft.vatNumber) companyData.vatNumber = draft.vatNumber;
       if (draft.city) companyData.city = draft.city;
       if (draft.category) companyData.category = draft.category;
+      if (draft.logoUrl) companyData.logoUrl = draft.logoUrl;
+      if (draft.bio) companyData.bio = draft.bio;
+      if (draft.websiteUrl) companyData.websiteUrl = draft.websiteUrl;
+      if (draft.linkedinUrl) companyData.linkedinUrl = draft.linkedinUrl;
 
       const companyResponse = await apiRequest('POST', '/api/companies', companyData);
       if (!companyResponse.ok) {
@@ -99,22 +103,15 @@ export default function InviteTeam() {
       localStorage.setItem('token', companyResult.token);
       await checkAuth();
 
-      // Update company profile if we have profile data
-      if (draft.logoUrl || draft.bio || draft.websiteUrl || draft.linkedinUrl) {
-        const profileData: Record<string, any> = {
-          displayName: draft.name,
-        };
-        if (draft.bio) profileData.bio = draft.bio;
-        if (draft.logoUrl) profileData.logoUrl = draft.logoUrl;
-        if (draft.websiteUrl || draft.linkedinUrl) {
-          profileData.socialLinks = {};
-          if (draft.websiteUrl) profileData.socialLinks.website = draft.websiteUrl;
-          if (draft.linkedinUrl) profileData.socialLinks.linkedin = draft.linkedinUrl;
-        }
-
-        await apiRequest('PUT', `/api/companies/${companyResult.company.id}/profile`, profileData).catch(err =>
-          console.error('Failed to update profile:', err)
-        );
+      // Upload verification documents saved during onboarding
+      const savedDocs: Record<string, string> = draft.documents || {};
+      const savedDocNames: Record<string, string> = draft.documentNames || {};
+      for (const [docType, fileUrl] of Object.entries(savedDocs)) {
+        await apiRequest('POST', `/api/companies/${companyResult.company.id}/documents`, {
+          documentType: docType,
+          fileUrl,
+          originalName: savedDocNames[docType] || undefined,
+        }).catch(err => console.error('Failed to save document:', err));
       }
 
       // Send team invitations if requested
@@ -134,11 +131,11 @@ export default function InviteTeam() {
       await checkAuth();
 
       toast({
-        title: "Company created!",
-        description: "Almost done — upload your verification documents.",
+        title: "Setup complete!",
+        description: "Your workspace is ready. Welcome to Bid.",
       });
 
-      setLocation('/onboarding/company-documents');
+      setLocation(getPostOnboardingRedirect());
     } catch (error: any) {
       toast({
         title: "Something went wrong",
@@ -164,7 +161,7 @@ export default function InviteTeam() {
   if (!user) return null;
 
   return (
-    <OnboardingLayout step={3}>
+    <OnboardingLayout step={4}>
       <Card>
         <CardContent className="pt-8 pb-8">
           <div className="flex items-center gap-3 mb-6">

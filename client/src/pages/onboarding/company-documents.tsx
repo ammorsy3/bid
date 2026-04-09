@@ -6,20 +6,24 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { ObjectUploader } from "@/components/ObjectUploader";
-import { ArrowLeft, FileCheck2, Upload, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileCheck2, Upload, CheckCircle2 } from "lucide-react";
 import type { UploadResult } from "@/components/ObjectUploader";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 const DRAFT_KEY = "onboarding-draft";
 
-const getPostOnboardingRedirect = () => {
-  const redirect = localStorage.getItem('postOnboardingRedirect');
-  if (redirect) {
-    localStorage.removeItem('postOnboardingRedirect');
-    return redirect;
+function getDraft(): Record<string, any> {
+  try {
+    return JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
+  } catch {
+    return {};
   }
-  return '/dashboard';
-};
+}
+
+function saveDraft(data: Record<string, any>) {
+  const existing = getDraft();
+  localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...existing, ...data, step2Complete: true }));
+}
 
 interface DocumentSlot {
   type: string;
@@ -57,18 +61,20 @@ const DOCUMENT_SLOTS: DocumentSlot[] = [
 
 export default function CompanyDocuments() {
   const [, setLocation] = useLocation();
-  const { user, activeCompany } = useAuthStore();
-  const activeCompanyId = activeCompany?.id;
+  const { user } = useAuthStore();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [uploaded, setUploaded] = useState<Record<string, string>>({}); // type -> objectPath
-  const [fileNames, setFileNames] = useState<Record<string, string>>({}); // type -> display name
+  const [uploaded, setUploaded] = useState<Record<string, string>>({});
+  const [fileNames, setFileNames] = useState<Record<string, string>>({});
 
+  // Load any previously saved documents from draft
   useEffect(() => {
     if (!user) { setLocation("/"); return; }
     if (!user.otpVerified) { setLocation("/verify-email"); return; }
-    if (!activeCompanyId) { setLocation("/onboarding"); return; }
-  }, [user, activeCompanyId, setLocation]);
+    const draft = getDraft();
+    if (!draft.step1Complete) { setLocation("/onboarding/company-basics"); return; }
+    if (draft.documents) setUploaded(draft.documents);
+    if (draft.documentNames) setFileNames(draft.documentNames);
+  }, [user, setLocation]);
 
   const handleGetUploadURL = async () => {
     const response = await apiRequest('POST', '/api/objects/upload', {});
@@ -76,9 +82,7 @@ export default function CompanyDocuments() {
     return { method: 'PUT' as const, url: data.uploadURL };
   };
 
-  const handleUploadComplete = (docType: string) => async (
-    result: UploadResult<Record<string, unknown>, Record<string, unknown>>
-  ) => {
+  const handleUploadComplete = (docType: string) => async (result: UploadResult) => {
     if (!result.successful || !result.successful[0]) return;
     try {
       const uploadURL = result.successful[0].uploadURL;
@@ -87,41 +91,31 @@ export default function CompanyDocuments() {
       const metaRes = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
       const { objectPath } = await metaRes.json();
 
-      setUploaded(prev => ({ ...prev, [docType]: objectPath }));
-      setFileNames(prev => ({ ...prev, [docType]: fileName }));
+      // Update local state
+      setUploaded(prev => {
+        const next = { ...prev, [docType]: objectPath };
+        // Persist to draft immediately
+        const names = fileNames;
+        saveDraft({ documents: next, documentNames: { ...names, [docType]: fileName } });
+        return next;
+      });
+      setFileNames(prev => {
+        const next = { ...prev, [docType]: fileName };
+        return next;
+      });
     } catch {
       toast({ title: "Upload failed", description: "Could not process the file. Please try again.", variant: "destructive" });
     }
   };
 
-  const handleFinish = async (skip = false) => {
-    if (!activeCompanyId) return;
-    setLoading(true);
-    try {
-      if (!skip) {
-        const toSave = Object.entries(uploaded);
-        for (const [docType, fileUrl] of toSave) {
-          await apiRequest('POST', `/api/companies/${activeCompanyId}/documents`, {
-            documentType: docType,
-            fileUrl,
-            originalName: fileNames[docType] || undefined,
-          });
-        }
-      }
+  const handleNext = () => {
+    // Draft already saved on each upload — just navigate
+    setLocation("/onboarding/company-profile");
+  };
 
-      localStorage.removeItem(DRAFT_KEY);
-
-      toast({
-        title: "Setup complete!",
-        description: "Your workspace is ready. Welcome to Bid.",
-      });
-
-      setLocation(getPostOnboardingRedirect());
-    } catch {
-      toast({ title: "Something went wrong", description: "Failed to save documents. Please try again.", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
+  const handleSkip = () => {
+    saveDraft({ documents: {}, documentNames: {} });
+    setLocation("/onboarding/company-profile");
   };
 
   if (!user) return null;
@@ -129,7 +123,7 @@ export default function CompanyDocuments() {
   const crUploaded = !!uploaded['cr_certificate'];
 
   return (
-    <OnboardingLayout step={4}>
+    <OnboardingLayout step={2}>
       <Card>
         <CardContent className="pt-8 pb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -198,7 +192,7 @@ export default function CompanyDocuments() {
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setLocation("/onboarding/invite-team")}
+              onClick={() => setLocation("/onboarding/company-basics")}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
@@ -206,22 +200,19 @@ export default function CompanyDocuments() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => handleFinish(true)}
+                onClick={handleSkip}
                 className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors"
-                disabled={loading}
               >
                 Skip for now
               </button>
               <Button
-                onClick={() => handleFinish(false)}
-                disabled={!crUploaded || loading}
+                onClick={handleNext}
+                disabled={!crUploaded}
                 size="lg"
                 className="bg-[#E25E45] hover:bg-[#d04a32]"
               >
-                {loading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : null}
-                Complete Setup
+                Next
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
           </div>

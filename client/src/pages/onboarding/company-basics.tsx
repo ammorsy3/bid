@@ -66,7 +66,7 @@ export default function CompanyBasics() {
 
   const onSubmit = (data: CompanyBasicsForm) => {
     saveDraft(data);
-    setLocation("/onboarding/company-profile");
+    setLocation("/onboarding/company-documents");
   };
 
   if (!user) return null;

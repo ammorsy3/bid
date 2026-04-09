@@ -415,8 +415,8 @@ export default function Settings() {
     },
     onSuccess: () => {
       toast({
-        title: "Theme saved",
-        description: "Your Traction Page theme has been updated.",
+        title: t('dashboard.tractionThemeSaved'),
+        description: t('dashboard.tractionThemeSavedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       checkAuth();
@@ -1237,23 +1237,23 @@ export default function Settings() {
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
                   <Palette className="h-5 w-5" />
-                  Traction Page
+                  {t('dashboard.tractionPage')}
                 </h2>
                 <Card>
                   <CardContent className="pt-6 space-y-6">
                     <p className="text-sm text-muted-foreground">
-                      Customize how your Vendor Registration page looks. Vendors will see this when they visit your Traction Link.
+                      {t('dashboard.tractionPageDesc')}
                     </p>
 
                     {/* Theme Picker */}
                     <div>
-                      <Label className="text-sm font-medium mb-3 block">Theme</Label>
+                      <Label className="text-sm font-medium mb-3 block">{t('dashboard.tractionTheme')}</Label>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {([
-                          { id: 'classic' as const, name: 'Classic', desc: 'Clean & professional', headerStyle: 'clean', preview: 'bg-white border-2' },
-                          { id: 'modern' as const, name: 'Modern', desc: 'Gradient hero', headerStyle: 'gradient', preview: 'bg-gradient-to-br from-orange-400 to-purple-600' },
-                          { id: 'bold' as const, name: 'Bold', desc: 'Full-color header', headerStyle: 'solid', preview: 'bg-[#E8614D]' },
-                          { id: 'minimal' as const, name: 'Minimal', desc: 'Typography-focused', headerStyle: 'clean', preview: 'bg-gray-50 border-2' },
+                          { id: 'classic' as const, name: t('dashboard.tractionThemeClassic'), desc: t('dashboard.tractionThemeClassicDesc'), headerStyle: 'clean', preview: 'bg-white border-2' },
+                          { id: 'modern' as const, name: t('dashboard.tractionThemeModern'), desc: t('dashboard.tractionThemeModernDesc'), headerStyle: 'gradient', preview: 'bg-gradient-to-br from-orange-400 to-purple-600' },
+                          { id: 'bold' as const, name: t('dashboard.tractionThemeBold'), desc: t('dashboard.tractionThemeBoldDesc'), headerStyle: 'solid', preview: 'bg-[#E8614D]' },
+                          { id: 'minimal' as const, name: t('dashboard.tractionThemeMinimal'), desc: t('dashboard.tractionThemeMinimalDesc'), headerStyle: 'clean', preview: 'bg-gray-50 border-2' },
                         ]).map(th => (
                           <button
                             key={th.id}
@@ -1283,7 +1283,7 @@ export default function Settings() {
                     {/* Color Customization */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-sm font-medium mb-2 block">Primary Color</Label>
+                        <Label className="text-sm font-medium mb-2 block">{t('dashboard.tractionPrimaryColor')}</Label>
                         <div className="flex items-center gap-3">
                           <input
                             type="color"
@@ -1300,7 +1300,7 @@ export default function Settings() {
                         </div>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium mb-2 block">Accent Color</Label>
+                        <Label className="text-sm font-medium mb-2 block">{t('dashboard.tractionAccentColor')}</Label>
                         <div className="flex items-center gap-3">
                           <input
                             type="color"
@@ -1321,7 +1321,7 @@ export default function Settings() {
                     {/* Custom Text */}
                     <div className="space-y-3">
                       <div>
-                        <Label className="text-sm font-medium mb-1.5 block">CTA Button Text</Label>
+                        <Label className="text-sm font-medium mb-1.5 block">{t('dashboard.tractionCtaText')}</Label>
                         <Input
                           value={tractionTheme.ctaText || ''}
                           onChange={(e) => setTractionTheme(prev => ({ ...prev, ctaText: e.target.value || undefined }))}
@@ -1330,7 +1330,7 @@ export default function Settings() {
                         />
                       </div>
                       <div>
-                        <Label className="text-sm font-medium mb-1.5 block">Welcome Heading</Label>
+                        <Label className="text-sm font-medium mb-1.5 block">{t('dashboard.tractionWelcomeHeading')}</Label>
                         <Input
                           value={tractionTheme.welcomeHeading || ''}
                           onChange={(e) => setTractionTheme(prev => ({ ...prev, welcomeHeading: e.target.value || undefined }))}
@@ -1339,7 +1339,7 @@ export default function Settings() {
                         />
                       </div>
                       <div>
-                        <Label className="text-sm font-medium mb-1.5 block">Welcome Subtext</Label>
+                        <Label className="text-sm font-medium mb-1.5 block">{t('dashboard.tractionWelcomeSubtext')}</Label>
                         <Textarea
                           value={tractionTheme.welcomeSubtext || ''}
                           onChange={(e) => setTractionTheme(prev => ({ ...prev, welcomeSubtext: e.target.value || undefined }))}
@@ -1352,7 +1352,7 @@ export default function Settings() {
 
                     {/* Mini Preview */}
                     <div>
-                      <Label className="text-sm font-medium mb-2 block">Preview</Label>
+                      <Label className="text-sm font-medium mb-2 block">{t('dashboard.tractionPreview')}</Label>
                       <div className="rounded-xl border overflow-hidden">
                         {/* Mini hero */}
                         <div className="p-4 text-center" style={
@@ -1406,10 +1406,10 @@ export default function Settings() {
                         {saveThemeMutation.isPending ? (
                           <>
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Saving...
+                            {t('dashboard.tractionSavingTheme')}
                           </>
                         ) : (
-                          'Save Theme'
+                          t('dashboard.tractionSaveTheme')
                         )}
                       </Button>
                       <a
@@ -1419,7 +1419,7 @@ export default function Settings() {
                         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <Eye className="h-4 w-4" />
-                        Preview Page
+                        {t('dashboard.tractionPreviewPage')}
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>

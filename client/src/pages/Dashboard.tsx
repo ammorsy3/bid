@@ -157,6 +157,7 @@ interface IncomingOffer {
 function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl: boolean }) {
   const { toast } = useToast();
   const { checkAuth } = useAuthStore();
+  const { t } = useI18n();
   const defaultSlug = companyName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
   const [slug, setSlug] = useState(defaultSlug);
   const [isEditing, setIsEditing] = useState(false);
@@ -168,7 +169,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
       return await res.json();
     },
     onSuccess: (data) => {
-      toast({ title: "Traction link created!", description: `Your link is now live at /traction/${data.slug}` });
+      toast({ title: t('dashboard.tractionLinkCreated'), description: `${t('dashboard.tractionLinkLiveAt')} /traction/${data.slug}` });
       setSlugTaken(false);
       checkAuth();
     },
@@ -188,8 +189,8 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
           <Link2 className="h-4 w-4 text-[#E8614D]" />
         </div>
         <div className={isRtl ? 'text-right' : ''}>
-          <p className="text-sm font-semibold">Create your Traction Link</p>
-          <p className="text-xs text-muted-foreground">A shareable page where vendors can apply to join your network</p>
+          <p className="text-sm font-semibold">{t('dashboard.createTractionLink')}</p>
+          <p className="text-xs text-muted-foreground">{t('dashboard.createTractionLinkDesc')}</p>
         </div>
       </div>
       {isEditing ? (
@@ -209,13 +210,13 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
             />
           </div>
           {slugTaken && (
-            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            <div className={`flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 ${isRtl ? 'flex-row-reverse text-right' : ''}`}>
               <HelpCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
               <div>
-                <p className="text-xs text-amber-700 font-medium">"{slug}" is already taken</p>
+                <p className="text-xs text-amber-700 font-medium">"{slug}" {t('dashboard.slugTaken')}</p>
                 <p className="text-xs text-amber-600 mt-0.5">
-                  Try <button className="underline font-medium hover:text-amber-800" onClick={() => { setSlug(`${slug}-co`); setSlugTaken(false); }}>{slug}-co</button>,{' '}
-                  <button className="underline font-medium hover:text-amber-800" onClick={() => { setSlug(`${slug}-${Math.floor(Math.random() * 99) + 1}`); setSlugTaken(false); }}>{slug}-{Math.floor(Math.random() * 99) + 1}</button>, or something unique to your brand
+                  <button className="underline font-medium hover:text-amber-800" onClick={() => { setSlug(`${slug}-co`); setSlugTaken(false); }}>{slug}-co</button>,{' '}
+                  <button className="underline font-medium hover:text-amber-800" onClick={() => { setSlug(`${slug}-${Math.floor(Math.random() * 99) + 1}`); setSlugTaken(false); }}>{slug}-{Math.floor(Math.random() * 99) + 1}</button> {t('dashboard.slugTakenSuggestion')}
                 </p>
               </div>
             </div>
@@ -228,9 +229,9 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
               className="bg-[#E8614D] hover:bg-[#d4553f] text-white"
               data-testid="button-create-traction"
             >
-              {createSlugMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Link'}
+              {createSlugMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('dashboard.createLink')}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => { setIsEditing(false); setSlugTaken(false); }}>Cancel</Button>
+            <Button size="sm" variant="ghost" onClick={() => { setIsEditing(false); setSlugTaken(false); }}>{t('common.cancel')}</Button>
           </div>
         </div>
       ) : (
@@ -241,8 +242,8 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
           className="border-[#E8614D]/30 text-[#E8614D] hover:bg-[#E8614D]/5"
           data-testid="button-setup-traction"
         >
-          <Plus className="h-4 w-4 mr-1" />
-          Set up Traction Link
+          <Plus className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+          {t('dashboard.setupTractionLink')}
         </Button>
       )}
     </div>
@@ -2403,8 +2404,8 @@ export default function Dashboard() {
                           <Link2 className="h-4 w-4 text-[#E8614D]" />
                         </div>
                         <div className={isRtl ? 'text-right' : ''}>
-                          <p className="text-sm font-semibold">Your Traction Link</p>
-                          <p className="text-xs text-muted-foreground">Share this link with vendors to invite them</p>
+                          <p className="text-sm font-semibold">{t('dashboard.yourTractionLink')}</p>
+                          <p className="text-xs text-muted-foreground">{t('dashboard.shareLinkWithVendors')}</p>
                         </div>
                       </div>
                       <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -2416,7 +2417,7 @@ export default function Dashboard() {
                           size="sm"
                           onClick={() => {
                             navigator.clipboard.writeText(`${window.location.origin}/traction/${activeCompany.profile?.tractionSlug}`);
-                            toast({ title: "Link copied!", description: "Traction link copied to clipboard." });
+                            toast({ title: t('dashboard.linkCopied'), description: t('dashboard.linkCopiedDesc') });
                           }}
                           data-testid="button-copy-traction-link"
                         >

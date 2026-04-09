@@ -4109,7 +4109,8 @@ Respond with ONLY a JSON object. Example:
         company: {
           id: result.company.id,
           name: result.company.name,
-          category: result.company.category
+          category: result.company.category,
+          city: result.company.city,
         },
         profile: {
           displayName: result.displayName,
@@ -4117,6 +4118,7 @@ Respond with ONLY a JSON object. Example:
           logoUrl: result.logoUrl,
           headerUrl: result.headerUrl,
           socialLinks: result.socialLinks,
+          tags: result.tags || [],
           tractionTheme: result.tractionTheme || null
         }
       });

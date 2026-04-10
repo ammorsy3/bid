@@ -1,0 +1,99 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "fontRegular",
+      "count": 129
+    }
+  ],
+  "colors": {
+    "primary": "#1C8657",
+    "secondary": "#F44336",
+    "accent": "#4CAF50",
+    "background": "#EEEEEE",
+    "textPrimary": "#808080",
+    "link": "#4CAF50"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "fontRegular",
+      "heading": "fontRegular"
+    },
+    "fontStacks": {
+      "body": [
+        "fontRegular"
+      ],
+      "heading": [
+        "fontRegular"
+      ],
+      "paragraph": [
+        "fontRegular"
+      ]
+    },
+    "fontSizes": {
+      "h1": "16px",
+      "h2": "36px",
+      "body": "14px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "4px"
+  },
+  "components": {
+    "input": {
+      "background": "transparent",
+      "textColor": "#000000",
+      "borderColor": null,
+      "borderRadius": "0px",
+      "borderRadiusCorners": {
+        "topLeft": "0px",
+        "topRight": "0px",
+        "bottomRight": "0px",
+        "bottomLeft": "0px"
+      },
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "favicon": "https://tenders.etimad.sa/Etimad-UI/assets/imgs/favicon.ico",
+    "ogImage": null
+  },
+  "__llm_logo_reasoning": {
+    "selectedIndex": -1,
+    "reasoning": "None of the candidates are located in the header or have strong indicators of being the main brand logo. They are all positioned in the body and do not link to the homepage, which is a critical factor for a primary logo.",
+    "confidence": 0.3,
+    "rejected": true,
+    "source": "llm"
+  },
+  "personality": {
+    "tone": "professional",
+    "energy": "low",
+    "targetAudience": "government and business professionals"
+  },
+  "designSystem": {
+    "framework": "custom",
+    "componentLibrary": ""
+  },
+  "confidence": {
+    "buttons": 0,
+    "colors": 0.9,
+    "overall": 0.45
+  },
+  "__llm_metadata": {
+    "logoSelection": {
+      "llmCalled": true,
+      "llmSucceeded": true,
+      "finalSource": "llm",
+      "rawLogoSelection": {
+        "selectedLogoIndex": -1,
+        "selectedLogoReasoning": "None of the candidates are located in the header or have strong indicators of being the main brand logo. They are all positioned in the body and do not link to the homepage, which is a critical factor for a primary logo.",
+        "confidence": 0.3
+      }
+    },
+    "buttonClassification": {
+      "llmCalled": false,
+      "llmSucceeded": false
+    }
+  }
+}

@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, Handshake } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, Handshake, Store } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -453,6 +453,19 @@ export default function TenderDetails() {
     }
   });
 
+  const marketplaceSubmit = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('POST', `/api/tenders/${id}/marketplace-submit`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders', id] });
+      toast({ title: t('marketplace.submitted') || 'Submitted', description: t('marketplace.submittedDesc') || 'Your tender has been submitted for marketplace review' });
+    },
+    onError: (error: Error) => {
+      toast({ title: t('marketplace.error'), description: error.message, variant: "destructive" });
+    }
+  });
+
   const deleteTender = useMutation({
     mutationFn: async () => {
       return await apiRequest('DELETE', `/api/tenders/${id}`, {});
@@ -722,6 +735,26 @@ export default function TenderDetails() {
                       disabled={updateStatus.isPending} data-testid="button-close">
                       {t('tenderFlow.closeBtn')}
                     </Button>
+                  )}
+                  {tender.status === 'published' && !tender.isMarketplace && (
+                    <Button variant="outline" className="bg-white/80 border-[#E8614D]/30 text-[#E8614D] hover:bg-[#E8614D]/10"
+                      onClick={() => marketplaceSubmit.mutate()}
+                      disabled={marketplaceSubmit.isPending} data-testid="button-marketplace">
+                      {marketplaceSubmit.isPending ? <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> : <Store className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />}
+                      {t('marketplace.publishToMarketplace') || 'Publish to Marketplace'}
+                    </Button>
+                  )}
+                  {tender.isMarketplace && tender.marketplaceStatus === 'pending' && (
+                    <Badge className="bg-amber-100 text-amber-800 text-xs px-3 py-1.5">
+                      <Clock className="h-3.5 w-3.5 mr-1" />
+                      {t('marketplace.pendingReview') || 'Marketplace Review Pending'}
+                    </Badge>
+                  )}
+                  {tender.isMarketplace && tender.marketplaceStatus === 'approved' && (
+                    <Badge className="bg-green-100 text-green-800 text-xs px-3 py-1.5">
+                      <Store className="h-3.5 w-3.5 mr-1" />
+                      {t('marketplace.liveOnMarketplace') || 'Live on Marketplace'}
+                    </Badge>
                   )}
                   <Button variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 bg-white/80"
                     onClick={() => { if (confirm(t('tenderFlow.deleteConfirm'))) { deleteTender.mutate(); } }}

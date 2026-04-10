@@ -44,6 +44,12 @@ interface MarketplaceStats {
   totalOffers: number;
 }
 
+const SAUDI_CITIES = [
+  "Riyadh", "Jeddah", "Mecca", "Medina", "Dammam", "Khobar", "Dhahran",
+  "Tabuk", "Abha", "Taif", "Hail", "Jubail", "Yanbu", "Najran", "Jazan",
+  "Al Kharj", "Buraydah", "Khamis Mushait", "Al Hofuf", "Sakaka"
+];
+
 const TENDER_TYPE_COLORS: Record<string, string> = {
   open_tender: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
   direct_purchase: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
@@ -244,6 +250,17 @@ export default function Marketplace() {
                   <SelectItem value="all">{t('marketplace.allCategories')}</SelectItem>
                   {VENDOR_CATEGORIES.map((cat) => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={city} onValueChange={(v) => { setCity(v === "all" ? "" : v); setPage(1); }}>
+                <SelectTrigger className="sm:w-[200px]">
+                  <SelectValue placeholder={t('marketplace.city')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('marketplace.allCities')}</SelectItem>
+                  {SAUDI_CITIES.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

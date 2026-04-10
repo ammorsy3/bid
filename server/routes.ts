@@ -2374,7 +2374,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Invalid status" });
         }
 
-        // Validate status transitions
+        if (tender.isMarketplace && tender.marketplaceStatus === 'approved' && status === 'cancelled') {
+          return res.status(400).json({
+            message: "Cannot cancel a tender that is published on the marketplace. Contact admin to remove it first."
+          });
+        }
+
         const validTransitions: Record<string, string[]> = {
           'draft': ['published', 'cancelled'],
           'published': ['draft', 'closed', 'cancelled'],
@@ -5006,6 +5011,20 @@ Respond with ONLY a JSON object. Example:
       res.json(pos);
     } catch (error) {
       console.error("Error fetching purchase orders:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.patch("/api/purchase-orders/:id", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { status } = req.body;
+      if (!status || !['pending', 'verified', 'rejected'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status. Must be pending, verified, or rejected." });
+      }
+      const po = await storage.updatePurchaseOrder(req.params.id, { status });
+      res.json(po);
+    } catch (error) {
+      console.error("Error updating purchase order:", error);
       res.status(500).json({ message: "Server error" });
     }
   });

@@ -1826,7 +1826,12 @@ export class DatabaseStorage implements IStorage {
 
     const [offersResult] = await db
       .select({ count: count() })
-      .from(offers);
+      .from(offers)
+      .innerJoin(tenders, eq(offers.tenderId, tenders.id))
+      .where(and(
+        eq(tenders.isMarketplace, true),
+        eq(tenders.marketplaceStatus, 'approved'),
+      ));
 
     return {
       activeTenders: activeResult?.count || 0,

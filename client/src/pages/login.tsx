@@ -76,17 +76,18 @@ export default function Login() {
     try {
       // Pass trusted browser token if one exists
       const trustedToken = localStorage.getItem('trustedBrowserToken');
-      await login(data.email, data.password, trustedToken || undefined);
-      // Mark that login already sent the OTP so verify-email doesn't double-send
       sessionStorage.setItem('otp_sent_by_login', 'true');
       if (rememberDevice) {
         sessionStorage.setItem('remember_browser', 'true');
       }
+      await login(data.email, data.password, trustedToken || undefined);
       toast({
         title: t('common.success'),
         description: t('auth.loginSuccess'),
       });
     } catch (error) {
+      sessionStorage.removeItem('otp_sent_by_login');
+      sessionStorage.removeItem('remember_browser');
       toast({
         title: t('common.error'),
         description: t('auth.loginError'),

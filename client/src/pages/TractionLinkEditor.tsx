@@ -188,6 +188,7 @@ export default function TractionLinkEditor() {
   // Local theme state for live editing
   const [theme, setTheme] = useState<TractionTheme>(DEFAULT_THEME);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [headerPreview, setHeaderPreview] = useState<string | null>(null);
 
   // Initialize theme from fetched data
   useEffect(() => {
@@ -196,6 +197,9 @@ export default function TractionLinkEditor() {
     }
     if (data?.profile.logoUrl) {
       setLogoPreview(data.profile.logoUrl);
+    }
+    if (data?.profile.headerUrl) {
+      setHeaderPreview(data.profile.headerUrl);
     }
   }, [data]);
 
@@ -212,6 +216,32 @@ export default function TractionLinkEditor() {
     },
     onError: (error: Error) => {
       toast({ title: t('tractionPage.editorSaveFailed'), description: error.message, variant: "destructive" });
+    },
+  });
+
+  // Header upload mutation
+  const uploadHeaderMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetch('/api/company/header', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: formData,
+      });
+      if (!response.ok) throw new Error('Failed to upload header');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.url) setHeaderPreview(data.url);
+      queryClient.invalidateQueries({ queryKey: ['/api/r', slug] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      checkAuth();
+      toast({ title: t('tractionPage.editorHeaderUpdated') });
+    },
+    onError: (error: Error) => {
+      setHeaderPreview(data?.profile.headerUrl || null);
+      toast({ title: t('tractionPage.editorHeaderUploadFailed'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -282,10 +312,11 @@ export default function TractionLinkEditor() {
   // Computed values for preview
   const pc = theme.primaryColor;
   const pcRgb = hexToRgbString(pc);
-  const bgType = resolveBgType(theme, data.profile.headerUrl);
+  const currentHeaderUrl = headerPreview || data.profile.headerUrl;
+  const bgType = resolveBgType(theme, currentHeaderUrl);
   const dark = isBgDark(bgType);
   const colors = computeTextColors(bgType);
-  const headerBgStyle = computeHeaderBg(theme, data.profile.headerUrl, bgType);
+  const headerBgStyle = computeHeaderBg(theme, currentHeaderUrl, bgType);
   const heading = theme.welcomeHeading || t('tractionPage.defaultHeading').replace('{company}', data.profile.displayName);
   const subtext = theme.welcomeSubtext || t('tractionPage.defaultSubtext');
   const ctaLabel = theme.ctaText || t('tractionPage.applyToJoin');
@@ -298,8 +329,8 @@ export default function TractionLinkEditor() {
     { id: 'gradient', label: t('tractionPage.editorBgGradient'), preview: { background: `linear-gradient(135deg, ${pc}, ${theme.accentColor})` } },
     { id: 'solid', label: t('tractionPage.editorBgSolid'), preview: { background: pc } },
     { id: 'clean', label: t('tractionPage.editorBgLight'), preview: { background: '#ffffff', border: '1px solid #e5e7eb' } },
-    { id: 'image', label: t('tractionPage.editorBgImage'), preview: data.profile.headerUrl
-      ? { backgroundImage: `url(${data.profile.headerUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    { id: 'image', label: t('tractionPage.editorBgImage'), preview: (headerPreview || data.profile.headerUrl)
+      ? { backgroundImage: `url(${headerPreview || data.profile.headerUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
       : { background: '#e5e7eb' }
     },
   ];
@@ -438,10 +469,58 @@ export default function TractionLinkEditor() {
                   </button>
                 ))}
               </div>
-              {theme.headerStyle === 'image' && !data.profile.headerUrl && (
-                <p className="text-[11px] text-amber-600 mt-2 bg-amber-50 rounded-lg px-3 py-2">
-                  {t('tractionPage.editorBgImageHint')}
-                </p>
+              {theme.headerStyle === 'image' && (
+                <div className="mt-3 space-y-2">
+                  {(headerPreview || data.profile.headerUrl) ? (
+                    <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                      <img
+                        src={headerPreview || data.profile.headerUrl}
+                        alt="Header background"
+                        className="w-full h-20 object-cover"
+                      />
+                      <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setHeaderPreview(URL.createObjectURL(file));
+                              uploadHeaderMutation.mutate(file);
+                            }
+                          }}
+                        />
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white border border-white/50">
+                          <Upload className="h-3 w-3" />
+                          {uploadHeaderMutation.isPending ? t('tractionPage.editorUploading') : t('tractionPage.editorReplaceHeader')}
+                        </span>
+                      </label>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer block">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setHeaderPreview(URL.createObjectURL(file));
+                            uploadHeaderMutation.mutate(file);
+                          }
+                        }}
+                      />
+                      <div className="flex items-center justify-center gap-2 px-3 py-3 rounded-lg border border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors">
+                        <Upload className="h-4 w-4 text-gray-400" />
+                        <span className="text-xs text-gray-500">
+                          {uploadHeaderMutation.isPending ? t('tractionPage.editorUploading') : t('tractionPage.editorUploadHeader')}
+                        </span>
+                      </div>
+                    </label>
+                  )}
+                  <p className="text-[10px] text-gray-400">{t('tractionPage.editorHeaderHint')}</p>
+                </div>
               )}
             </section>
 

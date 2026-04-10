@@ -1053,7 +1053,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload company logo
+  // Upload company header image
+  app.post("/api/company/header", authenticateToken, requireCompanyContext, upload.single('file'), async (req: AuthRequest, res) => {
+    try {
+      const companyId = req.auth!.activeCompanyId!;
+      const role = req.auth!.roleInCompany;
+      
+      if (role !== 'owner' && role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const file = (req as any).file;
+      if (!file) {
+        return res.status(400).json({ message: "No file provided" });
+      }
+
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ message: "Invalid file type. Only jpg, jpeg, png, gif, webp are allowed." });
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        return res.status(400).json({ message: "File too large. Maximum size is 5MB." });
+      }
+      
+      const objectStorage = new ObjectStorageService();
+      
+      const result = await objectStorage.uploadPublicFile({
+        buffer: file.buffer,
+        folder: 'company-headers',
+        filename: file.originalname,
+        contentType: file.mimetype,
+      });
+      
+      await storage.updateCompanyProfile(companyId, { headerUrl: result.url });
+      
+      res.json({ message: "Company header uploaded successfully", url: result.url });
+    } catch (error) {
+      console.error('Upload company header error:', error);
+      res.status(500).json({ message: "Failed to upload company header" });
+    }
+  });
+
   app.post("/api/company/logo", authenticateToken, requireCompanyContext, upload.single('file'), async (req: AuthRequest, res) => {
     try {
       const companyId = req.auth!.activeCompanyId!;

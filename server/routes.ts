@@ -3990,6 +3990,9 @@ Respond with ONLY a JSON object. Example:
               company: r.profile?.displayName || r.vendorCompany.name,
               expertise: r.vendorCompany.category,
               verificationStatus: r.vendorCompany.verificationStatus || 'not_verified',
+              logoUrl: r.profile?.logoUrl || null,
+              bio: r.profile?.bio || null,
+              websiteUrl: r.profile?.socialLinks?.website || null,
             },
           };
         }));

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Building2, FileText, Globe, Linkedin, ExternalLink, Loader2,
-  ShieldCheck, Clock, XCircle, Mail, User, Briefcase,
+  ShieldCheck, Clock, XCircle, Briefcase, CheckCircle,
 } from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -36,6 +36,11 @@ interface VendorProfileDrawerProps {
   open: boolean;
   onClose: () => void;
   joinRequestId: string;
+  showActions?: boolean;
+  onApprove?: (id: string) => void;
+  onDecline?: (id: string) => void;
+  isApproving?: boolean;
+  isDeclining?: boolean;
 }
 
 const getStatusConfig = (status: string) => {
@@ -61,7 +66,10 @@ const getStatusConfig = (status: string) => {
   }
 };
 
-export default function VendorProfileDrawer({ open, onClose, joinRequestId }: VendorProfileDrawerProps) {
+export default function VendorProfileDrawer({
+  open, onClose, joinRequestId,
+  showActions, onApprove, onDecline, isApproving, isDeclining
+}: VendorProfileDrawerProps) {
   const { data, isLoading } = useQuery<VendorProfileData>({
     queryKey: [`/api/join-requests/${joinRequestId}/profile`],
     enabled: open && !!joinRequestId,
@@ -151,35 +159,6 @@ export default function VendorProfileDrawer({ open, onClose, joinRequestId }: Ve
                 </div>
               )}
 
-              {/* Contact */}
-              <div>
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Contact</h3>
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <span className="text-gray-700" data-testid="text-contact-company">{data.vendor.company}</span>
-                  </div>
-                  {data.vendor.name && (
-                    <div className="flex items-center gap-3 text-sm">
-                      <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
-                        <User className="h-4 w-4 text-gray-400" />
-                      </div>
-                      <span className="text-gray-700">{data.vendor.name}</span>
-                    </div>
-                  )}
-                  {data.vendor.email && (
-                    <div className="flex items-center gap-3 text-sm">
-                      <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
-                        <Mail className="h-4 w-4 text-gray-400" />
-                      </div>
-                      <span className="text-gray-700">{data.vendor.email}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
               {/* Company Brochure */}
               {data.profile?.profileFileUrl && (
                 <div>
@@ -256,6 +235,39 @@ export default function VendorProfileDrawer({ open, onClose, joinRequestId }: Ve
                 </div>
               )}
             </div>
+
+            {/* Approve / Decline Actions */}
+            {showActions && (
+              <div className="border-t border-gray-100 px-6 py-4 flex items-center gap-3 bg-gray-50/50">
+                <Button
+                  variant="outline"
+                  className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  onClick={() => onDecline?.(joinRequestId)}
+                  disabled={isDeclining || isApproving}
+                  data-testid="button-drawer-decline"
+                >
+                  {isDeclining ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <XCircle className="h-4 w-4 mr-2" />
+                  )}
+                  Decline
+                </Button>
+                <Button
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  onClick={() => onApprove?.(joinRequestId)}
+                  disabled={isApproving || isDeclining}
+                  data-testid="button-drawer-approve"
+                >
+                  {isApproving ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                  )}
+                  Approve
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-2">

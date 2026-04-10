@@ -25,7 +25,7 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,6 +42,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
+import VendorProfileDrawer from "@/components/VendorProfileDrawer";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 
 interface VendorProfile {
@@ -72,6 +73,9 @@ interface JoinRequest {
     company: string;
     expertise: string | null;
     verificationStatus: string;
+    logoUrl: string | null;
+    bio: string | null;
+    websiteUrl: string | null;
   };
 }
 
@@ -354,6 +358,8 @@ export default function Dashboard() {
   const { t, isRtl, language, setLanguage } = useI18n();
     const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
+  const [profileDrawerOpen, setProfileDrawerOpen] = useState(false);
+  const [profileJoinRequestId, setProfileJoinRequestId] = useState<string | null>(null);
   const [selectedProposal, setSelectedProposal] = useState<IncomingOffer | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<VendorProfile | null>(null);
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
@@ -631,6 +637,8 @@ export default function Dashboard() {
         description: data.message || "Vendor has been added to your base",
       });
       setSelectedRequest(null);
+      setProfileDrawerOpen(false);
+      setProfileJoinRequestId(null);
     },
     onError: (error: Error) => {
       toast({
@@ -653,6 +661,8 @@ export default function Dashboard() {
         description: "Vendor application has been declined",
       });
       setSelectedRequest(null);
+      setProfileDrawerOpen(false);
+      setProfileJoinRequestId(null);
     },
     onError: (error: Error) => {
       toast({
@@ -2719,159 +2729,168 @@ export default function Dashboard() {
                       </CardContent>
                     </Card>
                   ) : (
-                    <Card className="border-2 border-primary/20 bg-primary/5">
-                      <CardHeader className={isRtl ? 'text-right' : ''}>
-                        <CardTitle className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`} data-testid="text-pending-title">
+                    <div className="space-y-4">
+                      <div className={isRtl ? 'text-right' : ''}>
+                        <h3 className={`text-lg font-semibold flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`} data-testid="text-pending-title">
                           <UserPlus className="h-5 w-5" />
                           {t('dashboard.pendingRequests')} ({pendingRequests.length})
-                        </CardTitle>
-                        <CardDescription>
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
                           {t('dashboard.vendorsBaseDesc')}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {pendingRequests.map((request) => (
-                          <Card key={request.id} className="border-primary/20" data-testid={`card-request-${request.id}`}>
-                            <CardHeader>
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-3 mb-1">
-                                    <CardTitle className="text-lg" data-testid={`text-request-company-${request.id}`}>
+                        </p>
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {pendingRequests.map((request) => {
+                          const initials = (request.vendor?.company || 'U')
+                            .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                          const timeAgo = request.createdAt ? new Date(request.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                          return (
+                            <div
+                              key={request.id}
+                              className="group relative bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-md transition-all"
+                              data-testid={`card-request-${request.id}`}
+                            >
+                              {/* Card Header with Logo */}
+                              <div className="p-5 pb-3">
+                                <div className={`flex items-start gap-3.5 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                  {request.vendor?.logoUrl ? (
+                                    <img
+                                      src={request.vendor.logoUrl}
+                                      alt={request.vendor.company}
+                                      className="w-12 h-12 rounded-xl object-cover border border-gray-100 flex-shrink-0 bg-white"
+                                    />
+                                  ) : (
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0 border border-primary/10">
+                                      <span className="text-sm font-bold text-primary">{initials}</span>
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold text-gray-900 truncate" data-testid={`text-request-company-${request.id}`}>
                                       {request.vendor?.company || t('dashboard.unknownVendor')}
-                                    </CardTitle>
-                                    <Badge 
-                                      variant={
-                                        request.vendor?.verificationStatus === 'verified' ? 'default' :
-                                        request.vendor?.verificationStatus === 'under_review' ? 'secondary' :
-                                        'outline'
-                                      }
-                                      className={
-                                        request.vendor?.verificationStatus === 'verified' 
-                                          ? 'bg-green-100 text-green-800 border-green-200' 
-                                          : request.vendor?.verificationStatus === 'under_review'
-                                          ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                                          : 'bg-gray-100 text-gray-800 border-gray-200'
-                                      }
-                                      data-testid={`badge-request-status-${request.id}`}
-                                    >
-                                      {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 mr-1" />}
-                                      {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 mr-1" />}
-                                      {request.vendor?.verificationStatus === 'verified' ? t('dashboard.verifiedStatus') :
-                                       request.vendor?.verificationStatus === 'under_review' ? t('dashboard.underReviewStatus') :
-                                       t('dashboard.notVerifiedStatus')}
-                                    </Badge>
-                                  </div>
-                                  <CardDescription data-testid={`text-request-category-${request.id}`}>
-                                    {request.vendor?.expertise || t('dashboard.noCategory')}
-                                  </CardDescription>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Dialog>
-                                    <DialogTrigger asChild>
-                                      <Button
+                                    </h3>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                      <Badge
                                         variant="outline"
-                                        size="sm"
-                                        onClick={() => setSelectedRequest(request)}
-                                        data-testid={`button-review-${request.id}`}
+                                        className={
+                                          request.vendor?.verificationStatus === 'verified'
+                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0'
+                                            : request.vendor?.verificationStatus === 'under_review'
+                                            ? 'bg-amber-50 text-amber-700 border-amber-200 text-xs px-2 py-0'
+                                            : 'bg-gray-50 text-gray-500 border-gray-200 text-xs px-2 py-0'
+                                        }
+                                        data-testid={`badge-request-status-${request.id}`}
                                       >
-                                        {t('dashboard.view')}
-                                      </Button>
-                                    </DialogTrigger>
-                                    <DialogContent data-testid="dialog-review">
-                                      <DialogHeader>
-                                        <DialogTitle data-testid="text-dialog-title">
-                                          {t('dashboard.reviewApplication')} {selectedRequest?.vendor?.company || t('dashboard.unknownVendor')}
-                                        </DialogTitle>
-                                        <DialogDescription>
-                                          {t('dashboard.reviewApplicationDesc')}
-                                        </DialogDescription>
-                                      </DialogHeader>
-                                      {selectedRequest && (
-                                        <div className="space-y-4">
-                                          <div className="grid gap-3">
-                                            <div>
-                                              <label className="text-sm font-medium">{t('dashboard.companyNameLabel')}</label>
-                                              <p className="text-sm text-muted-foreground" data-testid="text-dialog-company">
-                                                {selectedRequest.vendor?.company || t('dashboard.unknownVendor')}
-                                              </p>
-                                            </div>
-                                            <div>
-                                              <label className="text-sm font-medium">{t('dashboard.contactPersonLabel')}</label>
-                                              <p className="text-sm text-muted-foreground" data-testid="text-dialog-contact">
-                                                {selectedRequest.vendor?.name || t('dashboard.unknownVendor')}
-                                              </p>
-                                            </div>
-                                            <div>
-                                              <label className="text-sm font-medium">{t('dashboard.emailLabel')}</label>
-                                              <p className="text-sm text-muted-foreground" data-testid="text-dialog-email">
-                                                {selectedRequest.vendor?.email || t('dashboard.unknownVendor')}
-                                              </p>
-                                            </div>
-                                            <div>
-                                              <label className="text-sm font-medium">{t('dashboard.expertiseLabel')}</label>
-                                              <p className="text-sm text-muted-foreground" data-testid="text-dialog-expertise">
-                                                {selectedRequest.vendor?.expertise || t('auth.notSpecified')}
-                                              </p>
-                                            </div>
-                                            <div>
-                                              <label className="text-sm font-medium">{t('dashboard.verificationStatusLabel')}</label>
-                                              <Badge variant={selectedRequest.vendor?.verificationStatus === 'verified' ? 'default' : 'secondary'}>
-                                                {selectedRequest.vendor?.verificationStatus || 'unknown'}
-                                              </Badge>
-                                            </div>
-                                          </div>
-                                          <div className={`flex gap-3 pt-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                            <Button
-                                              onClick={() => approveRequest.mutate(selectedRequest.id)}
-                                              disabled={approveRequest.isPending || rejectRequest.isPending}
-                                              className="flex-1"
-                                              data-testid="button-approve"
-                                            >
-                                              {approveRequest.isPending ? (
-                                                <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                                              ) : (
-                                                <CheckCircle className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                                              )}
-                                              {t('dashboard.approve')}
-                                            </Button>
-                                            <Button
-                                              onClick={() => rejectRequest.mutate(selectedRequest.id)}
-                                              disabled={approveRequest.isPending || rejectRequest.isPending}
-                                              variant="destructive"
-                                              className="flex-1"
-                                              data-testid="button-reject"
-                                            >
-                                              {rejectRequest.isPending ? (
-                                                <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                                              ) : (
-                                                <XCircle className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                                              )}
-                                              {t('dashboard.reject')}
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </DialogContent>
-                                  </Dialog>
+                                        {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 mr-1" />}
+                                        {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 mr-1" />}
+                                        {request.vendor?.verificationStatus === 'verified' ? t('dashboard.verifiedStatus') :
+                                         request.vendor?.verificationStatus === 'under_review' ? t('dashboard.underReviewStatus') :
+                                         t('dashboard.notVerifiedStatus')}
+                                      </Badge>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                              <div className="flex items-center gap-4 text-sm">
-                                <div className="flex items-center gap-2">
-                                  <Mail className="h-4 w-4 text-muted-foreground" />
-                                  <span data-testid={`text-request-email-${request.id}`}>{request.vendor?.email || 'N/A'}</span>
+
+                              {/* Card Body */}
+                              <div className="px-5 pb-4 space-y-3">
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                                  {request.vendor?.expertise && (
+                                    <span className="flex items-center gap-1" data-testid={`text-request-category-${request.id}`}>
+                                      <Briefcase className="h-3 w-3" />
+                                      {request.vendor.expertise}
+                                    </span>
+                                  )}
+                                  {request.vendor?.websiteUrl && (
+                                    <span className="flex items-center gap-1">
+                                      <Globe className="h-3 w-3" />
+                                      <a
+                                        href={request.vendor.websiteUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="hover:underline hover:text-foreground truncate max-w-[120px]"
+                                      >
+                                        {request.vendor.websiteUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
+                                      </a>
+                                    </span>
+                                  )}
+                                  {timeAgo && (
+                                    <span className="flex items-center gap-1">
+                                      <Calendar className="h-3 w-3" />
+                                      {timeAgo}
+                                    </span>
+                                  )}
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <UserCheck className="h-4 w-4 text-muted-foreground" />
-                                  <span data-testid={`text-request-name-${request.id}`}>{request.vendor?.name || 'N/A'}</span>
-                                </div>
+
+                                {request.vendor?.bio && (
+                                  <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">
+                                    {request.vendor.bio}
+                                  </p>
+                                )}
                               </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </CardContent>
-                    </Card>
+
+                              {/* Card Actions */}
+                              <div className={`border-t border-gray-100 px-5 py-3 flex items-center gap-2 bg-gray-50/50 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="flex-1 text-muted-foreground hover:text-foreground"
+                                  onClick={() => {
+                                    setProfileJoinRequestId(request.id);
+                                    setProfileDrawerOpen(true);
+                                  }}
+                                  data-testid={`button-view-profile-${request.id}`}
+                                >
+                                  <Eye className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                  {t('dashboard.view')}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                  onClick={() => rejectRequest.mutate(request.id)}
+                                  disabled={rejectRequest.isPending}
+                                  data-testid={`button-reject-${request.id}`}
+                                >
+                                  <XCircle className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                  {t('dashboard.reject')}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                                  onClick={() => approveRequest.mutate(request.id)}
+                                  disabled={approveRequest.isPending}
+                                  data-testid={`button-approve-${request.id}`}
+                                >
+                                  {approveRequest.isPending ? (
+                                    <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                  ) : (
+                                    <CheckCircle className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                  )}
+                                  {t('dashboard.approve')}
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Vendor Profile Drawer */}
+                  {profileJoinRequestId && (
+                    <VendorProfileDrawer
+                      open={profileDrawerOpen}
+                      onClose={() => {
+                        setProfileDrawerOpen(false);
+                        setProfileJoinRequestId(null);
+                      }}
+                      joinRequestId={profileJoinRequestId}
+                      showActions
+                      onApprove={(id) => approveRequest.mutate(id)}
+                      onDecline={(id) => rejectRequest.mutate(id)}
+                      isApproving={approveRequest.isPending}
+                      isDeclining={rejectRequest.isPending}
+                    />
                   )}
                 </TabsContent>
               </Tabs>

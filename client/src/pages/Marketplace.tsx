@@ -45,11 +45,37 @@ const SAUDI_CITIES = [
   "Al Kharj", "Buraydah", "Khamis Mushait", "Al Hofuf", "Sakaka"
 ];
 
-function getDaysRemaining(deadline: string) {
-  const diff = new Date(deadline).getTime() - Date.now();
-  if (diff <= 0) return { days: 0, expired: true };
-  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-  return { days, expired: false };
+function getTenderProgress(createdAt: string, deadline: string) {
+  const now = Date.now();
+  const start = new Date(createdAt).getTime();
+  const end = new Date(deadline).getTime();
+  const total = end - start;
+  const remaining = end - now;
+  if (remaining <= 0) return { days: 0, expired: true, percent: 0 };
+  const days = Math.ceil(remaining / (1000 * 60 * 60 * 24));
+  const percent = Math.min(100, Math.max(0, (remaining / total) * 100));
+  return { days, expired: false, percent };
+}
+
+function CircleProgress({ percent, days, expired, size = 56 }: { percent: number; days: number; expired: boolean; size?: number }) {
+  const stroke = 3.5;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (percent / 100) * circumference;
+  const color = expired ? '#ef4444' : percent < 25 ? '#f59e0b' : '#E8614D';
+
+  return (
+    <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f3f4f6" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} className="transition-all duration-500" />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-base font-bold leading-none" style={{ color }}>{expired ? 0 : days}</span>
+        <span className="text-[10px] text-gray-400 leading-none mt-0.5">{expired ? '—' : 'd'}</span>
+      </div>
+    </div>
+  );
 }
 
 export default function Marketplace() {
@@ -296,83 +322,92 @@ export default function Marketplace() {
             <p className="text-sm text-gray-400 mt-2">{t('marketplace.checkBackLater')}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="space-y-4">
             {tenders.map((tender) => {
-              const { days, expired } = getDaysRemaining(tender.deadline);
+              const { days, expired, percent } = getTenderProgress(tender.createdAt, tender.deadline);
+              const tenderTypeLabel =
+                tender.tenderType === 'open_tender' ? t('marketplace.openTender') :
+                tender.tenderType === 'direct_purchase' ? t('marketplace.directPurchase') :
+                tender.tenderType === 'framework_agreement' ? t('marketplace.frameworkAgreement') :
+                t('marketplace.openTender');
+              const formatDate = (dateStr: string) => {
+                const d = new Date(dateStr);
+                return d.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+              };
               return (
                 <a
                   key={tender.id}
                   href={`/invite/${tender.invitationToken}`}
-                  className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all cursor-pointer group flex flex-col no-underline"
+                  className="block bg-white rounded-xl border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer group no-underline overflow-hidden"
                   onClick={(e) => { e.preventDefault(); setLocation(`/invite/${tender.invitationToken}`); }}
                 >
-                  <div className="p-5 flex-1">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 min-w-0">
-                        {tender.profile?.logoUrl && tender.profile.logoUrl.includes('/company-logos/') ? (
-                          <img src={tender.profile.logoUrl} alt="" className="h-7 w-7 rounded-full object-cover border border-gray-100 flex-shrink-0" />
-                        ) : (
-                          <div className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                            <Building2 className="h-3.5 w-3.5 text-gray-400" />
-                          </div>
-                        )}
-                        <span className="text-xs text-gray-500 truncate font-medium">
-                          {tender.profile?.displayName || tender.company.name}
-                        </span>
-                      </div>
-                      <Badge className="bg-[#E8614D] text-white border-0 text-[11px] font-medium px-2.5 py-0.5 rounded flex-shrink-0">
-                        {t('marketplace.available')}
-                      </Badge>
+                  {/* Top bar */}
+                  <div className="flex items-center justify-between px-6 py-3 bg-gray-50 border-b border-gray-100">
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>{t('marketplace.publishDate')}</span>
+                      <span className="font-medium text-gray-700">{formatDate(tender.createdAt)}</span>
                     </div>
-
-                    <h3 className="text-base font-bold text-gray-900 group-hover:text-[#E8614D] transition-colors leading-snug mb-2 line-clamp-2">
-                      {tender.title}
-                    </h3>
-
-                    {tender.description && (
-                      <p className="text-xs text-gray-400 mb-3 line-clamp-2 leading-relaxed">
-                        {tender.description}
-                      </p>
-                    )}
-
-                    {tender.category && (
-                      <p className="text-sm text-gray-500 mb-1.5 line-clamp-1">
-                        {tender.category}
-                      </p>
-                    )}
-
-                    <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-1">
-                      <MapPin className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                      <span>{tender.company.city || "—"}</span>
-                    </div>
-
-                    {tender.tenderType && (
-                      <p className="text-xs text-gray-400 mt-1">
-                        {tender.tenderType === 'open_tender' ? t('marketplace.openTender') :
-                         tender.tenderType === 'direct_purchase' ? t('marketplace.directPurchase') :
-                         t('marketplace.frameworkAgreement')}
-                      </p>
-                    )}
-
-                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-50 text-xs text-gray-500">
-                      {tender.budget ? (
-                        <span className="font-medium text-gray-700">{tender.budget} {t('marketplace.sar')}</span>
-                      ) : (
-                        <span className="text-gray-300">—</span>
-                      )}
-                      <span className={tender.documentFee ? 'text-amber-600 font-medium' : 'text-green-600'}>
-                        {tender.documentFee ? `${tender.documentFee} ${t('marketplace.sar')} ${t('marketplace.docFee')}` : t('marketplace.free')}
-                      </span>
-                    </div>
+                    <Badge className="bg-[#E8614D] text-white border-0 text-[11px] font-medium px-2.5 py-0.5 rounded">
+                      {tenderTypeLabel}
+                    </Badge>
                   </div>
 
-                  <div className={`border-t border-gray-100 px-5 py-4 flex items-center justify-center gap-2 ${expired ? 'bg-red-50' : 'bg-[#E8614D]/5'}`}>
-                    <span className={`text-2xl font-bold ${expired ? 'text-red-500' : 'text-[#E8614D]'}`}>
-                      {expired ? 0 : days}
-                    </span>
-                    <span className={`text-sm ${expired ? 'text-red-400' : 'text-[#E8614D]/70'}`}>
-                      {expired ? t('marketplace.deadlinePassed') : t('marketplace.daysRemaining')}
-                    </span>
+                  {/* Content */}
+                  <div className="px-6 py-5 flex items-start gap-5">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#E8614D] transition-colors leading-snug mb-2 line-clamp-2">
+                        {tender.title}
+                      </h3>
+
+                      {tender.description && (
+                        <p className="text-sm text-gray-400 mb-3 line-clamp-2 leading-relaxed">
+                          {tender.description}
+                        </p>
+                      )}
+
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        {tender.profile?.logoUrl && tender.profile.logoUrl.includes('/company-logos/') ? (
+                          <img src={tender.profile.logoUrl} alt="" className="h-5 w-5 rounded-full object-cover border border-gray-100 flex-shrink-0" />
+                        ) : (
+                          <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                        )}
+                        <span className="font-medium">{tender.profile?.displayName || tender.company.name}</span>
+                        {tender.company.city && (
+                          <>
+                            <span className="text-gray-300">·</span>
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3 text-gray-400" />
+                              {tender.company.city}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <CircleProgress percent={percent} days={days} expired={expired} size={56} />
+                  </div>
+
+                  {/* Metadata row */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-gray-100 border-t border-gray-100">
+                    <div className="bg-white px-5 py-4">
+                      <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.refNumber')}</p>
+                      <p className="text-sm font-semibold text-gray-800 font-mono">{tender.referenceNumber || '—'}</p>
+                    </div>
+                    <div className="bg-white px-5 py-4">
+                      <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.submissionDeadline')}</p>
+                      <p className={`text-sm font-semibold ${expired ? 'text-red-500' : 'text-gray-800'}`}>{formatDate(tender.deadline)}</p>
+                    </div>
+                    <div className="bg-white px-5 py-4">
+                      <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.inquiryDeadline')}</p>
+                      <p className="text-sm font-semibold text-gray-800">{tender.inquiryDeadline ? formatDate(tender.inquiryDeadline) : '—'}</p>
+                    </div>
+                    <div className="bg-white px-5 py-4">
+                      <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.documentFee')}</p>
+                      <p className={`text-sm font-semibold ${tender.documentFee ? 'text-gray-800' : 'text-green-600'}`}>
+                        {tender.documentFee ? `${tender.documentFee} ${t('marketplace.sar')}` : t('marketplace.free')}
+                      </p>
+                    </div>
                   </div>
                 </a>
               );

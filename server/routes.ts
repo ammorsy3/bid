@@ -4907,6 +4907,9 @@ Respond with ONLY a JSON object. Example:
       if (tender.companyId !== req.auth!.activeCompanyId) {
         return res.status(403).json({ message: "Not authorized" });
       }
+      if (tender.status !== 'published') {
+        return res.status(400).json({ message: "Tender must be published before submitting to marketplace" });
+      }
       if (tender.isMarketplace && tender.marketplaceStatus === 'pending') {
         return res.status(400).json({ message: "Already submitted to marketplace" });
       }

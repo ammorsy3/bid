@@ -2365,11 +2365,15 @@ export default function TenderDetails() {
               disabled={updateStatus.isPending || marketplaceSubmit.isPending}
               onClick={async () => {
                 setShowPublishDialog(false);
-                updateStatus.mutate('published');
-                if (publishToMarketplace) {
-                  setTimeout(() => marketplaceSubmit.mutate(), 1000);
-                }
+                const shouldSubmitToMarketplace = publishToMarketplace;
                 setPublishToMarketplace(false);
+                updateStatus.mutate('published', {
+                  onSuccess: () => {
+                    if (shouldSubmitToMarketplace) {
+                      marketplaceSubmit.mutate();
+                    }
+                  }
+                });
               }}
             >
               {(updateStatus.isPending || marketplaceSubmit.isPending) && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}

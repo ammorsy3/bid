@@ -4996,12 +4996,12 @@ Respond with ONLY a JSON object. Example:
       
       const tender = await storage.getTender(req.params.id);
       if (!tender) return res.status(404).json({ message: "Tender not found" });
-      if (!tender.isMarketplace || tender.marketplaceStatus !== 'pending') {
-        return res.status(400).json({ message: "Tender is not pending marketplace approval" });
+      if (!tender.isMarketplace || !['pending', 'approved'].includes(tender.marketplaceStatus || '')) {
+        return res.status(400).json({ message: "Tender is not eligible for marketplace rejection/removal" });
       }
 
       await storage.rejectMarketplaceTender(tender.id, reason, req.auth!.userId);
-      res.json({ message: "Marketplace tender rejected" });
+      res.json({ message: tender.marketplaceStatus === 'approved' ? "Tender removed from marketplace" : "Marketplace tender rejected" });
 
       (async () => {
         try {

@@ -4156,6 +4156,54 @@ Respond with ONLY a JSON object. Example:
     }
   );
 
+  // Get vendor profile for a join request
+  app.get("/api/join-requests/:id/profile",
+    authenticateToken,
+    requireCompanyContext,
+    async (req: AuthRequest, res) => {
+      try {
+        const { id } = req.params;
+        const joinRequest = await storage.getJoinRequestById(id);
+
+        if (!joinRequest) {
+          return res.status(404).json({ message: "Join request not found" });
+        }
+
+        if (joinRequest.requesterCompanyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+
+        const vendorCompany = await storage.getCompany(joinRequest.vendorCompanyId);
+        const profile = await storage.getCompanyProfile(joinRequest.vendorCompanyId);
+        const createdByUser = joinRequest.createdBy ? await storage.getUser(joinRequest.createdBy) : undefined;
+
+        res.json({
+          vendor: {
+            id: vendorCompany?.id,
+            name: createdByUser?.name || profile?.displayName || vendorCompany?.name || 'Unknown',
+            email: createdByUser?.email || null,
+            company: vendorCompany?.name || 'Unknown',
+            verificationStatus: vendorCompany?.verificationStatus || 'not_verified',
+          },
+          profile: profile ? {
+            displayName: profile.displayName,
+            logoUrl: profile.logoUrl,
+            headerUrl: profile.headerUrl,
+            bio: profile.bio,
+            category: vendorCompany?.category || null,
+            profileFileUrl: profile.brochureUrl || null,
+            linkedinUrl: profile.socialLinks?.linkedin || null,
+            xUrl: profile.socialLinks?.twitter || null,
+            websiteUrl: profile.socialLinks?.website || null,
+          } : null,
+        });
+      } catch (error) {
+        console.error('Get join request profile error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
   // ==========================================================================
   // TRACTION LINK ROUTES (PUBLIC)
   // ==========================================================================
@@ -4947,12 +4995,13 @@ Respond with ONLY a JSON object. Example:
 
   app.get("/api/marketplace/tenders", async (req, res) => {
     try {
-      const { search, category, city, tenderType, page, limit } = req.query;
+      const { search, category, city, tenderType, sort, page, limit } = req.query;
       const result = await storage.getMarketplaceTenders({
         search: search as string,
         category: category as string,
         city: city as string,
         tenderType: tenderType as string,
+        sort: sort as string,
         page: page ? parseInt(page as string) : 1,
         limit: limit ? parseInt(limit as string) : 6,
       });
@@ -4994,15 +5043,34 @@ Respond with ONLY a JSON object. Example:
         return res.status(400).json({ message: "Already on marketplace" });
       }
 
+      const VALID_TENDER_TYPES = ['open_tender', 'direct_purchase', 'framework_agreement'];
+      const { tenderType: reqTenderType, documentFee: reqDocFee, inquiryDeadline: reqInquiryDeadline } = req.body;
+
+      if (reqTenderType && !VALID_TENDER_TYPES.includes(reqTenderType)) {
+        return res.status(400).json({ message: "Invalid tender type" });
+      }
+      if (reqDocFee !== undefined && reqDocFee !== null) {
+        const fee = Number(reqDocFee);
+        if (!Number.isInteger(fee) || fee < 0 || fee > 100_000) {
+          return res.status(400).json({ message: "Document fee must be a non-negative integer up to 100,000 SAR" });
+        }
+      }
+      if (reqInquiryDeadline) {
+        const d = new Date(reqInquiryDeadline);
+        if (isNaN(d.getTime()) || d >= new Date(tender.deadline)) {
+          return res.status(400).json({ message: "Inquiry deadline must be a valid date before the tender deadline" });
+        }
+      }
+
       const refNum = `BID-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
       await storage.updateTender(tender.id, {
         isMarketplace: true,
         marketplaceStatus: 'pending',
         referenceNumber: refNum,
-        tenderType: req.body.tenderType || 'open_tender',
-        documentFee: req.body.documentFee || null,
-        inquiryDeadline: req.body.inquiryDeadline || null,
+        tenderType: reqTenderType || 'open_tender',
+        documentFee: reqDocFee || null,
+        inquiryDeadline: reqInquiryDeadline || null,
       });
 
       await storage.logProductEvent({
@@ -5049,6 +5117,15 @@ Respond with ONLY a JSON object. Example:
       if (!tender) return res.status(404).json({ message: "Tender not found" });
       if (!tender.isMarketplace || tender.marketplaceStatus !== 'pending') {
         return res.status(400).json({ message: "Tender is not pending marketplace approval" });
+      }
+
+      const company = await storage.getCompany(tender.companyId!);
+      if (!company || company.verificationStatus !== 'verified') {
+        return res.status(400).json({
+          message: "Company must be verified before its tender can be approved for the marketplace.",
+          requiresVerification: true,
+          verificationStatus: company?.verificationStatus ?? 'unknown',
+        });
       }
 
       const purchaseOrders = await storage.getPurchaseOrdersByTender(tender.id);

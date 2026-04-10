@@ -79,7 +79,7 @@ import {
   type InsertPurchaseOrder,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, ilike, or, isNull, sql, gte, count, ne } from "drizzle-orm";
+import { eq, and, asc, desc, ilike, or, isNull, sql, gte, count, ne } from "drizzle-orm";
 
 export interface IStorage {
   // ============================================================================
@@ -299,6 +299,7 @@ export interface IStorage {
     category?: string;
     city?: string;
     tenderType?: string;
+    sort?: string;
     page?: number;
     limit?: number;
   }): Promise<{ tenders: (Tender & { company: Company; profile?: CompanyProfile })[]; total: number }>;
@@ -1744,6 +1745,7 @@ export class DatabaseStorage implements IStorage {
     category?: string;
     city?: string;
     tenderType?: string;
+    sort?: string;
     page?: number;
     limit?: number;
   }): Promise<{ tenders: (Tender & { company: Company; profile?: CompanyProfile })[]; total: number }> {
@@ -1787,6 +1789,11 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(companies, eq(tenders.companyId, companies.id))
       .where(whereClause);
 
+    const orderByClause =
+      options.sort === 'deadline_asc' ? asc(tenders.deadline) :
+      options.sort === 'budget_desc' ? desc(tenders.budget) :
+      desc(tenders.createdAt);
+
     const results = await db
       .select({
         tender: tenders,
@@ -1797,7 +1804,7 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(companies, eq(tenders.companyId, companies.id))
       .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
       .where(whereClause)
-      .orderBy(desc(tenders.createdAt))
+      .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
 
@@ -1819,6 +1826,7 @@ export class DatabaseStorage implements IStorage {
         eq(tenders.isMarketplace, true),
         eq(tenders.marketplaceStatus, 'approved'),
         eq(tenders.status, 'published'),
+        gte(tenders.deadline, new Date().toISOString().split('T')[0]),
       ));
 
     const [awardedResult] = await db

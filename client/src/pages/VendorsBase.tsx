@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Users, CheckCircle, XCircle, Loader2, Building2, Mail, Phone, MessageSquare, UserCheck, FileText, UserPlus, Eye, ShieldCheck, Clock } from "lucide-react";
+import { Search, Users, CheckCircle, XCircle, Loader2, Building2, Mail, Phone, MessageSquare, UserCheck, FileText, UserPlus, Eye, ShieldCheck, Clock, CalendarDays, Briefcase } from "lucide-react";
 import VendorProfileDrawer from "@/components/VendorProfileDrawer";
 
 interface VendorProfile {
@@ -265,179 +265,153 @@ export default function VendorsBase() {
         {/* Join Requests Tab */}
         <TabsContent value="requests" className="space-y-6">
           {pendingRequests.length > 0 && (
-            <Card className="border-2 border-primary/20 bg-primary/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2" data-testid="text-pending-title">
-                  <UserPlus className="h-5 w-5" />
-                  Pending Requests ({pendingRequests.length})
-                </CardTitle>
-                <CardDescription>
-                  Review and approve vendor applications to add them to your base
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {pendingRequests.map((request) => (
-                  <Card key={request.id} className="border-primary/20" data-testid={`card-request-${request.id}`}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-1">
-                            <CardTitle className="text-lg" data-testid={`text-request-company-${request.id}`}>
+            <div>
+              <div className="mb-4" data-testid="text-pending-title">
+                <h2 className="text-lg font-semibold text-gray-900">Pending Requests</h2>
+                <p className="text-sm text-muted-foreground">
+                  {pendingRequests.length} vendor{pendingRequests.length !== 1 ? 's' : ''} waiting for your review
+                </p>
+              </div>
+              <div className="space-y-3">
+                {pendingRequests.map((request) => {
+                  const initials = (request.vendor?.company || 'U')
+                    .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                  const timeAgo = request.createdAt ? new Date(request.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                  return (
+                    <div
+                      key={request.id}
+                      className="group relative bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition-all"
+                      data-testid={`card-request-${request.id}`}
+                    >
+                      <div className="flex items-start gap-4">
+                        {/* Avatar */}
+                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0 border border-primary/10">
+                          <span className="text-sm font-bold text-primary">{initials}</span>
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-gray-900 truncate" data-testid={`text-request-company-${request.id}`}>
                               {request.vendor?.company || 'Unknown Vendor'}
-                            </CardTitle>
-                            <Badge 
-                              variant={
-                                request.vendor?.verificationStatus === 'verified' ? 'default' :
-                                request.vendor?.verificationStatus === 'under_review' ? 'secondary' :
-                                'outline'
-                              }
+                            </h3>
+                            <Badge
+                              variant="outline"
                               className={
-                                request.vendor?.verificationStatus === 'verified' 
-                                  ? 'bg-green-100 text-green-800 border-green-200' 
+                                request.vendor?.verificationStatus === 'verified'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0'
                                   : request.vendor?.verificationStatus === 'under_review'
-                                  ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                                  : 'bg-gray-100 text-gray-800 border-gray-200'
+                                  ? 'bg-amber-50 text-amber-700 border-amber-200 text-xs px-2 py-0'
+                                  : 'bg-gray-50 text-gray-500 border-gray-200 text-xs px-2 py-0'
                               }
                               data-testid={`badge-request-status-${request.id}`}
                             >
                               {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 mr-1" />}
                               {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 mr-1" />}
-                              {request.vendor?.verificationStatus === 'verified' ? 'Verified' : 
-                               request.vendor?.verificationStatus === 'under_review' ? 'Under Review' : 
+                              {request.vendor?.verificationStatus === 'verified' ? 'Verified' :
+                               request.vendor?.verificationStatus === 'under_review' ? 'Under Review' :
                                'Not Verified'}
                             </Badge>
                           </div>
-                          <CardDescription data-testid={`text-request-category-${request.id}`}>
-                            {request.vendor?.expertise || 'No category'}
-                          </CardDescription>
+
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                            {request.vendor?.expertise && (
+                              <span className="flex items-center gap-1.5" data-testid={`text-request-category-${request.id}`}>
+                                <Briefcase className="h-3.5 w-3.5" />
+                                {request.vendor.expertise}
+                              </span>
+                            )}
+                            <span className="flex items-center gap-1.5" data-testid={`text-request-email-${request.id}`}>
+                              <Mail className="h-3.5 w-3.5" />
+                              {request.vendor?.email || 'N/A'}
+                            </span>
+                            <span className="flex items-center gap-1.5" data-testid={`text-request-name-${request.id}`}>
+                              <UserCheck className="h-3.5 w-3.5" />
+                              {request.vendor?.name || 'N/A'}
+                            </span>
+                            {timeAgo && (
+                              <span className="flex items-center gap-1.5">
+                                <CalendarDays className="h-3.5 w-3.5" />
+                                {timeAgo}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex gap-2">
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           <Button
                             variant="ghost"
                             size="sm"
+                            className="text-muted-foreground hover:text-foreground"
                             onClick={() => {
                               setProfileJoinRequestId(request.id);
                               setProfileDrawerOpen(true);
                             }}
                             data-testid={`button-view-profile-${request.id}`}
                           >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Profile
+                            <Eye className="h-4 w-4 mr-1.5" />
+                            Profile
                           </Button>
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
                                 onClick={() => setSelectedRequest(request)}
-                                data-testid={`button-review-${request.id}`}
+                                data-testid={`button-reject-inline-${request.id}`}
                               >
-                                Review
+                                <XCircle className="h-4 w-4 mr-1.5" />
+                                Decline
                               </Button>
                             </DialogTrigger>
-                          <DialogContent data-testid="dialog-review">
-                            <DialogHeader>
-                              <DialogTitle data-testid="text-dialog-title">
-                                Review Application: {selectedRequest?.vendor?.company || 'Unknown Vendor'}
-                              </DialogTitle>
-                              <DialogDescription>
-                                Decide whether to approve or reject this vendor application
-                              </DialogDescription>
-                            </DialogHeader>
-                            {selectedRequest && (
-                              <div className="space-y-4">
-                                <div className="grid gap-3">
-                                  <div>
-                                    <label className="text-sm font-medium">Company Name</label>
-                                    <p className="text-sm text-muted-foreground" data-testid="text-dialog-company">
-                                      {selectedRequest.vendor?.company || 'Unknown'}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <label className="text-sm font-medium">Contact Person</label>
-                                    <p className="text-sm text-muted-foreground" data-testid="text-dialog-contact">
-                                      {selectedRequest.vendor?.name || 'Unknown'}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <label className="text-sm font-medium">Email</label>
-                                    <p className="text-sm text-muted-foreground" data-testid="text-dialog-email">
-                                      {selectedRequest.vendor?.email || 'Unknown'}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <label className="text-sm font-medium">Expertise</label>
-                                    <p className="text-sm text-muted-foreground" data-testid="text-dialog-expertise">
-                                      {selectedRequest.vendor?.expertise || 'Not specified'}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <label className="text-sm font-medium">Verification Status</label>
-                                    <Badge variant={selectedRequest.vendor?.verificationStatus === 'verified' ? 'default' : 'secondary'}>
-                                      {selectedRequest.vendor?.verificationStatus || 'unknown'}
-                                    </Badge>
-                                  </div>
-                                </div>
-                                <div className="flex gap-3 pt-4">
-                                  <Button
-                                    onClick={() => approveRequest.mutate(selectedRequest.id)}
-                                    disabled={approveRequest.isPending || rejectRequest.isPending}
-                                    className="flex-1"
-                                    data-testid="button-approve"
-                                  >
-                                    {approveRequest.isPending ? (
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    ) : (
-                                      <CheckCircle className="mr-2 h-4 w-4" />
-                                    )}
-                                    Approve
-                                  </Button>
-                                  <Button
-                                    onClick={() => rejectRequest.mutate(selectedRequest.id)}
-                                    disabled={approveRequest.isPending || rejectRequest.isPending}
-                                    variant="destructive"
-                                    className="flex-1"
-                                    data-testid="button-reject"
-                                  >
-                                    {rejectRequest.isPending ? (
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    ) : (
-                                      <XCircle className="mr-2 h-4 w-4" />
-                                    )}
-                                    Reject
-                                  </Button>
-                                </div>
+                            <DialogContent data-testid="dialog-reject">
+                              <DialogHeader>
+                                <DialogTitle>Decline Application</DialogTitle>
+                                <DialogDescription>
+                                  Are you sure you want to decline <span className="font-medium text-foreground">{request.vendor?.company || 'this vendor'}</span>? They can apply again in the future.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="flex gap-3 pt-2">
+                                <Button
+                                  onClick={() => rejectRequest.mutate(request.id)}
+                                  disabled={rejectRequest.isPending}
+                                  variant="outline"
+                                  className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+                                  data-testid="button-reject"
+                                >
+                                  {rejectRequest.isPending ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                  )}
+                                  Decline
+                                </Button>
                               </div>
+                            </DialogContent>
+                          </Dialog>
+                          <Button
+                            size="sm"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                            onClick={() => approveRequest.mutate(request.id)}
+                            disabled={approveRequest.isPending}
+                            data-testid={`button-review-${request.id}`}
+                          >
+                            {approveRequest.isPending ? (
+                              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                            ) : (
+                              <CheckCircle className="h-4 w-4 mr-1.5" />
                             )}
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <div className="flex items-center gap-4 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span data-testid={`text-request-email-${request.id}`}>{request.vendor?.email || 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <UserCheck className="h-4 w-4 text-muted-foreground" />
-                          <span data-testid={`text-request-name-${request.id}`}>{request.vendor?.name || 'N/A'}</span>
+                            Approve
+                          </Button>
                         </div>
                       </div>
-                      {request.vendor?.expertise && (
-                        <div className="flex items-start gap-2 text-sm">
-                          <Building2 className="h-4 w-4 text-muted-foreground mt-0.5" />
-                          <p className="text-muted-foreground" data-testid={`text-request-expertise-${request.id}`}>
-                            {request.vendor.expertise}
-                          </p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </CardContent>
-            </Card>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
 
           {/* History */}

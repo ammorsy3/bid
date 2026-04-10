@@ -2,21 +2,20 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Building2, FileText, Globe, Linkedin, ExternalLink, Loader2, ShieldCheck, Clock, XCircle } from "lucide-react";
+import {
+  Building2, FileText, Globe, Linkedin, ExternalLink, Loader2,
+  ShieldCheck, Clock, XCircle, Mail, User, Briefcase,
+} from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
 
 interface VendorProfileData {
   vendor: {
     id: string;
     name: string;
+    email: string | null;
     company: string;
     verificationStatus: string;
   };
@@ -25,7 +24,7 @@ interface VendorProfileData {
     logoUrl: string | null;
     headerUrl: string | null;
     bio: string;
-    category: string;
+    category: string | null;
     profileFileUrl: string | null;
     linkedinUrl: string | null;
     xUrl: string | null;
@@ -39,36 +38,26 @@ interface VendorProfileDrawerProps {
   joinRequestId: string;
 }
 
-const getStatusIcon = (status: string) => {
+const getStatusConfig = (status: string) => {
   switch (status) {
     case 'verified':
-      return <ShieldCheck className="h-4 w-4" />;
+      return {
+        icon: <ShieldCheck className="h-3.5 w-3.5" />,
+        label: 'Verified',
+        classes: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      };
     case 'under_review':
-      return <Clock className="h-4 w-4" />;
+      return {
+        icon: <Clock className="h-3.5 w-3.5" />,
+        label: 'Under Review',
+        classes: 'bg-amber-50 text-amber-700 border-amber-200',
+      };
     default:
-      return <XCircle className="h-4 w-4" />;
-  }
-};
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'verified':
-      return 'bg-green-100 text-green-800 border-green-200';
-    case 'under_review':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
-  }
-};
-
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case 'verified':
-      return 'Verified';
-    case 'under_review':
-      return 'Under Review';
-    default:
-      return 'Not Verified';
+      return {
+        icon: <XCircle className="h-3.5 w-3.5" />,
+        label: 'Not Verified',
+        classes: 'bg-gray-50 text-gray-500 border-gray-200',
+      };
   }
 };
 
@@ -78,162 +67,200 @@ export default function VendorProfileDrawer({ open, onClose, joinRequestId }: Ve
     enabled: open && !!joinRequestId,
   });
 
+  const statusConfig = data ? getStatusConfig(data.vendor.verificationStatus) : null;
+  const displayName = data?.profile?.displayName || data?.vendor.company || 'Unknown';
+  const initials = displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const hasSocialLinks = data?.profile?.websiteUrl || data?.profile?.linkedinUrl || data?.profile?.xUrl;
+
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-lg p-0 overflow-y-auto border-l">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Loader2 className="h-8 w-8 animate-spin text-gray-300" />
           </div>
         ) : data ? (
-          <>
-            <SheetHeader className="space-y-4">
-              <div className="flex items-start gap-4">
-                {data.profile?.logoUrl && (
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <div className="relative">
+              {data.profile?.headerUrl ? (
+                <div className="h-32 w-full overflow-hidden">
+                  <img
+                    src={data.profile.headerUrl}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/30" />
+                </div>
+              ) : (
+                <div className="h-28 w-full bg-gradient-to-br from-gray-100 to-gray-50" />
+              )}
+
+              {/* Logo / Avatar */}
+              <div className="absolute -bottom-8 left-6">
+                {data.profile?.logoUrl ? (
                   <img
                     src={data.profile.logoUrl}
-                    alt={data.profile.displayName}
-                    className="w-16 h-16 rounded-lg object-cover border shadow-sm"
+                    alt={displayName}
+                    className="w-16 h-16 rounded-xl object-cover border-4 border-white shadow-sm bg-white"
                   />
+                ) : (
+                  <div className="w-16 h-16 rounded-xl border-4 border-white shadow-sm bg-white flex items-center justify-center">
+                    <span className="text-lg font-bold text-gray-400">{initials}</span>
+                  </div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <SheetTitle className="text-2xl mb-2" data-testid="text-profile-name">
-                    {data.profile?.displayName || data.vendor.company}
-                  </SheetTitle>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge 
-                      className={`${getStatusColor(data.vendor.verificationStatus)} border flex items-center gap-1.5`}
-                      data-testid="badge-profile-status"
-                    >
-                      {getStatusIcon(data.vendor.verificationStatus)}
-                      {getStatusLabel(data.vendor.verificationStatus)}
-                    </Badge>
-                  </div>
-                  <SheetDescription data-testid="text-profile-category">
-                    {data.profile?.category || 'No category specified'}
-                  </SheetDescription>
-                </div>
               </div>
-              
-              {data.profile?.headerUrl && (
-                <img
-                  src={data.profile.headerUrl}
-                  alt="Company header"
-                  className="w-full h-32 object-cover rounded-lg border"
-                />
-              )}
-            </SheetHeader>
+            </div>
 
-            <Separator className="my-6" />
-
-            <div className="space-y-6">
-              {/* Bio */}
-              {data.profile?.bio && (
-                <Card>
-                  <CardContent className="pt-6">
-                    <h3 className="font-semibold text-sm mb-2">About</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed" data-testid="text-profile-bio">
-                      {data.profile.bio}
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Company Profile Document */}
-              {data.profile?.profileFileUrl && (
-                <Card>
-                  <CardContent className="pt-6">
-                    <h3 className="font-semibold text-sm mb-3">Company Profile</h3>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => window.open(data.profile!.profileFileUrl!, '_blank')}
-                      data-testid="button-download-brochure"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      View Company Brochure
-                      <ExternalLink className="h-3 w-3 ml-auto" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Social Links */}
-              {(data.profile?.websiteUrl || data.profile?.linkedinUrl || data.profile?.xUrl) && (
-                <Card>
-                  <CardContent className="pt-6">
-                    <h3 className="font-semibold text-sm mb-3">Links</h3>
-                    <div className="space-y-2">
-                      {data.profile.websiteUrl && (
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start"
-                          onClick={() => window.open(data.profile!.websiteUrl!, '_blank')}
-                          data-testid="link-website"
-                        >
-                          <Globe className="h-4 w-4 mr-2" />
-                          Website
-                          <ExternalLink className="h-3 w-3 ml-auto" />
-                        </Button>
-                      )}
-                      {data.profile.linkedinUrl && (
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start"
-                          onClick={() => window.open(data.profile!.linkedinUrl!, '_blank')}
-                          data-testid="link-linkedin"
-                        >
-                          <Linkedin className="h-4 w-4 mr-2" />
-                          LinkedIn
-                          <ExternalLink className="h-3 w-3 ml-auto" />
-                        </Button>
-                      )}
-                      {data.profile.xUrl && (
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start"
-                          onClick={() => window.open(data.profile!.xUrl!, '_blank')}
-                          data-testid="link-x"
-                        >
-                          <FaXTwitter className="h-4 w-4 mr-2" />
-                          X (Twitter)
-                          <ExternalLink className="h-3 w-3 ml-auto" />
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Contact Info */}
-              <Card>
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold text-sm mb-3">Contact Information</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground" data-testid="text-contact-company">
-                        {data.vendor.company}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {!data.profile && (
-                <Card className="bg-yellow-50 border-yellow-200">
-                  <CardContent className="pt-6">
-                    <p className="text-sm text-yellow-900">
-                      This vendor hasn't completed their full profile yet.
-                    </p>
-                  </CardContent>
-                </Card>
+            {/* Company Info */}
+            <div className="pt-12 px-6 pb-5">
+              <div className="flex items-start justify-between mb-1">
+                <h2 className="text-xl font-bold text-gray-900" data-testid="text-profile-name">
+                  {displayName}
+                </h2>
+                {statusConfig && (
+                  <Badge
+                    variant="outline"
+                    className={`${statusConfig.classes} text-xs flex items-center gap-1 px-2`}
+                    data-testid="badge-profile-status"
+                  >
+                    {statusConfig.icon}
+                    {statusConfig.label}
+                  </Badge>
+                )}
+              </div>
+              {data.profile?.category && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1.5" data-testid="text-profile-category">
+                  <Briefcase className="h-3.5 w-3.5" />
+                  {data.profile.category}
+                </p>
               )}
             </div>
-          </>
+
+            <div className="border-t border-gray-100" />
+
+            {/* Content */}
+            <div className="px-6 py-5 space-y-6 flex-1">
+              {/* About */}
+              {data.profile?.bio && (
+                <div>
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">About</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed" data-testid="text-profile-bio">
+                    {data.profile.bio}
+                  </p>
+                </div>
+              )}
+
+              {/* Contact */}
+              <div>
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Contact</h3>
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <span className="text-gray-700" data-testid="text-contact-company">{data.vendor.company}</span>
+                  </div>
+                  {data.vendor.name && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
+                        <User className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <span className="text-gray-700">{data.vendor.name}</span>
+                    </div>
+                  )}
+                  {data.vendor.email && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
+                        <Mail className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <span className="text-gray-700">{data.vendor.email}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Company Brochure */}
+              {data.profile?.profileFileUrl && (
+                <div>
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Documents</h3>
+                  <button
+                    onClick={() => window.open(data.profile!.profileFileUrl!, '_blank')}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors text-left"
+                    data-testid="button-download-brochure"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                      <FileText className="h-4 w-4 text-blue-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-700">Company Brochure</p>
+                      <p className="text-xs text-gray-400">View document</p>
+                    </div>
+                    <ExternalLink className="h-4 w-4 text-gray-300" />
+                  </button>
+                </div>
+              )}
+
+              {/* Links */}
+              {hasSocialLinks && (
+                <div>
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Links</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {data.profile?.websiteUrl && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 gap-2 text-gray-600"
+                        onClick={() => window.open(data.profile!.websiteUrl!, '_blank')}
+                        data-testid="link-website"
+                      >
+                        <Globe className="h-3.5 w-3.5" />
+                        Website
+                      </Button>
+                    )}
+                    {data.profile?.linkedinUrl && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 gap-2 text-gray-600"
+                        onClick={() => window.open(data.profile!.linkedinUrl!, '_blank')}
+                        data-testid="link-linkedin"
+                      >
+                        <Linkedin className="h-3.5 w-3.5" />
+                        LinkedIn
+                      </Button>
+                    )}
+                    {data.profile?.xUrl && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 gap-2 text-gray-600"
+                        onClick={() => window.open(data.profile!.xUrl!, '_blank')}
+                        data-testid="link-x"
+                      >
+                        <FaXTwitter className="h-3.5 w-3.5" />
+                        X
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* No profile notice */}
+              {!data.profile && (
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-amber-50 border border-amber-100">
+                  <Clock className="h-5 w-5 text-amber-400 flex-shrink-0" />
+                  <p className="text-sm text-amber-700">
+                    This vendor hasn't completed their full profile yet.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-muted-foreground">Profile not found</p>
+          <div className="flex flex-col items-center justify-center h-full gap-2">
+            <Building2 className="h-10 w-10 text-gray-200" />
+            <p className="text-sm text-muted-foreground">Profile not found</p>
           </div>
         )}
       </SheetContent>

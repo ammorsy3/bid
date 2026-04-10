@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link, useLocation, useSearch } from "wouter";
 import { useAuthStore } from "@/lib/auth";
+import { isMarketplaceSubdomain } from "@/lib/subdomain";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
@@ -41,6 +42,15 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
+      // On marketplace subdomain, redirect to main domain for dashboard/onboarding
+      if (isMarketplaceSubdomain()) {
+        const mainDomain = window.location.hostname.replace(/^marketplace\./, '');
+        const mainOrigin = `${window.location.protocol}//${mainDomain}${window.location.port ? ':' + window.location.port : ''}`;
+        const target = activeCompany ? '/dashboard' : '/onboarding';
+        window.location.href = `${mainOrigin}${target}`;
+        return;
+      }
+
       // If OTP not verified for this session, go to verification
       if (!user.otpVerified) {
         if (redirectUrl) {

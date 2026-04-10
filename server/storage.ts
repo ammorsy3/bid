@@ -74,9 +74,12 @@ import {
   type TrustedBrowser,
   type InsertTrustedBrowser,
   tourProgress,
+  purchaseOrders,
+  type PurchaseOrder,
+  type InsertPurchaseOrder,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, ilike, or, isNull, sql, gte, count } from "drizzle-orm";
+import { eq, and, desc, ilike, or, isNull, sql, gte, count, ne } from "drizzle-orm";
 
 export interface IStorage {
   // ============================================================================
@@ -228,6 +231,7 @@ export interface IStorage {
     pendingJoinRequests: number;
     proposalsLast24h: number;
     blockedAwards: number;
+    pendingMarketplace: number;
   }>;
 
   // ============================================================================
@@ -286,6 +290,29 @@ export interface IStorage {
   getNegotiationActionsByOffer(offerId: string): Promise<NegotiationAction[]>;
   getLatestNegotiationAction(tenderId: string, offerId: string, actionType: string): Promise<NegotiationAction | undefined>;
   allowOfferResubmission(offerId: string): Promise<void>;
+
+  // ============================================================================
+  // MARKETPLACE OPERATIONS
+  // ============================================================================
+  getMarketplaceTenders(options: {
+    search?: string;
+    category?: string;
+    city?: string;
+    tenderType?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{ tenders: (Tender & { company: Company; profile?: CompanyProfile })[]; total: number }>;
+  getMarketplaceStats(): Promise<{ activeTenders: number; awardedTenders: number; totalOffers: number }>;
+  getPendingMarketplaceRequests(): Promise<(Tender & { company: Company; profile?: CompanyProfile })[]>;
+  approveMarketplaceTender(tenderId: string, adminId: string): Promise<void>;
+  rejectMarketplaceTender(tenderId: string, reason: string, adminId: string): Promise<void>;
+
+  // ============================================================================
+  // PURCHASE ORDER OPERATIONS
+  // ============================================================================
+  createPurchaseOrder(po: InsertPurchaseOrder): Promise<PurchaseOrder>;
+  getPurchaseOrdersByTender(tenderId: string): Promise<PurchaseOrder[]>;
+  updatePurchaseOrder(id: string, updates: Partial<InsertPurchaseOrder>): Promise<PurchaseOrder>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1390,6 +1417,7 @@ export class DatabaseStorage implements IStorage {
     pendingJoinRequests: number;
     proposalsLast24h: number;
     blockedAwards: number;
+    pendingMarketplace: number;
   }> {
     // Pending verifications
     const pendingVerifications = await db
@@ -1415,11 +1443,21 @@ export class DatabaseStorage implements IStorage {
       .from(awards)
       .where(eq(awards.status, 'blocked'));
 
+    // Pending marketplace requests
+    const pendingMarketplace = await db
+      .select()
+      .from(tenders)
+      .where(and(
+        eq(tenders.isMarketplace, true),
+        eq(tenders.marketplaceStatus, 'pending'),
+      ));
+
     return {
       pendingVerifications: pendingVerifications.length,
       pendingJoinRequests: pendingJoinRequests.length,
       proposalsLast24h: proposalsCount,
-      blockedAwards: blockedAwards.length
+      blockedAwards: blockedAwards.length,
+      pendingMarketplace: pendingMarketplace.length,
     };
   }
 
@@ -1692,6 +1730,215 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(tourProgress)
       .where(and(eq(tourProgress.userId, userId), eq(tourProgress.tourId, tourId)));
+  }
+
+  // ============================================================================
+  // MARKETPLACE OPERATIONS
+  // ============================================================================
+
+  async getMarketplaceTenders(options: {
+    search?: string;
+    category?: string;
+    city?: string;
+    tenderType?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{ tenders: (Tender & { company: Company; profile?: CompanyProfile })[]; total: number }> {
+    const page = options.page || 1;
+    const limit = options.limit || 6;
+    const offset = (page - 1) * limit;
+
+    const conditions = [
+      eq(tenders.isMarketplace, true),
+      eq(tenders.marketplaceStatus, 'approved'),
+      eq(tenders.status, 'published'),
+      isNull(companies.deletedAt),
+    ];
+
+    if (options.search) {
+      conditions.push(
+        or(
+          ilike(tenders.title, `%${options.search}%`),
+          ilike(tenders.description, `%${options.search}%`)
+        )!
+      );
+    }
+    if (options.category) {
+      conditions.push(eq(tenders.category, options.category));
+    }
+    if (options.city) {
+      conditions.push(eq(companies.city, options.city));
+    }
+    if (options.tenderType) {
+      conditions.push(eq(tenders.tenderType, options.tenderType));
+    }
+
+    const whereClause = and(...conditions);
+
+    const [countResult] = await db
+      .select({ count: count() })
+      .from(tenders)
+      .innerJoin(companies, eq(tenders.companyId, companies.id))
+      .where(whereClause);
+
+    const results = await db
+      .select({
+        tender: tenders,
+        company: companies,
+        profile: companyProfiles,
+      })
+      .from(tenders)
+      .innerJoin(companies, eq(tenders.companyId, companies.id))
+      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
+      .where(whereClause)
+      .orderBy(desc(tenders.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return {
+      tenders: results.map(r => ({
+        ...r.tender,
+        company: r.company,
+        profile: r.profile || undefined,
+      })),
+      total: countResult?.count || 0,
+    };
+  }
+
+  async getMarketplaceStats(): Promise<{ activeTenders: number; awardedTenders: number; totalOffers: number }> {
+    const [activeResult] = await db
+      .select({ count: count() })
+      .from(tenders)
+      .where(and(
+        eq(tenders.isMarketplace, true),
+        eq(tenders.marketplaceStatus, 'approved'),
+        eq(tenders.status, 'published'),
+      ));
+
+    const [awardedResult] = await db
+      .select({ count: count() })
+      .from(tenders)
+      .innerJoin(awards, eq(tenders.id, awards.tenderId))
+      .where(and(
+        eq(tenders.isMarketplace, true),
+        eq(awards.status, 'awarded'),
+      ));
+
+    const [offersResult] = await db
+      .select({ count: count() })
+      .from(offers);
+
+    return {
+      activeTenders: activeResult?.count || 0,
+      awardedTenders: awardedResult?.count || 0,
+      totalOffers: offersResult?.count || 0,
+    };
+  }
+
+  async getPendingMarketplaceRequests(): Promise<(Tender & { company: Company; profile?: CompanyProfile })[]> {
+    const results = await db
+      .select({
+        tender: tenders,
+        company: companies,
+        profile: companyProfiles,
+      })
+      .from(tenders)
+      .innerJoin(companies, eq(tenders.companyId, companies.id))
+      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
+      .where(and(
+        eq(tenders.isMarketplace, true),
+        eq(tenders.marketplaceStatus, 'pending'),
+      ))
+      .orderBy(desc(tenders.createdAt));
+
+    return results.map(r => ({
+      ...r.tender,
+      company: r.company,
+      profile: r.profile || undefined,
+    }));
+  }
+
+  async approveMarketplaceTender(tenderId: string, adminId: string): Promise<void> {
+    const [before] = await db.select().from(tenders).where(eq(tenders.id, tenderId));
+
+    await db
+      .update(tenders)
+      .set({
+        marketplaceStatus: 'approved',
+        marketplaceApprovedBy: adminId,
+        marketplaceApprovedAt: new Date(),
+        status: 'published',
+        updatedAt: new Date(),
+      })
+      .where(eq(tenders.id, tenderId));
+
+    const [after] = await db.select().from(tenders).where(eq(tenders.id, tenderId));
+
+    await this.logAuditAction({
+      adminId,
+      action: 'marketplace_tender_approved',
+      targetType: 'tender',
+      targetId: tenderId,
+      beforeState: JSON.stringify(before),
+      afterState: JSON.stringify(after),
+    });
+
+    await this.logProductEvent({
+      eventType: 'marketplace_tender_approved',
+      companyId: before?.companyId || undefined,
+      metadata: { tenderId, approvedBy: adminId },
+    });
+  }
+
+  async rejectMarketplaceTender(tenderId: string, reason: string, adminId: string): Promise<void> {
+    const [before] = await db.select().from(tenders).where(eq(tenders.id, tenderId));
+
+    await db
+      .update(tenders)
+      .set({
+        marketplaceStatus: 'rejected',
+        marketplaceRejectionReason: reason,
+        updatedAt: new Date(),
+      })
+      .where(eq(tenders.id, tenderId));
+
+    const [after] = await db.select().from(tenders).where(eq(tenders.id, tenderId));
+
+    await this.logAuditAction({
+      adminId,
+      action: 'marketplace_tender_rejected',
+      targetType: 'tender',
+      targetId: tenderId,
+      beforeState: JSON.stringify(before),
+      afterState: JSON.stringify(after),
+      notes: reason,
+    });
+  }
+
+  // ============================================================================
+  // PURCHASE ORDER OPERATIONS
+  // ============================================================================
+
+  async createPurchaseOrder(po: InsertPurchaseOrder): Promise<PurchaseOrder> {
+    const [created] = await db.insert(purchaseOrders).values(po).returning();
+    return created;
+  }
+
+  async getPurchaseOrdersByTender(tenderId: string): Promise<PurchaseOrder[]> {
+    return await db
+      .select()
+      .from(purchaseOrders)
+      .where(eq(purchaseOrders.tenderId, tenderId))
+      .orderBy(desc(purchaseOrders.createdAt));
+  }
+
+  async updatePurchaseOrder(id: string, updates: Partial<InsertPurchaseOrder>): Promise<PurchaseOrder> {
+    const [updated] = await db
+      .update(purchaseOrders)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(purchaseOrders.id, id))
+      .returning();
+    return updated;
   }
 }
 

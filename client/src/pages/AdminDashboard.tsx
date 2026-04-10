@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, FileCheck, Package, AlertTriangle } from "lucide-react";
+import { Users, FileCheck, Package, AlertTriangle, Store } from "lucide-react";
 import { Link } from "wouter";
 import { useI18n } from "@/lib/i18n";
 
@@ -46,6 +46,15 @@ export default function AdminDashboard() {
       bgColor: "bg-red-50",
       link: "/admin/awards",
       dataTestId: "card-blocked-awards"
+    },
+    {
+      title: t('admin.marketplaceRequests') || 'Marketplace Requests',
+      value: metrics?.pendingMarketplace || 0,
+      icon: Store,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+      link: "/admin/marketplace",
+      dataTestId: "card-marketplace-requests"
     },
   ];
 

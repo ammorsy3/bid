@@ -120,11 +120,22 @@ Companies can customize their public vendor registration page (Traction Link) wi
 - **Public page**: `TractionLink.tsx` applies theme dynamically — hero section, cards, CTA button, and benefit cards all themed
 - **Files**: `client/src/pages/TractionLink.tsx`, `client/src/pages/Settings.tsx`, `server/routes.ts`
 
+### Public Marketplace
+Public-facing marketplace page (`/marketplace`) where admin-approved tenders are listed for browsing without login. Includes:
+- **Schema**: `isMarketplace`, `marketplaceStatus` (pending/approved/rejected), `referenceNumber`, `documentFee`, `tenderType` (open_tender/direct_purchase/framework_agreement), `inquiryDeadline` fields on tenders table; `purchase_orders` table for PO document tracking
+- **Public API**: `GET /api/marketplace/tenders` (search, filter by category/type, pagination), `GET /api/marketplace/stats` (active/awarded/offer counts)
+- **Admin API**: `GET /api/admin/marketplace/pending`, `POST /api/admin/marketplace/:id/approve`, `POST /api/admin/marketplace/:id/reject`
+- **Submit flow**: `POST /api/tenders/:id/marketplace-submit` sets `isMarketplace=true`, `marketplaceStatus=pending`, generates reference number
+- **Frontend**: `Marketplace.tsx` — card-based grid with countdown timers, stat bar, search/filter/pagination, RTL support; `AdminMarketplace.tsx` — pending request review with approve/reject dialogs
+- **Visibility rules**: Only tenders with `isMarketplace=true AND marketplaceStatus='approved' AND status='published'` appear publicly
+- **Admin Dashboard**: Marketplace Requests card with pending count in admin metrics
+- **Files**: `client/src/pages/Marketplace.tsx`, `client/src/pages/AdminMarketplace.tsx`, routes in `App.tsx`
+
 ### Date Localization
 Date displays use language-aware locale formatting (`en-US` for English, `ar-SA` for Arabic).
 
 ### Internationalization (i18n)
-Full EN/AR translation support via `client/src/lib/i18n.tsx` using React Context + `useI18n()` hook. Translations are organized in sections: `settings`, `dashboard`, `auth`, `onboarding`, `nav`, `common`, `tenderFlow`. The `tenderFlow` section covers the entire 5-step tender creation flow (TenderCreateChoice, TenderStartMethodStep, TenderTitleStep, TenderProjectScopeStep, TenderAIBudgetStep, TenderSubmissionProcessStep, TenderEvaluationCriteriaStep) AND the published RFP page (TenderInviteLink.tsx — all ~100+ strings including nav, header, section labels, project scope, evaluation criteria, submission requirements, additional context, sidebar, Q&A panel, mobile CTA, proposal checklist, and toast messages). RTL layout is auto-applied when Arabic is selected.
+Full EN/AR translation support via `client/src/lib/i18n.tsx` using React Context + `useI18n()` hook. Translations are organized in sections: `settings`, `dashboard`, `auth`, `onboarding`, `nav`, `common`, `tenderFlow`, `marketplace`. The `tenderFlow` section covers the entire 5-step tender creation flow (TenderCreateChoice, TenderStartMethodStep, TenderTitleStep, TenderProjectScopeStep, TenderAIBudgetStep, TenderSubmissionProcessStep, TenderEvaluationCriteriaStep) AND the published RFP page (TenderInviteLink.tsx — all ~100+ strings including nav, header, section labels, project scope, evaluation criteria, submission requirements, additional context, sidebar, Q&A panel, mobile CTA, proposal checklist, and toast messages). The `marketplace` section covers all marketplace and admin marketplace strings. RTL layout is auto-applied when Arabic is selected.
 
 # Recent Changes (November 2025)
 

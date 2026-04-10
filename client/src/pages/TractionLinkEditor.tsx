@@ -355,7 +355,7 @@ export default function TractionLinkEditor() {
             disabled={saveThemeMutation.isPending}
             size="sm"
             className="h-8 text-white"
-            style={{ background: '#E25E45' }}
+            style={{ background: theme.primaryColor }}
           >
             {saveThemeMutation.isPending
               ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />{t('tractionPage.editorSaving')}</>
@@ -423,14 +423,15 @@ export default function TractionLinkEditor() {
                     onClick={() => updateTheme({ headerStyle: bg.id })}
                     className={`relative rounded-xl overflow-hidden transition-all ${
                       theme.headerStyle === bg.id
-                        ? 'ring-2 ring-[#E25E45] ring-offset-2'
+                        ? 'ring-2 ring-offset-2'
                         : 'ring-1 ring-gray-200 hover:ring-gray-300'
                     }`}
+                    style={theme.headerStyle === bg.id ? { '--tw-ring-color': theme.primaryColor } as React.CSSProperties : undefined}
                   >
                     <div className="h-12 rounded-xl" style={bg.preview} />
                     <p className="text-[10px] font-medium text-gray-500 mt-1 text-center pb-1">{bg.label}</p>
                     {theme.headerStyle === bg.id && (
-                      <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#E25E45] flex items-center justify-center">
+                      <div className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: theme.primaryColor }}>
                         <Check className="h-2.5 w-2.5 text-white" />
                       </div>
                     )}
@@ -546,9 +547,10 @@ export default function TractionLinkEditor() {
                     onClick={() => updateTheme({ themeId: preset.id, headerStyle: preset.headerStyle })}
                     className={`rounded-xl p-2.5 text-left transition-all ${
                       theme.themeId === preset.id
-                        ? 'ring-2 ring-[#E25E45] ring-offset-1 bg-white'
+                        ? 'ring-2 ring-offset-1 bg-white'
                         : 'bg-white border border-gray-200 hover:border-gray-300'
                     }`}
+                    style={theme.themeId === preset.id ? { '--tw-ring-color': theme.primaryColor } as React.CSSProperties : undefined}
                   >
                     <div className="h-8 rounded-lg mb-1.5" style={preset.preview} />
                     <p className="text-[11px] font-semibold text-gray-700">{preset.name}</p>

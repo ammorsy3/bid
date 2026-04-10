@@ -259,7 +259,18 @@ export const tenders = pgTable("tenders", {
   
   // Policy Gates
   allowConditionalSubmission: boolean("allow_conditional_submission").default(false).notNull(), // Allow unverified companies to submit
-  
+
+  // Marketplace Fields
+  isMarketplace: boolean("is_marketplace").default(false).notNull(),
+  marketplaceStatus: text("marketplace_status"), // 'pending', 'approved', 'rejected'
+  marketplaceApprovedBy: varchar("marketplace_approved_by").references(() => users.id),
+  marketplaceApprovedAt: timestamp("marketplace_approved_at"),
+  marketplaceRejectionReason: text("marketplace_rejection_reason"),
+  referenceNumber: text("reference_number"), // Unique reference for marketplace tenders
+  documentFee: integer("document_fee"), // Fee in SAR, null means free
+  tenderType: text("tender_type"), // 'open_tender', 'direct_purchase', 'framework_agreement'
+  inquiryDeadline: text("inquiry_deadline"), // Last date for clarification questions
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -349,6 +360,19 @@ export const tenderSavings = pgTable("tender_savings", {
   selectedBy: varchar("selected_by").notNull().references(() => users.id),
   selectedAt: timestamp("selected_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Purchase Orders - Official PO documents for marketplace tenders
+export const purchaseOrders = pgTable("purchase_orders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenderId: varchar("tender_id").notNull().references(() => tenders.id),
+  uploadedBy: varchar("uploaded_by").notNull().references(() => users.id),
+  fileUrl: text("file_url").notNull(),
+  originalName: text("original_name"),
+  status: text("status").notNull().default("pending"), // 'pending', 'verified', 'rejected'
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Invitations - Tender invitations to specific vendors
@@ -710,6 +734,18 @@ export const tendersRelations = relations(tenders, ({ one, many }) => ({
   invitations: many(invitations),
   awards: many(awards),
   negotiationActions: many(negotiationActions),
+  purchaseOrders: many(purchaseOrders),
+}));
+
+export const purchaseOrdersRelations = relations(purchaseOrders, ({ one }) => ({
+  tender: one(tenders, {
+    fields: [purchaseOrders.tenderId],
+    references: [tenders.id],
+  }),
+  uploadedByUser: one(users, {
+    fields: [purchaseOrders.uploadedBy],
+    references: [users.id],
+  }),
 }));
 
 export const offersRelations = relations(offers, ({ one }) => ({
@@ -1079,6 +1115,15 @@ export type InsertTrustedBrowser = typeof trustedBrowsers.$inferInsert;
 
 export type TeamInvitation = typeof teamInvitations.$inferSelect;
 export type InsertTeamInvitation = typeof teamInvitations.$inferInsert;
+
+export type PurchaseOrder = typeof purchaseOrders.$inferSelect;
+export type InsertPurchaseOrder = typeof purchaseOrders.$inferInsert;
+
+export const insertPurchaseOrderSchema = createInsertSchema(purchaseOrders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
 // Chat models for AI integrations
 export * from "./models/chat";

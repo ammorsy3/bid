@@ -4833,6 +4833,183 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
+  // ==========================================================================
+  // MARKETPLACE ROUTES (PUBLIC)
+  // ==========================================================================
+
+  app.get("/api/marketplace/tenders", async (req, res) => {
+    try {
+      const { search, category, city, tenderType, page, limit } = req.query;
+      const result = await storage.getMarketplaceTenders({
+        search: search as string,
+        category: category as string,
+        city: city as string,
+        tenderType: tenderType as string,
+        page: page ? parseInt(page as string) : 1,
+        limit: limit ? parseInt(limit as string) : 6,
+      });
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching marketplace tenders:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get("/api/marketplace/stats", async (_req, res) => {
+    try {
+      const stats = await storage.getMarketplaceStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching marketplace stats:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ==========================================================================
+  // MARKETPLACE ROUTES (AUTHENTICATED)
+  // ==========================================================================
+
+  app.post("/api/tenders/:id/marketplace-submit", authenticateToken, requireCompanyContext, requireCompanyRole('admin'), async (req: AuthRequest, res) => {
+    try {
+      const tender = await storage.getTender(req.params.id);
+      if (!tender) return res.status(404).json({ message: "Tender not found" });
+      if (tender.companyId !== req.auth!.activeCompanyId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      if (tender.isMarketplace && tender.marketplaceStatus === 'pending') {
+        return res.status(400).json({ message: "Already submitted to marketplace" });
+      }
+      if (tender.isMarketplace && tender.marketplaceStatus === 'approved') {
+        return res.status(400).json({ message: "Already on marketplace" });
+      }
+
+      const refNum = `BID-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+
+      await storage.updateTender(tender.id, {
+        isMarketplace: true,
+        marketplaceStatus: 'pending',
+        referenceNumber: refNum,
+        tenderType: req.body.tenderType || 'open_tender',
+        documentFee: req.body.documentFee || null,
+        inquiryDeadline: req.body.inquiryDeadline || null,
+      });
+
+      await storage.logProductEvent({
+        eventType: 'marketplace_submission',
+        companyId: req.auth!.activeCompanyId!,
+        userId: req.auth!.userId,
+        metadata: { tenderId: tender.id },
+      });
+
+      res.json({ message: "Submitted to marketplace for review", referenceNumber: refNum });
+    } catch (error) {
+      console.error("Error submitting to marketplace:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ==========================================================================
+  // MARKETPLACE ADMIN ROUTES
+  // ==========================================================================
+
+  app.get("/api/admin/marketplace/pending", authenticateToken, requireAdmin, async (_req: AuthRequest, res) => {
+    try {
+      const pending = await storage.getPendingMarketplaceRequests();
+      res.json(pending);
+    } catch (error) {
+      console.error("Error fetching pending marketplace:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/admin/marketplace/:id/approve", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const tender = await storage.getTender(req.params.id);
+      if (!tender) return res.status(404).json({ message: "Tender not found" });
+      if (!tender.isMarketplace || tender.marketplaceStatus !== 'pending') {
+        return res.status(400).json({ message: "Tender is not pending marketplace approval" });
+      }
+
+      await storage.approveMarketplaceTender(tender.id, req.auth!.userId);
+      res.json({ message: "Marketplace tender approved" });
+    } catch (error) {
+      console.error("Error approving marketplace tender:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/admin/marketplace/:id/reject", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { reason } = req.body;
+      if (!reason) return res.status(400).json({ message: "Rejection reason required" });
+      
+      const tender = await storage.getTender(req.params.id);
+      if (!tender) return res.status(404).json({ message: "Tender not found" });
+      if (!tender.isMarketplace || tender.marketplaceStatus !== 'pending') {
+        return res.status(400).json({ message: "Tender is not pending marketplace approval" });
+      }
+
+      await storage.rejectMarketplaceTender(tender.id, reason, req.auth!.userId);
+      res.json({ message: "Marketplace tender rejected" });
+    } catch (error) {
+      console.error("Error rejecting marketplace tender:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ==========================================================================
+  // PURCHASE ORDER ROUTES
+  // ==========================================================================
+
+  app.post("/api/tenders/:id/purchase-orders", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const tender = await storage.getTender(req.params.id);
+      if (!tender) return res.status(404).json({ message: "Tender not found" });
+
+      const isAdmin = req.auth!.isAdmin;
+      const isOwner = tender.companyId === req.auth!.activeCompanyId;
+      if (!isAdmin && !isOwner) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+
+      const { fileUrl, originalName, notes } = req.body;
+      if (!fileUrl) return res.status(400).json({ message: "File URL required" });
+
+      const po = await storage.createPurchaseOrder({
+        tenderId: tender.id,
+        uploadedBy: req.auth!.userId,
+        fileUrl,
+        originalName: originalName || null,
+        notes: notes || null,
+        status: 'pending',
+      });
+
+      res.json(po);
+    } catch (error) {
+      console.error("Error creating purchase order:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get("/api/tenders/:id/purchase-orders", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const tender = await storage.getTender(req.params.id);
+      if (!tender) return res.status(404).json({ message: "Tender not found" });
+
+      const isAdmin = req.auth!.isAdmin;
+      const isOwner = tender.companyId === req.auth!.activeCompanyId;
+      if (!isAdmin && !isOwner) {
+        return res.status(403).json({ message: "Not authorized — PO is private" });
+      }
+
+      const pos = await storage.getPurchaseOrdersByTender(tender.id);
+      res.json(pos);
+    } catch (error) {
+      console.error("Error fetching purchase orders:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Global server-side error logging middleware
   app.use(async (err: any, req: any, res: any, next: any) => {
     let userId: string | undefined;

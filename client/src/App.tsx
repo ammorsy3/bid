@@ -39,6 +39,8 @@ import TractionLink from "@/pages/TractionLink";
 import TractionLinkEditor from "@/pages/TractionLinkEditor";
 import Landing from "@/pages/Landing";
 import Settings from "@/pages/Settings";
+import Marketplace from "@/pages/Marketplace";
+import AdminMarketplace from "@/pages/AdminMarketplace";
 
 export default function App() {
   const checkAuth = useAuthStore((s) => s.checkAuth);
@@ -84,6 +86,8 @@ export default function App() {
             <Route path="/tenders/:id" component={TenderDetails} />
             <Route path="/traction/:slug/edit" component={TractionLinkEditor} />
             <Route path="/traction/:slug" component={TractionLink} />
+            <Route path="/marketplace" component={Marketplace} />
+            <Route path="/admin/marketplace" component={AdminMarketplace} />
             <Route path="/settings" component={Settings} />
           </Switch>
           <Toaster />

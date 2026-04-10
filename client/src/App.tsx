@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Router, Route, Switch } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -42,11 +42,34 @@ import Settings from "@/pages/Settings";
 import Marketplace from "@/pages/Marketplace";
 import AdminMarketplace from "@/pages/AdminMarketplace";
 
+import { isMarketplaceSubdomain } from "@/lib/subdomain";
+
 export default function App() {
   const checkAuth = useAuthStore((s) => s.checkAuth);
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  const isMarketplace = useMemo(() => isMarketplaceSubdomain(), []);
+
+  if (isMarketplace) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <I18nProvider>
+          <Router>
+            <Switch>
+              <Route path="/" component={Marketplace} />
+              <Route path="/invite/:id" component={TenderInviteLink} />
+              <Route path="/login" component={Login} />
+              <Route path="/signup" component={Register} />
+              <Route path="/:rest*">{() => { window.location.href = '/'; return null; }}</Route>
+            </Switch>
+            <Toaster />
+          </Router>
+        </I18nProvider>
+      </QueryClientProvider>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

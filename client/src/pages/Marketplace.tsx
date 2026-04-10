@@ -8,6 +8,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Search, FileText, MapPin, ChevronLeft, ChevronRight, Loader2, Eye, Share2, Printer, ChevronDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { VENDOR_CATEGORIES } from "@shared/schema";
+import { isMarketplaceSubdomain } from "@/lib/subdomain";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import heroBg from "@assets/image_1775799187200.png";
 
@@ -54,6 +55,8 @@ function getDaysRemaining(deadline: string) {
 export default function Marketplace() {
   const { t, language, isRtl } = useI18n();
   const [, setLocation] = useLocation();
+  const isSubdomain = isMarketplaceSubdomain();
+  const marketplaceHome = isSubdomain ? "/" : "/marketplace";
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [city, setCity] = useState("");
@@ -107,11 +110,11 @@ export default function Marketplace() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-8">
-              <Link href="/" className="flex items-center gap-2">
+              <Link href={marketplaceHome} className="flex items-center gap-2">
                 <img src={logoPath} alt="Bid" className="h-8 object-contain" />
               </Link>
               <nav className="hidden sm:flex items-center gap-6 text-sm font-medium">
-                <Link href="/marketplace">
+                <Link href={marketplaceHome}>
                   <span className="text-[#E8614D] font-semibold">
                     {t('marketplace.title')}
                   </span>
@@ -363,10 +366,10 @@ export default function Marketplace() {
               </span>
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-400">
-              <Link href="/" className="hover:text-gray-700 transition-colors">
+              <Link href={isSubdomain ? "/" : "/"} className="hover:text-gray-700 transition-colors">
                 {t('marketplace.home')}
               </Link>
-              <Link href="/marketplace" className="hover:text-gray-700 transition-colors">
+              <Link href={marketplaceHome} className="hover:text-gray-700 transition-colors">
                 {t('marketplace.title')}
               </Link>
             </div>

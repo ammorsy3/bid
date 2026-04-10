@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join Saudi Binladin Group — Bid</title>
+<style>
+  /* ══════════════════════════════════════
+     BID DESIGN TOKENS (from index.css)
+     ══════════════════════════════════════ */
+  :root {
+    --bid: #E25E45;
+    --bid-hover: #d04a32;
+    --bid-dark: #b83a24;
+    --bid-bg: rgba(226, 94, 69, 0.05);
+    --bid-bg-strong: rgba(226, 94, 69, 0.1);
+    --white: #ffffff;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-900: #111827;
+    --radius: 16px;
+    --radius-sm: 8px;
+    --radius-full: 9999px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --max-w: 768px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+  body {
+    font-family: var(--font);
+    background: var(--white);
+    color: var(--gray-900);
+    line-height: 1.6;
+  }
+
+  /* ══════════════════════════════════════
+     SCROLL REVEAL (subtle, fast)
+     ══════════════════════════════════════ */
+  .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-d1 { transition-delay: 0.08s; }
+  .reveal-d2 { transition-delay: 0.16s; }
+  .reveal-d3 { transition-delay: 0.24s; }
+  .reveal-d4 { transition-delay: 0.32s; }
+
+  /* ══════════════════════════════════════
+     HERO — Bid's split-panel signature
+     Matches onboarding-layout.tsx exactly:
+     Left: #E25E45 gradient panel
+     Right: White content
+     ══════════════════════════════════════ */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  @media (min-width: 1024px) {
+    .hero { flex-direction: row; }
+  }
+
+  /* Left Brand Panel */
+  .hero-brand {
+    background: linear-gradient(to bottom right, #E25E45, #d04a32, #b83a24);
+    position: relative;
+    overflow: hidden;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 320px;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-brand {
+      width: 440px;
+      flex-shrink: 0;
+      min-height: 100vh;
+      padding: 48px;
+    }
+  }
+
+  /* Dot grid overlay — same as onboarding */
+  .hero-brand::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: radial-gradient(circle, white 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+  }
+
+  /* Soft glow blobs — same as onboarding */
+  .hero-brand .blob-1 {
+    position: absolute;
+    top: 64px;
+    left: -40px;
+    width: 288px;
+    height: 288px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    filter: blur(48px);
+  }
+  .hero-brand .blob-2 {
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    width: 320px;
+    height: 320px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+    filter: blur(48px);
+  }
+
+  .hero-brand-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-logo {
+    height: 32px;
+    margin-bottom: 48px;
+    /* White logo via filter — matches: brightness-0 invert */
+    filter: brightness(0) invert(1);
+  }
+
+  .hero-company-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 10px 16px 10px 10px;
+    margin-bottom: 32px;
+    animation: fadeIn 0.6s ease 0.2s both;
+  }
+
+  .hero-company-initials {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 13px;
+    color: #fff;
+    letter-spacing: 0.5px;
+  }
+
+  .hero-company-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .hero-company-detail {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .hero-heading {
+    font-size: clamp(28px, 4vw, 36px);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+    animation: fadeIn 0.6s ease 0.35s both;
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.7;
+    max-width: 340px;
+    animation: fadeIn 0.6s ease 0.5s both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .hero-features {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 48px;
+    animation: fadeIn 0.6s ease 0.65s both;
+  }
+
+  .hero-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .hero-feature-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .hero-feature-icon svg { width: 20px; height: 20px; color: #fff; }
+
+  .hero-feature-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  .hero-feature-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .hero-trust-line {
+    position: relative;
+    z-index: 2;
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    animation: fadeIn 0.6s ease 0.8s both;
+  }
+  .hero-trust-line svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* Right Content Panel */
+  .hero-content {
+    flex: 1;
+    background: var(--gray-50);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    min-height: 60vh;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-content { padding: 64px 48px; min-height: auto; }
+  }
+
+  .hero-content-inner {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  /* Language toggle — top right of content panel */
+  .lang-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 32px;
+  }
+
+  .lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-full);
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-500);
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all 0.15s;
+  }
+  .lang-toggle:hover { border-color: var(--gray-300); color: var(--gray-900); }
+  .lang-toggle svg { width: 14px; height: 14px; }
+
+  .content-heading {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--gray-900);
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  .content-sub {
+    font-size: 14px;
+    color: var(--gray-500);
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  /* CTA Buttons — exact Bid style */
+  .btn-bid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: var(--bid);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 0 24px;
+    height: 48px;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    letter-spacing: -0.01em;
+  }
+  .btn-bid:hover { background: var(--bid-hover); }
+  .btn-bid svg { width: 16px; height: 16px; }
+
+  .btn-outline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: var(--white);
+    color: var(--gray-600);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 0 24px;
+    height: 48px;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: -0.01em;
+  }
+  .btn-outline:hover { border-color: var(--gray-300); color: var(--gray-900); }
+  .btn-outline svg { width: 16px; height: 16px; }
+
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .or-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 4px 0;
+  }
+  .or-divider::before, .or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gray-200);
+  }
+  .or-divider span {
+    font-size: 12px;
+    color: var(--gray-400);
+    font-weight: 500;
+  }
+
+  .content-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-top: 20px;
+  }
+  .content-note svg {
+    width: 14px;
+    height: 14px;
+    display: inline;
+    vertical-align: -3px;
+    margin-right: 4px;
+    color: #34d399;
+  }
+
+  /* ══════════════════════════════════════
+     HOW IT WORKS — Bid step style
+     3 numbered steps, left-aligned
+     ══════════════════════════════════════ */
+  .section {
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: 80px 24px;
+  }
+
+  .section-alt { background: var(--gray-50); }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--bid);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 24px;
+  }
+
+  .section-heading {
+    font-size: clamp(24px, 3.5vw, 32px);
+    font-weight: 800;
+    color: var(--gray-900);
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+
+  .section-sub {
+    font-size: 14px;
+    color: var(--gray-500);
+    max-width: 480px;
+    line-height: 1.7;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 40px;
+  }
+
+  @media (min-width: 640px) {
+    .steps { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .step {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    transition: all 0.2s;
+  }
+
+  .section-alt .step {
+    background: var(--white);
+  }
+
+  .step:hover {
+    border-color: var(--gray-300);
+  }
+
+  .step-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .step-num {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    background: var(--bid-bg-strong);
+    color: var(--bid);
+    font-size: 13px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .step-icon {
+    color: var(--gray-400);
+  }
+  .step-icon svg { width: 20px; height: 20px; }
+
+  .step-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 6px;
+  }
+
+  .step-desc {
+    font-size: 13px;
+    color: var(--gray-500);
+    line-height: 1.65;
+  }
+
+  /* ══════════════════════════════════════
+     BENEFITS — 2x2 grid, flat cards
+     ══════════════════════════════════════ */
+  .benefits {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 40px;
+  }
+
+  @media (min-width: 640px) {
+    .benefits { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .benefit {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    transition: border-color 0.2s;
+  }
+
+  .section-alt .benefit {
+    background: var(--white);
+  }
+
+  .benefit:hover { border-color: var(--gray-300); }
+
+  .benefit-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--bid-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .benefit-icon svg { width: 20px; height: 20px; color: var(--bid); }
+
+  .benefit-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 6px;
+  }
+
+  .benefit-desc {
+    font-size: 13px;
+    color: var(--gray-500);
+    line-height: 1.65;
+  }
+
+  /* ══════════════════════════════════════
+     COMPANY CARD
+     ══════════════════════════════════════ */
+  .company-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-top: 40px;
+  }
+
+  .company-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+    border-bottom: 1px solid var(--gray-100);
+  }
+
+  .company-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: var(--gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--gray-500);
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+
+  .company-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .company-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .company-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--gray-400);
+    font-weight: 500;
+  }
+  .company-meta-item svg { width: 13px; height: 13px; }
+
+  .company-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #059669;
+    background: #ecfdf5;
+    border-radius: var(--radius-full);
+    padding: 3px 10px 3px 6px;
+  }
+  .company-verified svg { width: 12px; height: 12px; }
+
+  .company-body {
+    padding: 24px;
+  }
+
+  .company-bio {
+    font-size: 14px;
+    color: var(--gray-500);
+    line-height: 1.75;
+    margin-bottom: 16px;
+  }
+
+  .company-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .company-tag {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--bid);
+    background: var(--bid-bg);
+    border-radius: var(--radius-full);
+    padding: 4px 12px;
+  }
+
+  .company-links {
+    display: flex;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--gray-100);
+  }
+
+  .company-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-decoration: none;
+    padding: 6px 12px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+  }
+  .company-link:hover { color: var(--bid); border-color: var(--bid); }
+  .company-link svg { width: 14px; height: 14px; }
+
+  /* ══════════════════════════════════════
+     TRUST BAR — minimal stats
+     ══════════════════════════════════════ */
+  .trust-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--gray-200);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-top: 40px;
+  }
+
+  .trust-item {
+    background: var(--white);
+    padding: 24px 16px;
+    text-align: center;
+  }
+
+  .trust-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--gray-900);
+    letter-spacing: -0.02em;
+    margin-bottom: 2px;
+  }
+
+  .trust-label {
+    font-size: 12px;
+    color: var(--gray-400);
+    font-weight: 500;
+  }
+
+  @media (max-width: 480px) {
+    .trust-bar { grid-template-columns: 1fr; }
+  }
+
+  /* ══════════════════════════════════════
+     FOOTER — same as Landing.tsx
+     ══════════════════════════════════════ */
+  .footer {
+    border-top: 1px solid var(--gray-100);
+    padding: 40px 24px;
+  }
+
+  .footer-inner {
+    max-width: var(--max-w);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--bid);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-link {
+    font-size: 13px;
+    color: var(--gray-400);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .footer-link:hover { color: var(--gray-600); }
+
+  /* ══════════════════════════════════════
+     RTL
+     ══════════════════════════════════════ */
+  [dir="rtl"] { direction: rtl; text-align: right; }
+  [dir="rtl"] .hero { flex-direction: row-reverse; }
+  [dir="rtl"] .hero-feature { flex-direction: row-reverse; }
+  [dir="rtl"] .company-header { flex-direction: row-reverse; }
+  [dir="rtl"] .company-meta { flex-direction: row-reverse; }
+  [dir="rtl"] .company-meta-item { flex-direction: row-reverse; }
+  [dir="rtl"] .company-tags { flex-direction: row-reverse; }
+  [dir="rtl"] .company-links { flex-direction: row-reverse; }
+  [dir="rtl"] .company-link { flex-direction: row-reverse; }
+  [dir="rtl"] .step-top { flex-direction: row-reverse; }
+  [dir="rtl"] .footer-inner { flex-direction: row-reverse; }
+  [dir="rtl"] .lang-row { justify-content: flex-start; }
+  [dir="rtl"] .hero-trust-line { flex-direction: row-reverse; }
+
+  @media (max-width: 1023px) {
+    [dir="rtl"] .hero { flex-direction: column; }
+  }
+
+  /* ══════════════════════════════════════
+     MOBILE
+     ══════════════════════════════════════ */
+  @media (max-width: 1023px) {
+    .hero-brand { min-height: auto; padding: 32px 24px; }
+    .hero-logo { margin-bottom: 32px; }
+    .hero-features { margin-top: 32px; }
+    .hero-trust-line { margin-top: 32px; }
+  }
+
+  @media (max-width: 640px) {
+    .section { padding: 60px 20px; }
+    .footer-inner { flex-direction: column; gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       HERO — Split Panel (Bid's signature layout)
+       Left: Brand gradient | Right: Action content
+       ═══════════════════════════════════════════════ -->
+  <section class="hero">
+
+    <!-- LEFT: Brand Panel -->
+    <div class="hero-brand">
+      <div class="blob-1"></div>
+      <div class="blob-2"></div>
+
+      <div class="hero-brand-content">
+        <!-- Bid logo (white) -->
+        <img src="/bid-logo.png" alt="Bid" class="hero-logo" onerror="this.outerHTML='<span style=&quot;font-size:24px;font-weight:800;color:#fff;display:block;margin-bottom:48px&quot;>Bid</span>'">
+
+        <!-- Company badge -->
+        <div class="hero-company-badge">
+          <div class="hero-company-initials">SBG</div>
+          <div>
+            <div class="hero-company-name">Saudi Binladin Group</div>
+            <div class="hero-company-detail">Jeddah, Saudi Arabia</div>
+          </div>
+        </div>
+
+        <h1 class="hero-heading">Join our vendor network and access exclusive opportunities.</h1>
+        <p class="hero-sub">
+          Submit your application to become an approved vendor. Connect with one of the region's largest construction companies.
+        </p>
+
+        <!-- Features — same pattern as onboarding -->
+        <div class="hero-features">
+          <div class="hero-feature">
+            <div class="hero-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div>
+              <div class="hero-feature-title">Early access to RFQs</div>
+              <div class="hero-feature-desc">Get project invitations before they go public.</div>
+            </div>
+          </div>
+          <div class="hero-feature">
+            <div class="hero-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <div class="hero-feature-title">Verified & compliant</div>
+              <div class="hero-feature-desc">CR, VAT, and GOSI handled securely.</div>
+            </div>
+          </div>
+          <div class="hero-feature">
+            <div class="hero-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div>
+              <div class="hero-feature-title">Priority consideration</div>
+              <div class="hero-feature-desc">Approved vendors are considered first for new projects.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-trust-line">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span>Trusted by companies across Saudi Arabia</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Action Panel -->
+    <div class="hero-content">
+      <div class="hero-content-inner">
+
+        <div class="lang-row">
+          <button class="lang-toggle" onclick="toggleDir()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            عربي
+          </button>
+        </div>
+
+        <h2 class="content-heading">Get started</h2>
+        <p class="content-sub">
+          Create your free Bid account or sign in to submit your join request to Saudi Binladin Group.
+        </p>
+
+        <div class="btn-group">
+          <button class="btn-bid">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            Create Account
+          </button>
+          <div class="or-divider"><span>or</span></div>
+          <button class="btn-outline">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Sign In
+          </button>
+        </div>
+
+        <p class="content-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/></svg>
+          Free to join — no hidden fees
+        </p>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       HOW IT WORKS
+       ═══════════════════════════════════════════════ -->
+  <div class="section-alt">
+    <div class="section">
+      <div class="reveal">
+        <p class="section-label">How it works</p>
+        <h2 class="section-heading">Three steps to join</h2>
+        <p class="section-sub">Whether you're new to Bid or already have an account, it takes just minutes.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step reveal reveal-d1">
+          <div class="step-top">
+            <span class="step-num">01</span>
+            <span class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </span>
+          </div>
+          <h3 class="step-title">Identify</h3>
+          <p class="step-desc">Enter your email or Commercial Registration number. We'll check if you already have an account.</p>
+        </div>
+
+        <div class="step reveal reveal-d2">
+          <div class="step-top">
+            <span class="step-num">02</span>
+            <span class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            </span>
+          </div>
+          <h3 class="step-title">Verify</h3>
+          <p class="step-desc">Confirm your identity with a quick OTP. New vendors complete a streamlined profile.</p>
+        </div>
+
+        <div class="step reveal reveal-d3">
+          <div class="step-top">
+            <span class="step-num">03</span>
+            <span class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </span>
+          </div>
+          <h3 class="step-title">Connect</h3>
+          <p class="step-desc">Your request is submitted instantly. Once approved, you're in the vendor network.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       ABOUT THE COMPANY
+       ═══════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="reveal">
+      <p class="section-label">About the company</p>
+      <h2 class="section-heading">Who you'll be working with</h2>
+    </div>
+
+    <div class="company-card reveal reveal-d1">
+      <div class="company-header">
+        <div class="company-logo">SBG</div>
+        <div>
+          <div class="company-name">Saudi Binladin Group</div>
+          <div class="company-meta">
+            <span class="company-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Jeddah, Saudi Arabia
+            </span>
+            <span class="company-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              Construction & Infrastructure
+            </span>
+            <span class="company-verified">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/></svg>
+              Verified
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="company-body">
+        <p class="company-bio">
+          One of the largest construction and civil engineering companies in the Middle East, delivering world-class infrastructure projects across the region. With decades of experience in mega-projects, we partner with vendors who share our commitment to quality and safety.
+        </p>
+        <div class="company-tags">
+          <span class="company-tag">Infrastructure</span>
+          <span class="company-tag">MEP</span>
+          <span class="company-tag">Government Projects</span>
+          <span class="company-tag">Commercial Buildings</span>
+          <span class="company-tag">Roads & Bridges</span>
+        </div>
+        <div class="company-links">
+          <a href="#" class="company-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Website
+          </a>
+          <a href="#" class="company-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+            LinkedIn
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       BENEFITS
+       ═══════════════════════════════════════════════ -->
+  <div class="section-alt">
+    <div class="section">
+      <div class="reveal">
+        <p class="section-label">Why join</p>
+        <h2 class="section-heading">Built for vendors who mean business</h2>
+      </div>
+
+      <div class="benefits">
+        <div class="benefit reveal reveal-d1">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <h3 class="benefit-title">Early Access to Opportunities</h3>
+          <p class="benefit-desc">Be among the first to receive RFQs and project invitations before they go public.</p>
+        </div>
+
+        <div class="benefit reveal reveal-d2">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 class="benefit-title">Trusted Network</h3>
+          <p class="benefit-desc">Your profile and compliance data are securely stored and shared only with your consent.</p>
+        </div>
+
+        <div class="benefit reveal reveal-d3">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <h3 class="benefit-title">Priority Consideration</h3>
+          <p class="benefit-desc">Approved vendors are considered first for new projects. Build your track record over time.</p>
+        </div>
+
+        <div class="benefit reveal reveal-d4">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <h3 class="benefit-title">Streamlined Compliance</h3>
+          <p class="benefit-desc">Upload CR, VAT, GOSI once. Reuse across all your applications on the platform.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       TRUST BAR
+       ═══════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="trust-bar reveal">
+      <div class="trust-item">
+        <div class="trust-value">500+</div>
+        <div class="trust-label">Vendors Connected</div>
+      </div>
+      <div class="trust-item">
+        <div class="trust-value">100%</div>
+        <div class="trust-label">Data Protected</div>
+      </div>
+      <div class="trust-item">
+        <div class="trust-value">Verified</div>
+        <div class="trust-label">Compliant Platform</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       FOOTER — matches Landing.tsx
+       ═══════════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-brand">Bid</span>
+      <div class="footer-links">
+        <a href="#" class="footer-link">How it Works</a>
+        <a href="mailto:hello@bid.sa" class="footer-link">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll reveal — subtle, fast
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1, rootMargin: '0px 0px -32px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+    // RTL toggle
+    function toggleDir() {
+      const html = document.documentElement;
+      const btn = document.querySelector('.lang-toggle');
+      if (html.dir === 'rtl') {
+        html.dir = 'ltr'; html.lang = 'en';
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> عربي';
+      } else {
+        html.dir = 'rtl'; html.lang = 'ar';
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> EN';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join Saudi Binladin Group — Bid</title>
+<style>
+  :root {
+    --bid: #E25E45;
+    --bid-hover: #d04a32;
+    --bid-dark: #b83a24;
+    --bid-5: rgba(226,94,69,0.05);
+    --bid-10: rgba(226,94,69,0.1);
+    --bid-15: rgba(226,94,69,0.15);
+    --white: #ffffff;
+    --g50: #f9fafb;
+    --g100: #f3f4f6;
+    --g200: #e5e7eb;
+    --g300: #d1d5db;
+    --g400: #9ca3af;
+    --g500: #6b7280;
+    --g600: #4b5563;
+    --g900: #111827;
+    --green: #059669;
+    --green-bg: #ecfdf5;
+    --r: 16px;
+    --r-sm: 8px;
+    --r-full: 9999px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+  body { font-family: var(--font); background: var(--white); color: var(--g900); line-height: 1.6; overflow-x: hidden; }
+
+  /* ── Reveal ── */
+  .rv { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .rv.vis { opacity: 1; transform: none; }
+  .rv-d1 { transition-delay: 0.07s; } .rv-d2 { transition-delay: 0.14s; }
+  .rv-d3 { transition-delay: 0.21s; } .rv-d4 { transition-delay: 0.28s; }
+
+  /* ═══════════════════════════════════════
+     HERO — Full-width with canvas bg
+     ═══════════════════════════════════════ */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--g900);
+  }
+
+  #hero-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Gradient overlays on top of canvas */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 80%, rgba(226,94,69,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 20%, rgba(226,94,69,0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 120px 32px 100px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+
+  @media (min-width: 768px) {
+    .hero-inner {
+      grid-template-columns: 1fr 360px;
+      gap: 64px;
+      padding: 0 32px;
+    }
+  }
+
+  /* Hero Left */
+  .hero-left { animation: fadeUp 0.7s ease 0.1s both; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .hero-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+    padding: 20px 32px;
+  }
+
+  .hero-logo {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--bid);
+  }
+
+  .lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--r-full);
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all 0.2s;
+    backdrop-filter: blur(8px);
+  }
+  .lang-toggle:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+  .lang-toggle svg { width: 14px; height: 14px; }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 10px 18px 10px 10px;
+    margin-bottom: 28px;
+  }
+
+  .hero-badge-logo {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 13px;
+    color: rgba(255,255,255,0.9);
+    letter-spacing: 0.5px;
+  }
+
+  .hero-badge-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .hero-badge-detail {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 1px;
+  }
+
+  .hero-h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 18px;
+  }
+
+  .hero-h1 span { color: var(--bid); }
+
+  .hero-p {
+    font-size: 16px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.7;
+    max-width: 440px;
+    margin-bottom: 32px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    animation: fadeUp 0.7s ease 0.5s both;
+  }
+
+  .hero-stat-val {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-stat-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    font-weight: 500;
+  }
+
+  /* Hero Right — Action Card (floating glass) */
+  .hero-card {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 36px 28px;
+    animation: fadeUp 0.7s ease 0.3s both;
+  }
+
+  .hero-card-heading {
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-card-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  .btn-bid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: var(--bid);
+    color: #fff;
+    border: none;
+    border-radius: var(--r-sm);
+    height: 48px;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: -0.01em;
+  }
+  .btn-bid:hover { background: var(--bid-hover); transform: translateY(-1px); }
+  .btn-bid svg { width: 16px; height: 16px; }
+
+  .or-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .or-line::before, .or-line::after {
+    content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08);
+  }
+  .or-line span { font-size: 11px; color: rgba(255,255,255,0.25); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .btn-glass {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--r-sm);
+    height: 48px;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    backdrop-filter: blur(8px);
+  }
+  .btn-glass:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .btn-glass svg { width: 16px; height: 16px; }
+
+  .card-note {
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    margin-top: 18px;
+  }
+  .card-note svg { width: 13px; height: 13px; display: inline; vertical-align: -2px; margin-right: 3px; color: #34d399; }
+
+  /* ═══════════════════════════════════════
+     SECTIONS
+     ═══════════════════════════════════════ */
+  .sec { max-width: 800px; margin: 0 auto; padding: 80px 24px; }
+  .sec-alt { background: var(--g50); }
+
+  .sec-label {
+    font-size: 12px; font-weight: 700; color: var(--bid);
+    text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 20px;
+  }
+  .sec-h2 {
+    font-size: clamp(24px, 3.5vw, 32px); font-weight: 800;
+    color: var(--g900); letter-spacing: -0.025em; margin-bottom: 10px;
+  }
+  .sec-sub {
+    font-size: 14px; color: var(--g500); max-width: 480px; line-height: 1.7;
+  }
+
+  /* ── Steps ── */
+  .steps { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 40px; }
+  @media (min-width: 640px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+
+  .step {
+    background: var(--white);
+    border: 1px solid var(--g200);
+    border-radius: var(--r);
+    padding: 28px 24px;
+    position: relative;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .step:hover { border-color: var(--bid); box-shadow: 0 0 0 3px var(--bid-5); }
+
+  .step-top { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+
+  .step-num {
+    width: 32px; height: 32px; border-radius: var(--r-full);
+    background: var(--bid-10); color: var(--bid);
+    font-size: 13px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-icon { color: var(--g400); }
+  .step-icon svg { width: 20px; height: 20px; }
+
+  .step-title { font-size: 16px; font-weight: 700; color: var(--g900); margin-bottom: 6px; }
+  .step-desc { font-size: 13px; color: var(--g500); line-height: 1.65; }
+
+  /* ── Benefits ── */
+  .benefits { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 40px; }
+  @media (min-width: 640px) { .benefits { grid-template-columns: repeat(2, 1fr); } }
+
+  .benefit {
+    background: var(--white);
+    border: 1px solid var(--g200);
+    border-radius: var(--r);
+    padding: 28px 24px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .benefit:hover { border-color: var(--bid); box-shadow: 0 0 0 3px var(--bid-5); }
+
+  .benefit-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--bid-5);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .benefit-icon svg { width: 20px; height: 20px; color: var(--bid); }
+
+  .benefit-title { font-size: 15px; font-weight: 700; color: var(--g900); margin-bottom: 6px; }
+  .benefit-desc { font-size: 13px; color: var(--g500); line-height: 1.65; }
+
+  /* ── Company Card ── */
+  .co-card {
+    border: 1px solid var(--g200);
+    border-radius: var(--r);
+    overflow: hidden;
+    margin-top: 40px;
+    background: var(--white);
+  }
+
+  .co-head {
+    display: flex; align-items: center; gap: 16px;
+    padding: 24px; border-bottom: 1px solid var(--g100);
+  }
+
+  .co-logo {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: var(--g100);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px; color: var(--g500);
+    letter-spacing: 0.5px; flex-shrink: 0;
+  }
+
+  .co-name { font-size: 18px; font-weight: 800; color: var(--g900); margin-bottom: 4px; letter-spacing: -0.01em; }
+
+  .co-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .co-meta-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--g400); font-weight: 500; }
+  .co-meta-item svg { width: 13px; height: 13px; }
+
+  .co-verified {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 700; color: var(--green);
+    background: var(--green-bg); border-radius: var(--r-full);
+    padding: 3px 10px 3px 6px;
+  }
+  .co-verified svg { width: 12px; height: 12px; }
+
+  .co-body { padding: 24px; }
+  .co-bio { font-size: 14px; color: var(--g500); line-height: 1.75; margin-bottom: 16px; }
+
+  .co-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+  .co-tag {
+    font-size: 12px; font-weight: 600; color: var(--bid);
+    background: var(--bid-5); border-radius: var(--r-full); padding: 4px 12px;
+  }
+
+  .co-links { display: flex; gap: 8px; padding-top: 16px; border-top: 1px solid var(--g100); }
+  .co-link {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; color: var(--g500);
+    text-decoration: none; padding: 6px 12px;
+    border: 1px solid var(--g200); border-radius: var(--r-sm);
+    transition: all 0.15s;
+  }
+  .co-link:hover { color: var(--bid); border-color: var(--bid); }
+  .co-link svg { width: 14px; height: 14px; }
+
+  /* ── Bottom CTA band ── */
+  .cta-band {
+    background: var(--g900);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #cta-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.5;
+  }
+
+  .cta-band-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 64px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .cta-band-text h3 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+
+  .cta-band-text p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  .cta-band-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bid);
+    color: #fff;
+    border: none;
+    border-radius: var(--r-sm);
+    padding: 14px 28px;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .cta-band-btn:hover { background: var(--bid-hover); transform: translateY(-1px); }
+  .cta-band-btn svg { width: 16px; height: 16px; }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid var(--g100);
+    padding: 32px 24px;
+  }
+  .footer-inner {
+    max-width: 800px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-brand { font-size: 18px; font-weight: 800; color: var(--bid); }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-link { font-size: 13px; color: var(--g400); text-decoration: none; transition: color 0.15s; }
+  .footer-link:hover { color: var(--g600); }
+
+  /* ── RTL ── */
+  [dir="rtl"] { direction: rtl; text-align: right; }
+  [dir="rtl"] .hero-inner { direction: rtl; }
+  [dir="rtl"] .co-head, [dir="rtl"] .co-meta, [dir="rtl"] .co-meta-item,
+  [dir="rtl"] .co-tags, [dir="rtl"] .co-links, [dir="rtl"] .co-link,
+  [dir="rtl"] .step-top, [dir="rtl"] .hero-stats,
+  [dir="rtl"] .footer-inner, [dir="rtl"] .cta-band-inner { flex-direction: row-reverse; }
+
+  /* ── Mobile ── */
+  @media (max-width: 767px) {
+    .hero-inner { padding: 100px 24px 60px; }
+    .hero-stats { gap: 24px; }
+    .cta-band-inner { text-align: center; flex-direction: column; }
+    .footer-inner { flex-direction: column; gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════
+       HERO with animated canvas
+       ═══════════════════════════════════════ -->
+  <section class="hero">
+    <canvas id="hero-canvas"></canvas>
+
+    <nav class="hero-nav">
+      <span class="hero-logo">Bid</span>
+      <button class="lang-toggle" onclick="toggleDir()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        عربي
+      </button>
+    </nav>
+
+    <div class="hero-inner">
+      <!-- Left: Headline -->
+      <div class="hero-left">
+        <div class="hero-badge">
+          <div class="hero-badge-logo">SBG</div>
+          <div>
+            <div class="hero-badge-name">Saudi Binladin Group</div>
+            <div class="hero-badge-detail">Jeddah, Saudi Arabia</div>
+          </div>
+        </div>
+
+        <h1 class="hero-h1">
+          Join the <span>vendor network.</span>
+        </h1>
+        <p class="hero-p">
+          Submit your application to become an approved vendor. Get access to exclusive project opportunities and RFQs from one of the Middle East's largest construction companies.
+        </p>
+
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-val">500+</div>
+            <div class="hero-stat-label">Vendors connected</div>
+          </div>
+          <div>
+            <div class="hero-stat-val">100%</div>
+            <div class="hero-stat-label">Data protected</div>
+          </div>
+          <div>
+            <div class="hero-stat-val">3 min</div>
+            <div class="hero-stat-label">To apply</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Action Card -->
+      <div class="hero-card">
+        <div class="hero-card-heading">Get started</div>
+        <p class="hero-card-sub">Create a free Bid account or sign in to submit your join request.</p>
+
+        <button class="btn-bid">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+          Create Account
+        </button>
+
+        <div class="or-line"><span>or</span></div>
+
+        <button class="btn-glass">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Sign In
+        </button>
+
+        <p class="card-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/></svg>
+          Free to join — no hidden fees
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       HOW IT WORKS
+       ═══════════════════════════════════════ -->
+  <div class="sec-alt">
+    <div class="sec">
+      <div class="rv">
+        <p class="sec-label">How it works</p>
+        <h2 class="sec-h2">Three steps to join</h2>
+        <p class="sec-sub">Whether you're new or already on Bid, it takes just minutes.</p>
+      </div>
+      <div class="steps">
+        <div class="step rv rv-d1">
+          <div class="step-top">
+            <span class="step-num">01</span>
+            <span class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+          </div>
+          <h3 class="step-title">Identify</h3>
+          <p class="step-desc">Enter your email or CR number. We'll check if you already have an account.</p>
+        </div>
+        <div class="step rv rv-d2">
+          <div class="step-top">
+            <span class="step-num">02</span>
+            <span class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>
+          </div>
+          <h3 class="step-title">Verify</h3>
+          <p class="step-desc">Quick OTP verification. New vendors complete a streamlined onboarding profile.</p>
+        </div>
+        <div class="step rv rv-d3">
+          <div class="step-top">
+            <span class="step-num">03</span>
+            <span class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+          </div>
+          <h3 class="step-title">Connect</h3>
+          <p class="step-desc">Request submitted instantly. Once approved, you're in the vendor network.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       COMPANY PROFILE
+       ═══════════════════════════════════════ -->
+  <div class="sec">
+    <div class="rv">
+      <p class="sec-label">About the company</p>
+      <h2 class="sec-h2">Who you'll be working with</h2>
+    </div>
+    <div class="co-card rv rv-d1">
+      <div class="co-head">
+        <div class="co-logo">SBG</div>
+        <div>
+          <div class="co-name">Saudi Binladin Group</div>
+          <div class="co-meta">
+            <span class="co-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Jeddah, Saudi Arabia
+            </span>
+            <span class="co-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              Construction & Infrastructure
+            </span>
+            <span class="co-verified">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/></svg>
+              Verified
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="co-body">
+        <p class="co-bio">One of the largest construction and civil engineering companies in the Middle East, delivering world-class infrastructure projects across the region.</p>
+        <div class="co-tags">
+          <span class="co-tag">Infrastructure</span>
+          <span class="co-tag">MEP</span>
+          <span class="co-tag">Government Projects</span>
+          <span class="co-tag">Commercial Buildings</span>
+          <span class="co-tag">Roads & Bridges</span>
+        </div>
+        <div class="co-links">
+          <a href="#" class="co-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Website</a>
+          <a href="#" class="co-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>LinkedIn</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       BENEFITS
+       ═══════════════════════════════════════ -->
+  <div class="sec-alt">
+    <div class="sec">
+      <div class="rv">
+        <p class="sec-label">Why join</p>
+        <h2 class="sec-h2">Built for vendors who mean business</h2>
+      </div>
+      <div class="benefits">
+        <div class="benefit rv rv-d1">
+          <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+          <h3 class="benefit-title">Early Access to Opportunities</h3>
+          <p class="benefit-desc">Receive RFQs and project invitations before they go public.</p>
+        </div>
+        <div class="benefit rv rv-d2">
+          <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <h3 class="benefit-title">Trusted Network</h3>
+          <p class="benefit-desc">Your compliance data is securely stored and shared only with consent.</p>
+        </div>
+        <div class="benefit rv rv-d3">
+          <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+          <h3 class="benefit-title">Priority Consideration</h3>
+          <p class="benefit-desc">Approved vendors are considered first for new projects.</p>
+        </div>
+        <div class="benefit rv rv-d4">
+          <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+          <h3 class="benefit-title">Streamlined Compliance</h3>
+          <p class="benefit-desc">Upload CR, VAT, GOSI once. Reuse across all applications.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       BOTTOM CTA BAND with canvas
+       ═══════════════════════════════════════ -->
+  <div class="cta-band">
+    <canvas id="cta-canvas"></canvas>
+    <div class="cta-band-inner">
+      <div class="cta-band-text">
+        <h3>Ready to join?</h3>
+        <p>Create your free account and apply in under 3 minutes.</p>
+      </div>
+      <button class="cta-band-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        Get Started
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Footer ── -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-brand">Bid</span>
+      <div class="footer-links">
+        <a href="#" class="footer-link">How it Works</a>
+        <a href="mailto:hello@bid.sa" class="footer-link">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ═══════════════════════════════════════
+       CANVAS: Floating network mesh
+       ═══════════════════════════════════════ -->
+  <script>
+  (function() {
+    // ─── Particle network ───
+    function initCanvas(canvasId, opts) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let w, h, particles, animId;
+      const {
+        count = 60,
+        color = '226,94,69',     // Bid primary as RGB
+        maxDist = 140,
+        speed = 0.3,
+        particleAlpha = 0.35,
+        lineAlpha = 0.07,
+        particleSize = 1.8,
+        mouse: useMouse = true
+      } = opts || {};
+
+      let mouse = { x: null, y: null, radius: 180 };
+
+      function resize() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        w = rect.width;
+        h = rect.height;
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function createParticles() {
+        particles = [];
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * speed,
+            vy: (Math.random() - 0.5) * speed,
+            r: Math.random() * particleSize + 0.5,
+          });
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, w, h);
+
+        // Lines
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < maxDist) {
+              const alpha = lineAlpha * (1 - dist / maxDist);
+              ctx.beginPath();
+              ctx.strokeStyle = `rgba(${color},${alpha})`;
+              ctx.lineWidth = 0.6;
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        // Particles
+        for (const p of particles) {
+          // Mouse repulsion
+          if (useMouse && mouse.x !== null) {
+            const dx = p.x - mouse.x;
+            const dy = p.y - mouse.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < mouse.radius) {
+              const force = (mouse.radius - dist) / mouse.radius * 0.015;
+              p.vx += dx * force;
+              p.vy += dy * force;
+            }
+          }
+
+          p.x += p.vx;
+          p.y += p.vy;
+
+          // Damping
+          p.vx *= 0.999;
+          p.vy *= 0.999;
+
+          // Ensure minimum velocity
+          const v = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+          if (v < speed * 0.2) {
+            p.vx += (Math.random() - 0.5) * 0.02;
+            p.vy += (Math.random() - 0.5) * 0.02;
+          }
+
+          // Wrap
+          if (p.x < -20) p.x = w + 20;
+          if (p.x > w + 20) p.x = -20;
+          if (p.y < -20) p.y = h + 20;
+          if (p.y > h + 20) p.y = -20;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${color},${particleAlpha})`;
+          ctx.fill();
+        }
+
+        animId = requestAnimationFrame(draw);
+      }
+
+      // Mouse tracking on hero only
+      if (useMouse) {
+        canvas.parentElement.addEventListener('mousemove', e => {
+          const rect = canvas.getBoundingClientRect();
+          mouse.x = e.clientX - rect.left;
+          mouse.y = e.clientY - rect.top;
+        });
+        canvas.parentElement.addEventListener('mouseleave', () => {
+          mouse.x = null;
+          mouse.y = null;
+        });
+      }
+
+      resize();
+      createParticles();
+      draw();
+
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          resize();
+          createParticles();
+        }, 200);
+      });
+    }
+
+    // Hero canvas — more particles, interactive
+    initCanvas('hero-canvas', {
+      count: 70,
+      maxDist: 150,
+      speed: 0.25,
+      particleAlpha: 0.3,
+      lineAlpha: 0.06,
+      particleSize: 2,
+      mouse: true
+    });
+
+    // CTA canvas — fewer, smaller, no mouse
+    initCanvas('cta-canvas', {
+      count: 30,
+      maxDist: 120,
+      speed: 0.15,
+      particleAlpha: 0.25,
+      lineAlpha: 0.05,
+      particleSize: 1.2,
+      mouse: false
+    });
+
+    // Scroll reveal
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+    }, { threshold: 0.1, rootMargin: '0px 0px -32px 0px' });
+    document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+  })();
+
+  // RTL toggle
+  function toggleDir() {
+    const html = document.documentElement;
+    const btn = document.querySelector('.lang-toggle');
+    if (html.dir === 'rtl') {
+      html.dir = 'ltr'; html.lang = 'en';
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> عربي';
+    } else {
+      html.dir = 'rtl'; html.lang = 'ar';
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> EN';
+    }
+  }
+  </script>
+</body>
+</html>

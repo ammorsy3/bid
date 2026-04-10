@@ -44,7 +44,6 @@ export default function VerifyEmail() {
     if (user && !user.otpVerified && !otpSent && !otpSendAttempted.current) {
       otpSendAttempted.current = true;
       const loginAlreadySent = sessionStorage.getItem('otp_sent_by_login') === 'true';
-      sessionStorage.removeItem('otp_sent_by_login');
       if (loginAlreadySent) {
         setResendCooldown(60);
       } else {
@@ -96,6 +95,7 @@ export default function VerifyEmail() {
 
   const handleResend = async () => {
     if (resendCooldown > 0) return;
+    sessionStorage.removeItem('otp_sent_by_login');
     await sendOTP();
   };
 
@@ -155,6 +155,7 @@ export default function VerifyEmail() {
           localStorage.setItem('trustedBrowserToken', data.trustedBrowserToken);
         }
         sessionStorage.removeItem('remember_browser');
+        sessionStorage.removeItem('otp_sent_by_login');
         await checkAuth();
         toast({
           title: "Email verified",

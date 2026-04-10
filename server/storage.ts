@@ -311,8 +311,10 @@ export interface IStorage {
   // PURCHASE ORDER OPERATIONS
   // ============================================================================
   createPurchaseOrder(po: InsertPurchaseOrder): Promise<PurchaseOrder>;
+  getPurchaseOrder(id: string): Promise<PurchaseOrder | undefined>;
   getPurchaseOrdersByTender(tenderId: string): Promise<PurchaseOrder[]>;
   updatePurchaseOrder(id: string, updates: Partial<InsertPurchaseOrder>): Promise<PurchaseOrder>;
+  deletePurchaseOrder(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1937,6 +1939,14 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(purchaseOrders.createdAt));
   }
 
+  async getPurchaseOrder(id: string): Promise<PurchaseOrder | undefined> {
+    const [po] = await db
+      .select()
+      .from(purchaseOrders)
+      .where(eq(purchaseOrders.id, id));
+    return po;
+  }
+
   async updatePurchaseOrder(id: string, updates: Partial<InsertPurchaseOrder>): Promise<PurchaseOrder> {
     const [updated] = await db
       .update(purchaseOrders)
@@ -1944,6 +1954,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(purchaseOrders.id, id))
       .returning();
     return updated;
+  }
+
+  async deletePurchaseOrder(id: string): Promise<void> {
+    await db.delete(purchaseOrders).where(eq(purchaseOrders.id, id));
   }
 }
 

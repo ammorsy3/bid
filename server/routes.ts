@@ -5086,6 +5086,32 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
+  app.delete("/api/purchase-orders/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const po = await storage.getPurchaseOrder(req.params.id);
+      if (!po) return res.status(404).json({ message: "Purchase order not found" });
+
+      const tender = await storage.getTender(po.tenderId);
+      if (!tender) return res.status(404).json({ message: "Tender not found" });
+
+      const isAdmin = req.auth!.isAdmin;
+      const isOwner = tender.companyId === req.auth!.activeCompanyId;
+      if (!isAdmin && !isOwner) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+
+      if (po.status === 'verified') {
+        return res.status(400).json({ message: "Cannot delete a verified purchase order" });
+      }
+
+      await storage.deletePurchaseOrder(req.params.id);
+      res.json({ message: "Purchase order deleted" });
+    } catch (error) {
+      console.error("Error deleting purchase order:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Global server-side error logging middleware
   app.use(async (err: any, req: any, res: any, next: any) => {
     let userId: string | undefined;

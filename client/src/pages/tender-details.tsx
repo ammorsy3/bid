@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, Handshake, Store } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, Handshake, Store, Upload } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -468,6 +468,63 @@ export default function TenderDetails() {
     }
   });
 
+  const purchaseOrdersQuery = useQuery<any[]>({
+    queryKey: ['/api/tenders', id, 'purchase-orders'],
+    queryFn: async () => {
+      const res = await fetch(`/api/tenders/${id}/purchase-orders`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!tender?.isMarketplace && isOwner,
+  });
+  const purchaseOrders = purchaseOrdersQuery.data || [];
+
+  const uploadPO = useMutation({
+    mutationFn: async (file: File) => {
+      const uploadUrlRes = await fetch('/api/objects/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ fileSize: file.size, fileType: file.type })
+      });
+      if (!uploadUrlRes.ok) throw new Error('Failed to get upload URL');
+      const { uploadURL } = await uploadUrlRes.json();
+
+      const uploadRes = await fetch(uploadURL, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+      if (!uploadRes.ok) throw new Error('Upload failed');
+
+      const fileUrl = new URL(uploadURL).pathname;
+      return await apiRequest('POST', `/api/tenders/${id}/purchase-orders`, {
+        fileUrl,
+        originalName: file.name,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders', id, 'purchase-orders'] });
+      toast({ title: t('marketplace.poUploaded') || 'Purchase Order Uploaded', description: t('marketplace.poUploadedDesc') || 'Your PO has been uploaded and is pending verification.' });
+    },
+    onError: (error: Error) => {
+      toast({ title: t('marketplace.error'), description: error.message, variant: "destructive" });
+    }
+  });
+
+  const deletePO = useMutation({
+    mutationFn: async (poId: string) => {
+      return await apiRequest('DELETE', `/api/purchase-orders/${poId}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders', id, 'purchase-orders'] });
+      toast({ title: t('marketplace.poDeleted') || 'Purchase Order Deleted' });
+    },
+    onError: (error: Error) => {
+      toast({ title: t('marketplace.error'), description: error.message, variant: "destructive" });
+    }
+  });
+
   const deleteTender = useMutation({
     mutationFn: async () => {
       return await apiRequest('DELETE', `/api/tenders/${id}`, {});
@@ -797,7 +854,7 @@ export default function TenderDetails() {
         </div>
       </div>
 
-      {isOwner && tender.isMarketplace && tender.marketplaceStatus === 'approved' && isExpired && tender.status !== 'closed' && (
+      {isOwner && tender.isMarketplace && tender.marketplaceStatus === 'approved' && isExpired && tender.status !== 'closed' && !negotiationActions.some((a: any) => a.actionType === 'award') && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-4">
           <Alert className="border-amber-300 bg-amber-50 dark:bg-amber-900/20">
             <AlertCircle className="h-4 w-4 text-amber-600" />
@@ -1797,6 +1854,51 @@ export default function TenderDetails() {
                         </div>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {isOwner && tender.isMarketplace && (
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <Store className="h-3.5 w-3.5" />
+                        {t('marketplace.purchaseOrder') || 'Purchase Order'}
+                      </p>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      {purchaseOrders.length > 0 ? (
+                        <div className="space-y-2">
+                          {purchaseOrders.map((po: any) => (
+                            <div key={po.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-100">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                <div className="min-w-0">
+                                  <p className="text-xs font-medium text-gray-700 truncate">{po.originalName || 'PO Document'}</p>
+                                  <Badge className={`text-[10px] mt-0.5 ${po.status === 'verified' ? 'bg-green-100 text-green-700' : po.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                                    {po.status === 'verified' ? (t('marketplace.poVerified') || 'Verified') : po.status === 'rejected' ? (t('marketplace.poRejected') || 'Rejected') : (t('marketplace.poPending') || 'Pending')}
+                                  </Badge>
+                                </div>
+                              </div>
+                              {po.status !== 'verified' && (
+                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400 hover:text-red-500"
+                                  onClick={() => deletePO.mutate(po.id)} disabled={deletePO.isPending}>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500">{t('marketplace.noPoUploaded') || 'No purchase order uploaded yet. Upload a PO document for admin verification.'}</p>
+                      )}
+                      <label className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-lg border-2 border-dashed border-gray-200 hover:border-[#E8614D]/40 text-xs font-medium text-gray-500 hover:text-[#E8614D] cursor-pointer transition-colors">
+                        {uploadPO.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                        {uploadPO.isPending ? (t('marketplace.uploading') || 'Uploading...') : (t('marketplace.uploadPo') || 'Upload PO Document')}
+                        <input type="file" className="hidden" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                          onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPO.mutate(f); e.target.value = ''; }}
+                          disabled={uploadPO.isPending} />
+                      </label>
+                    </div>
                   </div>
                 )}
 

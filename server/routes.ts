@@ -2461,9 +2461,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Tender not found" });
         }
 
-        // Verify ownership
         if (tender.companyId !== req.auth!.activeCompanyId) {
           return res.status(403).json({ message: "Access denied" });
+        }
+
+        if (tender.isMarketplace && tender.marketplaceStatus === 'approved') {
+          return res.status(400).json({ message: "Cannot delete a tender published on the marketplace. Contact admin to remove it first." });
         }
 
         await storage.deleteTender(req.params.id);
@@ -4933,6 +4936,17 @@ Respond with ONLY a JSON object. Example:
       if (!tender) return res.status(404).json({ message: "Tender not found" });
       if (!tender.isMarketplace || tender.marketplaceStatus !== 'pending') {
         return res.status(400).json({ message: "Tender is not pending marketplace approval" });
+      }
+
+      const purchaseOrders = await storage.getPurchaseOrdersByTender(tender.id);
+      const verifiedPO = purchaseOrders.find(po => po.status === 'verified');
+      const { skipPoCheck } = req.body || {};
+      if (!verifiedPO && !skipPoCheck) {
+        return res.status(400).json({ 
+          message: "No verified Purchase Order found. A verified PO is required before approving marketplace publication.",
+          requiresPO: true,
+          existingPOs: purchaseOrders.length,
+        });
       }
 
       await storage.approveMarketplaceTender(tender.id, req.auth!.userId);

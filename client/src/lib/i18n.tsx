@@ -1729,6 +1729,8 @@ const translations = {
       liveOnMarketplace: "Live on Marketplace",
       submitted: "Submitted",
       submittedDesc: "Your tender has been submitted for marketplace review",
+      deadlineWarning: "The deadline for this marketplace tender has passed. Please close the tender and proceed with awarding to maintain marketplace trust.",
+      poRequired: "A verified Purchase Order is required before this tender can be approved for the marketplace.",
     },
   },
   ar: {
@@ -3449,6 +3451,8 @@ const translations = {
       liveOnMarketplace: "منشور في ساحة الفرص",
       submitted: "تم التقديم",
       submittedDesc: "تم تقديم منافستك لمراجعة ساحة الفرص",
+      deadlineWarning: "انتهى الموعد النهائي لهذه المنافسة. يرجى إغلاق المنافسة والمضي قدماً في الترسية للحفاظ على ثقة ساحة الفرص.",
+      poRequired: "يلزم وجود أمر شراء موثق قبل الموافقة على نشر هذه المنافسة في ساحة الفرص.",
     },
   }
 };

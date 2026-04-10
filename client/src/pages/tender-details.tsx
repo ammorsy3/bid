@@ -795,6 +795,17 @@ export default function TenderDetails() {
         </div>
       </div>
 
+      {isOwner && tender.isMarketplace && tender.marketplaceStatus === 'approved' && isExpired && tender.status !== 'closed' && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-4">
+          <Alert className="border-amber-300 bg-amber-50 dark:bg-amber-900/20">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800 dark:text-amber-300">
+              {t('marketplace.deadlineWarning') || 'The deadline for this marketplace tender has passed. Please close the tender and proceed with awarding to maintain marketplace trust.'}
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+
       {/* Content Area */}
       <div className="bg-gray-50/80 min-h-[60vh]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">

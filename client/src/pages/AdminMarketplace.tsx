@@ -1,15 +1,23 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Building2, Calendar, Clock, CheckCircle, XCircle, Loader2, FileText, Tag, ExternalLink } from "lucide-react";
+import { ArrowLeft, Building2, Calendar, Clock, CheckCircle, XCircle, Loader2, FileText, Tag, ExternalLink, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
+
+interface PurchaseOrder {
+  id: string;
+  tenderId: string;
+  status: string;
+  createdAt: string;
+}
 
 interface PendingTender {
   id: string;
@@ -52,17 +60,45 @@ export default function AdminMarketplace() {
     queryKey: ["/api/admin/marketplace/pending"],
   });
 
+  const [poStatusMap, setPoStatusMap] = useState<Record<string, PurchaseOrder[]>>({});
+
+  useEffect(() => {
+    pendingTenders.forEach(tender => {
+      if (!poStatusMap[tender.id]) {
+        fetchPOsForTender(tender.id);
+      }
+    });
+  }, [pendingTenders]);
+
+  const fetchPOsForTender = async (tenderId: string) => {
+    try {
+      const res = await fetch(`/api/tenders/${tenderId}/purchase-orders`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (res.ok) {
+        const pos = await res.json();
+        setPoStatusMap(prev => ({ ...prev, [tenderId]: pos }));
+      }
+    } catch {}
+  };
+
   const approveMutation = useMutation({
     mutationFn: async (tenderId: string) => {
-      await apiRequest("POST", `/api/admin/marketplace/${tenderId}/approve`);
+      const res = await apiRequest("POST", `/api/admin/marketplace/${tenderId}/approve`);
+      return res;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/marketplace/pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/metrics"] });
       toast({ title: t('marketplace.approved'), description: t('marketplace.approvedDesc') });
     },
-    onError: () => {
-      toast({ title: t('marketplace.error'), description: t('marketplace.approveError'), variant: "destructive" });
+    onError: (error: Error) => {
+      const msg = error.message || '';
+      if (msg.includes('Purchase Order')) {
+        toast({ title: t('marketplace.error'), description: t('marketplace.poRequired'), variant: "destructive" });
+      } else {
+        toast({ title: t('marketplace.error'), description: t('marketplace.approveError'), variant: "destructive" });
+      }
     },
   });
 
@@ -187,6 +223,30 @@ export default function AdminMarketplace() {
                       <p className="text-sm text-gray-500 mt-2 line-clamp-2">
                         {tender.description}
                       </p>
+
+                      {poStatusMap[tender.id] !== undefined && (
+                        <div className="mt-3 pt-2 border-t border-gray-100">
+                          {poStatusMap[tender.id].length === 0 ? (
+                            <div className="flex items-center gap-1.5 text-xs text-amber-600">
+                              <AlertTriangle className="h-3.5 w-3.5" />
+                              <span>{t('marketplace.poRequired')}</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {poStatusMap[tender.id].map(po => (
+                                <Badge key={po.id} className={`text-xs ${
+                                  po.status === 'verified' ? 'bg-green-100 text-green-700' :
+                                  po.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                  'bg-amber-100 text-amber-700'
+                                }`}>
+                                  {po.status === 'verified' ? <ShieldCheck className="h-3 w-3 mr-1" /> : <FileText className="h-3 w-3 mr-1" />}
+                                  PO: {po.status}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2 lg:flex-col lg:items-end shrink-0">

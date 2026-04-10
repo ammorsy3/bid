@@ -4397,6 +4397,25 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
+  app.get("/objects/uploads/:filename", async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = `/objects/uploads/${req.params.filename}`;
+      try {
+        const objectFile = await objectStorageService.getPublicFile(objectPath);
+        return objectStorageService.downloadObject(objectFile, res);
+      } catch {}
+      const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error serving public upload:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
   const MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10MB
   const ALLOWED_MIME_TYPES = [
     'application/pdf',

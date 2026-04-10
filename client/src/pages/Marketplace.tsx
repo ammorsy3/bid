@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Search, FileText, MapPin, ChevronLeft, ChevronRight, Loader2, ChevronDown, Building2 } from "lucide-react";
+import { Search, FileText, MapPin, ChevronLeft, ChevronRight, Loader2, ChevronDown, Building2, Users, ArrowRight, Calendar } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
@@ -153,6 +153,46 @@ export default function Marketplace() {
         </div>
       </section>
 
+      <section className="bg-white py-14 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-3">
+            {t('marketplace.howItWorks')}
+          </h2>
+          <p className="text-gray-500 text-center max-w-2xl mx-auto mb-10 text-sm sm:text-base">
+            {t('marketplace.howItWorksDesc')}
+          </p>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-7 flex flex-col items-center text-center">
+              <div className="h-14 w-14 rounded-2xl bg-[#E8614D]/10 flex items-center justify-center mb-5">
+                <Building2 className="h-7 w-7 text-[#E8614D]" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">{t('marketplace.buyers')}</h3>
+              <p className="text-sm text-gray-500 mb-5">{t('marketplace.buyersDesc')}</p>
+              <Link href="/signup">
+                <Button className="bg-[#E8614D] hover:bg-[#d4553f] text-white px-6">
+                  {t('marketplace.startBuying')}
+                  <ArrowRight className={`h-4 w-4 ${isRtl ? 'mr-2 rotate-180' : 'ml-2'}`} />
+                </Button>
+              </Link>
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-7 flex flex-col items-center text-center">
+              <div className="h-14 w-14 rounded-2xl bg-[#E8614D]/10 flex items-center justify-center mb-5">
+                <Users className="h-7 w-7 text-[#E8614D]" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">{t('marketplace.suppliers')}</h3>
+              <p className="text-sm text-gray-500 mb-5">{t('marketplace.suppliersDesc')}</p>
+              <Link href="/signup">
+                <Button variant="outline" className="border-[#E8614D] text-[#E8614D] hover:bg-red-50 px-6">
+                  {t('marketplace.startSelling')}
+                  <ArrowRight className={`h-4 w-4 ${isRtl ? 'mr-2 rotate-180' : 'ml-2'}`} />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-8">
@@ -269,7 +309,7 @@ export default function Marketplace() {
                   <div className="p-5 flex-1">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2 min-w-0">
-                        {tender.profile?.logoUrl ? (
+                        {tender.profile?.logoUrl && tender.profile.logoUrl.includes('/company-logos/') ? (
                           <img src={tender.profile.logoUrl} alt="" className="h-7 w-7 rounded-full object-cover border border-gray-100 flex-shrink-0" />
                         ) : (
                           <div className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">

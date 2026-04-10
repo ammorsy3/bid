@@ -794,12 +794,11 @@ export default function TenderInviteLink() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               {logoUrl ? (
-                <img src={logoUrl} alt={displayName} className="w-14 h-14 rounded-xl object-cover border border-gray-200 shadow-sm" />
-              ) : (
-                <div className="w-14 h-14 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center shadow-sm">
-                  <Building2 className="h-7 w-7 text-gray-400" />
-                </div>
-              )}
+                <img src={logoUrl} alt={displayName} className="w-14 h-14 rounded-xl object-cover border border-gray-200 shadow-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} />
+              ) : null}
+              <div className={`w-14 h-14 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center shadow-sm ${logoUrl ? 'hidden' : ''}`}>
+                <Building2 className="h-7 w-7 text-gray-400" />
+              </div>
               <div>
                 <p className="text-gray-900 font-bold text-lg">{displayName}</p>
                 <p className="text-gray-400 text-sm">{t('tenderFlow.requestingOrganization')}</p>

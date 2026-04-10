@@ -3,7 +3,7 @@ import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, ApiError } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
 import {
   Building2, CheckCircle2, Loader2, UserPlus, LogIn,
@@ -244,11 +244,12 @@ export default function TractionLink() {
       });
     },
     onError: (error: Error) => {
-      if (error.message.includes('ALREADY_IN_BASE')) {
+      const code = error instanceof ApiError ? error.code : undefined;
+      if (code === 'ALREADY_IN_BASE') {
         setAlreadyInBase(true);
         return;
       }
-      if (error.message.includes('REQUEST_ALREADY_PENDING')) {
+      if (code === 'REQUEST_ALREADY_PENDING') {
         setRequestAlreadyPending(true);
         return;
       }

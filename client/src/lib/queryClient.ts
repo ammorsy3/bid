@@ -1,6 +1,16 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { reportError } from "./errorLogger";
 
+export class ApiError extends Error {
+  code?: string;
+  statusCode: number;
+  constructor(message: string, statusCode: number, code?: string) {
+    super(message);
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = await res.text();
@@ -24,7 +34,23 @@ async function throwIfResNotOk(res: Response) {
       });
     }
 
-    throw new Error(`${res.status}: ${text || res.statusText}`);
+    // Extract a user-friendly message from the response body
+    let userMessage = res.statusText || 'Something went wrong';
+    let code: string | undefined;
+    if (text) {
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed.message) {
+          userMessage = parsed.message;
+        }
+        if (parsed.code) {
+          code = parsed.code;
+        }
+      } catch {
+        userMessage = text;
+      }
+    }
+    throw new ApiError(userMessage, res.status, code);
   }
 }
 

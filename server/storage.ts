@@ -304,6 +304,7 @@ export interface IStorage {
   }): Promise<{ tenders: (Tender & { company: Company; profile?: CompanyProfile })[]; total: number }>;
   getMarketplaceStats(): Promise<{ activeTenders: number; awardedTenders: number; totalOffers: number }>;
   getPendingMarketplaceRequests(): Promise<(Tender & { company: Company; profile?: CompanyProfile })[]>;
+  getApprovedMarketplaceTenders(): Promise<(Tender & { company: Company; profile?: CompanyProfile })[]>;
   approveMarketplaceTender(tenderId: string, adminId: string): Promise<void>;
   rejectMarketplaceTender(tenderId: string, reason: string, adminId: string): Promise<void>;
 
@@ -1855,6 +1856,29 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(tenders.isMarketplace, true),
         eq(tenders.marketplaceStatus, 'pending'),
+      ))
+      .orderBy(desc(tenders.createdAt));
+
+    return results.map(r => ({
+      ...r.tender,
+      company: r.company,
+      profile: r.profile || undefined,
+    }));
+  }
+
+  async getApprovedMarketplaceTenders(): Promise<(Tender & { company: Company; profile?: CompanyProfile })[]> {
+    const results = await db
+      .select({
+        tender: tenders,
+        company: companies,
+        profile: companyProfiles,
+      })
+      .from(tenders)
+      .innerJoin(companies, eq(tenders.companyId, companies.id))
+      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
+      .where(and(
+        eq(tenders.isMarketplace, true),
+        eq(tenders.marketplaceStatus, 'approved'),
       ))
       .orderBy(desc(tenders.createdAt));
 

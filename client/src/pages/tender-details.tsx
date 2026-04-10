@@ -461,7 +461,7 @@ export default function TenderDetails() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenders', id] });
-      toast({ title: t('marketplace.submitted') || 'Submitted', description: t('marketplace.submittedDesc') || 'Your tender has been submitted for marketplace review' });
+      toast({ title: t('marketplace.submittedStatus') || 'Submitted', description: t('marketplace.submittedDesc') || 'Your tender has been submitted for marketplace review' });
     },
     onError: (error: Error) => {
       toast({ title: t('marketplace.error'), description: error.message, variant: "destructive" });

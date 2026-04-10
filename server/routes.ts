@@ -4953,6 +4953,16 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
+  app.get("/api/admin/marketplace/approved", authenticateToken, requireAdmin, async (_req: AuthRequest, res) => {
+    try {
+      const approved = await storage.getApprovedMarketplaceTenders();
+      res.json(approved);
+    } catch (error) {
+      console.error("Error fetching approved marketplace:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   app.post("/api/admin/marketplace/:id/approve", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
     try {
       const tender = await storage.getTender(req.params.id);

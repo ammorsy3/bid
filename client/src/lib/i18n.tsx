@@ -1731,6 +1731,9 @@ const translations = {
       submittedDesc: "Your tender has been submitted for marketplace review",
       deadlineWarning: "The deadline for this marketplace tender has passed. Please close the tender and proceed with awarding to maintain marketplace trust.",
       poRequired: "A verified Purchase Order is required before this tender can be approved for the marketplace.",
+      publishDialogTitle: "Publish Tender",
+      publishDialogDesc: "Your tender will be visible to invited vendors. You can also publish it to the public marketplace.",
+      publishDialogMarketplaceDesc: "Submit for admin review to appear on the public marketplace. A verified Purchase Order may be required.",
     },
   },
   ar: {
@@ -3453,6 +3456,9 @@ const translations = {
       submittedDesc: "تم تقديم منافستك لمراجعة ساحة الفرص",
       deadlineWarning: "انتهى الموعد النهائي لهذه المنافسة. يرجى إغلاق المنافسة والمضي قدماً في الترسية للحفاظ على ثقة ساحة الفرص.",
       poRequired: "يلزم وجود أمر شراء موثق قبل الموافقة على نشر هذه المنافسة في ساحة الفرص.",
+      publishDialogTitle: "نشر المنافسة",
+      publishDialogDesc: "ستكون المنافسة مرئية للموردين المدعوين. يمكنك أيضاً نشرها في ساحة الفرص العامة.",
+      publishDialogMarketplaceDesc: "تقديم للمراجعة من قبل المشرف للظهور في ساحة الفرص العامة. قد يلزم وجود أمر شراء موثق.",
     },
   }
 };

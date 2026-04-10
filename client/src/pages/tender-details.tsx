@@ -303,6 +303,8 @@ export default function TenderDetails() {
   const { t, language } = useI18n();
   const [copiedLink, setCopiedLink] = useState(false);
   const [isSubmitOfferModalOpen, setIsSubmitOfferModalOpen] = useState(false);
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [publishToMarketplace, setPublishToMarketplace] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
 
   const [answerText, setAnswerText] = useState<Record<string, string>>({});
@@ -721,7 +723,7 @@ export default function TenderDetails() {
                 <div className="flex items-center gap-2 flex-shrink-0 pt-1">
                   {tender.status === 'draft' && (
                     <Button className="bg-[#E25E45] hover:bg-[#d54d35] text-white shadow-sm"
-                      onClick={() => updateStatus.mutate('published')} disabled={updateStatus.isPending} data-testid="button-publish">
+                      onClick={() => setShowPublishDialog(true)} disabled={updateStatus.isPending} data-testid="button-publish">
                       {t('tenderFlow.publishBtn')}
                     </Button>
                   )}
@@ -2225,6 +2227,55 @@ export default function TenderDetails() {
       </Sheet>
     </div>
     {tourOverlay}
+      <Dialog open={showPublishDialog} onOpenChange={(open) => { if (!open) { setShowPublishDialog(false); setPublishToMarketplace(false); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('marketplace.publishDialogTitle') || 'Publish Tender'}</DialogTitle>
+            <DialogDescription>
+              {t('marketplace.publishDialogDesc') || 'Your tender will be visible to invited vendors. You can also publish it to the public marketplace.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <label className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:border-[#E8614D]/30 cursor-pointer transition-colors">
+              <input
+                type="checkbox"
+                checked={publishToMarketplace}
+                onChange={(e) => setPublishToMarketplace(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#E8614D] focus:ring-[#E8614D]"
+              />
+              <div>
+                <div className="font-medium text-sm text-gray-900 flex items-center gap-1.5">
+                  <Store className="h-4 w-4 text-[#E8614D]" />
+                  {t('marketplace.publishToMarketplace')}
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {t('marketplace.publishDialogMarketplaceDesc') || 'Submit for admin review to appear on the public marketplace. A verified Purchase Order may be required.'}
+                </p>
+              </div>
+            </label>
+          </div>
+          <div className="flex justify-end gap-2 mt-2">
+            <Button variant="outline" onClick={() => { setShowPublishDialog(false); setPublishToMarketplace(false); }}>
+              {t('marketplace.cancel')}
+            </Button>
+            <Button
+              className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+              disabled={updateStatus.isPending || marketplaceSubmit.isPending}
+              onClick={async () => {
+                setShowPublishDialog(false);
+                updateStatus.mutate('published');
+                if (publishToMarketplace) {
+                  setTimeout(() => marketplaceSubmit.mutate(), 1000);
+                }
+                setPublishToMarketplace(false);
+              }}
+            >
+              {(updateStatus.isPending || marketplaceSubmit.isPending) && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
+              {t('tenderFlow.publishBtn')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

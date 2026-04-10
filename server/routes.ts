@@ -3930,7 +3930,30 @@ Respond with ONLY a JSON object. Example:
       try {
         const status = req.query.status as string | undefined;
         const requests = await storage.getJoinRequestsByRequester(req.auth!.activeCompanyId!, status);
-        res.json(requests);
+
+        // Map to the shape the frontend expects
+        const mapped = await Promise.all(requests.map(async (r) => {
+          const createdByUser = r.createdBy ? await storage.getUser(r.createdBy) : undefined;
+          return {
+            id: r.id,
+            requesterId: r.requesterId,
+            vendorId: r.vendorCompanyId,
+            status: r.status,
+            rejectionReason: r.rejectionReason,
+            createdAt: r.createdAt,
+            decidedAt: r.decidedAt,
+            vendor: {
+              id: r.vendorCompany.id,
+              name: createdByUser?.name || r.profile?.displayName || r.vendorCompany.name,
+              email: createdByUser?.email || null,
+              company: r.profile?.displayName || r.vendorCompany.name,
+              expertise: r.vendorCompany.category,
+              verificationStatus: r.vendorCompany.verificationStatus || 'not_verified',
+            },
+          };
+        }));
+
+        res.json(mapped);
       } catch (error) {
         console.error('Get join requests error:', error);
         res.status(500).json({ message: "Server error" });
@@ -4940,8 +4963,7 @@ Respond with ONLY a JSON object. Example:
 
       const purchaseOrders = await storage.getPurchaseOrdersByTender(tender.id);
       const verifiedPO = purchaseOrders.find(po => po.status === 'verified');
-      const { skipPoCheck } = req.body || {};
-      if (!verifiedPO && !skipPoCheck) {
+      if (!verifiedPO) {
         return res.status(400).json({ 
           message: "No verified Purchase Order found. A verified PO is required before approving marketplace publication.",
           requiresPO: true,
@@ -4970,6 +4992,27 @@ Respond with ONLY a JSON object. Example:
 
       await storage.rejectMarketplaceTender(tender.id, reason, req.auth!.userId);
       res.json({ message: "Marketplace tender rejected" });
+
+      (async () => {
+        try {
+          if (tender.companyId) {
+            const members = await storage.getCompanyMembers(tender.companyId);
+            const requesterRecipients = members
+              .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            if (requesterRecipients.length > 0) {
+              await sendTenderStatusNotification({
+                newStatus: 'cancelled',
+                tenderTitle: `[Marketplace Rejected] ${tender.title || 'Untitled Tender'} — Reason: ${reason}`,
+                tenderId: tender.id,
+                recipients: requesterRecipients,
+              });
+            }
+          }
+        } catch (emailErr) {
+          console.error("Error sending marketplace rejection notification:", emailErr);
+        }
+      })();
     } catch (error) {
       console.error("Error rejecting marketplace tender:", error);
       res.status(500).json({ message: "Server error" });

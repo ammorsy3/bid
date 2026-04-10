@@ -79,7 +79,7 @@ function CountdownTimer({ deadline, t }: { deadline: string; t: (key: string) =>
   );
 }
 
-function StatCard({ icon: Icon, value, label, color }: { icon: any; value: number; label: string; color: string }) {
+function StatCard({ icon: Icon, value, label, color }: { icon: React.ComponentType<{ className?: string }>; value: number; label: string; color: string }) {
   return (
     <div className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-xl px-5 py-4 shadow-sm border border-gray-100 dark:border-gray-700">
       <div className={`w-10 h-10 rounded-lg ${color} flex items-center justify-center`}>

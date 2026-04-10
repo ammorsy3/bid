@@ -2374,9 +2374,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Invalid status" });
         }
 
-        if (tender.isMarketplace && tender.marketplaceStatus === 'approved' && status === 'cancelled') {
+        if (tender.isMarketplace && tender.marketplaceStatus === 'approved' && ['cancelled', 'draft'].includes(status)) {
           return res.status(400).json({
-            message: "Cannot cancel a tender that is published on the marketplace. Contact admin to remove it first."
+            message: `Cannot ${status === 'draft' ? 'unpublish' : 'cancel'} a tender that is live on the marketplace. Contact admin to remove it first.`
           });
         }
 

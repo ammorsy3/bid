@@ -257,6 +257,23 @@ interface TenderWithCounts extends Tender {
   invitedCount: number;
 }
 
+interface TenderPurchaseOrder {
+  id: string;
+  tenderId: string;
+  status: string;
+  originalName: string | null;
+  fileUrl: string | null;
+  createdAt: string;
+}
+
+interface NegotiationAction {
+  id: string;
+  tenderId: string;
+  offerId: string;
+  actionType: string;
+  [key: string]: unknown;
+}
+
 interface Offer {
   id: string;
   tenderId: string;
@@ -468,7 +485,7 @@ export default function TenderDetails() {
     }
   });
 
-  const purchaseOrdersQuery = useQuery<any[]>({
+  const purchaseOrdersQuery = useQuery<TenderPurchaseOrder[]>({
     queryKey: ['/api/tenders', id, 'purchase-orders'],
     queryFn: async () => {
       const res = await fetch(`/api/tenders/${id}/purchase-orders`, {
@@ -553,7 +570,7 @@ export default function TenderDetails() {
   });
 
   // Fetch negotiation actions for this tender
-  const { data: negotiationActions = [] } = useQuery<any[]>({
+  const { data: negotiationActions = [] } = useQuery<NegotiationAction[]>({
     queryKey: ['/api/tenders', id, 'negotiation-actions'],
     queryFn: async () => {
       const res = await fetch(`/api/tenders/${id}/negotiation-actions`, {
@@ -854,7 +871,7 @@ export default function TenderDetails() {
         </div>
       </div>
 
-      {isOwner && tender.isMarketplace && tender.marketplaceStatus === 'approved' && isExpired && tender.status !== 'closed' && !negotiationActions.some((a: any) => a.actionType === 'award') && (
+      {isOwner && tender.isMarketplace && tender.marketplaceStatus === 'approved' && isExpired && tender.status !== 'closed' && !negotiationActions.some((a) => a.actionType === 'award') && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-4">
           <Alert className="border-amber-300 bg-amber-50 dark:bg-amber-900/20">
             <AlertCircle className="h-4 w-4 text-amber-600" />
@@ -1868,7 +1885,7 @@ export default function TenderDetails() {
                     <div className="p-4 space-y-3">
                       {purchaseOrders.length > 0 ? (
                         <div className="space-y-2">
-                          {purchaseOrders.map((po: any) => (
+                          {purchaseOrders.map((po) => (
                             <div key={po.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-100">
                               <div className="flex items-center gap-2 min-w-0">
                                 <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />

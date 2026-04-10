@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Search, FileText, MapPin, ChevronLeft, ChevronRight, Loader2, TrendingUp, Award, Send, Eye, Share2, Printer, ChevronDown } from "lucide-react";
+import { Search, FileText, MapPin, ChevronLeft, ChevronRight, Loader2, Eye, Share2, Printer, ChevronDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
@@ -36,12 +36,6 @@ interface MarketplaceTender {
     displayName: string | null;
     logoUrl: string | null;
   };
-}
-
-interface MarketplaceStats {
-  activeTenders: number;
-  awardedTenders: number;
-  totalOffers: number;
 }
 
 const SAUDI_CITIES = [
@@ -87,10 +81,6 @@ export default function Marketplace() {
     };
   }, [showCategoryDropdown, closeDropdown]);
 
-  const { data: statsData } = useQuery<MarketplaceStats>({
-    queryKey: ["/api/marketplace/stats"],
-  });
-
   const { data: tendersData, isLoading } = useQuery<{ tenders: MarketplaceTender[]; total: number }>({
     queryKey: ["/api/marketplace/tenders", search, category, city, tenderType, page, perPage],
     queryFn: async () => {
@@ -110,7 +100,6 @@ export default function Marketplace() {
   const tenders = tendersData?.tenders || [];
   const total = tendersData?.total || 0;
   const totalPages = Math.ceil(total / perPage);
-  const stats = statsData || { activeTenders: 0, awardedTenders: 0, totalOffers: 0 };
 
   return (
     <div className={`min-h-screen bg-[#F3F4F6] ${isRtl ? 'rtl' : 'ltr'}`} dir={isRtl ? 'rtl' : 'ltr'}>
@@ -159,33 +148,8 @@ export default function Marketplace() {
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-20 mb-10">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center text-center">
-            <div className="w-12 h-12 rounded-full bg-[#E8614D]/10 flex items-center justify-center mb-3">
-              <TrendingUp className="h-6 w-6 text-[#E8614D]" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.activeTenders.toLocaleString()}</div>
-            <div className="text-sm text-gray-500 mt-1">{t('marketplace.activeTenders')}</div>
-          </div>
-          <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center text-center">
-            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mb-3">
-              <Award className="h-6 w-6 text-emerald-600" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.awardedTenders.toLocaleString()}</div>
-            <div className="text-sm text-gray-500 mt-1">{t('marketplace.awardedTenders')}</div>
-          </div>
-          <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center text-center">
-            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3">
-              <Send className="h-6 w-6 text-blue-600" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.totalOffers.toLocaleString()}</div>
-            <div className="text-sm text-gray-500 mt-1">{t('marketplace.submittedOffers')}</div>
-          </div>
-        </div>
-      </section>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-8">
           {t('marketplace.latestOpportunities')}
         </h2>

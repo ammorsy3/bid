@@ -1,0 +1,137 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "IBM Plex Sans",
+      "role": "body"
+    }
+  ],
+  "colors": {
+    "primary": "#14573A",
+    "secondary": "#384250",
+    "accent": "#25935F",
+    "background": "#F3F4F6",
+    "textPrimary": "#25935F",
+    "link": "#25935F"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "IBM Plex Sans",
+      "heading": "IBM Plex Sans"
+    },
+    "fontStacks": {
+      "heading": [
+        "IBM Plex Sans"
+      ],
+      "body": [
+        "IBM Plex Sans"
+      ],
+      "paragraph": [
+        "IBM Plex Sans"
+      ]
+    },
+    "fontSizes": {
+      "h1": "16px",
+      "h2": "48px",
+      "body": "16px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "4px"
+  },
+  "components": {
+    "input": {
+      "background": "transparent",
+      "textColor": "#384250",
+      "borderColor": null,
+      "borderRadius": "0px",
+      "borderRadiusCorners": {
+        "topLeft": "0px",
+        "topRight": "0px",
+        "bottomRight": "0px",
+        "bottomLeft": "0px"
+      },
+      "shadow": "none"
+    },
+    "buttonPrimary": {
+      "background": "#25935F",
+      "textColor": "#FFFFFF",
+      "borderRadius": "4px",
+      "borderRadiusCorners": {
+        "topLeft": "4px",
+        "topRight": "4px",
+        "bottomRight": "4px",
+        "bottomLeft": "4px"
+      },
+      "shadow": "none"
+    },
+    "buttonSecondary": {
+      "background": "transparent",
+      "textColor": "#25935F",
+      "borderColor": "#D6D7D8",
+      "borderRadius": "4px",
+      "borderRadiusCorners": {
+        "topLeft": "4px",
+        "topRight": "4px",
+        "bottomRight": "4px",
+        "bottomLeft": "4px"
+      },
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "favicon": "https://forsah.sa/assets/favicon-BGfuupQV.ico",
+    "ogImage": "/logo512.png"
+  },
+  "__llm_logo_reasoning": {
+    "selectedIndex": -1,
+    "reasoning": "None of the logo candidates clearly match the brand 'فُرصة' as inferred from the page title and URL. The candidates appear to be partner or client logos.",
+    "confidence": 0.3,
+    "rejected": true,
+    "source": "llm"
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": 0,
+      "text": "انضم كشريك",
+      "reasoning": "Button #0 ('انضم كشريك') uses the vibrant brand color #25935F and is likely a primary call-to-action for partnership, aligning with the site's business focus."
+    },
+    "secondary": {
+      "index": 5,
+      "text": "القطاعات",
+      "reasoning": "Button #5 ('القطاعات') has a transparent background, making it suitable as a secondary button, contrasting with the primary button's vibrant color."
+    },
+    "confidence": 0.95
+  },
+  "personality": {
+    "tone": "professional",
+    "energy": "medium",
+    "targetAudience": "business professionals and entrepreneurs"
+  },
+  "designSystem": {
+    "framework": "material",
+    "componentLibrary": ""
+  },
+  "confidence": {
+    "buttons": 0.95,
+    "colors": 0.9,
+    "overall": 0.925
+  },
+  "__llm_metadata": {
+    "logoSelection": {
+      "llmCalled": true,
+      "llmSucceeded": true,
+      "finalSource": "llm",
+      "rawLogoSelection": {
+        "selectedLogoIndex": -1,
+        "selectedLogoReasoning": "None of the logo candidates clearly match the brand 'فُرصة' as inferred from the page title and URL. The candidates appear to be partner or client logos.",
+        "confidence": 0.3
+      }
+    },
+    "buttonClassification": {
+      "llmCalled": true,
+      "llmSucceeded": true
+    }
+  }
+}

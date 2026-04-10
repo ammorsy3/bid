@@ -140,7 +140,8 @@
       "Bash(specify --version)",
       "Bash(gh repo:*)",
       "Bash(specify --help)",
-      "Bash(specify init:*)"
+      "Bash(specify init:*)",
+      "Bash(awk '{print $2}')"
     ]
   },
   "enabledMcpjsonServers": [

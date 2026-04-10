@@ -834,6 +834,29 @@ export default function Dashboard() {
             </SidebarGroupContent>
           </SidebarGroup>
 
+          {/* Marketplace Portal */}
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <div className="px-2 group-data-[collapsible=icon]:px-0">
+                <button
+                  onClick={() => window.open('/marketplace', '_blank')}
+                  className="w-full rounded-xl border border-[#E8614D]/20 bg-gradient-to-br from-[#E8614D]/5 to-[#F19A8F]/10 px-3 py-3 hover:from-[#E8614D]/10 hover:to-[#F19A8F]/20 hover:border-[#E8614D]/30 transition-all group/mp cursor-pointer group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center"
+                >
+                  <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:gap-0">
+                    <div className="h-8 w-8 rounded-lg bg-[#E8614D]/10 flex items-center justify-center flex-shrink-0 group-hover/mp:bg-[#E8614D]/15 transition-colors">
+                      <Globe className="h-4 w-4 text-[#E8614D]" />
+                    </div>
+                    <div className="flex-1 min-w-0 text-start group-data-[collapsible=icon]:hidden">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.marketplace')}</p>
+                      <p className="text-[11px] text-muted-foreground leading-tight">{t('dashboard.marketplaceHint')}</p>
+                    </div>
+                    <ExternalLink className="h-3.5 w-3.5 text-[#E8614D]/50 group-hover/mp:text-[#E8614D] transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden" />
+                  </div>
+                </button>
+              </div>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
           <ChatHistorySidebar />
         </SidebarContent>
 

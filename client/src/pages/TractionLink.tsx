@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -7,7 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import {
   Building2, CheckCircle2, Loader2, UserPlus, LogIn,
   Globe, Linkedin, ArrowRight,
-  ChevronRight, Languages, MapPin, Briefcase, ShieldCheck,
+  ChevronRight, Languages, MapPin, Briefcase, ShieldCheck, Info,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════
@@ -223,6 +224,8 @@ export default function TractionLink() {
   const { user, activeCompany } = useAuthStore();
   const { t, language, setLanguage } = useI18n();
   const isRtl = language === 'ar';
+  const [alreadyInBase, setAlreadyInBase] = useState(false);
+  const [requestAlreadyPending, setRequestAlreadyPending] = useState(false);
 
   const { data, isLoading, error } = useQuery<TractionData>({
     queryKey: ['/api/r', slug],
@@ -241,6 +244,14 @@ export default function TractionLink() {
       });
     },
     onError: (error: Error) => {
+      if (error.message.includes('ALREADY_IN_BASE')) {
+        setAlreadyInBase(true);
+        return;
+      }
+      if (error.message.includes('REQUEST_ALREADY_PENDING')) {
+        setRequestAlreadyPending(true);
+        return;
+      }
       toast({
         title: t('tractionPage.requestFailed'),
         description: error.message,
@@ -310,6 +321,60 @@ export default function TractionLink() {
           <h1 className="text-2xl font-extrabold text-gray-900 mb-3 tracking-tight">{t('tractionPage.requestSubmitted')}</h1>
           <p className="text-gray-500 mb-10 text-sm leading-relaxed max-w-sm mx-auto">
             {t('tractionPage.requestSubmittedDesc').replace('{company}', data.profile.displayName)}
+          </p>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="tl-btn inline-flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold transition-all hover:-translate-y-px"
+            style={computePrimaryBtnStyle(pc)}
+          >
+            {t('tractionPage.goToDashboard')}
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Already in base state ──
+  if (alreadyInBase) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4" dir={isRtl ? 'rtl' : 'ltr'}>
+        <div className="text-center max-w-md w-full py-20">
+          <div className="relative mx-auto mb-8 w-24 h-24">
+            <div className="relative w-24 h-24 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100">
+              <Info className="h-12 w-12 text-blue-500" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-extrabold text-gray-900 mb-3 tracking-tight">{t('tractionPage.alreadyInBase')}</h1>
+          <p className="text-gray-500 mb-10 text-sm leading-relaxed max-w-sm mx-auto">
+            {t('tractionPage.alreadyInBaseDesc').replace('{company}', data.profile.displayName)}
+          </p>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="tl-btn inline-flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold transition-all hover:-translate-y-px"
+            style={computePrimaryBtnStyle(pc)}
+          >
+            {t('tractionPage.goToDashboard')}
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Request already pending state ──
+  if (requestAlreadyPending) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4" dir={isRtl ? 'rtl' : 'ltr'}>
+        <div className="text-center max-w-md w-full py-20">
+          <div className="relative mx-auto mb-8 w-24 h-24">
+            <div className="relative w-24 h-24 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100">
+              <CheckCircle2 className="h-12 w-12 text-amber-500" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-extrabold text-gray-900 mb-3 tracking-tight">{t('tractionPage.requestPending')}</h1>
+          <p className="text-gray-500 mb-10 text-sm leading-relaxed max-w-sm mx-auto">
+            {t('tractionPage.requestPendingDesc').replace('{company}', data.profile.displayName)}
           </p>
           <button
             onClick={() => navigate("/dashboard")}

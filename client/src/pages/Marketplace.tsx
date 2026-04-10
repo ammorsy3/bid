@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Search, FileText, MapPin, ChevronLeft, ChevronRight, Loader2, Eye, Share2, Printer, ChevronDown } from "lucide-react";
+import { Search, FileText, MapPin, ChevronLeft, ChevronRight, Loader2, ChevronDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
@@ -232,8 +232,6 @@ export default function Marketplace() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {tenders.map((tender) => {
               const { days, expired } = getDaysRemaining(tender.deadline);
-              const hash = tender.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-              const viewCount = (hash % 180) + 15;
               return (
                 <a
                   key={tender.id}
@@ -242,38 +240,10 @@ export default function Marketplace() {
                   onClick={(e) => { e.preventDefault(); setLocation(`/invite/${tender.invitationToken}`); }}
                 >
                   <div className="p-5 flex-1">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 text-gray-400">
-                        <span className="flex items-center gap-1 text-xs">
-                          <Eye className="h-3.5 w-3.5" />
-                          {viewCount}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          role="button"
-                          tabIndex={0}
-                          aria-label="Share"
-                          className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                          onClick={(e) => e.preventDefault()}
-                          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
-                        >
-                          <Share2 className="h-4 w-4" />
-                        </span>
-                        <span
-                          role="button"
-                          tabIndex={0}
-                          aria-label="Print"
-                          className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                          onClick={(e) => e.preventDefault()}
-                          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
-                        >
-                          <Printer className="h-4 w-4" />
-                        </span>
-                        <Badge className="bg-[#E8614D] text-white border-0 text-[11px] font-medium px-2.5 py-0.5 rounded">
-                          {t('marketplace.available')}
-                        </Badge>
-                      </div>
+                    <div className="flex items-center justify-end mb-3">
+                      <Badge className="bg-[#E8614D] text-white border-0 text-[11px] font-medium px-2.5 py-0.5 rounded">
+                        {t('marketplace.available')}
+                      </Badge>
                     </div>
 
                     <h3 className="text-base font-bold text-gray-900 group-hover:text-[#E8614D] transition-colors leading-snug mb-3 line-clamp-2">

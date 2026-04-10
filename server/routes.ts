@@ -4035,13 +4035,14 @@ Respond with ONLY a JSON object. Example:
           return res.status(403).json({ message: "Access denied" });
         }
 
-        // Check if vendor already in base
+        // Check if vendor already in base — if so, just mark the request as approved
         const alreadyInBase = await storage.isVendorInBase(
           req.auth!.activeCompanyId!,
           joinRequest.vendorCompanyId
         );
         if (alreadyInBase) {
-          return res.status(400).json({ message: "Vendor already in your base" });
+          const updated = await storage.updateJoinRequestStatus(id, 'approved', req.auth!.userId);
+          return res.json({ ...updated, message: "Vendor is already in your base — request marked as approved" });
         }
 
         // Update join request
@@ -4214,17 +4215,37 @@ Respond with ONLY a JSON object. Example:
           return res.status(404).json({ message: "Company not found" });
         }
 
-        // Check for duplicate join request
+        // Check if vendor is already in the requester's base
+        const alreadyInBase = await storage.isVendorInBase(
+          result.company.id,
+          req.auth!.activeCompanyId!
+        );
+        if (alreadyInBase) {
+          return res.status(409).json({
+            code: "ALREADY_IN_BASE",
+            message: "You are already in this company's Vendors Base"
+          });
+        }
+
+        // Check for existing pending join request
         const existingRequest = await storage.getJoinRequestByCompanies(
           req.auth!.activeCompanyId!,
           result.company.id
         );
-        
+
+        if (existingRequest && existingRequest.status === 'pending') {
+          return res.status(409).json({
+            code: "REQUEST_ALREADY_PENDING",
+            message: "You already have a pending request to join this company's Vendors Base"
+          });
+        }
+
         if (existingRequest && existingRequest.createdAt) {
           const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
           if (new Date(existingRequest.createdAt) > dayAgo) {
-            return res.status(400).json({ 
-              message: "You already submitted a join request to this company within the last 24 hours" 
+            return res.status(409).json({
+              code: "REQUEST_ALREADY_PENDING",
+              message: "You already submitted a join request to this company within the last 24 hours"
             });
           }
         }
@@ -5061,27 +5082,6 @@ Respond with ONLY a JSON object. Example:
 
       await storage.rejectMarketplaceTender(tender.id, reason, req.auth!.userId);
       res.json({ message: tender.marketplaceStatus === 'approved' ? "Tender removed from marketplace" : "Marketplace tender rejected" });
-
-      (async () => {
-        try {
-          if (tender.companyId) {
-            const members = await storage.getCompanyMembers(tender.companyId);
-            const requesterRecipients = members
-              .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
-            if (requesterRecipients.length > 0) {
-              await sendTenderStatusNotification({
-                newStatus: 'cancelled',
-                tenderTitle: `[Marketplace Rejected] ${tender.title || 'Untitled Tender'} — Reason: ${reason}`,
-                tenderId: tender.id,
-                recipients: requesterRecipients,
-              });
-            }
-          }
-        } catch (emailErr) {
-          console.error("Error sending marketplace rejection notification:", emailErr);
-        }
-      })();
     } catch (error) {
       console.error("Error rejecting marketplace tender:", error);
       res.status(500).json({ message: "Server error" });

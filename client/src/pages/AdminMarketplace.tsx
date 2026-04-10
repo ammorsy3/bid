@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Building2, Calendar, Clock, CheckCircle, XCircle, Loader2, FileText, Tag, ExternalLink, AlertTriangle, ShieldCheck, Store, Upload, Trash2, Eye } from "lucide-react";
+import { ArrowLeft, Building2, Calendar, Clock, CheckCircle, XCircle, Loader2, FileText, Tag, ExternalLink, AlertTriangle, ShieldCheck, Store } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -152,35 +152,6 @@ export default function AdminMarketplace() {
     },
   });
 
-  const uploadPOMutation = useMutation({
-    mutationFn: async ({ tenderId, file }: { tenderId: string; file: File }) => {
-      const uploadUrlRes = await fetch('/api/objects/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ fileSize: file.size, fileType: file.type })
-      });
-      if (!uploadUrlRes.ok) throw new Error('Failed to get upload URL');
-      const { uploadURL } = await uploadUrlRes.json();
-      const uploadRes = await fetch(uploadURL, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-      if (!uploadRes.ok) throw new Error('Upload failed');
-      const fileUrl = new URL(uploadURL).pathname;
-      return await apiRequest('POST', `/api/tenders/${tenderId}/purchase-orders`, {
-        fileUrl,
-        originalName: file.name,
-      });
-    },
-    onSuccess: (_, variables) => {
-      fetchPOsForTender(variables.tenderId);
-      toast({ title: t('marketplace.poUploaded') || 'PO Uploaded' });
-    },
-    onError: (error: Error) => {
-      toast({ title: t('marketplace.error'), description: error.message, variant: "destructive" });
-    },
-  });
-
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     return d.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
@@ -316,13 +287,6 @@ export default function AdminMarketplace() {
                     ))}
                   </div>
                 )}
-                <label className="mt-2 flex items-center justify-center gap-2 w-full px-3 py-1.5 rounded-lg border border-dashed border-gray-200 hover:border-[#E8614D]/40 text-xs font-medium text-gray-400 hover:text-[#E8614D] cursor-pointer transition-colors">
-                  {uploadPOMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-                  {t('marketplace.uploadPo') || 'Upload PO'}
-                  <input type="file" className="hidden" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPOMutation.mutate({ tenderId: tender.id, file: f }); e.target.value = ''; }}
-                    disabled={uploadPOMutation.isPending} />
-                </label>
               </div>
             </div>
 

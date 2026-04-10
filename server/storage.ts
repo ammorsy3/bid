@@ -1756,13 +1756,16 @@ export class DatabaseStorage implements IStorage {
       eq(tenders.marketplaceStatus, 'approved'),
       eq(tenders.status, 'published'),
       isNull(companies.deletedAt),
+      gte(tenders.deadline, new Date().toISOString().split('T')[0]),
     ];
 
     if (options.search) {
       conditions.push(
         or(
           ilike(tenders.title, `%${options.search}%`),
-          ilike(tenders.description, `%${options.search}%`)
+          ilike(tenders.description, `%${options.search}%`),
+          ilike(tenders.category, `%${options.search}%`),
+          ilike(companies.name, `%${options.search}%`),
         )!
       );
     }

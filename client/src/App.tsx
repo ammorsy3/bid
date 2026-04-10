@@ -36,6 +36,7 @@ import TenderAICopilot from "@/pages/TenderAICopilot";
 import TenderInviteLink from "@/pages/TenderInviteLink";
 import TeamInvite from "@/pages/team-invite";
 import TractionLink from "@/pages/TractionLink";
+import TractionLinkEditor from "@/pages/TractionLinkEditor";
 import Landing from "@/pages/Landing";
 import Settings from "@/pages/Settings";
 
@@ -81,6 +82,7 @@ export default function App() {
             <Route path="/team-invite/:token" component={TeamInvite} />
             <Route path="/tenders/:id/edit" component={TenderEditPage} />
             <Route path="/tenders/:id" component={TenderDetails} />
+            <Route path="/traction/:slug/edit" component={TractionLinkEditor} />
             <Route path="/traction/:slug" component={TractionLink} />
             <Route path="/settings" component={Settings} />
           </Switch>

@@ -130,7 +130,8 @@
       "Bash(pkill -f \"tsx server/index.ts\")",
       "WebFetch(domain:www.saasframe.io)",
       "WebFetch(domain:business.thomasnet.com)",
-      "WebFetch(domain:www.onlineprocurement.com)"
+      "WebFetch(domain:www.onlineprocurement.com)",
+      "Bash(wc:*)"
     ]
   },
   "enabledMcpjsonServers": [

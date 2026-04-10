@@ -4111,6 +4111,7 @@ Respond with ONLY a JSON object. Example:
           name: result.company.name,
           category: result.company.category,
           city: result.company.city,
+          verificationStatus: result.company.verificationStatus,
         },
         profile: {
           displayName: result.displayName,

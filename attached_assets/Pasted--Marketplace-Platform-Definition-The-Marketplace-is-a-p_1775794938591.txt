@@ -1,0 +1,213 @@
+### Marketplace Platform Definition
+
+* The Marketplace is a platform/page التابعة لـ “Bid”, proposed to be hosted on the subdomain `marketplace.bidapp.sa`.
+* This page displays public tenders.
+* Users can publish their own tenders and make them public through this page.
+
+---
+
+### User Journey
+
+* The user starts by creating a Request for Proposal (RFP).
+* During the publishing stage, the user selects “Marketplace” and submits the request.
+* The tender only becomes public after communication and approval from the platform admin (Bid admin).
+
+---
+
+### Purchase Order (PO) Requirement
+
+* The most critical step in the journey is adding a new document (Purchase Order) after submitting the request.
+* This document can be added either by the user or by the admin.
+* It is an official PO, signed and stamped by the client, confirming payment of a specific amount to the vendor based on the average tender value.
+* This document is not visible to the public or other users—only the admin and the requester can view it.
+
+---
+
+### System Goals & Enforcement Policy
+
+* The main goal of requiring the PO and admin approval is to prevent fake tenders or those that waste vendors’ time.
+* Every tender published on “Bid” must be binding—the requester is required to select and award one of the participating vendors.
+* If the requester does not select any vendor, a disclaimer message appears warning that their account will be permanently banned.
+* The requester also cannot cancel the tender after it has been published.
+
+---
+
+### Benchmark Platforms
+
+* **Etimad Platform:** The official government tenders platform in saudi arabia. Review the Public Tenders section, especially the “tender document purchase fee” concept (a fee paid to access tender files).
+
+their marketplace platform looks like this structure:
+1. Top Navigation Bar
+The header contains three elements: the platform logo/brand (linking to the main portal), a login button that routes authenticated users to a private dashboard, and a breadcrumb showing "Tenders" as the current page. For your platform, this bar should persist across all pages and clearly separate public browsing (unauthenticated) from private actions (submitting bids, managing RFQs). A guest can browse freely; committing any action requires login.
+2. Page Title + Search & Sort Controls
+The "المنافسات" (Tenders) heading is paired immediately with a search bar and a results-per-page selector (6 / 12 / 18 / 24). For your platform, this zone is the primary filtering entry point — you'll want to extend it with filters for category, region, issuing entity, tender type, and deadline range. The per-page selector is a small but important UX detail that lets power users scan more listings at once.
+3. Statistics Summary Bar
+Three key metrics are displayed prominently above the listing:
+MetricValuePurpose
+Active Tenders (منافسات نشطة)
+3,317
+Real-time market health signal
+Awarded Tenders (منافسات تم ترسيتها)
+447,455
+Platform credibility/scale proof
+Submitted Offers (عرض مقدم)
+1,932,683
+Supplier activity volume
+For your platform, this bar builds trust and urgency. Show live counts of active RFQs, registered suppliers, and completed transactions. These numbers signal that the marketplace is active and worth joining.
+4. Tender Listing Cards
+Each card is a self-contained summary of one procurement opportunity and contains these fields:
+Publication date — when the tender went live
+Tender type badge — e.g., منافسة عامة (Open Tender) or شراء مباشر (Direct Purchase), displayed as a colored tag
+Title — a linked heading that navigates to the full tender detail page
+Issuing entity — the government body and specific department responsible
+Primary activity — a category/sector label
+Countdown — days and hours remaining (e.g., "19 days, 3 hours")
+Reference number — a unique ID for tracking and correspondence
+Inquiry deadline — last date to submit clarification questions
+Offer submission deadline — the hard close date/time
+Bid opening date/time — when offers are unsealed and evaluated
+Document fee — either a SAR amount (e.g., 1,500 SAR) or "Free"
+For your platform, this card structure is your most important design unit. Each field maps directly to a procurement workflow stage. The countdown timer creates urgency. The document fee field indicates procurement formality level — free tenders are lower friction for suppliers.
+5. Pagination Controls
+Standard first / previous / numbered pages / next / last pattern. For your platform, consider infinite scroll with a "load more" fallback for mobile users, while keeping classic pagination for desktop power users who want to jump to a specific page. Clearly show total result count ("Showing 1–6 of 3,317 active tenders").
+6. Footer
+The footer is split into three functional zones:
+Support — phone number (19990), help center portal link, contact us link
+Social channels — LinkedIn, Twitter/X, YouTube
+Mobile app — App Store and Google Play download links, plus a sign language accessibility tool
+For your platform, the support zone is critical for a procurement audience — buyers and suppliers need fast escalation paths. Adding a live chat widget here would outperform Etimad's phone-only support. The mobile app links signal that your platform should be mobile-ready from day one, especially for suppliers who check deadlines and notifications on the go.
+Key Takeaways for Your Build
+These are the highest-leverage decisions based on Etimad's structure:
+Card schema is your data model — the fields on each tender card (deadline, type, entity, fee, reference number) should directly match your database schema for sourcing requests
+Dual access model — public browsing + authenticated actions; never gate discovery behind a login wall
+Tender type taxonomy — define your equivalents early (e.g., Open RFQ, Direct Purchase, Framework Agreement); this drives filtering and supplier matching logic
+Countdown clocks — essential for urgency; calculate and render server-side so they're reliable
+Statistics bar — populate this from day one even with small numbers; it signals legitimacy to early adopters
+
+
+
+* **Forsah Platform:** A platform (believed to be government-related) targeting large private companies and smaller government entities.
+their marketplace looks like this structure:
+1. Top Navigation Bar
+Minimal and clean — just the hamburger menu icon (left) and the فرصة logo (right). There are no visible login/signup buttons in the top bar on mobile — those are tucked inside the hamburger menu. This is a mobile-first design decision.
+
+For your platform: a hamburger-only nav works well on mobile but on desktop you should surface key actions (Login, Register as Buyer / Supplier) directly in the header. Hiding them creates friction for new visitors.
+
+2. Hero Section — Full-Screen Background Image
+A full-bleed cityscape photo of Riyadh with large bold Arabic text: "نذلك على السوق" ("We guide you to the market"). There are no CTA buttons in the hero — it functions purely as a branding/identity statement.
+
+For your platform: the hero is your first impression. Add at least one CTA here — e.g., "Browse Opportunities" (for suppliers) and "Post an RFQ" (for buyers). A background video loop of your target market/industry would elevate this further.
+
+3. Statistics Bar — Platform Proof Panel
+A white card overlapping the hero image, displaying three live metrics:
+
+Metric	Value	What It Communicates
+إجمالي قيمة الفرص المنشورة (Total value of published opportunities)	SAR 9,282,325,628	Market size & platform activity
+إجمالي قيمة الفرص المعمدة (Total value of awarded opportunities)	SAR 5,576,919,150	Conversion rate signal (~60%)
+المنشآت على منصة فرصة (Registered establishments)	39,389	Network density
+For your platform: this is the single highest-trust signal on the entire homepage. The SAR values are especially powerful — they tell a supplier "real money is flowing through here." On your platform, show GMV (gross merchandise value) of completed transactions as soon as you have any data. Even small numbers are better than nothing.
+
+4. "How Forsah Works" Section
+A two-sided explainer section positioned right below the stats. It has a Riyadh skyline illustration as background and clearly defines the two user types:
+
+مشترين (Buyers) — Large companies → CTA: "ابدأ الشراء" (Start Buying)
+
+موردين (Suppliers) — SMEs → CTA: "ابدأ البيع" (Start Selling)
+
+Both CTAs link to /how-forsa-works with role-specific parameters.
+
+For your platform: this two-sided role explainer is essential. It immediately orients a new visitor and routes them down the right onboarding path. Design two separate landing flows — one for buyers posting RFQs, one for suppliers submitting quotes. The cleaner and more distinct these are, the lower your drop-off at registration.
+
+5. "أحدث الفُرص" — Latest Opportunities Listing
+The core marketplace section. It includes:
+
+Filter Controls:
+
+القطاعات (Sectors) dropdown — category-based filtering
+
+Search bar (بحث) — keyword search
+
+Opportunity Cards — each card contains:
+
+Field	Example	Purpose
+Status badge	متاحة (Available)	Green badge — immediately signals open/active
+Payment method badge	الفوترة (Invoicing)	How the buyer pays
+Procurement type badge	شراء مباشر / المنافسة (Direct Purchase / Tender)	Procurement formality level
+Share button	icon	Social/network virality built in
+View count	33 👁	Signals competition level — how many suppliers are watching
+Title	توفير ضيافة برنامج تدريبي لمدة 4 أيام	Linked to full opportunity detail
+Sector(s)	خدمات الضيافة والتموين	Category classification
+City	الرياض	Geographic filter
+Business size	متناهية الصغر / صغيرة / كبيرة	Buyer size — helps suppliers assess fit
+Days remaining	2 يوم/أيام متبقية	Urgency countdown
+A "اظهار الكل" (Show All) button links to /marketplace.
+
+For your platform: the view count per opportunity is a standout UX decision — it creates competitive urgency without showing bid prices. The business size label (micro / small / large) is also smart: it helps suppliers self-qualify before investing time in a quote. Both of these should be in your card design.
+
+6. Testimonials Section
+A single quote from شركة تمكين للتقنيات (a tech company), citing that they found many suppliers and awarded 50% of their new orders at competitive prices.
+
+For your platform: one testimonial is weak. Aim for 3–5 testimonials, ideally split between buyer and supplier sides. Even better — add a logo wall of recognizable buyer companies, as Forsah does in the next section.
+
+7. Partners / Key Clients Section
+A horizontal carousel of partner logos with arrow navigation. Partners shown include:
+
+مجموعة تداول السعودية (Tadawul Group)
+
+المؤسسة العامة للتأمينات الاجتماعية (GOSI)
+
+كليات التميز
+
+نادي سباقات الخيل
+
+جمعية هدية الحاج والمعتمر الخيرية
+
+Ends with a "انضم كشريك" (Join as Partner) CTA.
+
+For your platform: a logo wall of buyer organizations is the strongest social proof you can show to suppliers — it tells them "these are the companies that will buy from you." Prioritize getting recognizable logos here early, even if it means offering the first few buyers free or discounted access.
+
+8. Footer
+Organized into four zones:
+
+Navigation links — Home, Marketplace (ساحة الفرص), How It Works (for buyers and suppliers separately), FAQ (for buyers and suppliers separately)
+
+Initiative credit — "مبادرة من HRD" (Human Resources Development Fund), establishing government backing
+
+Legal links — Terms & Conditions, Privacy Policy, Sitemap
+
+Social media — Facebook, Instagram, X (Twitter)
+
+For your platform: the government/initiative backing stamp is worth noting — it adds enormous credibility. If your platform has any government affiliation, regulatory endorsement, or is part of a national initiative (Vision 2030 alignment, etc.), make that visible in the footer and hero. For the social links, prioritize LinkedIn and X for a B2B procurement audience over Instagram.
+
+9. Live Chat Widget
+A floating green chat bubble fixed to the bottom-left of the screen across all scroll positions.
+
+For your platform: this is non-negotiable for a procurement marketplace. Buyers and suppliers frequently have questions about how to post/respond to opportunities, payment terms, or eligibility. A live chat (or AI-powered chatbot — which is well within your skillset) dramatically reduces drop-off at key conversion points.
+
+Key Differences vs. Etimad — What to Learn
+Dimension	Etimad	Forsah
+Dimension	Etimad	Forsah
+Target audience	Government procurement (large scale)	SME-focused, B2B private + public
+Homepage type	Listing-first	Marketing/landing page first
+Dual-sided UX	No (supplier-only view)	Yes — explicit buyer vs. supplier flows
+Social proof	Statistics only	Statistics + testimonials + partner logos
+Opportunity card	Dense, data-heavy	Lighter, more visual, view count
+Mobile design	Desktop-first	Mobile-first
+For your platform, the Forsah approach is more appropriate if you're targeting SME buyers and suppliers. It leads with trust-building, then funnels users into the marketplace. The view count on cards and the two-sided onboarding are the two design patterns most worth directly implementing.
+
+
+---
+
+### Design & UI/UX Guidelines
+
+* The design should feel familiar to users and not like a completely new, hard-to-use system.
+* It should reflect Bid’s identity—sharp and modern—while avoiding the dull style seen in platforms like Etimad.
+* The experience should be simple, fast, and user-friendly.
+* At the same time, it should not be overly simplified to the point where large companies cannot input detailed and complex tender information.
+
+---
+
+### RFP Details
+
+* The UI/UX for the RFP will remain identical to the existing RFP flow.
+* All details and the brief stay the same—only the naming changes to “Tender.”

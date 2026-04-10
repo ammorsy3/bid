@@ -211,7 +211,7 @@ export default function TractionLinkEditor() {
       checkAuth();
     },
     onError: (error: Error) => {
-      toast({ title: "Failed to save", description: error.message, variant: "destructive" });
+      toast({ title: t('tractionPage.editorSaveFailed'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -233,10 +233,10 @@ export default function TractionLinkEditor() {
       queryClient.invalidateQueries({ queryKey: ['/api/r', slug] });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       checkAuth();
-      toast({ title: "Logo updated" });
+      toast({ title: t('tractionPage.editorLogoUpdated') });
     },
     onError: (error: Error) => {
-      toast({ title: "Failed to upload logo", description: error.message, variant: "destructive" });
+      toast({ title: t('tractionPage.editorLogoUploadFailed'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -249,9 +249,9 @@ export default function TractionLinkEditor() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <p className="text-gray-500 mb-4">You need to be logged in to edit this page.</p>
+          <p className="text-gray-500 mb-4">{t('tractionPage.editorLoginRequired')}</p>
           <Button variant="outline" onClick={() => navigate(`/traction/${slug}`)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />View Page
+            <ArrowLeft className="h-4 w-4 mr-2" />{t('tractionPage.editorViewPage')}
           </Button>
         </div>
       </div>
@@ -270,9 +270,9 @@ export default function TractionLinkEditor() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <p className="text-gray-500 mb-4">Page not found.</p>
+          <p className="text-gray-500 mb-4">{t('tractionPage.pageNotFound')}</p>
           <Button variant="outline" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />Back to Dashboard
+            <ArrowLeft className="h-4 w-4 mr-2" />{t('tractionPage.editorBackToDashboard')}
           </Button>
         </div>
       </div>
@@ -295,10 +295,10 @@ export default function TractionLinkEditor() {
   const currentLogoUrl = logoPreview || data.profile.logoUrl;
 
   const bgStyles: { id: TractionTheme['headerStyle']; label: string; preview: React.CSSProperties }[] = [
-    { id: 'gradient', label: 'Gradient', preview: { background: `linear-gradient(135deg, ${pc}, ${theme.accentColor})` } },
-    { id: 'solid', label: 'Solid', preview: { background: pc } },
-    { id: 'clean', label: 'Light', preview: { background: '#ffffff', border: '1px solid #e5e7eb' } },
-    { id: 'image', label: 'Image', preview: data.profile.headerUrl
+    { id: 'gradient', label: t('tractionPage.editorBgGradient'), preview: { background: `linear-gradient(135deg, ${pc}, ${theme.accentColor})` } },
+    { id: 'solid', label: t('tractionPage.editorBgSolid'), preview: { background: pc } },
+    { id: 'clean', label: t('tractionPage.editorBgLight'), preview: { background: '#ffffff', border: '1px solid #e5e7eb' } },
+    { id: 'image', label: t('tractionPage.editorBgImage'), preview: data.profile.headerUrl
       ? { backgroundImage: `url(${data.profile.headerUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
       : { background: '#e5e7eb' }
     },
@@ -315,10 +315,10 @@ export default function TractionLinkEditor() {
             className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back to page</span>
+            <span className="hidden sm:inline">{t('tractionPage.editorBackToPage')}</span>
           </button>
           <div className="h-5 w-px bg-gray-200" />
-          <span className="text-sm font-semibold text-gray-900">Edit Traction Page</span>
+          <span className="text-sm font-semibold text-gray-900">{t('tractionPage.editorTitle')}</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -346,7 +346,7 @@ export default function TractionLinkEditor() {
             className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:text-gray-900 border border-gray-200 hover:border-gray-300 transition-colors"
           >
             <Eye className="h-3.5 w-3.5" />
-            View Live
+            {t('tractionPage.editorViewLive')}
           </a>
 
           {/* Save */}
@@ -358,8 +358,8 @@ export default function TractionLinkEditor() {
             style={{ background: '#E25E45' }}
           >
             {saveThemeMutation.isPending
-              ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Saving</>
-              : <><Save className="h-3.5 w-3.5 mr-1.5" />Save Changes</>
+              ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />{t('tractionPage.editorSaving')}</>
+              : <><Save className="h-3.5 w-3.5 mr-1.5" />{t('tractionPage.editorSaveChanges')}</>
             }
           </Button>
         </div>
@@ -376,7 +376,7 @@ export default function TractionLinkEditor() {
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Image className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Logo</h3>
+                <h3 className="text-sm font-semibold text-gray-900">{t('tractionPage.editorLogo')}</h3>
               </div>
               <div className="flex items-center gap-3">
                 {currentLogoUrl ? (
@@ -402,10 +402,10 @@ export default function TractionLinkEditor() {
                     />
                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-white transition-colors">
                       <Upload className="h-3 w-3" />
-                      {uploadLogoMutation.isPending ? 'Uploading...' : 'Upload Logo'}
+                      {uploadLogoMutation.isPending ? t('tractionPage.editorUploading') : t('tractionPage.editorUploadLogo')}
                     </span>
                   </label>
-                  <p className="text-[10px] text-gray-400 mt-1">Recommended: 200×200px, PNG or JPG</p>
+                  <p className="text-[10px] text-gray-400 mt-1">{t('tractionPage.editorLogoHint')}</p>
                 </div>
               </div>
             </section>
@@ -414,7 +414,7 @@ export default function TractionLinkEditor() {
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Paintbrush className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Background</h3>
+                <h3 className="text-sm font-semibold text-gray-900">{t('tractionPage.editorBackground')}</h3>
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {bgStyles.map((bg) => (
@@ -439,7 +439,7 @@ export default function TractionLinkEditor() {
               </div>
               {theme.headerStyle === 'image' && !data.profile.headerUrl && (
                 <p className="text-[11px] text-amber-600 mt-2 bg-amber-50 rounded-lg px-3 py-2">
-                  Upload a header image in Settings → Company to use this background.
+                  {t('tractionPage.editorBgImageHint')}
                 </p>
               )}
             </section>
@@ -448,11 +448,11 @@ export default function TractionLinkEditor() {
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Palette className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Colors</h3>
+                <h3 className="text-sm font-semibold text-gray-900">{t('tractionPage.editorColors')}</h3>
               </div>
               <div className="space-y-3">
                 <div>
-                  <Label className="text-xs text-gray-500 mb-1.5 block">Primary Color</Label>
+                  <Label className="text-xs text-gray-500 mb-1.5 block">{t('tractionPage.editorPrimaryColor')}</Label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -470,7 +470,7 @@ export default function TractionLinkEditor() {
                 </div>
                 {(theme.headerStyle === 'gradient') && (
                   <div>
-                    <Label className="text-xs text-gray-500 mb-1.5 block">Accent Color</Label>
+                    <Label className="text-xs text-gray-500 mb-1.5 block">{t('tractionPage.editorAccentColor')}</Label>
                     <div className="flex items-center gap-2">
                       <input
                         type="color"
@@ -494,11 +494,11 @@ export default function TractionLinkEditor() {
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Type className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Content</h3>
+                <h3 className="text-sm font-semibold text-gray-900">{t('tractionPage.editorContent')}</h3>
               </div>
               <div className="space-y-3">
                 <div>
-                  <Label className="text-xs text-gray-500 mb-1.5 block">Heading</Label>
+                  <Label className="text-xs text-gray-500 mb-1.5 block">{t('tractionPage.editorHeading')}</Label>
                   <Input
                     value={theme.welcomeHeading || ''}
                     onChange={(e) => updateTheme({ welcomeHeading: e.target.value || undefined })}
@@ -507,7 +507,7 @@ export default function TractionLinkEditor() {
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500 mb-1.5 block">Subtext</Label>
+                  <Label className="text-xs text-gray-500 mb-1.5 block">{t('tractionPage.editorSubtext')}</Label>
                   <Textarea
                     value={theme.welcomeSubtext || ''}
                     onChange={(e) => updateTheme({ welcomeSubtext: e.target.value || undefined })}
@@ -517,7 +517,7 @@ export default function TractionLinkEditor() {
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500 mb-1.5 block">Button Text</Label>
+                  <Label className="text-xs text-gray-500 mb-1.5 block">{t('tractionPage.editorButtonText')}</Label>
                   <Input
                     value={theme.ctaText || ''}
                     onChange={(e) => updateTheme({ ctaText: e.target.value || undefined })}
@@ -532,14 +532,14 @@ export default function TractionLinkEditor() {
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Paintbrush className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Quick Presets</h3>
+                <h3 className="text-sm font-semibold text-gray-900">{t('tractionPage.editorQuickPresets')}</h3>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {([
-                  { id: 'classic' as const, name: 'Classic', headerStyle: 'clean' as const, preview: { background: '#ffffff', border: '1px solid #e5e7eb' } },
-                  { id: 'modern' as const, name: 'Modern', headerStyle: 'gradient' as const, preview: { background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` } },
-                  { id: 'bold' as const, name: 'Bold', headerStyle: 'solid' as const, preview: { background: theme.primaryColor } },
-                  { id: 'minimal' as const, name: 'Minimal', headerStyle: 'clean' as const, preview: { background: '#f9fafb', border: '1px solid #e5e7eb' } },
+                  { id: 'classic' as const, name: t('tractionPage.editorPresetClassic'), headerStyle: 'clean' as const, preview: { background: '#ffffff', border: '1px solid #e5e7eb' } },
+                  { id: 'modern' as const, name: t('tractionPage.editorPresetModern'), headerStyle: 'gradient' as const, preview: { background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` } },
+                  { id: 'bold' as const, name: t('tractionPage.editorPresetBold'), headerStyle: 'solid' as const, preview: { background: theme.primaryColor } },
+                  { id: 'minimal' as const, name: t('tractionPage.editorPresetMinimal'), headerStyle: 'clean' as const, preview: { background: '#f9fafb', border: '1px solid #e5e7eb' } },
                 ]).map(preset => (
                   <button
                     key={preset.id}
@@ -684,7 +684,7 @@ export default function TractionLinkEditor() {
                     </div>
                     <div className="flex items-center gap-3 my-3">
                       <div className="flex-1 h-px bg-gray-100" />
-                      <span className="text-[11px] text-gray-300 font-medium uppercase tracking-widest">or</span>
+                      <span className="text-[11px] text-gray-300 font-medium uppercase tracking-widest">{t('tractionPage.editorOr')}</span>
                       <div className="flex-1 h-px bg-gray-100" />
                     </div>
                     <div

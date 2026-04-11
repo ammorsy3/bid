@@ -743,7 +743,7 @@ export default function TenderInviteLink() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => window.history.length > 1 ? window.history.back() : navigate("/marketplace")}
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+              className="flex items-center gap-1.5 text-sm text-[#E8614D] hover:text-[#d4553f] transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">{t('common.back')}</span>

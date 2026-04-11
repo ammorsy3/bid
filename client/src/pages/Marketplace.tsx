@@ -417,7 +417,7 @@ export default function Marketplace() {
                   </div>
 
                   {/* Metadata row */}
-                  <div className="grid grid-cols-3 gap-px bg-gray-100 border-t border-gray-100">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-gray-100 border-t border-gray-100">
                     <div className="bg-white px-5 py-4 text-center">
                       <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.refNumber')}</p>
                       <p className="text-sm font-semibold text-gray-800 font-mono">{tender.referenceNumber || '—'}</p>
@@ -429,6 +429,12 @@ export default function Marketplace() {
                     <div className="bg-white px-5 py-4 text-center">
                       <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.submissionDeadline')}</p>
                       <p className={`text-sm font-semibold ${expired ? 'text-red-500' : 'text-gray-800'}`}>{formatDate(tender.deadline)}</p>
+                    </div>
+                    <div className="bg-white px-5 py-4 text-center">
+                      <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.documentFee')}</p>
+                      <p className={`text-sm font-semibold ${tender.documentFee ? 'text-gray-800' : 'text-green-600'}`}>
+                        {tender.documentFee ? <>{tender.documentFee.toLocaleString()} <span className="saudi-riyal-symbol" /></> : t('marketplace.free')}
+                      </p>
                     </div>
                   </div>
                 </a>

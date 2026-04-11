@@ -10,6 +10,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useI18n } from "@/lib/i18n";
+import AdminLayout from "@/components/AdminLayout";
 
 export default function AdminVendors() {
   const { toast } = useToast();
@@ -84,56 +85,50 @@ export default function AdminVendors() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="h-8 w-64 bg-gray-200 rounded animate-pulse mb-6"></div>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-40 bg-gray-200 rounded animate-pulse"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-8">
+    <AdminLayout>
+      <div className="p-8 max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900" data-testid="text-page-title">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-page-title">
             {t('admin.companyVerificationQueue')}
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {t('admin.companyVerificationQueueDesc')}
           </p>
         </div>
 
-        {!companies || companies.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600" data-testid="text-empty-state">
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-40 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        ) : !companies || (companies as any[]).length === 0 ? (
+          <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <CardContent className="py-16 text-center">
+              <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
+                <Building2 className="h-7 w-7 text-gray-400" />
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="text-empty-state">
                 {t('admin.noPendingVerifications')}
               </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">All companies have been reviewed</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
-            {companies.map((company: any) => (
-              <Card key={company.id} data-testid={`card-company-${company.id}`}>
+            {(companies as any[]).map((company: any) => (
+              <Card key={company.id} className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900" data-testid={`card-company-${company.id}`}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-base">
                         {company.name}
-                        <Badge variant="outline" className="ml-2">
+                        <Badge variant="outline" className="ml-1 text-xs">
                           {company.verificationStatus}
                         </Badge>
                       </CardTitle>
-                      <CardDescription className="mt-2 space-y-1">
+                      <CardDescription className="mt-2 space-y-1 text-xs">
                         <div><strong>{t('admin.legalName')}</strong> {company.legalName}</div>
                         <div><strong>{t('admin.crNumber')}</strong> {company.crNumber}</div>
                         {company.vatNumber && <div><strong>{t('admin.vatNumber')}</strong> {company.vatNumber}</div>}
@@ -149,22 +144,16 @@ export default function AdminVendors() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        setSelectedCompany(company);
-                        setActionType("view");
-                      }}
+                      onClick={() => { setSelectedCompany(company); setActionType("view"); }}
                       data-testid={`button-view-${company.id}`}
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       {t('admin.viewDetails')}
                     </Button>
                     <Button
-                      variant="default"
                       size="sm"
-                      onClick={() => {
-                        setSelectedCompany(company);
-                        setActionType("approve");
-                      }}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                      onClick={() => { setSelectedCompany(company); setActionType("approve"); }}
                       data-testid={`button-approve-${company.id}`}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
@@ -173,10 +162,7 @@ export default function AdminVendors() {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => {
-                        setSelectedCompany(company);
-                        setActionType("reject");
-                      }}
+                      onClick={() => { setSelectedCompany(company); setActionType("reject"); }}
                       data-testid={`button-reject-${company.id}`}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
@@ -200,7 +186,7 @@ export default function AdminVendors() {
           {selectedCompany && (
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold mb-2">{t('admin.basicInfo')}</h3>
+                <h3 className="font-semibold mb-2 text-sm">{t('admin.basicInfo')}</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div><strong>{t('admin.companyNameLabel')}</strong> {selectedCompany.name}</div>
                   <div><strong>{t('admin.legalName')}</strong> {selectedCompany.legalName}</div>
@@ -210,19 +196,17 @@ export default function AdminVendors() {
                   <div><strong>{t('admin.categoryLabel')}</strong> {selectedCompany.category || t('admin.na')}</div>
                 </div>
               </div>
-
               {selectedCompany.profile && (
                 <div>
-                  <h3 className="font-semibold mb-2">{t('admin.profileSection')}</h3>
+                  <h3 className="font-semibold mb-2 text-sm">{t('admin.profileSection')}</h3>
                   <div className="text-sm space-y-1">
                     <div><strong>{t('admin.displayNameLabel')}</strong> {selectedCompany.profile.displayName}</div>
                     {selectedCompany.profile.bio && <div><strong>{t('admin.bioLabel')}</strong> {selectedCompany.profile.bio}</div>}
                   </div>
                 </div>
               )}
-
               <div>
-                <h3 className="font-semibold mb-2">{t('admin.statusSection')}</h3>
+                <h3 className="font-semibold mb-2 text-sm">{t('admin.statusSection')}</h3>
                 <div className="text-sm space-y-1">
                   <div><strong>{t('admin.verificationLabel')}</strong> {selectedCompany.verificationStatus}</div>
                   <div><strong>{t('admin.onboardingLabel')}</strong> {selectedCompany.onboardingState}</div>
@@ -244,9 +228,7 @@ export default function AdminVendors() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t('admin.verifyCompany')}</DialogTitle>
-            <DialogDescription>
-              {t('admin.verifyCompanyDesc')}
-            </DialogDescription>
+            <DialogDescription>{t('admin.verifyCompanyDesc')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -267,6 +249,7 @@ export default function AdminVendors() {
             <Button
               onClick={handleApprove}
               disabled={approveMutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700"
               data-testid="button-confirm-approve"
             >
               {approveMutation.isPending ? t('admin.verifying') : t('admin.verifyCompanyBtn')}
@@ -280,9 +263,7 @@ export default function AdminVendors() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t('admin.rejectCompany')}</DialogTitle>
-            <DialogDescription>
-              {t('admin.rejectCompanyDesc')}
-            </DialogDescription>
+            <DialogDescription>{t('admin.rejectCompanyDesc')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -312,6 +293,6 @@ export default function AdminVendors() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminLayout>
   );
 }

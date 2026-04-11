@@ -145,7 +145,8 @@
       "WebFetch(domain:commons.wikimedia.org)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:upload.wikimedia.org)",
-      "WebFetch(domain:www.sama.gov.sa)"
+      "WebFetch(domain:www.sama.gov.sa)",
+      "WebFetch(domain:developers.openai.com)"
     ]
   },
   "enabledMcpjsonServers": [

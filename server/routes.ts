@@ -243,14 +243,6 @@ async function suggestTenderCategory(tender: {
 // Resolve OpenAI API endpoint and key.
 // Uses OPENAI_API_KEY directly.
 function getOpenAIConfig(): { url: string; key: string } | null {
-  // Prefer Replit AI integrations env vars
-  const replitKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
-  const replitBaseUrl = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
-  if (replitKey && replitBaseUrl) {
-    const url = replitBaseUrl.endsWith('/') ? `${replitBaseUrl}chat/completions` : `${replitBaseUrl}/chat/completions`;
-    return { url, key: replitKey };
-  }
-  // Fallback to standard OpenAI key
   const openaiKey = process.env.OPENAI_API_KEY;
   if (openaiKey) {
     return { url: "https://api.openai.com/v1/chat/completions", key: openaiKey };
@@ -2732,7 +2724,7 @@ Response must be valid JSON with this exact structure:
     throw new Error("Max retries exceeded for AI API call");
   }
 
-  // ─── Agent 1: RFP Analyst ───────────────────────────────────────────────────
+  // ─── Agent 1: RFP Analyst (gpt-4.1 for accurate document extraction) ───────
   // Runs ONCE per tender. Reads only RFP data and extracts a list of
   // specific, concrete, measurable requirements. Result is cached on the tender.
   async function extractRFPRequirements(
@@ -2778,7 +2770,7 @@ Response must be valid JSON with this exact structure:
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${config.key}` },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1",
         messages: [
           {
             role: "system",
@@ -2896,7 +2888,7 @@ Rules:
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${config.key}` },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1",
         messages: [
           {
             role: "system",
@@ -2907,12 +2899,18 @@ Rules:
 
 استخرج الحقائق فقط. لا آراء، لا درجات، لا مقارنات مع كراسة الشروط.
 
+قواعد حاسمة لاستخراج المالية:
+- حقل "total" يجب أن يكون السعر الإجمالي كما ذكره المورّد بالضبط. إذا ذكر المورّد رسوم شهرية (مثل "1000 ريال/شهر")، استخدم هذا المبلغ كما هو — لا تضربه أو تحسبه سنوياً.
+- لا تجمع المبالغ لحساب الإجمالي. أذكر الإجمالي فقط إذا ذكره المورّد صراحة.
+- بنود التفصيل يجب أن تكون بنود مختلفة فعلاً. لا تكرر نفس التكلفة بأسماء مختلفة (مثل "شروط الدفع" و"رسوم شهرية" إذا كانوا نفس المبلغ).
+- شروط الدفع تُنقل كما وردت في العرض (مثل "1000 ريال شهرياً" أو "50% مقدم و50% عند التسليم").
+
 أجب بـ JSON صالح فقط بهذا الهيكل بالضبط:
 {
   "executiveSummary": "<4 أسطر كحد أقصى. لخّص العرض بأسلوب سعودي مباشر — وش قدّم المورّد وكم السعر وايش أبرز النقاط؟>",
   "tableOfContents": [{ "section": "اسم القسم بالعربية", "pageRange": "..." }],
   "deliverables": ["<التسليمات كما وردت في العرض بالعربية>"],
-  "financial": { "total": <number or null>, "breakdown": [{ "item": "اسم البند بالعربية", "amount": <number> }], "paymentTerms": "<شروط الدفع بالعربية أو null>", "vat": <number or null> }
+  "financial": { "total": <number or null — فقط إذا ذكره المورّد صراحة>, "breakdown": [{ "item": "اسم البند بالعربية", "amount": <number> }], "paymentTerms": "<شروط الدفع كما وردت في العرض أو null>", "vat": <number or null> }
 }`
               : `You are a Saudi procurement officer writing a proposal evaluation report. Your only job is to read a vendor's proposal and extract its factual content — as if you are documenting what the vendor actually offered for an internal procurement review.
 
@@ -2920,12 +2918,18 @@ Extract facts only. No opinions, no scores, no comparisons to any RFP. Be direct
 
 Domain context: This is a Saudi procurement context. Financial figures are in SAR. Deliverables, payment terms, and milestones should be captured verbatim as the vendor described them.
 
+CRITICAL financial extraction rules:
+- The "total" field must be the total price as explicitly stated by the vendor in their proposal. If the vendor states a monthly/recurring fee (e.g. "1000 SAR/month"), use that single amount as the total — do NOT multiply or annualize it.
+- Do NOT calculate or sum up amounts to produce a total. Only report the total if the vendor explicitly states one.
+- Breakdown items must be distinct line items from the proposal. Do NOT list the same cost twice under different labels (e.g. "payment terms" and "monthly fee" referring to the same amount should only appear once).
+- Payment terms should capture the payment structure verbatim (e.g. "1000 SAR per month", "50% upfront, 50% on delivery").
+
 Respond with ONLY valid JSON in this exact structure:
 {
   "executiveSummary": "<4 lines max. Factual and direct — what did the vendor propose, at what price, and what are the key highlights?>",
   "tableOfContents": [{ "section": "...", "pageRange": "..." }],
   "deliverables": ["<verbatim deliverable from proposal>"],
-  "financial": { "total": <number or null>, "breakdown": [{ "item": "...", "amount": <number> }], "paymentTerms": "<string or null>", "vat": <number or null> }
+  "financial": { "total": <number or null — only if explicitly stated by vendor>, "breakdown": [{ "item": "...", "amount": <number> }], "paymentTerms": "<verbatim payment structure from proposal or null>", "vat": <number or null> }
 }`,
           },
           {
@@ -2971,7 +2975,7 @@ Respond with ONLY valid JSON in this exact structure:
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${config.key}` },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1",
         messages: [
           {
             role: "system",
@@ -3124,7 +3128,7 @@ Respond with ONLY a JSON object. Example:
         criteriaMapping = remapped;
       }
 
-      const modelUsed = "gpt-4o-mini";
+      const modelUsed = "gpt-4.1";
 
       const existing = await storage.getProposalAnalysisByOffer(offerData.id);
       if (existing) {

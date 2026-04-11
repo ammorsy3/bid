@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Building2, Calendar, Clock, CheckCircle, XCircle, Loader2, FileText, Tag, ExternalLink, AlertTriangle, ShieldCheck, Store } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Building2, Calendar, Clock, CheckCircle, XCircle, Loader2, FileText, Tag, ExternalLink, AlertTriangle, ShieldCheck, Store } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
+import AdminLayout from "@/components/AdminLayout";
 
 interface PurchaseOrder {
   id: string;
@@ -340,22 +340,15 @@ export default function AdminMarketplace() {
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${isRtl ? 'rtl' : 'ltr'}`} dir={isRtl ? 'rtl' : 'ltr'}>
-      <div className="max-w-7xl mx-auto p-8">
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/admin/dashboard">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {t('marketplace.requests')}
-            </h1>
-            <p className="text-gray-600 mt-1">
-              {t('marketplace.requestsSubtitle')}
-            </p>
-          </div>
+    <AdminLayout>
+      <div className={`p-8 max-w-6xl mx-auto ${isRtl ? 'rtl' : 'ltr'}`} dir={isRtl ? 'rtl' : 'ltr'}>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {t('marketplace.requests')}
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {t('marketplace.requestsSubtitle')}
+          </p>
         </div>
 
         <div className="flex gap-2 mb-6">
@@ -449,6 +442,6 @@ export default function AdminMarketplace() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminLayout>
   );
 }

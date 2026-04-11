@@ -10,6 +10,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useI18n } from "@/lib/i18n";
+import AdminLayout from "@/components/AdminLayout";
 
 export default function AdminJoinRequests() {
   const { toast } = useToast();
@@ -84,58 +85,52 @@ export default function AdminJoinRequests() {
     }
   };
 
-  const pendingRequests = joinRequests?.filter((r: any) => r.status === "pending") || [];
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="h-8 w-64 bg-gray-200 rounded animate-pulse mb-6"></div>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded animate-pulse"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const pendingRequests = (joinRequests as any[])?.filter((r: any) => r.status === "pending") || [];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-8">
+    <AdminLayout>
+      <div className="p-8 max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900" data-testid="text-page-title">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-page-title">
             {t('admin.joinRequestsManagement')}
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {t('admin.joinRequestsManagementDesc')}
           </p>
         </div>
 
-        {pendingRequests.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <UserIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600" data-testid="text-empty-state">
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-32 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        ) : pendingRequests.length === 0 ? (
+          <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <CardContent className="py-16 text-center">
+              <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
+                <UserIcon className="h-7 w-7 text-gray-400" />
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="text-empty-state">
                 {t('admin.noPendingJoinRequests')}
               </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">All join requests have been processed</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
             {pendingRequests.map((request: any) => (
-              <Card key={request.id} data-testid={`card-request-${request.id}`}>
+              <Card key={request.id} className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900" data-testid={`card-request-${request.id}`}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-base">
                         {request.vendor?.name || "Unknown Vendor"}
-                        <Badge variant="secondary" data-testid={`badge-status-${request.id}`}>
+                        <Badge variant="secondary" className="text-xs" data-testid={`badge-status-${request.id}`}>
                           {t('admin.pendingBadge')}
                         </Badge>
                       </CardTitle>
-                      <CardDescription className="mt-2">
+                      <CardDescription className="mt-2 text-xs">
                         <div className="space-y-1">
                           <div>{t('admin.vendorEmail')} {request.vendor?.email || t('admin.na')}</div>
                           <div>{t('admin.requesterId')} {request.requesterId}</div>
@@ -151,24 +146,18 @@ export default function AdminJoinRequests() {
                 <CardContent>
                   <div className="flex gap-2">
                     <Button
-                      variant="outline"
                       size="sm"
-                      onClick={() => {
-                        setSelectedRequest(request);
-                        setActionType("approve");
-                      }}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                      onClick={() => { setSelectedRequest(request); setActionType("approve"); }}
                       data-testid={`button-approve-${request.id}`}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       {t('admin.approve')}
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="destructive"
                       size="sm"
-                      onClick={() => {
-                        setSelectedRequest(request);
-                        setActionType("reject");
-                      }}
+                      onClick={() => { setSelectedRequest(request); setActionType("reject"); }}
                       data-testid={`button-reject-${request.id}`}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
@@ -229,6 +218,8 @@ export default function AdminJoinRequests() {
                 approveMutation.isPending ||
                 rejectMutation.isPending
               }
+              className={actionType === "approve" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+              variant={actionType === "reject" ? "destructive" : "default"}
               data-testid="button-confirm"
             >
               {approveMutation.isPending || rejectMutation.isPending
@@ -240,6 +231,6 @@ export default function AdminJoinRequests() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminLayout>
   );
 }

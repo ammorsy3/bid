@@ -867,6 +867,31 @@ export default function Dashboard() {
             </SidebarGroupContent>
           </SidebarGroup>
 
+          {/* Admin Panel — only visible to platform admins */}
+          {user.isAdmin && (
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <div className="px-2 group-data-[collapsible=icon]:px-0">
+                  <button
+                    onClick={() => setLocation('/admin/dashboard')}
+                    className="w-full rounded-xl border border-purple-300/30 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 px-3 py-3 hover:from-purple-500/15 hover:to-indigo-500/20 hover:border-purple-400/40 transition-all group/admin cursor-pointer group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center"
+                  >
+                    <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:gap-0">
+                      <div className="h-8 w-8 rounded-lg bg-purple-500/15 flex items-center justify-center flex-shrink-0 group-hover/admin:bg-purple-500/25 transition-colors">
+                        <ShieldCheck className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div className="flex-1 min-w-0 text-start group-data-[collapsible=icon]:hidden">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Admin Panel</p>
+                        <p className="text-[11px] text-muted-foreground leading-tight">Manage platform & users</p>
+                      </div>
+                      <ChevronRight className="h-3.5 w-3.5 text-purple-400/50 group-hover/admin:text-purple-500 transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden" />
+                    </div>
+                  </button>
+                </div>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+
           <ChatHistorySidebar />
         </SidebarContent>
 

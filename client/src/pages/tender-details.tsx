@@ -5,9 +5,17 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, Handshake, Store, Upload } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ArrowRight, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, FileCheck, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, Handshake, Store, Upload, Globe } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar as CalendarWidget } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { format } from "date-fns";
+import { ar as arLocale } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
@@ -15,6 +23,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Tender } from "@shared/schema";
 import SubmitOfferModal from "@/components/submit-offer-modal";
 import ProposalComparison from "@/components/ProposalComparison";
+import MarketplaceGuide from "@/components/MarketplaceGuide";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import { useI18n } from "@/lib/i18n";
@@ -322,6 +331,11 @@ export default function TenderDetails() {
   const [isSubmitOfferModalOpen, setIsSubmitOfferModalOpen] = useState(false);
   const [showPublishDialog, setShowPublishDialog] = useState(false);
   const [publishToMarketplace, setPublishToMarketplace] = useState(false);
+  const [showMarketplaceDialog, setShowMarketplaceDialog] = useState(false);
+  const [marketplaceStep, setMarketplaceStep] = useState<'intro' | 'guide' | 'form'>('intro');
+  const [marketplaceTenderType, setMarketplaceTenderType] = useState<string>('open_tender');
+  const [marketplaceDocFee, setMarketplaceDocFee] = useState<string>('');
+  const [marketplaceInquiryDeadline, setMarketplaceInquiryDeadline] = useState<string>('');
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
 
   const [answerText, setAnswerText] = useState<Record<string, string>>({});
@@ -473,8 +487,8 @@ export default function TenderDetails() {
   });
 
   const marketplaceSubmit = useMutation({
-    mutationFn: async () => {
-      return await apiRequest('POST', `/api/tenders/${id}/marketplace-submit`);
+    mutationFn: async (data?: { tenderType?: string; documentFee?: number | null; inquiryDeadline?: string | null }) => {
+      return await apiRequest('POST', `/api/tenders/${id}/marketplace-submit`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenders', id] });
@@ -814,7 +828,7 @@ export default function TenderDetails() {
                   )}
                   {tender.status === 'published' && !tender.isMarketplace && (
                     <Button variant="outline" className="bg-white/80 border-[#E8614D]/30 text-[#E8614D] hover:bg-[#E8614D]/10"
-                      onClick={() => marketplaceSubmit.mutate()}
+                      onClick={() => setShowMarketplaceDialog(true)}
                       disabled={marketplaceSubmit.isPending} data-testid="button-marketplace">
                       {marketplaceSubmit.isPending ? <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> : <Store className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />}
                       {t('marketplace.publishToMarketplace') || 'Publish to Marketplace'}
@@ -2298,10 +2312,10 @@ export default function TenderDetails() {
                     <div>
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t('tenderFlow.financialSection')}</p>
                       <div className="rounded-lg border border-gray-200 overflow-hidden">
-                        {drawerAnalysis.financial.total != null && (
+                        {(drawerOffer.quotePrice != null || drawerAnalysis.financial.total != null) && (
                           <div className="flex justify-between text-sm px-3 py-2.5 bg-gray-50 border-b border-gray-200">
                             <span className="text-gray-700 font-medium">{t('tenderFlow.totalLabel')}</span>
-                            <span className="font-bold text-gray-900">{t('tenderFlow.sarCurrency')} {drawerAnalysis.financial.total.toLocaleString()}</span>
+                            <span className="font-bold text-gray-900">{t('tenderFlow.sarCurrency')} {(drawerOffer.quotePrice ?? drawerAnalysis.financial.total)!.toLocaleString()}</span>
                           </div>
                         )}
                         {drawerAnalysis.financial.vat != null && (
@@ -2338,6 +2352,7 @@ export default function TenderDetails() {
                       {t('tenderFlow.analyzedLabel')} {new Date(drawerAnalysis.analyzedAt).toLocaleString()}
                     </p>
                   )}
+                  <p className="text-[11px] text-gray-400 text-center pt-2">{t('tenderFlow.aiDisclaimer')}</p>
                 </div>
               </>
             );
@@ -2387,7 +2402,7 @@ export default function TenderDetails() {
                 updateStatus.mutate('published', {
                   onSuccess: () => {
                     if (shouldSubmitToMarketplace) {
-                      marketplaceSubmit.mutate();
+                      setShowMarketplaceDialog(true);
                     }
                   }
                 });
@@ -2397,6 +2412,228 @@ export default function TenderDetails() {
               {t('tenderFlow.publishBtn')}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showMarketplaceDialog} onOpenChange={(open) => {
+        if (!open) {
+          setShowMarketplaceDialog(false);
+          setMarketplaceStep('intro');
+          setMarketplaceTenderType('open_tender');
+          setMarketplaceDocFee('');
+          setMarketplaceInquiryDeadline('');
+        }
+      }}>
+        <DialogContent className="max-w-lg p-0 overflow-hidden">
+          {marketplaceStep === 'intro' ? (
+            <>
+              {/* Visual header */}
+              <div className="bg-gradient-to-br from-[#E8614D]/10 via-[#E8614D]/5 to-white px-6 pt-6 pb-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 rounded-xl bg-[#E8614D]/10 flex items-center justify-center">
+                    <Globe className="h-5 w-5 text-[#E8614D]" />
+                  </div>
+                  <div>
+                    <DialogHeader className="p-0 space-y-0">
+                      <DialogTitle className="text-lg">{t('marketplace.introTitle') || 'Publish to Bid Marketplace'}</DialogTitle>
+                      <DialogDescription className="text-sm mt-0.5">
+                        {t('marketplace.introSubtitle') || 'Make your tender visible to thousands of verified suppliers across the Kingdom.'}
+                      </DialogDescription>
+                    </DialogHeader>
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-6 pb-2">
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {t('marketplace.introWhat') || 'The Bid Marketplace is a public procurement board. Verified buyers publish binding tenders, and suppliers across the Kingdom browse opportunities, ask questions, and submit proposals — all in one place.'}
+                </p>
+
+                <div className="mt-4 space-y-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('marketplace.introHowItWorks') || 'How it works'}</p>
+                  <div className="space-y-2.5">
+                    {[
+                      { icon: FileText, color: 'bg-blue-50 text-blue-600', label: t('marketplace.introStep1') || 'Set your listing details — tender type, document fees, and inquiry deadline' },
+                      { icon: FileCheck, color: 'bg-purple-50 text-purple-600', label: t('marketplace.introStep2') || 'Upload a signed Purchase Order (PO) to verify your commitment' },
+                      { icon: Shield, color: 'bg-amber-50 text-amber-600', label: t('marketplace.introStep3') || 'Bid admin reviews your submission and PO for approval' },
+                      { icon: Eye, color: 'bg-green-50 text-green-600', label: t('marketplace.introStep4') || 'Once approved, your tender goes live on the public marketplace' },
+                    ].map((step, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <div className={`h-8 w-8 rounded-lg ${step.color} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                          <step.icon className="h-4 w-4" />
+                        </div>
+                        <div className="flex items-center gap-2 min-h-[32px]">
+                          <span className="text-xs font-medium text-gray-400">{i + 1}.</span>
+                          <p className="text-sm text-gray-700">{step.label}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200/60">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-amber-900">{t('marketplace.introBindingTitle') || 'This is a binding commitment'}</p>
+                      <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                        {t('marketplace.introBindingDesc') || 'Marketplace tenders cannot be cancelled once published. You are required to evaluate proposals and award the tender to a participating vendor.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`flex gap-2 px-6 pb-5 pt-2 ${isRtl ? 'flex-row-reverse' : 'justify-end'}`}>
+                <Button variant="outline" onClick={() => {
+                  setShowMarketplaceDialog(false);
+                  setMarketplaceStep('intro');
+                }}>
+                  {t('marketplace.cancel') || 'Cancel'}
+                </Button>
+                <Button
+                  className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                  onClick={() => setMarketplaceStep('guide')}
+                >
+                  {t('marketplace.introContinue') || 'Continue'}
+                  {isRtl ? <ArrowLeft className="h-4 w-4 mr-1.5" /> : <ArrowRight className="h-4 w-4 ml-1.5" />}
+                </Button>
+              </div>
+            </>
+          ) : marketplaceStep === 'guide' ? (
+            <MarketplaceGuide
+              tender={{ title: tender!.title, deadline: tender!.deadline, createdAt: String(tender!.createdAt), category: tender!.category, referenceNumber: (tender as any)?.referenceNumber }}
+              activeCompany={activeCompany}
+              onContinue={() => setMarketplaceStep('form')}
+              onCancel={() => { setShowMarketplaceDialog(false); setMarketplaceStep('intro'); }}
+              isRtl={isRtl}
+              language={language}
+              t={t}
+            />
+          ) : (
+            <>
+              <div className="px-6 pt-6">
+                <DialogHeader>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setMarketplaceStep('guide')}
+                      className="h-7 w-7 rounded-md hover:bg-gray-100 flex items-center justify-center transition-colors"
+                    >
+                      {isRtl ? <ArrowRight className="h-4 w-4 text-gray-500" /> : <ArrowLeft className="h-4 w-4 text-gray-500" />}
+                    </button>
+                    <DialogTitle>{t('marketplace.marketplaceSubmitTitle') || 'Listing Details'}</DialogTitle>
+                  </div>
+                  <DialogDescription>
+                    {t('marketplace.marketplaceSubmitDesc') || 'Provide details for your marketplace listing. This will be submitted for admin review.'}
+                  </DialogDescription>
+                </DialogHeader>
+              </div>
+
+              <div className="px-6 space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="marketplace-tender-type">{t('marketplace.tenderType') || 'Tender Type'} <span className="text-red-500">*</span></Label>
+                  <Select value={marketplaceTenderType} onValueChange={setMarketplaceTenderType}>
+                    <SelectTrigger id="marketplace-tender-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open_tender">{t('marketplace.openTender') || 'Open Tender'}</SelectItem>
+                      <SelectItem value="direct_purchase">{t('marketplace.directPurchase') || 'Direct Purchase'}</SelectItem>
+                      <SelectItem value="framework_agreement">{t('marketplace.frameworkAgreement') || 'Framework Agreement'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="marketplace-doc-fee">{t('marketplace.documentFee') || 'Document Fee'} ({t('marketplace.sar') || 'SAR'})</Label>
+                  <Input
+                    id="marketplace-doc-fee"
+                    type="number"
+                    min="0"
+                    max="100000"
+                    placeholder={t('marketplace.docFeePlaceholder') || 'Leave empty for free'}
+                    value={marketplaceDocFee}
+                    onChange={(e) => setMarketplaceDocFee(e.target.value)}
+                  />
+                  <p className="text-xs text-gray-500">{t('marketplace.docFeeHint') || 'Fee vendors pay for tender documents (0–100,000 SAR). Leave empty for free.'}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{t('marketplace.inquiryDeadlineLabel') || 'Inquiry Deadline'}</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !marketplaceInquiryDeadline && "text-muted-foreground"
+                        )}
+                      >
+                        <Calendar className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                        {marketplaceInquiryDeadline
+                          ? format(new Date(marketplaceInquiryDeadline), "PPP", { locale: language === 'ar' ? arLocale : undefined })
+                          : t('marketplace.selectInquiryDeadline') || 'Select inquiry deadline'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarWidget
+                        mode="single"
+                        selected={marketplaceInquiryDeadline ? new Date(marketplaceInquiryDeadline) : undefined}
+                        onSelect={(d) => setMarketplaceInquiryDeadline(d?.toISOString() || '')}
+                        disabled={(d) =>
+                          d < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                          (tender?.deadline ? d >= new Date(tender.deadline) : false)
+                        }
+                        locale={language === 'ar' ? arLocale : undefined}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <p className="text-xs text-gray-500">{t('marketplace.inquiryDeadlineHint') || 'Last date for vendor questions. Must be before the tender deadline.'}</p>
+                </div>
+              </div>
+
+              <div className={`flex gap-2 px-6 pb-5 pt-2 ${isRtl ? 'flex-row-reverse' : 'justify-end'}`}>
+                <Button variant="outline" onClick={() => {
+                  setShowMarketplaceDialog(false);
+                  setMarketplaceStep('intro');
+                  setMarketplaceTenderType('open_tender');
+                  setMarketplaceDocFee('');
+                  setMarketplaceInquiryDeadline('');
+                }}>
+                  {t('marketplace.cancel') || 'Cancel'}
+                </Button>
+                <Button
+                  className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                  disabled={marketplaceSubmit.isPending}
+                  onClick={() => {
+                    const data: { tenderType: string; documentFee?: number | null; inquiryDeadline?: string | null } = {
+                      tenderType: marketplaceTenderType,
+                    };
+                    if (marketplaceDocFee !== '') {
+                      data.documentFee = parseInt(marketplaceDocFee, 10);
+                    }
+                    if (marketplaceInquiryDeadline) {
+                      data.inquiryDeadline = new Date(marketplaceInquiryDeadline).toISOString();
+                    }
+                    marketplaceSubmit.mutate(data, {
+                      onSuccess: () => {
+                        setShowMarketplaceDialog(false);
+                        setMarketplaceStep('intro');
+                        setMarketplaceTenderType('open_tender');
+                        setMarketplaceDocFee('');
+                        setMarketplaceInquiryDeadline('');
+                      }
+                    });
+                  }}
+                >
+                  {marketplaceSubmit.isPending && <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />}
+                  <Store className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                  {t('marketplace.submitForReview') || 'Submit for Review'}
+                </Button>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </>

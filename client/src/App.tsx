@@ -41,6 +41,9 @@ import Landing from "@/pages/Landing";
 import Settings from "@/pages/Settings";
 import Marketplace from "@/pages/Marketplace";
 import AdminMarketplace from "@/pages/AdminMarketplace";
+import AdminAwards from "@/pages/AdminAwards";
+import AdminUsers from "@/pages/AdminUsers";
+import AdminAuditLogs from "@/pages/AdminAuditLogs";
 
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
 
@@ -111,6 +114,9 @@ export default function App() {
             <Route path="/traction/:slug" component={TractionLink} />
             <Route path="/marketplace" component={Marketplace} />
             <Route path="/admin/marketplace" component={AdminMarketplace} />
+            <Route path="/admin/awards" component={AdminAwards} />
+            <Route path="/admin/users" component={AdminUsers} />
+            <Route path="/admin/audit-logs" component={AdminAuditLogs} />
             <Route path="/settings" component={Settings} />
           </Switch>
           <Toaster />

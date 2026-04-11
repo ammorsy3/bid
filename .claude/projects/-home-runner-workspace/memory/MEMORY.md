@@ -1,0 +1,1 @@
+- [Marketplace context](project_marketplace_context.md) — Bidd marketplace platform definition, PO requirement, binding enforcement, design benchmarks

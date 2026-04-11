@@ -236,9 +236,10 @@ export default function ProposalComparison({
 
   const getFinancial = (offerId: string) => completedAnalyses.find(a => a.offerId === offerId)?.financial || null;
   const getTotal = (offerId: string): number | null => {
+    const quote = offers.find(o => o.id === offerId)?.quotePrice;
+    if (quote != null) return quote;
     const fin = getFinancial(offerId);
-    if (fin?.total) return fin.total;
-    return offers.find(o => o.id === offerId)?.quotePrice || null;
+    return fin?.total ?? null;
   };
 
   const totals = visibleOffers.map(o => ({ id: o.id, total: getTotal(o.id) })).filter(t => t.total != null) as { id: string; total: number }[];
@@ -1030,6 +1031,9 @@ export default function ProposalComparison({
             </p>
           )}
         </div>
+      )}
+      {hasAnalyses && (
+        <p className="text-[11px] text-gray-400 text-center py-3">{t('tenderFlow.aiDisclaimer')}</p>
       )}
     </div>
   );

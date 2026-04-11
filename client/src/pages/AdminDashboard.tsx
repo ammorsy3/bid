@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, FileCheck, Package, AlertTriangle, Store, TrendingUp, Activity } from "lucide-react";
+import { Users, FileCheck, FileText, Package, AlertTriangle, Store, TrendingUp, Activity } from "lucide-react";
 import { Link } from "wouter";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, FileCheck, FileText, Package, AlertTriangle, Store, TrendingUp, Activity } from "lucide-react";
+import { Users, FileText, Package, AlertTriangle, Store, TrendingUp, Activity } from "lucide-react";
 import { Link } from "wouter";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
@@ -31,15 +31,6 @@ export default function AdminDashboard() {
       bgColor: "bg-blue-50 dark:bg-blue-950/40",
       ringColor: "ring-blue-200 dark:ring-blue-800",
       link: "/admin/vendors",
-    },
-    {
-      title: t('admin.joinRequests'),
-      value: metrics?.pendingJoinRequests || 0,
-      icon: FileCheck,
-      color: "text-emerald-600 dark:text-emerald-400",
-      bgColor: "bg-emerald-50 dark:bg-emerald-950/40",
-      ringColor: "ring-emerald-200 dark:ring-emerald-800",
-      link: "/admin/join-requests",
     },
     {
       title: t('admin.proposals24h'),
@@ -161,23 +152,6 @@ export default function AdminDashboard() {
                 {(metrics?.pendingVerifications || 0) > 0 && (
                   <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
                     {metrics?.pendingVerifications}
-                  </span>
-                )}
-              </Link>
-              <Link
-                href="/admin/join-requests"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
-              >
-                <div className="h-9 w-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/40 transition-colors">
-                  <FileCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{t('admin.manageJoinRequests')}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">{t('admin.manageJoinRequestsDesc')}</div>
-                </div>
-                {(metrics?.pendingJoinRequests || 0) > 0 && (
-                  <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
-                    {metrics?.pendingJoinRequests}
                   </span>
                 )}
               </Link>

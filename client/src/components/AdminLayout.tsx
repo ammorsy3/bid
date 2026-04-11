@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import {
-  LayoutDashboard, Users, FileCheck, AlertTriangle, FileText,
+  LayoutDashboard, Users, AlertTriangle, FileText,
   Shield, LogOut, ArrowLeft, Store, Bug
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
@@ -56,12 +56,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           label: "Company Verification",
           icon: Users,
           count: metrics?.pendingVerifications || 0,
-        },
-        {
-          href: "/admin/join-requests",
-          label: "Join Requests",
-          icon: FileCheck,
-          count: metrics?.pendingJoinRequests || 0,
         },
         {
           href: "/admin/marketplace",

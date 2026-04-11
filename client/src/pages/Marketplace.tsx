@@ -155,11 +155,18 @@ export default function Marketplace() {
             </div>
             <div className="flex items-center gap-3">
               {user ? (
-                <Link href="/dashboard">
-                  <Button size="sm" className="bg-[#E8614D] hover:bg-[#d4553f] text-white text-sm px-5 rounded">
-                    {t('marketplace.dashboard')}
-                  </Button>
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link href="/tenders/new">
+                    <Button size="sm" variant="outline" className="text-sm px-4 rounded border-[#E8614D]/30 text-[#E8614D] hover:bg-[#E8614D]/5">
+                      {t('marketplace.postTender') || 'Post a Tender'}
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard">
+                    <Button size="sm" className="bg-[#E8614D] hover:bg-[#d4553f] text-white text-sm px-5 rounded">
+                      {t('marketplace.dashboard')}
+                    </Button>
+                  </Link>
+                </div>
               ) : (
                 <>
                   <Link href="/login">

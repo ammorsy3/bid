@@ -65,6 +65,7 @@ const translations = {
     },
     dashboard: {
       deadlinePassed: "Deadline Passed",
+      closedLabel: "Closed",
       overview: "Overview",
       tenders: "Tenders",
       proposals: "Proposals",
@@ -1685,6 +1686,7 @@ const translations = {
       login: "Login",
       getStarted: "Get Started",
       dashboard: "Dashboard",
+      postTender: "Post a Tender",
       activeTenders: "Active Tenders",
       awardedTenders: "Awarded Tenders",
       submittedOffers: "Submitted Offers",
@@ -1926,6 +1928,7 @@ const translations = {
     },
     dashboard: {
       deadlinePassed: "انتهى الموعد",
+      closedLabel: "مغلقة",
       overview: "نظرة عامة",
       tenders: "المناقصات",
       proposals: "العروض",
@@ -3539,6 +3542,7 @@ const translations = {
       login: "تسجيل الدخول",
       getStarted: "إنشاء حساب",
       dashboard: "لوحة التحكم",
+      postTender: "أنشئ منافسة",
       activeTenders: "منافسات نشطة",
       awardedTenders: "منافسات تم ترسيتها",
       submittedOffers: "عروض مقدمة",

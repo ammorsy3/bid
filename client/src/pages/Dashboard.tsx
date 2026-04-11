@@ -601,7 +601,7 @@ export default function Dashboard() {
   // Get status badge styling
   const getStatusBadge = (status: string, deadline?: string) => {
     if (status === 'closed' && deadline && deadline < new Date().toISOString().split('T')[0]) {
-      return { className: 'bg-amber-100 text-amber-800', label: t('dashboard.deadlinePassed') || 'Deadline Passed' };
+      return { className: 'bg-red-100 text-red-800', label: (t('dashboard.closedLabel') || 'Closed') + ' · ' + (t('dashboard.deadlinePassed') || 'Deadline Passed') };
     }
     switch (status) {
       case 'published':

@@ -17,7 +17,6 @@ import InviteTeam from "@/pages/onboarding/invite-team";
 import CompanyDocuments from "@/pages/onboarding/company-documents";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminVendors from "@/pages/AdminVendors";
-import AdminJoinRequests from "@/pages/AdminJoinRequests";
 import TenderDetails from "@/pages/tender-details";
 import TenderEditPage from "@/pages/TenderEditPage";
 import TenderCreateChoice from "@/pages/TenderCreateChoice";
@@ -93,7 +92,6 @@ export default function App() {
             <Route path="/dashboard" component={Dashboard} />
             <Route path="/admin/dashboard" component={AdminDashboard} />
             <Route path="/admin/vendors" component={AdminVendors} />
-            <Route path="/admin/join-requests" component={AdminJoinRequests} />
             <Route path="/tenders/new" component={TenderCreateChoice} />
             <Route path="/tenders/new/ai" component={TenderAICopilot} />
             <Route path="/tenders/new/manual" component={TenderStartMethodStep} />

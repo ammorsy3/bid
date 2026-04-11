@@ -5301,6 +5301,61 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
+  // Serve PO file by PO ID (admin only)
+  app.get("/api/purchase-orders/:id/file", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const po = await storage.getPurchaseOrder(req.params.id);
+      if (!po) return res.status(404).json({ message: "Purchase order not found" });
+
+      // Allow admin or tender owner
+      const tender = await storage.getTender(po.tenderId);
+      const isAdmin = req.auth!.isAdmin;
+      const isOwner = tender?.companyId === req.auth!.activeCompanyId;
+      if (!isAdmin && !isOwner) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+
+      const fileUrl = po.fileUrl;
+      if (!fileUrl) return res.status(404).json({ message: "No file attached" });
+
+      // If it's already an /objects/ path, use the standard object storage flow
+      const objectStorageService = new ObjectStorageService();
+      if (fileUrl.startsWith('/objects/')) {
+        try {
+          const objectFile = await objectStorageService.getPublicFile(fileUrl);
+          return objectStorageService.downloadObject(objectFile, res);
+        } catch {}
+        const objectFile = await objectStorageService.getObjectEntityFile(fileUrl);
+        return objectStorageService.downloadObject(objectFile, res);
+      }
+
+      // Raw object store path (e.g. /replit-objstore-.../.private/uploads/uuid)
+      const { bucketName, objectName } = (() => {
+        let path = fileUrl;
+        if (!path.startsWith("/")) path = `/${path}`;
+        const parts = path.split("/");
+        return { bucketName: parts[1], objectName: parts.slice(2).join("/") };
+      })();
+
+      const { objectStorageClient } = await import('./objectStorage');
+      const bucket = objectStorageClient.bucket(bucketName);
+      const file = bucket.file(objectName);
+      const [exists] = await file.exists();
+      if (!exists) return res.status(404).json({ message: "File not found in storage" });
+
+      const [metadata] = await file.getMetadata();
+      res.set({
+        "Content-Type": metadata.contentType || "application/octet-stream",
+        "Content-Length": metadata.size?.toString() || undefined,
+        "Cache-Control": "private, max-age=3600",
+      });
+      file.createReadStream().pipe(res);
+    } catch (error) {
+      console.error("Error serving PO file:", error);
+      if (!res.headersSent) res.status(500).json({ message: "Server error" });
+    }
+  });
+
   app.patch("/api/purchase-orders/:id", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
     try {
       const { status } = req.body;

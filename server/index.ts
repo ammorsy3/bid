@@ -56,22 +56,15 @@ app.use((req, res, next) => {
 
   const port = parseInt(process.env.PORT || '5000', 10);
 
-  function startListening(retries = 5) {
-    server.listen({ port, host: "0.0.0.0", reusePort: true }, () => {
-      log(`serving on port ${port}`);
-    });
+  try {
+    const { execSync } = await import("child_process");
+    execSync(`fuser -k ${port}/tcp 2>/dev/null || kill -9 $(lsof -ti:${port}) 2>/dev/null || true`, { stdio: "ignore" });
+    await new Promise((r) => setTimeout(r, 1000));
+  } catch {}
 
-    server.once("error", (err: NodeJS.ErrnoException) => {
-      if (err.code === "EADDRINUSE" && retries > 0) {
-        log(`port ${port} busy, retrying in 2s (${retries} left)…`);
-        setTimeout(() => startListening(retries - 1), 2000);
-      } else {
-        throw err;
-      }
-    });
-  }
-
-  startListening();
+  server.listen({ port, host: "0.0.0.0" }, () => {
+    log(`serving on port ${port}`);
+  });
 
   const shutdown = () => {
     server.close(() => process.exit(0));

@@ -803,7 +803,16 @@ export class DatabaseStorage implements IStorage {
 
   async getTender(id: string): Promise<Tender | undefined> {
     const [tender] = await db.select().from(tenders).where(eq(tenders.id, id));
-    return tender || undefined;
+    if (!tender) return undefined;
+
+    // Auto-close if published and deadline has passed
+    const now = new Date().toISOString().split('T')[0];
+    if (tender.status === 'published' && tender.deadline && tender.deadline < now) {
+      await db.update(tenders).set({ status: 'closed', updatedAt: new Date() }).where(eq(tenders.id, id));
+      tender.status = 'closed';
+    }
+
+    return tender;
   }
 
   async getTenderByVoiceNoteUrl(voiceNoteUrl: string): Promise<Tender | null> {
@@ -830,11 +839,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTendersByCompany(companyId: string): Promise<Tender[]> {
-    return await db
+    const results = await db
       .select()
       .from(tenders)
       .where(eq(tenders.companyId, companyId))
       .orderBy(desc(tenders.createdAt));
+
+    // Auto-close published tenders whose deadline has passed
+    const now = new Date().toISOString().split('T')[0];
+    const expiredIds = results
+      .filter(t => t.status === 'published' && t.deadline && t.deadline < now)
+      .map(t => t.id);
+
+    if (expiredIds.length > 0) {
+      await Promise.all(
+        expiredIds.map(id =>
+          db.update(tenders).set({ status: 'closed', updatedAt: new Date() }).where(eq(tenders.id, id))
+        )
+      );
+      // Update the results in-memory to reflect the change
+      for (const r of results) {
+        if (expiredIds.includes(r.id)) {
+          r.status = 'closed';
+        }
+      }
+    }
+
+    return results;
   }
 
   async getTenderByInvitationToken(token: string): Promise<(Tender & { company: Company; profile?: CompanyProfile }) | undefined> {

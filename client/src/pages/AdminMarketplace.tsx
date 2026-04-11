@@ -259,30 +259,69 @@ export default function AdminMarketplace() {
                             {po.status}
                           </Badge>
                         </div>
-                        {po.status === 'pending' && (
-                          <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1">
+                          {po.fileUrl && (
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-                              onClick={() => verifyPOMutation.mutate({ poId: po.id, status: 'verified' })}
-                              disabled={verifyPOMutation.isPending}
+                              className="h-7 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              onClick={() => {
+                                // Open window immediately so browser doesn't block popup
+                                const win = window.open('', '_blank');
+                                if (!win) {
+                                  toast({ title: 'Error', description: 'Popup blocked — please allow popups', variant: 'destructive' });
+                                  return;
+                                }
+                                win.document.write('<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666">Loading file...</body></html>');
+
+                                const token = localStorage.getItem('token');
+                                fetch(`/api/purchase-orders/${po.id}/file`, {
+                                  headers: { Authorization: `Bearer ${token}` },
+                                })
+                                  .then(r => {
+                                    if (!r.ok) throw new Error('Failed to fetch');
+                                    const ct = r.headers.get('content-type') || 'application/octet-stream';
+                                    return r.arrayBuffer().then(buf => ({ buf, ct }));
+                                  })
+                                  .then(({ buf, ct }) => {
+                                    const blob = new Blob([buf], { type: ct });
+                                    win.location.href = URL.createObjectURL(blob);
+                                  })
+                                  .catch(() => {
+                                    win.close();
+                                    toast({ title: 'Error', description: 'Could not open file', variant: 'destructive' });
+                                  });
+                              }}
                             >
-                              <CheckCircle className="h-3.5 w-3.5 mr-0.5" />
-                              <span className="text-xs">{t('marketplace.verifyPo') || 'Verify'}</span>
+                              <ExternalLink className="h-3.5 w-3.5 mr-0.5" />
+                              <span className="text-xs">View</span>
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => verifyPOMutation.mutate({ poId: po.id, status: 'rejected' })}
-                              disabled={verifyPOMutation.isPending}
-                            >
-                              <XCircle className="h-3.5 w-3.5 mr-0.5" />
-                              <span className="text-xs">{t('marketplace.rejectPo') || 'Reject'}</span>
-                            </Button>
-                          </div>
-                        )}
+                          )}
+                          {po.status === 'pending' && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                onClick={() => verifyPOMutation.mutate({ poId: po.id, status: 'verified' })}
+                                disabled={verifyPOMutation.isPending}
+                              >
+                                <CheckCircle className="h-3.5 w-3.5 mr-0.5" />
+                                <span className="text-xs">{t('marketplace.verifyPo') || 'Verify'}</span>
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => verifyPOMutation.mutate({ poId: po.id, status: 'rejected' })}
+                                disabled={verifyPOMutation.isPending}
+                              >
+                                <XCircle className="h-3.5 w-3.5 mr-0.5" />
+                                <span className="text-xs">{t('marketplace.rejectPo') || 'Reject'}</span>
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

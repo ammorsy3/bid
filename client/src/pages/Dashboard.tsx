@@ -599,7 +599,10 @@ export default function Dashboard() {
   };
 
   // Get status badge styling
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, deadline?: string) => {
+    if (status === 'closed' && deadline && deadline < new Date().toISOString().split('T')[0]) {
+      return { className: 'bg-amber-100 text-amber-800', label: t('dashboard.deadlinePassed') || 'Deadline Passed' };
+    }
     switch (status) {
       case 'published':
         return { className: 'bg-green-100 text-green-800', label: 'Published' };
@@ -1273,9 +1276,9 @@ export default function Dashboard() {
                         {tender.title}
                       </h3>
                       <Badge 
-                        className={`flex-shrink-0 text-xs font-medium ${getStatusBadge(tender.status).className}`}
+                        className={`flex-shrink-0 text-xs font-medium ${getStatusBadge(tender.status, tender.deadline).className}`}
                       >
-                        {getStatusBadge(tender.status).label}
+                        {getStatusBadge(tender.status, tender.deadline).label}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
@@ -1954,7 +1957,7 @@ export default function Dashboard() {
                   >
                     <div className="space-y-4 p-4">
                       {filteredTenders.map((tender) => {
-                        const statusBadge = getStatusBadge(tender.status);
+                        const statusBadge = getStatusBadge(tender.status, tender.deadline);
                         const isDeadlineSoon = new Date(tender.deadline).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000;
                         const isReadyToNegotiate = tender.status === 'closed' && tender.offersCount >= 2 && !incomingOffers.some(o => o.tenderId === tender.id && o.status === 'accepted');
                         const getSpotlightColor = (status: string): 'blue' | 'purple' | 'green' | 'red' | 'orange' => {

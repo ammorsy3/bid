@@ -448,20 +448,17 @@ export default function TenderInviteLink() {
     if (!tender || langInitialized) return;
     setLangInitialized(true);
 
-    // Default the page language to match the RFP's chosen language
+    // Default the page view language to match the RFP's chosen language (local only, not global)
     const tenderLang = tender.language || 'en';
-    if (language !== tenderLang) {
-      setLanguage(tenderLang as 'en' | 'ar');
-    }
+    setViewLanguage(tenderLang);
 
     // Apply stored translations for the default language right away
     // (handles mixed-language content — e.g. Arabic title + English description in Arabic mode)
     const stored = tender.translatedContent?.[tenderLang];
     if (stored && Object.keys(stored).length > 0) {
       setTranslatedTexts(stored);
-      setViewLanguage(tenderLang);
     }
-  }, [tender, langInitialized, language, setLanguage]);
+  }, [tender, langInitialized]);
 
   if (!tenderId) {
     return (
@@ -732,7 +729,7 @@ export default function TenderInviteLink() {
   const remainingReqCount = Math.max(0, mandatoryRequirements.length - 3);
 
   const activeLanguage = viewLanguage || language || tenderOriginalLang;
-  const isActiveRtl = language === 'ar' || activeLanguage === 'ar';
+  const isActiveRtl = activeLanguage === 'ar';
 
   return (
     <div className="min-h-screen bg-gray-50" dir={isActiveRtl ? "rtl" : "ltr"}>
@@ -756,7 +753,7 @@ export default function TenderInviteLink() {
             {canTranslate && (
               <div className="flex items-center gap-1 bg-gray-100 rounded-full p-0.5">
                 <button
-                  onClick={() => { setLanguage('en'); translateContent('en'); }}
+                  onClick={() => { setViewLanguage('en'); translateContent('en'); }}
                   disabled={isTranslating}
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
                     activeLanguage === 'en'
@@ -767,7 +764,7 @@ export default function TenderInviteLink() {
                   EN
                 </button>
                 <button
-                  onClick={() => { setLanguage('ar'); translateContent('ar'); }}
+                  onClick={() => { setViewLanguage('ar'); translateContent('ar'); }}
                   disabled={isTranslating}
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
                     activeLanguage === 'ar'

@@ -64,6 +64,7 @@ const translations = {
       viewAllNotifications: "View all notifications",
     },
     dashboard: {
+      deadlinePassed: "Deadline Passed",
       overview: "Overview",
       tenders: "Tenders",
       proposals: "Proposals",
@@ -278,7 +279,6 @@ const translations = {
       typeToSearch: "Type to search your tenders",
       noDescription: "No description",
       submitted: "Submitted",
-      deadlinePassed: "Deadline passed",
       daysLeft: "days left",
       combinedProposal: "Combined Proposal",
       technicalProposal: "Technical Proposal",
@@ -1925,6 +1925,7 @@ const translations = {
       viewAllNotifications: "عرض جميع الإشعارات",
     },
     dashboard: {
+      deadlinePassed: "انتهى الموعد",
       overview: "نظرة عامة",
       tenders: "المناقصات",
       proposals: "العروض",
@@ -2139,7 +2140,6 @@ const translations = {
       typeToSearch: "اكتب للبحث في مناقصاتك",
       noDescription: "لا يوجد وصف",
       submitted: "مُقدَّم",
-      deadlinePassed: "انتهى الموعد النهائي",
       daysLeft: "أيام متبقية",
       combinedProposal: "عرض مشترك",
       technicalProposal: "العرض التقني",

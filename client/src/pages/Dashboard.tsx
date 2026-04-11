@@ -2773,7 +2773,7 @@ export default function Dashboard() {
                           {t('dashboard.vendorsBaseDesc')}
                         </p>
                       </div>
-                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      <div className="space-y-3">
                         {pendingRequests.map((request) => {
                           const initials = (request.vendor?.company || 'U')
                             .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
@@ -2781,127 +2781,119 @@ export default function Dashboard() {
                           return (
                             <div
                               key={request.id}
-                              className="group relative bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-md transition-all"
+                              className="group relative bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-sm transition-all"
                               data-testid={`card-request-${request.id}`}
                             >
-                              {/* Card Header with Logo */}
-                              <div className="p-5 pb-3">
-                                <div className={`flex items-start gap-3.5 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                  {request.vendor?.logoUrl ? (
-                                    <img
-                                      src={request.vendor.logoUrl}
-                                      alt={request.vendor.company}
-                                      className="w-12 h-12 rounded-xl object-cover border border-gray-100 flex-shrink-0 bg-white"
-                                    />
-                                  ) : (
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0 border border-primary/10">
-                                      <span className="text-sm font-bold text-primary">{initials}</span>
-                                    </div>
-                                  )}
-                                  <div className="flex-1 min-w-0">
+                              <div className={`p-5 flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                {request.vendor?.logoUrl ? (
+                                  <img
+                                    src={request.vendor.logoUrl}
+                                    alt={request.vendor.company}
+                                    className="w-11 h-11 rounded-xl object-cover border border-gray-100 flex-shrink-0 bg-white"
+                                  />
+                                ) : (
+                                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0 border border-primary/10">
+                                    <span className="text-sm font-bold text-primary">{initials}</span>
+                                  </div>
+                                )}
+
+                                <div className={`flex-1 min-w-0 ${isRtl ? 'text-right' : ''}`}>
+                                  <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
                                     <h3 className="font-semibold text-gray-900 truncate" data-testid={`text-request-company-${request.id}`}>
                                       {request.vendor?.company || t('dashboard.unknownVendor')}
                                     </h3>
-                                    <div className="flex items-center gap-2 mt-0.5">
-                                      <Badge
-                                        variant="outline"
-                                        className={
-                                          request.vendor?.verificationStatus === 'verified'
-                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0'
-                                            : request.vendor?.verificationStatus === 'under_review'
-                                            ? 'bg-amber-50 text-amber-700 border-amber-200 text-xs px-2 py-0'
-                                            : 'bg-gray-50 text-gray-500 border-gray-200 text-xs px-2 py-0'
-                                        }
-                                        data-testid={`badge-request-status-${request.id}`}
-                                      >
-                                        {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 mr-1" />}
-                                        {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 mr-1" />}
-                                        {request.vendor?.verificationStatus === 'verified' ? t('dashboard.verifiedStatus') :
-                                         request.vendor?.verificationStatus === 'under_review' ? t('dashboard.underReviewStatus') :
-                                         t('dashboard.notVerifiedStatus')}
-                                      </Badge>
-                                    </div>
+                                    <Badge
+                                      variant="outline"
+                                      className={
+                                        request.vendor?.verificationStatus === 'verified'
+                                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0'
+                                          : request.vendor?.verificationStatus === 'under_review'
+                                          ? 'bg-amber-50 text-amber-700 border-amber-200 text-xs px-2 py-0'
+                                          : 'bg-gray-50 text-gray-500 border-gray-200 text-xs px-2 py-0'
+                                      }
+                                      data-testid={`badge-request-status-${request.id}`}
+                                    >
+                                      {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 mr-1" />}
+                                      {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 mr-1" />}
+                                      {request.vendor?.verificationStatus === 'verified' ? t('dashboard.verifiedStatus') :
+                                       request.vendor?.verificationStatus === 'under_review' ? t('dashboard.underReviewStatus') :
+                                       t('dashboard.notVerifiedStatus')}
+                                    </Badge>
                                   </div>
+                                  <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-1 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                    {request.vendor?.expertise && (
+                                      <span className="flex items-center gap-1" data-testid={`text-request-category-${request.id}`}>
+                                        <Briefcase className="h-3 w-3" />
+                                        {request.vendor.expertise}
+                                      </span>
+                                    )}
+                                    {request.vendor?.websiteUrl && (
+                                      <span className="flex items-center gap-1">
+                                        <Globe className="h-3 w-3" />
+                                        <a
+                                          href={request.vendor.websiteUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="hover:underline hover:text-foreground truncate max-w-[160px]"
+                                        >
+                                          {request.vendor.websiteUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
+                                        </a>
+                                      </span>
+                                    )}
+                                    {timeAgo && (
+                                      <span className="flex items-center gap-1">
+                                        <Calendar className="h-3 w-3" />
+                                        {timeAgo}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {request.vendor?.bio && (
+                                    <p className="text-sm text-gray-500 line-clamp-1 mt-1.5">
+                                      {request.vendor.bio}
+                                    </p>
+                                  )}
                                 </div>
-                              </div>
 
-                              {/* Card Body */}
-                              <div className="px-5 pb-4 space-y-3">
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                                  {request.vendor?.expertise && (
-                                    <span className="flex items-center gap-1" data-testid={`text-request-category-${request.id}`}>
-                                      <Briefcase className="h-3 w-3" />
-                                      {request.vendor.expertise}
-                                    </span>
-                                  )}
-                                  {request.vendor?.websiteUrl && (
-                                    <span className="flex items-center gap-1">
-                                      <Globe className="h-3 w-3" />
-                                      <a
-                                        href={request.vendor.websiteUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="hover:underline hover:text-foreground truncate max-w-[120px]"
-                                      >
-                                        {request.vendor.websiteUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
-                                      </a>
-                                    </span>
-                                  )}
-                                  {timeAgo && (
-                                    <span className="flex items-center gap-1">
-                                      <Calendar className="h-3 w-3" />
-                                      {timeAgo}
-                                    </span>
-                                  )}
+                                <div className={`flex items-center gap-2 flex-shrink-0 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-muted-foreground hover:text-foreground"
+                                    onClick={() => {
+                                      setProfileJoinRequestId(request.id);
+                                      setProfileDrawerOpen(true);
+                                    }}
+                                    data-testid={`button-view-profile-${request.id}`}
+                                  >
+                                    <Eye className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                    {t('dashboard.view')}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                    onClick={() => rejectRequest.mutate(request.id)}
+                                    disabled={rejectRequest.isPending}
+                                    data-testid={`button-reject-${request.id}`}
+                                  >
+                                    <XCircle className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                    {t('dashboard.reject')}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                                    onClick={() => approveRequest.mutate(request.id)}
+                                    disabled={approveRequest.isPending}
+                                    data-testid={`button-approve-${request.id}`}
+                                  >
+                                    {approveRequest.isPending ? (
+                                      <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                    ) : (
+                                      <CheckCircle className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                    )}
+                                    {t('dashboard.approve')}
+                                  </Button>
                                 </div>
-
-                                {request.vendor?.bio && (
-                                  <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">
-                                    {request.vendor.bio}
-                                  </p>
-                                )}
-                              </div>
-
-                              {/* Card Actions */}
-                              <div className={`border-t border-gray-100 px-5 py-3 flex items-center gap-2 bg-gray-50/50 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="flex-1 text-muted-foreground hover:text-foreground"
-                                  onClick={() => {
-                                    setProfileJoinRequestId(request.id);
-                                    setProfileDrawerOpen(true);
-                                  }}
-                                  data-testid={`button-view-profile-${request.id}`}
-                                >
-                                  <Eye className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
-                                  {t('dashboard.view')}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                                  onClick={() => rejectRequest.mutate(request.id)}
-                                  disabled={rejectRequest.isPending}
-                                  data-testid={`button-reject-${request.id}`}
-                                >
-                                  <XCircle className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
-                                  {t('dashboard.reject')}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-                                  onClick={() => approveRequest.mutate(request.id)}
-                                  disabled={approveRequest.isPending}
-                                  data-testid={`button-approve-${request.id}`}
-                                >
-                                  {approveRequest.isPending ? (
-                                    <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
-                                  ) : (
-                                    <CheckCircle className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
-                                  )}
-                                  {t('dashboard.approve')}
-                                </Button>
                               </div>
                             </div>
                           );

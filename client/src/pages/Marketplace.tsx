@@ -9,6 +9,7 @@ import { Search, FileText, MapPin, ChevronLeft, ChevronRight, Loader2, ChevronDo
 import { useI18n } from "@/lib/i18n";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
+import { useAuthStore } from "@/lib/auth";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import heroBg from "@assets/image_1775799187200.png";
 
@@ -19,6 +20,8 @@ interface MarketplaceTender {
   category: string | null;
   deadline: string;
   budget: string | null;
+  budgetMin: number | null;
+  budgetMax: number | null;
   status: string;
   invitationToken: string;
   createdAt: string;
@@ -47,18 +50,18 @@ const SAUDI_CITIES = [
 
 function getTenderProgress(createdAt: string, deadline: string) {
   const now = Date.now();
-  const start = new Date(createdAt).getTime();
   const end = new Date(deadline).getTime();
-  const total = end - start;
   const remaining = end - now;
   if (remaining <= 0) return { days: 0, expired: true, percent: 0 };
   const days = Math.ceil(remaining / (1000 * 60 * 60 * 24));
-  const percent = Math.min(100, Math.max(0, (remaining / total) * 100));
+  const maxDays = 100;
+  const percent = Math.min(100, Math.max(0, (days / maxDays) * 100));
   return { days, expired: false, percent };
 }
 
 function CircleProgress({ percent, days, expired, size = 56 }: { percent: number; days: number; expired: boolean; size?: number }) {
-  const stroke = 3.5;
+  const isLarge = size >= 80;
+  const stroke = isLarge ? 5 : 3.5;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percent / 100) * circumference;
@@ -71,8 +74,7 @@ function CircleProgress({ percent, days, expired, size = 56 }: { percent: number
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} className="transition-all duration-500" />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-base font-bold leading-none" style={{ color }}>{expired ? 0 : days}</span>
-        <span className="text-[10px] text-gray-400 leading-none mt-0.5">{expired ? '—' : 'd'}</span>
+        <span className={`${isLarge ? 'text-3xl' : 'text-base'} font-bold leading-none`} style={{ color }}>{expired ? 0 : days}</span>
       </div>
     </div>
   );
@@ -81,6 +83,7 @@ function CircleProgress({ percent, days, expired, size = 56 }: { percent: number
 export default function Marketplace() {
   const { t, language, isRtl } = useI18n();
   const [, setLocation] = useLocation();
+  const { user } = useAuthStore();
   const isSubdomain = isMarketplaceSubdomain();
   const marketplaceHome = isSubdomain ? "/" : "/marketplace";
   const [search, setSearch] = useState("");
@@ -128,6 +131,7 @@ export default function Marketplace() {
     },
   });
 
+
   const tenders = tendersData?.tenders || [];
   const total = tendersData?.total || 0;
   const totalPages = Math.ceil(total / perPage);
@@ -150,16 +154,26 @@ export default function Marketplace() {
               </nav>
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/login">
-                <Button variant="ghost" size="sm" className="text-sm text-gray-600 hover:text-gray-900">
-                  {t('marketplace.login')}
-                </Button>
-              </Link>
-              <Link href="/signup">
-                <Button size="sm" className="bg-[#E8614D] hover:bg-[#d4553f] text-white text-sm px-5 rounded">
-                  {t('marketplace.getStarted')}
-                </Button>
-              </Link>
+              {user ? (
+                <Link href="/dashboard">
+                  <Button size="sm" className="bg-[#E8614D] hover:bg-[#d4553f] text-white text-sm px-5 rounded">
+                    {t('marketplace.dashboard')}
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button variant="ghost" size="sm" className="text-sm text-gray-600 hover:text-gray-900">
+                      {t('marketplace.login')}
+                    </Button>
+                  </Link>
+                  <Link href="/signup">
+                    <Button size="sm" className="bg-[#E8614D] hover:bg-[#d4553f] text-white text-sm px-5 rounded">
+                      {t('marketplace.getStarted')}
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -178,6 +192,7 @@ export default function Marketplace() {
           </h1>
         </div>
       </section>
+
 
       <section className="bg-white py-14 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
@@ -339,34 +354,39 @@ export default function Marketplace() {
                   key={tender.id}
                   href={`/invite/${tender.invitationToken}`}
                   className="block bg-white rounded-xl border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer group no-underline overflow-hidden"
-                  onClick={(e) => { e.preventDefault(); setLocation(`/invite/${tender.invitationToken}`); }}
+                  onClick={(e) => { e.preventDefault(); setLocation(user ? `/invite/${tender.invitationToken}` : '/login'); }}
                 >
-                  {/* Top bar */}
-                  <div className="flex items-center justify-between px-6 py-3 bg-gray-50 border-b border-gray-100">
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span>{t('marketplace.publishDate')}</span>
-                      <span className="font-medium text-gray-700">{formatDate(tender.createdAt)}</span>
+                  {/* Main content area */}
+                  <div className="flex items-stretch">
+                    {/* Left: Circle progress */}
+                    <div className="flex flex-col items-center justify-center px-8 py-8 border-e border-gray-100 min-w-[160px]">
+                      <CircleProgress percent={percent} days={days} expired={expired} size={110} />
+                      <p className={`text-xs mt-3 ${expired ? 'text-red-500' : 'text-gray-500'}`}>
+                        {expired ? t('marketplace.deadlinePassed') : `${days} ${t('marketplace.daysRemaining')}`}
+                      </p>
                     </div>
-                    <Badge className="bg-[#E8614D] text-white border-0 text-[11px] font-medium px-2.5 py-0.5 rounded">
-                      {tenderTypeLabel}
-                    </Badge>
-                  </div>
 
-                  {/* Content */}
-                  <div className="px-6 py-5 flex items-start gap-5">
-                    <div className="flex-1 min-w-0">
+                    {/* Right: Tender info */}
+                    <div className="flex-1 min-w-0 px-6 py-6 flex flex-col justify-between">
+                      {/* Top row: publish date + badge */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span>{t('marketplace.publishDate')}:</span>
+                          <span className="font-medium text-gray-700">{formatDate(tender.createdAt)}</span>
+                        </div>
+                        <Badge className="bg-[#E8614D] text-white border-0 text-[11px] font-medium px-2.5 py-0.5 rounded">
+                          {tenderTypeLabel}
+                        </Badge>
+                      </div>
+
+                      {/* Title */}
                       <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#E8614D] transition-colors leading-snug mb-2 line-clamp-2">
                         {tender.title}
                       </h3>
 
-                      {tender.description && (
-                        <p className="text-sm text-gray-400 mb-3 line-clamp-2 leading-relaxed">
-                          {tender.description}
-                        </p>
-                      )}
-
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                      {/* Company info */}
+                      <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
                         {tender.profile?.logoUrl && tender.profile.logoUrl.includes('/company-logos/') ? (
                           <img src={tender.profile.logoUrl} alt="" className="h-5 w-5 rounded-full object-cover border border-gray-100 flex-shrink-0" />
                         ) : (
@@ -383,30 +403,32 @@ export default function Marketplace() {
                           </>
                         )}
                       </div>
-                    </div>
 
-                    <CircleProgress percent={percent} days={days} expired={expired} size={56} />
+                      {/* Category + details link */}
+                      <div className="flex items-center justify-between">
+                        {tender.category && (
+                          <span className="text-xs text-[#E8614D] font-medium">{tender.category}</span>
+                        )}
+                        <span className="text-xs text-gray-500 underline underline-offset-2 group-hover:text-[#E8614D] transition-colors">
+                          {t('marketplace.viewDetails')}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Metadata row */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-gray-100 border-t border-gray-100">
-                    <div className="bg-white px-5 py-4">
+                  <div className="grid grid-cols-3 gap-px bg-gray-100 border-t border-gray-100">
+                    <div className="bg-white px-5 py-4 text-center">
                       <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.refNumber')}</p>
                       <p className="text-sm font-semibold text-gray-800 font-mono">{tender.referenceNumber || '—'}</p>
                     </div>
-                    <div className="bg-white px-5 py-4">
-                      <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.submissionDeadline')}</p>
-                      <p className={`text-sm font-semibold ${expired ? 'text-red-500' : 'text-gray-800'}`}>{formatDate(tender.deadline)}</p>
-                    </div>
-                    <div className="bg-white px-5 py-4">
+                    <div className="bg-white px-5 py-4 text-center">
                       <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.inquiryDeadline')}</p>
                       <p className="text-sm font-semibold text-gray-800">{tender.inquiryDeadline ? formatDate(tender.inquiryDeadline) : '—'}</p>
                     </div>
-                    <div className="bg-white px-5 py-4">
-                      <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.documentFee')}</p>
-                      <p className={`text-sm font-semibold ${tender.documentFee ? 'text-gray-800' : 'text-green-600'}`}>
-                        {tender.documentFee ? `${tender.documentFee} ${t('marketplace.sar')}` : t('marketplace.free')}
-                      </p>
+                    <div className="bg-white px-5 py-4 text-center">
+                      <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.submissionDeadline')}</p>
+                      <p className={`text-sm font-semibold ${expired ? 'text-red-500' : 'text-gray-800'}`}>{formatDate(tender.deadline)}</p>
                     </div>
                   </div>
                 </a>

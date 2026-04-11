@@ -141,7 +141,11 @@
       "Bash(gh repo:*)",
       "Bash(specify --help)",
       "Bash(specify init:*)",
-      "Bash(awk '{print $2}')"
+      "Bash(awk '{print $2}')",
+      "WebFetch(domain:commons.wikimedia.org)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:upload.wikimedia.org)",
+      "WebFetch(domain:www.sama.gov.sa)"
     ]
   },
   "enabledMcpjsonServers": [

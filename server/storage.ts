@@ -1791,7 +1791,7 @@ export class DatabaseStorage implements IStorage {
 
     const orderByClause =
       options.sort === 'deadline_asc' ? asc(tenders.deadline) :
-      options.sort === 'budget_desc' ? desc(tenders.budget) :
+      options.sort === 'budget_desc' ? desc(tenders.budgetMax) :
       desc(tenders.createdAt);
 
     const results = await db
@@ -1822,10 +1822,12 @@ export class DatabaseStorage implements IStorage {
     const [activeResult] = await db
       .select({ count: count() })
       .from(tenders)
+      .innerJoin(companies, eq(tenders.companyId, companies.id))
       .where(and(
         eq(tenders.isMarketplace, true),
         eq(tenders.marketplaceStatus, 'approved'),
         eq(tenders.status, 'published'),
+        isNull(companies.deletedAt),
         gte(tenders.deadline, new Date().toISOString().split('T')[0]),
       ));
 
@@ -1833,18 +1835,22 @@ export class DatabaseStorage implements IStorage {
       .select({ count: count() })
       .from(tenders)
       .innerJoin(awards, eq(tenders.id, awards.tenderId))
+      .innerJoin(companies, eq(tenders.companyId, companies.id))
       .where(and(
         eq(tenders.isMarketplace, true),
         eq(awards.status, 'awarded'),
+        isNull(companies.deletedAt),
       ));
 
     const [offersResult] = await db
       .select({ count: count() })
       .from(offers)
       .innerJoin(tenders, eq(offers.tenderId, tenders.id))
+      .innerJoin(companies, eq(tenders.companyId, companies.id))
       .where(and(
         eq(tenders.isMarketplace, true),
         eq(tenders.marketplaceStatus, 'approved'),
+        isNull(companies.deletedAt),
       ));
 
     return {

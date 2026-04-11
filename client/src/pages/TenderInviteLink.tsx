@@ -302,7 +302,7 @@ function MobileAtAGlance({
                   <Tag className="h-3 w-3 flex-shrink-0 text-indigo-500" />
                   <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.categoryLabel')}</span>
                 </div>
-                <p className="text-xs font-bold text-gray-800 leading-tight">{tx('category', tender.category)}</p>
+                <p className="text-xs font-bold text-gray-800 leading-tight">{tender.category}</p>
               </div>
             )}
           </div>

@@ -49,6 +49,7 @@ interface Company {
   slug: string;
   verificationStatus: string;
   onboardingState: string;
+  rejectionReason: string | null;
   role: string; // User's role in this company: 'owner' | 'admin' | 'member' | 'viewer'
   profile: CompanyProfile | null;
 }

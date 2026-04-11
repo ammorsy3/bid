@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, FileCheck, AlertTriangle, FileText,
-  Shield, LogOut, ArrowLeft, Store, Loader2
+  Shield, LogOut, ArrowLeft, Store, Bug
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
@@ -90,6 +90,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           href: "/admin/audit-logs",
           label: "Audit Logs",
           icon: FileText,
+          count: 0,
+        },
+        {
+          href: "/admin/errors",
+          label: "Error Logs",
+          icon: Bug,
           count: 0,
         },
       ],

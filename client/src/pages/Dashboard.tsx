@@ -918,7 +918,13 @@ export default function Dashboard() {
           {activeCompany.verificationStatus === 'rejected' && (
             <div className="mb-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
               <p className="text-xs font-semibold text-red-800 dark:text-red-300 mb-0.5">Verification rejected</p>
-              <p className="text-xs text-red-700 dark:text-red-400 mb-1.5 leading-snug">Your documents were not accepted. Please re-upload them to try again.</p>
+              {activeCompany.rejectionReason ? (
+                <p className="text-xs text-red-700 dark:text-red-400 mb-1.5 leading-snug">
+                  <strong>Reason:</strong> {activeCompany.rejectionReason}
+                </p>
+              ) : (
+                <p className="text-xs text-red-700 dark:text-red-400 mb-1.5 leading-snug">Your documents were not accepted. Please re-upload them to try again.</p>
+              )}
               <button
                 onClick={() => setLocation('/settings?tab=company')}
                 className="text-xs font-semibold text-red-800 dark:text-red-300 underline underline-offset-2 hover:text-red-900"

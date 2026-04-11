@@ -1,16 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, User } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { FileText, User, Search } from "lucide-react";
 import { format } from "date-fns";
+import { useState, useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
 
 export default function AdminAuditLogs() {
   const { t } = useI18n();
+  const [searchQuery, setSearchQuery] = useState("");
   const { data: logs, isLoading } = useQuery<any[]>({
     queryKey: ["/api/admin/audit-logs"],
   });
+
+  const filteredLogs = useMemo(() => {
+    if (!logs) return [];
+    if (!searchQuery.trim()) return logs;
+    const q = searchQuery.toLowerCase();
+    return logs.filter((log: any) =>
+      (log.action || '').toLowerCase().includes(q) ||
+      (log.admin?.name || '').toLowerCase().includes(q) ||
+      (log.targetType || '').toLowerCase().includes(q) ||
+      (log.notes || '').toLowerCase().includes(q)
+    );
+  }, [logs, searchQuery]);
 
   const getActionColor = (action: string) => {
     if (action.includes("approved") || action.includes("verified") || action.includes("unblocked")) {
@@ -38,13 +53,26 @@ export default function AdminAuditLogs() {
           </p>
         </div>
 
+        {/* Search */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search by action, admin, or notes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
+
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-32 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
             ))}
           </div>
-        ) : !logs || logs.length === 0 ? (
+        ) : filteredLogs.length === 0 ? (
           <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
             <CardContent className="py-16 text-center">
               <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
@@ -58,7 +86,7 @@ export default function AdminAuditLogs() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {logs.map((log: any) => (
+            {filteredLogs.map((log: any) => (
               <Card key={log.id} className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900" data-testid={`card-log-${log.id}`}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">

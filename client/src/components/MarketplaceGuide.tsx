@@ -95,8 +95,8 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
   const slides = [
     // Slide 1: Mock tender card
     {
-      title: t('marketplace.guideSlide1Title') || 'This is how suppliers will see your tender',
-      caption: t('marketplace.guideSlide1Caption') || 'Your listing will appear like this on the public marketplace for all suppliers to browse.',
+      title: t('marketplace.guideSlide1Title') || 'Your tender on the marketplace',
+      caption: t('marketplace.guideSlide1Caption') || 'This is a preview of how your tender will look on the public marketplace page. Anyone can see it — suppliers will browse this and decide whether to submit a proposal.',
       visual: (
         <div className="bg-[#FFF8F6] rounded-xl p-4 flex items-center justify-center">
           <div className="origin-top" style={{ transform: 'scale(0.78)', width: '520px' }}>
@@ -162,14 +162,14 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
 
     // Slide 2: Tender types
     {
-      title: t('marketplace.guideSlide2Title') || 'Choose your tender type',
-      caption: t('marketplace.guideSlide2Caption') || 'Different types serve different procurement needs. You\'ll pick one in the next step.',
+      title: t('marketplace.guideSlide2Title') || 'What type of tender is this?',
+      caption: t('marketplace.guideSlide2Caption') || 'Pick the one that best describes what you\'re looking for. Not sure? Open Tender works for most cases.',
       visual: (
         <div className="grid grid-cols-3 gap-3 px-2">
           {[
-            { icon: Globe, name: t('marketplace.openTender') || 'Open Tender', desc: t('marketplace.guideTenderTypeOpen') || 'Open to all qualified suppliers', color: 'border-blue-200 bg-blue-50', iconColor: 'text-blue-600', dotColor: 'bg-blue-500' },
-            { icon: Handshake, name: t('marketplace.directPurchase') || 'Direct Purchase', desc: t('marketplace.guideTenderTypeDirect') || 'Targeted procurement, faster turnaround', color: 'border-amber-200 bg-amber-50', iconColor: 'text-amber-600', dotColor: 'bg-amber-500' },
-            { icon: Layers, name: t('marketplace.frameworkAgreement') || 'Framework Agreement', desc: t('marketplace.guideTenderTypeFramework') || 'Long-term agreement, multiple orders', color: 'border-purple-200 bg-purple-50', iconColor: 'text-purple-600', dotColor: 'bg-purple-500' },
+            { icon: Globe, name: t('marketplace.openTender') || 'Open Tender', desc: t('marketplace.guideTenderTypeOpen') || 'Anyone can apply. Best when you want the most options and competition.', color: 'border-blue-200 bg-blue-50', iconColor: 'text-blue-600', dotColor: 'bg-blue-500' },
+            { icon: Handshake, name: t('marketplace.directPurchase') || 'Direct Purchase', desc: t('marketplace.guideTenderTypeDirect') || 'You already know roughly who you want. Smaller scope, quicker process.', color: 'border-amber-200 bg-amber-50', iconColor: 'text-amber-600', dotColor: 'bg-amber-500' },
+            { icon: Layers, name: t('marketplace.frameworkAgreement') || 'Framework Agreement', desc: t('marketplace.guideTenderTypeFramework') || 'An ongoing deal — you\'ll place multiple orders over time with the chosen supplier.', color: 'border-purple-200 bg-purple-50', iconColor: 'text-purple-600', dotColor: 'bg-purple-500' },
           ].map((type, i) => (
             <div key={i} className={`rounded-xl border-2 ${type.color} p-4 flex flex-col items-center text-center`}>
               <div className={`h-10 w-10 rounded-lg ${type.color} flex items-center justify-center mb-3`}>
@@ -185,8 +185,8 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
 
     // Slide 3: Document fee
     {
-      title: t('marketplace.guideSlide3Title') || 'Set a document fee (optional)',
-      caption: t('marketplace.guideSlide3Caption') || 'Suppliers pay this fee to access your tender documents — similar to Etimad\'s system. Leave it empty for free access.',
+      title: t('marketplace.guideSlide3Title') || 'Do you want to set a document fee?',
+      caption: t('marketplace.guideSlide3Caption') || 'A document fee is a price displayed on your listing that tells suppliers how much the tender documents cost. This amount is collected outside the platform (e.g. bank transfer). It\'s completely optional.',
       visual: (
         <div className="flex items-center justify-center gap-6 px-4">
           {/* Paid */}
@@ -199,8 +199,8 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
                 {t('marketplace.sar') || 'SAR'}
               </div>
             </div>
-            <p className="text-sm font-semibold text-gray-900 mb-0.5">{t('marketplace.guideDocFeePaid') || 'Paid access'}</p>
-            <p className="text-[11px] text-gray-500">{t('marketplace.guideDocFeePaidDesc') || 'Suppliers pay to access documents'}</p>
+            <p className="text-sm font-semibold text-gray-900 mb-0.5">{t('marketplace.guideDocFeePaid') || 'Set a fee'}</p>
+            <p className="text-[11px] text-gray-500">{t('marketplace.guideDocFeePaidDesc') || 'The fee amount is shown on your listing — payment is handled outside the platform'}</p>
           </div>
 
           {/* Divider */}
@@ -220,8 +220,8 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
                 <CheckCircle className="h-3.5 w-3.5" />
               </div>
             </div>
-            <p className="text-sm font-semibold text-gray-900 mb-0.5">{t('marketplace.guideDocFeeFree') || 'Open access'}</p>
-            <p className="text-[11px] text-gray-500">{t('marketplace.guideDocFeeFreeDesc') || 'Free for all suppliers'}</p>
+            <p className="text-sm font-semibold text-gray-900 mb-0.5">{t('marketplace.guideDocFeeFree') || 'Keep it free'}</p>
+            <p className="text-[11px] text-gray-500">{t('marketplace.guideDocFeeFreeDesc') || 'No fee shown — documents are open to all suppliers'}</p>
           </div>
         </div>
       ),
@@ -229,52 +229,58 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
 
     // Slide 4: Inquiry deadline timeline
     {
-      title: t('marketplace.guideSlide4Title') || 'Set an inquiry deadline',
-      caption: t('marketplace.guideSlide4Caption') || 'Suppliers can ask questions until this date. After it passes, only submissions are accepted.',
+      title: t('marketplace.guideSlide4Title') || 'When should suppliers stop asking questions?',
+      caption: t('marketplace.guideSlide4Caption') || 'Before suppliers submit their proposals, they might have questions about your requirements. Set a cutoff date for questions so you have time to respond before the final deadline.',
       visual: (
         <div className="px-6 py-4">
-          {/* Timeline */}
-          <div className="relative flex items-center justify-between mx-4">
-            {/* Line */}
-            <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-gray-200" />
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-[#E8614D]/40" style={{ width: '30%' }} />
-
+          {/* Timeline - 3 column grid for precise alignment */}
+          <div className="grid grid-cols-[auto_1fr_auto_1fr_auto] items-center mx-2">
             {/* Now dot */}
             <div className="relative z-10 flex flex-col items-center">
               <div className="h-4 w-4 rounded-full bg-[#E8614D] border-2 border-white shadow" />
-              <span className="text-[10px] font-semibold text-[#E8614D] mt-2">{t('marketplace.guideTimelineNow') || 'Now'}</span>
             </div>
-
-            {/* Inquiry deadline dot */}
+            {/* Line: Now → Questions cutoff (active/coral) */}
+            <div className="h-0.5 bg-[#E8614D]/40" />
+            {/* Questions cutoff dot */}
             <div className="relative z-10 flex flex-col items-center">
               <div className="h-5 w-5 rounded-full border-2 border-dashed border-amber-400 bg-white flex items-center justify-center">
                 <div className="h-2 w-2 rounded-full bg-amber-400" />
               </div>
-              <div className="mt-2 text-center">
-                <span className="text-[10px] font-semibold text-amber-600 block">{t('marketplace.guideTimelineInquiry') || 'Inquiry Deadline'}</span>
-                <span className="text-[9px] text-amber-500 italic">{t('marketplace.guideTimelineYoullSet') || "You'll set this"}</span>
-              </div>
             </div>
-
-            {/* Submission deadline dot */}
+            {/* Line: Questions cutoff → Final deadline (gray) */}
+            <div className="h-0.5 bg-gray-200" />
+            {/* Final deadline dot */}
             <div className="relative z-10 flex flex-col items-center">
               <div className="h-4 w-4 rounded-full bg-gray-700 border-2 border-white shadow" />
-              <div className="mt-2 text-center">
-                <span className="text-[10px] font-semibold text-gray-700 block">{t('marketplace.guideTimelineSubmission') || 'Submission Deadline'}</span>
-                <span className="text-[9px] text-gray-500 font-medium">{format(new Date(tender.deadline), 'MMM d, yyyy', { locale: dateLocale })}</span>
-              </div>
             </div>
           </div>
 
-          {/* Annotation */}
-          <div className="mt-8 flex items-center justify-center gap-6 text-[11px]">
+          {/* Labels row - same 3 column grid */}
+          <div className="grid grid-cols-[auto_1fr_auto_1fr_auto] items-start mx-2 mt-2">
+            <div className="flex flex-col items-center" style={{ minWidth: '16px' }}>
+              <span className="text-[10px] font-semibold text-[#E8614D]">{t('marketplace.guideTimelineNow') || 'Now'}</span>
+            </div>
+            <div />
+            <div className="flex flex-col items-center text-center px-1">
+              <span className="text-[10px] font-semibold text-amber-600">{t('marketplace.guideTimelineInquiry') || 'Questions cutoff'}</span>
+              <span className="text-[9px] text-amber-500 italic">{t('marketplace.guideTimelineYoullSet') || "You'll choose this date"}</span>
+            </div>
+            <div />
+            <div className="flex flex-col items-center text-center" style={{ minWidth: '16px' }}>
+              <span className="text-[10px] font-semibold text-gray-700">{t('marketplace.guideTimelineSubmission') || 'Final deadline'}</span>
+              <span className="text-[9px] text-gray-500 font-medium">{format(new Date(tender.deadline), 'MMM d, yyyy', { locale: dateLocale })}</span>
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="mt-6 flex items-center justify-center gap-6 text-[11px]">
             <div className="flex items-center gap-1.5 text-gray-500">
-              <div className="h-2.5 w-2.5 rounded-full bg-[#E8614D]/30 border border-[#E8614D]" />
-              <span>{t('marketplace.guideTimelineQuestionsOpen') || 'Questions open'}</span>
+              <div className="h-2.5 w-6 rounded-full bg-[#E8614D]/30 border border-[#E8614D]/50" />
+              <span>{t('marketplace.guideTimelineQuestionsOpen') || 'Suppliers can ask questions'}</span>
             </div>
             <div className="flex items-center gap-1.5 text-gray-500">
-              <div className="h-2.5 w-2.5 rounded-full bg-gray-200 border border-gray-400" />
-              <span>{t('marketplace.guideTimelineSubmissionsOnly') || 'Submissions only'}</span>
+              <div className="h-2.5 w-6 rounded-full bg-gray-100 border border-gray-300" />
+              <span>{t('marketplace.guideTimelineSubmissionsOnly') || 'Only proposals accepted'}</span>
             </div>
           </div>
         </div>
@@ -283,8 +289,8 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
 
     // Slide 5: Purchase Order
     {
-      title: t('marketplace.guideSlide5Title') || "You'll need a Purchase Order",
-      caption: t('marketplace.guideSlide5Caption') || "A signed PO confirms your payment commitment to the awarded vendor. It's only visible to you and Bid admin — never public.",
+      title: t('marketplace.guideSlide5Title') || "You'll need to upload a Purchase Order",
+      caption: t('marketplace.guideSlide5Caption') || "This is a signed document from your company that confirms you'll actually pay the supplier you choose. It proves this tender is real and serious. Only you and the Bid team can see it — suppliers never will.",
       visual: (
         <div className="flex items-center justify-center px-4">
           <div className="flex items-start gap-5">
@@ -322,22 +328,22 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
               <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
                 <Lock className="h-4 w-4 text-gray-500" />
                 <div>
-                  <p className="text-xs font-medium text-gray-700">{t('marketplace.guidePoOnlyYou') || 'Only visible to you'}</p>
-                  <p className="text-[10px] text-gray-400">{t('marketplace.guidePoOnlyYouDesc') || 'And Bid admin'}</p>
+                  <p className="text-xs font-medium text-gray-700">{t('marketplace.guidePoOnlyYou') || 'Private to you'}</p>
+                  <p className="text-[10px] text-gray-400">{t('marketplace.guidePoOnlyYouDesc') || 'Only you and Bid admin can see it'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
                 <Lock className="h-4 w-4 text-gray-500" />
                 <div>
-                  <p className="text-xs font-medium text-gray-700">{t('marketplace.guidePoNeverPublic') || 'Never public'}</p>
-                  <p className="text-[10px] text-gray-400">{t('marketplace.guidePoNeverPublicDesc') || 'Suppliers cannot see this'}</p>
+                  <p className="text-xs font-medium text-gray-700">{t('marketplace.guidePoNeverPublic') || 'Never shown publicly'}</p>
+                  <p className="text-[10px] text-gray-400">{t('marketplace.guidePoNeverPublicDesc') || 'Suppliers will never see this document'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2.5 px-3 py-2 bg-[#E8614D]/5 rounded-lg border border-[#E8614D]/20">
                 <FileText className="h-4 w-4 text-[#E8614D]" />
                 <div>
                   <p className="text-xs font-medium text-gray-700">{t('marketplace.guidePoSigned') || 'Signed & stamped'}</p>
-                  <p className="text-[10px] text-gray-400">{t('marketplace.guidePoSignedDesc') || 'Official payment commitment'}</p>
+                  <p className="text-[10px] text-gray-400">{t('marketplace.guidePoSignedDesc') || 'Proves your company will pay the winning supplier'}</p>
                 </div>
               </div>
             </div>
@@ -348,16 +354,16 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
 
     // Slide 6: Binding commitment
     {
-      title: t('marketplace.guideSlide6Title') || 'This is a binding commitment',
-      caption: t('marketplace.guideSlide6Caption') || 'Once published, this tender cannot be cancelled. You must evaluate proposals and award it to a vendor.',
+      title: t('marketplace.guideSlide6Title') || 'Once you publish, there\'s no going back',
+      caption: t('marketplace.guideSlide6Caption') || 'This isn\'t a draft — once your tender is live, you can\'t cancel it. Suppliers will spend time preparing proposals, so you\'re expected to pick a winner.',
       visual: (
         <div className="px-4">
           {/* Flow diagram */}
           <div className="flex items-center justify-center gap-2 mb-5">
             {[
-              { icon: Store, label: t('marketplace.guideFlowPublish') || 'Publish', color: 'bg-blue-50 border-blue-200 text-blue-700' },
-              { icon: Users, label: t('marketplace.guideFlowBid') || 'Suppliers Bid', color: 'bg-amber-50 border-amber-200 text-amber-700' },
-              { icon: CheckCircle, label: t('marketplace.guideFlowAward') || 'You Award', color: 'bg-green-50 border-green-200 text-green-700' },
+              { icon: Store, label: t('marketplace.guideFlowPublish') || 'You publish', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+              { icon: Users, label: t('marketplace.guideFlowBid') || 'Suppliers apply', color: 'bg-amber-50 border-amber-200 text-amber-700' },
+              { icon: CheckCircle, label: t('marketplace.guideFlowAward') || 'You pick a winner', color: 'bg-green-50 border-green-200 text-green-700' },
             ].map((step, i) => (
               <div key={i} className="flex items-center gap-2">
                 <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${step.color}`}>
@@ -369,14 +375,13 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
             ))}
           </div>
 
-          {/* Warning box */}
+          {/* Important note */}
           <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200/60">
             <div className="flex items-start gap-2.5">
-              <AlertCircle className="h-4.5 w-4.5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-semibold text-amber-900">{t('marketplace.introBindingTitle') || 'This is a binding commitment'}</p>
-                <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                  {t('marketplace.introBindingDesc') || 'Marketplace tenders cannot be cancelled once published. You are required to evaluate proposals and award the tender to a participating vendor.'}
+                <p className="text-xs text-amber-700 leading-relaxed">
+                  {t('marketplace.guideBindingMerged') || 'Once published, this tender cannot be cancelled. You are expected to review proposals and award it to a vendor. Accounts that don\'t follow through may be permanently banned.'}
                 </p>
               </div>
             </div>

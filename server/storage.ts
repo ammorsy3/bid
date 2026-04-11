@@ -99,7 +99,7 @@ export interface IStorage {
   getCompanyBySlug(slug: string): Promise<Company | undefined>;
   getCompanyByCrNumber(crNumber: string): Promise<Company | undefined>;
   updateCompany(id: string, updates: Partial<InsertCompany>): Promise<Company>;
-  getCompaniesWithPendingVerification(): Promise<(Company & { profile?: CompanyProfile })[]>;
+  getCompaniesWithPendingVerification(): Promise<(Company & { profile?: CompanyProfile; documents?: CompanyDocument[]; owner?: { id: string; name: string; email: string } })[]>;
   verifyCompany(companyId: string, adminId: string, notes?: string): Promise<void>;
   rejectCompany(companyId: string, reason: string, adminId: string): Promise<void>;
 
@@ -221,6 +221,9 @@ export interface IStorage {
   // ADMIN OPERATIONS
   // ============================================================================
   makeUserAdmin(userId: string): Promise<User>;
+  searchUsers(query: string): Promise<{ id: string; name: string; email: string; username: string; isAdmin: boolean; createdAt: Date }[]>;
+  getAllCompaniesAdmin(status?: string): Promise<(Company & { profile?: CompanyProfile; owner?: { id: string; name: string; email: string }; documentCount: number })[]>;
+  getAdminUsers(): Promise<User[]>;
   getAllJoinRequests(status?: string): Promise<(JoinRequest & { vendorCompany?: Company; requesterCompany?: Company })[]>;
   approveJoinRequestByAdmin(joinRequestId: string, adminId: string): Promise<void>;
   rejectJoinRequestByAdmin(joinRequestId: string, reason: string, adminId: string): Promise<void>;
@@ -232,6 +235,10 @@ export interface IStorage {
     proposalsLast24h: number;
     blockedAwards: number;
     pendingMarketplace: number;
+    totalCompanies: number;
+    verifiedCompanies: number;
+    totalTenders: number;
+    totalProposals: number;
   }>;
 
   // ============================================================================
@@ -404,7 +411,7 @@ export class DatabaseStorage implements IStorage {
     return company;
   }
 
-  async getCompaniesWithPendingVerification(): Promise<(Company & { profile?: CompanyProfile })[]> {
+  async getCompaniesWithPendingVerification(): Promise<(Company & { profile?: CompanyProfile; documents?: CompanyDocument[]; owner?: { id: string; name: string; email: string } })[]> {
     const results = await db
       .select({
         company: companies,
@@ -418,10 +425,93 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(desc(companies.createdAt));
 
-    return results.map(r => ({
-      ...r.company,
-      profile: r.profile || undefined
+    // Enrich each company with documents and owner info
+    const enriched = await Promise.all(results.map(async (r) => {
+      // Fetch documents
+      const docs = await db.select().from(companyDocuments).where(eq(companyDocuments.companyId, r.company.id));
+
+      // Fetch owner (first user with 'owner' role)
+      const ownerResults = await db
+        .select({ user: users })
+        .from(userCompanies)
+        .innerJoin(users, eq(userCompanies.userId, users.id))
+        .where(and(
+          eq(userCompanies.companyId, r.company.id),
+          eq(userCompanies.roleInCompany, 'owner')
+        ))
+        .limit(1);
+
+      const ownerUser = ownerResults[0]?.user;
+
+      return {
+        ...r.company,
+        profile: r.profile || undefined,
+        documents: docs,
+        owner: ownerUser ? { id: ownerUser.id, name: ownerUser.name, email: ownerUser.email } : undefined,
+      };
     }));
+
+    return enriched;
+  }
+
+  async searchUsers(query: string): Promise<{ id: string; name: string; email: string; username: string; isAdmin: boolean; createdAt: Date }[]> {
+    let results;
+    if (query) {
+      results = await db
+        .select({ id: users.id, name: users.name, email: users.email, username: users.username, isAdmin: users.isAdmin, createdAt: users.createdAt })
+        .from(users)
+        .where(or(
+          ilike(users.name, `%${query}%`),
+          ilike(users.email, `%${query}%`),
+          ilike(users.username, `%${query}%`)
+        ))
+        .orderBy(desc(users.createdAt))
+        .limit(50);
+    } else {
+      results = await db
+        .select({ id: users.id, name: users.name, email: users.email, username: users.username, isAdmin: users.isAdmin, createdAt: users.createdAt })
+        .from(users)
+        .orderBy(desc(users.createdAt))
+        .limit(50);
+    }
+    return results;
+  }
+
+  async getAllCompaniesAdmin(status?: string): Promise<(Company & { profile?: CompanyProfile; owner?: { id: string; name: string; email: string }; documentCount: number })[]> {
+    let whereClause = isNull(companies.deletedAt);
+    if (status && status !== 'all') {
+      whereClause = and(whereClause, eq(companies.verificationStatus, status))!;
+    }
+
+    const results = await db
+      .select({ company: companies, profile: companyProfiles })
+      .from(companies)
+      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
+      .where(whereClause)
+      .orderBy(desc(companies.createdAt))
+      .limit(200);
+
+    const enriched = await Promise.all(results.map(async (r) => {
+      const docCount = await db.select({ cnt: count() }).from(companyDocuments).where(eq(companyDocuments.companyId, r.company.id));
+      const ownerResults = await db
+        .select({ user: users })
+        .from(userCompanies)
+        .innerJoin(users, eq(userCompanies.userId, users.id))
+        .where(and(eq(userCompanies.companyId, r.company.id), eq(userCompanies.roleInCompany, 'owner')))
+        .limit(1);
+      const ownerUser = ownerResults[0]?.user;
+      return {
+        ...r.company,
+        profile: r.profile || undefined,
+        owner: ownerUser ? { id: ownerUser.id, name: ownerUser.name, email: ownerUser.email } : undefined,
+        documentCount: docCount[0]?.cnt || 0,
+      };
+    }));
+    return enriched;
+  }
+
+  async getAdminUsers(): Promise<User[]> {
+    return db.select().from(users).where(eq(users.isAdmin, true));
   }
 
   async verifyCompany(companyId: string, adminId: string, notes?: string): Promise<void> {
@@ -1422,6 +1512,10 @@ export class DatabaseStorage implements IStorage {
     proposalsLast24h: number;
     blockedAwards: number;
     pendingMarketplace: number;
+    totalCompanies: number;
+    verifiedCompanies: number;
+    totalTenders: number;
+    totalProposals: number;
   }> {
     // Pending verifications
     const pendingVerifications = await db
@@ -1456,12 +1550,26 @@ export class DatabaseStorage implements IStorage {
         eq(tenders.marketplaceStatus, 'pending'),
       ));
 
+    // Total & verified companies
+    const allCompanies = await db.select({ cnt: count() }).from(companies).where(isNull(companies.deletedAt));
+    const verifiedCompanies = await db.select({ cnt: count() }).from(companies).where(and(eq(companies.verificationStatus, 'verified'), isNull(companies.deletedAt)));
+
+    // Total tenders
+    const allTenders = await db.select({ cnt: count() }).from(tenders);
+
+    // Total proposals (offers)
+    const allOffers = await db.select({ cnt: count() }).from(offers);
+
     return {
       pendingVerifications: pendingVerifications.length,
       pendingJoinRequests: pendingJoinRequests.length,
       proposalsLast24h: proposalsCount,
       blockedAwards: blockedAwards.length,
       pendingMarketplace: pendingMarketplace.length,
+      totalCompanies: allCompanies[0]?.cnt || 0,
+      verifiedCompanies: verifiedCompanies[0]?.cnt || 0,
+      totalTenders: allTenders[0]?.cnt || 0,
+      totalProposals: allOffers[0]?.cnt || 0,
     };
   }
 

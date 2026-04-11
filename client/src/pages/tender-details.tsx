@@ -332,7 +332,9 @@ export default function TenderDetails() {
   const [showPublishDialog, setShowPublishDialog] = useState(false);
   const [publishToMarketplace, setPublishToMarketplace] = useState(false);
   const [showMarketplaceDialog, setShowMarketplaceDialog] = useState(false);
-  const [marketplaceStep, setMarketplaceStep] = useState<'intro' | 'guide' | 'form'>('intro');
+  const [marketplaceStep, setMarketplaceStep] = useState<'intro' | 'guide' | 'form' | 'success'>('intro');
+  const [marketplaceRefNumber, setMarketplaceRefNumber] = useState<string>('');
+  const [marketplaceConfirmed, setMarketplaceConfirmed] = useState(false);
   const [marketplaceTenderType, setMarketplaceTenderType] = useState<string>('open_tender');
   const [marketplaceDocFee, setMarketplaceDocFee] = useState<string>('');
   const [marketplaceInquiryDeadline, setMarketplaceInquiryDeadline] = useState<string>('');
@@ -488,11 +490,11 @@ export default function TenderDetails() {
 
   const marketplaceSubmit = useMutation({
     mutationFn: async (data?: { tenderType?: string; documentFee?: number | null; inquiryDeadline?: string | null }) => {
-      return await apiRequest('POST', `/api/tenders/${id}/marketplace-submit`, data);
+      const res = await apiRequest('POST', `/api/tenders/${id}/marketplace-submit`, data);
+      return await res.json() as { message: string; referenceNumber?: string };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenders', id] });
-      toast({ title: t('marketplace.submittedStatus') || 'Submitted', description: t('marketplace.submittedDesc') || 'Your tender has been submitted for marketplace review' });
     },
     onError: (error: Error) => {
       toast({ title: t('marketplace.error'), description: error.message, variant: "destructive" });
@@ -508,7 +510,7 @@ export default function TenderDetails() {
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: !!tender?.isMarketplace && isOwner,
+    enabled: (!!tender?.isMarketplace || showMarketplaceDialog) && isOwner,
   });
   const purchaseOrders = purchaseOrdersQuery.data || [];
 
@@ -2422,9 +2424,11 @@ export default function TenderDetails() {
           setMarketplaceTenderType('open_tender');
           setMarketplaceDocFee('');
           setMarketplaceInquiryDeadline('');
+          setMarketplaceConfirmed(false);
+          setMarketplaceRefNumber('');
         }
       }}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden">
+        <DialogContent className="max-w-lg p-0 max-h-[90vh] overflow-y-auto">
           {marketplaceStep === 'intro' ? (
             <>
               {/* Visual header */}
@@ -2510,91 +2514,200 @@ export default function TenderDetails() {
               language={language}
               t={t}
             />
-          ) : (
+          ) : marketplaceStep === 'form' ? (
             <>
-              <div className="px-6 pt-6">
-                <DialogHeader>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setMarketplaceStep('guide')}
-                      className="h-7 w-7 rounded-md hover:bg-gray-100 flex items-center justify-center transition-colors"
-                    >
-                      {isRtl ? <ArrowRight className="h-4 w-4 text-gray-500" /> : <ArrowLeft className="h-4 w-4 text-gray-500" />}
-                    </button>
-                    <DialogTitle>{t('marketplace.marketplaceSubmitTitle') || 'Listing Details'}</DialogTitle>
-                  </div>
-                  <DialogDescription>
-                    {t('marketplace.marketplaceSubmitDesc') || 'Provide details for your marketplace listing. This will be submitted for admin review.'}
+              {/* Header */}
+              <div className="px-6 pt-5 pb-3">
+                <div className="flex items-center justify-between mb-3">
+                  <button
+                    onClick={() => setMarketplaceStep('guide')}
+                    className="h-7 w-7 rounded-md hover:bg-gray-100 flex items-center justify-center transition-colors"
+                  >
+                    {isRtl ? <ArrowRight className="h-4 w-4 text-gray-500" /> : <ArrowLeft className="h-4 w-4 text-gray-500" />}
+                  </button>
+                  <span className="text-xs text-gray-400 font-medium">{t('marketplace.formStepIndicator') || 'Step 3 of 3'}</span>
+                </div>
+                <DialogHeader className="p-0">
+                  <DialogTitle className="text-lg">{t('marketplace.formStepTitle') || 'Almost there'}</DialogTitle>
+                  <DialogDescription className="text-sm">
+                    {t('marketplace.formStepDesc') || 'Fill in your listing details to submit for review.'}
                   </DialogDescription>
                 </DialogHeader>
               </div>
 
-              <div className="px-6 space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="marketplace-tender-type">{t('marketplace.tenderType') || 'Tender Type'} <span className="text-red-500">*</span></Label>
-                  <Select value={marketplaceTenderType} onValueChange={setMarketplaceTenderType}>
-                    <SelectTrigger id="marketplace-tender-type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open_tender">{t('marketplace.openTender') || 'Open Tender'}</SelectItem>
-                      <SelectItem value="direct_purchase">{t('marketplace.directPurchase') || 'Direct Purchase'}</SelectItem>
-                      <SelectItem value="framework_agreement">{t('marketplace.frameworkAgreement') || 'Framework Agreement'}</SelectItem>
-                    </SelectContent>
-                  </Select>
+              {/* Field cards */}
+              <div className="px-5 space-y-3 pb-1">
+                {/* Card 1: Tender Type */}
+                <div className="rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="flex items-start gap-3 p-4">
+                    <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Globe className="h-4.5 w-4.5 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 mb-0.5">{t('marketplace.tenderType') || 'Tender Type'} <span className="text-red-500">*</span></p>
+                      <p className="text-xs text-gray-400 mb-2.5">{t('marketplace.formTenderTypeHelper') || 'How should suppliers apply to your tender?'}</p>
+                      <Select value={marketplaceTenderType} onValueChange={setMarketplaceTenderType}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="open_tender">{t('marketplace.openTender') || 'Open Tender'}</SelectItem>
+                          <SelectItem value="direct_purchase">{t('marketplace.directPurchase') || 'Direct Purchase'}</SelectItem>
+                          <SelectItem value="framework_agreement">{t('marketplace.frameworkAgreement') || 'Framework Agreement'}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="marketplace-doc-fee">{t('marketplace.documentFee') || 'Document Fee'} ({t('marketplace.sar') || 'SAR'})</Label>
-                  <Input
-                    id="marketplace-doc-fee"
-                    type="number"
-                    min="0"
-                    max="100000"
-                    placeholder={t('marketplace.docFeePlaceholder') || 'Leave empty for free'}
-                    value={marketplaceDocFee}
-                    onChange={(e) => setMarketplaceDocFee(e.target.value)}
-                  />
-                  <p className="text-xs text-gray-500">{t('marketplace.docFeeHint') || 'Fee vendors pay for tender documents (0–100,000 SAR). Leave empty for free.'}</p>
+                {/* Card 2: Document Fee */}
+                <div className="rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="flex items-start gap-3 p-4">
+                    <div className="h-9 w-9 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <DollarSign className="h-4.5 w-4.5 text-amber-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 mb-0.5">{t('marketplace.documentFee') || 'Document Fee'} <span className="text-xs font-normal text-gray-400">({t('marketplace.sar') || 'SAR'})</span></p>
+                      <p className="text-xs text-gray-400 mb-2.5">{t('marketplace.formDocFeeHelper') || 'This amount is shown on your listing. Payment is handled outside the platform.'}</p>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100000"
+                        className="h-9"
+                        placeholder={t('marketplace.docFeePlaceholder') || 'Leave empty for free'}
+                        value={marketplaceDocFee}
+                        onChange={(e) => setMarketplaceDocFee(e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>{t('marketplace.inquiryDeadlineLabel') || 'Inquiry Deadline'}</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
+                {/* Card 3: Inquiry Deadline */}
+                <div className="rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="flex items-start gap-3 p-4">
+                    <div className="h-9 w-9 rounded-lg bg-[#E8614D]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Clock className="h-4.5 w-4.5 text-[#E8614D]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 mb-0.5">{t('marketplace.inquiryDeadlineLabel') || 'Questions Cutoff'}</p>
+                      <p className="text-xs text-gray-400 mb-2.5">{t('marketplace.formInquiryHelper') || "After this date, suppliers can only submit proposals — no more questions."}</p>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full h-9 justify-start text-left font-normal",
+                              !marketplaceInquiryDeadline && "text-muted-foreground"
+                            )}
+                          >
+                            <Calendar className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                            {marketplaceInquiryDeadline
+                              ? format(new Date(marketplaceInquiryDeadline), "PPP", { locale: language === 'ar' ? arLocale : undefined })
+                              : t('marketplace.selectInquiryDeadline') || 'Select a date'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarWidget
+                            mode="single"
+                            selected={marketplaceInquiryDeadline ? new Date(marketplaceInquiryDeadline) : undefined}
+                            onSelect={(d) => setMarketplaceInquiryDeadline(d?.toISOString() || '')}
+                            disabled={(d) =>
+                              d < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                              (tender?.deadline ? d >= new Date(tender.deadline) : false)
+                            }
+                            locale={language === 'ar' ? arLocale : undefined}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 4: Purchase Order */}
+                <div className="rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="flex items-start gap-3 p-4">
+                    <div className="h-9 w-9 rounded-lg bg-purple-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <FileCheck className="h-4.5 w-4.5 text-purple-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 mb-0.5">{t('marketplace.formPoTitle') || 'Purchase Order'}</p>
+                      <p className="text-xs text-gray-400 mb-2.5">{t('marketplace.formPoHelper') || 'A signed document from your company confirming payment to the awarded vendor. Only visible to you and the Bid team.'}</p>
+
+                      {purchaseOrders.length > 0 && (
+                        <div className="space-y-1.5 mb-2.5">
+                          {purchaseOrders.map((po: any) => (
+                            <div key={po.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <FileText className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                                <span className="text-xs text-gray-700 truncate">{po.originalName}</span>
+                              </div>
+                              <Badge className={`text-[10px] flex-shrink-0 ${
+                                po.status === 'verified' ? 'bg-green-100 text-green-700' :
+                                po.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                'bg-amber-100 text-amber-700'
+                              }`}>
+                                {po.status === 'verified' ? t('marketplace.poVerified') || 'Verified' :
+                                 po.status === 'rejected' ? t('marketplace.poRejected') || 'Rejected' :
+                                 t('marketplace.poPending') || 'Pending'}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       <Button
                         variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !marketplaceInquiryDeadline && "text-muted-foreground"
-                        )}
+                        size="sm"
+                        className="h-9"
+                        disabled={uploadPO.isPending}
+                        onClick={() => document.getElementById('marketplace-po-upload')?.click()}
                       >
-                        <Calendar className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                        {marketplaceInquiryDeadline
-                          ? format(new Date(marketplaceInquiryDeadline), "PPP", { locale: language === 'ar' ? arLocale : undefined })
-                          : t('marketplace.selectInquiryDeadline') || 'Select inquiry deadline'}
+                        {uploadPO.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Upload className="h-4 w-4 mr-1.5" />}
+                        {uploadPO.isPending ? (t('marketplace.uploading') || 'Uploading...') : purchaseOrders.length > 0 ? (t('marketplace.uploadAnother') || 'Upload another') : (t('marketplace.uploadPo') || 'Upload PO Document')}
                       </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarWidget
-                        mode="single"
-                        selected={marketplaceInquiryDeadline ? new Date(marketplaceInquiryDeadline) : undefined}
-                        onSelect={(d) => setMarketplaceInquiryDeadline(d?.toISOString() || '')}
-                        disabled={(d) =>
-                          d < new Date(new Date().setHours(0, 0, 0, 0)) ||
-                          (tender?.deadline ? d >= new Date(tender.deadline) : false)
-                        }
-                        locale={language === 'ar' ? arLocale : undefined}
-                        initialFocus
+                      <input
+                        id="marketplace-po-upload"
+                        type="file"
+                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPO.mutate(f); e.target.value = ''; }}
+                        disabled={uploadPO.isPending}
                       />
-                    </PopoverContent>
-                  </Popover>
-                  <p className="text-xs text-gray-500">{t('marketplace.inquiryDeadlineHint') || 'Last date for vendor questions. Must be before the tender deadline.'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Confirmation checkbox */}
+                <label className="flex items-start gap-3 p-4 rounded-xl border border-gray-200 cursor-pointer hover:border-[#E8614D]/30 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={marketplaceConfirmed}
+                    onChange={(e) => setMarketplaceConfirmed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#E8614D] focus:ring-[#E8614D]"
+                  />
+                  <span className="text-xs text-gray-600 leading-relaxed">
+                    {t('marketplace.formConfirmation') || 'I understand this tender is binding. Once published, it cannot be cancelled and I must award it to a vendor.'}
+                  </span>
+                </label>
+
+                {/* What happens next */}
+                <div className="rounded-xl bg-gray-50 border border-gray-100 p-4">
+                  <div className="flex items-start gap-2.5">
+                    <Sparkles className="h-4 w-4 text-[#E8614D] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-semibold text-gray-600 mb-1">{t('marketplace.formWhatsNext') || 'What happens next'}</p>
+                      <p className="text-xs text-gray-500 leading-relaxed">
+                        {t('marketplace.formWhatsNextDesc') || 'Your listing will be sent to the Bid team for review. Once approved, it goes live on the marketplace and suppliers can start applying.'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className={`flex gap-2 px-6 pb-5 pt-2 ${isRtl ? 'flex-row-reverse' : 'justify-end'}`}>
-                <Button variant="outline" onClick={() => {
+              {/* Footer */}
+              <div className={`flex items-center justify-between px-6 pb-5 pt-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                <Button variant="ghost" size="sm" className="text-gray-500" onClick={() => {
                   setShowMarketplaceDialog(false);
                   setMarketplaceStep('intro');
                   setMarketplaceTenderType('open_tender');
@@ -2604,8 +2717,8 @@ export default function TenderDetails() {
                   {t('marketplace.cancel') || 'Cancel'}
                 </Button>
                 <Button
-                  className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
-                  disabled={marketplaceSubmit.isPending}
+                  className="bg-[#E25E45] hover:bg-[#d54d35] text-white px-5"
+                  disabled={marketplaceSubmit.isPending || !marketplaceConfirmed}
                   onClick={() => {
                     const data: { tenderType: string; documentFee?: number | null; inquiryDeadline?: string | null } = {
                       tenderType: marketplaceTenderType,
@@ -2617,12 +2730,9 @@ export default function TenderDetails() {
                       data.inquiryDeadline = new Date(marketplaceInquiryDeadline).toISOString();
                     }
                     marketplaceSubmit.mutate(data, {
-                      onSuccess: () => {
-                        setShowMarketplaceDialog(false);
-                        setMarketplaceStep('intro');
-                        setMarketplaceTenderType('open_tender');
-                        setMarketplaceDocFee('');
-                        setMarketplaceInquiryDeadline('');
+                      onSuccess: (json) => {
+                        setMarketplaceRefNumber(json.referenceNumber || '');
+                        setMarketplaceStep('success');
                       }
                     });
                   }}
@@ -2633,7 +2743,37 @@ export default function TenderDetails() {
                 </Button>
               </div>
             </>
-          )}
+          ) : marketplaceStep === 'success' ? (
+            <div className="px-6 py-8 text-center">
+              <div className="h-14 w-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="h-7 w-7 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">{t('marketplace.successTitle') || 'Submitted for review'}</h3>
+              <p className="text-sm text-gray-500 mt-1.5 mb-4">{t('marketplace.successDesc') || 'Your tender has been submitted to the Bid team. Here\'s your reference number:'}</p>
+              {marketplaceRefNumber && (
+                <div className="inline-block bg-gray-100 rounded-lg px-5 py-2.5 mb-6">
+                  <span className="font-mono text-sm font-semibold text-gray-800">{marketplaceRefNumber}</span>
+                </div>
+              )}
+              <p className="text-xs text-gray-400 mb-5">
+                {t('marketplace.successNextSteps') || 'The Bid team will review your submission and Purchase Order. You\'ll be notified once it\'s approved.'}
+              </p>
+              <Button
+                className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                onClick={() => {
+                  setShowMarketplaceDialog(false);
+                  setMarketplaceStep('intro');
+                  setMarketplaceTenderType('open_tender');
+                  setMarketplaceDocFee('');
+                  setMarketplaceInquiryDeadline('');
+                  setMarketplaceConfirmed(false);
+                  setMarketplaceRefNumber('');
+                }}
+              >
+                {t('marketplace.successDone') || 'Done'}
+              </Button>
+            </div>
+          ) : null}
         </DialogContent>
       </Dialog>
     </>

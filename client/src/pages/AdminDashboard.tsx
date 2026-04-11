@@ -14,6 +14,10 @@ export default function AdminDashboard() {
     proposalsLast24h: number;
     blockedAwards: number;
     pendingMarketplace: number;
+    totalCompanies: number;
+    verifiedCompanies: number;
+    totalTenders: number;
+    totalProposals: number;
   }>({
     queryKey: ["/api/admin/metrics"],
   });
@@ -216,16 +220,20 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Total Companies</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{metrics?.totalCompanies ?? '--'}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
                 <span className="text-sm text-gray-600 dark:text-gray-400">{t('admin.activeVendors')}</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">--</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{metrics?.verifiedCompanies ?? '--'}</span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
                 <span className="text-sm text-gray-600 dark:text-gray-400">{t('admin.activeTenders')}</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">--</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{metrics?.totalTenders ?? '--'}</span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
                 <span className="text-sm text-gray-600 dark:text-gray-400">{t('admin.totalProposals')}</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">--</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{metrics?.totalProposals ?? '--'}</span>
               </div>
               <div className="flex items-center justify-between py-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Proposals (24h)</span>

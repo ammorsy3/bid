@@ -1,51 +1,64 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Shield, UserPlus, AlertTriangle } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { Badge } from "@/components/ui/badge";
+import { Shield, UserPlus, Search, Crown } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
+import { format } from "date-fns";
 import AdminLayout from "@/components/AdminLayout";
+
+interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  username: string;
+  isAdmin: boolean;
+  createdAt: string;
+}
 
 export default function AdminUsers() {
   const { toast } = useToast();
   const { t } = useI18n();
-  const [userId, setUserId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const { data: users, isLoading } = useQuery<AdminUser[]>({
+    queryKey: ["/api/admin/users", searchQuery],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/users?q=${encodeURIComponent(searchQuery)}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      if (!res.ok) throw new Error('Failed to fetch users');
+      return res.json();
+    },
+  });
 
   const promoteMutation = useMutation({
     mutationFn: async (userId: string) => {
       return await apiRequest("POST", `/api/admin/users/${userId}/promote`);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({
         title: t('admin.userPromoted'),
         description: t('admin.userPromotedDesc'),
       });
-      setUserId("");
     },
     onError: (error: any) => {
-      const errorMessage = error.message || t('admin.failedPromoteUser');
       toast({
         title: t('admin.error'),
-        description: errorMessage,
+        description: error.message || t('admin.failedPromoteUser'),
         variant: "destructive",
       });
     },
   });
 
-  const handlePromote = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (userId.trim()) {
-      promoteMutation.mutate(userId.trim());
-    }
-  };
-
   return (
     <AdminLayout>
-      <div className="p-8 max-w-3xl mx-auto">
+      <div className="p-8 max-w-5xl mx-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-page-title">
             {t('admin.userManagement')}
@@ -55,58 +68,86 @@ export default function AdminUsers() {
           </p>
         </div>
 
+        {/* Search */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search by name, email, or username..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
+
+        {/* User list */}
         <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <div className="h-8 w-8 rounded-lg bg-purple-50 dark:bg-purple-950/40 flex items-center justify-center">
-                <Shield className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-              </div>
-              {t('admin.promoteUserToAdmin')}
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Shield className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              Platform Users
             </CardTitle>
             <CardDescription className="text-xs">
-              {t('admin.promoteUserDesc')}
+              {users ? `${users.length} users${searchQuery ? ` matching "${searchQuery}"` : ' (most recent)'}` : 'Loading...'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handlePromote} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="userId" className="text-sm">{t('admin.userId')}</Label>
-                <Input
-                  id="userId"
-                  placeholder={t('admin.userIdPlaceholder')}
-                  value={userId}
-                  onChange={(e) => setUserId(e.target.value)}
-                  data-testid="input-user-id"
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {t('admin.userIdHelper')}
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="h-14 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
+                ))}
+              </div>
+            ) : !users || users.length === 0 ? (
+              <div className="py-12 text-center">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {searchQuery ? `No users found matching "${searchQuery}"` : 'No users found'}
                 </p>
               </div>
-              <Button
-                type="submit"
-                disabled={!userId.trim() || promoteMutation.isPending}
-                className="bg-purple-600 hover:bg-purple-700"
-                data-testid="button-promote"
-              >
-                <UserPlus className="h-4 w-4 mr-2" />
-                {promoteMutation.isPending ? t('admin.promoting') : t('admin.promoteToAdmin')}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card className="mt-6 border-amber-200 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-950/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-300">
-              <AlertTriangle className="h-4 w-4" />
-              {t('admin.importantNotes')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-xs text-amber-700 dark:text-amber-400">
-            <p>{t('admin.adminNote1')}</p>
-            <p>{t('admin.adminNote2')}</p>
-            <p>{t('admin.adminNote3')}</p>
-            <p>{t('admin.adminNote4')}</p>
+            ) : (
+              <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                {users.map((user) => (
+                  <div key={user.id} className="flex items-center justify-between py-3 gap-4">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="h-9 w-9 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-semibold text-gray-600 dark:text-gray-300 flex-shrink-0">
+                        {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user.name || user.username}</p>
+                          {user.isAdmin && (
+                            <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-[10px] px-1.5 py-0">
+                              <Crown className="h-2.5 w-2.5 mr-0.5" />
+                              Admin
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {user.email} &middot; Joined {format(new Date(user.createdAt), 'PP')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      {user.isAdmin ? (
+                        <span className="text-xs text-gray-400 dark:text-gray-500">Platform admin</span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs"
+                          onClick={() => promoteMutation.mutate(user.id)}
+                          disabled={promoteMutation.isPending}
+                        >
+                          <UserPlus className="h-3.5 w-3.5 mr-1" />
+                          Promote
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

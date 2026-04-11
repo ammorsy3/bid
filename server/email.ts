@@ -987,6 +987,52 @@ export async function sendCompanyVerificationNotification(params: {
 }
 
 // =============================================================================
+// ADMIN NOTIFICATIONS
+// =============================================================================
+
+export async function sendNewVerificationSubmissionNotification(params: {
+  companyName: string;
+  companyCity?: string | null;
+  crNumber: string;
+  recipients: { email: string; name?: string }[];
+  appBaseUrl?: string;
+}): Promise<void> {
+  const { companyName, companyCity, crNumber, recipients, appBaseUrl } = params;
+  if (recipients.length === 0) return;
+
+  const baseUrl = getBaseUrl(appBaseUrl);
+  const adminUrl = `${baseUrl}/admin/vendors`;
+
+  const subject = `New Verification Submission — ${companyName}`;
+
+  const details: DetailRow[] = [
+    { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: "Company", value: companyName },
+    { iconEmoji: "&#128196;", iconBg: "#F0FDF4", label: "CR Number", value: crNumber },
+  ];
+  if (companyCity) {
+    details.push({ iconEmoji: "&#128205;", iconBg: "#FFF7ED", label: "City", value: companyCity });
+  }
+
+  for (const recipient of recipients) {
+    const html = buildEmailHtml({
+      language: 'en',
+      iconEmoji: "&#128276;",
+      iconBg: "#FFF7ED",
+      headline: "New Company Verification Request",
+      subheadline: `${companyName} has submitted documents for verification.`,
+      recipientName: recipient.name,
+      bodyText: `A new company has uploaded verification documents and is waiting for review. Please review their submission in the admin panel.`,
+      details,
+      ctaLabel: "Review in Admin Panel",
+      ctaUrl: adminUrl,
+      ctaColor: BRAND_COLOR,
+      reasonText: `You are receiving this because you are a platform admin on Bid.`,
+    });
+    sendEmail(recipient.email, subject, html).catch(err => console.error(`[Email] Failed to send admin notification to ${recipient.email}:`, err));
+  }
+}
+
+// =============================================================================
 // JOIN REQUESTS
 // =============================================================================
 

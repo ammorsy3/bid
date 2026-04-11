@@ -777,6 +777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           category: defaultCompany.company.category,
           verificationStatus: defaultCompany.company.verificationStatus,
           onboardingState: defaultCompany.company.onboardingState,
+          rejectionReason: defaultCompany.company.rejectionReason || null,
           role: defaultCompany.roleInCompany,
           profile: defaultCompany.profile || null
         } : null,
@@ -791,6 +792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           category: uc.company.category,
           verificationStatus: uc.company.verificationStatus,
           onboardingState: uc.company.onboardingState,
+          rejectionReason: uc.company.rejectionReason || null,
           role: uc.roleInCompany,
           profile: uc.profile || null
         }))
@@ -839,6 +841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           category: uc.company.category,
           verificationStatus: uc.company.verificationStatus,
           onboardingState: uc.company.onboardingState,
+          rejectionReason: uc.company.rejectionReason || null,
           role: uc.roleInCompany,
           profile: uc.profile || null
         }))
@@ -1647,6 +1650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           slug: company.slug,
           verificationStatus: company.verificationStatus,
           onboardingState: company.onboardingState,
+          rejectionReason: company.rejectionReason || null,
           role,
           profile: profile || null
         }
@@ -1818,9 +1822,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           uploadedBy: userId,
         });
 
-        // Move to under_review when documents are first uploaded
+        // Move to under_review when documents are first uploaded (or resubmitted after rejection)
         const company = await storage.getCompany(companyId);
-        if (company && company.verificationStatus === 'not_verified') {
+        if (company && (company.verificationStatus === 'not_verified' || company.verificationStatus === 'rejected')) {
           await storage.updateCompany(companyId, { verificationStatus: 'under_review' });
         }
 
@@ -4686,6 +4690,34 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
+  // Approve join request (admin)
+  app.post("/api/admin/join-requests/:id/approve", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+      await storage.approveJoinRequestByAdmin(id, req.auth!.userId);
+      res.json({ message: "Join request approved" });
+    } catch (error: any) {
+      console.error('Admin approve join request error:', error);
+      res.status(error.message === 'Join request not found' ? 404 : 500).json({ message: error.message || "Server error" });
+    }
+  });
+
+  // Reject join request (admin)
+  app.post("/api/admin/join-requests/:id/reject", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      if (!reason) {
+        return res.status(400).json({ message: "Rejection reason is required" });
+      }
+      await storage.rejectJoinRequestByAdmin(id, reason, req.auth!.userId);
+      res.json({ message: "Join request rejected" });
+    } catch (error: any) {
+      console.error('Admin reject join request error:', error);
+      res.status(500).json({ message: error.message || "Server error" });
+    }
+  });
+
   // Get blocked awards
   app.get("/api/admin/awards/blocked", authenticateToken, requireAdmin, async (req, res) => {
     try {
@@ -4718,6 +4750,31 @@ Respond with ONLY a JSON object. Example:
       res.json(logs);
     } catch (error) {
       console.error('Get audit logs error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Search/list users (admin)
+  app.get("/api/admin/users", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { q } = req.query;
+      const searchTerm = (q as string || '').trim();
+      const allUsers = await storage.searchUsers(searchTerm);
+      res.json(allUsers);
+    } catch (error) {
+      console.error('Admin search users error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // List all companies (admin)
+  app.get("/api/admin/companies", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { status } = req.query;
+      const allCompanies = await storage.getAllCompaniesAdmin(status as string | undefined);
+      res.json(allCompanies);
+    } catch (error) {
+      console.error('Admin list companies error:', error);
       res.status(500).json({ message: "Server error" });
     }
   });

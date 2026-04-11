@@ -44,6 +44,7 @@ import AdminMarketplace from "@/pages/AdminMarketplace";
 import AdminAwards from "@/pages/AdminAwards";
 import AdminUsers from "@/pages/AdminUsers";
 import AdminAuditLogs from "@/pages/AdminAuditLogs";
+import AdminErrors from "@/pages/AdminErrors";
 
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
 
@@ -117,6 +118,7 @@ export default function App() {
             <Route path="/admin/awards" component={AdminAwards} />
             <Route path="/admin/users" component={AdminUsers} />
             <Route path="/admin/audit-logs" component={AdminAuditLogs} />
+            <Route path="/admin/errors" component={AdminErrors} />
             <Route path="/settings" component={Settings} />
           </Switch>
           <Toaster />

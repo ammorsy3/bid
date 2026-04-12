@@ -365,6 +365,8 @@ export default function Dashboard() {
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
+  const [tenderTypeFilter, setTenderTypeFilter] = useState<string>('all');
+  const [tenderOffersFilter, setTenderOffersFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [verificationFilter, setVerificationFilter] = useState<string>("all");
@@ -536,7 +538,13 @@ export default function Dashboard() {
       tender.title.toLowerCase().includes(tenderSearchQuery.toLowerCase()) ||
       (tender.description && tender.description.toLowerCase().includes(tenderSearchQuery.toLowerCase()));
     const matchesFilter = tenderFilter === 'all' || tender.status === tenderFilter;
-    return matchesSearch && matchesFilter;
+    const matchesType = tenderTypeFilter === 'all' || tender.submissionType === tenderTypeFilter;
+    const matchesOffers = tenderOffersFilter === 'all' ||
+      (tenderOffersFilter === 'none' && tender.offersCount === 0) ||
+      (tenderOffersFilter === '1-5' && tender.offersCount >= 1 && tender.offersCount <= 5) ||
+      (tenderOffersFilter === '6-10' && tender.offersCount >= 6 && tender.offersCount <= 10) ||
+      (tenderOffersFilter === '10+' && tender.offersCount > 10);
+    return matchesSearch && matchesFilter && matchesType && matchesOffers;
   });
 
   useEffect(() => { checkBlur(tendersScrollRef, setShowTendersBlur); }, [filteredTenders, checkBlur]);
@@ -1918,6 +1926,29 @@ export default function Dashboard() {
                         <TabsTrigger value="closed" data-testid="filter-closed">{t('dashboard.closed')}</TabsTrigger>
                       </TabsList>
                     </Tabs>
+                    <Select value={tenderTypeFilter} onValueChange={setTenderTypeFilter}>
+                      <SelectTrigger className="w-[180px] h-9" data-testid="filter-tender-type">
+                        <SelectValue placeholder={t('dashboard.allTypes')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t('dashboard.allTypes')}</SelectItem>
+                        {Object.entries(SUBMISSION_TYPE_LABELS_DASH).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={tenderOffersFilter} onValueChange={setTenderOffersFilter}>
+                      <SelectTrigger className="w-[180px] h-9" data-testid="filter-tender-offers">
+                        <SelectValue placeholder={t('dashboard.offersReceived')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t('dashboard.offersReceived')}</SelectItem>
+                        <SelectItem value="none">{t('dashboard.noOffers')}</SelectItem>
+                        <SelectItem value="1-5">1-5 {t('dashboard.offers')}</SelectItem>
+                        <SelectItem value="6-10">6-10 {t('dashboard.offers')}</SelectItem>
+                        <SelectItem value="10+">10+ {t('dashboard.offers')}</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </CardContent>
               </Card>
@@ -1937,7 +1968,7 @@ export default function Dashboard() {
                     <p className="text-muted-foreground text-center max-w-md mb-6" data-testid="text-no-tenders-description">
                       {t('dashboard.noTendersDesc')}
                     </p>
-                    {!tenderSearchQuery && tenderFilter === 'all' && (
+                    {!tenderSearchQuery && tenderFilter === 'all' && tenderTypeFilter === 'all' && tenderOffersFilter === 'all' && (
                       <Button 
                         onClick={handleCreateTender}
                         className="bg-blue-600 hover:bg-blue-700"
@@ -2135,18 +2166,13 @@ export default function Dashboard() {
                           const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                           
                           return (
-                        <Card 
-                          key={offer.id} 
-                          className={`border ${
-                            offer.status === 'accepted' 
-                              ? 'border-green-300 bg-green-50 dark:bg-green-900/20' 
-                              : offer.status === 'rejected' 
-                                ? 'border-gray-300 bg-gray-50 dark:bg-gray-800/50 opacity-60' 
-                                : ''
-                          }`} 
+                        <SpotlightCard
+                          key={offer.id}
+                          className="bg-white border-neutral-200"
+                          spotlightColor={offer.status === 'accepted' ? 'green' : offer.status === 'rejected' ? 'red' : 'orange'}
                           data-testid={`card-my-offer-${offer.id}`}
                         >
-                          <CardContent className="p-4">
+                          <div className="p-6">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
@@ -2259,8 +2285,8 @@ export default function Dashboard() {
                                 )}
                               </div>
                             </div>
-                          </CardContent>
-                        </Card>
+                          </div>
+                        </SpotlightCard>
                           );
                         })}
                       </div>
@@ -2300,18 +2326,13 @@ export default function Dashboard() {
                       const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                       
                       return (
-                        <Card 
-                          key={offer.id} 
-                          className={`border ${
-                            offer.status === 'accepted' 
-                              ? 'border-green-300 bg-green-50 dark:bg-green-900/20' 
-                              : offer.status === 'rejected' 
-                                ? 'border-gray-300 bg-gray-50 dark:bg-gray-800/50 opacity-60' 
-                                : ''
-                          }`} 
+                        <SpotlightCard
+                          key={offer.id}
+                          className="bg-white border-neutral-200"
+                          spotlightColor={offer.status === 'accepted' ? 'green' : offer.status === 'rejected' ? 'red' : 'blue'}
                           data-testid={`card-incoming-offer-${offer.id}`}
                         >
-                          <CardContent className="p-4">
+                          <div className="p-6">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
@@ -2436,8 +2457,8 @@ export default function Dashboard() {
                                 </Button>
                               </div>
                             </div>
-                          </CardContent>
-                        </Card>
+                          </div>
+                        </SpotlightCard>
                         );
                         })}
                       </div>
@@ -2689,18 +2710,18 @@ export default function Dashboard() {
                   ) : (
                     <div className="grid gap-4">
                       {filteredVendors.map((vendor) => (
-                        <Card key={vendor.id} className="hover:shadow-lg transition-shadow" data-testid={`card-vendor-${vendor.id}`}>
-                          <CardHeader>
-                            <div className="flex items-start justify-between">
+                        <SpotlightCard key={vendor.id} className="bg-white border-neutral-200" spotlightColor="blue" data-testid={`card-vendor-${vendor.id}`}>
+                          <div className="p-6">
+                            <div className="flex items-start justify-between mb-4">
                               <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                                   <Building2 className="h-6 w-6 text-primary" />
                                 </div>
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-1">
-                                    <CardTitle className="text-xl" data-testid={`text-vendor-name-${vendor.id}`}>
+                                    <h3 className="text-xl font-semibold" data-testid={`text-vendor-name-${vendor.id}`}>
                                       {vendor.company}
-                                    </CardTitle>
+                                    </h3>
                                     {vendor.verificationStatus === 'verified' && (
                                       <Badge variant="secondary" className="gap-1" data-testid={`badge-verified-${vendor.id}`}>
                                         <CheckCircle className="h-3 w-3" />
@@ -2708,13 +2729,13 @@ export default function Dashboard() {
                                       </Badge>
                                     )}
                                   </div>
-                                  <CardDescription data-testid={`text-vendor-category-${vendor.id}`}>
+                                  <p className="text-sm text-muted-foreground" data-testid={`text-vendor-category-${vendor.id}`}>
                                     {vendor.category}
-                                  </CardDescription>
+                                  </p>
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
-                                <Badge 
+                                <Badge
                                   variant={vendor.joinMethod === 'invitation' ? 'default' : 'outline'}
                                   data-testid={`badge-join-method-${vendor.id}`}
                                 >
@@ -2731,21 +2752,21 @@ export default function Dashboard() {
                                 </Button>
                               </div>
                             </div>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            {vendor.bio && (
-                              <p className="text-sm text-muted-foreground" data-testid={`text-vendor-bio-${vendor.id}`}>
-                                {vendor.bio}
-                              </p>
-                            )}
-                            {vendor.city && (
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Building2 className="h-4 w-4" />
-                                <span>{vendor.city}</span>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
+                            <div className="space-y-3">
+                              {vendor.bio && (
+                                <p className="text-sm text-muted-foreground" data-testid={`text-vendor-bio-${vendor.id}`}>
+                                  {vendor.bio}
+                                </p>
+                              )}
+                              {vendor.city && (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <Building2 className="h-4 w-4" />
+                                  <span>{vendor.city}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </SpotlightCard>
                       ))}
                     </div>
                   )}
@@ -2779,12 +2800,13 @@ export default function Dashboard() {
                             .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
                           const timeAgo = request.createdAt ? new Date(request.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
                           return (
-                            <div
+                            <SpotlightCard
                               key={request.id}
-                              className="group relative bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-sm transition-all"
+                              className="bg-white border-neutral-200"
+                              spotlightColor={request.vendor?.verificationStatus === 'verified' ? 'green' : request.vendor?.verificationStatus === 'under_review' ? 'orange' : 'purple'}
                               data-testid={`card-request-${request.id}`}
                             >
-                              <div className={`p-5 flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                              <div className={`p-6 flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
                                 {request.vendor?.logoUrl ? (
                                   <img
                                     src={request.vendor.logoUrl}
@@ -2895,7 +2917,7 @@ export default function Dashboard() {
                                   </Button>
                                 </div>
                               </div>
-                            </div>
+                            </SpotlightCard>
                           );
                         })}
                       </div>

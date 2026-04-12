@@ -234,6 +234,9 @@ const translations = {
       allCategories: "All Categories",
       allCities: "All Cities",
       allStatuses: "All Statuses",
+      allTypes: "All Types",
+      offersReceived: "Offers Received",
+      noOffers: "No Offers",
       clearFilters: "Clear all",
       activeFilters: "Active Filters",
       // Vendor Dashboard
@@ -2100,6 +2103,9 @@ const translations = {
       allCategories: "جميع الفئات",
       allCities: "جميع المدن",
       allStatuses: "جميع الحالات",
+      allTypes: "جميع الأنواع",
+      offersReceived: "العروض المستلمة",
+      noOffers: "بدون عروض",
       clearFilters: "مسح الكل",
       activeFilters: "الفلاتر النشطة",
       // Vendor Dashboard

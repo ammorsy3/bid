@@ -277,18 +277,23 @@ export default function ProposalComparison({
             </div>
           </div>
           {!cannotAnalyze && (
-            <Button
-              onClick={() => analyzeMutation.mutate()}
-              disabled={analyzeMutation.isPending || offers.length < 2}
-              className="bg-[#E25E45] hover:bg-[#d54d35] text-white text-xs h-7"
-              size="sm"
-            >
-              {analyzeMutation.isPending ? (
-                <><Loader2 className="h-3 w-3 animate-spin mr-1" />{t('tenderFlow.analyzingProposals').replace('{count}', String(offers.length))}</>
-              ) : (
-                <><Sparkles className="h-3 w-3 mr-1" />{t('tenderFlow.analyzeCompareAll')}</>
-              )}
-            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 border border-violet-200">
+                AI Beta
+              </span>
+              <Button
+                onClick={() => analyzeMutation.mutate()}
+                disabled={analyzeMutation.isPending || offers.length < 2}
+                className="bg-[#E25E45] hover:bg-[#d54d35] text-white text-xs h-7"
+                size="sm"
+              >
+                {analyzeMutation.isPending ? (
+                  <><Loader2 className="h-3 w-3 animate-spin mr-1" />{t('tenderFlow.analyzingProposals').replace('{count}', String(offers.length))}</>
+                ) : (
+                  <><Sparkles className="h-3 w-3 mr-1" />{t('tenderFlow.analyzeCompareAll')}</>
+                )}
+              </Button>
+            </div>
           )}
         </div>
 
@@ -498,10 +503,15 @@ export default function ProposalComparison({
             {t('tenderFlow.priceComparisonLabel')}
           </span>
         ) : (
-          <Button variant="outline" size="sm" onClick={() => analyzeMutation.mutate()} disabled={analyzeMutation.isPending} className="text-xs h-7">
-            {analyzeMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RotateCcw className="h-3 w-3 mr-1" />}
-            {t('tenderFlow.reAnalyze')}
-          </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 border border-violet-200">
+              AI Beta
+            </span>
+            <Button variant="outline" size="sm" onClick={() => analyzeMutation.mutate()} disabled={analyzeMutation.isPending} className="text-xs h-7">
+              {analyzeMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RotateCcw className="h-3 w-3 mr-1" />}
+              {t('tenderFlow.reAnalyze')}
+            </Button>
+          </div>
         )}
       </div>
 

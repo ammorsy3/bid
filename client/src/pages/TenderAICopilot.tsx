@@ -732,6 +732,9 @@ export default function TenderAICopilot() {
             <span className="text-sm font-medium text-gray-900 dark:text-white">
               AI Agent
             </span>
+            <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 border border-violet-200">
+              Beta
+            </span>
           </div>
         </div>
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -202,18 +203,18 @@ export default function VendorsBase() {
           ) : (
             <div className="grid gap-4">
               {vendors.map((vendor) => (
-                <Card key={vendor.id} className="hover:shadow-lg transition-shadow" data-testid={`card-vendor-${vendor.id}`}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
+                <SpotlightCard key={vendor.id} className="bg-white border-neutral-200" spotlightColor="blue" data-testid={`card-vendor-${vendor.id}`}>
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                           <Building2 className="h-6 w-6 text-primary" />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <CardTitle className="text-xl" data-testid={`text-vendor-name-${vendor.id}`}>
+                            <h3 className="text-xl font-semibold" data-testid={`text-vendor-name-${vendor.id}`}>
                               {vendor.company}
-                            </CardTitle>
+                            </h3>
                             {vendor.verificationStatus === 'verified' && (
                               <Badge variant="secondary" className="gap-1" data-testid={`badge-verified-${vendor.id}`}>
                                 <CheckCircle className="h-3 w-3" />
@@ -221,47 +222,47 @@ export default function VendorsBase() {
                               </Badge>
                             )}
                           </div>
-                          <CardDescription data-testid={`text-vendor-category-${vendor.id}`}>
+                          <p className="text-sm text-muted-foreground" data-testid={`text-vendor-category-${vendor.id}`}>
                             {vendor.category}
-                          </CardDescription>
+                          </p>
                         </div>
                       </div>
-                      <Badge 
+                      <Badge
                         variant={vendor.joinMethod === 'invitation' ? 'default' : 'outline'}
                         data-testid={`badge-join-method-${vendor.id}`}
                       >
                         {vendor.joinMethod === 'invitation' ? 'Invited' : 'Applied'}
                       </Badge>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {vendor.bio && (
-                      <p className="text-sm text-muted-foreground" data-testid={`text-vendor-bio-${vendor.id}`}>
-                        {vendor.bio}
-                      </p>
-                    )}
-                    <div className="flex flex-wrap gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span data-testid={`text-vendor-email-${vendor.id}`}>{vendor.email}</span>
-                      </div>
-                      {vendor.rating && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">Rating:</span>
-                          <Badge variant="secondary" data-testid={`text-vendor-rating-${vendor.id}`}>
-                            {vendor.rating}
-                          </Badge>
-                        </div>
+                    <div className="space-y-3">
+                      {vendor.bio && (
+                        <p className="text-sm text-muted-foreground" data-testid={`text-vendor-bio-${vendor.id}`}>
+                          {vendor.bio}
+                        </p>
                       )}
+                      <div className="flex flex-wrap gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <span data-testid={`text-vendor-email-${vendor.id}`}>{vendor.email}</span>
+                        </div>
+                        {vendor.rating && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Rating:</span>
+                            <Badge variant="secondary" data-testid={`text-vendor-rating-${vendor.id}`}>
+                              {vendor.rating}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <Button variant="outline" size="sm" data-testid={`button-view-profile-${vendor.id}`}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          View Profile
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2 pt-2">
-                      <Button variant="outline" size="sm" data-testid={`button-view-profile-${vendor.id}`}>
-                        <FileText className="h-4 w-4 mr-2" />
-                        View Profile
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </SpotlightCard>
               ))}
             </div>
           )}
@@ -283,12 +284,13 @@ export default function VendorsBase() {
                     .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
                   const timeAgo = request.createdAt ? new Date(request.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
                   return (
-                    <div
+                    <SpotlightCard
                       key={request.id}
-                      className="group relative bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-sm transition-all"
+                      className="bg-white border-neutral-200"
+                      spotlightColor={request.vendor?.verificationStatus === 'verified' ? 'green' : request.vendor?.verificationStatus === 'under_review' ? 'orange' : 'purple'}
                       data-testid={`card-request-${request.id}`}
                     >
-                      <div className="p-5 flex items-center gap-4">
+                      <div className="p-6 flex items-center gap-4">
                         {request.vendor?.logoUrl ? (
                           <img
                             src={request.vendor.logoUrl}
@@ -399,6 +401,7 @@ export default function VendorsBase() {
                         </Button>
                       </div>
                     </div>
+                    </SpotlightCard>
                   );
                 })}
               </div>

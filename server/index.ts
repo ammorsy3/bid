@@ -54,22 +54,24 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  const port = parseInt(process.env.PORT || '5000', 10);
-  const { execSync } = await import("child_process");
+  const port = parseInt(process.env.PORT || "5000", 10);
 
-  const killPort = () => {
-    try { execSync(`fuser -k ${port}/tcp`, { stdio: "ignore" }); } catch {}
-  };
+  // Exit immediately on SIGTERM/SIGINT so the port is released before
+  // Replit starts the next server instance.
+  process.on("SIGTERM", () => process.exit(0));
+  process.on("SIGINT", () => process.exit(0));
 
-  const listenWithRetry = (attemptsLeft: number): Promise<void> =>
+  // Retry rapidly (100 ms gaps) to catch the brief window when pid2
+  // releases port 5000 during process handoff. Fall back to 1-second
+  // retries if the fast window is missed.
+  const startListen = (retriesLeft: number, delay = 100): Promise<void> =>
     new Promise((resolve, reject) => {
       const onError = async (err: any) => {
         server.removeAllListeners("error");
-        if (err.code === "EADDRINUSE" && attemptsLeft > 0) {
-          log(`Port ${port} in use — killing and retrying (${attemptsLeft} left)...`);
-          killPort();
-          await new Promise((r) => setTimeout(r, 2500));
-          resolve(listenWithRetry(attemptsLeft - 1));
+        if (err.code === "EADDRINUSE" && retriesLeft > 0) {
+          await new Promise((r) => setTimeout(r, delay));
+          const nextDelay = retriesLeft > 200 ? 100 : 1000;
+          resolve(startListen(retriesLeft - 1, nextDelay));
         } else {
           reject(err);
         }
@@ -82,14 +84,6 @@ app.use((req, res, next) => {
       });
     });
 
-  killPort();
-  await new Promise((r) => setTimeout(r, 2000));
-  await listenWithRetry(5);
-
-  const shutdown = () => {
-    server.close(() => process.exit(0));
-    setTimeout(() => process.exit(1), 3000);
-  };
-  process.on("SIGTERM", shutdown);
-  process.on("SIGINT", shutdown);
+  // 300 fast retries (100ms each = 30s) then fail
+  await startListen(300);
 })();

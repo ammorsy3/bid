@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
   Building2, MapPin, Briefcase, ShieldCheck, Globe, Linkedin, Twitter,
-  FileText, ArrowLeft, AlertCircle, Clock, CheckCircle2, ExternalLink,
+  FileText, ArrowLeft, AlertCircle, Clock, CheckCircle2, ExternalLink, Users,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -29,6 +29,8 @@ interface CompanyProfileData {
     logoUrl: string | null;
     headerUrl: string | null;
     brochureUrl: string | null;
+    companySize: string | null;
+    portfolio: { title: string; description?: string; imageUrl: string }[];
     socialLinks: { website?: string; linkedin?: string; twitter?: string } | null;
   } | null;
 }
@@ -36,6 +38,14 @@ interface CompanyProfileData {
 // ═══════════════════════════════════════════════════════════════════
 // Helper Components
 // ═══════════════════════════════════════════════════════════════════
+
+const COMPANY_SIZE_LABELS: Record<string, string> = {
+  '1-10': '1-10 employees',
+  '11-50': '11-50 employees',
+  '51-200': '51-200 employees',
+  '201-500': '201-500 employees',
+  '500+': '500+ employees',
+};
 
 function VerificationBadge({ status }: { status: string }) {
   if (status === 'verified') {
@@ -130,6 +140,8 @@ export default function CompanyProfilePage() {
   const hasSocialLinks = profile?.socialLinks?.website || profile?.socialLinks?.linkedin || profile?.socialLinks?.twitter;
   const hasTags = profile?.tags && profile.tags.length > 0;
   const hasCertifications = company.certifications && company.certifications.length > 0;
+  const hasPortfolio = profile?.portfolio && profile.portfolio.length > 0;
+  const sizeLabel = profile?.companySize ? COMPANY_SIZE_LABELS[profile.companySize] : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -202,6 +214,11 @@ export default function CompanyProfilePage() {
                   <MapPin className="h-3 w-3 flex-shrink-0" />{company.city}
                 </span>
               )}
+              {sizeLabel && (
+                <span className="flex items-center gap-1 text-xs text-gray-500 font-medium">
+                  <Users className="h-3 w-3 flex-shrink-0" />{sizeLabel}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -263,6 +280,32 @@ export default function CompanyProfilePage() {
               </div>
             )}
 
+            {/* Portfolio */}
+            {hasPortfolio && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-4">
+                  Portfolio
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {profile!.portfolio.map((item, i) => (
+                    <div key={i} className="rounded-xl overflow-hidden border border-gray-100 group">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="p-3">
+                        <p className="text-sm font-bold text-gray-800">{item.title}</p>
+                        {item.description && (
+                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{item.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Company Brochure */}
             {profile?.brochureUrl && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
@@ -315,6 +358,12 @@ export default function CompanyProfilePage() {
                   <div className="flex items-center gap-2.5 text-xs text-gray-500">
                     <MapPin className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                     <span>{company.city}</span>
+                  </div>
+                )}
+                {sizeLabel && (
+                  <div className="flex items-center gap-2.5 text-xs text-gray-500">
+                    <Users className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                    <span>{sizeLabel}</span>
                   </div>
                 )}
               </div>

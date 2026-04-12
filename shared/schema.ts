@@ -93,10 +93,20 @@ export const companyProfiles = pgTable("company_profiles", {
   bio: text("bio"),
   tags: jsonb("tags").$type<string[]>().default([]),
   
+  // Company Details
+  companySize: text("company_size"), // '1-10', '11-50', '51-200', '201-500', '500+'
+
   // Media
   logoUrl: text("logo_url"),
   headerUrl: text("header_url"),
   brochureUrl: text("brochure_url"), // Company profile PDF
+
+  // Portfolio
+  portfolio: jsonb("portfolio").$type<{
+    title: string;
+    description?: string;
+    imageUrl: string;
+  }[]>().default([]),
   
   // Social Links
   socialLinks: jsonb("social_links").$type<{

@@ -1177,6 +1177,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upload portfolio image
+  app.post("/api/company/portfolio-image", authenticateToken, requireCompanyContext, upload.single('file'), async (req: AuthRequest, res) => {
+    try {
+      const role = req.auth!.roleInCompany;
+
+      if (role !== 'owner' && role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const file = (req as any).file;
+      if (!file) {
+        return res.status(400).json({ message: "No file provided" });
+      }
+
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ message: "Invalid file type. Only JPG, PNG, and WebP are allowed." });
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        return res.status(400).json({ message: "File too large. Maximum size is 5MB." });
+      }
+
+      const objectStorage = new ObjectStorageService();
+
+      const result = await objectStorage.uploadPublicFile({
+        buffer: file.buffer,
+        folder: 'portfolio-images',
+        filename: file.originalname,
+        contentType: file.mimetype,
+      });
+
+      res.json({ message: "Portfolio image uploaded successfully", url: result.url });
+    } catch (error) {
+      console.error('Upload portfolio image error:', error);
+      res.status(500).json({ message: "Failed to upload portfolio image" });
+    }
+  });
+
   // ==========================================================================
   // ONBOARDING ROUTES
   // ==========================================================================
@@ -1777,7 +1816,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Access denied" });
         }
 
-        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags } = req.body;
+        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio } = req.body;
 
         // Get current company
         const company = await storage.getCompany(companyId);
@@ -1847,6 +1886,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (socialLinks !== undefined) profileUpdates.socialLinks = socialLinks;
         if (tractionTheme !== undefined) profileUpdates.tractionTheme = tractionTheme;
         if (tags !== undefined) profileUpdates.tags = tags;
+        if (companySize !== undefined) profileUpdates.companySize = companySize;
+        if (portfolio !== undefined) profileUpdates.portfolio = portfolio;
 
         const profile = await storage.updateCompanyProfile(companyId, profileUpdates);
 
@@ -4537,6 +4578,36 @@ Respond with ONLY a JSON object. Example:
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
       console.error("Error serving public company header:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  app.get("/objects/company-brochures/:filename", async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = `/objects/company-brochures/${req.params.filename}`;
+      const objectFile = await objectStorageService.getPublicFile(objectPath);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error serving public company brochure:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  app.get("/objects/portfolio-images/:filename", async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = `/objects/portfolio-images/${req.params.filename}`;
+      const objectFile = await objectStorageService.getPublicFile(objectPath);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error serving portfolio image:", error);
       if (error instanceof ObjectNotFoundError) {
         return res.sendStatus(404);
       }

@@ -1874,6 +1874,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const tenderData = createTenderSchema.parse(req.body);
 
+        // Extract optional marketplace fields (not part of tender schema)
+        const {
+          publishToMarketplace,
+          marketplaceTenderType: reqMarketplaceTenderType,
+          marketplaceDocumentFee: reqMarketplaceDocFee,
+          marketplaceInquiryDeadline: reqMarketplaceInquiryDeadline,
+        } = req.body as {
+          publishToMarketplace?: boolean;
+          marketplaceTenderType?: string;
+          marketplaceDocumentFee?: number | null;
+          marketplaceInquiryDeadline?: string | null;
+        };
+
         // Require verified company before creating a tender
         const activeCompany = await storage.getCompany(req.auth!.activeCompanyId!);
         if (!activeCompany || activeCompany.verificationStatus !== 'verified') {
@@ -1883,8 +1896,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
+        // Validate marketplace fields if requested
+        if (publishToMarketplace) {
+          const VALID_TENDER_TYPES = ['open_tender', 'direct_purchase', 'framework_agreement'];
+          if (reqMarketplaceTenderType && !VALID_TENDER_TYPES.includes(reqMarketplaceTenderType)) {
+            return res.status(400).json({ message: "Invalid marketplace tender type" });
+          }
+          if (reqMarketplaceDocFee !== undefined && reqMarketplaceDocFee !== null) {
+            const fee = Number(reqMarketplaceDocFee);
+            if (!Number.isInteger(fee) || fee < 0 || fee > 100_000) {
+              return res.status(400).json({ message: "Document fee must be a non-negative integer up to 100,000 SAR" });
+            }
+          }
+          if (reqMarketplaceInquiryDeadline) {
+            const d = new Date(reqMarketplaceInquiryDeadline);
+            if (isNaN(d.getTime())) {
+              return res.status(400).json({ message: "Invalid inquiry deadline date" });
+            }
+          }
+        }
+
         // Generate invitation token
-        const invitationToken = Math.random().toString(36).substring(2) + 
+        const invitationToken = Math.random().toString(36).substring(2) +
                                 Math.random().toString(36).substring(2);
 
         const tender = await storage.createTender({
@@ -1895,6 +1928,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
           allowConditionalSubmission: false,
           status: 'published'
         });
+
+        // If marketplace publishing requested, apply marketplace fields immediately
+        let marketplaceRefNumber: string | undefined;
+        if (publishToMarketplace) {
+          const refNum = `BID-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+          marketplaceRefNumber = refNum;
+          await storage.updateTender(tender.id, {
+            isMarketplace: true,
+            marketplaceStatus: 'pending',
+            referenceNumber: refNum,
+            tenderType: reqMarketplaceTenderType || 'open_tender',
+            documentFee: reqMarketplaceDocFee || null,
+            inquiryDeadline: reqMarketplaceInquiryDeadline || null,
+          });
+          await storage.logProductEvent({
+            eventType: 'marketplace_submission',
+            companyId: req.auth!.activeCompanyId!,
+            userId: req.auth!.userId,
+            metadata: { tenderId: tender.id },
+          });
+        }
+
+        // Helper to attach marketplace info to the response
+        const addMarketplaceInfo = (tenderObj: any) => {
+          if (marketplaceRefNumber) {
+            return { ...tenderObj, isMarketplace: true, marketplaceStatus: 'pending', referenceNumber: marketplaceRefNumber };
+          }
+          return tenderObj;
+        };
 
         // Auto-assign category via AI if not set or set to fallback value
         if (!tender.category || tender.category === 'Other') {
@@ -1909,7 +1971,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const updated = await storage.updateTender(tender.id, { category: suggestedCategory });
             // Respond first, then translate asynchronously
             const finalTender = updated ?? tender;
-            res.json(finalTender);
+            res.json(addMarketplaceInfo(finalTender));
 
             // Fire-and-forget: notify team that a new tender was published
             (async () => {
@@ -1942,7 +2004,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        res.json(tender);
+        res.json(addMarketplaceInfo(tender));
 
         // Fire-and-forget: notify team that a new tender was published
         (async () => {

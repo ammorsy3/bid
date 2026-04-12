@@ -13,6 +13,7 @@ import { useAuthStore } from "@/lib/auth";
 import { format } from "date-fns";
 import { useI18n, type Language } from "@/lib/i18n";
 import { Switch } from "@/components/ui/switch";
+import { MarketplacePublishOption, type MarketplaceOptions } from "@/components/MarketplacePublishOption";
 
 const formatLabel = (value: string, labels?: Record<string, string>): string => {
   if (labels && labels[value]) {
@@ -30,9 +31,16 @@ export default function TenderBriefStep() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { activeCompany } = useAuthStore();
-  const { t } = useI18n();
+  const { t, language, isRtl } = useI18n();
   const [rfpLanguage, setRfpLanguage] = useState<Language>("en");
   const [allowTranslation, setAllowTranslation] = useState(false);
+  const [marketplaceOptions, setMarketplaceOptions] = useState<MarketplaceOptions>({
+    enabled: false,
+    tenderType: 'open_tender',
+    documentFee: '',
+    inquiryDeadline: '',
+    confirmed: false,
+  });
 
   const CRITERIA_LABELS: Record<string, string> = {
     financial_offer: t('tenderFlow.criteriaFinancialOffer'),
@@ -140,7 +148,16 @@ export default function TenderBriefStep() {
   });
 
   const handlePublish = () => {
-    const tenderData = {
+    if (marketplaceOptions.enabled && !marketplaceOptions.confirmed) {
+      toast({
+        title: t('marketplace.confirmRequired') || 'Confirmation required',
+        description: t('marketplace.confirmRequiredDesc') || 'Please confirm the marketplace binding commitment before publishing.',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const tenderData: Record<string, any> = {
       title: draft.title || "Untitled RFP",
       description: draft.description || draft.projectDescription || draft.title || "No description provided",
       category: draft.category || undefined,
@@ -174,6 +191,17 @@ export default function TenderBriefStep() {
       language: rfpLanguage,
       allowTranslation,
     };
+
+    if (marketplaceOptions.enabled) {
+      tenderData.publishToMarketplace = true;
+      tenderData.marketplaceTenderType = marketplaceOptions.tenderType;
+      if (marketplaceOptions.documentFee !== '') {
+        tenderData.marketplaceDocumentFee = parseInt(marketplaceOptions.documentFee, 10);
+      }
+      if (marketplaceOptions.inquiryDeadline) {
+        tenderData.marketplaceInquiryDeadline = new Date(marketplaceOptions.inquiryDeadline).toISOString();
+      }
+    }
 
     submitTender.mutate(tenderData);
   };
@@ -876,9 +904,18 @@ export default function TenderBriefStep() {
                 </div>
 
                 <div className="pt-4 border-t border-gray-100 space-y-3">
+                  <MarketplacePublishOption
+                    value={marketplaceOptions}
+                    onChange={setMarketplaceOptions}
+                    deadline={draft.deadline}
+                    language={language}
+                    isRtl={isRtl}
+                    t={t}
+                  />
+
                   <Button
                     onClick={handlePublish}
-                    disabled={submitTender.isPending}
+                    disabled={submitTender.isPending || (marketplaceOptions.enabled && !marketplaceOptions.confirmed)}
                     className="w-full bg-[#E25E45] hover:bg-[#d54d35] h-12 text-base font-semibold shadow-lg shadow-[#E25E45]/20"
                     data-testid="button-publish-tender"
                   >

@@ -1865,6 +1865,9 @@ const translations = {
       guideFlowPublish: "You publish",
       guideFlowBid: "Suppliers apply",
       guideFlowAward: "You pick a winner",
+      createFlowDesc: "Also submit to the public marketplace for admin review",
+      confirmRequired: "Confirmation required",
+      confirmRequiredDesc: "Please confirm the marketplace binding commitment before publishing.",
     },
   },
   ar: {
@@ -3721,6 +3724,9 @@ const translations = {
       guideFlowPublish: "تنشر",
       guideFlowBid: "الموردون يقدمون",
       guideFlowAward: "تختار الفائز",
+      createFlowDesc: "أرسل أيضًا إلى ساحة الفرص العامة لمراجعة المشرف",
+      confirmRequired: "التأكيد مطلوب",
+      confirmRequiredDesc: "يرجى تأكيد الالتزام الملزم بساحة الفرص قبل النشر.",
     },
   }
 };

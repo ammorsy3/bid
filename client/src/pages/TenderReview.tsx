@@ -26,6 +26,7 @@ import { useI18n, type Language } from "@/lib/i18n";
 import { useAuthStore } from "@/lib/auth";
 import { TourBanner } from "@/lib/tour";
 import { TOUR_BANNERS } from "@/lib/tour-steps";
+import { MarketplacePublishOption, type MarketplaceOptions } from "@/components/MarketplacePublishOption";
 
 const TENDER_STATE_KEY = "tender_form_state";
 
@@ -43,6 +44,15 @@ export default function TenderReview() {
   // RFP language & translation settings (required before launch)
   const [rfpLanguage, setRfpLanguage] = useState<Language>("en");
   const [allowTranslation, setAllowTranslation] = useState(false);
+
+  // Marketplace publish option
+  const [marketplaceOptions, setMarketplaceOptions] = useState<MarketplaceOptions>({
+    enabled: false,
+    tenderType: 'open_tender',
+    documentFee: '',
+    inquiryDeadline: '',
+    confirmed: false,
+  });
 
   // Template saving state
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
@@ -298,6 +308,15 @@ export default function TenderReview() {
       return;
     }
 
+    if (marketplaceOptions.enabled && !marketplaceOptions.confirmed) {
+      toast({
+        title: t('marketplace.confirmRequired') || 'Confirmation required',
+        description: t('marketplace.confirmRequiredDesc') || 'Please confirm the marketplace binding commitment before publishing.',
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (saveAsTemplate && !templateName.trim()) {
       toast({
         title: t('tenderFlow.templateNameRequired'),
@@ -327,6 +346,17 @@ export default function TenderReview() {
       }
 
       const tenderData = buildTenderData(cards);
+
+      if (marketplaceOptions.enabled) {
+        tenderData.publishToMarketplace = true;
+        tenderData.marketplaceTenderType = marketplaceOptions.tenderType;
+        if (marketplaceOptions.documentFee !== '') {
+          tenderData.marketplaceDocumentFee = parseInt(marketplaceOptions.documentFee, 10);
+        }
+        if (marketplaceOptions.inquiryDeadline) {
+          tenderData.marketplaceInquiryDeadline = new Date(marketplaceOptions.inquiryDeadline).toISOString();
+        }
+      }
       const response = await apiRequest("POST", "/api/tenders", tenderData);
       const createdTender = await response.json();
       localStorage.removeItem(TENDER_STATE_KEY);
@@ -832,6 +862,18 @@ export default function TenderReview() {
           </AnimatePresence>
         </div>
 
+        {/* ── Marketplace option ──────────────────────────────────── */}
+        <div className="max-w-2xl mx-auto w-full mb-6">
+          <MarketplacePublishOption
+            value={marketplaceOptions}
+            onChange={setMarketplaceOptions}
+            deadline={cards.find(c => c.type === 'submission-deadline')?.value as string | undefined}
+            language={language}
+            isRtl={isRtl}
+            t={t}
+          />
+        </div>
+
         {/* ── Bottom navigation ──────────────────────────────────── */}
         <div className="flex justify-center pb-12">
           <AnimatePresence mode="wait">
@@ -859,7 +901,7 @@ export default function TenderReview() {
                 </Button>
                 <Button
                   onClick={handleLaunchTender}
-                  disabled={isSubmitting || validationErrors.length > 0}
+                  disabled={isSubmitting || validationErrors.length > 0 || (marketplaceOptions.enabled && !marketplaceOptions.confirmed)}
                   className="min-w-[160px] h-12 text-base bg-[#E8614D] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed text-white"
                   title={
                     validationErrors.length > 0

@@ -42,6 +42,8 @@ import { AIAgentOrb, OrbState } from "@/components/ui/ai-agent-orb";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { cn } from "@/lib/utils";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { useI18n } from "@/lib/i18n";
+import { MarketplacePublishOption, type MarketplaceOptions } from "@/components/MarketplacePublishOption";
 
 interface Message {
   id: string;
@@ -224,6 +226,7 @@ export default function TenderAICopilot() {
   const sessionParam = new URLSearchParams(searchString).get("session");
   const { activeCompany, user } = useAuthStore();
   const { toast } = useToast();
+  const { t, language: i18nLang, isRtl: i18nIsRtl } = useI18n();
 
   const _lang = localStorage.getItem('language') ?? 'en';
   const _isRtl = _lang === 'ar';
@@ -247,6 +250,13 @@ export default function TenderAICopilot() {
   const [activityLog, setActivityLog] = useState<ActivityLogItem[]>([]);
   const [isListening, setIsListening] = useState(false);
   const [activityExpanded, setActivityExpanded] = useState(false);
+  const [marketplaceOptions, setMarketplaceOptions] = useState<MarketplaceOptions>({
+    enabled: false,
+    tenderType: 'open_tender',
+    documentFee: '',
+    inquiryDeadline: '',
+    confirmed: false,
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasAddedStreamingActivity = useRef(false);
@@ -613,16 +623,36 @@ export default function TenderAICopilot() {
   };
 
   const handleLaunchTender = async () => {
+    if (marketplaceOptions.enabled && !marketplaceOptions.confirmed) {
+      toast({
+        title: t('marketplace.confirmRequired') || 'Confirmation required',
+        description: t('marketplace.confirmRequiredDesc') || 'Please confirm the marketplace binding commitment before publishing.',
+        variant: "destructive",
+      });
+      return;
+    }
+
     setOrbState("thinking");
     setStatusText("Launching your RFP...");
     addActivity("generating", "Creating your RFP", tenderDraft.title || "New RFP", "in_progress");
 
     try {
       const token = localStorage.getItem("token");
+      const bodyData: Record<string, any> = { ...tenderDraft };
+      if (marketplaceOptions.enabled) {
+        bodyData.publishToMarketplace = true;
+        bodyData.marketplaceTenderType = marketplaceOptions.tenderType;
+        if (marketplaceOptions.documentFee !== '') {
+          bodyData.marketplaceDocumentFee = parseInt(marketplaceOptions.documentFee, 10);
+        }
+        if (marketplaceOptions.inquiryDeadline) {
+          bodyData.marketplaceInquiryDeadline = new Date(marketplaceOptions.inquiryDeadline).toISOString();
+        }
+      }
       const response = await fetch("/api/tenders", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(token ? { "Authorization": `Bearer ${token}` } : {}) },
-        body: JSON.stringify(tenderDraft),
+        body: JSON.stringify(bodyData),
       });
 
       if (response.ok) {
@@ -1035,10 +1065,22 @@ export default function TenderAICopilot() {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center gap-3 w-full max-w-md"
                   >
+                    <div className="w-full">
+                      <MarketplacePublishOption
+                        value={marketplaceOptions}
+                        onChange={setMarketplaceOptions}
+                        deadline={tenderDraft.submissionDeadline || tenderDraft.deadline}
+                        language={i18nLang}
+                        isRtl={i18nIsRtl}
+                        t={t}
+                      />
+                    </div>
                     <Button
                       type="button"
                       onClick={handleLaunchTender}
+                      disabled={marketplaceOptions.enabled && !marketplaceOptions.confirmed}
                       className="h-12 px-6 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 rounded-xl gap-2 shadow-lg shadow-green-500/25"
                     >
                       <Rocket className="h-4 w-4" />

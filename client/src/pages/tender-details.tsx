@@ -298,6 +298,7 @@ interface Offer {
   company: {
     id: string;
     name: string;
+    slug: string;
     category: string | null;
     verificationStatus: string;
   };
@@ -1591,7 +1592,7 @@ export default function TenderDetails() {
 
                               {/* Action row */}
                               <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-                                <Button variant="outline" size="sm" onClick={() => setSelectedOffer(offer)} className="text-xs font-medium h-8" data-testid={`button-view-${offer.id}`}>
+                                <Button variant="outline" size="sm" onClick={() => window.open(`/company/${offer.company.slug}`, '_blank')} className="text-xs font-medium h-8" data-testid={`button-view-${offer.id}`}>
                                   <Eye className={`h-3.5 w-3.5 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> {t('tenderFlow.viewProfile')}
                                 </Button>
                                 {offer.combinedFileUrl && (

@@ -38,6 +38,8 @@ import TractionLink from "@/pages/TractionLink";
 import TractionLinkEditor from "@/pages/TractionLinkEditor";
 import Landing from "@/pages/Landing";
 import Settings from "@/pages/Settings";
+import CompanyProfilePage from "@/pages/CompanyProfilePage";
+import CompanyProfileEditor from "@/pages/CompanyProfileEditor";
 import Marketplace from "@/pages/Marketplace";
 import AdminMarketplace from "@/pages/AdminMarketplace";
 import AdminAwards from "@/pages/AdminAwards";
@@ -109,6 +111,8 @@ export default function App() {
             <Route path="/team-invite/:token" component={TeamInvite} />
             <Route path="/tenders/:id/edit" component={TenderEditPage} />
             <Route path="/tenders/:id" component={TenderDetails} />
+            <Route path="/company/edit" component={CompanyProfileEditor} />
+            <Route path="/company/:slug" component={CompanyProfilePage} />
             <Route path="/traction/:slug/edit" component={TractionLinkEditor} />
             <Route path="/traction/:slug" component={TractionLink} />
             <Route path="/marketplace" component={Marketplace} />

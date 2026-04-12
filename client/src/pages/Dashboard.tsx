@@ -362,6 +362,8 @@ export default function Dashboard() {
   const [selectedVendor, setSelectedVendor] = useState<VendorProfile | null>(null);
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
+  const [proposalsSubTab, setProposalsSubTab] = useState(() => localStorage.getItem('dashboard-proposals-tab') || 'submitted');
+  const [vendorsSubTab, setVendorsSubTab] = useState(() => localStorage.getItem('dashboard-vendors-tab') || 'vendors-list');
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
   const [tenderTypeFilter, setTenderTypeFilter] = useState<string>('all');
   const [tenderOffersFilter, setTenderOffersFilter] = useState<string>('all');
@@ -2098,7 +2100,7 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <Tabs defaultValue="submitted" className="space-y-4">
+            <Tabs value={proposalsSubTab} onValueChange={(v) => { setProposalsSubTab(v); localStorage.setItem('dashboard-proposals-tab', v); }} className="space-y-4">
               <TabsList className="grid w-full max-w-md grid-cols-2">
                 <TabsTrigger value="submitted" className="gap-2" data-testid="tab-submitted-proposals">
                   <Send className="h-4 w-4" />
@@ -2500,7 +2502,7 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              <Tabs defaultValue="vendors-list" className="space-y-4">
+              <Tabs value={vendorsSubTab} onValueChange={(v) => { setVendorsSubTab(v); localStorage.setItem('dashboard-vendors-tab', v); }} className="space-y-4">
                 <TabsList className="grid w-full max-w-md grid-cols-2" data-tour="vendors-tabs">
                   <TabsTrigger value="vendors-list" className="gap-2" data-testid="tab-vendors-list">
                     <Users className="h-4 w-4" />

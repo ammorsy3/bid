@@ -55,16 +55,36 @@ app.use((req, res, next) => {
   }
 
   const port = parseInt(process.env.PORT || '5000', 10);
+  const { execSync } = await import("child_process");
 
-  try {
-    const { execSync } = await import("child_process");
-    execSync(`fuser -k ${port}/tcp 2>/dev/null || kill -9 $(lsof -ti:${port}) 2>/dev/null || true`, { stdio: "ignore" });
-    await new Promise((r) => setTimeout(r, 1000));
-  } catch {}
+  const killPort = () => {
+    try { execSync(`fuser -k ${port}/tcp`, { stdio: "ignore" }); } catch {}
+  };
 
-  server.listen({ port, host: "0.0.0.0" }, () => {
-    log(`serving on port ${port}`);
-  });
+  const listenWithRetry = (attemptsLeft: number): Promise<void> =>
+    new Promise((resolve, reject) => {
+      const onError = async (err: any) => {
+        server.removeAllListeners("error");
+        if (err.code === "EADDRINUSE" && attemptsLeft > 0) {
+          log(`Port ${port} in use — killing and retrying (${attemptsLeft} left)...`);
+          killPort();
+          await new Promise((r) => setTimeout(r, 2500));
+          resolve(listenWithRetry(attemptsLeft - 1));
+        } else {
+          reject(err);
+        }
+      };
+      server.once("error", onError);
+      server.listen({ port, host: "0.0.0.0" }, () => {
+        server.removeListener("error", onError);
+        log(`serving on port ${port}`);
+        resolve();
+      });
+    });
+
+  killPort();
+  await new Promise((r) => setTimeout(r, 2000));
+  await listenWithRetry(5);
 
   const shutdown = () => {
     server.close(() => process.exit(0));

@@ -1135,6 +1135,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upload company brochure (PDF)
+  app.post("/api/company/brochure", authenticateToken, requireCompanyContext, upload.single('file'), async (req: AuthRequest, res) => {
+    try {
+      const companyId = req.auth!.activeCompanyId!;
+      const role = req.auth!.roleInCompany;
+
+      if (role !== 'owner' && role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const file = (req as any).file;
+      if (!file) {
+        return res.status(400).json({ message: "No file provided" });
+      }
+
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ message: "Invalid file type. Only PDF, JPG, and PNG are allowed." });
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
+      }
+
+      const objectStorage = new ObjectStorageService();
+
+      const result = await objectStorage.uploadPublicFile({
+        buffer: file.buffer,
+        folder: 'company-brochures',
+        filename: file.originalname,
+        contentType: file.mimetype,
+      });
+
+      await storage.updateCompanyProfile(companyId, { brochureUrl: result.url });
+
+      res.json({ message: "Company brochure uploaded successfully", url: result.url });
+    } catch (error) {
+      console.error('Upload company brochure error:', error);
+      res.status(500).json({ message: "Failed to upload company brochure" });
+    }
+  });
+
   // ==========================================================================
   // ONBOARDING ROUTES
   // ==========================================================================
@@ -1661,6 +1703,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get company profile by slug (public read)
+  app.get("/api/companies/by-slug/:slug/profile", async (req: AuthRequest, res) => {
+    try {
+      const { slug } = req.params;
+
+      const company = await storage.getCompanyBySlug(slug);
+      if (!company) {
+        return res.status(404).json({ message: "Company not found" });
+      }
+
+      const profile = await storage.getCompanyProfile(company.id);
+
+      res.json({
+        company: {
+          id: company.id,
+          name: company.name,
+          slug: company.slug,
+          legalName: company.legalName,
+          category: company.category,
+          city: company.city,
+          verificationStatus: company.verificationStatus,
+          certifications: company.certifications || [],
+        },
+        profile: profile || null
+      });
+    } catch (error) {
+      console.error('Get company profile by slug error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Get company profile (public read)
   app.get("/api/companies/:companyId/profile", async (req: AuthRequest, res) => {
     try {
@@ -1704,7 +1777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Access denied" });
         }
 
-        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme } = req.body;
+        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags } = req.body;
 
         // Get current company
         const company = await storage.getCompany(companyId);
@@ -1773,6 +1846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (logoUrl !== undefined) profileUpdates.logoUrl = logoUrl;
         if (socialLinks !== undefined) profileUpdates.socialLinks = socialLinks;
         if (tractionTheme !== undefined) profileUpdates.tractionTheme = tractionTheme;
+        if (tags !== undefined) profileUpdates.tags = tags;
 
         const profile = await storage.updateCompanyProfile(companyId, profileUpdates);
 

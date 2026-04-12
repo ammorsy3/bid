@@ -1189,6 +1189,43 @@ export default function Settings() {
               </div>
               )}
 
+              {/* Company Profile Page */}
+              {canManageCompany && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Company Profile Page
+                </h2>
+                <Card>
+                  <CardContent className="pt-6 space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Customize how your company profile appears to requesters when they review your proposals.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <a href="/company/edit">
+                        <Button style={{ background: '#E8614D' }} className="text-white">
+                          <Palette className="h-4 w-4 mr-2" />
+                          Customize Profile Page
+                        </Button>
+                      </a>
+                      {activeCompany?.slug && (
+                        <a
+                          href={`/company/${activeCompany.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Preview
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              )}
+
               {/* Traction Page */}
               {canManageCompany && activeCompany?.profile?.tractionSlug && (
               <div className="space-y-4">

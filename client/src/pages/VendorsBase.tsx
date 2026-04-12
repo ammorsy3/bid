@@ -211,8 +211,8 @@ export default function VendorsBase() {
                           <Building2 className="h-6 w-6 text-primary" />
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-xl font-semibold" data-testid={`text-vendor-name-${vendor.id}`}>
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-xl font-bold text-neutral-900" data-testid={`text-vendor-name-${vendor.id}`}>
                               {vendor.company}
                             </h3>
                             {vendor.verificationStatus === 'verified' && (
@@ -222,7 +222,7 @@ export default function VendorsBase() {
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground" data-testid={`text-vendor-category-${vendor.id}`}>
+                          <p className="text-sm font-medium text-neutral-600" data-testid={`text-vendor-category-${vendor.id}`}>
                             {vendor.category}
                           </p>
                         </div>
@@ -290,88 +290,92 @@ export default function VendorsBase() {
                       spotlightColor={request.vendor?.verificationStatus === 'verified' ? 'green' : request.vendor?.verificationStatus === 'under_review' ? 'orange' : 'purple'}
                       data-testid={`card-request-${request.id}`}
                     >
-                      <div className="p-6 flex items-center gap-4">
-                        {request.vendor?.logoUrl ? (
-                          <img
-                            src={request.vendor.logoUrl}
-                            alt={request.vendor.company}
-                            className="w-11 h-11 rounded-xl object-cover border border-gray-100 flex-shrink-0 bg-white"
-                          />
-                        ) : (
-                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0 border border-primary/10">
-                            <span className="text-sm font-bold text-primary">{initials}</span>
+                      <div className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-start gap-4">
+                            {request.vendor?.logoUrl ? (
+                              <img
+                                src={request.vendor.logoUrl}
+                                alt={request.vendor.company}
+                                className="w-12 h-12 rounded-xl object-cover border border-gray-100 flex-shrink-0 bg-white"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0 border border-primary/10">
+                                <span className="text-sm font-bold text-primary">{initials}</span>
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h3 className="text-xl font-bold text-neutral-900 truncate" data-testid={`text-request-company-${request.id}`}>
+                                  {request.vendor?.company || 'Unknown Vendor'}
+                                </h3>
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    request.vendor?.verificationStatus === 'verified'
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0'
+                                      : request.vendor?.verificationStatus === 'under_review'
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200 text-xs px-2 py-0'
+                                      : 'bg-gray-50 text-gray-500 border-gray-200 text-xs px-2 py-0'
+                                  }
+                                  data-testid={`badge-request-status-${request.id}`}
+                                >
+                                  {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 mr-1" />}
+                                  {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 mr-1" />}
+                                  {request.vendor?.verificationStatus === 'verified' ? 'Verified' :
+                                   request.vendor?.verificationStatus === 'under_review' ? 'Under Review' :
+                                   'Not Verified'}
+                                </Badge>
+                              </div>
+                            </div>
                           </div>
+                        </div>
+
+                        {request.vendor?.bio && (
+                          <p className="text-sm font-medium text-neutral-600 line-clamp-2 mb-4">
+                            {request.vendor.bio}
+                          </p>
                         )}
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-gray-900 truncate" data-testid={`text-request-company-${request.id}`}>
-                              {request.vendor?.company || 'Unknown Vendor'}
-                            </h3>
-                            <Badge
-                              variant="outline"
-                              className={
-                                request.vendor?.verificationStatus === 'verified'
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0'
-                                  : request.vendor?.verificationStatus === 'under_review'
-                                  ? 'bg-amber-50 text-amber-700 border-amber-200 text-xs px-2 py-0'
-                                  : 'bg-gray-50 text-gray-500 border-gray-200 text-xs px-2 py-0'
-                              }
-                              data-testid={`badge-request-status-${request.id}`}
-                            >
-                              {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 mr-1" />}
-                              {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 mr-1" />}
-                              {request.vendor?.verificationStatus === 'verified' ? 'Verified' :
-                               request.vendor?.verificationStatus === 'under_review' ? 'Under Review' :
-                               'Not Verified'}
-                            </Badge>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-1">
-                            {request.vendor?.expertise && (
-                              <span className="flex items-center gap-1" data-testid={`text-request-category-${request.id}`}>
-                                <Briefcase className="h-3 w-3" />
-                                {request.vendor.expertise}
-                              </span>
-                            )}
-                            {request.vendor?.websiteUrl && (
-                              <span className="flex items-center gap-1">
-                                <Globe className="h-3 w-3" />
-                                <a
-                                  href={request.vendor.websiteUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="hover:underline hover:text-foreground truncate max-w-[160px]"
-                                >
-                                  {request.vendor.websiteUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
-                                </a>
-                              </span>
-                            )}
-                            {timeAgo && (
-                              <span className="flex items-center gap-1">
-                                <CalendarDays className="h-3 w-3" />
-                                {timeAgo}
-                              </span>
-                            )}
-                          </div>
-                          {request.vendor?.bio && (
-                            <p className="text-sm text-gray-500 line-clamp-1 mt-1.5">
-                              {request.vendor.bio}
-                            </p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+                          {request.vendor?.expertise && (
+                            <div className="flex items-center gap-2 text-neutral-700 font-medium" data-testid={`text-request-category-${request.id}`}>
+                              <Briefcase className="h-4 w-4" />
+                              <span>{request.vendor.expertise}</span>
+                            </div>
+                          )}
+                          {request.vendor?.websiteUrl && (
+                            <div className="flex items-center gap-2 text-neutral-700 font-medium">
+                              <Globe className="h-4 w-4" />
+                              <a
+                                href={request.vendor.websiteUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:underline hover:text-blue-600 truncate max-w-[160px]"
+                              >
+                                {request.vendor.websiteUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
+                              </a>
+                            </div>
+                          )}
+                          {timeAgo && (
+                            <div className="flex items-center gap-2 text-neutral-700 font-medium">
+                              <CalendarDays className="h-4 w-4" />
+                              <span>{timeAgo}</span>
+                            </div>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex flex-wrap gap-2">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
-                            className="text-muted-foreground hover:text-foreground"
                             onClick={() => {
                               setProfileJoinRequestId(request.id);
                               setProfileDrawerOpen(true);
                             }}
                             data-testid={`button-view-profile-${request.id}`}
                           >
-                            <Eye className="h-4 w-4 mr-1.5" />
+                            <Eye className="h-4 w-4 mr-2" />
                             View
                           </Button>
                           <Button
@@ -382,7 +386,7 @@ export default function VendorsBase() {
                             disabled={rejectRequest.isPending}
                             data-testid={`button-reject-inline-${request.id}`}
                           >
-                            <XCircle className="h-4 w-4 mr-1.5" />
+                            <XCircle className="h-4 w-4 mr-2" />
                             Reject
                           </Button>
                           <Button
@@ -393,14 +397,14 @@ export default function VendorsBase() {
                             data-testid={`button-review-${request.id}`}
                           >
                             {approveRequest.isPending ? (
-                              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                             ) : (
-                              <CheckCircle className="h-4 w-4 mr-1.5" />
+                              <CheckCircle className="h-4 w-4 mr-2" />
                             )}
                             Approve
-                        </Button>
+                          </Button>
+                        </div>
                       </div>
-                    </div>
                     </SpotlightCard>
                   );
                 })}

@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { ParticleButton } from "@/components/ui/particle-button";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { ProgressiveBlur } from "@/components/ui/progressive-blur";
 import { AnimatedCopyButton } from "@/components/ui/animated-copy-button";
 import { 
   Sidebar, 
@@ -32,7 +30,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription, PopoverBody, PopoverFooter } from "@/components/ui/popover";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useDashboardTour, usePageTour } from "@/lib/tour";
 import { DASHBOARD_TOUR_STEPS, VENDORS_BASE_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -371,12 +369,6 @@ export default function Dashboard() {
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [verificationFilter, setVerificationFilter] = useState<string>("all");
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
-  const [showTendersBlur, setShowTendersBlur] = useState(true);
-  const [showSentBlur, setShowSentBlur] = useState(true);
-  const [showReceivedBlur, setShowReceivedBlur] = useState(true);
-  const tendersScrollRef = useRef<HTMLDivElement>(null);
-  const sentScrollRef = useRef<HTMLDivElement>(null);
-  const receivedScrollRef = useRef<HTMLDivElement>(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showCompanyProfileDialog, setShowCompanyProfileDialog] = useState(false);
   const [showUnverifiedDialog, setShowUnverifiedDialog] = useState(false);
@@ -526,12 +518,6 @@ export default function Dashboard() {
   );
 
   // Helper: update blur visibility based on viewport scrollability + position
-  const checkBlur = useCallback((ref: React.RefObject<HTMLDivElement | null>, setFn: (v: boolean) => void) => {
-    const el = ref.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
-    if (!el) return;
-    setFn(el.scrollHeight > el.clientHeight + 10 && el.scrollHeight - el.scrollTop - el.clientHeight > 10);
-  }, []);
-
   // Filter tenders based on search and status
   const filteredTenders = tenders.filter(tender => {
     const matchesSearch = !tenderSearchQuery || 
@@ -546,10 +532,6 @@ export default function Dashboard() {
       (tenderOffersFilter === '10+' && tender.offersCount > 10);
     return matchesSearch && matchesFilter && matchesType && matchesOffers;
   });
-
-  useEffect(() => { checkBlur(tendersScrollRef, setShowTendersBlur); }, [filteredTenders, checkBlur]);
-  useEffect(() => { checkBlur(sentScrollRef, setShowSentBlur); }, [myOffers, checkBlur]);
-  useEffect(() => { checkBlur(receivedScrollRef, setShowReceivedBlur); }, [incomingOffers, checkBlur]);
 
   // Derived unique values for vendor filters
   const uniqueCategories = Array.from(new Set(vendors.map(v => v.category).filter(Boolean))).sort();
@@ -1981,12 +1963,7 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
               ) : (
-                <div ref={tendersScrollRef} className="relative w-full h-[600px] border rounded-lg">
-                  <ScrollArea
-                    className="h-full"
-                    onScrollCapture={() => checkBlur(tendersScrollRef, setShowTendersBlur)}
-                  >
-                    <div className="space-y-4 p-4">
+                <div className="space-y-4">
                       {filteredTenders.map((tender) => {
                         const statusBadge = getStatusBadge(tender.status, tender.deadline);
                         const isDeadlineSoon = new Date(tender.deadline).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000;
@@ -2107,11 +2084,6 @@ export default function Dashboard() {
                           </SpotlightCard>
                         );
                       })}
-                    </div>
-                  </ScrollArea>
-                  <motion.div animate={{ opacity: showTendersBlur ? 1 : 0 }} transition={{ duration: 0.3 }}>
-                    <ProgressiveBlur position="bottom" height="21%" />
-                  </motion.div>
                 </div>
               )}
             </TabsContent>
@@ -2155,12 +2127,7 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div ref={sentScrollRef} className="relative w-full h-[600px] border rounded-lg">
-                    <ScrollArea
-                      className="h-full"
-                      onScrollCapture={() => checkBlur(sentScrollRef, setShowSentBlur)}
-                    >
-                      <div className="space-y-4 p-4">
+                  <div className="space-y-4">
                         {myOffers.map((offer) => {
                           const isExpired = new Date(offer.tender.deadline) < new Date();
                           const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
@@ -2173,19 +2140,19 @@ export default function Dashboard() {
                           data-testid={`card-my-offer-${offer.id}`}
                         >
                           <div className="p-6">
-                            <div className="flex items-start justify-between">
+                            <div className="flex items-start justify-between mb-4">
                               <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h4 
-                                    className="font-medium cursor-pointer hover:text-primary"
+                                <div className="flex items-center gap-3 mb-2">
+                                  <h3
+                                    className="text-xl font-bold text-neutral-900 cursor-pointer hover:text-blue-600"
                                     onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
                                   >
                                     {offer.tender.title}
-                                  </h4>
-                                  <Badge 
+                                  </h3>
+                                  <Badge
                                     className={
-                                      offer.tender.status === 'published' 
-                                        ? 'bg-green-100 text-green-800' 
+                                      offer.tender.status === 'published'
+                                        ? 'bg-green-100 text-green-800'
                                         : offer.tender.status === 'closed'
                                         ? 'bg-red-100 text-red-800'
                                         : 'bg-gray-100 text-gray-800'
@@ -2212,88 +2179,93 @@ export default function Dashboard() {
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="text-sm text-muted-foreground line-clamp-1">
+                                <p className="text-sm font-medium text-neutral-600 line-clamp-2">
                                   {offer.tender.description || t('dashboard.noDescription')}
                                 </p>
-                                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                                  <span className="flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" />
-                                    {t('dashboard.submitted')} {new Date(offer.submittedAt).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                      year: 'numeric'
-                                    })}
-                                  </span>
-                                  <span className={`flex items-center gap-1 ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : ''}`}>
-                                    <Clock className="h-3 w-3" />
-                                    {isExpired ? t('dashboard.deadlinePassed') : `${daysRemaining} ${t('dashboard.daysLeft')}`}
-                                  </span>
-                                </div>
-                                {offer.notes && (
-                                  <p className="text-sm mt-2 text-muted-foreground italic">"{offer.notes}"</p>
-                                )}
                               </div>
-                              <div className={`flex gap-2 flex-wrap ${isRtl ? 'mr-4' : 'ml-4'}`}>
+                            </div>
+
+                            <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
+                              <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <Calendar className="h-4 w-4" />
+                                <span>
+                                  {t('dashboard.submitted')} {new Date(offer.submittedAt).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                              <div className={`flex items-center gap-2 font-medium ${isRtl ? 'flex-row-reverse' : ''} ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-neutral-700'}`}>
+                                <Clock className="h-4 w-4" />
+                                <span>
+                                  {isExpired ? t('dashboard.deadlinePassed') : `${daysRemaining} ${t('dashboard.daysLeft')}`}
+                                </span>
+                              </div>
+                              {offer.notes && (
+                                <div className={`flex items-center gap-2 text-neutral-700 font-medium col-span-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                  <FileText className="h-4 w-4" />
+                                  <span className="italic line-clamp-1">"{offer.notes}"</span>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
+                                data-testid={`button-view-tender-${offer.id}`}
+                              >
+                                <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                {t('dashboard.viewTender')}
+                              </Button>
+                              {offer.combinedFileUrl && (
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
-                                  data-testid={`button-view-tender-${offer.id}`}
+                                  onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)}
+                                  title={t('dashboard.combinedProposal')}
                                 >
-                                  <Eye className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
-                                  {t('dashboard.viewTender')}
+                                  <FileText className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  {t('dashboard.proposalLabel')}
                                 </Button>
-                                {offer.combinedFileUrl && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)}
-                                    title={t('dashboard.combinedProposal')}
-                                  >
-                                    <FileText className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                {offer.technicalFileUrl && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
-                                    title={t('dashboard.technicalProposal')}
-                                  >
-                                    <FileText className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                {offer.financialFileUrl && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
-                                    title={t('dashboard.financialProposal')}
-                                  >
-                                    <DollarSign className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                {offer.videoUrl && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => window.open(offer.videoUrl!, '_blank')}
-                                    title={t('dashboard.videoPitchLabel')}
-                                  >
-                                    <Video className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
+                              )}
+                              {offer.technicalFileUrl && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
+                                  title={t('dashboard.technicalProposal')}
+                                >
+                                  <FileText className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                </Button>
+                              )}
+                              {offer.financialFileUrl && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
+                                  title={t('dashboard.financialProposal')}
+                                >
+                                  <DollarSign className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                </Button>
+                              )}
+                              {offer.videoUrl && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open(offer.videoUrl!, '_blank')}
+                                  title={t('dashboard.videoPitchLabel')}
+                                >
+                                  <Video className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </SpotlightCard>
                           );
                         })}
-                      </div>
-                    </ScrollArea>
-                    <motion.div animate={{ opacity: showSentBlur ? 1 : 0 }} transition={{ duration: 0.3 }}>
-                      <ProgressiveBlur position="bottom" height="21%" />
-                    </motion.div>
                   </div>
                 )}
               </TabsContent>
@@ -2315,12 +2287,7 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div ref={receivedScrollRef} className="relative w-full h-[600px] border rounded-lg">
-                    <ScrollArea
-                      className="h-full"
-                      onScrollCapture={() => checkBlur(receivedScrollRef, setShowReceivedBlur)}
-                    >
-                      <div className="space-y-4 p-4">
+                  <div className="space-y-4">
                         {incomingOffers.map((offer) => {
                       const isExpired = new Date(offer.tender.deadline) < new Date();
                       const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
@@ -2333,13 +2300,12 @@ export default function Dashboard() {
                           data-testid={`card-incoming-offer-${offer.id}`}
                         >
                           <div className="p-6">
-                            <div className="flex items-start justify-between">
+                            <div className="flex items-start justify-between mb-4">
                               <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                                  <h4 className="font-medium">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <h3 className="text-xl font-bold text-neutral-900">
                                     {offer.profile?.displayName || offer.company.name}
-                                  </h4>
+                                  </h3>
                                   {offer.company.verificationStatus === 'verified' && (
                                     <Badge variant="secondary" className="text-xs">{t('dashboard.verified')}</Badge>
                                   )}
@@ -2356,116 +2322,117 @@ export default function Dashboard() {
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm font-medium text-neutral-600">
                                   {t('dashboard.forTender')} <span
-                                    className="cursor-pointer hover:text-primary font-medium"
+                                    className="cursor-pointer hover:text-blue-600 font-bold"
                                     onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
                                   >
                                     {offer.tender.title}
                                   </span>
                                 </p>
-                                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                                  <span className="flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" />
-                                    {t('dashboard.received')} {new Date(offer.submittedAt).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                      year: 'numeric'
-                                    })}
-                                  </span>
-                                  <span className={`flex items-center gap-1 ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : ''}`}>
-                                    <Clock className="h-3 w-3" />
-                                    {isExpired ? t('dashboard.deadlinePassed') : `${daysRemaining} ${t('dashboard.daysLeft')}`}
-                                  </span>
-                                  {offer.company.category && (
-                                    <span className="text-muted-foreground">
-                                      {offer.company.category}
-                                    </span>
-                                  )}
-                                </div>
-                                {offer.quotePrice && (
-                                  <div className="flex items-center gap-1 mt-2">
-                                    <DollarSign className="h-3.5 w-3.5 text-emerald-600" />
-                                    <span className="text-sm font-semibold text-emerald-700">SAR {offer.quotePrice.toLocaleString()}</span>
-                                    <span className="text-xs text-muted-foreground ml-1">({t('dashboard.priceQuote')})</span>
-                                  </div>
-                                )}
-                                {offer.notes && (
-                                  <p className="text-sm mt-2 text-muted-foreground italic">"{offer.notes}"</p>
-                                )}
                               </div>
-                              <div className={`grid grid-cols-2 gap-2 ${isRtl ? 'mr-4' : 'ml-4'} flex-shrink-0`}>
+                            </div>
+
+                            <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
+                              <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <Calendar className="h-4 w-4" />
+                                <span>
+                                  {t('dashboard.received')} {new Date(offer.submittedAt).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                              <div className={`flex items-center gap-2 font-medium ${isRtl ? 'flex-row-reverse' : ''} ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-neutral-700'}`}>
+                                <Clock className="h-4 w-4" />
+                                <span>
+                                  {isExpired ? t('dashboard.deadlinePassed') : `${daysRemaining} ${t('dashboard.daysLeft')}`}
+                                </span>
+                              </div>
+                              {offer.company.category && (
+                                <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                  <Building2 className="h-4 w-4" />
+                                  <span>{offer.company.category}</span>
+                                </div>
+                              )}
+                              {offer.quotePrice && (
+                                <div className={`flex items-center gap-2 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                  <DollarSign className="h-4 w-4 text-emerald-600" />
+                                  <span className="text-emerald-700">SAR {offer.quotePrice.toLocaleString()}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {offer.notes && (
+                              <p className="text-sm mb-4 text-neutral-600 italic">"{offer.notes}"</p>
+                            )}
+
+                            <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedProposal(offer)}
+                                data-testid={`button-view-offer-${offer.id}`}
+                              >
+                                <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                {t('dashboard.view')}
+                              </Button>
+                              {offer.combinedFileUrl && (
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className={!(offer.combinedFileUrl || offer.technicalFileUrl || offer.financialFileUrl || offer.videoUrl) ? 'col-span-2' : ''}
-                                  onClick={() => setSelectedProposal(offer)}
-                                  data-testid={`button-view-offer-${offer.id}`}
+                                  onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)}
+                                  title={t('dashboard.combinedProposalLabel')}
                                 >
-                                  <Eye className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
-                                  {t('dashboard.view')}
+                                  <FileText className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  {t('dashboard.proposalLabel')}
                                 </Button>
-                                {offer.combinedFileUrl && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)}
-                                    title={t('dashboard.combinedProposalLabel')}
-                                  >
-                                    <FileText className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
-                                    {t('dashboard.proposalLabel')}
-                                  </Button>
-                                )}
-                                {offer.technicalFileUrl && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
-                                    title={t('dashboard.technicalProposal')}
-                                  >
-                                    <FileText className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                {offer.financialFileUrl && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
-                                    title={t('dashboard.financialProposal')}
-                                  >
-                                    <DollarSign className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                {offer.videoUrl && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => window.open(offer.videoUrl!, '_blank')}
-                                    title={t('dashboard.videoPitchLabel')}
-                                  >
-                                    <Video className="h-4 w-4" />
-                                  </Button>
-                                )}
+                              )}
+                              {offer.technicalFileUrl && (
                                 <Button
+                                  variant="outline"
                                   size="sm"
-                                  className="col-span-2 bg-[#E25E45] hover:bg-[#d54d35] text-white"
-                                  onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
-                                  data-testid={`button-review-tender-${offer.id}`}
+                                  onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
+                                  title={t('dashboard.technicalProposal')}
                                 >
-                                  <ExternalLink className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
-                                  {t('dashboard.viewTender')}
+                                  <FileText className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                                 </Button>
-                              </div>
+                              )}
+                              {offer.financialFileUrl && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
+                                  title={t('dashboard.financialProposal')}
+                                >
+                                  <DollarSign className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                </Button>
+                              )}
+                              {offer.videoUrl && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open(offer.videoUrl!, '_blank')}
+                                  title={t('dashboard.videoPitchLabel')}
+                                >
+                                  <Video className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                                onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
+                                data-testid={`button-review-tender-${offer.id}`}
+                              >
+                                <ExternalLink className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                {t('dashboard.viewTender')}
+                              </Button>
                             </div>
                           </div>
                         </SpotlightCard>
                         );
                         })}
-                      </div>
-                    </ScrollArea>
-                    <motion.div animate={{ opacity: showReceivedBlur ? 1 : 0 }} transition={{ duration: 0.3 }}>
-                      <ProgressiveBlur position="bottom" height="21%" />
-                    </motion.div>
                   </div>
                 )}
               </TabsContent>
@@ -2718,8 +2685,8 @@ export default function Dashboard() {
                                   <Building2 className="h-6 w-6 text-primary" />
                                 </div>
                                 <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-xl font-semibold" data-testid={`text-vendor-name-${vendor.id}`}>
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <h3 className="text-xl font-bold text-neutral-900" data-testid={`text-vendor-name-${vendor.id}`}>
                                       {vendor.company}
                                     </h3>
                                     {vendor.verificationStatus === 'verified' && (
@@ -2729,41 +2696,44 @@ export default function Dashboard() {
                                       </Badge>
                                     )}
                                   </div>
-                                  <p className="text-sm text-muted-foreground" data-testid={`text-vendor-category-${vendor.id}`}>
+                                  <p className="text-sm font-medium text-neutral-600" data-testid={`text-vendor-category-${vendor.id}`}>
                                     {vendor.category}
                                   </p>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Badge
-                                  variant={vendor.joinMethod === 'invitation' ? 'default' : 'outline'}
-                                  data-testid={`badge-join-method-${vendor.id}`}
-                                >
-                                  {vendor.joinMethod === 'invitation' ? t('dashboard.invitedMethod') : vendor.joinMethod === 'proposal_accepted' ? t('dashboard.viaProposal') : t('dashboard.appliedViaTraction')}
-                                </Badge>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setSelectedVendor(vendor)}
-                                  data-testid={`button-view-vendor-${vendor.id}`}
-                                >
-                                  <Eye className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
-                                  {t('dashboard.view')}
-                                </Button>
-                              </div>
+                              <Badge
+                                variant={vendor.joinMethod === 'invitation' ? 'default' : 'outline'}
+                                data-testid={`badge-join-method-${vendor.id}`}
+                              >
+                                {vendor.joinMethod === 'invitation' ? t('dashboard.invitedMethod') : vendor.joinMethod === 'proposal_accepted' ? t('dashboard.viaProposal') : t('dashboard.appliedViaTraction')}
+                              </Badge>
                             </div>
-                            <div className="space-y-3">
-                              {vendor.bio && (
-                                <p className="text-sm text-muted-foreground" data-testid={`text-vendor-bio-${vendor.id}`}>
-                                  {vendor.bio}
-                                </p>
-                              )}
+
+                            {vendor.bio && (
+                              <p className="text-sm font-medium text-neutral-600 line-clamp-2 mb-4" data-testid={`text-vendor-bio-${vendor.id}`}>
+                                {vendor.bio}
+                              </p>
+                            )}
+
+                            <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
                               {vendor.city && (
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <Building2 className="h-4 w-4" />
                                   <span>{vendor.city}</span>
                                 </div>
                               )}
+                            </div>
+
+                            <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedVendor(vendor)}
+                                data-testid={`button-view-vendor-${vendor.id}`}
+                              >
+                                <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                {t('dashboard.view')}
+                              </Button>
                             </div>
                           </div>
                         </SpotlightCard>
@@ -2806,88 +2776,92 @@ export default function Dashboard() {
                               spotlightColor={request.vendor?.verificationStatus === 'verified' ? 'green' : request.vendor?.verificationStatus === 'under_review' ? 'orange' : 'purple'}
                               data-testid={`card-request-${request.id}`}
                             >
-                              <div className={`p-6 flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                {request.vendor?.logoUrl ? (
-                                  <img
-                                    src={request.vendor.logoUrl}
-                                    alt={request.vendor.company}
-                                    className="w-11 h-11 rounded-xl object-cover border border-gray-100 flex-shrink-0 bg-white"
-                                  />
-                                ) : (
-                                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0 border border-primary/10">
-                                    <span className="text-sm font-bold text-primary">{initials}</span>
+                              <div className="p-6">
+                                <div className={`flex items-start justify-between mb-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                  <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                    {request.vendor?.logoUrl ? (
+                                      <img
+                                        src={request.vendor.logoUrl}
+                                        alt={request.vendor.company}
+                                        className="w-12 h-12 rounded-xl object-cover border border-gray-100 flex-shrink-0 bg-white"
+                                      />
+                                    ) : (
+                                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0 border border-primary/10">
+                                        <span className="text-sm font-bold text-primary">{initials}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <div className={`flex items-center gap-3 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                        <h3 className="text-xl font-bold text-neutral-900 truncate" data-testid={`text-request-company-${request.id}`}>
+                                          {request.vendor?.company || t('dashboard.unknownVendor')}
+                                        </h3>
+                                        <Badge
+                                          variant="outline"
+                                          className={
+                                            request.vendor?.verificationStatus === 'verified'
+                                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0'
+                                              : request.vendor?.verificationStatus === 'under_review'
+                                              ? 'bg-amber-50 text-amber-700 border-amber-200 text-xs px-2 py-0'
+                                              : 'bg-gray-50 text-gray-500 border-gray-200 text-xs px-2 py-0'
+                                          }
+                                          data-testid={`badge-request-status-${request.id}`}
+                                        >
+                                          {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 mr-1" />}
+                                          {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 mr-1" />}
+                                          {request.vendor?.verificationStatus === 'verified' ? t('dashboard.verifiedStatus') :
+                                           request.vendor?.verificationStatus === 'under_review' ? t('dashboard.underReviewStatus') :
+                                           t('dashboard.notVerifiedStatus')}
+                                        </Badge>
+                                      </div>
+                                    </div>
                                   </div>
+                                </div>
+
+                                {request.vendor?.bio && (
+                                  <p className="text-sm font-medium text-neutral-600 line-clamp-2 mb-4">
+                                    {request.vendor.bio}
+                                  </p>
                                 )}
 
-                                <div className={`flex-1 min-w-0 ${isRtl ? 'text-right' : ''}`}>
-                                  <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                    <h3 className="font-semibold text-gray-900 truncate" data-testid={`text-request-company-${request.id}`}>
-                                      {request.vendor?.company || t('dashboard.unknownVendor')}
-                                    </h3>
-                                    <Badge
-                                      variant="outline"
-                                      className={
-                                        request.vendor?.verificationStatus === 'verified'
-                                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0'
-                                          : request.vendor?.verificationStatus === 'under_review'
-                                          ? 'bg-amber-50 text-amber-700 border-amber-200 text-xs px-2 py-0'
-                                          : 'bg-gray-50 text-gray-500 border-gray-200 text-xs px-2 py-0'
-                                      }
-                                      data-testid={`badge-request-status-${request.id}`}
-                                    >
-                                      {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 mr-1" />}
-                                      {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 mr-1" />}
-                                      {request.vendor?.verificationStatus === 'verified' ? t('dashboard.verifiedStatus') :
-                                       request.vendor?.verificationStatus === 'under_review' ? t('dashboard.underReviewStatus') :
-                                       t('dashboard.notVerifiedStatus')}
-                                    </Badge>
-                                  </div>
-                                  <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-1 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                    {request.vendor?.expertise && (
-                                      <span className="flex items-center gap-1" data-testid={`text-request-category-${request.id}`}>
-                                        <Briefcase className="h-3 w-3" />
-                                        {request.vendor.expertise}
-                                      </span>
-                                    )}
-                                    {request.vendor?.websiteUrl && (
-                                      <span className="flex items-center gap-1">
-                                        <Globe className="h-3 w-3" />
-                                        <a
-                                          href={request.vendor.websiteUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="hover:underline hover:text-foreground truncate max-w-[160px]"
-                                        >
-                                          {request.vendor.websiteUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
-                                        </a>
-                                      </span>
-                                    )}
-                                    {timeAgo && (
-                                      <span className="flex items-center gap-1">
-                                        <Calendar className="h-3 w-3" />
-                                        {timeAgo}
-                                      </span>
-                                    )}
-                                  </div>
-                                  {request.vendor?.bio && (
-                                    <p className="text-sm text-gray-500 line-clamp-1 mt-1.5">
-                                      {request.vendor.bio}
-                                    </p>
+                                <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
+                                  {request.vendor?.expertise && (
+                                    <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`} data-testid={`text-request-category-${request.id}`}>
+                                      <Briefcase className="h-4 w-4" />
+                                      <span>{request.vendor.expertise}</span>
+                                    </div>
+                                  )}
+                                  {request.vendor?.websiteUrl && (
+                                    <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                      <Globe className="h-4 w-4" />
+                                      <a
+                                        href={request.vendor.websiteUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="hover:underline hover:text-blue-600 truncate max-w-[160px]"
+                                      >
+                                        {request.vendor.websiteUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
+                                      </a>
+                                    </div>
+                                  )}
+                                  {timeAgo && (
+                                    <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                      <Calendar className="h-4 w-4" />
+                                      <span>{timeAgo}</span>
+                                    </div>
                                   )}
                                 </div>
 
-                                <div className={`flex items-center gap-2 flex-shrink-0 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="sm"
-                                    className="text-muted-foreground hover:text-foreground"
                                     onClick={() => {
                                       setProfileJoinRequestId(request.id);
                                       setProfileDrawerOpen(true);
                                     }}
                                     data-testid={`button-view-profile-${request.id}`}
                                   >
-                                    <Eye className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                    <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                                     {t('dashboard.view')}
                                   </Button>
                                   <Button
@@ -2898,7 +2872,7 @@ export default function Dashboard() {
                                     disabled={rejectRequest.isPending}
                                     data-testid={`button-reject-${request.id}`}
                                   >
-                                    <XCircle className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                    <XCircle className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                                     {t('dashboard.reject')}
                                   </Button>
                                   <Button
@@ -2909,9 +2883,9 @@ export default function Dashboard() {
                                     data-testid={`button-approve-${request.id}`}
                                   >
                                     {approveRequest.isPending ? (
-                                      <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                      <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-2' : 'mr-2'}`} />
                                     ) : (
-                                      <CheckCircle className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                      <CheckCircle className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                                     )}
                                     {t('dashboard.approve')}
                                   </Button>

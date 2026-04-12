@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
@@ -133,6 +133,25 @@ export default function CompanyProfileEditor() {
     socialLinks: { website: '', linkedin: '', twitter: '' },
   });
 
+  // Track saved state for dirty detection
+  const [savedState, setSavedState] = useState<string>('');
+  const isDirty = useMemo(() => {
+    if (!savedState) return false;
+    return JSON.stringify(editState) !== savedState;
+  }, [editState, savedState]);
+
+  // Warn before navigating away with unsaved changes
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
   // Auth guard
   if (!user) {
     navigate('/login');
@@ -149,7 +168,7 @@ export default function CompanyProfileEditor() {
   // Seed edit state from fetched data
   useEffect(() => {
     if (data) {
-      setEditState({
+      const initial: EditState = {
         displayName: data.profile?.displayName || data.company.name,
         bio: data.profile?.bio || '',
         tags: data.profile?.tags || [],
@@ -160,7 +179,9 @@ export default function CompanyProfileEditor() {
           linkedin: data.profile?.socialLinks?.linkedin || '',
           twitter: data.profile?.socialLinks?.twitter || '',
         },
-      });
+      };
+      setEditState(initial);
+      setSavedState(JSON.stringify(initial));
     }
   }, [data]);
 
@@ -194,8 +215,9 @@ export default function CompanyProfileEditor() {
       });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (_result, savedEditState) => {
       queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompanyId, 'profile'] });
+      setSavedState(JSON.stringify(savedEditState));
       toast({ title: "Profile saved", description: "Your company profile has been updated." });
     },
     onError: () => {
@@ -315,6 +337,21 @@ export default function CompanyProfileEditor() {
   const hasSocialLinks = editState.socialLinks.website || editState.socialLinks.linkedin || editState.socialLinks.twitter;
   const sizeLabel = COMPANY_SIZES.find(s => s.value === editState.companySize)?.label;
 
+  // Profile completeness
+  const completenessItems = [
+    { label: 'Logo', done: !!currentLogoUrl },
+    { label: 'Header', done: !!currentHeaderUrl },
+    { label: 'Display name', done: !!editState.displayName.trim() },
+    { label: 'About', done: editState.bio.trim().length >= 10 },
+    { label: 'Company size', done: !!editState.companySize },
+    { label: 'Capabilities', done: editState.tags.length >= 1 },
+    { label: 'Portfolio', done: editState.portfolio.length >= 1 },
+    { label: 'Brochure', done: !!currentBrochureUrl },
+    { label: 'Social links', done: !!(editState.socialLinks.website || editState.socialLinks.linkedin) },
+  ];
+  const completedCount = completenessItems.filter(i => i.done).length;
+  const completenessPercent = Math.round((completedCount / completenessItems.length) * 100);
+
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
 
@@ -333,7 +370,10 @@ export default function CompanyProfileEditor() {
       <div className="h-14 border-b border-gray-200 flex items-center justify-between px-4 flex-shrink-0 bg-white z-20">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/settings')}
+            onClick={() => {
+              if (isDirty && !window.confirm('You have unsaved changes. Leave without saving?')) return;
+              navigate('/settings');
+            }}
             className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -371,14 +411,19 @@ export default function CompanyProfileEditor() {
 
           <Button
             onClick={() => saveMutation.mutate(editState)}
-            disabled={saveMutation.isPending}
+            disabled={saveMutation.isPending || !isDirty}
             size="sm"
-            className="h-8"
+            className="h-8 relative"
           >
             {saveMutation.isPending
               ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Saving</>
-              : <><Save className="h-3.5 w-3.5 mr-1.5" />Save Changes</>
+              : isDirty
+                ? <><Save className="h-3.5 w-3.5 mr-1.5" />Save Changes</>
+                : <><CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />Saved</>
             }
+            {isDirty && (
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white" />
+            )}
           </Button>
         </div>
       </div>
@@ -389,6 +434,44 @@ export default function CompanyProfileEditor() {
         {/* ── LEFT: Editor Panel ── */}
         <ScrollArea className="w-[360px] flex-shrink-0 border-r border-gray-200 bg-gray-50">
           <div className="p-5 space-y-7">
+
+            {/* ─── Profile Completeness ─── */}
+            <section className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-gray-700">Profile completeness</span>
+                <span className={`text-xs font-bold ${completenessPercent === 100 ? 'text-emerald-600' : 'text-gray-500'}`}>
+                  {completedCount}/{completenessItems.length}
+                </span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    completenessPercent === 100
+                      ? 'bg-emerald-500'
+                      : completenessPercent >= 70
+                        ? 'bg-blue-500'
+                        : completenessPercent >= 40
+                          ? 'bg-amber-500'
+                          : 'bg-gray-300'
+                  }`}
+                  style={{ width: `${completenessPercent}%` }}
+                />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {completenessItems.map((item) => (
+                  <span
+                    key={item.label}
+                    className={`text-[10px] font-medium rounded-full px-2 py-0.5 transition-colors ${
+                      item.done
+                        ? 'bg-emerald-50 text-emerald-600'
+                        : 'bg-gray-50 text-gray-400'
+                    }`}
+                  >
+                    {item.done ? '✓' : '○'} {item.label}
+                  </span>
+                ))}
+              </div>
+            </section>
 
             {/* ─── Logo ─── */}
             <section>

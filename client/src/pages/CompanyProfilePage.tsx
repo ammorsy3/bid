@@ -155,8 +155,8 @@ export default function CompanyProfilePage() {
 
       {/* ══════════════════════ HERO HEADER ══════════════════════ */}
       {profile?.headerUrl ? (
-        <div className="h-52 md:h-64 w-full relative">
-          <img src={profile.headerUrl} alt="" className="w-full h-full object-cover" />
+        <div className="w-full relative">
+          <img src={profile.headerUrl} alt="" className="w-full h-auto block" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 max-w-[900px] mx-auto px-6 pb-5">
             <div className="flex items-end gap-4">

@@ -896,8 +896,8 @@ export default function CompanyProfileEditor() {
             {/* Preview: Header */}
             <div className="relative overflow-hidden bg-gray-50">
               {currentHeaderUrl ? (
-                <div className="h-44 md:h-52 w-full relative">
-                  <img src={currentHeaderUrl} alt="" className="w-full h-full object-cover" />
+                <div className="w-full relative">
+                  <img src={currentHeaderUrl} alt="" className="w-full h-auto block" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 max-w-[860px] mx-auto px-6 pb-4">
                     <div className="flex items-end gap-3">

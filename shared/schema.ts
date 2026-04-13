@@ -114,6 +114,39 @@ export const companyProfiles = pgTable("company_profiles", {
   headerOriginalUrl: text("header_original_url"),
   brochureUrl: text("brochure_url"), // Company profile PDF
 
+  // Intro Video (YouTube or Vimeo URL)
+  introVideoUrl: text("intro_video_url"),
+
+  // Self-reported track record stats
+  stats: jsonb("stats").$type<{
+    yearsInBusiness?: number;
+    projectsCompleted?: number;
+    clientsServed?: number;
+    repeatClientPct?: number;
+    citiesCovered?: number;
+    teamSize?: number;
+  }>().default({}),
+
+  // Structured certifications (with optional uploaded documents and expiry)
+  certifications: jsonb("certifications").$type<{
+    name: string;
+    issuer?: string;
+    expiryDate?: string; // ISO date
+    documentUrl?: string;
+    documentName?: string;
+  }[]>().default([]),
+
+  // Insurance policies
+  insurancePolicies: jsonb("insurance_policies").$type<{
+    type: 'general_liability' | 'professional_indemnity' | 'workers_compensation' | 'public_liability' | 'cyber' | 'other';
+    provider: string;
+    coverageAmount?: number;
+    currency?: string;
+    expiryDate?: string;
+    documentUrl?: string;
+    documentName?: string;
+  }[]>().default([]),
+
   // Portfolio
   portfolio: jsonb("portfolio").$type<{
     title: string;

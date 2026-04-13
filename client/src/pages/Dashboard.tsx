@@ -1317,18 +1317,18 @@ export default function Dashboard() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-5">
+          <TabsContent value="overview" className="space-y-10 max-w-4xl mx-auto w-full pt-2">
 
             {/* ── Stat Cards Row ──────────────────────────────────────── */}
             {canManage && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" data-tour="dashboard-tabs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6" data-tour="dashboard-tabs">
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0, duration: 0.35, ease: "easeOut" }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm p-5"
+                  className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm p-7"
                 >
-                  <div className={`flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  <div className={`flex items-center gap-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
                     <div className="p-3 rounded-xl bg-[#E8614D] text-white flex-shrink-0">
                       <FileText className="h-5 w-5" />
                     </div>
@@ -1345,9 +1345,9 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05, duration: 0.35, ease: "easeOut" }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm p-5"
+                  className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm p-7"
                 >
-                  <div className={`flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  <div className={`flex items-center gap-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
                     <div className="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex-shrink-0">
                       <Inbox className="h-5 w-5" />
                     </div>
@@ -1364,9 +1364,9 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1, duration: 0.35, ease: "easeOut" }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm p-5"
+                  className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm p-7"
                 >
-                  <div className={`flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  <div className={`flex items-center gap-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
                     <div className="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex-shrink-0">
                       <Users className="h-5 w-5" />
                     </div>
@@ -1465,23 +1465,19 @@ export default function Dashboard() {
               </div>
             </motion.div>
 
-            {/* ── Main Grid ───────────────────────────────────────────── */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* ── Get Started Tasks ───────────────────────────────────── */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.35, ease: "easeOut" }}
+              className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden"
+              data-tour="onboarding-tasks"
+            >
+              {/* Brand top strip */}
+              <div className="h-1 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]" />
 
-              {/* Get Started Tasks — 2 cols */}
-              <div className="lg:col-span-2">
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.35, ease: "easeOut" }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden"
-                  data-tour="onboarding-tasks"
-                >
-                  {/* Brand top strip */}
-                  <div className="h-1 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]" />
-
-                  <div className="p-6">
-                    <div className={`mb-5 ${isRtl ? 'text-right' : ''}`}>
+              <div className="p-8 sm:p-10">
+                <div className={`mb-8 ${isRtl ? 'text-right' : ''}`}>
                       <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('dashboard.getStartedTitle')}</h2>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('dashboard.getStartedDesc')}</p>
                     </div>
@@ -1708,161 +1704,7 @@ export default function Dashboard() {
                     </Accordion>
                   </div>
                 </motion.div>
-              </div>
 
-              {/* Right column — Info Cards */}
-              <div className="lg:col-span-1 space-y-4">
-
-                {/* Company Status */}
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.25, duration: 0.35, ease: "easeOut" }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
-                >
-                  <div className={`h-1 rounded-t-2xl bg-gradient-to-r from-[#E8614D] to-[#F19A8F] transition-opacity duration-300 ${activeCompany.verificationStatus === 'verified' ? 'opacity-100' : 'opacity-30'}`} />
-                  <div className="p-5">
-                    <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                      <div className={`p-3 rounded-xl flex-shrink-0 transition-all duration-300 ${activeCompany.verificationStatus === 'verified' ? 'bg-[#E8614D] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
-                        {activeCompany.verificationStatus === 'verified'
-                          ? <ShieldCheck className="h-5 w-5" />
-                          : <Clock className="h-5 w-5" />
-                        }
-                      </div>
-                      <div className={`flex-1 min-w-0 ${isRtl ? 'text-right' : ''}`}>
-                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">{t('dashboard.companyStatus')}</p>
-                        <p className={`text-base font-bold truncate ${activeCompany.verificationStatus === 'verified' ? 'text-[#E8614D]' : 'text-gray-900 dark:text-white'}`}>
-                          {activeCompany.verificationStatus === 'verified'
-                            ? t('dashboard.verified')
-                            : activeCompany.verificationStatus === 'under_review' ? 'Under Review' : activeCompany.verificationStatus
-                          }
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Latest Proposals */}
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.35, ease: "easeOut" }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
-                >
-                  <div className="h-1 bg-gradient-to-r from-[#E8614D] to-[#F19A8F] opacity-50" />
-                  <div className="p-5">
-                    <div className={`flex items-center justify-between mb-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                      <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                        <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
-                          <Inbox className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                        </div>
-                        <h3 className="text-sm font-bold text-gray-900 dark:text-white">{t('dashboard.recentActivity')}</h3>
-                      </div>
-                      {(incomingOffers.length > 0 || myOffers.length > 0) && (
-                        <button
-                          onClick={() => setActiveTab('proposals')}
-                          className="text-xs font-medium text-[#E8614D] hover:underline"
-                        >
-                          {t('dashboard.viewAll')}
-                        </button>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      {incomingOffers.slice(0, 3).map((offer) => (
-                        <button
-                          key={offer.id}
-                          onClick={() => {
-                            setSelectedProposal(offer);
-                            if (!offer.isViewed) markOfferViewed.mutate(offer.id);
-                          }}
-                          className={`w-full text-left p-3 rounded-xl border-2 transition-all duration-200 ${
-                            !offer.isViewed && offer.status === 'pending'
-                              ? 'border-[#E8614D] bg-[#E8614D]/5'
-                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                          }`}
-                        >
-                          <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`flex-1 min-w-0 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-xs font-semibold truncate text-gray-900 dark:text-white">{offer.company.name}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{offer.tender.title}</p>
-                            </div>
-                            {!offer.isViewed && offer.status === 'pending' && (
-                              <div className="h-2 w-2 bg-[#E8614D] rounded-full flex-shrink-0" />
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                      {myOffers.slice(0, 2).map((offer) => (
-                        <div
-                          key={offer.id}
-                          className="p-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/30"
-                        >
-                          <div className={`flex items-start justify-between gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`flex-1 min-w-0 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-xs font-semibold truncate text-gray-900 dark:text-white">{offer.tender.title}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{t(`dashboard.${offer.status}`)}</p>
-                            </div>
-                            {offer.status === 'pending' && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 flex-shrink-0">Pending</span>
-                            )}
-                            {offer.status === 'accepted' && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">Accepted</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      {incomingOffers.length === 0 && myOffers.length === 0 && (
-                        <div className="text-center py-6">
-                          <Inbox className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.noProposals')}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Quick Actions */}
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35, duration: 0.35, ease: "easeOut" }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
-                >
-                  <div className="h-1 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]" />
-                  <div className="p-5">
-                    <div className={`flex items-center gap-2 mb-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                      <div className="p-2 rounded-lg bg-[#E8614D]/10">
-                        <Sparkles className="h-4 w-4 text-[#E8614D]" />
-                      </div>
-                      <h3 className="text-sm font-bold text-gray-900 dark:text-white">{t('dashboard.quickActions')}</h3>
-                    </div>
-                    <div className="space-y-2">
-                      {canManage && (
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start h-10 border-2 border-gray-200 dark:border-gray-700 hover:border-[#E8614D] hover:text-[#E8614D] hover:bg-[#E8614D]/5 transition-all duration-200"
-                          onClick={handleCreateTender}
-                          data-testid="button-create-tender"
-                        >
-                          <Plus className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                          {t('dashboard.createTender')}
-                        </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start h-10 border-2 border-gray-200 dark:border-gray-700 hover:border-[#E8614D] hover:text-[#E8614D] hover:bg-[#E8614D]/5 transition-all duration-200"
-                        onClick={() => setShowCompanyProfileDialog(true)}
-                        data-testid="button-view-profile"
-                      >
-                        <Building2 className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                        {t('dashboard.viewProfile')}
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-
-              </div>
-            </div>
           </TabsContent>
 
           {/* Tenders Tab */}

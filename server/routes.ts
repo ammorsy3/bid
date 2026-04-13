@@ -1265,6 +1265,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upload credential document (certification or insurance policy)
+  app.post("/api/company/credential-document", authenticateToken, requireCompanyContext, upload.single('file'), async (req: AuthRequest, res) => {
+    try {
+      const role = req.auth!.roleInCompany;
+
+      if (role !== 'owner' && role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const file = (req as any).file;
+      if (!file) {
+        return res.status(400).json({ message: "No file provided" });
+      }
+
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ message: "Invalid file type. Only PDF, JPG, and PNG are allowed." });
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
+      }
+
+      const objectStorage = new ObjectStorageService();
+
+      const result = await objectStorage.uploadPublicFile({
+        buffer: file.buffer,
+        folder: 'credential-documents',
+        filename: file.originalname,
+        contentType: file.mimetype,
+      });
+
+      res.json({ message: "Credential document uploaded successfully", url: result.url, name: file.originalname });
+    } catch (error) {
+      console.error('Upload credential document error:', error);
+      res.status(500).json({ message: "Failed to upload credential document" });
+    }
+  });
+
   // Upload portfolio image
   app.post("/api/company/portfolio-image", authenticateToken, requireCompanyContext, upload.single('file'), async (req: AuthRequest, res) => {
     try {
@@ -1935,7 +1974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Access denied" });
         }
 
-        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio, yearFounded, serviceAreas, languages, industriesServed, availabilityStatus, availabilityNote } = req.body;
+        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio, yearFounded, serviceAreas, languages, industriesServed, availabilityStatus, availabilityNote, introVideoUrl, stats, certifications: profileCertifications, insurancePolicies } = req.body;
 
         // Get current company
         const company = await storage.getCompany(companyId);
@@ -2027,6 +2066,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         if (availabilityNote !== undefined) {
           profileUpdates.availabilityNote = typeof availabilityNote === 'string' ? availabilityNote.slice(0, 200) : null;
+        }
+        if (introVideoUrl !== undefined) {
+          if (introVideoUrl === null || introVideoUrl === '') {
+            profileUpdates.introVideoUrl = null;
+          } else if (typeof introVideoUrl === 'string') {
+            const trimmed = introVideoUrl.trim().slice(0, 500);
+            const isYouTube = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(trimmed);
+            const isVimeo = /^(https?:\/\/)?(www\.)?(vimeo\.com|player\.vimeo\.com)\//i.test(trimmed);
+            if (!isYouTube && !isVimeo) {
+              return res.status(400).json({ message: "Intro video must be a YouTube or Vimeo URL" });
+            }
+            profileUpdates.introVideoUrl = trimmed;
+          } else {
+            return res.status(400).json({ message: "Invalid introVideoUrl" });
+          }
+        }
+        if (profileCertifications !== undefined) {
+          if (!Array.isArray(profileCertifications)) {
+            return res.status(400).json({ message: "Invalid certifications" });
+          }
+          if (profileCertifications.length > 15) {
+            return res.status(400).json({ message: "Maximum 15 certifications allowed" });
+          }
+          const isIsoDate = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+          const cleaned = [] as any[];
+          for (const item of profileCertifications) {
+            if (!item || typeof item !== 'object') continue;
+            const name = typeof item.name === 'string' ? item.name.trim().slice(0, 120) : '';
+            if (!name) continue;
+            const entry: Record<string, unknown> = { name };
+            if (typeof item.issuer === 'string' && item.issuer.trim()) entry.issuer = item.issuer.trim().slice(0, 120);
+            if (item.expiryDate && isIsoDate(item.expiryDate)) entry.expiryDate = item.expiryDate;
+            if (typeof item.documentUrl === 'string' && item.documentUrl.trim()) {
+              entry.documentUrl = item.documentUrl.trim().slice(0, 1000);
+              if (typeof item.documentName === 'string' && item.documentName.trim()) {
+                entry.documentName = item.documentName.trim().slice(0, 200);
+              }
+            }
+            cleaned.push(entry);
+          }
+          profileUpdates.certifications = cleaned;
+        }
+        if (insurancePolicies !== undefined) {
+          if (!Array.isArray(insurancePolicies)) {
+            return res.status(400).json({ message: "Invalid insurancePolicies" });
+          }
+          if (insurancePolicies.length > 5) {
+            return res.status(400).json({ message: "Maximum 5 insurance policies allowed" });
+          }
+          const allowedTypes = ['general_liability', 'professional_indemnity', 'workers_compensation', 'public_liability', 'cyber', 'other'];
+          const isIsoDate = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+          const cleaned = [] as any[];
+          for (const item of insurancePolicies) {
+            if (!item || typeof item !== 'object') continue;
+            if (!allowedTypes.includes(item.type)) continue;
+            const provider = typeof item.provider === 'string' ? item.provider.trim().slice(0, 120) : '';
+            if (!provider) continue;
+            const entry: Record<string, unknown> = { type: item.type, provider };
+            if (item.coverageAmount != null && item.coverageAmount !== '') {
+              const n = Number(item.coverageAmount);
+              if (!Number.isFinite(n) || n < 0 || n > 1_000_000_000_000) {
+                return res.status(400).json({ message: "Invalid coverageAmount" });
+              }
+              entry.coverageAmount = Math.floor(n);
+            }
+            if (typeof item.currency === 'string' && /^[A-Z]{3}$/.test(item.currency)) {
+              entry.currency = item.currency;
+            }
+            if (item.expiryDate && isIsoDate(item.expiryDate)) entry.expiryDate = item.expiryDate;
+            if (typeof item.documentUrl === 'string' && item.documentUrl.trim()) {
+              entry.documentUrl = item.documentUrl.trim().slice(0, 1000);
+              if (typeof item.documentName === 'string' && item.documentName.trim()) {
+                entry.documentName = item.documentName.trim().slice(0, 200);
+              }
+            }
+            cleaned.push(entry);
+          }
+          profileUpdates.insurancePolicies = cleaned;
+        }
+        if (stats !== undefined) {
+          if (stats === null) {
+            profileUpdates.stats = {};
+          } else if (typeof stats === 'object' && !Array.isArray(stats)) {
+            const allowedKeys = ['yearsInBusiness', 'projectsCompleted', 'clientsServed', 'repeatClientPct', 'citiesCovered', 'teamSize'] as const;
+            const cleaned: Record<string, number> = {};
+            for (const key of allowedKeys) {
+              const raw = (stats as Record<string, unknown>)[key];
+              if (raw === undefined || raw === null || raw === '') continue;
+              const n = Number(raw);
+              if (!Number.isFinite(n) || n < 0) {
+                return res.status(400).json({ message: `Invalid stats.${key}` });
+              }
+              if (key === 'repeatClientPct' && n > 100) {
+                return res.status(400).json({ message: "stats.repeatClientPct must be 0–100" });
+              }
+              if (n > 1_000_000) {
+                return res.status(400).json({ message: `stats.${key} is too large` });
+              }
+              cleaned[key] = Math.floor(n);
+            }
+            profileUpdates.stats = cleaned;
+          } else {
+            return res.status(400).json({ message: "Invalid stats" });
+          }
         }
 
         const profile = await storage.updateCompanyProfile(companyId, profileUpdates);

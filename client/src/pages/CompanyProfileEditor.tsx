@@ -1,26 +1,99 @@
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ImageCropDialog from "@/components/ImageCropDialog";
+import { cn } from "@/lib/utils";
 import {
-  Building2, MapPin, Briefcase, Globe, Linkedin, Twitter,
-  FileText, ArrowLeft, AlertCircle, Clock, CheckCircle2, ExternalLink,
-  Image, Upload, Save, Loader2, X, Plus, Monitor, Smartphone, Eye, Type, Link2,
-  Tag, Users, Trash2, ImagePlus, ShieldCheck,
+  Building2, MapPin, Globe, Linkedin, Twitter,
+  FileText, ArrowLeft, Clock, CheckCircle2,
+  Image as ImageIcon, Upload, Loader2, X, Plus, Eye, Type, Link2,
+  Tag, Users, Trash2, ImagePlus, ShieldCheck, Video, BarChart3, Award, Shield, Paperclip, AlertTriangle,
+  Cloud, CloudOff,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════
-// Types
+// Types & constants
 // ═══════════════════════════════════════════════════════════════════
+
+interface CertificationItem {
+  name: string;
+  issuer?: string;
+  expiryDate?: string;
+  documentUrl?: string;
+  documentName?: string;
+}
+
+type InsuranceType = 'general_liability' | 'professional_indemnity' | 'workers_compensation' | 'public_liability' | 'cyber' | 'other';
+
+interface InsurancePolicyItem {
+  type: InsuranceType;
+  provider: string;
+  coverageAmount?: number;
+  currency?: string;
+  expiryDate?: string;
+  documentUrl?: string;
+  documentName?: string;
+}
+
+const INSURANCE_TYPE_LABELS: Record<InsuranceType, string> = {
+  general_liability: 'General liability',
+  professional_indemnity: 'Professional indemnity',
+  workers_compensation: 'Workers compensation',
+  public_liability: 'Public liability',
+  cyber: 'Cyber liability',
+  other: 'Other',
+};
+
+type ExpiryStatus = 'none' | 'active' | 'expiring' | 'expired';
+
+function getExpiryStatus(expiryDate?: string): ExpiryStatus {
+  if (!expiryDate) return 'none';
+  const exp = new Date(expiryDate);
+  if (isNaN(exp.getTime())) return 'none';
+  const now = new Date();
+  const days = Math.floor((exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  if (days < 0) return 'expired';
+  if (days <= 30) return 'expiring';
+  return 'active';
+}
+
+interface CompanyStats {
+  yearsInBusiness?: number;
+  projectsCompleted?: number;
+  clientsServed?: number;
+  repeatClientPct?: number;
+  citiesCovered?: number;
+  teamSize?: number;
+}
+
+const STAT_FIELDS: { key: keyof CompanyStats; label: string; suffix?: string; max: number }[] = [
+  { key: 'yearsInBusiness', label: 'Years in business', max: 200 },
+  { key: 'projectsCompleted', label: 'Projects completed', max: 1_000_000 },
+  { key: 'clientsServed', label: 'Clients served', max: 1_000_000 },
+  { key: 'repeatClientPct', label: 'Repeat clients', suffix: '%', max: 100 },
+  { key: 'citiesCovered', label: 'Cities covered', max: 10_000 },
+  { key: 'teamSize', label: 'Team size', max: 1_000_000 },
+];
+
+function parseVideoEmbed(url: string | null | undefined): { provider: 'youtube' | 'vimeo'; embedUrl: string } | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  const yt = trimmed.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/i);
+  if (yt) return { provider: 'youtube', embedUrl: `https://www.youtube.com/embed/${yt[1]}` };
+  const vimeo = trimmed.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  if (vimeo) return { provider: 'vimeo', embedUrl: `https://player.vimeo.com/video/${vimeo[1]}` };
+  return null;
+}
 
 interface PortfolioItem {
   title: string;
@@ -62,6 +135,10 @@ interface ProfileData {
     availabilityNote: string | null;
     portfolio: PortfolioItem[];
     socialLinks: { website?: string; linkedin?: string; twitter?: string } | null;
+    introVideoUrl: string | null;
+    stats: CompanyStats | null;
+    certifications: CertificationItem[] | null;
+    insurancePolicies: InsurancePolicyItem[] | null;
   } | null;
 }
 
@@ -78,6 +155,10 @@ interface EditState {
   availabilityNote: string;
   portfolio: PortfolioItem[];
   socialLinks: { website: string; linkedin: string; twitter: string };
+  introVideoUrl: string;
+  stats: CompanyStats;
+  certifications: CertificationItem[];
+  insurancePolicies: InsurancePolicyItem[];
 }
 
 const AVAILABILITY_OPTIONS: { value: 'accepting' | 'limited' | 'booked'; label: string; color: string }[] = [
@@ -96,50 +177,57 @@ const COMPANY_SIZES = [
   { value: '500+', label: '500+ employees' },
 ];
 
-// ═══════════════════════════════════════════════════════════════════
-// Helper: Verification Badge
-// ═══════════════════════════════════════════════════════════════════
+type SectionId =
+  | 'basics'
+  | 'availability'
+  | 'facts'
+  | 'track-record'
+  | 'capabilities'
+  | 'credentials'
+  | 'media'
+  | 'links';
 
-function VerificationBadge({ status }: { status: string }) {
-  if (status === 'verified') {
-    return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-bold rounded-full px-2.5 py-1 bg-emerald-50 text-emerald-600">
-        <CheckCircle2 className="h-3 w-3" /> Verified
-      </span>
-    );
-  }
-  if (status === 'under_review') {
-    return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-bold rounded-full px-2.5 py-1 bg-blue-50 text-blue-600">
-        <Clock className="h-3 w-3" /> Under Review
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 text-[11px] font-bold rounded-full px-2.5 py-1 bg-gray-100 text-gray-500">
-      <AlertCircle className="h-3 w-3" /> Not Verified
-    </span>
-  );
-}
+const SECTIONS: { id: SectionId; label: string; icon: React.ComponentType<{ className?: string }>; description: string }[] = [
+  { id: 'basics',       label: 'Basics',                  icon: Type,       description: 'Logo, name, and short description' },
+  { id: 'availability', label: 'Availability',            icon: Clock,      description: 'Let requesters know your status' },
+  { id: 'facts',        label: 'Company facts',           icon: Building2,  description: 'Size, year, reach, and languages' },
+  { id: 'track-record', label: 'Track record',            icon: BarChart3,  description: 'Numbers clients care about' },
+  { id: 'capabilities', label: 'Capabilities & portfolio', icon: Tag,       description: 'Services you offer and past work' },
+  { id: 'credentials',  label: 'Credentials',             icon: ShieldCheck, description: 'Certifications and insurance' },
+  { id: 'media',        label: 'Media',                   icon: ImageIcon,  description: 'Header image, intro video, brochure' },
+  { id: 'links',        label: 'Links',                   icon: Link2,      description: 'Website and social profiles' },
+];
 
 // ═══════════════════════════════════════════════════════════════════
 // Main Editor
 // ═══════════════════════════════════════════════════════════════════
 
 export default function CompanyProfileEditor() {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const activeCompany = useAuthStore((s) => s.activeCompany);
   const activeCompanyId = activeCompany?.id;
 
-  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+  // Active section from query param, default 'basics'
+  const initialSection: SectionId = useMemo(() => {
+    const qs = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('section') : null;
+    return (SECTIONS.find(s => s.id === qs)?.id) || 'basics';
+  }, []);
+  const [activeSection, setActiveSection] = useState<SectionId>(initialSection);
+
+  const changeSection = (id: SectionId) => {
+    setActiveSection(id);
+    const url = new URL(window.location.href);
+    url.searchParams.set('section', id);
+    window.history.replaceState({}, '', url.toString());
+  };
+
   const [tagInput, setTagInput] = useState('');
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [headerPreview, setHeaderPreview] = useState<string | null>(null);
 
-  // Image crop state
   const [cropDialog, setCropDialog] = useState<{
     open: boolean;
     imageSrc: string;
@@ -148,11 +236,8 @@ export default function CompanyProfileEditor() {
     pendingOriginal: File | null;
   }>({ open: false, imageSrc: '', aspect: 1, target: 'logo', pendingOriginal: null });
 
-  // Portfolio add form
   const [portfolioTitle, setPortfolioTitle] = useState('');
   const [portfolioDesc, setPortfolioDesc] = useState('');
-
-  // Facts section inputs
   const [serviceAreaInput, setServiceAreaInput] = useState('');
   const [industryInput, setIndustryInput] = useState('');
 
@@ -169,14 +254,23 @@ export default function CompanyProfileEditor() {
     availabilityNote: '',
     portfolio: [],
     socialLinks: { website: '', linkedin: '', twitter: '' },
+    introVideoUrl: '',
+    stats: {},
+    certifications: [],
+    insurancePolicies: [],
   });
 
-  // Track saved state for dirty detection
+  const [newCert, setNewCert] = useState<CertificationItem>({ name: '', issuer: '', expiryDate: '' });
+  const [newInsurance, setNewInsurance] = useState<InsurancePolicyItem>({ type: 'general_liability', provider: '', currency: 'SAR' });
+
+  // Dirty tracking
   const [savedState, setSavedState] = useState<string>('');
   const isDirty = useMemo(() => {
     if (!savedState) return false;
     return JSON.stringify(editState) !== savedState;
   }, [editState, savedState]);
+
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
 
   // Warn before navigating away with unsaved changes
   useEffect(() => {
@@ -190,19 +284,16 @@ export default function CompanyProfileEditor() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [isDirty]);
 
-  // Auth guard
   useEffect(() => {
     if (!user) navigate('/login');
   }, [user, navigate]);
 
-  // Fetch profile data
   const { data, isLoading } = useQuery<ProfileData>({
     queryKey: ['/api/companies', activeCompanyId, 'profile'],
     queryFn: () => apiRequest('GET', `/api/companies/${activeCompanyId}/profile`).then(r => r.json()),
     enabled: !!activeCompanyId,
   });
 
-  // Seed edit state from fetched data
   useEffect(() => {
     if (data) {
       const initial: EditState = {
@@ -222,6 +313,10 @@ export default function CompanyProfileEditor() {
           linkedin: data.profile?.socialLinks?.linkedin || '',
           twitter: data.profile?.socialLinks?.twitter || '',
         },
+        introVideoUrl: data.profile?.introVideoUrl || '',
+        stats: data.profile?.stats || {},
+        certifications: data.profile?.certifications || [],
+        insurancePolicies: data.profile?.insurancePolicies || [],
       };
       setEditState(initial);
       setSavedState(JSON.stringify(initial));
@@ -261,18 +356,37 @@ export default function CompanyProfileEditor() {
           linkedin: state.socialLinks.linkedin || undefined,
           twitter: state.socialLinks.twitter || undefined,
         },
+        introVideoUrl: state.introVideoUrl.trim() || null,
+        stats: state.stats,
+        certifications: state.certifications,
+        insurancePolicies: state.insurancePolicies,
       });
       return res.json();
     },
     onSuccess: (_result, savedEditState) => {
       queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompanyId, 'profile'] });
       setSavedState(JSON.stringify(savedEditState));
-      toast({ title: "Profile saved", description: "Your company profile has been updated." });
+      setLastSavedAt(Date.now());
     },
     onError: () => {
       toast({ title: "Save failed", description: "Could not save profile changes.", variant: "destructive" });
     },
   });
+
+  // ── Autosave (debounced) ──
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!savedState) return; // initial load hasn't happened
+    if (!isDirty) return;
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    autosaveTimerRef.current = setTimeout(() => {
+      saveMutation.mutate(editState);
+    }, 900);
+    return () => {
+      if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editState, isDirty, savedState]);
 
   const uploadLogoOriginalMutation = useMutation({
     mutationFn: (file: File) => uploadFile('/api/company/logo?kind=original', file, file.name),
@@ -325,6 +439,30 @@ export default function CompanyProfileEditor() {
     },
   });
 
+  const uploadCredentialDocMutation = useMutation({
+    mutationFn: async ({ file, target }: { file: File; target: { kind: 'cert' | 'insurance'; index: number } }): Promise<{ url: string; name: string; target: typeof target }> => {
+      const result = await uploadFile('/api/company/credential-document', file);
+      return { url: result.url, name: result.name || file.name, target };
+    },
+    onSuccess: ({ url, name, target }) => {
+      setEditState(s => {
+        if (target.kind === 'cert') {
+          const next = [...s.certifications];
+          if (next[target.index]) next[target.index] = { ...next[target.index], documentUrl: url, documentName: name };
+          return { ...s, certifications: next };
+        } else {
+          const next = [...s.insurancePolicies];
+          if (next[target.index]) next[target.index] = { ...next[target.index], documentUrl: url, documentName: name };
+          return { ...s, insurancePolicies: next };
+        }
+      });
+      toast({ title: "Document uploaded" });
+    },
+    onError: () => {
+      toast({ title: "Failed to upload document", variant: "destructive" });
+    },
+  });
+
   const uploadPortfolioImageMutation = useMutation({
     mutationFn: (file: File) => uploadFile('/api/company/portfolio-image', file),
     onSuccess: (result) => {
@@ -359,7 +497,6 @@ export default function CompanyProfileEditor() {
     return true;
   };
 
-  // ── Image crop handlers ──
   const handleFileForCrop = (file: File, target: 'logo' | 'header') => {
     if (!validateImage(file)) return;
     setCropDialog((prev) => {
@@ -408,7 +545,6 @@ export default function CompanyProfileEditor() {
     });
   }, [cropDialog.target, cropDialog.pendingOriginal, uploadLogoMutation, uploadHeaderMutation, uploadLogoOriginalMutation, uploadHeaderOriginalMutation]);
 
-  // Revoke any remaining preview URLs on unmount
   useEffect(() => {
     return () => {
       if (logoPreview) URL.revokeObjectURL(logoPreview);
@@ -417,7 +553,7 @@ export default function CompanyProfileEditor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Tag helpers ──
+  // ── Tag/list helpers ──
   const addTag = () => {
     const tag = tagInput.trim();
     if (tag && !editState.tags.includes(tag) && editState.tags.length < 15) {
@@ -425,16 +561,9 @@ export default function CompanyProfileEditor() {
       setTagInput('');
     }
   };
+  const removeTag = (index: number) => setEditState(s => ({ ...s, tags: s.tags.filter((_, i) => i !== index) }));
+  const removePortfolioItem = (index: number) => setEditState(s => ({ ...s, portfolio: s.portfolio.filter((_, i) => i !== index) }));
 
-  const removeTag = (index: number) => {
-    setEditState(s => ({ ...s, tags: s.tags.filter((_, i) => i !== index) }));
-  };
-
-  const removePortfolioItem = (index: number) => {
-    setEditState(s => ({ ...s, portfolio: s.portfolio.filter((_, i) => i !== index) }));
-  };
-
-  // ── Facts helpers ──
   const addServiceArea = () => {
     const v = serviceAreaInput.trim();
     if (v && !editState.serviceAreas.includes(v) && editState.serviceAreas.length < 20) {
@@ -453,6 +582,31 @@ export default function CompanyProfileEditor() {
   };
   const removeIndustry = (i: number) => setEditState(s => ({ ...s, industriesServed: s.industriesServed.filter((_, idx) => idx !== i) }));
 
+  const addCertification = () => {
+    const name = newCert.name.trim();
+    if (!name) return;
+    if (editState.certifications.length >= 15) return;
+    const entry: CertificationItem = { name };
+    if (newCert.issuer?.trim()) entry.issuer = newCert.issuer.trim();
+    if (newCert.expiryDate) entry.expiryDate = newCert.expiryDate;
+    setEditState(s => ({ ...s, certifications: [...s.certifications, entry] }));
+    setNewCert({ name: '', issuer: '', expiryDate: '' });
+  };
+  const removeCertification = (i: number) => setEditState(s => ({ ...s, certifications: s.certifications.filter((_, idx) => idx !== i) }));
+
+  const addInsurancePolicy = () => {
+    const provider = newInsurance.provider.trim();
+    if (!provider) return;
+    if (editState.insurancePolicies.length >= 5) return;
+    const entry: InsurancePolicyItem = { type: newInsurance.type, provider };
+    if (newInsurance.coverageAmount && newInsurance.coverageAmount > 0) entry.coverageAmount = newInsurance.coverageAmount;
+    if (newInsurance.currency) entry.currency = newInsurance.currency;
+    if (newInsurance.expiryDate) entry.expiryDate = newInsurance.expiryDate;
+    setEditState(s => ({ ...s, insurancePolicies: [...s.insurancePolicies, entry] }));
+    setNewInsurance({ type: 'general_liability', provider: '', currency: 'SAR' });
+  };
+  const removeInsurancePolicy = (i: number) => setEditState(s => ({ ...s, insurancePolicies: s.insurancePolicies.filter((_, idx) => idx !== i) }));
+
   const toggleLanguage = (lang: string) => {
     setEditState(s => ({
       ...s,
@@ -462,7 +616,7 @@ export default function CompanyProfileEditor() {
 
   if (isLoading || !data) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
       </div>
     );
@@ -474,48 +628,93 @@ export default function CompanyProfileEditor() {
   const currentBrochureUrl = data.profile?.brochureUrl;
   const displayName = editState.displayName || company.name;
   const initials = Array.from(displayName.trim()).slice(0, 2).join('').toUpperCase();
-  const hasSocialLinks = editState.socialLinks.website || editState.socialLinks.linkedin || editState.socialLinks.twitter;
-  const sizeLabel = COMPANY_SIZES.find(s => s.value === editState.companySize)?.label;
 
-  // Profile completeness — weighted by procurement impact
-  const completenessItems = [
-    { label: 'Verified', done: company.verificationStatus === 'verified', weight: 3 },
-    { label: 'Logo', done: !!currentLogoUrl, weight: 2 },
-    { label: 'Header', done: !!currentHeaderUrl, weight: 2 },
-    { label: 'Display name', done: !!editState.displayName.trim(), weight: 1 },
-    { label: 'About', done: editState.bio.trim().length >= 10, weight: 3 },
-    { label: 'Company size', done: !!editState.companySize, weight: 1 },
-    { label: 'Year founded', done: !!editState.yearFounded, weight: 2 },
-    { label: 'Industries', done: editState.industriesServed.length >= 1, weight: 3 },
-    { label: 'Service areas', done: editState.serviceAreas.length >= 1, weight: 2 },
-    { label: 'Languages', done: editState.languages.length >= 1, weight: 1 },
-    { label: 'Availability', done: !!editState.availabilityStatus, weight: 1 },
-    { label: 'Capabilities', done: editState.tags.length >= 1, weight: 3 },
-    { label: 'Portfolio', done: editState.portfolio.length >= 1, weight: 4 },
-    { label: 'Brochure', done: !!currentBrochureUrl, weight: 2 },
-    { label: 'Social links', done: !!(editState.socialLinks.website || editState.socialLinks.linkedin), weight: 1 },
-  ];
-  const completedCount = completenessItems.filter(i => i.done).length;
-  const totalWeight = completenessItems.reduce((s, i) => s + i.weight, 0);
-  const doneWeight = completenessItems.filter(i => i.done).reduce((s, i) => s + i.weight, 0);
-  const completenessPercent = Math.round((doneWeight / totalWeight) * 100);
-  const memberSinceLabel = (() => {
-    const d = new Date(company.createdAt);
-    return isNaN(d.getTime()) ? null : d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  // ── Per-section completeness ──
+  const sectionCompleteness: Record<SectionId, { done: number; total: number }> = {
+    basics: {
+      done: [!!currentLogoUrl, !!editState.displayName.trim(), editState.bio.trim().length >= 10].filter(Boolean).length,
+      total: 3,
+    },
+    availability: {
+      done: [!!editState.availabilityStatus].filter(Boolean).length,
+      total: 1,
+    },
+    facts: {
+      done: [
+        !!editState.companySize,
+        !!editState.yearFounded,
+        editState.industriesServed.length >= 1,
+        editState.serviceAreas.length >= 1,
+        editState.languages.length >= 1,
+      ].filter(Boolean).length,
+      total: 5,
+    },
+    'track-record': {
+      done: Object.values(editState.stats).filter(v => v != null && (v as number) > 0).length >= 3 ? 1 : 0,
+      total: 1,
+    },
+    capabilities: {
+      done: [editState.tags.length >= 1, editState.portfolio.length >= 1].filter(Boolean).length,
+      total: 2,
+    },
+    credentials: {
+      done: [
+        editState.certifications.some(c => getExpiryStatus(c.expiryDate) !== 'expired'),
+        editState.insurancePolicies.some(p => getExpiryStatus(p.expiryDate) !== 'expired'),
+      ].filter(Boolean).length,
+      total: 2,
+    },
+    media: {
+      done: [!!currentHeaderUrl, !!parseVideoEmbed(editState.introVideoUrl), !!currentBrochureUrl].filter(Boolean).length,
+      total: 3,
+    },
+    links: {
+      done: [!!editState.socialLinks.website || !!editState.socialLinks.linkedin].filter(Boolean).length,
+      total: 1,
+    },
+  };
+
+  const overallDone = Object.values(sectionCompleteness).reduce((s, x) => s + x.done, 0);
+  const overallTotal = Object.values(sectionCompleteness).reduce((s, x) => s + x.total, 0);
+  const completenessPercent = Math.round((overallDone / overallTotal) * 100);
+
+  const sectionStatus = (id: SectionId): 'complete' | 'partial' | 'empty' => {
+    const { done, total } = sectionCompleteness[id];
+    if (done === 0) return 'empty';
+    if (done >= total) return 'complete';
+    return 'partial';
+  };
+
+  // ── Save status indicator ──
+  const saveStatus: 'saved' | 'dirty' | 'saving' | 'error' =
+    saveMutation.isError ? 'error'
+    : saveMutation.isPending ? 'saving'
+    : isDirty ? 'dirty'
+    : 'saved';
+
+  const savedAgoLabel = (() => {
+    if (!lastSavedAt) return null;
+    const s = Math.floor((Date.now() - lastSavedAt) / 1000);
+    if (s < 5) return 'just now';
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    return 'a while ago';
   })();
-  const verifiedAtLabel = (() => {
-    if (!company.verifiedAt) return null;
-    const d = new Date(company.verifiedAt);
-    return isNaN(d.getTime()) ? null : d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-  })();
-  const yearFoundedNum = editState.yearFounded ? parseInt(editState.yearFounded, 10) : null;
-  const yearsInBusiness = yearFoundedNum && !isNaN(yearFoundedNum) ? Math.max(0, new Date().getFullYear() - yearFoundedNum) : null;
-  const hasReach = editState.serviceAreas.length > 0 || editState.languages.length > 0 || editState.industriesServed.length > 0;
+
+  const currentSectionMeta = SECTIONS.find(s => s.id === activeSection)!;
+
+  const handleBack = () => {
+    if (isDirty && !window.confirm('You have unsaved changes. Leave without saving?')) return;
+    navigate('/settings');
+  };
+
+  const openPreview = () => {
+    window.open(`/company/${company.slug}`, '_blank', 'noopener,noreferrer');
+  };
 
   return (
-    <div className="h-screen flex flex-col bg-white overflow-hidden">
-
-      {/* Image Crop Dialog */}
+    <>
       <ImageCropDialog
         open={cropDialog.open}
         onClose={() => setCropDialog(s => ({ ...s, open: false }))}
@@ -526,946 +725,973 @@ export default function CompanyProfileEditor() {
         saving={uploadLogoMutation.isPending || uploadHeaderMutation.isPending}
       />
 
-      {/* ══════════════════════ TOP BAR ══════════════════════ */}
-      <div className="h-14 border-b border-gray-200 flex items-center justify-between px-4 flex-shrink-0 bg-white z-20">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => {
-              if (isDirty && !window.confirm('You have unsaved changes. Leave without saving?')) return;
-              navigate('/settings');
-            }}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back to Settings</span>
-          </button>
-          <div className="h-5 w-px bg-gray-200" />
-          <span className="text-sm font-semibold text-gray-900">Edit Company Profile</span>
-        </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+        {/* ═══════════ LEFT SUB-NAV ═══════════ */}
+        <aside className="w-72 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-800 flex flex-col flex-shrink-0">
+          {/* Brand accent strip (matches app sidebar) */}
+          <div className="h-0.5 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]" />
 
-        <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+          <div className="p-4 border-b border-gray-100 dark:border-gray-800">
             <button
-              onClick={() => setPreviewMode('desktop')}
-              aria-label="Desktop preview"
-              aria-pressed={previewMode === 'desktop'}
-              className={`p-1.5 rounded-md transition-colors ${previewMode === 'desktop' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+              onClick={handleBack}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors mb-3"
             >
-              <Monitor className="h-4 w-4" />
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to Settings
             </button>
-            <button
-              onClick={() => setPreviewMode('mobile')}
-              aria-label="Mobile preview"
-              aria-pressed={previewMode === 'mobile'}
-              className={`p-1.5 rounded-md transition-colors ${previewMode === 'mobile' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
-            >
-              <Smartphone className="h-4 w-4" />
-            </button>
+            <h2 className="text-sm font-semibold text-foreground">Edit Company Profile</h2>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">{company.name}</p>
           </div>
 
-          <a
-            href={`/company/${company.slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:text-gray-900 border border-gray-200 hover:border-gray-300 transition-colors"
-          >
-            <Eye className="h-3.5 w-3.5" />
-            View Live
-          </a>
-
-          <Button
-            onClick={() => saveMutation.mutate(editState)}
-            disabled={saveMutation.isPending || !isDirty}
-            size="sm"
-            className="h-8 relative"
-          >
-            {saveMutation.isPending
-              ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Saving</>
-              : isDirty
-                ? <><Save className="h-3.5 w-3.5 mr-1.5" />Save Changes</>
-                : <><CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />Saved</>
-            }
-            {isDirty && (
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white" />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* ══════════════════════ MAIN: EDITOR + PREVIEW ══════════════════════ */}
-      <div className="flex-1 flex overflow-hidden">
-
-        {/* ── LEFT: Editor Panel ── */}
-        <ScrollArea className="w-[360px] flex-shrink-0 border-r border-gray-200 bg-gray-50">
-          <div className="p-5 space-y-7">
-
-            {/* ─── Profile Completeness ─── */}
-            <section className="bg-white rounded-xl border border-gray-200 p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-gray-700">Profile completeness</span>
-                <span className={`text-xs font-bold ${completenessPercent === 100 ? 'text-emerald-600' : 'text-gray-500'}`}>
-                  {completedCount}/{completenessItems.length}
-                </span>
-              </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    completenessPercent === 100
-                      ? 'bg-emerald-500'
-                      : completenessPercent >= 70
-                        ? 'bg-blue-500'
-                        : completenessPercent >= 40
-                          ? 'bg-amber-500'
-                          : 'bg-gray-300'
-                  }`}
-                  style={{ width: `${completenessPercent}%` }}
-                />
-              </div>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {completenessItems.map((item) => (
-                  <span
-                    key={item.label}
-                    className={`text-[10px] font-medium rounded-full px-2 py-0.5 transition-colors ${
-                      item.done
-                        ? 'bg-emerald-50 text-emerald-600'
-                        : 'bg-gray-50 text-gray-400'
-                    }`}
-                  >
-                    {item.done ? '✓' : '○'} {item.label}
-                  </span>
-                ))}
-              </div>
-            </section>
-
-            {/* ─── Logo ─── */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Image className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Logo</h3>
-              </div>
-              <div className="flex items-center gap-3">
-                {currentLogoUrl ? (
-                  <img src={currentLogoUrl} alt="Logo" className="w-14 h-14 rounded-xl object-cover border border-gray-200" />
-                ) : (
-                  <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-400">
-                    {initials}
-                  </div>
-                )}
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    {currentLogoUrl && (
-                      <button
-                        type="button"
-                        onClick={() => handleEditExisting('logo')}
-                        disabled={uploadLogoMutation.isPending}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-white transition-colors disabled:opacity-50"
-                      >
-                        <Image className="h-3 w-3" />
-                        Edit
-                      </button>
-                    )}
-                    <label className="cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleFileForCrop(file, 'logo');
-                          e.target.value = '';
-                        }}
-                      />
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-white transition-colors">
-                        <Upload className="h-3 w-3" />
-                        {uploadLogoMutation.isPending ? 'Uploading...' : currentLogoUrl ? 'Replace' : 'Upload Logo'}
-                      </span>
-                    </label>
-                  </div>
-                  <p className="text-[10px] text-gray-400 mt-1">Square crop, PNG or JPG</p>
-                </div>
-              </div>
-            </section>
-
-            {/* ─── Header Image ─── */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Image className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Header Image</h3>
-              </div>
-              {(currentHeaderUrl) ? (
-                <div className="relative rounded-lg overflow-hidden border border-gray-200 group">
-                  <img src={currentHeaderUrl} alt="Header" className="w-full h-20 object-cover" />
-                  <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      type="button"
-                      onClick={() => handleEditExisting('header')}
-                      disabled={uploadHeaderMutation.isPending}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white border border-white/50 hover:bg-white/10 transition-colors disabled:opacity-50"
-                    >
-                      <Image className="h-3 w-3" />
-                      Edit
-                    </button>
-                    <label className="cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleFileForCrop(file, 'header');
-                          e.target.value = '';
-                        }}
-                      />
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white border border-white/50 hover:bg-white/10 transition-colors">
-                        <Upload className="h-3 w-3" />
-                        {uploadHeaderMutation.isPending ? 'Uploading...' : 'Replace'}
-                      </span>
-                    </label>
-                  </div>
-                </div>
-              ) : (
-                <label className="cursor-pointer block">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFileForCrop(file, 'header');
-                      e.target.value = '';
-                    }}
-                  />
-                  <div className="flex items-center justify-center gap-2 px-3 py-3 rounded-lg border border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors">
-                    <Upload className="h-4 w-4 text-gray-400" />
-                    <span className="text-xs text-gray-500">
-                      {uploadHeaderMutation.isPending ? 'Uploading...' : 'Upload header image'}
-                    </span>
-                  </div>
-                </label>
-              )}
-              <p className="text-[10px] text-gray-400 mt-1.5">Wide crop (3:1 ratio)</p>
-            </section>
-
-            {/* ─── Display Name ─── */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Type className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Display Name</h3>
-              </div>
-              <Input
-                value={editState.displayName}
-                onChange={(e) => setEditState(s => ({ ...s, displayName: e.target.value }))}
-                placeholder="Your company name"
-                className="text-sm h-9"
-                maxLength={100}
+          {/* Completeness */}
+          <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Profile strength</span>
+              <span className="text-xs font-bold text-[#E8614D]">{completenessPercent}%</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[#E8614D] to-[#F19A8F] transition-all duration-700 ease-out"
+                style={{ width: `${completenessPercent}%` }}
               />
-            </section>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-2">
+              {overallDone} of {overallTotal} fields complete
+            </p>
+          </div>
 
-            {/* ─── Bio ─── */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Type className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">About</h3>
-              </div>
-              <Textarea
-                value={editState.bio}
-                onChange={(e) => setEditState(s => ({ ...s, bio: e.target.value }))}
-                placeholder="Tell potential clients about your company..."
-                className="text-sm resize-none"
-                rows={4}
-                maxLength={500}
-              />
-              <p className="text-[10px] text-gray-400 mt-1 text-right">{editState.bio.length}/500</p>
-            </section>
-
-            {/* ─── Company Size ─── */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Users className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Company Size</h3>
-              </div>
-              <Select
-                value={editState.companySize}
-                onValueChange={(v) => setEditState(s => ({ ...s, companySize: v }))}
-              >
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue placeholder="Select company size" />
-                </SelectTrigger>
-                <SelectContent>
-                  {COMPANY_SIZES.map(s => (
-                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </section>
-
-            {/* ─── Company Facts ─── */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Building2 className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Company Facts</h3>
-              </div>
-
-              {/* Year founded */}
-              <div className="mb-4">
-                <Label className="text-xs text-gray-500 mb-1.5 block">Year founded</Label>
-                <Input
-                  type="number"
-                  inputMode="numeric"
-                  min={1800}
-                  max={new Date().getFullYear()}
-                  value={editState.yearFounded}
-                  onChange={(e) => setEditState(s => ({ ...s, yearFounded: e.target.value }))}
-                  placeholder="e.g. 2015"
-                  className="text-sm h-9"
-                />
-              </div>
-
-              {/* Industries served */}
-              <div className="mb-4">
-                <Label className="text-xs text-gray-500 mb-1.5 block">Industries served</Label>
-                <div className="flex gap-2 mb-2">
-                  <Input
-                    value={industryInput}
-                    onChange={(e) => setIndustryInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addIndustry(); } }}
-                    placeholder="e.g. Healthcare, Fintech, Retail..."
-                    className="text-sm h-9 flex-1"
-                    maxLength={40}
-                  />
-                  <Button type="button" variant="outline" size="sm" onClick={addIndustry}
-                    disabled={!industryInput.trim() || editState.industriesServed.length >= 15}
-                    className="h-9 px-3">
-                    <Plus className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-                {editState.industriesServed.length > 0 && (
-                  <div className="flex gap-1.5 flex-wrap">
-                    {editState.industriesServed.map((ind, i) => (
-                      <span key={i} className="inline-flex items-center gap-1 text-xs font-medium rounded-full px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-100">
-                        {ind}
-                        <button onClick={() => removeIndustry(i)} aria-label={`Remove ${ind}`} className="hover:text-red-500 transition-colors"><X className="h-3 w-3" /></button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <p className="text-[10px] text-gray-400 mt-1.5">{editState.industriesServed.length}/15 industries</p>
-              </div>
-
-              {/* Service areas */}
-              <div className="mb-4">
-                <Label className="text-xs text-gray-500 mb-1.5 block">Service areas</Label>
-                <div className="flex gap-2 mb-2">
-                  <Input
-                    value={serviceAreaInput}
-                    onChange={(e) => setServiceAreaInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addServiceArea(); } }}
-                    placeholder="e.g. Riyadh, Jeddah, GCC-wide..."
-                    className="text-sm h-9 flex-1"
-                    maxLength={40}
-                  />
-                  <Button type="button" variant="outline" size="sm" onClick={addServiceArea}
-                    disabled={!serviceAreaInput.trim() || editState.serviceAreas.length >= 20}
-                    className="h-9 px-3">
-                    <Plus className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-                {editState.serviceAreas.length > 0 && (
-                  <div className="flex gap-1.5 flex-wrap">
-                    {editState.serviceAreas.map((area, i) => (
-                      <span key={i} className="inline-flex items-center gap-1 text-xs font-medium rounded-full px-2.5 py-1 bg-gray-100 text-gray-700">
-                        <MapPin className="h-3 w-3 text-gray-400" />
-                        {area}
-                        <button onClick={() => removeServiceArea(i)} aria-label={`Remove ${area}`} className="hover:text-red-500 transition-colors"><X className="h-3 w-3" /></button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <p className="text-[10px] text-gray-400 mt-1.5">{editState.serviceAreas.length}/20 areas</p>
-              </div>
-
-              {/* Languages */}
-              <div>
-                <Label className="text-xs text-gray-500 mb-1.5 block">Languages</Label>
-                <div className="flex gap-1.5 flex-wrap">
-                  {COMMON_LANGUAGES.map((lang) => {
-                    const active = editState.languages.includes(lang);
-                    return (
-                      <button
-                        key={lang}
-                        type="button"
-                        onClick={() => toggleLanguage(lang)}
-                        className={`text-xs font-medium rounded-full px-3 py-1 border transition-colors ${
-                          active
-                            ? 'bg-gray-900 text-white border-gray-900'
-                            : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        {lang}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </section>
-
-            {/* ─── Availability ─── */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Clock className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Availability</h3>
-              </div>
-              <p className="text-[10px] text-gray-400 mb-3">Let requesters know if you can take on new work</p>
-
-              <div className="grid grid-cols-3 gap-1.5 mb-3">
-                {AVAILABILITY_OPTIONS.map((opt) => {
-                  const active = editState.availabilityStatus === opt.value;
-                  const activeClasses =
-                    opt.color === 'emerald' ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                    : opt.color === 'amber' ? 'bg-amber-50 border-amber-300 text-amber-700'
-                    : 'bg-gray-100 border-gray-300 text-gray-700';
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setEditState(s => ({ ...s, availabilityStatus: active ? null : opt.value }))}
-                      className={`text-[11px] font-semibold rounded-lg px-2 py-2 border transition-colors ${
-                        active ? activeClasses : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <Input
-                value={editState.availabilityNote}
-                onChange={(e) => setEditState(s => ({ ...s, availabilityNote: e.target.value }))}
-                placeholder="Optional note, e.g. 'Available from May 2026'"
-                className="text-sm h-9"
-                maxLength={200}
-                disabled={!editState.availabilityStatus}
-              />
-              {editState.availabilityStatus && (
-                <p className="text-[10px] text-gray-400 mt-1 text-right">{editState.availabilityNote.length}/200</p>
-              )}
-            </section>
-
-            {/* ─── Tags / Capabilities ─── */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Tag className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Capabilities</h3>
-              </div>
-              <div className="flex gap-2 mb-2">
-                <Input
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
-                  placeholder="Add a capability..."
-                  className="text-sm h-9 flex-1"
-                  maxLength={40}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addTag}
-                  disabled={!tagInput.trim() || editState.tags.length >= 15}
-                  className="h-9 px-3"
+          {/* Section nav */}
+          <nav className="flex-1 p-2 overflow-y-auto">
+            {SECTIONS.map((s) => {
+              const Icon = s.icon;
+              const active = activeSection === s.id;
+              const status = sectionStatus(s.id);
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => changeSection(s.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-left mb-0.5",
+                    active
+                      ? "bg-[#E8614D]/10 text-[#E8614D]"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                  )}
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Icon className={cn("h-4 w-4 flex-shrink-0", active ? "text-[#E8614D]" : "text-gray-400")} />
+                  <span className="text-sm font-medium flex-1 truncate">{s.label}</span>
+                  <span
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full flex-shrink-0",
+                      status === 'complete' ? "bg-emerald-500"
+                        : status === 'partial' ? "bg-amber-400"
+                          : "bg-gray-300 dark:bg-gray-600"
+                    )}
+                    aria-label={`${s.label} ${status}`}
+                  />
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+
+        {/* ═══════════ MAIN ═══════════ */}
+        <main className="flex-1 flex flex-col min-w-0">
+          {/* Sticky header */}
+          <div className="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-800">
+            <div className="max-w-3xl mx-auto px-8 py-5 flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Profile / Edit</p>
+                <h1 className="text-2xl font-bold text-foreground mt-0.5">{currentSectionMeta.label}</h1>
+                <p className="text-sm text-muted-foreground mt-1">{currentSectionMeta.description}</p>
+              </div>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <SaveStatus status={saveStatus} savedAgoLabel={savedAgoLabel} />
+                <Button variant="outline" size="sm" onClick={openPreview} className="h-9">
+                  <Eye className="h-3.5 w-3.5 mr-1.5" />
+                  Preview
                 </Button>
               </div>
-              {editState.tags.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap">
-                  {editState.tags.map((tag, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 text-xs font-medium rounded-full px-2.5 py-1 bg-gray-100 text-gray-700">
-                      {tag}
-                      <button onClick={() => removeTag(i)} aria-label={`Remove ${tag}`} className="hover:text-red-500 transition-colors"><X className="h-3 w-3" /></button>
-                    </span>
-                  ))}
-                </div>
-              )}
-              <p className="text-[10px] text-gray-400 mt-1.5">{editState.tags.length}/15 capabilities</p>
-            </section>
-
-            {/* ─── Portfolio / Past Work ─── */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <ImagePlus className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Portfolio</h3>
-              </div>
-              <p className="text-[10px] text-gray-400 mb-3">Showcase past projects to build credibility</p>
-
-              {/* Existing items */}
-              {editState.portfolio.length > 0 && (
-                <div className="space-y-2 mb-3">
-                  {editState.portfolio.map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 p-2 bg-white rounded-lg border border-gray-200">
-                      <img src={item.imageUrl} alt={item.title} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-gray-800 truncate">{item.title}</p>
-                        {item.description && <p className="text-[10px] text-gray-400 truncate">{item.description}</p>}
-                      </div>
-                      <button onClick={() => removePortfolioItem(i)} aria-label={`Remove ${item.title}`} className="text-gray-300 hover:text-red-500 transition-colors flex-shrink-0">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Add new item */}
-              {editState.portfolio.length < 8 && (
-                <div className="space-y-2 p-3 bg-white rounded-lg border border-gray-200">
-                  <Input
-                    value={portfolioTitle}
-                    onChange={(e) => setPortfolioTitle(e.target.value)}
-                    placeholder="Project name"
-                    className="text-xs h-8"
-                    maxLength={60}
-                  />
-                  <Input
-                    value={portfolioDesc}
-                    onChange={(e) => setPortfolioDesc(e.target.value)}
-                    placeholder="Short description (optional)"
-                    className="text-xs h-8"
-                    maxLength={120}
-                  />
-                  <label className={`block ${portfolioTitle.trim() ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      disabled={!portfolioTitle.trim()}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file && validateImage(file)) uploadPortfolioImageMutation.mutate(file);
-                        e.target.value = '';
-                      }}
-                    />
-                    <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors">
-                      <Upload className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-xs text-gray-500">
-                        {uploadPortfolioImageMutation.isPending
-                          ? 'Uploading...'
-                          : portfolioTitle.trim()
-                            ? 'Upload project image'
-                            : 'Enter a project name first'}
-                      </span>
-                    </div>
-                  </label>
-                </div>
-              )}
-              <p className="text-[10px] text-gray-400 mt-1.5">{editState.portfolio.length}/8 projects</p>
-            </section>
-
-            {/* ─── Company Brochure ─── */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <FileText className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Company Brochure</h3>
-              </div>
-              {currentBrochureUrl && (
-                <div className="flex items-center gap-2 mb-2 p-2 bg-white rounded-lg border border-gray-200">
-                  <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                  <span className="text-xs text-gray-600 truncate flex-1">Brochure uploaded</span>
-                  <a href={currentBrochureUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex-shrink-0">View</a>
-                </div>
-              )}
-              <label className="cursor-pointer block">
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const okType = /\.(pdf|jpe?g|png)$/i.test(file.name);
-                      if (!okType) {
-                        toast({ title: "Invalid file", description: "Brochure must be PDF, JPG, or PNG.", variant: "destructive" });
-                      } else if (file.size > MAX_BROCHURE_BYTES) {
-                        toast({ title: "File too large", description: "Brochure must be under 10MB.", variant: "destructive" });
-                      } else {
-                        uploadBrochureMutation.mutate(file);
-                      }
-                    }
-                    e.target.value = '';
-                  }}
-                />
-                <div className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors">
-                  <Upload className="h-4 w-4 text-gray-400" />
-                  <span className="text-xs text-gray-500">
-                    {uploadBrochureMutation.isPending ? 'Uploading...' : (currentBrochureUrl ? 'Replace brochure' : 'Upload brochure')}
-                  </span>
-                </div>
-              </label>
-              <p className="text-[10px] text-gray-400 mt-1.5">PDF, JPG, or PNG (max 10MB)</p>
-            </section>
-
-            {/* ─── Social Links ─── */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Link2 className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Social Links</h3>
-              </div>
-              <div className="space-y-3">
-                <div>
-                  <Label className="text-xs text-gray-500 mb-1.5 block flex items-center gap-1.5"><Globe className="h-3 w-3" /> Website</Label>
-                  <Input value={editState.socialLinks.website} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, website: e.target.value } }))} placeholder="https://yourcompany.com" className="text-sm h-9" />
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-500 mb-1.5 block flex items-center gap-1.5"><Linkedin className="h-3 w-3" /> LinkedIn</Label>
-                  <Input value={editState.socialLinks.linkedin} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, linkedin: e.target.value } }))} placeholder="https://linkedin.com/company/..." className="text-sm h-9" />
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-500 mb-1.5 block flex items-center gap-1.5"><Twitter className="h-3 w-3" /> X / Twitter</Label>
-                  <Input value={editState.socialLinks.twitter} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, twitter: e.target.value } }))} placeholder="https://x.com/..." className="text-sm h-9" />
-                </div>
-              </div>
-            </section>
-
-          </div>
-        </ScrollArea>
-
-        {/* ── RIGHT: Live Preview ── */}
-        <div className="flex-1 bg-[#e8e8e8] flex items-start justify-center p-6 overflow-auto">
-          <div
-            className={`bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${
-              previewMode === 'mobile' ? 'w-[390px]' : 'w-full max-w-[1024px]'
-            }`}
-            style={{ minHeight: '600px' }}
-          >
-
-            {/* Preview: Header */}
-            <div className="relative overflow-hidden bg-gray-50">
-              {currentHeaderUrl ? (
-                <div className="w-full relative">
-                  <img src={currentHeaderUrl} alt="" className="w-full h-auto block" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 max-w-[860px] mx-auto px-6 pb-4">
-                    <div className="flex items-end gap-3">
-                      {currentLogoUrl ? (
-                        <img src={currentLogoUrl} alt="" className="w-14 h-14 rounded-xl object-cover border-2 border-white/80 shadow-lg flex-shrink-0 bg-white" />
-                      ) : (
-                        <div className="w-14 h-14 rounded-xl border-2 border-white/80 shadow-lg flex-shrink-0 bg-white flex items-center justify-center text-lg font-extrabold text-gray-400">{initials}</div>
-                      )}
-                      <div>
-                        <h1 className="text-base font-extrabold text-white tracking-[-0.02em] drop-shadow">{displayName}</h1>
-                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          <VerificationBadge status={company.verificationStatus} />
-                          {company.category && (
-                            <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium"><Briefcase className="h-3 w-3" />{company.category}</span>
-                          )}
-                          {company.city && (
-                            <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium"><MapPin className="h-3 w-3" />{company.city}</span>
-                          )}
-                          {sizeLabel && (
-                            <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium"><Users className="h-3 w-3" />{sizeLabel}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-44 md:h-52 w-full relative" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 max-w-[860px] mx-auto px-6 pb-4">
-                    <div className="flex items-end gap-3">
-                      {currentLogoUrl ? (
-                        <img src={currentLogoUrl} alt="" className="w-14 h-14 rounded-xl object-cover border-2 border-white/80 shadow-lg flex-shrink-0 bg-white" />
-                      ) : (
-                        <div className="w-14 h-14 rounded-xl border-2 border-white/80 shadow-lg flex-shrink-0 bg-white flex items-center justify-center text-lg font-extrabold text-gray-400">{initials}</div>
-                      )}
-                      <div>
-                        <h1 className="text-base font-extrabold text-white tracking-[-0.02em] drop-shadow">{displayName}</h1>
-                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          <VerificationBadge status={company.verificationStatus} />
-                          {company.category && (
-                            <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium"><Briefcase className="h-3 w-3" />{company.category}</span>
-                          )}
-                          {company.city && (
-                            <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium"><MapPin className="h-3 w-3" />{company.city}</span>
-                          )}
-                          {sizeLabel && (
-                            <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium"><Users className="h-3 w-3" />{sizeLabel}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
             </div>
+          </div>
 
-            {/* Preview: Content */}
-            <div className="bg-gray-50">
-              <div className="max-w-[860px] mx-auto px-5 py-6">
-                <div className={`grid gap-5 items-start ${previewMode === 'mobile' ? 'grid-cols-1' : 'grid-cols-[1fr_260px]'}`}>
+          {/* Section content */}
+          <div className="flex-1 overflow-auto">
+            <div className="max-w-3xl mx-auto px-8 py-8 pb-20 space-y-6">
 
-                  <div className="space-y-4">
-                    {/* Availability */}
-                    {editState.availabilityStatus && (
-                      <div className={`rounded-2xl px-4 py-3 flex items-center gap-2.5 border ${
-                        editState.availabilityStatus === 'accepting'
-                          ? 'bg-emerald-50/60 border-emerald-200'
-                          : editState.availabilityStatus === 'limited'
-                            ? 'bg-amber-50/60 border-amber-200'
-                            : 'bg-gray-50 border-gray-200'
-                      }`}>
-                        <span className={`inline-flex rounded-full h-2 w-2 flex-shrink-0 ${
-                          editState.availabilityStatus === 'accepting' ? 'bg-emerald-500'
-                          : editState.availabilityStatus === 'limited' ? 'bg-amber-500'
-                          : 'bg-gray-400'
-                        }`} />
-                        <div className="min-w-0 flex-1">
-                          <p className={`text-[11px] font-bold ${
-                            editState.availabilityStatus === 'accepting' ? 'text-emerald-800'
-                            : editState.availabilityStatus === 'limited' ? 'text-amber-800'
-                            : 'text-gray-700'
-                          }`}>
-                            {editState.availabilityStatus === 'accepting' ? 'Accepting new projects'
-                              : editState.availabilityStatus === 'limited' ? 'Limited capacity'
-                              : 'Currently booked'}
-                          </p>
-                          {editState.availabilityNote && (
-                            <p className={`text-[10px] mt-0.5 ${
-                              editState.availabilityStatus === 'accepting' ? 'text-emerald-700/80'
-                              : editState.availabilityStatus === 'limited' ? 'text-amber-700/80'
-                              : 'text-gray-500'
-                            }`}>{editState.availabilityNote}</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Facts strip */}
-                    {(yearFoundedNum || sizeLabel || company.city || company.category) && (
-                      <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-wrap gap-x-6 gap-y-2">
-                        {yearFoundedNum && (
-                          <div>
-                            <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Founded</p>
-                            <p className="text-xs font-bold text-gray-800">
-                              {yearFoundedNum}
-                              {yearsInBusiness !== null && yearsInBusiness > 0 && (
-                                <span className="text-[10px] font-medium text-gray-400 ml-1">· {yearsInBusiness} yr{yearsInBusiness === 1 ? '' : 's'}</span>
-                              )}
-                            </p>
+              {/* ═════ BASICS ═════ */}
+              {activeSection === 'basics' && (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                        Logo
+                      </CardTitle>
+                      <CardDescription>Square crop, PNG or JPG. Shown in search results and on your public profile.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-4">
+                        {currentLogoUrl ? (
+                          <img src={currentLogoUrl} alt="Logo" className="w-20 h-20 rounded-xl object-cover border border-gray-200 dark:border-gray-700" />
+                        ) : (
+                          <div className="w-20 h-20 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-lg font-bold text-gray-400">
+                            {initials}
                           </div>
                         )}
-                        {sizeLabel && (
-                          <div>
-                            <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Team</p>
-                            <p className="text-xs font-bold text-gray-800">{sizeLabel}</p>
-                          </div>
-                        )}
-                        {company.city && (
-                          <div>
-                            <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">HQ</p>
-                            <p className="text-xs font-bold text-gray-800">{company.city}</p>
-                          </div>
-                        )}
-                        {company.category && (
-                          <div>
-                            <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Category</p>
-                            <p className="text-xs font-bold text-gray-800">{company.category}</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Verified Credentials */}
-                    {company.verifiedDocuments && company.verifiedDocuments.length > 0 && (
-                      <div className="bg-emerald-50/40 rounded-2xl border border-emerald-100 p-5">
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                          <div className="flex items-center gap-2">
-                            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-700">Verified Credentials</p>
-                          </div>
-                          {verifiedAtLabel && (
-                            <span className="text-[9px] font-semibold text-emerald-600/70">Verified {verifiedAtLabel}</span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-emerald-700/80 mb-2 leading-relaxed">
-                          Bid has reviewed and verified the following official documents.
-                        </p>
-                        <div className="flex gap-1.5 flex-wrap">
-                          {company.verifiedDocuments.map((doc) => (
-                            <span
-                              key={doc}
-                              className="inline-flex items-center gap-1 text-[10px] font-semibold rounded-full px-2 py-0.5 bg-white text-emerald-700 border border-emerald-200"
+                        <div className="flex items-center gap-2">
+                          {currentLogoUrl && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditExisting('logo')}
+                              disabled={uploadLogoMutation.isPending}
                             >
-                              <CheckCircle2 className="h-2.5 w-2.5" />
-                              {doc}
-                            </span>
+                              <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
+                              Edit crop
+                            </Button>
+                          )}
+                          <label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleFileForCrop(file, 'logo');
+                                e.target.value = '';
+                              }}
+                            />
+                            <Button type="button" variant="outline" size="sm" asChild>
+                              <span className="cursor-pointer">
+                                <Upload className="h-3.5 w-3.5 mr-1.5" />
+                                {uploadLogoMutation.isPending ? 'Uploading...' : currentLogoUrl ? 'Replace' : 'Upload logo'}
+                              </span>
+                            </Button>
+                          </label>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Display name</CardTitle>
+                      <CardDescription>This is the name clients will see on your public profile.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Input
+                        value={editState.displayName}
+                        onChange={(e) => setEditState(s => ({ ...s, displayName: e.target.value }))}
+                        placeholder="Your company name"
+                        maxLength={100}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">About</CardTitle>
+                      <CardDescription>A short pitch for potential clients. Aim for 2–4 sentences.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Textarea
+                        value={editState.bio}
+                        onChange={(e) => setEditState(s => ({ ...s, bio: e.target.value }))}
+                        placeholder="Tell potential clients what you do, who you serve, and what makes you different..."
+                        className="resize-none"
+                        rows={5}
+                        maxLength={500}
+                      />
+                      <p className="text-xs text-muted-foreground mt-2 text-right">{editState.bio.length}/500</p>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+
+              {/* ═════ AVAILABILITY ═════ */}
+              {activeSection === 'availability' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Current availability</CardTitle>
+                    <CardDescription>Clients filter by this. Keep it up to date so you don't miss opportunities.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-3 gap-2">
+                      {AVAILABILITY_OPTIONS.map((opt) => {
+                        const active = editState.availabilityStatus === opt.value;
+                        const activeClasses =
+                          opt.color === 'emerald' ? 'bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-950 dark:border-emerald-700 dark:text-emerald-300'
+                          : opt.color === 'amber' ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950 dark:border-amber-700 dark:text-amber-300'
+                          : 'bg-gray-100 border-gray-400 text-gray-800 dark:bg-gray-700 dark:border-gray-500 dark:text-gray-200';
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => setEditState(s => ({ ...s, availabilityStatus: active ? null : opt.value }))}
+                            className={cn(
+                              "text-sm font-semibold rounded-lg px-3 py-3 border-2 transition-colors",
+                              active ? activeClasses : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300'
+                            )}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div>
+                      <Label className="text-sm mb-1.5 block">Note (optional)</Label>
+                      <Input
+                        value={editState.availabilityNote}
+                        onChange={(e) => setEditState(s => ({ ...s, availabilityNote: e.target.value }))}
+                        placeholder="e.g. Available from May 2026, or booked until Q3"
+                        maxLength={200}
+                        disabled={!editState.availabilityStatus}
+                      />
+                      {editState.availabilityStatus && (
+                        <p className="text-xs text-muted-foreground mt-1 text-right">{editState.availabilityNote.length}/200</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* ═════ FACTS ═════ */}
+              {activeSection === 'facts' && (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Company size</CardTitle>
+                      <CardDescription>How big is your team?</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Select
+                        value={editState.companySize}
+                        onValueChange={(v) => setEditState(s => ({ ...s, companySize: v }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select company size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COMPANY_SIZES.map(s => (
+                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Year founded</CardTitle>
+                      <CardDescription>Used to calculate years in business on your profile.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min={1800}
+                        max={new Date().getFullYear()}
+                        value={editState.yearFounded}
+                        onChange={(e) => setEditState(s => ({ ...s, yearFounded: e.target.value }))}
+                        placeholder="e.g. 2015"
+                      />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Industries served</CardTitle>
+                      <CardDescription>Which verticals do you work with?</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex gap-2 mb-3">
+                        <Input
+                          value={industryInput}
+                          onChange={(e) => setIndustryInput(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addIndustry(); } }}
+                          placeholder="e.g. Healthcare, Fintech, Retail..."
+                          className="flex-1"
+                          maxLength={40}
+                        />
+                        <Button type="button" variant="outline" onClick={addIndustry}
+                          disabled={!industryInput.trim() || editState.industriesServed.length >= 15}>
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {editState.industriesServed.length > 0 && (
+                        <div className="flex gap-1.5 flex-wrap">
+                          {editState.industriesServed.map((ind, i) => (
+                            <Badge key={i} variant="secondary" className="gap-1 pl-2.5">
+                              {ind}
+                              <button onClick={() => removeIndustry(i)} aria-label={`Remove ${ind}`} className="ml-0.5 hover:text-red-500"><X className="h-3 w-3" /></button>
+                            </Badge>
                           ))}
                         </div>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-2">{editState.industriesServed.length}/15</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Service areas</CardTitle>
+                      <CardDescription>Cities, regions, or countries you operate in.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex gap-2 mb-3">
+                        <Input
+                          value={serviceAreaInput}
+                          onChange={(e) => setServiceAreaInput(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addServiceArea(); } }}
+                          placeholder="e.g. Riyadh, Jeddah, GCC-wide..."
+                          className="flex-1"
+                          maxLength={40}
+                        />
+                        <Button type="button" variant="outline" onClick={addServiceArea}
+                          disabled={!serviceAreaInput.trim() || editState.serviceAreas.length >= 20}>
+                          <Plus className="h-4 w-4" />
+                        </Button>
                       </div>
-                    )}
+                      {editState.serviceAreas.length > 0 && (
+                        <div className="flex gap-1.5 flex-wrap">
+                          {editState.serviceAreas.map((area, i) => (
+                            <Badge key={i} variant="secondary" className="gap-1 pl-2">
+                              <MapPin className="h-3 w-3" />
+                              {area}
+                              <button onClick={() => removeServiceArea(i)} aria-label={`Remove ${area}`} className="ml-0.5 hover:text-red-500"><X className="h-3 w-3" /></button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-2">{editState.serviceAreas.length}/20</p>
+                    </CardContent>
+                  </Card>
 
-                    {/* About */}
-                    <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-2">About</p>
-                      <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                        {editState.bio || "This company hasn't added a description yet."}
-                      </p>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Languages</CardTitle>
+                      <CardDescription>Languages your team can work in.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {COMMON_LANGUAGES.map((lang) => {
+                          const active = editState.languages.includes(lang);
+                          return (
+                            <button
+                              key={lang}
+                              type="button"
+                              onClick={() => toggleLanguage(lang)}
+                              className={cn(
+                                "text-sm font-medium rounded-full px-4 py-1.5 border transition-colors",
+                                active
+                                  ? 'bg-[#E8614D] text-white border-[#E8614D]'
+                                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                              )}
+                            >
+                              {lang}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+
+              {/* ═════ TRACK RECORD ═════ */}
+              {activeSection === 'track-record' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">The numbers</CardTitle>
+                    <CardDescription>These go on your public profile as headline stats. Leave any blank to hide them.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4">
+                      {STAT_FIELDS.map(({ key, label, suffix, max }) => (
+                        <div key={key}>
+                          <Label className="text-sm mb-1.5 block">{label}{suffix ? ` (${suffix})` : ''}</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={max}
+                            value={editState.stats[key] ?? ''}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              setEditState(s => {
+                                const next = { ...s.stats };
+                                if (raw === '') {
+                                  delete next[key];
+                                } else {
+                                  const n = Math.floor(Number(raw));
+                                  if (Number.isFinite(n) && n >= 0 && n <= max) next[key] = n;
+                                }
+                                return { ...s, stats: next };
+                              });
+                            }}
+                            placeholder="—"
+                          />
+                        </div>
+                      ))}
                     </div>
+                  </CardContent>
+                </Card>
+              )}
 
-                    {/* Tags */}
-                    {editState.tags.length > 0 && (
-                      <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-2">Capabilities</p>
+              {/* ═════ CAPABILITIES & PORTFOLIO ═════ */}
+              {activeSection === 'capabilities' && (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Capabilities</CardTitle>
+                      <CardDescription>Specific skills and services you offer. Used for matching and search.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex gap-2 mb-3">
+                        <Input
+                          value={tagInput}
+                          onChange={(e) => setTagInput(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+                          placeholder="Add a capability..."
+                          className="flex-1"
+                          maxLength={40}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={addTag}
+                          disabled={!tagInput.trim() || editState.tags.length >= 15}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {editState.tags.length > 0 && (
                         <div className="flex gap-1.5 flex-wrap">
                           {editState.tags.map((tag, i) => (
-                            <span key={i} className="text-xs font-semibold rounded-full px-2.5 py-0.5 bg-gray-50 text-gray-700 border border-gray-100">{tag}</span>
+                            <Badge key={i} variant="secondary" className="gap-1 pl-2.5">
+                              {tag}
+                              <button onClick={() => removeTag(i)} aria-label={`Remove ${tag}`} className="ml-0.5 hover:text-red-500"><X className="h-3 w-3" /></button>
+                            </Badge>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      )}
+                      <p className="text-xs text-muted-foreground mt-2">{editState.tags.length}/15 capabilities</p>
+                    </CardContent>
+                  </Card>
 
-                    {/* Markets & Reach */}
-                    {hasReach && (
-                      <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-3">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300">Markets & Reach</p>
-                        {editState.industriesServed.length > 0 && (
-                          <div>
-                            <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Industries served</p>
-                            <div className="flex gap-1.5 flex-wrap">
-                              {editState.industriesServed.map((ind, i) => (
-                                <span key={i} className="text-[11px] font-semibold rounded-full px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-100">{ind}</span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        {editState.serviceAreas.length > 0 && (
-                          <div>
-                            <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Service areas</p>
-                            <div className="flex gap-1.5 flex-wrap">
-                              {editState.serviceAreas.map((area, i) => (
-                                <span key={i} className="inline-flex items-center gap-1 text-[11px] font-semibold rounded-full px-2.5 py-0.5 bg-gray-50 text-gray-700 border border-gray-100">
-                                  <MapPin className="h-2.5 w-2.5 text-gray-400" />
-                                  {area}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        {editState.languages.length > 0 && (
-                          <div>
-                            <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Languages</p>
-                            <div className="flex gap-1.5 flex-wrap">
-                              {editState.languages.map((lang, i) => (
-                                <span key={i} className="text-[11px] font-semibold rounded-full px-2.5 py-0.5 bg-gray-50 text-gray-700 border border-gray-100">{lang}</span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Portfolio */}
-                    {editState.portfolio.length > 0 && (
-                      <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-3">Portfolio</p>
-                        <div className={`grid gap-3 ${previewMode === 'mobile' ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <ImagePlus className="h-4 w-4 text-muted-foreground" />
+                        Portfolio
+                      </CardTitle>
+                      <CardDescription>Showcase up to 8 past projects. Clients use this to judge quality.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {editState.portfolio.length > 0 && (
+                        <div className="space-y-2">
                           {editState.portfolio.map((item, i) => (
-                            <div key={i} className="rounded-xl overflow-hidden border border-gray-100">
-                              <img src={item.imageUrl} alt={item.title} className="w-full h-32 object-cover" />
-                              <div className="p-3">
-                                <p className="text-xs font-bold text-gray-800">{item.title}</p>
-                                {item.description && <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-2">{item.description}</p>}
+                            <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                              <img src={item.imageUrl} alt={item.title} className="w-14 h-14 rounded-md object-cover flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold truncate">{item.title}</p>
+                                {item.description && <p className="text-xs text-muted-foreground truncate">{item.description}</p>}
                               </div>
+                              <Button variant="ghost" size="icon" onClick={() => removePortfolioItem(i)} aria-label={`Remove ${item.title}`} className="h-8 w-8 text-muted-foreground hover:text-red-500">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Brochure */}
-                    {currentBrochureUrl && (
-                      <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-2">Company Brochure</p>
-                        <span className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-200">
-                          <FileText className="h-3.5 w-3.5" /> View Company Profile <ExternalLink className="h-3 w-3 text-gray-400" />
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right sidebar */}
-                  <div className="space-y-4">
-                    <div className="bg-white rounded-2xl border border-gray-100 p-4">
-                      <div className="flex items-center gap-2.5 mb-3">
-                        {currentLogoUrl ? (
-                          <img src={currentLogoUrl} alt="" className="w-8 h-8 rounded-lg object-cover border border-gray-100" />
-                        ) : (
-                          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-[10px] font-bold text-gray-400">{initials}</div>
-                        )}
-                        <p className="text-xs font-bold text-gray-900 truncate">{displayName}</p>
-                      </div>
-                      <div className="space-y-2">
-                        {company.category && (
-                          <div className="flex items-center gap-2 text-[11px] text-gray-500"><Briefcase className="h-3 w-3 text-gray-400" />{company.category}</div>
-                        )}
-                        {company.city && (
-                          <div className="flex items-center gap-2 text-[11px] text-gray-500"><MapPin className="h-3 w-3 text-gray-400" />{company.city}</div>
-                        )}
-                        {sizeLabel && (
-                          <div className="flex items-center gap-2 text-[11px] text-gray-500"><Users className="h-3 w-3 text-gray-400" />{sizeLabel}</div>
-                        )}
-                        <div className="h-px bg-gray-100 my-1" />
-                        <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                          <FileText className="h-3 w-3 text-gray-400" />
-                          <span className="font-mono text-[10px]">CR {company.crNumber}</span>
+                      {editState.portfolio.length < 8 && (
+                        <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                          <Input
+                            value={portfolioTitle}
+                            onChange={(e) => setPortfolioTitle(e.target.value)}
+                            placeholder="Project name"
+                            maxLength={60}
+                          />
+                          <Input
+                            value={portfolioDesc}
+                            onChange={(e) => setPortfolioDesc(e.target.value)}
+                            placeholder="Short description (optional)"
+                            maxLength={120}
+                          />
+                          <label className={cn("block", portfolioTitle.trim() ? "cursor-pointer" : "cursor-not-allowed opacity-60")}>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={!portfolioTitle.trim()}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file && validateImage(file)) uploadPortfolioImageMutation.mutate(file);
+                                e.target.value = '';
+                              }}
+                            />
+                            <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                              <Upload className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">
+                                {uploadPortfolioImageMutation.isPending
+                                  ? 'Uploading...'
+                                  : portfolioTitle.trim()
+                                    ? 'Upload project image'
+                                    : 'Enter a project name first'}
+                              </span>
+                            </div>
+                          </label>
                         </div>
-                        {company.vatNumber && (
-                          <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                            <FileText className="h-3 w-3 text-gray-400" />
-                            <span className="font-mono text-[10px]">VAT {company.vatNumber}</span>
+                      )}
+                      <p className="text-xs text-muted-foreground">{editState.portfolio.length}/8 projects</p>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+
+              {/* ═════ CREDENTIALS ═════ */}
+              {activeSection === 'credentials' && (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Award className="h-4 w-4 text-muted-foreground" />
+                        Certifications
+                      </CardTitle>
+                      <CardDescription>ISO, industry, or trade certifications. Attach the document for a verified badge.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {editState.certifications.length > 0 && (
+                        <div className="space-y-2">
+                          {editState.certifications.map((cert, i) => {
+                            const status = getExpiryStatus(cert.expiryDate);
+                            return (
+                              <div key={i} className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 space-y-2">
+                                <div className="flex items-start gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold truncate">{cert.name}</p>
+                                    {cert.issuer && <p className="text-xs text-muted-foreground truncate">{cert.issuer}</p>}
+                                  </div>
+                                  <Button variant="ghost" size="icon" onClick={() => removeCertification(i)} aria-label={`Remove ${cert.name}`} className="h-7 w-7 text-muted-foreground hover:text-red-500">
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {cert.documentUrl ? (
+                                    <a href={cert.documentUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-full px-2.5 py-1 hover:bg-emerald-100 transition-colors">
+                                      <ShieldCheck className="h-3 w-3" /> Document on file
+                                    </a>
+                                  ) : (
+                                    <label className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full px-2.5 py-1 cursor-pointer hover:bg-gray-100 transition-colors">
+                                      <Paperclip className="h-3 w-3" /> {uploadCredentialDocMutation.isPending ? 'Uploading…' : 'Attach document'}
+                                      <input
+                                        type="file"
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) uploadCredentialDocMutation.mutate({ file, target: { kind: 'cert', index: i } });
+                                          e.target.value = '';
+                                        }}
+                                      />
+                                    </label>
+                                  )}
+                                  {status === 'active' && cert.expiryDate && (
+                                    <span className="text-xs text-muted-foreground">Expires {cert.expiryDate}</span>
+                                  )}
+                                  {status === 'expiring' && (
+                                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-full px-2 py-0.5">
+                                      <AlertTriangle className="h-3 w-3" /> Expiring {cert.expiryDate}
+                                    </span>
+                                  )}
+                                  {status === 'expired' && (
+                                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-full px-2 py-0.5">
+                                      <AlertTriangle className="h-3 w-3" /> Expired {cert.expiryDate}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {editState.certifications.length < 15 && (
+                        <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                          <Input
+                            value={newCert.name}
+                            onChange={(e) => setNewCert(c => ({ ...c, name: e.target.value }))}
+                            placeholder="e.g. ISO 9001:2015"
+                            maxLength={120}
+                          />
+                          <Input
+                            value={newCert.issuer || ''}
+                            onChange={(e) => setNewCert(c => ({ ...c, issuer: e.target.value }))}
+                            placeholder="Issuer (optional, e.g. BSI)"
+                            maxLength={120}
+                          />
+                          <div>
+                            <Label className="text-xs text-muted-foreground mb-1 block">Expiry date (optional)</Label>
+                            <Input
+                              type="date"
+                              value={newCert.expiryDate || ''}
+                              onChange={(e) => setNewCert(c => ({ ...c, expiryDate: e.target.value }))}
+                            />
                           </div>
-                        )}
-                        {memberSinceLabel && (
-                          <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                            <Clock className="h-3 w-3 text-gray-400" />
-                            <span>Member since {memberSinceLabel}</span>
+                          <Button
+                            type="button"
+                            onClick={addCertification}
+                            disabled={!newCert.name.trim()}
+                            className="w-full"
+                          >
+                            <Plus className="h-4 w-4 mr-1.5" /> Add certification
+                          </Button>
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground">{editState.certifications.length}/15</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-muted-foreground" />
+                        Insurance
+                      </CardTitle>
+                      <CardDescription>Coverage clients expect from professional service providers.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {editState.insurancePolicies.length > 0 && (
+                        <div className="space-y-2">
+                          {editState.insurancePolicies.map((pol, i) => {
+                            const status = getExpiryStatus(pol.expiryDate);
+                            return (
+                              <div key={i} className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 space-y-2">
+                                <div className="flex items-start gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold truncate">{INSURANCE_TYPE_LABELS[pol.type]}</p>
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      {pol.provider}
+                                      {pol.coverageAmount ? ` · ${pol.coverageAmount.toLocaleString()} ${pol.currency || ''}` : ''}
+                                    </p>
+                                  </div>
+                                  <Button variant="ghost" size="icon" onClick={() => removeInsurancePolicy(i)} aria-label="Remove policy" className="h-7 w-7 text-muted-foreground hover:text-red-500">
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {pol.documentUrl ? (
+                                    <a href={pol.documentUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-full px-2.5 py-1 hover:bg-emerald-100 transition-colors">
+                                      <ShieldCheck className="h-3 w-3" /> Document on file
+                                    </a>
+                                  ) : (
+                                    <label className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full px-2.5 py-1 cursor-pointer hover:bg-gray-100 transition-colors">
+                                      <Paperclip className="h-3 w-3" /> {uploadCredentialDocMutation.isPending ? 'Uploading…' : 'Attach document'}
+                                      <input
+                                        type="file"
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) uploadCredentialDocMutation.mutate({ file, target: { kind: 'insurance', index: i } });
+                                          e.target.value = '';
+                                        }}
+                                      />
+                                    </label>
+                                  )}
+                                  {status === 'active' && pol.expiryDate && (
+                                    <span className="text-xs text-muted-foreground">Expires {pol.expiryDate}</span>
+                                  )}
+                                  {status === 'expiring' && (
+                                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-full px-2 py-0.5">
+                                      <AlertTriangle className="h-3 w-3" /> Expiring {pol.expiryDate}
+                                    </span>
+                                  )}
+                                  {status === 'expired' && (
+                                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-full px-2 py-0.5">
+                                      <AlertTriangle className="h-3 w-3" /> Expired {pol.expiryDate}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {editState.insurancePolicies.length < 5 && (
+                        <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                          <Select value={newInsurance.type} onValueChange={(v) => setNewInsurance(p => ({ ...p, type: v as InsuranceType }))}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(Object.keys(INSURANCE_TYPE_LABELS) as InsuranceType[]).map(t => (
+                                <SelectItem key={t} value={t}>{INSURANCE_TYPE_LABELS[t]}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            value={newInsurance.provider}
+                            onChange={(e) => setNewInsurance(p => ({ ...p, provider: e.target.value }))}
+                            placeholder="Provider (e.g. Tawuniya)"
+                            maxLength={120}
+                          />
+                          <div className="grid grid-cols-3 gap-2">
+                            <Input
+                              type="number"
+                              min={0}
+                              value={newInsurance.coverageAmount ?? ''}
+                              onChange={(e) => setNewInsurance(p => ({ ...p, coverageAmount: e.target.value ? Number(e.target.value) : undefined }))}
+                              placeholder="Coverage"
+                              className="col-span-2"
+                            />
+                            <Select value={newInsurance.currency || 'SAR'} onValueChange={(v) => setNewInsurance(p => ({ ...p, currency: v }))}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="SAR">SAR</SelectItem>
+                                <SelectItem value="USD">USD</SelectItem>
+                                <SelectItem value="EUR">EUR</SelectItem>
+                                <SelectItem value="AED">AED</SelectItem>
+                                <SelectItem value="GBP">GBP</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
-                        )}
-                      </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground mb-1 block">Expiry date (optional)</Label>
+                            <Input
+                              type="date"
+                              value={newInsurance.expiryDate || ''}
+                              onChange={(e) => setNewInsurance(p => ({ ...p, expiryDate: e.target.value }))}
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={addInsurancePolicy}
+                            disabled={!newInsurance.provider.trim()}
+                            className="w-full"
+                          >
+                            <Plus className="h-4 w-4 mr-1.5" /> Add policy
+                          </Button>
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground">{editState.insurancePolicies.length}/5</p>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+
+              {/* ═════ MEDIA ═════ */}
+              {activeSection === 'media' && (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                        Header image
+                      </CardTitle>
+                      <CardDescription>Wide banner at the top of your public profile. 3:1 ratio works best.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {currentHeaderUrl ? (
+                        <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 group">
+                          <img src={currentHeaderUrl} alt="Header" className="w-full h-40 object-cover" />
+                          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditExisting('header')}
+                              disabled={uploadHeaderMutation.isPending}
+                              className="bg-white/10 border-white/40 text-white hover:bg-white/20 hover:text-white"
+                            >
+                              <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
+                              Edit crop
+                            </Button>
+                            <label>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleFileForCrop(file, 'header');
+                                  e.target.value = '';
+                                }}
+                              />
+                              <Button type="button" variant="outline" size="sm" asChild className="bg-white/10 border-white/40 text-white hover:bg-white/20 hover:text-white">
+                                <span className="cursor-pointer">
+                                  <Upload className="h-3.5 w-3.5 mr-1.5" />
+                                  {uploadHeaderMutation.isPending ? 'Uploading...' : 'Replace'}
+                                </span>
+                              </Button>
+                            </label>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="cursor-pointer block">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileForCrop(file, 'header');
+                              e.target.value = '';
+                            }}
+                          />
+                          <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 rounded-lg bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <Upload className="h-6 w-6 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              {uploadHeaderMutation.isPending ? 'Uploading...' : 'Upload header image'}
+                            </span>
+                          </div>
+                        </label>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Video className="h-4 w-4 text-muted-foreground" />
+                        Intro video
+                      </CardTitle>
+                      <CardDescription>A short video helps clients get a feel for your team. YouTube or Vimeo links only.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Input
+                        value={editState.introVideoUrl}
+                        onChange={(e) => setEditState(s => ({ ...s, introVideoUrl: e.target.value }))}
+                        placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+                      />
+                      {editState.introVideoUrl.trim() && !parseVideoEmbed(editState.introVideoUrl) && (
+                        <p className="text-xs text-red-500 mt-2">Must be a YouTube or Vimeo link.</p>
+                      )}
+                      {parseVideoEmbed(editState.introVideoUrl) && (
+                        <p className="text-xs text-emerald-600 mt-2">
+                          ✓ {parseVideoEmbed(editState.introVideoUrl)?.provider === 'youtube' ? 'YouTube' : 'Vimeo'} video detected
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        Company brochure
+                      </CardTitle>
+                      <CardDescription>PDF, JPG, or PNG (max 10MB). Shown as a download on your profile.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {currentBrochureUrl && (
+                        <div className="flex items-center gap-2 mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="text-sm text-muted-foreground truncate flex-1">Brochure uploaded</span>
+                          <a href={currentBrochureUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-[#E8614D] hover:underline flex-shrink-0">View</a>
+                        </div>
+                      )}
+                      <label className="cursor-pointer block">
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const okType = /\.(pdf|jpe?g|png)$/i.test(file.name);
+                              if (!okType) {
+                                toast({ title: "Invalid file", description: "Brochure must be PDF, JPG, or PNG.", variant: "destructive" });
+                              } else if (file.size > MAX_BROCHURE_BYTES) {
+                                toast({ title: "File too large", description: "Brochure must be under 10MB.", variant: "destructive" });
+                              } else {
+                                uploadBrochureMutation.mutate(file);
+                              }
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                        <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                          <Upload className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            {uploadBrochureMutation.isPending ? 'Uploading...' : (currentBrochureUrl ? 'Replace brochure' : 'Upload brochure')}
+                          </span>
+                        </div>
+                      </label>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+
+              {/* ═════ LINKS ═════ */}
+              {activeSection === 'links' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Website & social</CardTitle>
+                    <CardDescription>Where clients can learn more about you.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-muted-foreground" /> Website</Label>
+                      <Input value={editState.socialLinks.website} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, website: e.target.value } }))} placeholder="https://yourcompany.com" />
                     </div>
+                    <div>
+                      <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Linkedin className="h-3.5 w-3.5 text-muted-foreground" /> LinkedIn</Label>
+                      <Input value={editState.socialLinks.linkedin} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, linkedin: e.target.value } }))} placeholder="https://linkedin.com/company/..." />
+                    </div>
+                    <div>
+                      <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Twitter className="h-3.5 w-3.5 text-muted-foreground" /> X / Twitter</Label>
+                      <Input value={editState.socialLinks.twitter} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, twitter: e.target.value } }))} placeholder="https://x.com/..." />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-                    {hasSocialLinks && (
-                      <div className="bg-white rounded-2xl border border-gray-100 p-4">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-2">Connect</p>
-                        <div className="space-y-1.5">
-                          {editState.socialLinks.website && (
-                            <span className="flex items-center gap-2 text-[11px] font-semibold text-gray-600 px-2.5 py-1.5 rounded-lg border border-gray-100"><Globe className="h-3 w-3" /> Website</span>
-                          )}
-                          {editState.socialLinks.linkedin && (
-                            <span className="flex items-center gap-2 text-[11px] font-semibold text-gray-600 px-2.5 py-1.5 rounded-lg border border-gray-100"><Linkedin className="h-3 w-3" /> LinkedIn</span>
-                          )}
-                          {editState.socialLinks.twitter && (
-                            <span className="flex items-center gap-2 text-[11px] font-semibold text-gray-600 px-2.5 py-1.5 rounded-lg border border-gray-100"><Twitter className="h-3 w-3" /> X / Twitter</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 border-t border-gray-100 py-4 px-6">
-              <div className="max-w-[860px] mx-auto">
-                <span className="text-[10px] text-gray-300">Powered by <strong className="text-gray-400">Bid</strong></span>
-              </div>
             </div>
           </div>
-        </div>
+        </main>
       </div>
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Save status indicator
+// ═══════════════════════════════════════════════════════════════════
+
+function SaveStatus({ status, savedAgoLabel }: { status: 'saved' | 'dirty' | 'saving' | 'error'; savedAgoLabel: string | null }) {
+  if (status === 'saving') {
+    return (
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        Saving…
+      </div>
+    );
+  }
+  if (status === 'error') {
+    return (
+      <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
+        <CloudOff className="h-3.5 w-3.5" />
+        Save failed
+      </div>
+    );
+  }
+  if (status === 'dirty') {
+    return (
+      <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+        Unsaved changes
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+      <CheckCircle2 className="h-3.5 w-3.5" />
+      {savedAgoLabel ? `Saved ${savedAgoLabel}` : 'All changes saved'}
     </div>
   );
 }

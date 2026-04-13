@@ -4,8 +4,73 @@ import { apiRequest } from "@/lib/queryClient";
 import {
   Building2, MapPin, Briefcase, ShieldCheck, Globe, Linkedin, Twitter,
   FileText, ArrowLeft, AlertCircle, Clock, CheckCircle2, ExternalLink, Users,
+  Award, Shield,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+
+interface CompanyStats {
+  yearsInBusiness?: number;
+  projectsCompleted?: number;
+  clientsServed?: number;
+  repeatClientPct?: number;
+  citiesCovered?: number;
+  teamSize?: number;
+}
+
+const STAT_FIELDS: { key: keyof CompanyStats; label: string; suffix?: string }[] = [
+  { key: 'yearsInBusiness', label: 'Years in business' },
+  { key: 'projectsCompleted', label: 'Projects completed' },
+  { key: 'clientsServed', label: 'Clients served' },
+  { key: 'repeatClientPct', label: 'Repeat clients', suffix: '%' },
+  { key: 'citiesCovered', label: 'Cities covered' },
+  { key: 'teamSize', label: 'Team size' },
+];
+
+interface CertificationItem {
+  name: string;
+  issuer?: string;
+  expiryDate?: string;
+  documentUrl?: string;
+  documentName?: string;
+}
+
+type InsuranceType = 'general_liability' | 'professional_indemnity' | 'workers_compensation' | 'public_liability' | 'cyber' | 'other';
+
+interface InsurancePolicyItem {
+  type: InsuranceType;
+  provider: string;
+  coverageAmount?: number;
+  currency?: string;
+  expiryDate?: string;
+  documentUrl?: string;
+  documentName?: string;
+}
+
+const INSURANCE_TYPE_LABELS: Record<InsuranceType, string> = {
+  general_liability: 'General liability',
+  professional_indemnity: 'Professional indemnity',
+  workers_compensation: 'Workers compensation',
+  public_liability: 'Public liability',
+  cyber: 'Cyber liability',
+  other: 'Other',
+};
+
+function isExpired(expiryDate?: string): boolean {
+  if (!expiryDate) return false;
+  const exp = new Date(expiryDate);
+  if (isNaN(exp.getTime())) return false;
+  return exp.getTime() < Date.now();
+}
+
+function parseVideoEmbed(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  const yt = trimmed.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/i);
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+  const vimeo = trimmed.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
+  return null;
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // Types
@@ -43,6 +108,10 @@ interface CompanyProfileData {
     availabilityNote: string | null;
     portfolio: { title: string; description?: string; imageUrl: string }[];
     socialLinks: { website?: string; linkedin?: string; twitter?: string } | null;
+    introVideoUrl: string | null;
+    stats: CompanyStats | null;
+    certifications: CertificationItem[] | null;
+    insurancePolicies: InsurancePolicyItem[] | null;
   } | null;
 }
 
@@ -162,6 +231,15 @@ export default function CompanyProfilePage() {
   const yearsInBusiness = yearFounded ? Math.max(0, new Date().getFullYear() - yearFounded) : null;
   const hasReach = serviceAreas.length > 0 || languages.length > 0 || industriesServed.length > 0;
   const hasFactsStrip = yearFounded || sizeLabel || company.city;
+  const stats = profile?.stats || {};
+  const visibleStats = STAT_FIELDS.filter(f => {
+    const v = stats[f.key];
+    return v != null && (v as number) > 0;
+  });
+  const videoEmbed = parseVideoEmbed(profile?.introVideoUrl);
+  const visibleCertifications = (profile?.certifications || []).filter(c => !isExpired(c.expiryDate));
+  const visibleInsurance = (profile?.insurancePolicies || []).filter(p => !isExpired(p.expiryDate));
+  const hasStructuredCredentials = visibleCertifications.length > 0 || visibleInsurance.length > 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -319,6 +397,27 @@ export default function CompanyProfilePage() {
         </div>
       )}
 
+      {/* ══════════════════════ TRACK RECORD ══════════════════════ */}
+      {visibleStats.length > 0 && (
+        <div className="max-w-[900px] mx-auto px-6 pt-6">
+          <div className="bg-white rounded-2xl border border-gray-100 px-6 py-5">
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-4">
+              Track Record
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
+              {visibleStats.map(({ key, label, suffix }) => (
+                <div key={key}>
+                  <p className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-[-0.02em]">
+                    {(stats[key] as number).toLocaleString()}{suffix || ''}
+                  </p>
+                  <p className="text-[11px] font-medium text-gray-400 mt-0.5">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ══════════════════════ MAIN CONTENT ══════════════════════ */}
       <div className="max-w-[900px] mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-6 items-start">
@@ -368,6 +467,24 @@ export default function CompanyProfilePage() {
                 {profile?.bio || "This company hasn't added a description yet."}
               </p>
             </div>
+
+            {/* Intro Video */}
+            {videoEmbed && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-4">
+                  Intro Video
+                </h2>
+                <div className="relative w-full rounded-xl overflow-hidden bg-black" style={{ paddingTop: '56.25%' }}>
+                  <iframe
+                    src={videoEmbed}
+                    title="Company intro video"
+                    className="absolute inset-0 w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Capabilities / Tags */}
             {hasTags && (
@@ -434,8 +551,92 @@ export default function CompanyProfilePage() {
               </div>
             )}
 
-            {/* Certifications */}
-            {hasCertifications && (
+            {/* Structured Credentials (certifications + insurance) */}
+            {hasStructuredCredentials && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300">
+                  Credentials
+                </h2>
+
+                {visibleCertifications.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Award className="h-3.5 w-3.5 text-emerald-600" />
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Certifications</p>
+                    </div>
+                    <div className="space-y-2">
+                      {visibleCertifications.map((cert, i) => (
+                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-emerald-100 bg-emerald-50/40">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gray-800">{cert.name}</p>
+                            <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                              {cert.issuer && (
+                                <span className="text-[11px] text-gray-500">Issued by {cert.issuer}</span>
+                              )}
+                              {cert.expiryDate && (
+                                <span className="text-[11px] text-gray-400">· Valid until {cert.expiryDate}</span>
+                              )}
+                            </div>
+                          </div>
+                          {cert.documentUrl && (
+                            <a
+                              href={cert.documentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-white border border-emerald-200 rounded-full px-2 py-1 hover:bg-emerald-50 transition-colors flex-shrink-0"
+                            >
+                              <ShieldCheck className="h-3 w-3" /> Document
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {visibleInsurance.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Shield className="h-3.5 w-3.5 text-blue-600" />
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700">Insurance</p>
+                    </div>
+                    <div className="space-y-2">
+                      {visibleInsurance.map((pol, i) => (
+                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-blue-100 bg-blue-50/40">
+                          <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gray-800">{INSURANCE_TYPE_LABELS[pol.type]}</p>
+                            <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                              <span className="text-[11px] text-gray-500">{pol.provider}</span>
+                              {pol.coverageAmount && (
+                                <span className="text-[11px] text-gray-400">· {pol.coverageAmount.toLocaleString()} {pol.currency || ''}</span>
+                              )}
+                              {pol.expiryDate && (
+                                <span className="text-[11px] text-gray-400">· Valid until {pol.expiryDate}</span>
+                              )}
+                            </div>
+                          </div>
+                          {pol.documentUrl && (
+                            <a
+                              href={pol.documentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-white border border-blue-200 rounded-full px-2 py-1 hover:bg-blue-50 transition-colors flex-shrink-0"
+                            >
+                              <ShieldCheck className="h-3 w-3" /> Document
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Certifications (legacy plain list — only shown if no structured credentials exist) */}
+            {!hasStructuredCredentials && hasCertifications && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-3">
                   Certifications

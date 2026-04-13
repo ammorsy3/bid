@@ -896,12 +896,62 @@ export default function CompanyProfileEditor() {
             {/* Preview: Header */}
             <div className="relative overflow-hidden bg-gray-50">
               {currentHeaderUrl ? (
-                <div className="h-44 md:h-52 w-full">
+                <div className="h-44 md:h-52 w-full relative">
                   <img src={currentHeaderUrl} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 max-w-[860px] mx-auto px-6 pb-4">
+                    <div className="flex items-end gap-3">
+                      {currentLogoUrl ? (
+                        <img src={currentLogoUrl} alt="" className="w-14 h-14 rounded-xl object-cover border-2 border-white/80 shadow-lg flex-shrink-0 bg-white" />
+                      ) : (
+                        <div className="w-14 h-14 rounded-xl border-2 border-white/80 shadow-lg flex-shrink-0 bg-white flex items-center justify-center text-lg font-extrabold text-gray-400">{initials}</div>
+                      )}
+                      <div>
+                        <h1 className="text-base font-extrabold text-white tracking-[-0.02em] drop-shadow">{displayName}</h1>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          <VerificationBadge status={company.verificationStatus} />
+                          {company.category && (
+                            <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium"><Briefcase className="h-3 w-3" />{company.category}</span>
+                          )}
+                          {company.city && (
+                            <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium"><MapPin className="h-3 w-3" />{company.city}</span>
+                          )}
+                          {sizeLabel && (
+                            <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium"><Users className="h-3 w-3" />{sizeLabel}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : (
-                <div className="h-44 md:h-52 w-full" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }} />
+                <div className="h-44 md:h-52 w-full relative" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 max-w-[860px] mx-auto px-6 pb-4">
+                    <div className="flex items-end gap-3">
+                      {currentLogoUrl ? (
+                        <img src={currentLogoUrl} alt="" className="w-14 h-14 rounded-xl object-cover border-2 border-white/80 shadow-lg flex-shrink-0 bg-white" />
+                      ) : (
+                        <div className="w-14 h-14 rounded-xl border-2 border-white/80 shadow-lg flex-shrink-0 bg-white flex items-center justify-center text-lg font-extrabold text-gray-400">{initials}</div>
+                      )}
+                      <div>
+                        <h1 className="text-base font-extrabold text-white tracking-[-0.02em] drop-shadow">{displayName}</h1>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          <VerificationBadge status={company.verificationStatus} />
+                          {company.category && (
+                            <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium"><Briefcase className="h-3 w-3" />{company.category}</span>
+                          )}
+                          {company.city && (
+                            <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium"><MapPin className="h-3 w-3" />{company.city}</span>
+                          )}
+                          {sizeLabel && (
+                            <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium"><Users className="h-3 w-3" />{sizeLabel}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
 
             </div>

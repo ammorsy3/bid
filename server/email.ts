@@ -1170,6 +1170,51 @@ export async function sendVerificationOTP(params: {
 }
 
 // =============================================================================
+// PASSWORD RESET EMAIL
+// =============================================================================
+
+export async function sendPasswordResetEmail(params: {
+  email: string;
+  resetToken: string;
+  recipientName?: string;
+  appBaseUrl?: string;
+  language?: Lang;
+}): Promise<boolean> {
+  const { email, resetToken, recipientName, appBaseUrl, language = 'en' } = params;
+  const isAr = language === 'ar';
+  const baseUrl = getBaseUrl(appBaseUrl);
+  const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+
+  const subject = isAr ? "إعادة تعيين كلمة مرور بِد" : "Reset your Bid password";
+
+  const html = buildEmailHtml({
+    iconEmoji: "&#128272;",
+    iconBg: "#FFF7ED",
+    headline: isAr ? "إعادة تعيين كلمة المرور" : "Reset your password",
+    subheadline: isAr
+      ? "انقر على الزر أدناه لتعيين كلمة مرور جديدة"
+      : "Click the button below to set a new password",
+    recipientName,
+    bodyText: isAr
+      ? `طلبت إعادة تعيين كلمة مرور حسابك على منصة بِد. انقر على الزر أدناه لمتابعة العملية. <p style="color:#71717a;font-size:13px;margin-top:16px;">هذا الرابط صالح لمدة ساعة واحدة فقط. إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذا البريد بأمان.</p>`
+      : `You requested a password reset for your Bid account. Click the button below to continue. <p style="color:#71717a;font-size:13px;margin-top:16px;">This link is valid for 1 hour. If you didn't request a password reset, you can safely ignore this email.</p>`,
+    ctaLabel: isAr ? "إعادة تعيين كلمة المرور" : "Reset Password",
+    ctaUrl: resetUrl,
+    ctaColor: "#E25E45",
+    reasonText: isAr
+      ? "لقد تلقيت هذا البريد لأنه تم طلب إعادة تعيين كلمة المرور لحسابك."
+      : "You received this email because a password reset was requested for your account.",
+    language,
+  });
+
+  const sent = await sendAuthEmail(email, subject, html);
+  if (!sent) {
+    throw new Error("Failed to send password reset email");
+  }
+  return true;
+}
+
+// =============================================================================
 // TEAM INVITATION EMAIL
 // =============================================================================
 

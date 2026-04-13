@@ -31,6 +31,10 @@ export const users = pgTable("users", {
   emailVerificationCode: text("email_verification_code"),
   emailVerificationExpiry: timestamp("email_verification_expiry"),
 
+  // Password reset
+  passwordResetToken: text("password_reset_token"),
+  passwordResetExpiry: timestamp("password_reset_expiry"),
+
   // OTP security: rate limiting & lockout
   otpVerified: boolean("otp_verified").default(false).notNull(),
   otpFailedAttempts: integer("otp_failed_attempts").default(0).notNull(),
@@ -73,6 +77,7 @@ export const companies = pgTable("companies", {
   
   // Status & State
   verificationStatus: text("verification_status").notNull().default("not_verified"), // 'not_verified', 'under_review', 'verified', 'rejected'
+  verifiedAt: timestamp("verified_at"),
   onboardingState: text("onboarding_state").notNull().default("draft"), // 'draft', 'completed'
   rejectionReason: text("rejection_reason"),
   
@@ -95,6 +100,12 @@ export const companyProfiles = pgTable("company_profiles", {
   
   // Company Details
   companySize: text("company_size"), // '1-10', '11-50', '51-200', '201-500', '500+'
+  yearFounded: integer("year_founded"),
+  serviceAreas: jsonb("service_areas").$type<string[]>().default([]),
+  languages: jsonb("languages").$type<string[]>().default([]),
+  industriesServed: jsonb("industries_served").$type<string[]>().default([]),
+  availabilityStatus: text("availability_status"), // 'accepting' | 'limited' | 'booked' | null
+  availabilityNote: text("availability_note"),
 
   // Media
   logoUrl: text("logo_url"),

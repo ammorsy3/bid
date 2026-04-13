@@ -33,6 +33,7 @@ import {
   sendJoinRequestDecisionNotification,
   sendVerificationOTP,
   sendTeamInviteEmail,
+  sendPasswordResetEmail,
 } from "./email";
 
 // Configure multer for file uploads (memory storage)
@@ -799,6 +800,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Login error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Forgot password — send reset email
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const user = await storage.getUserByEmail(email.toLowerCase().trim());
+
+      // Always respond 200 to prevent email enumeration
+      if (!user) {
+        return res.json({ message: "If an account exists, a reset email has been sent." });
+      }
+
+      // Generate secure token
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      await storage.updateUser(user.id, {
+        passwordResetToken: token,
+        passwordResetExpiry: expiry,
+      } as any);
+
+      const domains = process.env.REPLIT_DOMAINS;
+      const appBaseUrl = domains ? `https://${domains.split(',')[0]}` : 'https://bidapp.sa';
+
+      try {
+        await sendPasswordResetEmail({
+          email: user.email,
+          resetToken: token,
+          recipientName: user.name,
+          appBaseUrl,
+          language: (user.language as 'en' | 'ar') || 'en',
+        });
+      } catch (emailErr) {
+        console.error('[Email] Failed to send password reset email:', emailErr);
+      }
+
+      res.json({ message: "If an account exists, a reset email has been sent." });
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Reset password — validate token and set new password
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, password } = req.body;
+      if (!token || !password) {
+        return res.status(400).json({ message: "Token and new password are required" });
+      }
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+
+      // Find user by reset token
+      const user = await storage.getUserByPasswordResetToken(token);
+      if (!user) {
+        return res.status(400).json({ message: "Invalid or expired reset link" });
+      }
+      if (!user.passwordResetExpiry || new Date() > new Date(user.passwordResetExpiry)) {
+        return res.status(400).json({ message: "This reset link has expired. Please request a new one." });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await storage.updateUser(user.id, {
+        password: hashedPassword,
+        passwordResetToken: null,
+        passwordResetExpiry: null,
+      } as any);
+
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      console.error('Reset password error:', error);
       res.status(500).json({ message: "Server error" });
     }
   });
@@ -1761,6 +1842,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const profile = await storage.getCompanyProfile(company.id);
 
+      const documents = (company.documents || {}) as Record<string, string | undefined>;
+      const verifiedDocuments = company.verificationStatus === 'verified'
+        ? ([
+            'Commercial Registration',
+            documents.vatCertificate ? 'VAT Certificate' : null,
+            documents.gosiCertificate ? 'GOSI Certificate' : null,
+            documents.nationalAddressCertificate ? 'National Address' : null,
+          ].filter(Boolean) as string[])
+        : [];
+
       res.json({
         company: {
           id: company.id,
@@ -1771,6 +1862,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           city: company.city,
           verificationStatus: company.verificationStatus,
           certifications: company.certifications || [],
+          crNumber: company.crNumber,
+          vatNumber: company.vatNumber,
+          createdAt: company.createdAt,
+          verifiedAt: company.verifiedAt,
+          verifiedDocuments,
         },
         profile: profile || null
       });
@@ -1792,6 +1888,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const profile = await storage.getCompanyProfile(companyId);
 
+      const documents = (company.documents || {}) as Record<string, string | undefined>;
+      const verifiedDocuments = company.verificationStatus === 'verified'
+        ? ([
+            'Commercial Registration',
+            documents.vatCertificate ? 'VAT Certificate' : null,
+            documents.gosiCertificate ? 'GOSI Certificate' : null,
+            documents.nationalAddressCertificate ? 'National Address' : null,
+          ].filter(Boolean) as string[])
+        : [];
+
       res.json({
         company: {
           id: company.id,
@@ -1800,7 +1906,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           legalName: company.legalName,
           category: company.category,
           city: company.city,
-          verificationStatus: company.verificationStatus
+          verificationStatus: company.verificationStatus,
+          certifications: company.certifications || [],
+          crNumber: company.crNumber,
+          vatNumber: company.vatNumber,
+          createdAt: company.createdAt,
+          verifiedAt: company.verifiedAt,
+          verifiedDocuments,
         },
         profile: profile || null
       });
@@ -1823,7 +1935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Access denied" });
         }
 
-        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio } = req.body;
+        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio, yearFounded, serviceAreas, languages, industriesServed, availabilityStatus, availabilityNote } = req.body;
 
         // Get current company
         const company = await storage.getCompany(companyId);
@@ -1867,6 +1979,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Reset verification if legal identity changed
         if (legalFieldsChanged && company.verificationStatus === 'verified') {
           companyUpdates.verificationStatus = 'under_review';
+          companyUpdates.verifiedAt = null;
           
           // Log event for verification reset
           await storage.logProductEvent({
@@ -1895,6 +2008,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (tags !== undefined) profileUpdates.tags = tags;
         if (companySize !== undefined) profileUpdates.companySize = companySize;
         if (portfolio !== undefined) profileUpdates.portfolio = portfolio;
+        if (yearFounded !== undefined) {
+          const yf = yearFounded === null || yearFounded === '' ? null : Number(yearFounded);
+          if (yf !== null && (!Number.isInteger(yf) || yf < 1800 || yf > new Date().getFullYear())) {
+            return res.status(400).json({ message: "Invalid yearFounded" });
+          }
+          profileUpdates.yearFounded = yf;
+        }
+        if (serviceAreas !== undefined) profileUpdates.serviceAreas = Array.isArray(serviceAreas) ? serviceAreas.slice(0, 20) : [];
+        if (languages !== undefined) profileUpdates.languages = Array.isArray(languages) ? languages.slice(0, 10) : [];
+        if (industriesServed !== undefined) profileUpdates.industriesServed = Array.isArray(industriesServed) ? industriesServed.slice(0, 15) : [];
+        if (availabilityStatus !== undefined) {
+          const allowed = ['accepting', 'limited', 'booked'];
+          if (availabilityStatus !== null && !allowed.includes(availabilityStatus)) {
+            return res.status(400).json({ message: "Invalid availabilityStatus" });
+          }
+          profileUpdates.availabilityStatus = availabilityStatus;
+        }
+        if (availabilityNote !== undefined) {
+          profileUpdates.availabilityNote = typeof availabilityNote === 'string' ? availabilityNote.slice(0, 200) : null;
+        }
 
         const profile = await storage.updateCompanyProfile(companyId, profileUpdates);
 

@@ -10,8 +10,9 @@ import { isMarketplaceSubdomain } from "@/lib/subdomain";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
-import { Building2, Shield, Users } from "lucide-react";
+import { Building2, Shield, Users, CheckCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { apiRequest } from "@/lib/queryClient";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -20,6 +21,11 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+const forgotSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+type ForgotForm = z.infer<typeof forgotSchema>;
+
 export default function Login() {
   const [, setLocation] = useLocation();
   const search = useSearch();
@@ -27,6 +33,22 @@ export default function Login() {
   const { toast } = useToast();
   const { t } = useI18n();
   const [rememberDevice, setRememberDevice] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+
+  const forgotForm = useForm<ForgotForm>({
+    resolver: zodResolver(forgotSchema),
+    defaultValues: { email: "" },
+  });
+
+  const onForgotSubmit = async (data: ForgotForm) => {
+    try {
+      await apiRequest("POST", "/api/auth/forgot-password", { email: data.email });
+      setForgotSent(true);
+    } catch {
+      setForgotSent(true); // still show success to prevent enumeration
+    }
+  };
 
   const urlParams = new URLSearchParams(search);
   const invitationToken = urlParams.get('token');
@@ -173,67 +195,136 @@ export default function Login() {
             <span className="text-xl font-bold text-neutral-900">Bid</span>
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-neutral-900 mb-2">Sign in to your account</h2>
-            <p className="text-neutral-500">Enter your credentials to continue.</p>
-          </div>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('auth.email')}</FormLabel>
-                    <FormControl>
-                      <Input data-testid="input-email" placeholder={t('auth.emailPlaceholder')} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('auth.password')}</FormLabel>
-                    <FormControl>
-                      <Input data-testid="input-password" type="password" placeholder={t('auth.passwordPlaceholder')} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex items-center gap-2 mt-4">
-                <Checkbox
-                  id="rememberDevice"
-                  checked={rememberDevice}
-                  onCheckedChange={(checked) => setRememberDevice(checked as boolean)}
-                  data-testid="checkbox-remember"
-                />
-                <label htmlFor="rememberDevice" className="text-sm text-neutral-600 cursor-pointer select-none">
-                  Remember this device for 7 days
-                </label>
+          {forgotMode ? (
+            <>
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-neutral-900 mb-2">{t('auth.forgotPasswordTitle')}</h2>
+                <p className="text-neutral-500">{t('auth.forgotPasswordDesc')}</p>
               </div>
 
-              <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full mt-4" disabled={isLoading}>
-                {isLoading ? t('auth.signingIn') : t('auth.signIn')}
-              </NeonButton>
-            </form>
-          </Form>
+              {forgotSent ? (
+                <div className="text-center space-y-4 py-4">
+                  <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto">
+                    <CheckCircle className="h-7 w-7 text-green-500" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">{t('auth.resetLinkSent')}</h3>
+                  <p className="text-sm text-neutral-500">{t('auth.resetLinkSentDesc')}</p>
+                  <button
+                    type="button"
+                    onClick={() => { setForgotMode(false); setForgotSent(false); }}
+                    className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                  >
+                    {t('auth.backToLogin')}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <Form {...forgotForm}>
+                    <form onSubmit={forgotForm.handleSubmit(onForgotSubmit)} className="space-y-4">
+                      <FormField
+                        control={forgotForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('auth.email')}</FormLabel>
+                            <FormControl>
+                              <Input placeholder={t('auth.emailPlaceholder')} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <NeonButton type="submit" size="lg" className="w-full mt-2" disabled={forgotForm.formState.isSubmitting}>
+                        {forgotForm.formState.isSubmitting ? t('auth.sendingResetLink') : t('auth.sendResetLink')}
+                      </NeonButton>
+                    </form>
+                  </Form>
+                  <div className="mt-5 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setForgotMode(false)}
+                      className="text-sm text-neutral-500 hover:text-neutral-800 transition-colors"
+                    >
+                      {t('auth.backToLogin')}
+                    </button>
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-neutral-900 mb-2">Sign in to your account</h2>
+                <p className="text-neutral-500">Enter your credentials to continue.</p>
+              </div>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-neutral-500">
-              {t('auth.noAccount')}{" "}
-              <Link href="/signup" className="text-primary-600 hover:text-primary-700 font-medium">
-                {t('auth.signUp')}
-              </Link>
-            </p>
-          </div>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('auth.email')}</FormLabel>
+                        <FormControl>
+                          <Input data-testid="input-email" placeholder={t('auth.emailPlaceholder')} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>{t('auth.password')}</FormLabel>
+                          <button
+                            type="button"
+                            onClick={() => setForgotMode(true)}
+                            className="text-xs text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                          >
+                            {t('auth.forgotPassword')}
+                          </button>
+                        </div>
+                        <FormControl>
+                          <Input data-testid="input-password" type="password" placeholder={t('auth.passwordPlaceholder')} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="flex items-center gap-2 mt-4">
+                    <Checkbox
+                      id="rememberDevice"
+                      checked={rememberDevice}
+                      onCheckedChange={(checked) => setRememberDevice(checked as boolean)}
+                      data-testid="checkbox-remember"
+                    />
+                    <label htmlFor="rememberDevice" className="text-sm text-neutral-600 cursor-pointer select-none">
+                      Remember this device for 7 days
+                    </label>
+                  </div>
+
+                  <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full mt-4" disabled={isLoading}>
+                    {isLoading ? t('auth.signingIn') : t('auth.signIn')}
+                  </NeonButton>
+                </form>
+              </Form>
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-neutral-500">
+                  {t('auth.noAccount')}{" "}
+                  <Link href="/signup" className="text-primary-600 hover:text-primary-700 font-medium">
+                    {t('auth.signUp')}
+                  </Link>
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

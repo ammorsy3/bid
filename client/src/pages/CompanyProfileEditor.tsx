@@ -15,7 +15,7 @@ import {
   Building2, MapPin, Briefcase, Globe, Linkedin, Twitter,
   FileText, ArrowLeft, AlertCircle, Clock, CheckCircle2, ExternalLink,
   Image, Upload, Save, Loader2, X, Plus, Monitor, Smartphone, Eye, Type, Link2,
-  Tag, Users, Trash2, ImagePlus,
+  Tag, Users, Trash2, ImagePlus, ShieldCheck,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════
@@ -38,6 +38,11 @@ interface ProfileData {
     city: string | null;
     verificationStatus: string;
     certifications: string[];
+    crNumber: string;
+    vatNumber: string | null;
+    createdAt: string;
+    verifiedAt: string | null;
+    verifiedDocuments: string[];
   };
   profile: {
     displayName: string;
@@ -49,6 +54,12 @@ interface ProfileData {
     headerOriginalUrl: string | null;
     brochureUrl: string | null;
     companySize: string | null;
+    yearFounded: number | null;
+    serviceAreas: string[] | null;
+    languages: string[] | null;
+    industriesServed: string[] | null;
+    availabilityStatus: 'accepting' | 'limited' | 'booked' | null;
+    availabilityNote: string | null;
     portfolio: PortfolioItem[];
     socialLinks: { website?: string; linkedin?: string; twitter?: string } | null;
   } | null;
@@ -59,9 +70,23 @@ interface EditState {
   bio: string;
   tags: string[];
   companySize: string;
+  yearFounded: string;
+  serviceAreas: string[];
+  languages: string[];
+  industriesServed: string[];
+  availabilityStatus: 'accepting' | 'limited' | 'booked' | null;
+  availabilityNote: string;
   portfolio: PortfolioItem[];
   socialLinks: { website: string; linkedin: string; twitter: string };
 }
+
+const AVAILABILITY_OPTIONS: { value: 'accepting' | 'limited' | 'booked'; label: string; color: string }[] = [
+  { value: 'accepting', label: 'Accepting projects', color: 'emerald' },
+  { value: 'limited', label: 'Limited capacity', color: 'amber' },
+  { value: 'booked', label: 'Currently booked', color: 'gray' },
+];
+
+const COMMON_LANGUAGES = ['Arabic', 'English', 'Urdu', 'Hindi', 'French', 'Filipino'];
 
 const COMPANY_SIZES = [
   { value: '1-10', label: '1-10 employees' },
@@ -127,11 +152,21 @@ export default function CompanyProfileEditor() {
   const [portfolioTitle, setPortfolioTitle] = useState('');
   const [portfolioDesc, setPortfolioDesc] = useState('');
 
+  // Facts section inputs
+  const [serviceAreaInput, setServiceAreaInput] = useState('');
+  const [industryInput, setIndustryInput] = useState('');
+
   const [editState, setEditState] = useState<EditState>({
     displayName: '',
     bio: '',
     tags: [],
     companySize: '',
+    yearFounded: '',
+    serviceAreas: [],
+    languages: [],
+    industriesServed: [],
+    availabilityStatus: null,
+    availabilityNote: '',
     portfolio: [],
     socialLinks: { website: '', linkedin: '', twitter: '' },
   });
@@ -175,6 +210,12 @@ export default function CompanyProfileEditor() {
         bio: data.profile?.bio || '',
         tags: data.profile?.tags || [],
         companySize: data.profile?.companySize || '',
+        yearFounded: data.profile?.yearFounded ? String(data.profile.yearFounded) : '',
+        serviceAreas: data.profile?.serviceAreas || [],
+        languages: data.profile?.languages || [],
+        industriesServed: data.profile?.industriesServed || [],
+        availabilityStatus: data.profile?.availabilityStatus || null,
+        availabilityNote: data.profile?.availabilityNote || '',
         portfolio: data.profile?.portfolio || [],
         socialLinks: {
           website: data.profile?.socialLinks?.website || '',
@@ -208,6 +249,12 @@ export default function CompanyProfileEditor() {
         bio: state.bio,
         tags: state.tags,
         companySize: state.companySize || null,
+        yearFounded: state.yearFounded ? Number(state.yearFounded) : null,
+        serviceAreas: state.serviceAreas,
+        languages: state.languages,
+        industriesServed: state.industriesServed,
+        availabilityStatus: state.availabilityStatus,
+        availabilityNote: state.availabilityNote || null,
         portfolio: state.portfolio,
         socialLinks: {
           website: state.socialLinks.website || undefined,
@@ -387,6 +434,32 @@ export default function CompanyProfileEditor() {
     setEditState(s => ({ ...s, portfolio: s.portfolio.filter((_, i) => i !== index) }));
   };
 
+  // ── Facts helpers ──
+  const addServiceArea = () => {
+    const v = serviceAreaInput.trim();
+    if (v && !editState.serviceAreas.includes(v) && editState.serviceAreas.length < 20) {
+      setEditState(s => ({ ...s, serviceAreas: [...s.serviceAreas, v] }));
+      setServiceAreaInput('');
+    }
+  };
+  const removeServiceArea = (i: number) => setEditState(s => ({ ...s, serviceAreas: s.serviceAreas.filter((_, idx) => idx !== i) }));
+
+  const addIndustry = () => {
+    const v = industryInput.trim();
+    if (v && !editState.industriesServed.includes(v) && editState.industriesServed.length < 15) {
+      setEditState(s => ({ ...s, industriesServed: [...s.industriesServed, v] }));
+      setIndustryInput('');
+    }
+  };
+  const removeIndustry = (i: number) => setEditState(s => ({ ...s, industriesServed: s.industriesServed.filter((_, idx) => idx !== i) }));
+
+  const toggleLanguage = (lang: string) => {
+    setEditState(s => ({
+      ...s,
+      languages: s.languages.includes(lang) ? s.languages.filter(l => l !== lang) : [...s.languages, lang],
+    }));
+  };
+
   if (isLoading || !data) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
@@ -404,20 +477,40 @@ export default function CompanyProfileEditor() {
   const hasSocialLinks = editState.socialLinks.website || editState.socialLinks.linkedin || editState.socialLinks.twitter;
   const sizeLabel = COMPANY_SIZES.find(s => s.value === editState.companySize)?.label;
 
-  // Profile completeness
+  // Profile completeness — weighted by procurement impact
   const completenessItems = [
-    { label: 'Logo', done: !!currentLogoUrl },
-    { label: 'Header', done: !!currentHeaderUrl },
-    { label: 'Display name', done: !!editState.displayName.trim() },
-    { label: 'About', done: editState.bio.trim().length >= 10 },
-    { label: 'Company size', done: !!editState.companySize },
-    { label: 'Capabilities', done: editState.tags.length >= 1 },
-    { label: 'Portfolio', done: editState.portfolio.length >= 1 },
-    { label: 'Brochure', done: !!currentBrochureUrl },
-    { label: 'Social links', done: !!(editState.socialLinks.website || editState.socialLinks.linkedin) },
+    { label: 'Verified', done: company.verificationStatus === 'verified', weight: 3 },
+    { label: 'Logo', done: !!currentLogoUrl, weight: 2 },
+    { label: 'Header', done: !!currentHeaderUrl, weight: 2 },
+    { label: 'Display name', done: !!editState.displayName.trim(), weight: 1 },
+    { label: 'About', done: editState.bio.trim().length >= 10, weight: 3 },
+    { label: 'Company size', done: !!editState.companySize, weight: 1 },
+    { label: 'Year founded', done: !!editState.yearFounded, weight: 2 },
+    { label: 'Industries', done: editState.industriesServed.length >= 1, weight: 3 },
+    { label: 'Service areas', done: editState.serviceAreas.length >= 1, weight: 2 },
+    { label: 'Languages', done: editState.languages.length >= 1, weight: 1 },
+    { label: 'Availability', done: !!editState.availabilityStatus, weight: 1 },
+    { label: 'Capabilities', done: editState.tags.length >= 1, weight: 3 },
+    { label: 'Portfolio', done: editState.portfolio.length >= 1, weight: 4 },
+    { label: 'Brochure', done: !!currentBrochureUrl, weight: 2 },
+    { label: 'Social links', done: !!(editState.socialLinks.website || editState.socialLinks.linkedin), weight: 1 },
   ];
   const completedCount = completenessItems.filter(i => i.done).length;
-  const completenessPercent = Math.round((completedCount / completenessItems.length) * 100);
+  const totalWeight = completenessItems.reduce((s, i) => s + i.weight, 0);
+  const doneWeight = completenessItems.filter(i => i.done).reduce((s, i) => s + i.weight, 0);
+  const completenessPercent = Math.round((doneWeight / totalWeight) * 100);
+  const memberSinceLabel = (() => {
+    const d = new Date(company.createdAt);
+    return isNaN(d.getTime()) ? null : d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  })();
+  const verifiedAtLabel = (() => {
+    if (!company.verifiedAt) return null;
+    const d = new Date(company.verifiedAt);
+    return isNaN(d.getTime()) ? null : d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  })();
+  const yearFoundedNum = editState.yearFounded ? parseInt(editState.yearFounded, 10) : null;
+  const yearsInBusiness = yearFoundedNum && !isNaN(yearFoundedNum) ? Math.max(0, new Date().getFullYear() - yearFoundedNum) : null;
+  const hasReach = editState.serviceAreas.length > 0 || editState.languages.length > 0 || editState.industriesServed.length > 0;
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
@@ -706,6 +799,159 @@ export default function CompanyProfileEditor() {
               </Select>
             </section>
 
+            {/* ─── Company Facts ─── */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 className="h-4 w-4 text-gray-400" />
+                <h3 className="text-sm font-semibold text-gray-900">Company Facts</h3>
+              </div>
+
+              {/* Year founded */}
+              <div className="mb-4">
+                <Label className="text-xs text-gray-500 mb-1.5 block">Year founded</Label>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min={1800}
+                  max={new Date().getFullYear()}
+                  value={editState.yearFounded}
+                  onChange={(e) => setEditState(s => ({ ...s, yearFounded: e.target.value }))}
+                  placeholder="e.g. 2015"
+                  className="text-sm h-9"
+                />
+              </div>
+
+              {/* Industries served */}
+              <div className="mb-4">
+                <Label className="text-xs text-gray-500 mb-1.5 block">Industries served</Label>
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    value={industryInput}
+                    onChange={(e) => setIndustryInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addIndustry(); } }}
+                    placeholder="e.g. Healthcare, Fintech, Retail..."
+                    className="text-sm h-9 flex-1"
+                    maxLength={40}
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={addIndustry}
+                    disabled={!industryInput.trim() || editState.industriesServed.length >= 15}
+                    className="h-9 px-3">
+                    <Plus className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                {editState.industriesServed.length > 0 && (
+                  <div className="flex gap-1.5 flex-wrap">
+                    {editState.industriesServed.map((ind, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 text-xs font-medium rounded-full px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-100">
+                        {ind}
+                        <button onClick={() => removeIndustry(i)} aria-label={`Remove ${ind}`} className="hover:text-red-500 transition-colors"><X className="h-3 w-3" /></button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="text-[10px] text-gray-400 mt-1.5">{editState.industriesServed.length}/15 industries</p>
+              </div>
+
+              {/* Service areas */}
+              <div className="mb-4">
+                <Label className="text-xs text-gray-500 mb-1.5 block">Service areas</Label>
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    value={serviceAreaInput}
+                    onChange={(e) => setServiceAreaInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addServiceArea(); } }}
+                    placeholder="e.g. Riyadh, Jeddah, GCC-wide..."
+                    className="text-sm h-9 flex-1"
+                    maxLength={40}
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={addServiceArea}
+                    disabled={!serviceAreaInput.trim() || editState.serviceAreas.length >= 20}
+                    className="h-9 px-3">
+                    <Plus className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                {editState.serviceAreas.length > 0 && (
+                  <div className="flex gap-1.5 flex-wrap">
+                    {editState.serviceAreas.map((area, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 text-xs font-medium rounded-full px-2.5 py-1 bg-gray-100 text-gray-700">
+                        <MapPin className="h-3 w-3 text-gray-400" />
+                        {area}
+                        <button onClick={() => removeServiceArea(i)} aria-label={`Remove ${area}`} className="hover:text-red-500 transition-colors"><X className="h-3 w-3" /></button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="text-[10px] text-gray-400 mt-1.5">{editState.serviceAreas.length}/20 areas</p>
+              </div>
+
+              {/* Languages */}
+              <div>
+                <Label className="text-xs text-gray-500 mb-1.5 block">Languages</Label>
+                <div className="flex gap-1.5 flex-wrap">
+                  {COMMON_LANGUAGES.map((lang) => {
+                    const active = editState.languages.includes(lang);
+                    return (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => toggleLanguage(lang)}
+                        className={`text-xs font-medium rounded-full px-3 py-1 border transition-colors ${
+                          active
+                            ? 'bg-gray-900 text-white border-gray-900'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        {lang}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+
+            {/* ─── Availability ─── */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <Clock className="h-4 w-4 text-gray-400" />
+                <h3 className="text-sm font-semibold text-gray-900">Availability</h3>
+              </div>
+              <p className="text-[10px] text-gray-400 mb-3">Let requesters know if you can take on new work</p>
+
+              <div className="grid grid-cols-3 gap-1.5 mb-3">
+                {AVAILABILITY_OPTIONS.map((opt) => {
+                  const active = editState.availabilityStatus === opt.value;
+                  const activeClasses =
+                    opt.color === 'emerald' ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                    : opt.color === 'amber' ? 'bg-amber-50 border-amber-300 text-amber-700'
+                    : 'bg-gray-100 border-gray-300 text-gray-700';
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setEditState(s => ({ ...s, availabilityStatus: active ? null : opt.value }))}
+                      className={`text-[11px] font-semibold rounded-lg px-2 py-2 border transition-colors ${
+                        active ? activeClasses : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <Input
+                value={editState.availabilityNote}
+                onChange={(e) => setEditState(s => ({ ...s, availabilityNote: e.target.value }))}
+                placeholder="Optional note, e.g. 'Available from May 2026'"
+                className="text-sm h-9"
+                maxLength={200}
+                disabled={!editState.availabilityStatus}
+              />
+              {editState.availabilityStatus && (
+                <p className="text-[10px] text-gray-400 mt-1 text-right">{editState.availabilityNote.length}/200</p>
+              )}
+            </section>
+
             {/* ─── Tags / Capabilities ─── */}
             <section>
               <div className="flex items-center gap-2 mb-3">
@@ -962,6 +1208,105 @@ export default function CompanyProfileEditor() {
                 <div className={`grid gap-5 items-start ${previewMode === 'mobile' ? 'grid-cols-1' : 'grid-cols-[1fr_260px]'}`}>
 
                   <div className="space-y-4">
+                    {/* Availability */}
+                    {editState.availabilityStatus && (
+                      <div className={`rounded-2xl px-4 py-3 flex items-center gap-2.5 border ${
+                        editState.availabilityStatus === 'accepting'
+                          ? 'bg-emerald-50/60 border-emerald-200'
+                          : editState.availabilityStatus === 'limited'
+                            ? 'bg-amber-50/60 border-amber-200'
+                            : 'bg-gray-50 border-gray-200'
+                      }`}>
+                        <span className={`inline-flex rounded-full h-2 w-2 flex-shrink-0 ${
+                          editState.availabilityStatus === 'accepting' ? 'bg-emerald-500'
+                          : editState.availabilityStatus === 'limited' ? 'bg-amber-500'
+                          : 'bg-gray-400'
+                        }`} />
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-[11px] font-bold ${
+                            editState.availabilityStatus === 'accepting' ? 'text-emerald-800'
+                            : editState.availabilityStatus === 'limited' ? 'text-amber-800'
+                            : 'text-gray-700'
+                          }`}>
+                            {editState.availabilityStatus === 'accepting' ? 'Accepting new projects'
+                              : editState.availabilityStatus === 'limited' ? 'Limited capacity'
+                              : 'Currently booked'}
+                          </p>
+                          {editState.availabilityNote && (
+                            <p className={`text-[10px] mt-0.5 ${
+                              editState.availabilityStatus === 'accepting' ? 'text-emerald-700/80'
+                              : editState.availabilityStatus === 'limited' ? 'text-amber-700/80'
+                              : 'text-gray-500'
+                            }`}>{editState.availabilityNote}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Facts strip */}
+                    {(yearFoundedNum || sizeLabel || company.city || company.category) && (
+                      <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-wrap gap-x-6 gap-y-2">
+                        {yearFoundedNum && (
+                          <div>
+                            <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Founded</p>
+                            <p className="text-xs font-bold text-gray-800">
+                              {yearFoundedNum}
+                              {yearsInBusiness !== null && yearsInBusiness > 0 && (
+                                <span className="text-[10px] font-medium text-gray-400 ml-1">· {yearsInBusiness} yr{yearsInBusiness === 1 ? '' : 's'}</span>
+                              )}
+                            </p>
+                          </div>
+                        )}
+                        {sizeLabel && (
+                          <div>
+                            <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Team</p>
+                            <p className="text-xs font-bold text-gray-800">{sizeLabel}</p>
+                          </div>
+                        )}
+                        {company.city && (
+                          <div>
+                            <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">HQ</p>
+                            <p className="text-xs font-bold text-gray-800">{company.city}</p>
+                          </div>
+                        )}
+                        {company.category && (
+                          <div>
+                            <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Category</p>
+                            <p className="text-xs font-bold text-gray-800">{company.category}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Verified Credentials */}
+                    {company.verifiedDocuments && company.verifiedDocuments.length > 0 && (
+                      <div className="bg-emerald-50/40 rounded-2xl border border-emerald-100 p-5">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div className="flex items-center gap-2">
+                            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-700">Verified Credentials</p>
+                          </div>
+                          {verifiedAtLabel && (
+                            <span className="text-[9px] font-semibold text-emerald-600/70">Verified {verifiedAtLabel}</span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-emerald-700/80 mb-2 leading-relaxed">
+                          Bid has reviewed and verified the following official documents.
+                        </p>
+                        <div className="flex gap-1.5 flex-wrap">
+                          {company.verifiedDocuments.map((doc) => (
+                            <span
+                              key={doc}
+                              className="inline-flex items-center gap-1 text-[10px] font-semibold rounded-full px-2 py-0.5 bg-white text-emerald-700 border border-emerald-200"
+                            >
+                              <CheckCircle2 className="h-2.5 w-2.5" />
+                              {doc}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* About */}
                     <div className="bg-white rounded-2xl border border-gray-100 p-5">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-2">About</p>
@@ -979,6 +1324,46 @@ export default function CompanyProfileEditor() {
                             <span key={i} className="text-xs font-semibold rounded-full px-2.5 py-0.5 bg-gray-50 text-gray-700 border border-gray-100">{tag}</span>
                           ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Markets & Reach */}
+                    {hasReach && (
+                      <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300">Markets & Reach</p>
+                        {editState.industriesServed.length > 0 && (
+                          <div>
+                            <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Industries served</p>
+                            <div className="flex gap-1.5 flex-wrap">
+                              {editState.industriesServed.map((ind, i) => (
+                                <span key={i} className="text-[11px] font-semibold rounded-full px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-100">{ind}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {editState.serviceAreas.length > 0 && (
+                          <div>
+                            <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Service areas</p>
+                            <div className="flex gap-1.5 flex-wrap">
+                              {editState.serviceAreas.map((area, i) => (
+                                <span key={i} className="inline-flex items-center gap-1 text-[11px] font-semibold rounded-full px-2.5 py-0.5 bg-gray-50 text-gray-700 border border-gray-100">
+                                  <MapPin className="h-2.5 w-2.5 text-gray-400" />
+                                  {area}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {editState.languages.length > 0 && (
+                          <div>
+                            <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Languages</p>
+                            <div className="flex gap-1.5 flex-wrap">
+                              {editState.languages.map((lang, i) => (
+                                <span key={i} className="text-[11px] font-semibold rounded-full px-2.5 py-0.5 bg-gray-50 text-gray-700 border border-gray-100">{lang}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -1031,6 +1416,23 @@ export default function CompanyProfileEditor() {
                         )}
                         {sizeLabel && (
                           <div className="flex items-center gap-2 text-[11px] text-gray-500"><Users className="h-3 w-3 text-gray-400" />{sizeLabel}</div>
+                        )}
+                        <div className="h-px bg-gray-100 my-1" />
+                        <div className="flex items-center gap-2 text-[11px] text-gray-500">
+                          <FileText className="h-3 w-3 text-gray-400" />
+                          <span className="font-mono text-[10px]">CR {company.crNumber}</span>
+                        </div>
+                        {company.vatNumber && (
+                          <div className="flex items-center gap-2 text-[11px] text-gray-500">
+                            <FileText className="h-3 w-3 text-gray-400" />
+                            <span className="font-mono text-[10px]">VAT {company.vatNumber}</span>
+                          </div>
+                        )}
+                        {memberSinceLabel && (
+                          <div className="flex items-center gap-2 text-[11px] text-gray-500">
+                            <Clock className="h-3 w-3 text-gray-400" />
+                            <span>Member since {memberSinceLabel}</span>
+                          </div>
                         )}
                       </div>
                     </div>

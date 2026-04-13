@@ -21,6 +21,11 @@ interface CompanyProfileData {
     city: string | null;
     verificationStatus: string;
     certifications: string[];
+    crNumber: string;
+    vatNumber: string | null;
+    createdAt: string;
+    verifiedAt: string | null;
+    verifiedDocuments: string[];
   };
   profile: {
     displayName: string;
@@ -30,6 +35,12 @@ interface CompanyProfileData {
     headerUrl: string | null;
     brochureUrl: string | null;
     companySize: string | null;
+    yearFounded: number | null;
+    serviceAreas: string[] | null;
+    languages: string[] | null;
+    industriesServed: string[] | null;
+    availabilityStatus: 'accepting' | 'limited' | 'booked' | null;
+    availabilityNote: string | null;
     portfolio: { title: string; description?: string; imageUrl: string }[];
     socialLinks: { website?: string; linkedin?: string; twitter?: string } | null;
   } | null;
@@ -46,6 +57,13 @@ const COMPANY_SIZE_LABELS: Record<string, string> = {
   '201-500': '201-500 employees',
   '500+': '500+ employees',
 };
+
+function formatMemberSince(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
 
 function VerificationBadge({ status }: { status: string }) {
   if (status === 'verified') {
@@ -135,6 +153,15 @@ export default function CompanyProfilePage() {
   const hasCertifications = company.certifications && company.certifications.length > 0;
   const hasPortfolio = profile?.portfolio && profile.portfolio.length > 0;
   const sizeLabel = profile?.companySize ? COMPANY_SIZE_LABELS[profile.companySize] : null;
+  const serviceAreas = profile?.serviceAreas || [];
+  const languages = profile?.languages || [];
+  const industriesServed = profile?.industriesServed || [];
+  const availabilityStatus = profile?.availabilityStatus || null;
+  const availabilityNote = profile?.availabilityNote || null;
+  const yearFounded = profile?.yearFounded;
+  const yearsInBusiness = yearFounded ? Math.max(0, new Date().getFullYear() - yearFounded) : null;
+  const hasReach = serviceAreas.length > 0 || languages.length > 0 || industriesServed.length > 0;
+  const hasFactsStrip = yearFounded || sizeLabel || company.city;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -213,12 +240,124 @@ export default function CompanyProfilePage() {
         </div>
       )}
 
+      {/* ══════════════════════ AVAILABILITY BADGE ══════════════════════ */}
+      {availabilityStatus && (
+        <div className="max-w-[900px] mx-auto px-6 pt-6">
+          <div className={`rounded-2xl px-5 py-3 flex items-center gap-3 border ${
+            availabilityStatus === 'accepting'
+              ? 'bg-emerald-50/60 border-emerald-200'
+              : availabilityStatus === 'limited'
+                ? 'bg-amber-50/60 border-amber-200'
+                : 'bg-gray-50 border-gray-200'
+          }`}>
+            <span className={`relative flex h-2.5 w-2.5 flex-shrink-0`}>
+              {availabilityStatus === 'accepting' && (
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              )}
+              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                availabilityStatus === 'accepting' ? 'bg-emerald-500'
+                : availabilityStatus === 'limited' ? 'bg-amber-500'
+                : 'bg-gray-400'
+              }`} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className={`text-xs font-bold ${
+                availabilityStatus === 'accepting' ? 'text-emerald-800'
+                : availabilityStatus === 'limited' ? 'text-amber-800'
+                : 'text-gray-700'
+              }`}>
+                {availabilityStatus === 'accepting' ? 'Accepting new projects'
+                  : availabilityStatus === 'limited' ? 'Limited capacity'
+                  : 'Currently booked'}
+              </p>
+              {availabilityNote && (
+                <p className={`text-[11px] mt-0.5 ${
+                  availabilityStatus === 'accepting' ? 'text-emerald-700/80'
+                  : availabilityStatus === 'limited' ? 'text-amber-700/80'
+                  : 'text-gray-500'
+                }`}>{availabilityNote}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════ FACTS STRIP ══════════════════════ */}
+      {hasFactsStrip && (
+        <div className="max-w-[900px] mx-auto px-6 pt-6">
+          <div className="bg-white rounded-2xl border border-gray-100 px-5 py-4 flex flex-wrap gap-x-8 gap-y-3">
+            {yearFounded && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Founded</p>
+                <p className="text-sm font-bold text-gray-800">
+                  {yearFounded}
+                  {yearsInBusiness !== null && yearsInBusiness > 0 && (
+                    <span className="text-[11px] font-medium text-gray-400 ml-1">· {yearsInBusiness} yr{yearsInBusiness === 1 ? '' : 's'}</span>
+                  )}
+                </p>
+              </div>
+            )}
+            {sizeLabel && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Team</p>
+                <p className="text-sm font-bold text-gray-800">{sizeLabel}</p>
+              </div>
+            )}
+            {company.city && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Headquarters</p>
+                <p className="text-sm font-bold text-gray-800">{company.city}</p>
+              </div>
+            )}
+            {company.category && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Category</p>
+                <p className="text-sm font-bold text-gray-800">{company.category}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ══════════════════════ MAIN CONTENT ══════════════════════ */}
       <div className="max-w-[900px] mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-6 items-start">
 
           {/* ── LEFT COLUMN ── */}
           <div className="space-y-6">
+
+            {/* Verified Credentials */}
+            {company.verifiedDocuments && company.verifiedDocuments.length > 0 && (
+              <div className="bg-emerald-50/40 rounded-2xl border border-emerald-100 p-6">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                    <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-700">
+                      Verified Credentials
+                    </h2>
+                  </div>
+                  {formatMemberSince(company.verifiedAt) && (
+                    <span className="text-[10px] font-semibold text-emerald-600/70">
+                      Verified {formatMemberSince(company.verifiedAt)}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-emerald-700/80 mb-3 leading-relaxed">
+                  Bid has reviewed and verified the following official documents for this company.
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {company.verifiedDocuments.map((doc) => (
+                    <span
+                      key={doc}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1 bg-white text-emerald-700 border border-emerald-200"
+                    >
+                      <CheckCircle2 className="h-3 w-3" />
+                      {doc}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* About */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
@@ -246,6 +385,52 @@ export default function CompanyProfilePage() {
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Markets & Reach */}
+            {hasReach && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300">
+                  Markets & Reach
+                </h2>
+                {industriesServed.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">Industries served</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {industriesServed.map((ind, i) => (
+                        <span key={i} className="text-xs font-semibold rounded-full px-3 py-1 bg-blue-50 text-blue-700 border border-blue-100">
+                          {ind}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {serviceAreas.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">Service areas</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {serviceAreas.map((area, i) => (
+                        <span key={i} className="inline-flex items-center gap-1 text-xs font-semibold rounded-full px-3 py-1 bg-gray-50 text-gray-700 border border-gray-100">
+                          <MapPin className="h-3 w-3 text-gray-400" />
+                          {area}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {languages.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">Languages</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {languages.map((lang, i) => (
+                        <span key={i} className="text-xs font-semibold rounded-full px-3 py-1 bg-gray-50 text-gray-700 border border-gray-100">
+                          {lang}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -353,6 +538,25 @@ export default function CompanyProfilePage() {
                   <div className="flex items-center gap-2.5 text-xs text-gray-500">
                     <Users className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                     <span>{sizeLabel}</span>
+                  </div>
+                )}
+
+                <div className="h-px bg-gray-100 my-1" />
+
+                <div className="flex items-center gap-2.5 text-xs text-gray-500">
+                  <FileText className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                  <span className="font-mono text-[11px] tracking-tight">CR {company.crNumber}</span>
+                </div>
+                {company.vatNumber && (
+                  <div className="flex items-center gap-2.5 text-xs text-gray-500">
+                    <FileText className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                    <span className="font-mono text-[11px] tracking-tight">VAT {company.vatNumber}</span>
+                  </div>
+                )}
+                {formatMemberSince(company.createdAt) && (
+                  <div className="flex items-center gap-2.5 text-xs text-gray-500">
+                    <Clock className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                    <span>Member since {formatMemberSince(company.createdAt)}</span>
                   </div>
                 )}
               </div>

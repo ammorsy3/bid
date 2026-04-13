@@ -8,6 +8,7 @@ import { useAuthStore } from "@/lib/auth";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import ResetPassword from "@/pages/reset-password";
 import CompanyOnboarding from "@/pages/CompanyOnboarding";
 import VerifyEmail from "@/pages/verify-email";
 import OnboardingChoice from "@/pages/onboarding/index";
@@ -84,6 +85,7 @@ export default function App() {
             <Route path="/" component={Landing} />
             <Route path="/login" component={Login} />
             <Route path="/signup" component={Register} />
+            <Route path="/reset-password" component={ResetPassword} />
             <Route path="/company-onboarding" component={CompanyOnboarding} />
             <Route path="/verify-email" component={VerifyEmail} />
             <Route path="/onboarding" component={OnboardingChoice} />

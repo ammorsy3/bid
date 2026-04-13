@@ -87,6 +87,7 @@ export interface IStorage {
   // ============================================================================
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByPasswordResetToken(token: string): Promise<User | undefined>;
   getCompanyByEmailDomain(domain: string): Promise<(Company) | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<InsertUser>): Promise<User>;
@@ -341,6 +342,11 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async getUserByPasswordResetToken(token: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.passwordResetToken, token));
+    return user || undefined;
+  }
+
   async getCompanyByEmailDomain(domain: string): Promise<Company | undefined> {
     const [result] = await db
       .select({ company: companies })
@@ -519,8 +525,9 @@ export class DatabaseStorage implements IStorage {
     
     await db
       .update(companies)
-      .set({ 
+      .set({
         verificationStatus: 'verified',
+        verifiedAt: new Date(),
         rejectionReason: null,
         updatedAt: new Date()
       })

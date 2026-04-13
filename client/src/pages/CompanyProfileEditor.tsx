@@ -11,14 +11,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 import {
   Building2, MapPin, Globe, Linkedin, Twitter,
   FileText, ArrowLeft, Clock, CheckCircle2,
   Image as ImageIcon, Upload, Loader2, X, Plus, Eye, Type, Link2,
   Tag, Users, Trash2, ImagePlus, ShieldCheck, Video, Award, Shield, Paperclip, AlertTriangle,
-  Cloud, CloudOff,
+  Calendar as CalendarIcon, CloudOff,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════
@@ -181,7 +184,7 @@ const SECTIONS: { id: SectionId; label: string; icon: React.ComponentType<{ clas
   { id: 'basics',       label: 'Basics',                  icon: Type,       description: 'Logo, name, and short description' },
   { id: 'availability', label: 'Availability',            icon: Clock,      description: 'Let requesters know your status' },
   { id: 'facts',        label: 'Company facts',           icon: Building2,  description: 'Size, year, reach, and languages' },
-  { id: 'capabilities', label: 'Capabilities & portfolio', icon: Tag,       description: 'Services you offer and past work' },
+  { id: 'capabilities', label: 'Services & Portfolio',    icon: Tag,       description: 'What you offer and projects you’ve delivered' },
   { id: 'credentials',  label: 'Credentials',             icon: ShieldCheck, description: 'Certifications and insurance' },
   { id: 'media',        label: 'Media',                   icon: ImageIcon,  description: 'Header image, intro video, brochure' },
   { id: 'links',        label: 'Links',                   icon: Link2,      description: 'Website and social profiles' },
@@ -1098,8 +1101,8 @@ export default function CompanyProfileEditor() {
                 <>
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">Capabilities</CardTitle>
-                      <CardDescription>Specific skills and services you offer. Used for matching and search.</CardDescription>
+                      <CardTitle className="text-base">Services</CardTitle>
+                      <CardDescription>Specific services you offer. Used for matching and search.</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex gap-2 mb-3">
@@ -1107,7 +1110,7 @@ export default function CompanyProfileEditor() {
                           value={tagInput}
                           onChange={(e) => setTagInput(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
-                          placeholder="Add a capability..."
+                          placeholder="Add a service..."
                           className="flex-1"
                           maxLength={40}
                         />
@@ -1130,7 +1133,7 @@ export default function CompanyProfileEditor() {
                           ))}
                         </div>
                       )}
-                      <p className="text-xs text-muted-foreground mt-2">{editState.tags.length}/15 capabilities</p>
+                      <p className="text-xs text-muted-foreground mt-2">{editState.tags.length}/15 services</p>
                     </CardContent>
                   </Card>
 
@@ -1288,10 +1291,9 @@ export default function CompanyProfileEditor() {
                           />
                           <div>
                             <Label className="text-xs text-muted-foreground mb-1 block">Expiry date (optional)</Label>
-                            <Input
-                              type="date"
+                            <DatePickerField
                               value={newCert.expiryDate || ''}
-                              onChange={(e) => setNewCert(c => ({ ...c, expiryDate: e.target.value }))}
+                              onChange={(v) => setNewCert(c => ({ ...c, expiryDate: v }))}
                             />
                           </div>
                           <Button
@@ -1417,10 +1419,9 @@ export default function CompanyProfileEditor() {
                           </div>
                           <div>
                             <Label className="text-xs text-muted-foreground mb-1 block">Expiry date (optional)</Label>
-                            <Input
-                              type="date"
+                            <DatePickerField
                               value={newInsurance.expiryDate || ''}
-                              onChange={(e) => setNewInsurance(p => ({ ...p, expiryDate: e.target.value }))}
+                              onChange={(v) => setNewInsurance(p => ({ ...p, expiryDate: v }))}
                             />
                           </div>
                           <Button
@@ -1617,6 +1618,50 @@ export default function CompanyProfileEditor() {
 // ═══════════════════════════════════════════════════════════════════
 // Save status indicator
 // ═══════════════════════════════════════════════════════════════════
+
+function DatePickerField({ value, onChange, placeholder = "Pick a date" }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const dateValue = value ? new Date(value) : undefined;
+  const isValid = dateValue && !isNaN(dateValue.getTime());
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          className={cn("w-full justify-start text-left font-normal", !isValid && "text-muted-foreground")}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {isValid ? format(dateValue!, "PPP") : <span>{placeholder}</span>}
+          {isValid && (
+            <span
+              role="button"
+              aria-label="Clear date"
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); onChange(''); }}
+              className="ml-auto text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={isValid ? dateValue : undefined}
+          onSelect={(d) => {
+            if (d) {
+              const yyyy = d.getFullYear();
+              const mm = String(d.getMonth() + 1).padStart(2, '0');
+              const dd = String(d.getDate()).padStart(2, '0');
+              onChange(`${yyyy}-${mm}-${dd}`);
+            }
+          }}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 function SaveStatus({ status, savedAgoLabel }: { status: 'saved' | 'dirty' | 'saving' | 'error'; savedAgoLabel: string | null }) {
   if (status === 'saving') {

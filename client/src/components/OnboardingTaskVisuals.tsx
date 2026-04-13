@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Building2, Camera, Check, Link2, Plus, Sparkles, Trophy, User } from "lucide-react";
+import { Building2, Calendar, Camera, Check, Link2, Play, Plus, Sparkles, Trophy, User } from "lucide-react";
 
 const CORAL = "#E8614D";
 
@@ -9,7 +9,7 @@ function Frame({ children }: { children: React.ReactNode }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="relative w-full h-[150px] rounded-xl bg-gradient-to-br from-[#FFF8F6] to-[#FFF1EC] dark:from-gray-900/40 dark:to-gray-900/20 border border-[#E8614D]/10 overflow-hidden flex items-center justify-center"
+      className="relative w-full h-[116px] rounded-xl bg-gradient-to-br from-[#FFF8F6] to-[#FFF1EC] dark:from-gray-900/40 dark:to-gray-900/20 border border-[#E8614D]/10 overflow-hidden flex items-center justify-center"
     >
       {children}
     </motion.div>
@@ -164,6 +164,45 @@ export function InviteVendorsVisual() {
         </motion.div>
       </div>
     </Frame>
+  );
+}
+
+/* ─── Book Demo Banner ───────────────────────────────────────── */
+export function BookDemoVisual() {
+  const days = Array.from({ length: 14 });
+  const highlightedIndex = 8;
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9, rotate: -3 }}
+      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="relative w-[78px] flex-shrink-0 pointer-events-none select-none"
+    >
+      <div className="bg-white rounded-lg border border-gray-200 shadow-md p-2">
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="h-1 w-5 rounded-full bg-gray-800" />
+          <Calendar className="h-2.5 w-2.5 text-gray-400" />
+        </div>
+        <div className="grid grid-cols-7 gap-[3px]">
+          {days.map((_, i) => (
+            <div
+              key={i}
+              className={`h-1.5 rounded-[2px] ${
+                i === highlightedIndex ? "bg-[#E8614D]" : "bg-gray-100"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+      <motion.div
+        initial={{ scale: 0, y: 6 }}
+        animate={{ scale: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.25, ease: "backOut" }}
+        className="absolute -bottom-1.5 -right-1.5 h-6 w-6 rounded-full bg-[#E8614D] shadow-md border-2 border-white flex items-center justify-center"
+      >
+        <Play className="h-2.5 w-2.5 text-white fill-white" />
+      </motion.div>
+    </motion.div>
   );
 }
 

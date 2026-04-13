@@ -7,7 +7,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
-import { Mail, ArrowRight, Loader2 } from "lucide-react";
+import { Mail, ArrowRight, Loader2, Pencil } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 export default function VerifyEmail() {
   const [, setLocation] = useLocation();
@@ -18,6 +27,9 @@ export default function VerifyEmail() {
   const [loading, setLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [otpSent, setOtpSent] = useState(false);
+  const [changeEmailOpen, setChangeEmailOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [changingEmail, setChangingEmail] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const otpSendAttempted = useRef(false);
@@ -90,6 +102,48 @@ export default function VerifyEmail() {
           variant: "destructive",
         });
       }
+    }
+  };
+
+  const handleChangeEmail = async () => {
+    const trimmed = newEmail.trim();
+    if (!trimmed) return;
+    if (trimmed.toLowerCase() === user?.email.toLowerCase()) {
+      toast({
+        title: "Same email",
+        description: "This is already your current email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setChangingEmail(true);
+    try {
+      await apiRequest('POST', '/api/auth/change-email', { email: trimmed });
+      sessionStorage.removeItem('otp_sent_by_login');
+      await checkAuth();
+      setCode(["", "", "", "", "", ""]);
+      setResendCooldown(60);
+      setChangeEmailOpen(false);
+      setNewEmail("");
+      toast({
+        title: "Email updated",
+        description: `A new verification code was sent to ${trimmed}.`,
+      });
+    } catch (error: any) {
+      let description = "Couldn't update your email. Please try again.";
+      try {
+        const raw = error?.message ?? '';
+        const jsonStr = raw.includes(': ') ? raw.slice(raw.indexOf(': ') + 2) : raw;
+        const parsed = JSON.parse(jsonStr);
+        if (parsed?.message) description = parsed.message;
+      } catch {}
+      toast({
+        title: "Couldn't change email",
+        description,
+        variant: "destructive",
+      });
+    } finally {
+      setChangingEmail(false);
     }
   };
 
@@ -200,6 +254,18 @@ export default function VerifyEmail() {
             We sent a 6-digit code to{" "}
             <span className="font-medium text-neutral-700">{user.email}</span>
           </p>
+          <button
+            type="button"
+            onClick={() => {
+              setNewEmail(user.email);
+              setChangeEmailOpen(true);
+            }}
+            className="mt-2 inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
+            data-testid="button-change-email"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            Wrong email? Change it
+          </button>
         </div>
 
         <Card>
@@ -259,6 +325,55 @@ export default function VerifyEmail() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={changeEmailOpen} onOpenChange={setChangeEmailOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change email address</DialogTitle>
+            <DialogDescription>
+              Enter the correct email address. We'll send a new verification code to it.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="new-email">New email</Label>
+            <Input
+              id="new-email"
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="you@example.com"
+              disabled={changingEmail}
+              data-testid="input-new-email"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !changingEmail) handleChangeEmail();
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setChangeEmailOpen(false)}
+              disabled={changingEmail}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleChangeEmail}
+              disabled={changingEmail || !newEmail.trim()}
+              data-testid="button-confirm-change-email"
+            >
+              {changingEmail ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update & resend code"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

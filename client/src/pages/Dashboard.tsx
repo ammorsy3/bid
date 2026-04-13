@@ -47,6 +47,7 @@ import {
   ProfilePictureVisual,
   InviteVendorsVisual,
   ReviewProposalsVisual,
+  BookDemoVisual,
 } from "@/components/OnboardingTaskVisuals";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 
@@ -786,6 +787,18 @@ export default function Dashboard() {
                 </p>
               </div>
             )}
+            {activeCompany?.slug && (
+              <button
+                type="button"
+                onClick={() => window.open(`/company/${activeCompany.slug}`, '_blank', 'noopener,noreferrer')}
+                title="View public profile"
+                aria-label="View public profile"
+                className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-[#E8614D] hover:bg-[#E8614D]/10 transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden"
+                data-testid="button-view-public-profile-sidebar"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+              </button>
+            )}
             <SidebarTrigger className={`${isRtl ? 'mr-auto' : 'ml-auto'} flex-shrink-0 group-data-[collapsible=icon]:hidden`} />
           </div>
         </SidebarHeader>
@@ -1208,7 +1221,16 @@ export default function Dashboard() {
 
               {/* Footer Actions */}
               <div className="py-2 border-t">
-                <button 
+                <button
+                  onClick={() => setLocation('/company/edit')}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                  data-testid="menu-company-profile"
+                >
+                  <Building2 className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm">Company Profile</span>
+                </button>
+
+                <button
                   onClick={() => setLocation('/settings')}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
                   data-testid="menu-settings"
@@ -1483,8 +1505,8 @@ export default function Dashboard() {
               {/* Brand top strip */}
               <div className="h-1 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]" />
 
-              <div className="p-8 sm:p-10">
-                <div className={`mb-8 ${isRtl ? 'text-right' : ''}`}>
+              <div className="px-6 sm:px-8 pt-5 pb-6 sm:pt-6 sm:pb-8">
+                <div className={`mb-4 ${isRtl ? 'text-right' : ''}`}>
                       <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('dashboard.getStartedTitle')}</h2>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('dashboard.getStartedDesc')}</p>
                     </div>
@@ -1514,7 +1536,7 @@ export default function Dashboard() {
 
                       {/* Task 1: Create Tender */}
                       <AccordionItem value="task-1" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#E8614D] bg-[#E8614D]/5 dark:bg-[#E8614D]/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasTender ? 'bg-[#E8614D] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasTender ? <Check className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
@@ -1528,9 +1550,9 @@ export default function Dashboard() {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pb-4">
-                          <div className={`flex gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`flex-1 min-w-0 space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.task1Desc')}</p>
+                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                              <p className="text-[15px] leading-relaxed text-gray-600 dark:text-gray-300">{t('dashboard.task1Desc')}</p>
                               <Button
                                 className="bg-[#E8614D] hover:bg-[#D44D3A] text-white"
                                 onClick={handleCreateTender}
@@ -1539,7 +1561,7 @@ export default function Dashboard() {
                                 {t('dashboard.task1Action')}
                               </Button>
                             </div>
-                            <div className="hidden md:block w-[220px] flex-shrink-0">
+                            <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
                               <CreateTenderVisual />
                             </div>
                           </div>
@@ -1549,7 +1571,7 @@ export default function Dashboard() {
                       {/* Task 2: Complete Company Profile (only for owners/admins) */}
                       {canManage && (
                       <AccordionItem value="task-2" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'border-[#E8614D] bg-[#E8614D]/5 dark:bg-[#E8614D]/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'bg-[#E8614D] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasCompletedProfile ? <Check className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
@@ -1563,9 +1585,9 @@ export default function Dashboard() {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pb-4">
-                          <div className={`flex gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`flex-1 space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.task2Desc')}</p>
+                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                              <p className="text-[15px] leading-relaxed text-gray-600 dark:text-gray-300">{t('dashboard.task2Desc')}</p>
                               <Button
                                 className="bg-[#E8614D] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setLocation('/company-onboarding')}
@@ -1574,7 +1596,7 @@ export default function Dashboard() {
                                 {t('dashboard.task2Action')}
                               </Button>
                             </div>
-                            <div className="hidden md:block w-[220px] flex-shrink-0">
+                            <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
                               <CompanyProfileVisual />
                             </div>
                           </div>
@@ -1584,7 +1606,7 @@ export default function Dashboard() {
 
                       {/* Task 3: Upload Profile Picture */}
                       <AccordionItem value="task-3" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasProfilePicture ? 'border-[#E8614D] bg-[#E8614D]/5 dark:bg-[#E8614D]/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasProfilePicture ? 'bg-[#E8614D] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasProfilePicture ? <Check className="h-4 w-4" /> : <Image className="h-4 w-4" />}
@@ -1602,9 +1624,9 @@ export default function Dashboard() {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pb-4">
-                          <div className={`flex gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`flex-1 space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.task3Desc')}</p>
+                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                              <p className="text-[15px] leading-relaxed text-gray-600 dark:text-gray-300">{t('dashboard.task3Desc')}</p>
                               <Button
                                 className="bg-[#E8614D] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setLocation('/settings')}
@@ -1613,7 +1635,7 @@ export default function Dashboard() {
                                 {t('dashboard.task3Action')}
                               </Button>
                             </div>
-                            <div className="hidden md:block w-[220px] flex-shrink-0">
+                            <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
                               <ProfilePictureVisual />
                             </div>
                           </div>
@@ -1622,7 +1644,7 @@ export default function Dashboard() {
 
                       {/* Task 4: Invite Vendors */}
                       <AccordionItem value="task-4" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'border-[#E8614D] bg-[#E8614D]/5 dark:bg-[#E8614D]/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'bg-[#E8614D] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasVendors ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
@@ -1636,9 +1658,9 @@ export default function Dashboard() {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pb-4">
-                          <div className={`flex gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`flex-1 space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.task4Desc')}</p>
+                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                              <p className="text-[15px] leading-relaxed text-gray-600 dark:text-gray-300">{t('dashboard.task4Desc')}</p>
                               <Button
                                 className="bg-[#E8614D] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setActiveTab('vendors')}
@@ -1647,7 +1669,7 @@ export default function Dashboard() {
                                 {t('dashboard.task4Action')}
                               </Button>
                             </div>
-                            <div className="hidden md:block w-[220px] flex-shrink-0">
+                            <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
                               <InviteVendorsVisual />
                             </div>
                           </div>
@@ -1656,7 +1678,7 @@ export default function Dashboard() {
 
                       {/* Task 5: Review Proposals */}
                       <AccordionItem value="task-5" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#E8614D] bg-[#E8614D]/5 dark:bg-[#E8614D]/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'bg-[#E8614D] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasReviewedProposal ? <Check className="h-4 w-4" /> : <ClipboardList className="h-4 w-4" />}
@@ -1670,9 +1692,9 @@ export default function Dashboard() {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pb-4">
-                          <div className={`flex gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`flex-1 space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.task5Desc')}</p>
+                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                              <p className="text-[15px] leading-relaxed text-gray-600 dark:text-gray-300">{t('dashboard.task5Desc')}</p>
                               <Button
                                 className="bg-[#E8614D] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setActiveTab('proposals')}
@@ -1681,7 +1703,7 @@ export default function Dashboard() {
                                 {t('dashboard.task5Action')}
                               </Button>
                             </div>
-                            <div className="hidden md:block w-[220px] flex-shrink-0">
+                            <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
                               <ReviewProposalsVisual />
                             </div>
                           </div>

@@ -119,6 +119,11 @@
   }
 }
 
+/* Remove browser focus outline from scrollable sidebar content container */
+[data-sidebar="content"] {
+  outline: none;
+}
+
 /* Hide scrollbar utility */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;

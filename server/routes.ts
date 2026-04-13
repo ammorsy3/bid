@@ -657,6 +657,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Change email (only allowed before email is verified)
+  app.post("/api/auth/change-email", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { email } = req.body;
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const normalized = email.toLowerCase().trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(normalized)) {
+        return res.status(400).json({ message: "Invalid email address" });
+      }
+
+      const user = await storage.getUser(req.auth!.userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      if (user.emailVerified && user.otpVerified) {
+        return res.status(400).json({ message: "Email already verified and cannot be changed here" });
+      }
+
+      if (normalized === user.email.toLowerCase()) {
+        return res.status(400).json({ message: "This is already your current email" });
+      }
+
+      const existing = await storage.getUserByEmail(normalized);
+      if (existing && existing.id !== user.id) {
+        return res.status(400).json({ message: "An account with this email already exists" });
+      }
+
+      // Update email and reset OTP/verification state so a fresh code can be sent
+      await storage.updateUser(user.id, {
+        email: normalized,
+        emailVerified: false,
+        otpVerified: false,
+        emailVerificationCode: null as any,
+        emailVerificationExpiry: null as any,
+        otpFailedAttempts: 0,
+        otpLockedUntil: null as any,
+        otpSendCount: 0,
+        otpSendWindowStart: null as any,
+      });
+
+      // Immediately send a new OTP to the new address
+      const otp = crypto.randomInt(100000, 999999).toString();
+      const expiry = new Date(Date.now() + 10 * 60 * 1000);
+      await storage.updateUser(user.id, {
+        emailVerificationCode: otp,
+        emailVerificationExpiry: expiry,
+        otpSendCount: 1,
+        otpSendWindowStart: new Date(),
+      });
+
+      await sendVerificationOTP({
+        email: normalized,
+        otp,
+        recipientName: user.name,
+        language: (user.language as 'en' | 'ar') || 'en',
+      });
+
+      res.json({ message: "Email updated and verification code sent", email: normalized });
+    } catch (error: any) {
+      console.error('Change email error:', error);
+      res.status(500).json({ message: "Failed to change email" });
+    }
+  });
+
   // Login
   app.post("/api/auth/login", async (req, res) => {
     try {

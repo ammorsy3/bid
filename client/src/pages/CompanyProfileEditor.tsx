@@ -17,7 +17,7 @@ import {
   Building2, MapPin, Globe, Linkedin, Twitter,
   FileText, ArrowLeft, Clock, CheckCircle2,
   Image as ImageIcon, Upload, Loader2, X, Plus, Eye, Type, Link2,
-  Tag, Users, Trash2, ImagePlus, ShieldCheck, Video, BarChart3, Award, Shield, Paperclip, AlertTriangle,
+  Tag, Users, Trash2, ImagePlus, ShieldCheck, Video, Award, Shield, Paperclip, AlertTriangle,
   Cloud, CloudOff,
 } from "lucide-react";
 
@@ -75,15 +75,6 @@ interface CompanyStats {
   citiesCovered?: number;
   teamSize?: number;
 }
-
-const STAT_FIELDS: { key: keyof CompanyStats; label: string; suffix?: string; max: number }[] = [
-  { key: 'yearsInBusiness', label: 'Years in business', max: 200 },
-  { key: 'projectsCompleted', label: 'Projects completed', max: 1_000_000 },
-  { key: 'clientsServed', label: 'Clients served', max: 1_000_000 },
-  { key: 'repeatClientPct', label: 'Repeat clients', suffix: '%', max: 100 },
-  { key: 'citiesCovered', label: 'Cities covered', max: 10_000 },
-  { key: 'teamSize', label: 'Team size', max: 1_000_000 },
-];
 
 function parseVideoEmbed(url: string | null | undefined): { provider: 'youtube' | 'vimeo'; embedUrl: string } | null {
   if (!url) return null;
@@ -167,7 +158,7 @@ const AVAILABILITY_OPTIONS: { value: 'accepting' | 'limited' | 'booked'; label: 
   { value: 'booked', label: 'Currently booked', color: 'gray' },
 ];
 
-const COMMON_LANGUAGES = ['Arabic', 'English', 'Urdu', 'Hindi', 'French', 'Filipino'];
+const COMMON_LANGUAGES = ['Arabic', 'English'];
 
 const COMPANY_SIZES = [
   { value: '1-10', label: '1-10 employees' },
@@ -181,7 +172,6 @@ type SectionId =
   | 'basics'
   | 'availability'
   | 'facts'
-  | 'track-record'
   | 'capabilities'
   | 'credentials'
   | 'media'
@@ -191,7 +181,6 @@ const SECTIONS: { id: SectionId; label: string; icon: React.ComponentType<{ clas
   { id: 'basics',       label: 'Basics',                  icon: Type,       description: 'Logo, name, and short description' },
   { id: 'availability', label: 'Availability',            icon: Clock,      description: 'Let requesters know your status' },
   { id: 'facts',        label: 'Company facts',           icon: Building2,  description: 'Size, year, reach, and languages' },
-  { id: 'track-record', label: 'Track record',            icon: BarChart3,  description: 'Numbers clients care about' },
   { id: 'capabilities', label: 'Capabilities & portfolio', icon: Tag,       description: 'Services you offer and past work' },
   { id: 'credentials',  label: 'Credentials',             icon: ShieldCheck, description: 'Certifications and insurance' },
   { id: 'media',        label: 'Media',                   icon: ImageIcon,  description: 'Header image, intro video, brochure' },
@@ -373,20 +362,29 @@ export default function CompanyProfileEditor() {
     },
   });
 
-  // ── Autosave (debounced) ──
+  // ── Autosave: debounce + minimum interval between saves ──
+  // Waits for 1.5s of idle typing, and enforces at least 5s between consecutive saves.
+  const AUTOSAVE_DEBOUNCE_MS = 1500;
+  const AUTOSAVE_MIN_INTERVAL_MS = 5000;
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSaveAtRef = useRef<number>(0);
   useEffect(() => {
     if (!savedState) return; // initial load hasn't happened
     if (!isDirty) return;
+    if (saveMutation.isPending) return; // a save is already in flight; a new one will schedule after it resolves
     if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    const sinceLastSave = Date.now() - lastSaveAtRef.current;
+    const cooldown = Math.max(0, AUTOSAVE_MIN_INTERVAL_MS - sinceLastSave);
+    const delay = Math.max(AUTOSAVE_DEBOUNCE_MS, cooldown);
     autosaveTimerRef.current = setTimeout(() => {
+      lastSaveAtRef.current = Date.now();
       saveMutation.mutate(editState);
-    }, 900);
+    }, delay);
     return () => {
       if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editState, isDirty, savedState]);
+  }, [editState, isDirty, savedState, saveMutation.isPending]);
 
   const uploadLogoOriginalMutation = useMutation({
     mutationFn: (file: File) => uploadFile('/api/company/logo?kind=original', file, file.name),
@@ -648,10 +646,6 @@ export default function CompanyProfileEditor() {
         editState.languages.length >= 1,
       ].filter(Boolean).length,
       total: 5,
-    },
-    'track-record': {
-      done: Object.values(editState.stats).filter(v => v != null && (v as number) > 0).length >= 3 ? 1 : 0,
-      total: 1,
     },
     capabilities: {
       done: [editState.tags.length >= 1, editState.portfolio.length >= 1].filter(Boolean).length,
@@ -1097,45 +1091,6 @@ export default function CompanyProfileEditor() {
                     </CardContent>
                   </Card>
                 </>
-              )}
-
-              {/* ═════ TRACK RECORD ═════ */}
-              {activeSection === 'track-record' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">The numbers</CardTitle>
-                    <CardDescription>These go on your public profile as headline stats. Leave any blank to hide them.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-4">
-                      {STAT_FIELDS.map(({ key, label, suffix, max }) => (
-                        <div key={key}>
-                          <Label className="text-sm mb-1.5 block">{label}{suffix ? ` (${suffix})` : ''}</Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            max={max}
-                            value={editState.stats[key] ?? ''}
-                            onChange={(e) => {
-                              const raw = e.target.value;
-                              setEditState(s => {
-                                const next = { ...s.stats };
-                                if (raw === '') {
-                                  delete next[key];
-                                } else {
-                                  const n = Math.floor(Number(raw));
-                                  if (Number.isFinite(n) && n >= 0 && n <= max) next[key] = n;
-                                }
-                                return { ...s, stats: next };
-                              });
-                            }}
-                            placeholder="—"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
               )}
 
               {/* ═════ CAPABILITIES & PORTFOLIO ═════ */}

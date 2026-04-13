@@ -41,6 +41,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from "@/hooks/use-toast";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import VendorProfileDrawer from "@/components/VendorProfileDrawer";
+import {
+  CreateTenderVisual,
+  CompanyProfileVisual,
+  ProfilePictureVisual,
+  InviteVendorsVisual,
+  ReviewProposalsVisual,
+} from "@/components/OnboardingTaskVisuals";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 
 interface VendorProfile {
@@ -1317,7 +1324,7 @@ export default function Dashboard() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-10 max-w-4xl mx-auto w-full pt-2">
+          <TabsContent value="overview" className="space-y-10 w-full pt-2 px-1 sm:px-2">
 
             {/* ── Stat Cards Row ──────────────────────────────────────── */}
             {canManage && (
@@ -1503,7 +1510,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Tasks */}
-                    <Accordion type="single" collapsible className="space-y-3">
+                    <Accordion type="single" collapsible defaultValue="task-1" className="space-y-3">
 
                       {/* Task 1: Create Tender */}
                       <AccordionItem value="task-1" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#E8614D] bg-[#E8614D]/5 dark:bg-[#E8614D]/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
@@ -1522,7 +1529,7 @@ export default function Dashboard() {
                         </AccordionTrigger>
                         <AccordionContent className="pb-4">
                           <div className={`flex gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`flex-1 space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                            <div className={`flex-1 min-w-0 space-y-4 ${isRtl ? 'text-right' : ''}`}>
                               <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.task1Desc')}</p>
                               <Button
                                 className="bg-[#E8614D] hover:bg-[#D44D3A] text-white"
@@ -1532,12 +1539,8 @@ export default function Dashboard() {
                                 {t('dashboard.task1Action')}
                               </Button>
                             </div>
-                            <div className={`hidden md:block w-56 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 ${isRtl ? 'text-right' : ''}`}>
-                              <div className={`flex items-center gap-2 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                <Sparkles className="h-3.5 w-3.5 text-[#E8614D]" />
-                                <span className="font-semibold text-xs text-gray-700 dark:text-gray-300">{t('dashboard.task1Tip')}</span>
-                              </div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.task1TipDesc')}</p>
+                            <div className="hidden md:block w-[220px] flex-shrink-0">
+                              <CreateTenderVisual />
                             </div>
                           </div>
                         </AccordionContent>
@@ -1571,12 +1574,8 @@ export default function Dashboard() {
                                 {t('dashboard.task2Action')}
                               </Button>
                             </div>
-                            <div className={`hidden md:block w-56 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 ${isRtl ? 'text-right' : ''}`}>
-                              <div className={`flex items-center gap-2 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                <Sparkles className="h-3.5 w-3.5 text-[#E8614D]" />
-                                <span className="font-semibold text-xs text-gray-700 dark:text-gray-300">{t('dashboard.task2Tip')}</span>
-                              </div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.task2TipDesc')}</p>
+                            <div className="hidden md:block w-[220px] flex-shrink-0">
+                              <CompanyProfileVisual />
                             </div>
                           </div>
                         </AccordionContent>
@@ -1614,12 +1613,8 @@ export default function Dashboard() {
                                 {t('dashboard.task3Action')}
                               </Button>
                             </div>
-                            <div className={`hidden md:block w-56 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 ${isRtl ? 'text-right' : ''}`}>
-                              <div className={`flex items-center gap-2 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                <Sparkles className="h-3.5 w-3.5 text-[#E8614D]" />
-                                <span className="font-semibold text-xs text-gray-700 dark:text-gray-300">{t('dashboard.task3Tip')}</span>
-                              </div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.task3TipDesc')}</p>
+                            <div className="hidden md:block w-[220px] flex-shrink-0">
+                              <ProfilePictureVisual />
                             </div>
                           </div>
                         </AccordionContent>
@@ -1652,12 +1647,8 @@ export default function Dashboard() {
                                 {t('dashboard.task4Action')}
                               </Button>
                             </div>
-                            <div className={`hidden md:block w-56 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 ${isRtl ? 'text-right' : ''}`}>
-                              <div className={`flex items-center gap-2 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                <Sparkles className="h-3.5 w-3.5 text-[#E8614D]" />
-                                <span className="font-semibold text-xs text-gray-700 dark:text-gray-300">{t('dashboard.task4Tip')}</span>
-                              </div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.task4TipDesc')}</p>
+                            <div className="hidden md:block w-[220px] flex-shrink-0">
+                              <InviteVendorsVisual />
                             </div>
                           </div>
                         </AccordionContent>
@@ -1690,12 +1681,8 @@ export default function Dashboard() {
                                 {t('dashboard.task5Action')}
                               </Button>
                             </div>
-                            <div className={`hidden md:block w-56 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 ${isRtl ? 'text-right' : ''}`}>
-                              <div className={`flex items-center gap-2 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                <Sparkles className="h-3.5 w-3.5 text-[#E8614D]" />
-                                <span className="font-semibold text-xs text-gray-700 dark:text-gray-300">{t('dashboard.task5Tip')}</span>
-                              </div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.task5TipDesc')}</p>
+                            <div className="hidden md:block w-[220px] flex-shrink-0">
+                              <ReviewProposalsVisual />
                             </div>
                           </div>
                         </AccordionContent>

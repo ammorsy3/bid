@@ -98,7 +98,9 @@ export const companyProfiles = pgTable("company_profiles", {
 
   // Media
   logoUrl: text("logo_url"),
+  logoOriginalUrl: text("logo_original_url"),
   headerUrl: text("header_url"),
+  headerOriginalUrl: text("header_original_url"),
   brochureUrl: text("brochure_url"), // Company profile PDF
 
   // Portfolio

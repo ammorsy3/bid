@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
@@ -44,7 +44,9 @@ interface ProfileData {
     bio: string | null;
     tags: string[];
     logoUrl: string | null;
+    logoOriginalUrl: string | null;
     headerUrl: string | null;
+    headerOriginalUrl: string | null;
     brochureUrl: string | null;
     companySize: string | null;
     portfolio: PortfolioItem[];
@@ -118,7 +120,8 @@ export default function CompanyProfileEditor() {
     imageSrc: string;
     aspect: number;
     target: 'logo' | 'header';
-  }>({ open: false, imageSrc: '', aspect: 1, target: 'logo' });
+    pendingOriginal: File | null;
+  }>({ open: false, imageSrc: '', aspect: 1, target: 'logo', pendingOriginal: null });
 
   // Portfolio add form
   const [portfolioTitle, setPortfolioTitle] = useState('');
@@ -153,10 +156,9 @@ export default function CompanyProfileEditor() {
   }, [isDirty]);
 
   // Auth guard
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!user) navigate('/login');
+  }, [user, navigate]);
 
   // Fetch profile data
   const { data, isLoading } = useQuery<ProfileData>({
@@ -225,16 +227,30 @@ export default function CompanyProfileEditor() {
     },
   });
 
+  const uploadLogoOriginalMutation = useMutation({
+    mutationFn: (file: File) => uploadFile('/api/company/logo?kind=original', file, file.name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompanyId, 'profile'] });
+    },
+  });
+
+  const uploadHeaderOriginalMutation = useMutation({
+    mutationFn: (file: File) => uploadFile('/api/company/header?kind=original', file, file.name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompanyId, 'profile'] });
+    },
+  });
+
   const uploadLogoMutation = useMutation({
     mutationFn: (file: File | Blob) => uploadFile('/api/company/logo', file, 'logo.jpg'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompanyId, 'profile'] });
       toast({ title: "Logo updated" });
-      setLogoPreview(null);
+      setLogoPreview((url) => { if (url) URL.revokeObjectURL(url); return null; });
     },
     onError: () => {
       toast({ title: "Failed to upload logo", variant: "destructive" });
-      setLogoPreview(null);
+      setLogoPreview((url) => { if (url) URL.revokeObjectURL(url); return null; });
     },
   });
 
@@ -243,11 +259,11 @@ export default function CompanyProfileEditor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompanyId, 'profile'] });
       toast({ title: "Header image updated" });
-      setHeaderPreview(null);
+      setHeaderPreview((url) => { if (url) URL.revokeObjectURL(url); return null; });
     },
     onError: () => {
       toast({ title: "Failed to upload header", variant: "destructive" });
-      setHeaderPreview(null);
+      setHeaderPreview((url) => { if (url) URL.revokeObjectURL(url); return null; });
     },
   });
 
@@ -265,7 +281,7 @@ export default function CompanyProfileEditor() {
   const uploadPortfolioImageMutation = useMutation({
     mutationFn: (file: File) => uploadFile('/api/company/portfolio-image', file),
     onSuccess: (result) => {
-      const title = portfolioTitle.trim() || 'Untitled Project';
+      const title = portfolioTitle.trim();
       const desc = portfolioDesc.trim() || undefined;
       setEditState(s => ({
         ...s,
@@ -280,28 +296,79 @@ export default function CompanyProfileEditor() {
     },
   });
 
+  // ── File validation ──
+  const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+  const MAX_BROCHURE_BYTES = 10 * 1024 * 1024;
+
+  const validateImage = (file: File): boolean => {
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Invalid file", description: "Please select an image file.", variant: "destructive" });
+      return false;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast({ title: "File too large", description: "Images must be under 5MB.", variant: "destructive" });
+      return false;
+    }
+    return true;
+  };
+
   // ── Image crop handlers ──
   const handleFileForCrop = (file: File, target: 'logo' | 'header') => {
-    const url = URL.createObjectURL(file);
-    setCropDialog({
-      open: true,
-      imageSrc: url,
-      aspect: target === 'logo' ? 1 : 3,
-      target,
+    if (!validateImage(file)) return;
+    setCropDialog((prev) => {
+      if (prev.imageSrc && prev.imageSrc.startsWith('blob:')) URL.revokeObjectURL(prev.imageSrc);
+      return {
+        open: true,
+        imageSrc: URL.createObjectURL(file),
+        aspect: target === 'logo' ? 1 : 3,
+        target,
+        pendingOriginal: file,
+      };
+    });
+  };
+
+  const handleEditExisting = (target: 'logo' | 'header') => {
+    const src = target === 'logo'
+      ? (data?.profile?.logoOriginalUrl || data?.profile?.logoUrl || null)
+      : (data?.profile?.headerOriginalUrl || data?.profile?.headerUrl || null);
+    if (!src) return;
+    setCropDialog((prev) => {
+      if (prev.imageSrc && prev.imageSrc.startsWith('blob:')) URL.revokeObjectURL(prev.imageSrc);
+      return {
+        open: true,
+        imageSrc: src,
+        aspect: target === 'logo' ? 1 : 3,
+        target,
+        pendingOriginal: null,
+      };
     });
   };
 
   const handleCropComplete = useCallback((blob: Blob) => {
     const previewUrl = URL.createObjectURL(blob);
     if (cropDialog.target === 'logo') {
-      setLogoPreview(previewUrl);
+      setLogoPreview((old) => { if (old) URL.revokeObjectURL(old); return previewUrl; });
+      if (cropDialog.pendingOriginal) uploadLogoOriginalMutation.mutate(cropDialog.pendingOriginal);
       uploadLogoMutation.mutate(blob);
     } else {
-      setHeaderPreview(previewUrl);
+      setHeaderPreview((old) => { if (old) URL.revokeObjectURL(old); return previewUrl; });
+      if (cropDialog.pendingOriginal) uploadHeaderOriginalMutation.mutate(cropDialog.pendingOriginal);
       uploadHeaderMutation.mutate(blob);
     }
-    setCropDialog(s => ({ ...s, open: false }));
-  }, [cropDialog.target]);
+    setCropDialog(s => {
+      if (s.imageSrc && s.imageSrc.startsWith('blob:')) URL.revokeObjectURL(s.imageSrc);
+      return { ...s, imageSrc: '', open: false, pendingOriginal: null };
+    });
+  }, [cropDialog.target, cropDialog.pendingOriginal, uploadLogoMutation, uploadHeaderMutation, uploadLogoOriginalMutation, uploadHeaderOriginalMutation]);
+
+  // Revoke any remaining preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+      if (headerPreview) URL.revokeObjectURL(headerPreview);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Tag helpers ──
   const addTag = () => {
@@ -333,7 +400,7 @@ export default function CompanyProfileEditor() {
   const currentHeaderUrl = headerPreview || data.profile?.headerUrl;
   const currentBrochureUrl = data.profile?.brochureUrl;
   const displayName = editState.displayName || company.name;
-  const initials = displayName.slice(0, 2).toUpperCase();
+  const initials = Array.from(displayName.trim()).slice(0, 2).join('').toUpperCase();
   const hasSocialLinks = editState.socialLinks.website || editState.socialLinks.linkedin || editState.socialLinks.twitter;
   const sizeLabel = COMPANY_SIZES.find(s => s.value === editState.companySize)?.label;
 
@@ -387,12 +454,16 @@ export default function CompanyProfileEditor() {
           <div className="hidden sm:flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
             <button
               onClick={() => setPreviewMode('desktop')}
+              aria-label="Desktop preview"
+              aria-pressed={previewMode === 'desktop'}
               className={`p-1.5 rounded-md transition-colors ${previewMode === 'desktop' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
             >
               <Monitor className="h-4 w-4" />
             </button>
             <button
               onClick={() => setPreviewMode('mobile')}
+              aria-label="Mobile preview"
+              aria-pressed={previewMode === 'mobile'}
               className={`p-1.5 rounded-md transition-colors ${previewMode === 'mobile' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
             >
               <Smartphone className="h-4 w-4" />
@@ -488,22 +559,35 @@ export default function CompanyProfileEditor() {
                   </div>
                 )}
                 <div>
-                  <label className="cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileForCrop(file, 'logo');
-                        e.target.value = '';
-                      }}
-                    />
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-white transition-colors">
-                      <Upload className="h-3 w-3" />
-                      {uploadLogoMutation.isPending ? 'Uploading...' : 'Upload Logo'}
-                    </span>
-                  </label>
+                  <div className="flex items-center gap-1.5">
+                    {currentLogoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => handleEditExisting('logo')}
+                        disabled={uploadLogoMutation.isPending}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-white transition-colors disabled:opacity-50"
+                      >
+                        <Image className="h-3 w-3" />
+                        Edit
+                      </button>
+                    )}
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileForCrop(file, 'logo');
+                          e.target.value = '';
+                        }}
+                      />
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-white transition-colors">
+                        <Upload className="h-3 w-3" />
+                        {uploadLogoMutation.isPending ? 'Uploading...' : currentLogoUrl ? 'Replace' : 'Upload Logo'}
+                      </span>
+                    </label>
+                  </div>
                   <p className="text-[10px] text-gray-400 mt-1">Square crop, PNG or JPG</p>
                 </div>
               </div>
@@ -516,24 +600,35 @@ export default function CompanyProfileEditor() {
                 <h3 className="text-sm font-semibold text-gray-900">Header Image</h3>
               </div>
               {(currentHeaderUrl) ? (
-                <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                <div className="relative rounded-lg overflow-hidden border border-gray-200 group">
                   <img src={currentHeaderUrl} alt="Header" className="w-full h-20 object-cover" />
-                  <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileForCrop(file, 'header');
-                        e.target.value = '';
-                      }}
-                    />
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white border border-white/50">
-                      <Upload className="h-3 w-3" />
-                      {uploadHeaderMutation.isPending ? 'Uploading...' : 'Replace'}
-                    </span>
-                  </label>
+                  <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={() => handleEditExisting('header')}
+                      disabled={uploadHeaderMutation.isPending}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white border border-white/50 hover:bg-white/10 transition-colors disabled:opacity-50"
+                    >
+                      <Image className="h-3 w-3" />
+                      Edit
+                    </button>
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileForCrop(file, 'header');
+                          e.target.value = '';
+                        }}
+                      />
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white border border-white/50 hover:bg-white/10 transition-colors">
+                        <Upload className="h-3 w-3" />
+                        {uploadHeaderMutation.isPending ? 'Uploading...' : 'Replace'}
+                      </span>
+                    </label>
+                  </div>
                 </div>
               ) : (
                 <label className="cursor-pointer block">
@@ -642,7 +737,7 @@ export default function CompanyProfileEditor() {
                   {editState.tags.map((tag, i) => (
                     <span key={i} className="inline-flex items-center gap-1 text-xs font-medium rounded-full px-2.5 py-1 bg-gray-100 text-gray-700">
                       {tag}
-                      <button onClick={() => removeTag(i)} className="hover:text-red-500 transition-colors"><X className="h-3 w-3" /></button>
+                      <button onClick={() => removeTag(i)} aria-label={`Remove ${tag}`} className="hover:text-red-500 transition-colors"><X className="h-3 w-3" /></button>
                     </span>
                   ))}
                 </div>
@@ -668,7 +763,7 @@ export default function CompanyProfileEditor() {
                         <p className="text-xs font-semibold text-gray-800 truncate">{item.title}</p>
                         {item.description && <p className="text-[10px] text-gray-400 truncate">{item.description}</p>}
                       </div>
-                      <button onClick={() => removePortfolioItem(i)} className="text-gray-300 hover:text-red-500 transition-colors flex-shrink-0">
+                      <button onClick={() => removePortfolioItem(i)} aria-label={`Remove ${item.title}`} className="text-gray-300 hover:text-red-500 transition-colors flex-shrink-0">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
@@ -693,21 +788,26 @@ export default function CompanyProfileEditor() {
                     className="text-xs h-8"
                     maxLength={120}
                   />
-                  <label className="cursor-pointer block">
+                  <label className={`block ${portfolioTitle.trim() ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}>
                     <input
                       type="file"
                       accept="image/*"
                       className="hidden"
+                      disabled={!portfolioTitle.trim()}
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (file) uploadPortfolioImageMutation.mutate(file);
+                        if (file && validateImage(file)) uploadPortfolioImageMutation.mutate(file);
                         e.target.value = '';
                       }}
                     />
                     <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors">
                       <Upload className="h-3.5 w-3.5 text-gray-400" />
                       <span className="text-xs text-gray-500">
-                        {uploadPortfolioImageMutation.isPending ? 'Uploading...' : 'Upload project image'}
+                        {uploadPortfolioImageMutation.isPending
+                          ? 'Uploading...'
+                          : portfolioTitle.trim()
+                            ? 'Upload project image'
+                            : 'Enter a project name first'}
                       </span>
                     </div>
                   </label>
@@ -736,7 +836,16 @@ export default function CompanyProfileEditor() {
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) uploadBrochureMutation.mutate(file);
+                    if (file) {
+                      const okType = /\.(pdf|jpe?g|png)$/i.test(file.name);
+                      if (!okType) {
+                        toast({ title: "Invalid file", description: "Brochure must be PDF, JPG, or PNG.", variant: "destructive" });
+                      } else if (file.size > MAX_BROCHURE_BYTES) {
+                        toast({ title: "File too large", description: "Brochure must be under 10MB.", variant: "destructive" });
+                      } else {
+                        uploadBrochureMutation.mutate(file);
+                      }
+                    }
                     e.target.value = '';
                   }}
                 />
@@ -785,7 +894,7 @@ export default function CompanyProfileEditor() {
           >
 
             {/* Preview: Header */}
-            <div className="relative overflow-hidden">
+            <div className="relative overflow-hidden bg-gray-50">
               {currentHeaderUrl ? (
                 <div className="h-44 md:h-52 w-full">
                   <img src={currentHeaderUrl} alt="" className="w-full h-full object-cover" />
@@ -795,30 +904,6 @@ export default function CompanyProfileEditor() {
                 <div className="h-44 md:h-52 w-full" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }} />
               )}
 
-              <div className="max-w-[860px] mx-auto px-6 relative z-10 -mt-12">
-                <div className="flex items-end gap-4">
-                  {currentLogoUrl ? (
-                    <img src={currentLogoUrl} alt="" className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-lg flex-shrink-0 bg-white" />
-                  ) : (
-                    <div className="w-20 h-20 rounded-2xl border-4 border-white shadow-lg flex-shrink-0 bg-white flex items-center justify-center text-xl font-extrabold text-gray-400 tracking-wide">{initials}</div>
-                  )}
-                </div>
-                <div className="mt-3 mb-2">
-                  <h1 className="text-xl font-extrabold text-gray-900 tracking-[-0.02em]">{displayName}</h1>
-                  <div className="flex items-center gap-2.5 mt-1.5 flex-wrap">
-                    <VerificationBadge status={company.verificationStatus} />
-                    {company.category && (
-                      <span className="flex items-center gap-1 text-xs text-gray-500 font-medium"><Briefcase className="h-3 w-3" />{company.category}</span>
-                    )}
-                    {company.city && (
-                      <span className="flex items-center gap-1 text-xs text-gray-500 font-medium"><MapPin className="h-3 w-3" />{company.city}</span>
-                    )}
-                    {sizeLabel && (
-                      <span className="flex items-center gap-1 text-xs text-gray-500 font-medium"><Users className="h-3 w-3" />{sizeLabel}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Preview: Content */}

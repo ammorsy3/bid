@@ -1080,9 +1080,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         filename: file.originalname,
         contentType: file.mimetype,
       });
-      
-      await storage.updateCompanyProfile(companyId, { headerUrl: result.url });
-      
+
+      const isOriginal = req.query.kind === 'original';
+      await storage.updateCompanyProfile(
+        companyId,
+        isOriginal ? { headerOriginalUrl: result.url } : { headerUrl: result.url },
+      );
+
       res.json({ message: "Company header uploaded successfully", url: result.url });
     } catch (error) {
       console.error('Upload company header error:', error);
@@ -1124,10 +1128,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         filename: file.originalname,
         contentType: file.mimetype,
       });
-      
-      // Update company profile with logo URL
-      await storage.updateCompanyProfile(companyId, { logoUrl: result.url });
-      
+
+      const isOriginal = req.query.kind === 'original';
+      await storage.updateCompanyProfile(
+        companyId,
+        isOriginal ? { logoOriginalUrl: result.url } : { logoUrl: result.url },
+      );
+
       res.json({ message: "Company logo uploaded successfully", url: result.url });
     } catch (error) {
       console.error('Upload company logo error:', error);

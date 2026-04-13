@@ -75,14 +75,7 @@ function ProfileSkeleton() {
       <nav className="sticky top-0 z-20 bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3">
         <Skeleton className="h-5 w-24" />
       </nav>
-      <div className="relative">
-        <Skeleton className="w-full h-52 md:h-64" />
-        <div className="max-w-[900px] mx-auto px-6 -mt-12 relative z-10">
-          <Skeleton className="w-24 h-24 rounded-2xl" />
-          <Skeleton className="h-8 w-64 mt-4" />
-          <Skeleton className="h-4 w-40 mt-2" />
-        </div>
-      </div>
+      <Skeleton className="w-full h-52 md:h-64" />
       <div className="max-w-[900px] mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-6">
           <div className="space-y-6">
@@ -161,68 +154,64 @@ export default function CompanyProfilePage() {
       </nav>
 
       {/* ══════════════════════ HERO HEADER ══════════════════════ */}
-      <div className="relative overflow-hidden">
-        {profile?.headerUrl ? (
-          <div className="h-52 md:h-64 w-full">
-            <img
-              src={profile.headerUrl}
-              alt=""
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-          </div>
-        ) : (
-          <div
-            className="h-52 md:h-64 w-full"
-            style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            }}
-          />
-        )}
-
-        {/* ══════════════════════ IDENTITY BLOCK ══════════════════════ */}
-        <div className="max-w-[900px] mx-auto px-6 relative z-10 -mt-14">
-          <div className="flex items-end gap-5">
-            {/* Logo */}
-            {profile?.logoUrl ? (
-              <img
-                src={profile.logoUrl}
-                alt={displayName}
-                className="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-lg flex-shrink-0 bg-white"
-              />
-            ) : (
-              <div className="w-24 h-24 rounded-2xl border-4 border-white shadow-lg flex-shrink-0 bg-white flex items-center justify-center text-2xl font-extrabold text-gray-400 tracking-wide">
-                {initials}
+      {profile?.headerUrl ? (
+        <div className="h-52 md:h-64 w-full relative">
+          <img src={profile.headerUrl} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 max-w-[900px] mx-auto px-6 pb-5">
+            <div className="flex items-end gap-4">
+              {profile?.logoUrl ? (
+                <img src={profile.logoUrl} alt={displayName} className="w-16 h-16 rounded-2xl object-cover border-2 border-white/80 shadow-lg flex-shrink-0 bg-white" />
+              ) : (
+                <div className="w-16 h-16 rounded-2xl border-2 border-white/80 shadow-lg flex-shrink-0 bg-white flex items-center justify-center text-xl font-extrabold text-gray-400">{initials}</div>
+              )}
+              <div>
+                <h1 className="text-xl md:text-2xl font-extrabold text-white tracking-[-0.02em] drop-shadow">{displayName}</h1>
+                <div className="flex items-center gap-2.5 mt-1 flex-wrap">
+                  <VerificationBadge status={company.verificationStatus} />
+                  {company.category && (
+                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Briefcase className="h-3 w-3 flex-shrink-0" />{company.category}</span>
+                  )}
+                  {company.city && (
+                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><MapPin className="h-3 w-3 flex-shrink-0" />{company.city}</span>
+                  )}
+                  {sizeLabel && (
+                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Users className="h-3 w-3 flex-shrink-0" />{sizeLabel}</span>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-
-          {/* Name + badges */}
-          <div className="mt-4 mb-2">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-[-0.02em]">
-              {displayName}
-            </h1>
-            <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <VerificationBadge status={company.verificationStatus} />
-              {company.category && (
-                <span className="flex items-center gap-1 text-xs text-gray-500 font-medium">
-                  <Briefcase className="h-3 w-3 flex-shrink-0" />{company.category}
-                </span>
-              )}
-              {company.city && (
-                <span className="flex items-center gap-1 text-xs text-gray-500 font-medium">
-                  <MapPin className="h-3 w-3 flex-shrink-0" />{company.city}
-                </span>
-              )}
-              {sizeLabel && (
-                <span className="flex items-center gap-1 text-xs text-gray-500 font-medium">
-                  <Users className="h-3 w-3 flex-shrink-0" />{sizeLabel}
-                </span>
-              )}
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="h-52 md:h-64 w-full relative" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 max-w-[900px] mx-auto px-6 pb-5">
+            <div className="flex items-end gap-4">
+              {profile?.logoUrl ? (
+                <img src={profile.logoUrl} alt={displayName} className="w-16 h-16 rounded-2xl object-cover border-2 border-white/80 shadow-lg flex-shrink-0 bg-white" />
+              ) : (
+                <div className="w-16 h-16 rounded-2xl border-2 border-white/80 shadow-lg flex-shrink-0 bg-white flex items-center justify-center text-xl font-extrabold text-gray-400">{initials}</div>
+              )}
+              <div>
+                <h1 className="text-xl md:text-2xl font-extrabold text-white tracking-[-0.02em] drop-shadow">{displayName}</h1>
+                <div className="flex items-center gap-2.5 mt-1 flex-wrap">
+                  <VerificationBadge status={company.verificationStatus} />
+                  {company.category && (
+                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Briefcase className="h-3 w-3 flex-shrink-0" />{company.category}</span>
+                  )}
+                  {company.city && (
+                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><MapPin className="h-3 w-3 flex-shrink-0" />{company.city}</span>
+                  )}
+                  {sizeLabel && (
+                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Users className="h-3 w-3 flex-shrink-0" />{sizeLabel}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ══════════════════════ MAIN CONTENT ══════════════════════ */}
       <div className="max-w-[900px] mx-auto px-6 py-8">

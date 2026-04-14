@@ -67,7 +67,9 @@ export default function VendorsBase() {
       });
       if (!response.ok) throw new Error("Failed to fetch vendors");
       return response.json();
-    }
+    },
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 
   // Fetch pending join requests

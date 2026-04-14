@@ -123,13 +123,28 @@ function MemberActivityDialog({
             <ul className="space-y-3">
               {entries.map((entry) => {
                 const Icon = activityIcon(entry.action);
+                const href =
+                  entry.targetType === 'tender' && entry.targetId && entry.action !== 'tender.deleted'
+                    ? `/tenders/${entry.targetId}`
+                    : null;
                 return (
                   <li key={entry.id} className="flex gap-3 items-start">
                     <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                       <Icon className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium break-words">{entry.summary || entry.action}</p>
+                      {href ? (
+                        <a
+                          href={href}
+                          onClick={onClose}
+                          className="text-sm font-medium break-words text-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          {entry.summary || entry.action}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : (
+                        <p className="text-sm font-medium break-words">{entry.summary || entry.action}</p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true })}
                       </p>

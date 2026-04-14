@@ -401,21 +401,21 @@ export default function TractionLink() {
             style={computePrimaryBtnStyle(pc)}
           >
             <UserPlus className="h-4 w-4" />
-            {t('tractionPage.signUp')}
+            {t('tractionPage.createVendorProfile')}
           </button>
-          <div className="flex items-center gap-3 my-3">
-            <div className="flex-1 h-px bg-gray-100" />
-            <span className="text-[11px] text-gray-300 font-medium uppercase tracking-widest">or</span>
-            <div className="flex-1 h-px bg-gray-100" />
+          <p className="text-[11px] text-gray-400 text-center mt-3">
+            {t('tractionPage.freeAccountHint')}
+          </p>
+          <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+            <span className="text-xs text-gray-500">{t('tractionPage.alreadyHaveAccount')} </span>
+            <button
+              onClick={() => navigate("/login?redirect=" + encodeURIComponent(`/traction/${slug}`))}
+              className="text-xs font-semibold hover:underline"
+              style={{ color: pc }}
+            >
+              {t('tractionPage.signIn')}
+            </button>
           </div>
-          <button
-            onClick={() => navigate("/login?redirect=" + encodeURIComponent(`/traction/${slug}`))}
-            className="tl-ghost-btn flex items-center justify-center gap-2 w-full h-11 rounded-xl text-sm font-semibold transition-colors"
-            style={computeGhostBtnStyle('light')}
-          >
-            <LogIn className="h-4 w-4" />
-            {t('tractionPage.signIn')}
-          </button>
         </>
       );
     }

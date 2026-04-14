@@ -147,7 +147,9 @@
       "WebFetch(domain:upload.wikimedia.org)",
       "WebFetch(domain:www.sama.gov.sa)",
       "WebFetch(domain:developers.openai.com)",
-      "Bash(fuser 5000/tcp)"
+      "Bash(fuser 5000/tcp)",
+      "Bash(disown)",
+      "Bash(disown sleep:*)"
     ]
   },
   "enabledMcpjsonServers": [

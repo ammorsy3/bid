@@ -74,6 +74,8 @@ interface JoinRequest {
   createdAt: string;
   vendor?: {
     id: string;
+    slug: string;
+    hasProfile: boolean;
     name: string;
     email: string;
     company: string;
@@ -2709,9 +2711,11 @@ export default function Dashboard() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => {
-                                      setProfileJoinRequestId(request.id);
-                                      setProfileDrawerOpen(true);
+                                      if (request.vendor?.slug) {
+                                        window.open(`/company/${request.vendor.slug}`, '_blank', 'noopener,noreferrer');
+                                      }
                                     }}
+                                    disabled={!request.vendor?.slug}
                                     data-testid={`button-view-profile-${request.id}`}
                                   >
                                     <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />

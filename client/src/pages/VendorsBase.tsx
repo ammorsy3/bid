@@ -25,6 +25,8 @@ interface VendorProfile {
   verificationStatus: string;
   joinedAt: string;
   joinMethod: string;
+  slug: string;
+  hasProfile: boolean;
 }
 
 interface JoinRequest {
@@ -37,6 +39,8 @@ interface JoinRequest {
   decidedAt: string | null;
   vendor?: {
     id: string;
+    slug: string;
+    hasProfile: boolean;
     name: string;
     email: string;
     company: string;
@@ -243,7 +247,18 @@ export default function VendorsBase() {
                           )}
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" className="flex-shrink-0" data-testid={`button-view-profile-${vendor.id}`}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-shrink-0"
+                        data-testid={`button-view-profile-${vendor.id}`}
+                        onClick={() => {
+                          if (vendor.slug) {
+                            window.open(`/company/${vendor.slug}`, '_blank', 'noopener,noreferrer');
+                          }
+                        }}
+                        disabled={!vendor.slug}
+                      >
                         <FileText className="h-4 w-4 mr-2" />
                         View Profile
                       </Button>
@@ -357,9 +372,11 @@ export default function VendorsBase() {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              setProfileJoinRequestId(request.id);
-                              setProfileDrawerOpen(true);
+                              if (request.vendor?.slug) {
+                                window.open(`/company/${request.vendor.slug}`, '_blank', 'noopener,noreferrer');
+                              }
                             }}
+                            disabled={!request.vendor?.slug}
                             data-testid={`button-view-profile-${request.id}`}
                           >
                             <Eye className="h-4 w-4 mr-2" />

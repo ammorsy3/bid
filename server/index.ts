@@ -2,7 +2,9 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { execSync } from "child_process";
+
+process.on("SIGTERM", () => process.exit(0));
+process.on("SIGINT", () => process.exit(0));
 
 const app = express();
 app.use(express.json());
@@ -57,18 +59,11 @@ app.use((req, res, next) => {
 
   const port = parseInt(process.env.PORT || "5000", 10);
 
-  process.on("SIGTERM", () => process.exit(0));
-  process.on("SIGINT", () => process.exit(0));
-
-  try {
-    execSync(`fuser -k ${port}/tcp 2>/dev/null || true`);
-  } catch {}
-
-  const startListen = (retriesLeft: number): Promise<void> =>
+  const startListen = (retriesLeft: number, delay = 250): Promise<void> =>
     new Promise((resolve, reject) => {
       server.once("error", (err: any) => {
         if (err.code === "EADDRINUSE" && retriesLeft > 0) {
-          setTimeout(() => resolve(startListen(retriesLeft - 1)), 500);
+          setTimeout(() => resolve(startListen(retriesLeft - 1, delay)), delay);
         } else {
           reject(err);
         }
@@ -79,5 +74,5 @@ app.use((req, res, next) => {
       });
     });
 
-  await startListen(10);
+  await startListen(40);
 })();

@@ -4335,6 +4335,8 @@ Respond with ONLY a JSON object. Example:
         const formattedVendors = vendors.map(v => ({
           id: v.id,
           companyId: v.vendorCompanyId,
+          slug: v.vendorCompany.slug,
+          hasProfile: !!v.profile,
           company: v.profile?.displayName || v.vendorCompany.name,
           legalName: v.vendorCompany.legalName,
           category: v.vendorCompany.category || 'No category',
@@ -4679,6 +4681,8 @@ Respond with ONLY a JSON object. Example:
             decidedAt: r.decidedAt,
             vendor: {
               id: r.vendorCompany.id,
+              slug: r.vendorCompany.slug,
+              hasProfile: !!r.profile,
               name: createdByUser?.name || r.profile?.displayName || r.vendorCompany.name,
               email: createdByUser?.email || null,
               company: r.profile?.displayName || r.vendorCompany.name,

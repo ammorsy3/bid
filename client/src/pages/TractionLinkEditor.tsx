@@ -15,7 +15,7 @@ import {
   Globe, Linkedin, ArrowRight, ArrowLeft,
   ChevronRight, Languages, MapPin, Briefcase, ShieldCheck,
   Paintbrush, Type, Image, Upload, Eye, Save, Check,
-  Palette, Monitor, Smartphone,
+  Palette, Monitor, Smartphone, Code2, Copy,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════
@@ -189,6 +189,8 @@ export default function TractionLinkEditor() {
   const [theme, setTheme] = useState<TractionTheme>(DEFAULT_THEME);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [headerPreview, setHeaderPreview] = useState<string | null>(null);
+  const [copiedEmbed, setCopiedEmbed] = useState(false);
+  const [embedVariant, setEmbedVariant] = useState<'inline' | 'popup' | 'text'>('inline');
 
   // Initialize theme from fetched data
   useEffect(() => {
@@ -637,6 +639,150 @@ export default function TractionLinkEditor() {
                 ))}
               </div>
             </section>
+
+            {/* ─── Embed (Calendly-style) ─── */}
+            {(() => {
+              const tractionUrl = `${window.location.origin}/traction/${slug}`;
+              const btnText = (theme.ctaText || '').trim() || 'Join our vendor network';
+              const color = theme.primaryColor;
+              const htmlAttr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+              const jsStr = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/<\/script/gi, '<\\/script');
+              const htmlText = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+              const inlineSnippet = `<!-- Bid Traction inline embed -->
+<div style="min-width:320px;height:700px;">
+  <iframe
+    src="${htmlAttr(tractionUrl)}"
+    width="100%"
+    height="100%"
+    frameborder="0"
+    style="border:0;border-radius:12px;"
+    title="${htmlAttr(btnText)}"
+  ></iframe>
+</div>`;
+
+              const popupSnippet = `<!-- Bid Traction popup widget -->
+<script>
+(function(){
+  var u="${jsStr(tractionUrl)}",c="${jsStr(color)}",t="${jsStr(btnText)}";
+  function openBid(){
+    var o=document.createElement('div');
+    o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;';
+    o.onclick=function(e){if(e.target===o)document.body.removeChild(o);};
+    var b=document.createElement('div');
+    b.style.cssText='background:#fff;border-radius:12px;width:100%;max-width:900px;height:90vh;max-height:720px;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
+    var x=document.createElement('button');
+    x.innerHTML='&times;';
+    x.setAttribute('aria-label','Close');
+    x.style.cssText='position:absolute;top:10px;right:12px;background:#fff;border:1px solid #e5e7eb;width:32px;height:32px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;z-index:1;';
+    x.onclick=function(){document.body.removeChild(o);};
+    var f=document.createElement('iframe');
+    f.src=u;f.style.cssText='width:100%;height:100%;border:0;';f.title=t;
+    f.setAttribute('allow','clipboard-write');
+    b.appendChild(f);b.appendChild(x);o.appendChild(b);document.body.appendChild(o);
+  }
+  function init(){
+    var btn=document.createElement('button');
+    btn.type='button';btn.innerText=t;
+    btn.style.cssText='position:fixed;bottom:20px;right:20px;z-index:2147483646;padding:12px 22px;background:'+c+';color:#fff;border:0;border-radius:28px;font-family:system-ui,-apple-system,sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,0.18);';
+    btn.onclick=openBid;
+    document.body.appendChild(btn);
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
+})();
+</script>`;
+
+              const textSnippet = `<!-- Bid Traction popup text link -->
+<a href="${htmlAttr(tractionUrl)}" onclick="return BidTraction_open(event)" style="color:${htmlAttr(color)};font-weight:600;text-decoration:underline;cursor:pointer;">${htmlText(btnText)}</a>
+<script>
+function BidTraction_open(e){
+  e.preventDefault();
+  var u="${jsStr(tractionUrl)}",t="${jsStr(btnText)}";
+  var o=document.createElement('div');
+  o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;';
+  o.onclick=function(ev){if(ev.target===o)document.body.removeChild(o);};
+  var b=document.createElement('div');
+  b.style.cssText='background:#fff;border-radius:12px;width:100%;max-width:900px;height:90vh;max-height:720px;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
+  var x=document.createElement('button');
+  x.innerHTML='&times;';x.setAttribute('aria-label','Close');
+  x.style.cssText='position:absolute;top:10px;right:12px;background:#fff;border:1px solid #e5e7eb;width:32px;height:32px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;z-index:1;';
+  x.onclick=function(){document.body.removeChild(o);};
+  var f=document.createElement('iframe');
+  f.src=u;f.style.cssText='width:100%;height:100%;border:0;';f.title=t;
+  b.appendChild(f);b.appendChild(x);o.appendChild(b);document.body.appendChild(o);
+  return false;
+}
+</script>`;
+
+              const snippets = { inline: inlineSnippet, popup: popupSnippet, text: textSnippet };
+              const currentSnippet = snippets[embedVariant];
+
+              const copyEmbed = async () => {
+                try {
+                  await navigator.clipboard.writeText(currentSnippet);
+                  setCopiedEmbed(true);
+                  toast({ title: t('tractionPage.editorEmbedCopied') || 'Embed code copied' });
+                  setTimeout(() => setCopiedEmbed(false), 2000);
+                } catch {
+                  toast({ title: 'Copy failed', variant: 'destructive' });
+                }
+              };
+
+              const variants: Array<{ id: 'inline' | 'popup' | 'text'; label: string; desc: string }> = [
+                { id: 'inline', label: t('tractionPage.editorEmbedInline') || 'Inline', desc: t('tractionPage.editorEmbedInlineDesc') || 'Embed the full page on your site' },
+                { id: 'popup', label: t('tractionPage.editorEmbedPopup') || 'Popup widget', desc: t('tractionPage.editorEmbedPopupDesc') || 'Floating button that opens a popup' },
+                { id: 'text', label: t('tractionPage.editorEmbedText') || 'Popup text', desc: t('tractionPage.editorEmbedTextDesc') || 'Text link that opens a popup' },
+              ];
+              const current = variants.find(v => v.id === embedVariant)!;
+
+              return (
+                <section>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Code2 className="h-4 w-4 text-gray-400" />
+                    <h3 className="text-sm font-semibold text-gray-900">{t('tractionPage.editorEmbed') || 'Embed on your website'}</h3>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-1.5 mb-3">
+                    {variants.map(v => (
+                      <button
+                        key={v.id}
+                        onClick={() => setEmbedVariant(v.id)}
+                        className={`px-2 py-2 rounded-lg text-[10px] font-semibold transition-all ${
+                          embedVariant === v.id
+                            ? 'bg-white ring-2 ring-offset-1 text-gray-900'
+                            : 'bg-white border border-gray-200 text-gray-500 hover:text-gray-700'
+                        }`}
+                        style={embedVariant === v.id ? { '--tw-ring-color': color } as React.CSSProperties : undefined}
+                      >
+                        {v.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <p className="text-[11px] text-gray-500 mb-3 leading-relaxed">{current.desc}</p>
+
+                  <Textarea
+                    readOnly
+                    value={currentSnippet}
+                    onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+                    className="text-[10px] font-mono resize-none mb-2 bg-gray-50"
+                    rows={8}
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full h-8 text-xs"
+                    onClick={copyEmbed}
+                  >
+                    {copiedEmbed ? (
+                      <><Check className="h-3.5 w-3.5 mr-1.5" />{t('tractionPage.editorEmbedCopied') || 'Copied!'}</>
+                    ) : (
+                      <><Copy className="h-3.5 w-3.5 mr-1.5" />{t('tractionPage.editorCopyEmbed') || 'Copy embed code'}</>
+                    )}
+                  </Button>
+                </section>
+              );
+            })()}
 
           </div>
         </ScrollArea>

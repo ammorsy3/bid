@@ -204,62 +204,49 @@ export default function VendorsBase() {
             <div className="grid gap-4">
               {vendors.map((vendor) => (
                 <SpotlightCard key={vendor.id} className="bg-white border-neutral-200" spotlightColor="blue" data-testid={`card-vendor-${vendor.id}`}>
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Building2 className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-xl font-bold text-neutral-900" data-testid={`text-vendor-name-${vendor.id}`}>
-                              {vendor.company}
-                            </h3>
-                            {vendor.verificationStatus === 'verified' && (
-                              <Badge variant="secondary" className="gap-1" data-testid={`badge-verified-${vendor.id}`}>
-                                <CheckCircle className="h-3 w-3" />
-                                Verified
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm font-medium text-neutral-600" data-testid={`text-vendor-category-${vendor.id}`}>
-                            {vendor.category}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge
-                        variant={vendor.joinMethod === 'invitation' ? 'default' : 'outline'}
-                        data-testid={`badge-join-method-${vendor.id}`}
-                      >
-                        {vendor.joinMethod === 'invitation' ? 'Invited' : 'Applied'}
-                      </Badge>
-                    </div>
-                    <div className="space-y-3">
-                      {vendor.bio && (
-                        <p className="text-sm text-muted-foreground" data-testid={`text-vendor-bio-${vendor.id}`}>
-                          {vendor.bio}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-4 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span data-testid={`text-vendor-email-${vendor.id}`}>{vendor.email}</span>
-                        </div>
-                        {vendor.rating && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground">Rating:</span>
-                            <Badge variant="secondary" data-testid={`text-vendor-rating-${vendor.id}`}>
-                              {vendor.rating}
+                  <div className="px-5 py-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-1">
+                          <h3 className="text-lg font-bold text-neutral-900 truncate" data-testid={`text-vendor-name-${vendor.id}`}>
+                            {vendor.company}
+                          </h3>
+                          {vendor.verificationStatus === 'verified' && (
+                            <Badge variant="secondary" className="gap-1 text-xs" data-testid={`badge-verified-${vendor.id}`}>
+                              <CheckCircle className="h-3 w-3" />
+                              Verified
                             </Badge>
+                          )}
+                          <Badge
+                            variant={vendor.joinMethod === 'invitation' ? 'default' : 'outline'}
+                            className="text-xs"
+                            data-testid={`badge-join-method-${vendor.id}`}
+                          >
+                            {vendor.joinMethod === 'invitation' ? 'Invited' : 'Applied'}
+                          </Badge>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-600">
+                          <span className="font-medium" data-testid={`text-vendor-category-${vendor.id}`}>
+                            {vendor.category}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <span data-testid={`text-vendor-email-${vendor.id}`}>{vendor.email}</span>
                           </div>
-                        )}
+                          {vendor.rating && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">Rating:</span>
+                              <Badge variant="secondary" className="text-xs" data-testid={`text-vendor-rating-${vendor.id}`}>
+                                {vendor.rating}
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex gap-2 pt-2">
-                        <Button variant="outline" size="sm" data-testid={`button-view-profile-${vendor.id}`}>
-                          <FileText className="h-4 w-4 mr-2" />
-                          View Profile
-                        </Button>
-                      </div>
+                      <Button variant="outline" size="sm" className="flex-shrink-0" data-testid={`button-view-profile-${vendor.id}`}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        View Profile
+                      </Button>
                     </div>
                   </div>
                 </SpotlightCard>

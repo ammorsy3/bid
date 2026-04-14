@@ -6,8 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Upload, User, Users, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield, Crown, MoreVertical, FileCheck2, CheckCircle2, Palette, Eye, ExternalLink } from "lucide-react";
+import { X, Upload, User, Users, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield, Crown, MoreVertical, FileCheck2, CheckCircle2, Palette, Eye, ExternalLink, History, FileText, Send, Activity } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -56,8 +59,95 @@ interface TeamMember {
   joinedAt: string;
 }
 
+interface ActivityEntry {
+  id: string;
+  action: string;
+  targetType: string | null;
+  targetId: string | null;
+  summary: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+function activityIcon(action: string) {
+  const prefix = action.split('.')[0];
+  switch (prefix) {
+    case 'tender': return Briefcase;
+    case 'offer': return Send;
+    case 'template': return FileText;
+    case 'company': return Building2;
+    case 'member': return Users;
+    default: return Activity;
+  }
+}
+
+function MemberActivityDialog({
+  companyId,
+  member,
+  onClose,
+}: {
+  companyId: string;
+  member: TeamMember | null;
+  onClose: () => void;
+}) {
+  const { data: entries = [], isLoading } = useQuery<ActivityEntry[]>({
+    queryKey: ['/api/companies', companyId, 'members', member?.userId, 'activity'],
+    enabled: !!member,
+    queryFn: async () => {
+      const res = await apiRequest('GET', `/api/companies/${companyId}/members/${member!.userId}/activity?limit=100`);
+      if (!res.ok) throw new Error('Failed to load activity');
+      return res.json();
+    },
+  });
+
+  return (
+    <Dialog open={!!member} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <History className="h-5 w-5" />
+            {member?.name}'s activity
+          </DialogTitle>
+          <DialogDescription>
+            Recent actions this member has taken inside the company.
+          </DialogDescription>
+        </DialogHeader>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : entries.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-10">No recorded activity yet.</p>
+        ) : (
+          <ScrollArea className="max-h-[60vh] pr-3">
+            <ul className="space-y-3">
+              {entries.map((entry) => {
+                const Icon = activityIcon(entry.action);
+                return (
+                  <li key={entry.id} className="flex gap-3 items-start">
+                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                      <Icon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium break-words">{entry.summary || entry.action}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true })}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </ScrollArea>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { companyId: string; canManage: boolean; currentUserId: string; isRtl: boolean }) {
   const { toast } = useToast();
+  const [activityFor, setActivityFor] = useState<TeamMember | null>(null);
 
   const { data: members = [], isLoading } = useQuery<TeamMember[]>({
     queryKey: ['/api/companies', companyId, 'members'],
@@ -140,40 +230,57 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { co
                     {member.role === 'owner' && <Crown className="h-3 w-3 mr-1" />}
                     {member.role}
                   </Badge>
-                  {canManage && member.userId !== currentUserId && member.role !== 'owner' && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align={isRtl ? 'start' : 'end'}>
-                        {['admin', 'member', 'viewer'].filter(r => r !== member.role).map(role => (
-                          <DropdownMenuItem
-                            key={role}
-                            onClick={() => updateRoleMutation.mutate({ userId: member.userId, role })}
-                          >
-                            <Shield className="h-4 w-4 mr-2" />
-                            Make {role.charAt(0).toUpperCase() + role.slice(1)}
+                  {canManage && (() => {
+                    const canModify = member.userId !== currentUserId && member.role !== 'owner';
+                    return (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align={isRtl ? 'start' : 'end'}>
+                          <DropdownMenuItem onClick={() => setActivityFor(member)}>
+                            <History className="h-4 w-4 mr-2" />
+                            View activity
                           </DropdownMenuItem>
-                        ))}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => removeMemberMutation.mutate(member.userId)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Remove
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
+                          {canModify && (
+                            <>
+                              <DropdownMenuSeparator />
+                              {['admin', 'member', 'viewer'].filter(r => r !== member.role).map(role => (
+                                <DropdownMenuItem
+                                  key={role}
+                                  onClick={() => updateRoleMutation.mutate({ userId: member.userId, role })}
+                                >
+                                  <Shield className="h-4 w-4 mr-2" />
+                                  Make {role.charAt(0).toUpperCase() + role.slice(1)}
+                                </DropdownMenuItem>
+                              ))}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => removeMemberMutation.mutate(member.userId)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Remove
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    );
+                  })()}
                 </div>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+      <MemberActivityDialog
+        companyId={companyId}
+        member={activityFor}
+        onClose={() => setActivityFor(null)}
+      />
     </div>
   );
 }

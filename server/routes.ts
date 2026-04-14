@@ -1156,6 +1156,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.updateCompanyProfile(companyId, updates);
 
+      await storage.logMemberActivity({
+        companyId,
+        actorUserId: req.auth!.userId,
+        action: 'company.profile_updated',
+        targetType: 'company',
+        targetId: companyId,
+        summary: 'Updated company profile',
+        metadata: { fields: Object.keys(updates) },
+      });
+
       res.json({ message: "Company profile updated successfully" });
     } catch (error) {
       console.error('Update company profile error:', error);
@@ -1235,6 +1245,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isOriginal ? { headerOriginalUrl: result.url } : { headerUrl: result.url },
       );
 
+      await storage.logMemberActivity({
+        companyId,
+        actorUserId: req.auth!.userId,
+        action: 'company.header_updated',
+        targetType: 'company',
+        targetId: companyId,
+        summary: 'Updated company header image',
+      });
+
       res.json({ message: "Company header uploaded successfully", url: result.url });
     } catch (error) {
       console.error('Upload company header error:', error);
@@ -1282,6 +1301,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         companyId,
         isOriginal ? { logoOriginalUrl: result.url } : { logoUrl: result.url },
       );
+
+      await storage.logMemberActivity({
+        companyId,
+        actorUserId: req.auth!.userId,
+        action: 'company.logo_updated',
+        targetType: 'company',
+        targetId: companyId,
+        summary: 'Updated company logo',
+      });
 
       res.json({ message: "Company logo uploaded successfully", url: result.url });
     } catch (error) {
@@ -1362,6 +1390,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         folder: 'credential-documents',
         filename: file.originalname,
         contentType: file.mimetype,
+      });
+
+      await storage.logMemberActivity({
+        companyId: req.auth!.activeCompanyId!,
+        actorUserId: req.auth!.userId,
+        action: 'company.document_uploaded',
+        targetType: 'document',
+        targetId: file.originalname,
+        summary: `Uploaded credential document: ${file.originalname}`,
       });
 
       res.json({ message: "Credential document uploaded successfully", url: result.url, name: file.originalname });
@@ -1673,6 +1710,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             language: (inviter.language as 'en' | 'ar') || 'en',
           });
           results.push({ email, status: 'sent' });
+          await storage.logMemberActivity({
+            companyId,
+            actorUserId: req.auth!.userId,
+            action: 'member.invited',
+            targetType: 'member',
+            targetId: email,
+            summary: `Invited ${email} as ${role}`,
+            metadata: { email, role },
+          });
         } catch (emailErr) {
           console.error(`[Email] Failed to send team invite to ${email}:`, emailErr);
           results.push({ email, status: 'email_failed' });
@@ -1762,6 +1808,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Mark invitation as accepted
       await storage.updateTeamInvitation(invitation.id, { status: 'accepted', acceptedAt: new Date() } as any);
 
+      await storage.logMemberActivity({
+        companyId: invitation.companyId,
+        actorUserId: user.id,
+        action: 'member.joined',
+        targetType: 'member',
+        targetId: user.id,
+        summary: `Joined the company as ${invitation.role}`,
+        metadata: { role: invitation.role, invitedBy: invitation.invitedBy },
+      });
+
       // Generate new token with the new company as active
       const token = generateToken({
         userId: user.id,
@@ -1815,6 +1871,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get member activity log (owners/admins only)
+  app.get("/api/companies/:companyId/members/:userId/activity", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const { companyId, userId } = req.params;
+      const callerRole = await storage.getUserRoleInCompany(req.auth!.userId, companyId);
+      if (!callerRole || !['owner', 'admin'].includes(callerRole)) {
+        return res.status(403).json({ message: "Only owners and admins can view member activity" });
+      }
+      const limit = Math.min(Number(req.query.limit) || 50, 100);
+      const before = req.query.before ? new Date(String(req.query.before)) : undefined;
+      const rows = await storage.getMemberActivity(companyId, userId, { limit, before });
+      res.json(rows);
+    } catch (error) {
+      console.error('Get member activity error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Update member role
   app.patch("/api/companies/:companyId/members/:userId/role", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
     try {
@@ -1848,6 +1922,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       await storage.updateUserRole(userId, companyId, role);
+      await storage.logMemberActivity({
+        companyId,
+        actorUserId: req.auth!.userId,
+        action: 'member.role_changed',
+        targetType: 'member',
+        targetId: userId,
+        summary: `Changed member role: ${targetRole} → ${role}`,
+        metadata: { from: targetRole, to: role, memberId: userId },
+      });
       res.json({ message: "Role updated successfully" });
     } catch (error) {
       console.error('Update member role error:', error);
@@ -1883,6 +1966,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       await storage.removeUserFromCompany(userId, companyId);
+      await storage.logMemberActivity({
+        companyId,
+        actorUserId: req.auth!.userId,
+        action: 'member.removed',
+        targetType: 'member',
+        targetId: userId,
+        summary: `Removed team member`,
+        metadata: { memberId: userId, previousRole: targetRole },
+      });
       res.json({ message: "Member removed successfully" });
     } catch (error) {
       console.error('Remove member error:', error);
@@ -2287,6 +2379,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           uploadedBy: userId,
         });
 
+        await storage.logMemberActivity({
+          companyId,
+          actorUserId: userId,
+          action: 'company.verification_doc_uploaded',
+          targetType: 'document',
+          targetId: doc.id,
+          summary: `Uploaded verification document: ${documentType}`,
+          metadata: { documentType, originalName: originalName || null },
+        });
+
         // Move to under_review when documents are first uploaded (or resubmitted after rejection)
         const company = await storage.getCompany(companyId);
         if (company && (company.verificationStatus === 'not_verified' || company.verificationStatus === 'rejected')) {
@@ -2392,6 +2494,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           invitationToken,
           allowConditionalSubmission: false,
           status: 'published'
+        });
+
+        await storage.logMemberActivity({
+          companyId: req.auth!.activeCompanyId!,
+          actorUserId: req.auth!.userId,
+          action: 'tender.created',
+          targetType: 'tender',
+          targetId: tender.id,
+          summary: `Created tender: ${tender.title || 'Untitled'}`,
+          metadata: { tenderId: tender.id, publishToMarketplace: !!publishToMarketplace },
         });
 
         // If marketplace publishing requested, apply marketplace fields immediately
@@ -2908,6 +3020,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const updates = createTenderSchema.partial().parse(req.body);
         const updatedTender = await storage.updateTender(req.params.id, updates);
+        await storage.logMemberActivity({
+          companyId: tender.companyId!,
+          actorUserId: req.auth!.userId,
+          action: 'tender.updated',
+          targetType: 'tender',
+          targetId: tender.id,
+          summary: `Edited tender: ${tender.title || 'Untitled'}`,
+          metadata: { tenderId: tender.id, fields: Object.keys(updates) },
+        });
         res.json(updatedTender);
       } catch (error) {
         console.error('Update tender error:', error);
@@ -2958,6 +3079,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         await storage.updateTenderStatus(req.params.id, status);
+        await storage.logMemberActivity({
+          companyId: tender.companyId!,
+          actorUserId: req.auth!.userId,
+          action: 'tender.status_changed',
+          targetType: 'tender',
+          targetId: tender.id,
+          summary: `Tender status: ${tender.status} → ${status}`,
+          metadata: { tenderId: tender.id, from: tender.status, to: status },
+        });
         res.json({ success: true });
 
         // Fire-and-forget: status change notifications
@@ -3034,6 +3164,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         await storage.deleteTender(req.params.id);
+        await storage.logMemberActivity({
+          companyId: tender.companyId!,
+          actorUserId: req.auth!.userId,
+          action: 'tender.deleted',
+          targetType: 'tender',
+          targetId: tender.id,
+          summary: `Deleted tender: ${tender.title || 'Untitled'}`,
+          metadata: { tenderId: tender.id },
+        });
         res.json({ success: true });
       } catch (error) {
         console.error('Delete tender error:', error);
@@ -3906,6 +4045,16 @@ Respond with ONLY a JSON object. Example:
           metadata: { tenderId: req.params.id }
         });
 
+        await storage.logMemberActivity({
+          companyId: req.auth!.activeCompanyId!,
+          actorUserId: req.auth!.userId,
+          action: 'offer.submitted',
+          targetType: 'offer',
+          targetId: offer.id,
+          summary: `Submitted offer for tender: ${tender.title || 'Untitled'}`,
+          metadata: { tenderId: tender.id, offerId: offer.id },
+        });
+
         // Auto-add vendor to requester's vendors base on submission
         try {
           const isAlreadyInBase = await storage.isVendorInBase(tender.companyId, req.auth!.activeCompanyId!);
@@ -4085,7 +4234,17 @@ Respond with ONLY a JSON object. Example:
         }
         
         const updatedOffer = await storage.updateOfferStatus(offerId, status, req.auth!.userId);
-        
+
+        await storage.logMemberActivity({
+          companyId: req.auth!.activeCompanyId!,
+          actorUserId: req.auth!.userId,
+          action: 'offer.status_changed',
+          targetType: 'offer',
+          targetId: offerId,
+          summary: `Marked offer ${status}`,
+          metadata: { offerId, tenderId: offer.tenderId, status },
+        });
+
         // When accepting a proposal, automatically add the vendor to the Vendors Base
         if (status === 'accepted') {
           const isAlreadyInBase = await storage.isVendorInBase(req.auth!.activeCompanyId!, offer.companyId);
@@ -5384,6 +5543,16 @@ Respond with ONLY a JSON object. Example:
         companyId: req.auth!.activeCompanyId!,
       });
 
+      await storage.logMemberActivity({
+        companyId: req.auth!.activeCompanyId!,
+        actorUserId: req.auth!.userId,
+        action: 'template.created',
+        targetType: 'template',
+        targetId: template.id,
+        summary: `Created tender template: ${template.name || 'Untitled'}`,
+        metadata: { templateId: template.id },
+      });
+
       res.status(201).json(template);
     } catch (error: any) {
       if (error.name === 'ZodError') {
@@ -5441,6 +5610,15 @@ Respond with ONLY a JSON object. Example:
       }
 
       const updated = await storage.updateTenderTemplate(req.params.id, req.body);
+      await storage.logMemberActivity({
+        companyId: template.companyId!,
+        actorUserId: req.auth!.userId,
+        action: 'template.updated',
+        targetType: 'template',
+        targetId: template.id,
+        summary: `Edited tender template: ${template.name || 'Untitled'}`,
+        metadata: { templateId: template.id },
+      });
       res.json(updated);
     } catch (error) {
       console.error('Update template error:', error);
@@ -5463,6 +5641,15 @@ Respond with ONLY a JSON object. Example:
       }
 
       await storage.deleteTenderTemplate(req.params.id);
+      await storage.logMemberActivity({
+        companyId: template.companyId!,
+        actorUserId: req.auth!.userId,
+        action: 'template.deleted',
+        targetType: 'template',
+        targetId: template.id,
+        summary: `Deleted tender template: ${template.name || 'Untitled'}`,
+        metadata: { templateId: template.id },
+      });
       res.json({ message: "Template deleted" });
     } catch (error) {
       console.error('Delete template error:', error);

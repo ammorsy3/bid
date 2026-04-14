@@ -14,6 +14,9 @@ import {
   productEvents,
   auditLog,
   tenderTemplates,
+  memberActivityLog,
+  type MemberActivityLog,
+  type InsertMemberActivityLog,
   type User,
   type InsertUser,
   type Company,
@@ -79,7 +82,7 @@ import {
   type InsertPurchaseOrder,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, asc, desc, ilike, or, isNull, sql, gte, count, ne } from "drizzle-orm";
+import { eq, and, asc, desc, ilike, or, isNull, sql, gte, count, ne, lt } from "drizzle-orm";
 
 export interface IStorage {
   // ============================================================================
@@ -121,6 +124,8 @@ export interface IStorage {
   updateUserRole(userId: string, companyId: string, role: string): Promise<UserCompany>;
   removeUserFromCompany(userId: string, companyId: string): Promise<void>;
   getUserRoleInCompany(userId: string, companyId: string): Promise<string | null>;
+  logMemberActivity(entry: InsertMemberActivityLog): Promise<void>;
+  getMemberActivity(companyId: string, actorUserId: string, opts: { limit: number; before?: Date }): Promise<MemberActivityLog[]>;
 
   // ============================================================================
   // TRUSTED BROWSER OPERATIONS
@@ -701,6 +706,32 @@ export class DatabaseStorage implements IStorage {
         eq(userCompanies.userId, userId),
         eq(userCompanies.companyId, companyId)
       ));
+  }
+
+  async logMemberActivity(entry: InsertMemberActivityLog): Promise<void> {
+    try {
+      await db.insert(memberActivityLog).values(entry);
+    } catch (err) {
+      console.error("Failed to log member activity", err);
+    }
+  }
+
+  async getMemberActivity(
+    companyId: string,
+    actorUserId: string,
+    opts: { limit: number; before?: Date }
+  ): Promise<MemberActivityLog[]> {
+    const conditions = [
+      eq(memberActivityLog.companyId, companyId),
+      eq(memberActivityLog.actorUserId, actorUserId),
+    ];
+    if (opts.before) conditions.push(lt(memberActivityLog.createdAt, opts.before));
+    return db
+      .select()
+      .from(memberActivityLog)
+      .where(and(...conditions))
+      .orderBy(desc(memberActivityLog.createdAt))
+      .limit(opts.limit);
   }
 
   async getUserRoleInCompany(userId: string, companyId: string): Promise<string | null> {

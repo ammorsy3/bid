@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, boolean, jsonb, integer, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, boolean, jsonb, integer, uniqueIndex, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -627,6 +627,24 @@ export const auditLog = pgTable("audit_log", {
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Member Activity Log - Per-member feed of actions inside a company
+export const memberActivityLog = pgTable("member_activity_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
+  actorUserId: varchar("actor_user_id").notNull().references(() => users.id),
+  action: varchar("action", { length: 64 }).notNull(),
+  targetType: varchar("target_type", { length: 32 }),
+  targetId: varchar("target_id", { length: 128 }),
+  summary: text("summary"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  byCompanyActor: index("mal_company_actor_idx").on(t.companyId, t.actorUserId, t.createdAt),
+}));
+
+export type MemberActivityLog = typeof memberActivityLog.$inferSelect;
+export type InsertMemberActivityLog = typeof memberActivityLog.$inferInsert;
 
 // Tender Q&A - Anonymous questions from vendors, answered by requester
 export const tenderQuestions = pgTable("tender_questions", {

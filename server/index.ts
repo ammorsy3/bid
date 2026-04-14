@@ -2,6 +2,7 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { execSync } from "child_process";
 
 const app = express();
 app.use(express.json());
@@ -56,34 +57,27 @@ app.use((req, res, next) => {
 
   const port = parseInt(process.env.PORT || "5000", 10);
 
-  // Exit immediately on SIGTERM/SIGINT so the port is released before
-  // Replit starts the next server instance.
   process.on("SIGTERM", () => process.exit(0));
   process.on("SIGINT", () => process.exit(0));
 
-  // Retry rapidly (100 ms gaps) to catch the brief window when pid2
-  // releases port 5000 during process handoff. Fall back to 1-second
-  // retries if the fast window is missed.
-  const startListen = (retriesLeft: number, delay = 100): Promise<void> =>
+  try {
+    execSync(`fuser -k ${port}/tcp 2>/dev/null || true`);
+  } catch {}
+
+  const startListen = (retriesLeft: number): Promise<void> =>
     new Promise((resolve, reject) => {
-      const onError = async (err: any) => {
-        server.removeAllListeners("error");
+      server.once("error", (err: any) => {
         if (err.code === "EADDRINUSE" && retriesLeft > 0) {
-          await new Promise((r) => setTimeout(r, delay));
-          const nextDelay = retriesLeft > 200 ? 100 : 1000;
-          resolve(startListen(retriesLeft - 1, nextDelay));
+          setTimeout(() => resolve(startListen(retriesLeft - 1)), 500);
         } else {
           reject(err);
         }
-      };
-      server.once("error", onError);
+      });
       server.listen({ port, host: "0.0.0.0" }, () => {
-        server.removeListener("error", onError);
         log(`serving on port ${port}`);
         resolve();
       });
     });
 
-  // 300 fast retries (100ms each = 30s) then fail
-  await startListen(300);
+  await startListen(10);
 })();

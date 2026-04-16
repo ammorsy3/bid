@@ -10,7 +10,7 @@ import { isMarketplaceSubdomain } from "@/lib/subdomain";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
-import { Building2, Shield, Users, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
@@ -47,7 +47,7 @@ export default function Login() {
       await apiRequest("POST", "/api/auth/forgot-password", { email: data.email });
       setForgotSent(true);
     } catch {
-      setForgotSent(true); // still show success to prevent enumeration
+      setForgotSent(true);
     }
   };
 
@@ -65,7 +65,6 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      // On marketplace subdomain, redirect to main domain for dashboard/onboarding
       if (isMarketplaceSubdomain()) {
         const mainDomain = window.location.hostname.replace(/^marketplace\./, '');
         const mainOrigin = `${window.location.protocol}//${mainDomain}${window.location.port ? ':' + window.location.port : ''}`;
@@ -74,7 +73,6 @@ export default function Login() {
         return;
       }
 
-      // If OTP not verified for this session, go to verification
       if (!user.otpVerified) {
         if (redirectUrl) {
           localStorage.setItem('postOnboardingRedirect', decodeURIComponent(redirectUrl));
@@ -84,7 +82,6 @@ export default function Login() {
         setLocation("/verify-email");
         return;
       }
-      // If user has a company, go to redirect or dashboard
       if (activeCompany) {
         if (invitationToken) {
           setLocation(`/invite/${invitationToken}`);
@@ -94,7 +91,6 @@ export default function Login() {
           setLocation("/dashboard");
         }
       } else {
-        // User needs to create a company
         if (redirectUrl) {
           localStorage.setItem('postOnboardingRedirect', decodeURIComponent(redirectUrl));
         } else if (invitationToken) {
@@ -107,7 +103,6 @@ export default function Login() {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      // Pass trusted browser token if one exists
       const trustedToken = localStorage.getItem('trustedBrowserToken');
       sessionStorage.setItem('otp_sent_by_login', 'true');
       if (rememberDevice) {
@@ -130,83 +125,29 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-white relative overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <FlickeringGrid
-            className="size-full"
-            squareSize={4}
-            gridGap={6}
-            color="rgb(226, 94, 69)"
-            maxOpacity={0.15}
-            flickerChance={0.1}
-          />
-        </div>
-        <div className="relative z-10 flex flex-col justify-center px-16 text-gray-900">
-          <div className="mb-12">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-[#E25E45]/15 rounded-xl flex items-center justify-center">
-                <span className="text-[#E25E45] font-bold text-lg">B</span>
-              </div>
-              <span className="text-2xl font-bold tracking-tight text-[#E25E45]">Bid</span>
-            </div>
-            <h1 className="text-4xl font-bold leading-tight mb-4 drop-shadow-sm">
-              {t('authPanel.welcomeBack')}
-            </h1>
-            <p className="text-lg text-gray-500 leading-relaxed">
-              {t('authPanel.welcomeBackDesc')}
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-[#E25E45]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Building2 className="w-5 h-5 text-[#E25E45]" />
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">{t('authPanel.companyWorkspaces')}</h3>
-                <p className="text-sm text-gray-500">{t('authPanel.companyWorkspacesDesc')}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-[#E25E45]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Users className="w-5 h-5 text-[#E25E45]" />
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">{t('authPanel.vendorManagement')}</h3>
-                <p className="text-sm text-gray-500">{t('authPanel.vendorManagementDesc')}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-[#E25E45]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Shield className="w-5 h-5 text-[#E25E45]" />
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">{t('authPanel.secureCompliant')}</h3>
-                <p className="text-sm text-gray-500">{t('authPanel.secureCompliantDesc')}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="relative min-h-screen bg-white flex flex-col overflow-hidden">
+      <div className="absolute inset-0 z-0">
+        <FlickeringGrid
+          className="size-full"
+          squareSize={4}
+          gridGap={6}
+          color="rgb(226, 94, 69)"
+          maxOpacity={0.15}
+          flickerChance={0.1}
+        />
       </div>
 
-      {/* Right Panel - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-neutral-50">
-        <div className="w-full max-w-md">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
-            <div className="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">B</span>
-            </div>
-            <span className="text-xl font-bold text-neutral-900">Bid</span>
-          </div>
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-12">
+        <header className="mb-10">
+          <h1 className="text-center text-4xl font-bold text-[#E25E45] tracking-tight">Bid</h1>
+        </header>
 
+        <div className="w-full max-w-md">
           {forgotMode ? (
-            <>
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-neutral-900 mb-2">{t('auth.forgotPasswordTitle')}</h2>
-                <p className="text-neutral-500">{t('auth.forgotPasswordDesc')}</p>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-neutral-200/60 shadow-sm p-8">
+              <div className="mb-6 text-center">
+                <h2 className="text-xl font-bold text-neutral-900 mb-1">{t('auth.forgotPasswordTitle')}</h2>
+                <p className="text-sm text-neutral-500">{t('auth.forgotPasswordDesc')}</p>
               </div>
 
               {forgotSent ? (
@@ -219,7 +160,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => { setForgotMode(false); setForgotSent(false); }}
-                    className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                    className="text-sm text-[#E25E45] hover:text-[#d54d35] font-medium transition-colors"
                   >
                     {t('auth.backToLogin')}
                   </button>
@@ -235,7 +176,7 @@ export default function Login() {
                           <FormItem>
                             <FormLabel>{t('auth.email')}</FormLabel>
                             <FormControl>
-                              <Input placeholder={t('auth.emailPlaceholder')} {...field} />
+                              <Input placeholder={t('auth.emailPlaceholder')} className="bg-white" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -257,12 +198,12 @@ export default function Login() {
                   </div>
                 </>
               )}
-            </>
+            </div>
           ) : (
-            <>
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-neutral-900 mb-2">{t('authPanel.signInTitle')}</h2>
-                <p className="text-neutral-500">{t('authPanel.signInDesc')}</p>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-neutral-200/60 shadow-sm p-8">
+              <div className="mb-6 text-center">
+                <h2 className="text-xl font-bold text-neutral-900 mb-1">{t('authPanel.signInTitle')}</h2>
+                <p className="text-sm text-neutral-500">{t('authPanel.signInDesc')}</p>
               </div>
 
               <Form {...form}>
@@ -274,7 +215,7 @@ export default function Login() {
                       <FormItem>
                         <FormLabel>{t('auth.email')}</FormLabel>
                         <FormControl>
-                          <Input data-testid="input-email" placeholder={t('auth.emailPlaceholder')} {...field} />
+                          <Input data-testid="input-email" placeholder={t('auth.emailPlaceholder')} className="bg-white" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -291,13 +232,13 @@ export default function Login() {
                           <button
                             type="button"
                             onClick={() => setForgotMode(true)}
-                            className="text-xs text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                            className="text-xs text-[#E25E45] hover:text-[#d54d35] font-medium transition-colors"
                           >
                             {t('auth.forgotPassword')}
                           </button>
                         </div>
                         <FormControl>
-                          <Input data-testid="input-password" type="password" placeholder={t('auth.passwordPlaceholder')} {...field} />
+                          <Input data-testid="input-password" type="password" placeholder={t('auth.passwordPlaceholder')} className="bg-white" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -325,12 +266,12 @@ export default function Login() {
               <div className="mt-6 text-center">
                 <p className="text-sm text-neutral-500">
                   {t('auth.noAccount')}{" "}
-                  <Link href="/signup" className="text-primary-600 hover:text-primary-700 font-medium">
+                  <Link href="/signup" className="text-[#E25E45] hover:text-[#d54d35] font-medium">
                     {t('auth.signUp')}
                   </Link>
                 </p>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>

@@ -139,7 +139,9 @@ export default function Login() {
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-12">
         <header className="mb-10">
-          <h1 className="text-center text-4xl font-bold text-[#E25E45] tracking-tight">Bid</h1>
+          <Link href="/">
+            <h1 className="text-center text-4xl font-bold text-[#E25E45] tracking-tight cursor-pointer hover:opacity-80 transition-opacity">Bid</h1>
+          </Link>
         </header>
 
         <div className="w-full max-w-md">

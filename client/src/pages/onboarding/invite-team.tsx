@@ -180,8 +180,8 @@ export default function InviteTeam() {
               <Users className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">Invite your team</h2>
-              <p className="text-sm text-neutral-500">Add colleagues to your workspace</p>
+              <h2 className="text-xl font-bold text-neutral-900">{t('onboardingPanel.inviteYourTeam')}</h2>
+              <p className="text-sm text-neutral-500">{t('onboardingPanel.inviteYourTeamDesc')}</p>
             </div>
           </div>
 
@@ -205,9 +205,9 @@ export default function InviteTeam() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="member">Member</SelectItem>
-                    <SelectItem value="viewer">Viewer</SelectItem>
+                    <SelectItem value="admin">{t('onboardingPanel.roleAdminLabel')}</SelectItem>
+                    <SelectItem value="member">{t('onboardingPanel.roleMemberLabel')}</SelectItem>
+                    <SelectItem value="viewer">{t('onboardingPanel.roleViewerLabel')}</SelectItem>
                   </SelectContent>
                 </Select>
                 {invitations.length > 1 && (
@@ -241,11 +241,11 @@ export default function InviteTeam() {
           )}
 
           <div className="bg-neutral-50 rounded-lg p-4 mb-6">
-            <h4 className="text-sm font-medium text-neutral-700 mb-2">Roles explained</h4>
+            <h4 className="text-sm font-medium text-neutral-700 mb-2">{t('onboardingPanel.rolesExplained')}</h4>
             <div className="space-y-1 text-xs text-neutral-500">
-              <p><span className="font-medium text-neutral-600">Admin</span> — Can manage tenders, vendors, and company settings</p>
-              <p><span className="font-medium text-neutral-600">Member</span> — Can view and participate in tenders</p>
-              <p><span className="font-medium text-neutral-600">Viewer</span> — Read-only access to tenders and reports</p>
+              <p><span className="font-medium text-neutral-600">{t('onboardingPanel.roleAdminExplain')}</span> — {t('onboardingPanel.roleAdminExplainDesc')}</p>
+              <p><span className="font-medium text-neutral-600">{t('onboardingPanel.roleMemberExplain')}</span> — {t('onboardingPanel.roleMemberExplainDesc')}</p>
+              <p><span className="font-medium text-neutral-600">{t('onboardingPanel.roleViewerExplain')}</span> — {t('onboardingPanel.roleViewerExplainDesc')}</p>
             </div>
           </div>
 

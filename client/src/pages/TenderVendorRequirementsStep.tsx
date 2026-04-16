@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Shield, Sparkles, Plus, X, CheckCircle2 } from "
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
+import { useI18n } from "@/lib/i18n";
 
 interface VendorRequirement {
   id: string;
@@ -18,23 +19,24 @@ interface PresetRequirement {
   aiSuggested: boolean;
 }
 
-const PRESET_REQUIREMENTS: PresetRequirement[] = [
-  { id: 'legal_registration', text: 'Be legally registered in Saudi Arabia', aiSuggested: true },
-  { id: 'cr_certificate', text: 'Valid Commercial Registration (CR) certificate', aiSuggested: true },
-  { id: 'business_license', text: 'Valid business license', aiSuggested: true },
-  { id: 'zakat_certificate', text: 'Valid Zakat, Tax, and Customs Authority certificate', aiSuggested: true },
-  { id: 'gosi_certificate', text: 'Valid GOSI (Social Insurance) certificate', aiSuggested: true },
-  { id: 'no_legal_disputes', text: 'No ongoing legal disputes affecting project execution', aiSuggested: true },
-  { id: 'regulatory_compliance', text: 'Must comply with all local regulatory requirements', aiSuggested: false },
-  { id: 'nda', text: 'Signed Non-Disclosure Agreement (NDA) required', aiSuggested: false },
-  { id: 'data_protection', text: 'Compliance with Saudi data protection and cybersecurity regulations', aiSuggested: true },
-  { id: 'local_content', text: 'Commitment to local content regulations (if applicable)', aiSuggested: true },
-];
-
 export default function TenderVendorRequirementsStep() {
   const [, navigate] = useLocation();
+  const { t, isRtl } = useI18n();
   const [selected, setSelected] = useState<VendorRequirement[]>([]);
   const [customText, setCustomText] = useState('');
+
+  const PRESET_REQUIREMENTS: PresetRequirement[] = [
+    { id: 'legal_registration', text: t('tenderSteps.reqLegalRegistration'), aiSuggested: true },
+    { id: 'cr_certificate', text: t('tenderSteps.reqCrCertificate'), aiSuggested: true },
+    { id: 'business_license', text: t('tenderSteps.reqBusinessLicense'), aiSuggested: true },
+    { id: 'zakat_certificate', text: t('tenderSteps.reqZakatCertificate'), aiSuggested: true },
+    { id: 'gosi_certificate', text: t('tenderSteps.reqGosiCertificate'), aiSuggested: true },
+    { id: 'no_legal_disputes', text: t('tenderSteps.reqNoLegalDisputes'), aiSuggested: true },
+    { id: 'regulatory_compliance', text: t('tenderSteps.reqRegulatoryCompliance'), aiSuggested: false },
+    { id: 'nda', text: t('tenderSteps.reqNda'), aiSuggested: false },
+    { id: 'data_protection', text: t('tenderSteps.reqDataProtection'), aiSuggested: true },
+    { id: 'local_content', text: t('tenderSteps.reqLocalContent'), aiSuggested: true },
+  ];
 
   const draft = useMemo(() => {
     try {
@@ -113,8 +115,8 @@ export default function TenderVendorRequirementsStep() {
             onClick={() => navigate("/dashboard")}
           />
           <Button variant="outline" onClick={handleBack} data-testid="button-back">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            <ArrowLeft className={`h-4 w-4 ${isRtl ? 'ml-2 rotate-180' : 'mr-2'}`} />
+            {t('tenderSteps.back')}
           </Button>
         </div>
 
@@ -125,10 +127,10 @@ export default function TenderVendorRequirementsStep() {
             <div className="space-y-4">
               <div className="text-sm font-medium text-gray-500">6 / 7</div>
               <h1 className="text-5xl font-bold text-gray-900 leading-tight">
-                Submission Requirements
+                {t('tenderSteps.submissionRequirements')}
               </h1>
               <p className="text-gray-600 text-lg">
-                Define which vendors are eligible to respond. These requirements will be shown to vendors on the published RFP page.
+                {t('tenderSteps.vendorReqDesc')}
               </p>
 
               {selected.length > 0 && (
@@ -136,13 +138,13 @@ export default function TenderVendorRequirementsStep() {
                   {mandatoryCount > 0 && (
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
                       <div className="w-2 h-2 rounded-full bg-red-500" />
-                      <span className="text-sm font-medium text-red-700">{mandatoryCount} mandatory</span>
+                      <span className="text-sm font-medium text-red-700">{t('tenderSteps.mandatoryCount', { count: mandatoryCount })}</span>
                     </div>
                   )}
                   {preferredCount > 0 && (
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full">
                       <div className="w-2 h-2 rounded-full bg-amber-500" />
-                      <span className="text-sm font-medium text-amber-700">{preferredCount} preferred</span>
+                      <span className="text-sm font-medium text-amber-700">{t('tenderSteps.preferredCount', { count: preferredCount })}</span>
                     </div>
                   )}
                 </div>
@@ -161,7 +163,7 @@ export default function TenderVendorRequirementsStep() {
                 <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-100 rounded-lg">
                   <Sparkles className="h-4 w-4 text-blue-500 flex-shrink-0" />
                   <p className="text-xs text-blue-700 font-medium">
-                    AI-suggested requirements based on Saudi procurement standards
+                    {t('tenderSteps.aiSuggestedBanner')}
                   </p>
                 </div>
 
@@ -199,14 +201,14 @@ export default function TenderVendorRequirementsStep() {
                                   onClick={() => setType(preset.id, 'mandatory')}
                                   className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
                                 >
-                                  Mandatory
+                                  {t('tenderSteps.mandatory')}
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => setType(preset.id, 'preferred')}
                                   className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
                                 >
-                                  Preferred
+                                  {t('tenderSteps.preferred')}
                                 </button>
                               </div>
                             )}
@@ -222,14 +224,14 @@ export default function TenderVendorRequirementsStep() {
 
                 {/* Custom requirements */}
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Add custom requirement</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('tenderSteps.addCustomRequirement')}</p>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={customText}
                       onChange={(e) => setCustomText(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && addCustom()}
-                      placeholder="e.g. Must have ISO 9001 certification"
+                      placeholder={t('tenderSteps.customReqPlaceholder')}
                       className="flex-1 text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
                       data-testid="input-custom-requirement"
                     />
@@ -258,14 +260,14 @@ export default function TenderVendorRequirementsStep() {
                                 onClick={() => setType(req.id, 'mandatory')}
                                 className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
                               >
-                                Mandatory
+                                {t('tenderSteps.mandatory')}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setType(req.id, 'preferred')}
                                 className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
                               >
-                                Preferred
+                                {t('tenderSteps.preferred')}
                               </button>
                             </div>
                           </div>
@@ -291,15 +293,19 @@ export default function TenderVendorRequirementsStep() {
                     className="text-gray-400 hover:text-gray-600"
                     data-testid="button-skip"
                   >
-                    Skip
+                    {t('tenderSteps.skip')}
                   </Button>
                   <Button
                     onClick={handleNext}
                     className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
                     data-testid="button-next"
                   >
-                    {selected.length > 0 ? `Continue with ${selected.length} requirement${selected.length !== 1 ? 's' : ''}` : 'Continue'}
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                    {selected.length > 0
+                      ? (selected.length === 1
+                          ? t('tenderSteps.continueWithRequirements', { count: selected.length })
+                          : t('tenderSteps.continueWithRequirementsPlural', { count: selected.length }))
+                      : t('tenderSteps.continueBtn')}
+                    <ArrowRight className={`h-4 w-4 ${isRtl ? 'mr-2 rotate-180' : 'ml-2'}`} />
                   </Button>
                 </div>
 

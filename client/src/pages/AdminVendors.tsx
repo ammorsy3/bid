@@ -230,7 +230,7 @@ export default function AdminVendors() {
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search by name, CR number, owner, or city..."
+              placeholder={t('admin.searchVendorsPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -254,7 +254,7 @@ export default function AdminVendors() {
                 {t('admin.noPendingVerifications')}
               </p>
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                {searchQuery ? `No results for "${searchQuery}"` : statusFilter === 'under_review' ? 'All companies have been reviewed' : 'No companies with this status'}
+                {searchQuery ? t('admin.noResultsFor', { query: searchQuery }) : statusFilter === 'under_review' ? t('admin.allCompaniesReviewed') : t('admin.noCompaniesStatus')}
               </p>
             </CardContent>
           </Card>
@@ -278,30 +278,30 @@ export default function AdminVendors() {
                           {resubmission && (
                             <Badge className="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-[11px]">
                               <RotateCcw className="h-3 w-3 mr-1" />
-                              Resubmission
+                              {t('admin.resubmission')}
                             </Badge>
                           )}
                           {docs.length === 0 && (
                             <Badge className="bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 text-[11px]">
                               <AlertTriangle className="h-3 w-3 mr-1" />
-                              No documents
+                              {t('admin.noDocumentsBadge')}
                             </Badge>
                           )}
                           {docs.length > 0 && !hasCR && (
                             <Badge className="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-[11px]">
                               <AlertTriangle className="h-3 w-3 mr-1" />
-                              Missing CR
+                              {t('admin.missingCr')}
                             </Badge>
                           )}
                         </CardTitle>
 
                         <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
-                          <div><strong>Legal Name:</strong> {company.legalName}</div>
-                          <div><strong>CR #:</strong> {company.crNumber}</div>
-                          {company.vatNumber && <div><strong>VAT #:</strong> {company.vatNumber}</div>}
-                          <div><strong>City:</strong> {company.city || 'N/A'}</div>
-                          {company.category && <div><strong>Category:</strong> {company.category}</div>}
-                          <div><strong>Submitted:</strong> {format(new Date(company.createdAt), 'PPp')}</div>
+                          <div><strong>{t('admin.legalName')}</strong> {company.legalName}</div>
+                          <div><strong>{t('admin.crHash')}</strong> {company.crNumber}</div>
+                          {company.vatNumber && <div><strong>{t('admin.vatHash')}</strong> {company.vatNumber}</div>}
+                          <div><strong>{t('admin.city')}</strong> {company.city || t('admin.na')}</div>
+                          {company.category && <div><strong>{t('admin.categoryLabel')}</strong> {company.category}</div>}
+                          <div><strong>{t('admin.submitted')}</strong> {format(new Date(company.createdAt), 'PPp')}</div>
                         </div>
 
                         {/* Owner info */}
@@ -318,7 +318,7 @@ export default function AdminVendors() {
                         {/* Previous rejection reason (for resubmissions) */}
                         {resubmission && (
                           <div className="mt-2 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-xs">
-                            <strong className="text-amber-800 dark:text-amber-300">Previous rejection:</strong>{" "}
+                            <strong className="text-amber-800 dark:text-amber-300">{t('admin.previousRejection')}</strong>{" "}
                             <span className="text-amber-700 dark:text-amber-400">{company.rejectionReason}</span>
                           </div>
                         )}
@@ -409,10 +409,10 @@ export default function AdminVendors() {
               {/* Owner Info */}
               {selectedCompany.owner && (
                 <div>
-                  <h3 className="font-semibold mb-2 text-sm">Owner</h3>
+                  <h3 className="font-semibold mb-2 text-sm">{t('admin.ownerSection')}</h3>
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div><strong>Name:</strong> {selectedCompany.owner.name}</div>
-                    <div><strong>Email:</strong> {selectedCompany.owner.email}</div>
+                    <div><strong>{t('admin.nameLabel')}</strong> {selectedCompany.owner.name}</div>
+                    <div><strong>{t('admin.emailLabel')}</strong> {selectedCompany.owner.email}</div>
                   </div>
                 </div>
               )}
@@ -443,7 +443,7 @@ export default function AdminVendors() {
                 <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50">
                   <h3 className="font-semibold mb-1 text-sm text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
                     <RotateCcw className="h-4 w-4" />
-                    Previous Rejection Reason
+                    {t('admin.previousRejectionReason')}
                   </h3>
                   <p className="text-sm text-amber-700 dark:text-amber-400">{selectedCompany.rejectionReason}</p>
                 </div>
@@ -451,12 +451,12 @@ export default function AdminVendors() {
 
               {/* Documents */}
               <div>
-                <h3 className="font-semibold mb-2 text-sm">Verification Documents</h3>
+                <h3 className="font-semibold mb-2 text-sm">{t('admin.verificationDocuments')}</h3>
                 {!selectedCompany.documents || selectedCompany.documents.length === 0 ? (
                   <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 text-center">
                     <AlertTriangle className="h-5 w-5 text-red-500 mx-auto mb-1.5" />
-                    <p className="text-sm text-red-700 dark:text-red-300 font-medium">No documents uploaded</p>
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">This company has not submitted any verification documents.</p>
+                    <p className="text-sm text-red-700 dark:text-red-300 font-medium">{t('admin.noDocumentsUploaded')}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">{t('admin.noDocumentsUploadedDesc')}</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -474,7 +474,7 @@ export default function AdminVendors() {
                               {DOC_TYPE_LABELS[doc.documentType] || doc.label || doc.documentType}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {doc.originalName || 'Document'} &middot; {format(new Date(doc.uploadedAt), 'PP')}
+                              {doc.originalName || t('admin.documentLabel')} &middot; {format(new Date(doc.uploadedAt), 'PP')}
                             </p>
                           </div>
                         </div>
@@ -486,7 +486,7 @@ export default function AdminVendors() {
                             onClick={() => viewAuthenticatedFile(doc.fileUrl)}
                           >
                             <ExternalLink className="h-3.5 w-3.5 mr-1" />
-                            <span className="text-xs">View</span>
+                            <span className="text-xs">{t('admin.viewBtn')}</span>
                           </Button>
                           <Button
                             variant="ghost"
@@ -495,7 +495,7 @@ export default function AdminVendors() {
                             onClick={() => downloadAuthenticatedFile(doc.fileUrl, doc.originalName || undefined)}
                           >
                             <Download className="h-3.5 w-3.5 mr-1" />
-                            <span className="text-xs">Download</span>
+                            <span className="text-xs">{t('admin.downloadBtn')}</span>
                           </Button>
                         </div>
                       </div>

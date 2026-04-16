@@ -3,15 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Calendar, FileText, Send } from "lucide-react";
 import { format } from "date-fns";
-import { enUS } from "date-fns/locale";
+import { enUS, ar } from "date-fns/locale";
 import { Link } from "wouter";
-
-const SUBMISSION_TYPE_LABELS: Record<string, string> = {
-  quote_only: "Price Quote Only",
-  tech_fin_proposal: "Technical & Financial",
-  video_only: "Video Only",
-  tech_fin_with_video: "Tech & Fin + Video",
-};
+import { useI18n } from "@/lib/i18n";
 
 interface TenderCardProps {
   tender: {
@@ -27,6 +21,18 @@ interface TenderCardProps {
 }
 
 export default function TenderCard({ tender }: TenderCardProps) {
+  const { t, language } = useI18n();
+
+  const getSubmissionTypeLabel = (type: string) => {
+    switch (type) {
+      case 'quote_only': return t('tenderCard.priceQuoteOnly');
+      case 'tech_fin_proposal': return t('tenderCard.techFinProposal');
+      case 'video_only': return t('tenderCard.videoOnly');
+      case 'tech_fin_with_video': return t('tenderCard.techFinWithVideo');
+      default: return type;
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'published': return 'bg-green-100 text-green-800';
@@ -39,10 +45,10 @@ export default function TenderCard({ tender }: TenderCardProps) {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'published': return 'Published';
-      case 'draft': return 'Draft';
-      case 'closed': return 'Closed';
-      case 'cancelled': return 'Cancelled';
+      case 'published': return t('tenderCard.published');
+      case 'draft': return t('tenderCard.draft');
+      case 'closed': return t('tenderCard.closed');
+      case 'cancelled': return t('tenderCard.cancelled');
       default: return status.charAt(0).toUpperCase() + status.slice(1);
     }
   };
@@ -58,7 +64,7 @@ export default function TenderCard({ tender }: TenderCardProps) {
   };
 
   return (
-    <SpotlightCard 
+    <SpotlightCard
       spotlightColor={getSpotlightColor(tender.status)}
       className="w-full"
     >
@@ -69,22 +75,22 @@ export default function TenderCard({ tender }: TenderCardProps) {
             {getStatusLabel(tender.status)}
           </Badge>
         </div>
-        
+
         <p className="text-sm text-neutral-600 line-clamp-2 mb-4">{tender.description}</p>
-        
+
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-neutral-600 mb-4">
           <div className="flex items-center">
             <Calendar className="w-4 h-4 mr-2 text-green-600" />
-            <span>{format(new Date(tender.deadline), 'MMM d, yyyy', { locale: enUS })}</span>
+            <span>{format(new Date(tender.deadline), 'PP', { locale: language === 'ar' ? ar : enUS })}</span>
           </div>
           <div className="flex items-center">
             <Send className="w-4 h-4 mr-2" />
-            <span>{tender.offersCount} offers</span>
+            <span>{tender.offersCount} {t('tenderCard.offers')}</span>
           </div>
           {tender.submissionType && (
             <div className="flex items-center">
               <FileText className="w-4 h-4 mr-2" />
-              <span>{SUBMISSION_TYPE_LABELS[tender.submissionType] || tender.submissionType}</span>
+              <span>{getSubmissionTypeLabel(tender.submissionType)}</span>
             </div>
           )}
           {tender.budget && (
@@ -98,17 +104,17 @@ export default function TenderCard({ tender }: TenderCardProps) {
         <div className="flex items-center gap-2">
           <Button asChild variant="outline" size="sm" className="text-neutral-700">
             <Link href={`/tenders/${tender.id}`}>
-              View
+              {t('tenderCard.view')}
             </Link>
           </Button>
           <Button variant="outline" size="sm" className="text-neutral-700">
-            Copy Link
+            {t('tenderCard.copyLink')}
           </Button>
           <Button variant="outline" size="sm" className="text-neutral-700">
-            Edit
+            {t('tenderCard.edit')}
           </Button>
           <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
-            Delete
+            {t('tenderCard.delete')}
           </Button>
         </div>
       </div>

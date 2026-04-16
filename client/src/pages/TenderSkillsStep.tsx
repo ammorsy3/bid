@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, X, Search } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useState, useMemo } from "react";
+import { useI18n } from "@/lib/i18n";
 
 // Comprehensive skills database
 const SKILLS_DATABASE = [
@@ -244,6 +245,7 @@ const SKILL_CATEGORIES: { [key: string]: string[] } = {
 
 export default function TenderSkillsStep() {
   const [, navigate] = useLocation();
+  const { t, isRtl } = useI18n();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [customSkill, setCustomSkill] = useState("");
@@ -332,7 +334,7 @@ export default function TenderSkillsStep() {
               data-testid="button-back"
             >
               <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
-                Back
+                {t('tenderSteps.back')}
               </span>
               <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
                 <ArrowLeft
@@ -353,10 +355,10 @@ export default function TenderSkillsStep() {
                   4 / 6
                 </div>
                 <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
-                  What are the main skills required for your work?
+                  {t('tenderSteps.skillsStepTitle')}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 text-lg">
-                  Add 3-5 relevant skills to attract the right candidates.
+                  {t('tenderSteps.skillsStepDesc')}
                 </p>
               </div>
           </div>
@@ -371,7 +373,7 @@ export default function TenderSkillsStep() {
                   {selectedSkills.length > 0 && (
                     <div className="space-y-3">
                       <label className="text-sm font-medium text-gray-900 dark:text-white">
-                        Selected skills ({selectedSkills.length})
+                        {t('tenderSteps.selectedSkills', { count: selectedSkills.length })}
                       </label>
                       <div className="flex flex-wrap gap-2">
                         {selectedSkills.map((skill) => (
@@ -397,21 +399,21 @@ export default function TenderSkillsStep() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                        Search skills
+                        {t('tenderSteps.searchSkillsLabel')}
                       </label>
                       <button
                         onClick={() => setShowCustomInput(!showCustomInput)}
                         className="text-xs font-medium text-[#E25E45] hover:underline"
                         data-testid="button-toggle-custom-input"
                       >
-                        {showCustomInput ? "Cancel" : "Add custom skill"}
+                        {showCustomInput ? t('tenderSteps.cancelBtn') : t('tenderSteps.addCustomSkillToggle')}
                       </button>
                     </div>
                     <div className="relative">
                       <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Search skills..."
+                        placeholder={t('tenderSteps.searchSkillsPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
@@ -419,7 +421,7 @@ export default function TenderSkillsStep() {
                       />
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      @ For the best results, add 3-5 skills
+                      {t('tenderSteps.bestResultsHint')}
                     </p>
                   </div>
 
@@ -427,8 +429,8 @@ export default function TenderSkillsStep() {
                   <div className="space-y-3">
                     <h3 className="font-medium text-gray-900 dark:text-white">
                       {searchTerm
-                        ? "Search results"
-                        : `Popular skills for ${jobTitle || "your work"}`}
+                        ? t('tenderSteps.searchResults')
+                        : (jobTitle ? t('tenderSteps.popularSkillsFor', { title: jobTitle }) : t('tenderSteps.popularSkillsForDefault'))}
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {(searchTerm ? filteredSkills : suggestedSkills).length >
@@ -448,7 +450,7 @@ export default function TenderSkillsStep() {
                           ))
                       ) : (
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          No skills found. Type to create a custom skill.
+                          {t('tenderSteps.noSkillsFound')}
                         </p>
                       )}
                     </div>
@@ -458,12 +460,12 @@ export default function TenderSkillsStep() {
                   {showCustomInput && (
                     <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
                       <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                        Enter custom skill name
+                        {t('tenderSteps.enterCustomSkill')}
                       </label>
                       <div className="flex gap-2">
                         <input
                           type="text"
-                          placeholder="Type a skill name..."
+                          placeholder={t('tenderSteps.typeSkillName')}
                           value={customSkill}
                           onChange={(e) => setCustomSkill(e.target.value)}
                           onKeyPress={(e) => {
@@ -480,7 +482,7 @@ export default function TenderSkillsStep() {
                           className="bg-[#E25E45] hover:bg-[#d54d35]"
                           data-testid="button-add-custom"
                         >
-                          Add
+                          {t('tenderSteps.addBtn')}
                         </Button>
                       </div>
                     </div>
@@ -495,7 +497,7 @@ export default function TenderSkillsStep() {
                       className="flex-1"
                       data-testid="button-cancel"
                     >
-                      Back
+                      {t('tenderSteps.back')}
                     </Button>
                     <Button
                       onClick={handleNext}
@@ -503,8 +505,8 @@ export default function TenderSkillsStep() {
                       className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
                       data-testid="button-next"
                     >
-                      Next
-                      <ArrowRight className="h-4 w-4 ml-2" />
+                      {t('tenderSteps.next')}
+                      <ArrowRight className={`h-4 w-4 ${isRtl ? 'mr-2 rotate-180' : 'ml-2'}`} />
                     </Button>
                   </div>
                 </div>

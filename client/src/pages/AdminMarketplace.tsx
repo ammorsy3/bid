@@ -272,7 +272,7 @@ export default function AdminMarketplace() {
                                   toast({ title: 'Error', description: 'Popup blocked — please allow popups', variant: 'destructive' });
                                   return;
                                 }
-                                win.document.write('<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666">Loading file...</body></html>');
+                                win.document.write(`<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666">${t('admin.loadingFile')}</body></html>`);
 
                                 const token = localStorage.getItem('token');
                                 fetch(`/api/purchase-orders/${po.id}/file`, {
@@ -294,7 +294,7 @@ export default function AdminMarketplace() {
                               }}
                             >
                               <ExternalLink className="h-3.5 w-3.5 mr-0.5" />
-                              <span className="text-xs">View</span>
+                              <span className="text-xs">{t('admin.viewBtn')}</span>
                             </Button>
                           )}
                           {po.status === 'pending' && (

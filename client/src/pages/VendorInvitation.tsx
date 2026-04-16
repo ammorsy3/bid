@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { Building2, CheckCircle2, Loader2, CalendarClock, ArrowRight, AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { ar, enUS } from "date-fns/locale";
+import { useI18n } from "@/lib/i18n";
 
 interface InvitationData {
   requester: {
@@ -28,6 +30,7 @@ export default function VendorInvitation() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { user } = useAuthStore();
+  const { t, language, isRtl } = useI18n();
   const [accepted, setAccepted] = useState(false);
   const isAuthenticated = !!user;
 
@@ -51,7 +54,7 @@ export default function VendorInvitation() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to accept invitation");
+        throw new Error(error.message || t('vendorInvitation.failedToAccept'));
       }
 
       return response.json();
@@ -59,13 +62,13 @@ export default function VendorInvitation() {
     onSuccess: (result) => {
       setAccepted(true);
       toast({
-        title: "Welcome!",
+        title: t('vendorInvitation.welcomeToast'),
         description: result.message,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to accept invitation",
+        title: t('vendorInvitation.failedToAccept'),
         description: error.message,
         variant: "destructive",
       });
@@ -75,8 +78,8 @@ export default function VendorInvitation() {
   const handleAccept = () => {
     if (!isAuthenticated || user?.role !== 'vendor') {
       toast({
-        title: "Login required",
-        description: "Please login as a vendor to accept this invitation",
+        title: t('vendorInvitation.loginRequired'),
+        description: t('vendorInvitation.loginRequiredDesc'),
         variant: "destructive",
       });
       navigate(`/login?redirect=/vendor-invitation/${token}`);
@@ -85,8 +88,8 @@ export default function VendorInvitation() {
 
     if (user.email !== data?.vendorEmail) {
       toast({
-        title: "Email mismatch",
-        description: `This invitation was sent to ${data?.vendorEmail}. Please login with that account.`,
+        title: t('vendorInvitation.emailMismatchTitle'),
+        description: t('vendorInvitation.emailMismatchDesc', { email: data?.vendorEmail || '' }),
         variant: "destructive",
       });
       return;
@@ -104,7 +107,7 @@ export default function VendorInvitation() {
   }
 
   if (error || !data) {
-    const errorMessage = error?.message || "Invitation not found";
+    const errorMessage = error?.message || t('vendorInvitation.invitationNotFound');
     const isExpired = errorMessage.includes("expired") || errorMessage.includes("already accepted");
 
     return (
@@ -115,7 +118,7 @@ export default function VendorInvitation() {
               <AlertCircle className="h-8 w-8 text-red-600" />
             </div>
             <CardTitle className="text-center text-destructive">
-              {isExpired ? "Invitation Expired" : "Invitation Not Found"}
+              {isExpired ? t('vendorInvitation.invitationExpired') : t('vendorInvitation.invitationNotFound')}
             </CardTitle>
             <CardDescription className="text-center">
               {errorMessage}
@@ -134,30 +137,30 @@ export default function VendorInvitation() {
             <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
               <CheckCircle2 className="h-8 w-8 text-green-600" />
             </div>
-            <CardTitle className="text-2xl">Welcome to the Vendors Base!</CardTitle>
+            <CardTitle className="text-2xl">{t('vendorInvitation.welcomeTitle')}</CardTitle>
             <CardDescription className="text-base">
-              You're now connected with {data.requester.company}. {data.tender ? "You can now submit offers for their tenders." : "Future tender opportunities will be available to you."}
+              {t('vendorInvitation.welcomeConnected', { company: data.requester.company })} {data.tender ? t('vendorInvitation.canSubmitNow') : t('vendorInvitation.futureOpportunities')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {data.tender && (
-              <Button 
+              <Button
                 onClick={() => navigate(`/tenders/${data.tender!.id}`)}
                 className="w-full"
                 size="lg"
                 data-testid="button-view-tender"
               >
-                View Tender
-                <ArrowRight className="ml-2 h-4 w-4" />
+                {t('vendorInvitation.viewTender')}
+                <ArrowRight className={`h-4 w-4 ${isRtl ? 'mr-2 rotate-180' : 'ml-2'}`} />
               </Button>
             )}
-            <Button 
+            <Button
               onClick={() => navigate("/dashboard")}
               variant="outline"
               className="w-full"
               data-testid="button-dashboard"
             >
-              Go to Dashboard
+              {t('vendorInvitation.goToDashboard')}
             </Button>
           </CardContent>
         </Card>
@@ -183,12 +186,12 @@ export default function VendorInvitation() {
                   {data.requester.company}
                 </CardTitle>
                 <CardDescription data-testid="text-inviter-name">
-                  Invited by {data.requester.name}
+                  {t('vendorInvitation.invitedBy', { name: data.requester.name })}
                 </CardDescription>
               </div>
             </div>
             <CardDescription className="text-base">
-              You've been invited to join their Vendors Base. Accept this invitation to access tender opportunities.
+              {t('vendorInvitation.joinDescription')}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -200,11 +203,11 @@ export default function VendorInvitation() {
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="text-lg" data-testid="text-tender-title">
-                    Tender: {data.tender.title}
+                    {t('vendorInvitation.tenderLabel', { title: data.tender.title })}
                   </CardTitle>
                   <CardDescription className="mt-2 flex items-center gap-2" data-testid="text-deadline">
                     <CalendarClock className="h-4 w-4" />
-                    Deadline: {formatDistanceToNow(deadlineDate!, { addSuffix: true })}
+                    {t('vendorInvitation.deadlineLabel', { when: formatDistanceToNow(deadlineDate!, { addSuffix: true, locale: language === 'ar' ? ar : enUS }) })}
                   </CardDescription>
                 </div>
               </div>
@@ -212,7 +215,7 @@ export default function VendorInvitation() {
             {isDeadlineSoon && (
               <CardContent className="border-t pt-4">
                 <p className="text-sm text-orange-900 font-medium">
-                  ⚡ Urgent: Deadline is less than 24 hours away. Accept now to participate!
+                  {t('vendorInvitation.urgent')}
                 </p>
               </CardContent>
             )}
@@ -223,8 +226,7 @@ export default function VendorInvitation() {
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="pt-6">
             <p className="text-sm text-blue-900">
-              <strong>Important:</strong> This invitation was sent to <span className="font-mono">{data.vendorEmail}</span>. 
-              You must be logged in with this email to accept.
+              {t('vendorInvitation.importantEmail', { email: data.vendorEmail })}
             </p>
           </CardContent>
         </Card>
@@ -232,56 +234,56 @@ export default function VendorInvitation() {
         {/* Action Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Accept Invitation</CardTitle>
+            <CardTitle>{t('vendorInvitation.acceptInvitation')}</CardTitle>
             <CardDescription>
-              By accepting, you'll be added to {data.requester.company}'s approved vendor list and gain access to their tender opportunities.
+              {t('vendorInvitation.acceptDescription', { company: data.requester.company })}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {!isAuthenticated ? (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Please login as a vendor to accept this invitation.
+                  {t('vendorInvitation.pleaseLogin')}
                 </p>
-                <Button 
+                <Button
                   onClick={() => navigate(`/login?redirect=/vendor-invitation/${token}`)}
                   className="w-full"
                   size="lg"
                   data-testid="button-login"
                 >
-                  Login to Accept
+                  {t('vendorInvitation.loginToAccept')}
                 </Button>
               </div>
             ) : user?.role !== 'vendor' ? (
               <div className="space-y-3">
                 <p className="text-sm text-destructive">
-                  You must be logged in as a vendor to accept this invitation.
+                  {t('vendorInvitation.mustBeVendor')}
                 </p>
-                <Button 
+                <Button
                   onClick={() => navigate("/login")}
                   variant="outline"
                   className="w-full"
                   data-testid="button-switch-account"
                 >
-                  Switch Account
+                  {t('vendorInvitation.switchAccount')}
                 </Button>
               </div>
             ) : user.email !== data.vendorEmail ? (
               <div className="space-y-3">
                 <p className="text-sm text-destructive">
-                  This invitation was sent to {data.vendorEmail}. Please login with that account.
+                  {t('vendorInvitation.wrongEmail', { email: data.vendorEmail })}
                 </p>
-                <Button 
+                <Button
                   onClick={() => navigate("/login")}
                   variant="outline"
                   className="w-full"
                   data-testid="button-switch-account"
                 >
-                  Switch Account
+                  {t('vendorInvitation.switchAccount')}
                 </Button>
               </div>
             ) : (
-              <Button 
+              <Button
                 onClick={handleAccept}
                 disabled={acceptInvitation.isPending}
                 className="w-full"
@@ -291,12 +293,12 @@ export default function VendorInvitation() {
                 {acceptInvitation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Accepting...
+                    {t('vendorInvitation.accepting')}
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Accept Invitation
+                    {t('vendorInvitation.acceptInvitation')}
                   </>
                 )}
               </Button>

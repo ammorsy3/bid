@@ -80,8 +80,8 @@ export default function CompanyBasics() {
               <Building2 className="w-5 h-5 text-[#E25E45]" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">Company Details</h2>
-              <p className="text-sm text-neutral-500">Tell us about your company</p>
+              <h2 className="text-xl font-bold text-neutral-900">{t('onboardingPanel.companyDetailsTitle')}</h2>
+              <p className="text-sm text-neutral-500">{t('onboardingPanel.companyDetailsSubtitle')}</p>
             </div>
           </div>
 
@@ -94,7 +94,7 @@ export default function CompanyBasics() {
                   <FormItem>
                     <FormLabel>Company Display Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="How your company appears publicly" {...field} data-testid="input-company-name" />
+                      <Input placeholder={t('onboardingPanel.companyNamePh')} {...field} data-testid="input-company-name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -108,7 +108,7 @@ export default function CompanyBasics() {
                   <FormItem>
                     <FormLabel>Legal Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="As registered in CR" {...field} data-testid="input-legal-name" />
+                      <Input placeholder={t('onboardingPanel.legalNamePh')} {...field} data-testid="input-legal-name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -124,7 +124,7 @@ export default function CompanyBasics() {
                       <FormLabel>CR Number *</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Numeric only"
+                          placeholder={t('onboardingPanel.numericOnly')}
                           {...field}
                           onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ''))}
                           data-testid="input-cr-number"
@@ -140,9 +140,9 @@ export default function CompanyBasics() {
                   name="vatNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>VAT Number</FormLabel>
+                      <FormLabel>{t('onboardingPanel.vatNumberLabel')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Optional" {...field} data-testid="input-vat-number" />
+                        <Input placeholder={t('onboardingPanel.optionalPh')} {...field} data-testid="input-vat-number" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -173,7 +173,7 @@ export default function CompanyBasics() {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-category">
-                          <SelectValue placeholder="Select your industry" />
+                          <SelectValue placeholder={t('onboardingPanel.selectIndustryPh')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

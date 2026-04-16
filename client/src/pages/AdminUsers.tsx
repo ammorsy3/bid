@@ -73,7 +73,7 @@ export default function AdminUsers() {
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search by name, email, or username..."
+              placeholder={t('admin.searchUsersPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -86,10 +86,10 @@ export default function AdminUsers() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Shield className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-              Platform Users
+              {t('admin.platformUsers')}
             </CardTitle>
             <CardDescription className="text-xs">
-              {users ? `${users.length} users${searchQuery ? ` matching "${searchQuery}"` : ' (most recent)'}` : 'Loading...'}
+              {users ? (searchQuery ? t('admin.usersCountMatching', { count: users.length, query: searchQuery }) : t('admin.usersCountRecent', { count: users.length })) : t('admin.loadingEllipsis')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -102,7 +102,7 @@ export default function AdminUsers() {
             ) : !users || users.length === 0 ? (
               <div className="py-12 text-center">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {searchQuery ? `No users found matching "${searchQuery}"` : 'No users found'}
+                  {searchQuery ? t('admin.noUsersMatching', { query: searchQuery }) : t('admin.noUsersFound')}
                 </p>
               </div>
             ) : (
@@ -119,18 +119,18 @@ export default function AdminUsers() {
                           {user.isAdmin && (
                             <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-[10px] px-1.5 py-0">
                               <Crown className="h-2.5 w-2.5 mr-0.5" />
-                              Admin
+                              {t('admin.adminBadge')}
                             </Badge>
                           )}
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {user.email} &middot; Joined {format(new Date(user.createdAt), 'PP')}
+                          {user.email} &middot; {t('admin.joinedOn', { date: format(new Date(user.createdAt), 'PP') })}
                         </p>
                       </div>
                     </div>
                     <div className="flex-shrink-0">
                       {user.isAdmin ? (
-                        <span className="text-xs text-gray-400 dark:text-gray-500">Platform admin</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">{t('admin.platformAdmin')}</span>
                       ) : (
                         <Button
                           size="sm"
@@ -140,7 +140,7 @@ export default function AdminUsers() {
                           disabled={promoteMutation.isPending}
                         >
                           <UserPlus className="h-3.5 w-3.5 mr-1" />
-                          Promote
+                          {t('admin.promoteBtn')}
                         </Button>
                       )}
                     </div>

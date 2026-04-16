@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Building2, UserPlus, Shield, Loader2, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface InvitationDetails {
   id: string;
@@ -32,6 +33,7 @@ export default function TeamInvite() {
   const [, setLocation] = useLocation();
   const { user, activeCompany, companies, checkAuth } = useAuthStore();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const [invitation, setInvitation] = useState<InvitationDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,13 +48,13 @@ export default function TeamInvite() {
         const response = await fetch(`/api/team-invitations/${token}`);
         if (!response.ok) {
           const data = await response.json();
-          setError(data.message || "Invalid invitation");
+          setError(data.message || t('teamInvite.invalidInvitation'));
           return;
         }
         const data = await response.json();
         setInvitation(data);
       } catch {
-        setError("Failed to load invitation");
+        setError(t('teamInvite.failedToLoad'));
       } finally {
         setLoading(false);
       }
@@ -90,15 +92,15 @@ export default function TeamInvite() {
       await authStore.checkAuth();
 
       toast({
-        title: "Invitation accepted",
-        description: `You have joined ${invitation?.companyName}.`,
+        title: t('teamInvite.invitationAccepted'),
+        description: t('teamInvite.joinedCompany', { company: invitation?.companyName || '' }),
       });
 
       setLocation("/dashboard");
     } catch (err: any) {
       toast({
-        title: "Failed to accept invitation",
-        description: err.message || "Something went wrong. Please try again.",
+        title: t('teamInvite.failedToAccept'),
+        description: err.message || t('teamInvite.somethingWentWrong'),
         variant: "destructive",
       });
     } finally {
@@ -107,12 +109,12 @@ export default function TeamInvite() {
   };
 
   const roleLabel = (role: string) => {
-    const labels: Record<string, string> = {
-      admin: "Admin",
-      member: "Member",
-      viewer: "Viewer",
-    };
-    return labels[role] || role;
+    switch (role) {
+      case 'admin': return t('teamInvite.roleAdmin');
+      case 'member': return t('teamInvite.roleMember');
+      case 'viewer': return t('teamInvite.roleViewer');
+      default: return role;
+    }
   };
 
   if (loading) {
@@ -132,10 +134,10 @@ export default function TeamInvite() {
               <div className="mx-auto w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mb-4">
                 <XCircle className="w-7 h-7 text-red-500" />
               </div>
-              <h2 className="text-xl font-bold text-neutral-900 mb-2">Invalid Invitation</h2>
+              <h2 className="text-xl font-bold text-neutral-900 mb-2">{t('teamInvite.invalidInvitationTitle')}</h2>
               <p className="text-neutral-500 mb-6">{error}</p>
               <Link href="/login">
-                <Button variant="outline">Go to Login</Button>
+                <Button variant="outline">{t('teamInvite.goToLogin')}</Button>
               </Link>
             </CardContent>
           </Card>
@@ -153,9 +155,9 @@ export default function TeamInvite() {
           <div className="mx-auto w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-6">
             <UserPlus className="w-8 h-8 text-green-600" />
           </div>
-          <h1 className="text-2xl font-bold text-neutral-900 mb-2">You've been invited!</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 mb-2">{t('teamInvite.invitedHeading')}</h1>
           <p className="text-neutral-500">
-            <span className="font-medium text-neutral-700">{invitation.inviterName}</span> invited you to join their team
+            <span className="font-medium text-neutral-700">{invitation.inviterName}</span> {t('teamInvite.invitedBy')}
           </p>
         </div>
 
@@ -168,7 +170,7 @@ export default function TeamInvite() {
                   <Building2 className="w-5 h-5 text-primary-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-neutral-500">Company</p>
+                  <p className="text-sm text-neutral-500">{t('teamInvite.company')}</p>
                   <p className="font-semibold text-neutral-900">{invitation.companyName}</p>
                 </div>
               </div>
@@ -178,7 +180,7 @@ export default function TeamInvite() {
                   <Shield className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-neutral-500">Your role</p>
+                  <p className="text-sm text-neutral-500">{t('teamInvite.yourRole')}</p>
                   <p className="font-semibold text-neutral-900">{roleLabel(invitation.role)}</p>
                 </div>
               </div>
@@ -189,9 +191,7 @@ export default function TeamInvite() {
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-amber-800">
-                  This invitation was sent to <span className="font-medium">{invitation.email}</span>.
-                  You are logged in as <span className="font-medium">{user.email}</span>.
-                  Please log in with the correct account.
+                  {t('teamInvite.emailMismatch', { inviteEmail: invitation.email, userEmail: user.email })}
                 </p>
               </div>
             )}
@@ -207,29 +207,29 @@ export default function TeamInvite() {
                 {accepting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Joining...
+                    {t('teamInvite.joining')}
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Accept Invitation
+                    {t('teamInvite.acceptInvitation')}
                   </>
                 )}
               </Button>
             ) : (
               <div className="space-y-3">
                 <p className="text-center text-sm text-neutral-500">
-                  Sign in or create an account to accept this invitation
+                  {t('teamInvite.signInPrompt')}
                 </p>
                 <div className="flex gap-3">
                   <Link href={`/login?redirect=${encodeURIComponent(`/team-invite/${token}`)}`} className="flex-1">
                     <Button variant="outline" className="w-full" size="lg">
-                      Sign In
+                      {t('teamInvite.signIn')}
                     </Button>
                   </Link>
                   <Link href={`/signup?redirect=${encodeURIComponent(`/team-invite/${token}`)}`} className="flex-1">
                     <Button className="w-full" size="lg">
-                      Create Account
+                      {t('teamInvite.createAccount')}
                     </Button>
                   </Link>
                 </div>
@@ -243,30 +243,29 @@ export default function TeamInvite() {
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Switch company?</AlertDialogTitle>
+            <AlertDialogTitle>{t('teamInvite.switchCompanyTitle')}</AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
               <p>
-                You are currently active in <span className="font-semibold text-neutral-800">{activeCompany?.name}</span>.
+                {t('teamInvite.currentlyActive', { company: activeCompany?.name || '' })}
               </p>
               <p>
-                By accepting this invitation, you will join <span className="font-semibold text-neutral-800">{invitation.companyName}</span> as
-                a <span className="font-semibold text-neutral-800">{roleLabel(invitation.role)}</span> and it will become your active company.
+                {t('teamInvite.byAccepting', { company: invitation.companyName, role: roleLabel(invitation.role) })}
               </p>
               <p>
-                You can switch between companies at any time from your dashboard.
+                {t('teamInvite.canSwitchLater')}
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('teamInvite.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={acceptInvitation} disabled={accepting}>
               {accepting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Joining...
+                  {t('teamInvite.joining')}
                 </>
               ) : (
-                "Yes, join company"
+                t('teamInvite.yesJoin')
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

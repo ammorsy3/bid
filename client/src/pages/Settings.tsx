@@ -90,6 +90,7 @@ function MemberActivityDialog({
   member: TeamMember | null;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const { data: entries = [], isLoading } = useQuery<ActivityEntry[]>({
     queryKey: ['/api/companies', companyId, 'members', member?.userId, 'activity'],
     enabled: !!member,
@@ -117,7 +118,7 @@ function MemberActivityDialog({
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : entries.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-10">No recorded activity yet.</p>
+          <p className="text-sm text-muted-foreground text-center py-10">{t('settings.noRecordedActivity')}</p>
         ) : (
           <ScrollArea className="max-h-[60vh] pr-3">
             <ul className="space-y-3">
@@ -162,6 +163,7 @@ function MemberActivityDialog({
 
 function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { companyId: string; canManage: boolean; currentUserId: string; isRtl: boolean }) {
   const { toast } = useToast();
+  const { t } = useI18n();
   const [activityFor, setActivityFor] = useState<TeamMember | null>(null);
 
   const { data: members = [], isLoading } = useQuery<TeamMember[]>({
@@ -180,11 +182,11 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { co
       return apiRequest('PATCH', `/api/companies/${companyId}/members/${userId}/role`, { role });
     },
     onSuccess: () => {
-      toast({ title: "Role updated" });
+      toast({ title: t('settings.roleUpdated') });
       queryClient.invalidateQueries({ queryKey: ['/api/companies', companyId, 'members'] });
     },
     onError: (error: Error) => {
-      toast({ title: "Failed to update role", description: error.message, variant: "destructive" });
+      toast({ title: t('settings.failedUpdateRole'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -193,11 +195,11 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { co
       return apiRequest('DELETE', `/api/companies/${companyId}/members/${userId}`);
     },
     onSuccess: () => {
-      toast({ title: "Member removed" });
+      toast({ title: t('settings.memberRemoved') });
       queryClient.invalidateQueries({ queryKey: ['/api/companies', companyId, 'members'] });
     },
     onError: (error: Error) => {
-      toast({ title: "Failed to remove member", description: error.message, variant: "destructive" });
+      toast({ title: t('settings.failedRemoveMember'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -222,7 +224,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { co
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : members.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No team members found</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t('settings.noTeamMembersFound')}</p>
           ) : (
             <div className="space-y-3">
               {members.map((member) => (
@@ -639,9 +641,9 @@ export default function Settings() {
       const { objectPath } = await metaRes.json();
       await saveDocumentMutation.mutateAsync({ documentType: docType, fileUrl: objectPath, originalName: fileName });
       setDocUploadedTypes(prev => new Set([...prev, docType]));
-      toast({ title: "Document uploaded", description: `${fileName} has been saved.` });
+      toast({ title: t('settings.documentUploadedToast'), description: t('settings.documentUploadedDesc', { name: fileName }) });
     } catch {
-      toast({ title: "Upload failed", description: "Could not save the document. Please try again.", variant: "destructive" });
+      toast({ title: t('settings.uploadFailedToast'), description: t('settings.uploadFailedDesc'), variant: "destructive" });
     }
   };
 
@@ -1231,9 +1233,9 @@ export default function Settings() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="member">Member</SelectItem>
-                              <SelectItem value="viewer">Viewer</SelectItem>
+                              <SelectItem value="admin">{t('settings.roleAdmin')}</SelectItem>
+                              <SelectItem value="member">{t('settings.roleMember')}</SelectItem>
+                              <SelectItem value="viewer">{t('settings.roleViewer')}</SelectItem>
                             </SelectContent>
                           </Select>
                           {inviteRows.length > 1 && (
@@ -1392,8 +1394,8 @@ export default function Settings() {
                         <FileCheck2 className="h-4 w-4 text-blue-600" />
                       </div>
                       <div>
-                        <CardTitle className="text-base">Verification Documents</CardTitle>
-                        <CardDescription className="text-xs">Required to create tenders on the platform</CardDescription>
+                        <CardTitle className="text-base">{t('settings.verificationDocsTitle')}</CardTitle>
+                        <CardDescription className="text-xs">{t('settings.verificationDocsDesc')}</CardDescription>
                       </div>
                     </div>
                   </CardHeader>

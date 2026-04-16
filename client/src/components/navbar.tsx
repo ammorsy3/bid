@@ -8,10 +8,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useI18n } from "@/lib/i18n";
 
 export default function Navbar() {
   const { user, logout } = useAuthStore();
   const [location] = useLocation();
+  const { t } = useI18n();
 
   const handleLogout = () => {
     logout();
@@ -23,44 +25,44 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/dashboard">
-              <h1 className="text-2xl font-bold mr-8 cursor-pointer text-[#f75600]">Bid</h1>
+              <h1 className="text-2xl font-bold mr-8 cursor-pointer text-[#f75600]">{t('landing.brand')}</h1>
             </Link>
             <nav className="flex space-x-8">
-              <Link 
-                href="/dashboard" 
+              <Link
+                href="/dashboard"
                 className="px-1 py-4 text-sm font-medium border-b-2 border-primary-600 text-[#f06800]"
               >
-                Dashboard
+                {t('nav.dashboard')}
               </Link>
               {user?.role === 'requester' && (
                 <>
-                  <Link 
+                  <Link
                     href="/vendors-base"
                     className="text-neutral-500 hover:text-neutral-700 px-1 py-4 text-sm font-medium transition-colors"
                   >
-                    Vendors
+                    {t('nav.vendors')}
                   </Link>
-                  <Link 
+                  <Link
                     href="/analytics"
                     className="text-neutral-500 hover:text-neutral-700 px-1 py-4 text-sm font-medium transition-colors"
                   >
-                    Analytics
+                    {t('nav.analytics')}
                   </Link>
                 </>
               )}
               {user?.role === 'vendor' && (
                 <>
-                  <Link 
+                  <Link
                     href="/my-offers"
                     className="text-neutral-500 hover:text-neutral-700 px-1 py-4 text-sm font-medium transition-colors"
                   >
-                    My Offers
+                    {t('nav.myOffers')}
                   </Link>
-                  <Link 
+                  <Link
                     href="/profile"
                     className="text-neutral-500 hover:text-neutral-700 px-1 py-4 text-sm font-medium transition-colors"
                   >
-                    Profile
+                    {t('nav.profile')}
                   </Link>
                 </>
               )}
@@ -83,7 +85,7 @@ export default function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={handleLogout}>
-                  Logout
+                  {t('nav.logout')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

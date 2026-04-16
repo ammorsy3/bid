@@ -249,9 +249,9 @@ export default function VerifyEmail() {
           <div className="mx-auto w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mb-6">
             <Mail className="w-8 h-8 text-primary-600" />
           </div>
-          <h1 className="text-2xl font-bold text-neutral-900 mb-2">Check your email</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 mb-2">{t('onboardingPanel.checkYourEmail')}</h1>
           <p className="text-neutral-500">
-            We sent a 6-digit code to{" "}
+            {t('onboardingPanel.sentCodeTo')}{" "}
             <span className="font-medium text-neutral-700">{user.email}</span>
           </p>
           <button
@@ -264,7 +264,7 @@ export default function VerifyEmail() {
             data-testid="button-change-email"
           >
             <Pencil className="w-3.5 h-3.5" />
-            Wrong email? Change it
+            {t('onboardingPanel.wrongEmailChange')}
           </button>
         </div>
 
@@ -297,11 +297,11 @@ export default function VerifyEmail() {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying...
+                  {t('onboardingPanel.verifying')}
                 </>
               ) : (
                 <>
-                  Verify Email
+                  {t('onboardingPanel.verifyEmailBtn')}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -309,15 +309,15 @@ export default function VerifyEmail() {
 
             <div className="text-center">
               <p className="text-sm text-neutral-500">
-                Didn't receive the code?{" "}
+                {t('onboardingPanel.didntReceiveCode')}{" "}
                 {resendCooldown > 0 ? (
-                  <span className="text-neutral-400">Resend in {resendCooldown}s</span>
+                  <span className="text-neutral-400">{t('onboardingPanel.resendIn', { seconds: resendCooldown })}</span>
                 ) : (
                   <button
                     onClick={handleResend}
                     className="text-primary-600 hover:text-primary-700 font-medium"
                   >
-                    Resend code
+                    {t('onboardingPanel.resendCode')}
                   </button>
                 )}
               </p>
@@ -329,19 +329,19 @@ export default function VerifyEmail() {
       <Dialog open={changeEmailOpen} onOpenChange={setChangeEmailOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Change email address</DialogTitle>
+            <DialogTitle>{t('onboardingPanel.changeEmailAddress')}</DialogTitle>
             <DialogDescription>
-              Enter the correct email address. We'll send a new verification code to it.
+              {t('onboardingPanel.enterCorrectEmailDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-2">
-            <Label htmlFor="new-email">New email</Label>
+            <Label htmlFor="new-email">{t('onboardingPanel.newEmail')}</Label>
             <Input
               id="new-email"
               type="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder={t('onboardingPanel.emailPlaceholder')}
               disabled={changingEmail}
               data-testid="input-new-email"
               onKeyDown={(e) => {
@@ -355,7 +355,7 @@ export default function VerifyEmail() {
               onClick={() => setChangeEmailOpen(false)}
               disabled={changingEmail}
             >
-              Cancel
+              {t('onboardingPanel.cancelBtn')}
             </Button>
             <Button
               onClick={handleChangeEmail}
@@ -365,10 +365,10 @@ export default function VerifyEmail() {
               {changingEmail ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating...
+                  {t('onboardingPanel.updating')}
                 </>
               ) : (
-                "Update & resend code"
+                t('onboardingPanel.updateResendCode')
               )}
             </Button>
           </DialogFooter>

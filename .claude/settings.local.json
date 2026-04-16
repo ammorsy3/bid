@@ -149,7 +149,20 @@
       "WebFetch(domain:developers.openai.com)",
       "Bash(fuser 5000/tcp)",
       "Bash(disown)",
-      "Bash(disown sleep:*)"
+      "Bash(disown sleep:*)",
+      "Bash(cat)",
+      "Bash(chmod +x /tmp/scan_hardcoded.sh)",
+      "Bash(/tmp/scan_hardcoded.sh)",
+      "Bash(echo \"=== LANDING PAGE HARDCODED STRINGS ===\")",
+      "Bash(grep -n '\"Marketplace\"\\\\|\"Log in\"\\\\|\"Sign up\"\\\\|\"Try Bid\"\\\\|\"How it works\"\\\\|\"Create RFP\"\\\\|\"Receive Proposals\"\\\\|\"Compare & Award\"' pages/Landing.tsx)",
+      "Bash(echo -e \"\\\\n=== NOT FOUND PAGE ===\")",
+      "Bash(grep -n '\"404\\\\|Did you forget\"' pages/not-found.tsx)",
+      "Bash(echo -e \"\\\\n=== VENDOR INVITATION PAGE ===\")",
+      "Bash(python3 /tmp/extract_hardcoded.py)",
+      "Bash(env)",
+      "mcp__linear__linear_getViewer",
+      "mcp__linear__linear_getTeams",
+      "mcp__linear__linear_getIssues"
     ]
   },
   "enabledMcpjsonServers": [

@@ -58,7 +58,7 @@ export default function AdminAuditLogs() {
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search by action, admin, or notes..."
+              placeholder={t('admin.searchAuditLogsPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -81,7 +81,7 @@ export default function AdminAuditLogs() {
               <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="text-empty-state">
                 {t('admin.noAuditLogs')}
               </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Admin actions will be recorded here</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('admin.adminActionsRecorded')}</p>
             </CardContent>
           </Card>
         ) : (

@@ -1,19 +1,20 @@
 import { ReactNode } from "react";
 import { FileText, BarChart3, Shield, Zap } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface OnboardingLayoutProps {
   children: ReactNode;
   step?: number; // 0 = choice, 1 = basics, 2 = documents, 3 = profile, 4 = team
 }
 
-const STEPS = [
-  { label: "Basics", num: 1 },
-  { label: "Documents", num: 2 },
-  { label: "Profile", num: 3 },
-  { label: "Team", num: 4 },
-];
-
 export default function OnboardingLayout({ children, step }: OnboardingLayoutProps) {
+  const { t } = useI18n();
+  const STEPS = [
+    { labelKey: "stepBasics", num: 1 },
+    { labelKey: "stepDocuments", num: 2 },
+    { labelKey: "stepProfile", num: 3 },
+    { labelKey: "stepTeam", num: 4 },
+  ];
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Branding */}
@@ -38,10 +39,10 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
             </div>
 
             <h1 className="text-3xl xl:text-4xl font-bold text-white leading-tight mb-4">
-              Set up your workspace in minutes
+              {t('onboardingPanel.setupWorkspace')}
             </h1>
             <p className="text-white/70 text-base leading-relaxed">
-              Create your company profile, invite your team, and start managing tenders on the most modern procurement platform in Saudi Arabia.
+              {t('onboardingPanel.setupWorkspaceDesc')}
             </p>
           </div>
 
@@ -52,8 +53,8 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
                 <FileText className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-white mb-0.5">Create RFPs with AI</h3>
-                <p className="text-sm text-white/50">Draft professional tenders in seconds with our AI copilot.</p>
+                <h3 className="font-semibold text-white mb-0.5">{t('onboardingPanel.createRfpsAi')}</h3>
+                <p className="text-sm text-white/50">{t('onboardingPanel.createRfpsAiDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -61,8 +62,8 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-white mb-0.5">Compare proposals</h3>
-                <p className="text-sm text-white/50">Side-by-side vendor comparison with scoring and analytics.</p>
+                <h3 className="font-semibold text-white mb-0.5">{t('onboardingPanel.compareProposals')}</h3>
+                <p className="text-sm text-white/50">{t('onboardingPanel.compareProposalsDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -70,8 +71,8 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
                 <Shield className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-white mb-0.5">Saudi-ready compliance</h3>
-                <p className="text-sm text-white/50">CR verification, VAT handling, and local business standards built in.</p>
+                <h3 className="font-semibold text-white mb-0.5">{t('onboardingPanel.saudiCompliance')}</h3>
+                <p className="text-sm text-white/50">{t('onboardingPanel.saudiComplianceDesc')}</p>
               </div>
             </div>
           </div>
@@ -80,7 +81,7 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
           <div className="mt-12 pt-6 border-t border-white/10">
             <div className="flex items-center gap-2 text-white/40 text-sm">
               <Zap className="w-4 h-4" />
-              <span>Trusted by companies across Saudi Arabia</span>
+              <span>{t('onboardingPanel.trustedBy')}</span>
             </div>
           </div>
         </div>
@@ -117,7 +118,7 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
                     <span className={`text-sm hidden sm:inline ${
                       step === s.num ? 'font-medium text-neutral-900' : 'text-neutral-400'
                     }`}>
-                      {s.label}
+                      {t(`onboardingPanel.${s.labelKey}`)}
                     </span>
                   </div>
                   {i < STEPS.length - 1 && (

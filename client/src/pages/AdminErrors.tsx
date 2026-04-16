@@ -3,7 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Bug, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
+import { ar, enUS } from "date-fns/locale";
 import AdminLayout from "@/components/AdminLayout";
+import { useI18n } from "@/lib/i18n";
 
 interface ErrorLog {
   id: string;
@@ -16,6 +18,7 @@ interface ErrorLog {
 }
 
 export default function AdminErrors() {
+  const { t, language } = useI18n();
   const { data: errors, isLoading } = useQuery<ErrorLog[]>({
     queryKey: ["/api/admin/errors"],
   });
@@ -35,10 +38,10 @@ export default function AdminErrors() {
       <div className="p-8 max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Error Logs
+            {t('adminErrors.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Recent application errors and exceptions
+            {t('adminErrors.subtitle')}
           </p>
         </div>
 
@@ -54,8 +57,8 @@ export default function AdminErrors() {
               <div className="h-14 w-14 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center mx-auto mb-4">
                 <Bug className="h-7 w-7 text-emerald-500" />
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">No errors logged</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">The system is running smoothly</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('adminErrors.noErrors')}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('adminErrors.runningSmoothly')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -70,7 +73,7 @@ export default function AdminErrors() {
                         {error.errorType}
                       </Badge>
                       <span className="text-xs text-gray-400 dark:text-gray-500">
-                        {format(new Date(error.createdAt), "PPpp")}
+                        {format(new Date(error.createdAt), "PPpp", { locale: language === 'ar' ? ar : enUS })}
                       </span>
                     </div>
                   </div>
@@ -82,7 +85,7 @@ export default function AdminErrors() {
                   <CardContent className="pt-0">
                     {error.context && (
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                        Context: {error.context}
+                        {t('adminErrors.context')}: {error.context}
                       </p>
                     )}
                     {error.stack && (

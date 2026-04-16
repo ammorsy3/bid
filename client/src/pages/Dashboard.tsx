@@ -54,6 +54,8 @@ import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-prev
 interface VendorProfile {
   id: string;
   companyId: string;
+  slug: string;
+  hasProfile: boolean;
   company: string;
   legalName: string | null;
   category: string;
@@ -156,6 +158,7 @@ interface IncomingOffer {
   };
   company: {
     id: string;
+    slug: string;
     name: string;
     category: string | null;
     verificationStatus: string;
@@ -189,7 +192,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
       if (error.message.includes('already taken')) {
         setSlugTaken(true);
       } else {
-        toast({ title: "Something went wrong", description: error.message, variant: "destructive" });
+        toast({ title: t('settings.somethingWentWrong'), description: error.message, variant: "destructive" });
       }
     }
   });
@@ -447,7 +450,9 @@ export default function Dashboard() {
       if (!response.ok) throw new Error("Failed to fetch vendors");
       return response.json();
     },
-    enabled: canManage
+    enabled: canManage,
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 
   // Fetch pending join requests
@@ -497,7 +502,9 @@ export default function Dashboard() {
       });
       if (!response.ok) throw new Error("Failed to fetch incoming offers");
       return response.json();
-    }
+    },
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 
   // Fetch onboarding tasks status
@@ -759,9 +766,9 @@ export default function Dashboard() {
                           try {
                             await switchCompany(company.id);
                             queryClient.invalidateQueries();
-                            toast({ title: `Switched to ${company.name}` });
+                            toast({ title: t('settings.switchedTo', { company: company.name }) });
                           } catch {
-                            toast({ title: "Failed to switch company", variant: "destructive" });
+                            toast({ title: t('settings.failedSwitchCompany'), variant: "destructive" });
                           }
                         }
                       }}
@@ -898,8 +905,8 @@ export default function Dashboard() {
                         <ShieldCheck className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                       </div>
                       <div className="flex-1 min-w-0 text-start group-data-[collapsible=icon]:hidden">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Admin Panel</p>
-                        <p className="text-[11px] text-muted-foreground leading-tight">Manage platform & users</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('settings.adminPanelLabel')}</p>
+                        <p className="text-[11px] text-muted-foreground leading-tight">{t('settings.adminPanelDesc')}</p>
                       </div>
                       <ChevronRight className="h-3.5 w-3.5 text-purple-400/50 group-hover/admin:text-purple-500 transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden" />
                     </div>
@@ -916,37 +923,37 @@ export default function Dashboard() {
           {/* Verification banner — shown for unverified/pending/rejected companies */}
           {activeCompany.verificationStatus === 'not_verified' && (
             <div className="mb-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
-              <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-0.5">Company not verified</p>
-              <p className="text-xs text-amber-700 dark:text-amber-400 mb-1.5 leading-snug">Upload your documents to unlock features like creating tenders and submitting proposals.</p>
+              <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-0.5">{t('settings.companyNotVerified')}</p>
+              <p className="text-xs text-amber-700 dark:text-amber-400 mb-1.5 leading-snug">{t('settings.companyNotVerifiedDesc')}</p>
               <button
                 onClick={() => setLocation('/settings?tab=company')}
                 className="text-xs font-semibold text-amber-800 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900"
               >
-                Verify now →
+                {t('settings.verifyNow')}
               </button>
             </div>
           )}
           {activeCompany.verificationStatus === 'under_review' && (
             <div className="mb-3 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
-              <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 mb-0.5">Verification in progress</p>
-              <p className="text-xs text-blue-700 dark:text-blue-400 leading-snug">Your documents are under review. You'll be notified once your company is verified.</p>
+              <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 mb-0.5">{t('settings.verificationInProgress')}</p>
+              <p className="text-xs text-blue-700 dark:text-blue-400 leading-snug">{t('settings.verificationInProgressDesc')}</p>
             </div>
           )}
           {activeCompany.verificationStatus === 'rejected' && (
             <div className="mb-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
-              <p className="text-xs font-semibold text-red-800 dark:text-red-300 mb-0.5">Verification rejected</p>
+              <p className="text-xs font-semibold text-red-800 dark:text-red-300 mb-0.5">{t('settings.verificationRejected')}</p>
               {activeCompany.rejectionReason ? (
                 <p className="text-xs text-red-700 dark:text-red-400 mb-1.5 leading-snug">
-                  <strong>Reason:</strong> {activeCompany.rejectionReason}
+                  <strong>{t('settings.verificationReasonLabel')}</strong> {activeCompany.rejectionReason}
                 </p>
               ) : (
-                <p className="text-xs text-red-700 dark:text-red-400 mb-1.5 leading-snug">Your documents were not accepted. Please re-upload them to try again.</p>
+                <p className="text-xs text-red-700 dark:text-red-400 mb-1.5 leading-snug">{t('settings.verificationRejectedDesc')}</p>
               )}
               <button
                 onClick={() => setLocation('/settings?tab=company')}
                 className="text-xs font-semibold text-red-800 dark:text-red-300 underline underline-offset-2 hover:text-red-900"
               >
-                Re-upload documents →
+                {t('settings.reUploadDocuments')}
               </button>
             </div>
           )}
@@ -1229,7 +1236,7 @@ export default function Dashboard() {
                   data-testid="menu-company-profile"
                 >
                   <Building2 className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm">Company Profile</span>
+                  <span className="text-sm">{t('settings.companyProfileMenuItem')}</span>
                 </button>
 
                 <button
@@ -2227,7 +2234,12 @@ export default function Dashboard() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setSelectedProposal(offer)}
+                                onClick={() => {
+                                  if (offer.company?.slug) {
+                                    window.open(`/company/${offer.company.slug}`, '_blank', 'noopener,noreferrer');
+                                  }
+                                }}
+                                disabled={!offer.company?.slug}
                                 data-testid={`button-view-offer-${offer.id}`}
                               >
                                 <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
@@ -2583,7 +2595,12 @@ export default function Dashboard() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setSelectedVendor(vendor)}
+                                onClick={() => {
+                                  if (vendor.slug) {
+                                    window.open(`/company/${vendor.slug}`, '_blank', 'noopener,noreferrer');
+                                  }
+                                }}
+                                disabled={!vendor.slug}
                                 data-testid={`button-view-vendor-${vendor.id}`}
                               >
                                 <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />

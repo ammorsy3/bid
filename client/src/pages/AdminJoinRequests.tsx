@@ -114,7 +114,7 @@ export default function AdminJoinRequests() {
               <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="text-empty-state">
                 {t('admin.noPendingJoinRequests')}
               </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">All join requests have been processed</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('admin.allJoinRequestsProcessed')}</p>
             </CardContent>
           </Card>
         ) : (

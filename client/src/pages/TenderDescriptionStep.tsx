@@ -10,10 +10,12 @@ import VoiceRecorder from "@/components/voice-recorder";
 import { SmartInput } from "@/components/ui/smart-input";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
+import { useI18n } from "@/lib/i18n";
 
 export default function TenderDescriptionStep() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { t, isRtl } = useI18n();
   const [description, setDescription] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [voiceNoteUrl, setVoiceNoteUrl] = useState("");
@@ -36,11 +38,11 @@ export default function TenderDescriptionStep() {
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
       const inviteLink = `${window.location.origin}/invite/${data.invitationToken}`;
       toast({
-        title: "Tender Created!",
-        description: "Your tender has been published. Share the invite link with vendors.",
+        title: t('tenderSteps.tenderCreatedTitle'),
+        description: t('tenderSteps.tenderCreatedDesc'),
         action: (
-          <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
-            <Copy className="h-3 w-3 mr-1" /> Copy Link
+          <ToastAction altText={t('tenderSteps.copyInvitationLink')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderSteps.linkCopiedShort') }); }}>
+            <Copy className="h-3 w-3 mr-1" /> {t('tenderSteps.copyLinkShort')}
           </ToastAction>
         ),
         duration: 10000,
@@ -49,7 +51,7 @@ export default function TenderDescriptionStep() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to create tender",
+        title: t('tenderSteps.failedToCreateTender'),
         description: error.message,
         variant: "destructive",
       });
@@ -111,7 +113,7 @@ export default function TenderDescriptionStep() {
             data-testid="button-back"
           >
             <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
-              Back
+              {t('tenderSteps.back')}
             </span>
             <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
               <ArrowLeft
@@ -132,27 +134,27 @@ export default function TenderDescriptionStep() {
                 6 / 6
               </div>
               <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
-                Start the conversation.
+                {t('tenderSteps.descStepTitle')}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Talent are looking for:
+                {t('tenderSteps.talentLookingFor')}
               </p>
               <ul className="text-gray-600 dark:text-gray-400 space-y-2 text-sm">
                 <li className="flex gap-2">
                   <span>•</span>
-                  <span>Clear expectations about your task or deliverables</span>
+                  <span>{t('tenderSteps.bulletClearExpectations')}</span>
                 </li>
                 <li className="flex gap-2">
                   <span>•</span>
-                  <span>The skills required for your work</span>
+                  <span>{t('tenderSteps.bulletSkillsRequired')}</span>
                 </li>
                 <li className="flex gap-2">
                   <span>•</span>
-                  <span>Good communication</span>
+                  <span>{t('tenderSteps.bulletGoodCommunication')}</span>
                 </li>
                 <li className="flex gap-2">
                   <span>•</span>
-                  <span>Details about how you or your team like to work</span>
+                  <span>{t('tenderSteps.bulletWorkDetails')}</span>
                 </li>
               </ul>
             </div>
@@ -167,16 +169,10 @@ export default function TenderDescriptionStep() {
                 {/* Description Text Area */}
                 <div className="space-y-3">
                   <label className="block font-medium text-gray-900 dark:text-white">
-                    Describe what you need
+                    {t('tenderSteps.describeWhatYouNeed')}
                   </label>
                   <textarea
-                    placeholder="Strong understanding of passing, dribbling, and visual aesthetics. Ability to work independently and as part of a team. Excellent communication and time-management skills. A portfolio showcasing previous video editing work is required.
-
-Benefits:
-Competitive salary based on experience.
-Flexible working hours.
-Opportunity to work on a variety of projects.
-A supportive and collaborative team environment."
+                    placeholder={t('tenderSteps.descriptionPlaceholder')}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     maxLength={maxCharacters}
@@ -187,9 +183,9 @@ A supportive and collaborative team environment."
                   />
                   <div className="flex justify-between items-center text-xs">
                     <p className={wordCount < 50 ? "text-amber-600 font-medium" : "text-green-600 font-medium"}>
-                      {wordCount < 50 ? `${50 - wordCount} more words needed (min. 50)` : "Minimum word count met ✓"}
+                      {wordCount < 50 ? t('tenderSteps.moreWordsNeeded', { count: 50 - wordCount }) : t('tenderSteps.minWordCountMet')}
                     </p>
-                    <p className="text-gray-400">{wordCount} words · {characterCount}/{maxCharacters}</p>
+                    <p className="text-gray-400">{t('tenderSteps.wordsAndChars', { words: wordCount, chars: characterCount, max: maxCharacters })}</p>
                   </div>
                 </div>
 
@@ -197,10 +193,10 @@ A supportive and collaborative team environment."
                 <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
                   <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-[#E25E45]" />
-                    Voice Note (Optional)
+                    {t('tenderSteps.voiceNoteOptional')}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Record a message to explain your project (max 5 minutes)
+                    {t('tenderSteps.voiceNoteDesc')}
                   </p>
                   <VoiceRecorder
                     onRecordingComplete={(url) => setVoiceNoteUrl(url)}
@@ -214,17 +210,17 @@ A supportive and collaborative team environment."
                 <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
                   <label className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                     <Video className="h-4 w-4 text-[#E25E45]" />
-                    Video Link (Optional)
+                    {t('tenderSteps.videoLinkOptional')}
                   </label>
                   <SmartInput
-                    placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+                    placeholder={t('tenderSteps.videoUrlPlaceholder')}
                     value={videoUrl}
                     onChange={(e) => setVideoUrl(e.target.value)}
                     disabled={submitTender.isPending}
                     data-testid="input-video-url"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Add a YouTube or Vimeo link to show examples of your project
+                    {t('tenderSteps.videoLinkHelper')}
                   </p>
                 </div>
 
@@ -238,7 +234,7 @@ A supportive and collaborative team environment."
                     className="flex-1"
                     data-testid="button-cancel"
                   >
-                    Back
+                    {t('tenderSteps.back')}
                   </Button>
                   <Button
                     onClick={handleSubmit}
@@ -249,12 +245,12 @@ A supportive and collaborative team environment."
                     {submitTender.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Submitting...
+                        {t('tenderSteps.submitting')}
                       </>
                     ) : (
                       <>
-                        Submit Tender
-                        <ArrowRight className="h-4 w-4 ml-2" />
+                        {t('tenderSteps.submitTender')}
+                        <ArrowRight className={`h-4 w-4 ${isRtl ? 'mr-2 rotate-180' : 'ml-2'}`} />
                       </>
                     )}
                   </Button>

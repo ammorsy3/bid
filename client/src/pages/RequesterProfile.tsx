@@ -17,57 +17,60 @@ import { calculateFormProgress } from "@/lib/form-validation";
 import { Building2, Sparkles } from "lucide-react";
 import { useLocation } from "wouter";
 import type { UploadResult } from "@/components/ObjectUploader";
-
-const requesterProfileSchema = z.object({
-  companyName: z.string().min(2, "Company name is required").max(120),
-  industry: z.string().min(1, "Industry is required"),
-  companySize: z.string().optional(),
-  logoUrl: z.string().optional(),
-  bio: z.string().min(5, "Bio must be at least 5 characters").max(100, "Bio must not exceed 100 characters"),
-  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  contactPerson: z.string().min(2, "Contact person name is required"),
-  contactEmail: z.string().email("Invalid email address"),
-  contactPhone: z.string().optional(),
-});
-
-type RequesterProfileForm = z.infer<typeof requesterProfileSchema>;
+import { useI18n } from "@/lib/i18n";
 
 const FORM_ID = 'requester-profile';
-const REQUIRED_FIELDS: (keyof RequesterProfileForm)[] = [
-  'companyName', 'industry', 'bio', 'contactPerson', 'contactEmail'
+
+const INDUSTRY_KEYS = [
+  "industryConstruction",
+  "industryIT",
+  "industryHealthcare",
+  "industryFinance",
+  "industryGovernment",
+  "industryManufacturing",
+  "industryEnergy",
+  "industryEducation",
+  "industryTelecom",
+  "industryRealEstate",
+  "industryTransport",
+  "industryRetail",
+  "industryProfessional",
+  "industryOther",
 ];
 
-const INDUSTRIES = [
-  "Construction & Infrastructure",
-  "Information Technology",
-  "Healthcare & Medical",
-  "Finance & Banking",
-  "Government & Public Sector",
-  "Manufacturing",
-  "Energy & Utilities",
-  "Education",
-  "Telecommunications",
-  "Real Estate",
-  "Transportation & Logistics",
-  "Retail",
-  "Professional Services",
-  "Other",
-];
-
-const COMPANY_SIZES = [
-  "1-10 employees",
-  "11-50 employees",
-  "51-200 employees",
-  "201-500 employees",
-  "500+ employees",
+const COMPANY_SIZE_KEYS = [
+  "size1to10",
+  "size11to50",
+  "size51to200",
+  "size201to500",
+  "size500plus",
 ];
 
 export default function RequesterProfile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
+  const { t } = useI18n();
   const [uploadedLogo, setUploadedLogo] = useState<string | undefined>(undefined);
+
+  const requesterProfileSchema = z.object({
+    companyName: z.string().min(2, t('requesterProfile.companyNameRequired')).max(120),
+    industry: z.string().min(1, t('requesterProfile.industryRequired')),
+    companySize: z.string().optional(),
+    logoUrl: z.string().optional(),
+    bio: z.string().min(5, t('requesterProfile.bioMin')).max(100, t('requesterProfile.bioMax')),
+    websiteUrl: z.string().url(t('requesterProfile.invalidUrl')).optional().or(z.literal("")),
+    linkedinUrl: z.string().url(t('requesterProfile.invalidUrl')).optional().or(z.literal("")),
+    contactPerson: z.string().min(2, t('requesterProfile.contactPersonRequired')),
+    contactEmail: z.string().email(t('requesterProfile.invalidEmail')),
+    contactPhone: z.string().optional(),
+  });
+
+  type RequesterProfileForm = z.infer<typeof requesterProfileSchema>;
+
+  const REQUIRED_FIELDS: (keyof RequesterProfileForm)[] = [
+    'companyName', 'industry', 'bio', 'contactPerson', 'contactEmail'
+  ];
 
   const form = useForm<RequesterProfileForm>({
     resolver: zodResolver(requesterProfileSchema),
@@ -104,7 +107,7 @@ export default function RequesterProfile() {
         contactPhone: profile.contactPhone || "",
       });
       if (profile.logoUrl) {
-        setUploadedLogo("Company Logo");
+        setUploadedLogo(t('requesterProfile.companyLogoLabel'));
       }
     }
   }, [existingProfile, form]);
@@ -116,16 +119,16 @@ export default function RequesterProfile() {
     },
     onSuccess: () => {
       toast({
-        title: "Success!",
-        description: "Your profile has been saved",
+        title: t('requesterProfile.successTitle'),
+        description: t('requesterProfile.successDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/requester/profile'] });
       navigate('/dashboard');
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to save profile",
+        title: t('requesterProfile.errorTitle'),
+        description: error.message || t('requesterProfile.failedToSave'),
         variant: "destructive",
       });
     },
@@ -147,18 +150,18 @@ export default function RequesterProfile() {
   const handleLogoUpload = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
     if (result.successful && result.successful[0]) {
       const uploadURL = result.successful[0].uploadURL;
-      
+
       const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', {
         fileURL: uploadURL,
       });
       const { objectPath } = await metadataResponse.json();
-      
+
       form.setValue('logoUrl', objectPath, { shouldValidate: true, shouldDirty: true });
       setUploadedLogo(result.successful[0].name);
-      
+
       toast({
-        title: "Uploaded!",
-        description: `${result.successful[0].name} uploaded successfully`,
+        title: t('requesterProfile.uploadedTitle'),
+        description: t('requesterProfile.uploadedDesc', { name: result.successful[0].name }),
       });
     }
   };
@@ -169,19 +172,19 @@ export default function RequesterProfile() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Sparkles className="h-8 w-8 text-primary-600" />
-            <h1 className="text-3xl font-bold text-neutral-900">Company Profile</h1>
+            <h1 className="text-3xl font-bold text-neutral-900">{t('requesterProfile.heading')}</h1>
           </div>
           <p className="text-neutral-600">
-            Complete your company profile to start creating tenders and inviting vendors.
+            {t('requesterProfile.subheading')}
           </p>
         </div>
 
         <div className="mb-6">
-          <FormProgress 
+          <FormProgress
             progress={progress}
             steps={[
-              { label: 'Company Info', completed: progress >= 50 },
-              { label: 'Contact Details', completed: progress >= 100 },
+              { label: t('requesterProfile.stepCompanyInfo'), completed: progress >= 50 },
+              { label: t('requesterProfile.stepContactDetails'), completed: progress >= 100 },
             ]}
           />
         </div>
@@ -192,7 +195,7 @@ export default function RequesterProfile() {
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Building2 className="h-5 w-5 text-primary-600" />
-                <h2 className="text-xl font-semibold text-neutral-900">Company Information</h2>
+                <h2 className="text-xl font-semibold text-neutral-900">{t('requesterProfile.companyInformation')}</h2>
               </div>
 
               <div className="space-y-4">
@@ -201,10 +204,10 @@ export default function RequesterProfile() {
                   name="companyName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Company Name *</FormLabel>
+                      <FormLabel>{t('requesterProfile.companyNameLabel')}</FormLabel>
                       <FormControl>
-                        <SmartInput 
-                          {...field} 
+                        <SmartInput
+                          {...field}
                           error={form.formState.errors.companyName}
                           isDirty={form.formState.dirtyFields.companyName}
                           data-testid="input-company-name"
@@ -221,17 +224,17 @@ export default function RequesterProfile() {
                     name="industry"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Industry *</FormLabel>
+                        <FormLabel>{t('requesterProfile.industryLabel')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-industry">
-                              <SelectValue placeholder="Select industry" />
+                              <SelectValue placeholder={t('requesterProfile.selectIndustry')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {INDUSTRIES.map((industry) => (
-                              <SelectItem key={industry} value={industry}>
-                                {industry}
+                            {INDUSTRY_KEYS.map((key) => (
+                              <SelectItem key={key} value={t(`requesterProfile.${key}`)}>
+                                {t(`requesterProfile.${key}`)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -246,17 +249,17 @@ export default function RequesterProfile() {
                     name="companySize"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Company Size</FormLabel>
+                        <FormLabel>{t('requesterProfile.companySizeLabel')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-company-size">
-                              <SelectValue placeholder="Select size" />
+                              <SelectValue placeholder={t('requesterProfile.selectSize')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {COMPANY_SIZES.map((size) => (
-                              <SelectItem key={size} value={size}>
-                                {size}
+                            {COMPANY_SIZE_KEYS.map((key) => (
+                              <SelectItem key={key} value={t(`requesterProfile.${key}`)}>
+                                {t(`requesterProfile.${key}`)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -272,13 +275,13 @@ export default function RequesterProfile() {
                   name="bio"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Company Description *</FormLabel>
+                      <FormLabel>{t('requesterProfile.companyDescLabel')}</FormLabel>
                       <FormControl>
-                        <SmartTextarea 
-                          {...field} 
+                        <SmartTextarea
+                          {...field}
                           rows={4}
                           maxLength={100}
-                          placeholder="Brief description of your company (5-100 characters)"
+                          placeholder={t('requesterProfile.companyDescPlaceholder')}
                           error={form.formState.errors.bio}
                           isDirty={form.formState.dirtyFields.bio}
                           data-testid="input-bio"
@@ -286,9 +289,9 @@ export default function RequesterProfile() {
                       </FormControl>
                       <FormDescription>
                         <div className="flex items-center justify-between">
-                          <span>Keep it concise and informative</span>
+                          <span>{t('requesterProfile.keepConcise')}</span>
                           <span className="text-neutral-500">
-                            {(field.value || "").length} / 100 characters
+                            {t('requesterProfile.charsCount', { current: (field.value || "").length })}
                           </span>
                         </div>
                       </FormDescription>
@@ -302,7 +305,7 @@ export default function RequesterProfile() {
                   name="logoUrl"
                   render={() => (
                     <FormItem>
-                      <FormLabel>Company Logo</FormLabel>
+                      <FormLabel>{t('requesterProfile.companyLogoLabel')}</FormLabel>
                       <FormControl>
                         <ObjectUploader
                           onGetUploadParameters={handleGetUploadURL}
@@ -310,7 +313,7 @@ export default function RequesterProfile() {
                           allowedFileTypes={['image/*']}
                           maxFileSize={5 * 1024 * 1024}
                         >
-                          {uploadedLogo || "Upload Logo"}
+                          {uploadedLogo || t('requesterProfile.uploadLogo')}
                         </ObjectUploader>
                       </FormControl>
                       <FormMessage />
@@ -324,11 +327,11 @@ export default function RequesterProfile() {
                     name="websiteUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Website URL</FormLabel>
+                        <FormLabel>{t('requesterProfile.websiteUrlLabel')}</FormLabel>
                         <FormControl>
-                          <SmartInput 
-                            {...field} 
-                            placeholder="https://example.com"
+                          <SmartInput
+                            {...field}
+                            placeholder={t('requesterProfile.websitePlaceholder')}
                             error={form.formState.errors.websiteUrl}
                             isDirty={form.formState.dirtyFields.websiteUrl}
                             data-testid="input-website"
@@ -344,11 +347,11 @@ export default function RequesterProfile() {
                     name="linkedinUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>LinkedIn URL</FormLabel>
+                        <FormLabel>{t('requesterProfile.linkedinUrlLabel')}</FormLabel>
                         <FormControl>
-                          <SmartInput 
-                            {...field} 
-                            placeholder="https://linkedin.com/company/..."
+                          <SmartInput
+                            {...field}
+                            placeholder={t('requesterProfile.linkedinPlaceholder')}
                             error={form.formState.errors.linkedinUrl}
                             isDirty={form.formState.dirtyFields.linkedinUrl}
                             data-testid="input-linkedin"
@@ -364,7 +367,7 @@ export default function RequesterProfile() {
 
             {/* Contact Information */}
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-neutral-900 mb-4">Contact Information</h2>
+              <h2 className="text-xl font-semibold text-neutral-900 mb-4">{t('requesterProfile.contactInformation')}</h2>
 
               <div className="space-y-4">
                 <FormField
@@ -372,11 +375,11 @@ export default function RequesterProfile() {
                   name="contactPerson"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Contact Person *</FormLabel>
+                      <FormLabel>{t('requesterProfile.contactPersonLabel')}</FormLabel>
                       <FormControl>
-                        <SmartInput 
-                          {...field} 
-                          placeholder="Full name"
+                        <SmartInput
+                          {...field}
+                          placeholder={t('requesterProfile.fullNamePlaceholder')}
                           error={form.formState.errors.contactPerson}
                           isDirty={form.formState.dirtyFields.contactPerson}
                           data-testid="input-contact-person"
@@ -393,12 +396,12 @@ export default function RequesterProfile() {
                     name="contactEmail"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Contact Email *</FormLabel>
+                        <FormLabel>{t('requesterProfile.contactEmailLabel')}</FormLabel>
                         <FormControl>
-                          <SmartInput 
-                            {...field} 
+                          <SmartInput
+                            {...field}
                             type="email"
-                            placeholder="contact@company.com"
+                            placeholder={t('requesterProfile.contactEmailPlaceholder')}
                             error={form.formState.errors.contactEmail}
                             isDirty={form.formState.dirtyFields.contactEmail}
                             data-testid="input-contact-email"
@@ -414,11 +417,11 @@ export default function RequesterProfile() {
                     name="contactPhone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Contact Phone</FormLabel>
+                        <FormLabel>{t('requesterProfile.contactPhoneLabel')}</FormLabel>
                         <FormControl>
-                          <SmartInput 
-                            {...field} 
-                            placeholder="+966 XX XXX XXXX"
+                          <SmartInput
+                            {...field}
+                            placeholder={t('requesterProfile.contactPhonePlaceholder')}
                             error={form.formState.errors.contactPhone}
                             isDirty={form.formState.dirtyFields.contactPhone}
                             data-testid="input-contact-phone"
@@ -439,7 +442,7 @@ export default function RequesterProfile() {
                 onClick={() => navigate('/dashboard')}
                 data-testid="button-cancel"
               >
-                Cancel
+                {t('requesterProfile.cancelBtn')}
               </Button>
               <Button
                 type="submit"
@@ -447,7 +450,7 @@ export default function RequesterProfile() {
                 disabled={submitMutation.isPending}
                 data-testid="button-submit"
               >
-                {submitMutation.isPending ? "Saving..." : "Save Profile"}
+                {submitMutation.isPending ? t('requesterProfile.savingBtn') : t('requesterProfile.saveProfileBtn')}
               </Button>
             </div>
           </form>

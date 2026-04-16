@@ -105,10 +105,10 @@ export default function Register() {
               <span className="text-2xl font-bold tracking-tight">Bid</span>
             </div>
             <h1 className="text-4xl font-bold leading-tight mb-4">
-              Streamline your procurement process
+              {t('authPanel.streamlineProcurement')}
             </h1>
             <p className="text-lg text-white/70 leading-relaxed">
-              Create tenders, manage vendors, and make better decisions — all in one platform.
+              {t('authPanel.streamlineDesc')}
             </p>
           </div>
 
@@ -118,8 +118,8 @@ export default function Register() {
                 <Building2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Company Workspaces</h3>
-                <p className="text-sm text-white/60">Organize your team and manage multiple projects under one roof.</p>
+                <h3 className="font-semibold mb-1">{t('authPanel.companyWorkspaces')}</h3>
+                <p className="text-sm text-white/60">{t('authPanel.companyWorkspacesDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -127,8 +127,8 @@ export default function Register() {
                 <Users className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Vendor Management</h3>
-                <p className="text-sm text-white/60">Build your vendor base and invite suppliers to bid on your projects.</p>
+                <h3 className="font-semibold mb-1">{t('authPanel.vendorManagement')}</h3>
+                <p className="text-sm text-white/60">{t('authPanel.vendorManagementDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -136,8 +136,8 @@ export default function Register() {
                 <Shield className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Secure & Compliant</h3>
-                <p className="text-sm text-white/60">Built for Saudi businesses with CR verification and compliance tools.</p>
+                <h3 className="font-semibold mb-1">{t('authPanel.secureCompliant')}</h3>
+                <p className="text-sm text-white/60">{t('authPanel.secureCompliantDesc')}</p>
               </div>
             </div>
           </div>
@@ -156,8 +156,8 @@ export default function Register() {
           </div>
 
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-neutral-900 mb-2">Create your account</h2>
-            <p className="text-neutral-500">Get started in under 2 minutes.</p>
+            <h2 className="text-2xl font-bold text-neutral-900 mb-2">{t('authPanel.createAccountTitle')}</h2>
+            <p className="text-neutral-500">{t('authPanel.createAccountDesc')}</p>
           </div>
 
           <Form {...form}>
@@ -209,9 +209,9 @@ export default function Register() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel>{t('authPanel.confirmPasswordLabel')}</FormLabel>
                     <FormControl>
-                      <Input data-testid="input-confirm-password" type="password" placeholder="Re-enter your password" {...field} />
+                      <Input data-testid="input-confirm-password" type="password" placeholder={t('authPanel.reenterPassword')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

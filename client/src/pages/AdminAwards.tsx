@@ -102,13 +102,13 @@ export default function AdminAwards() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'verified':
-        return <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[11px]"><ShieldCheck className="h-3 w-3 mr-1" />Verified</Badge>;
+        return <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[11px]"><ShieldCheck className="h-3 w-3 mr-1" />{t('admin.statusVerified')}</Badge>;
       case 'under_review':
-        return <Badge className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[11px]">Under Review</Badge>;
+        return <Badge className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[11px]">{t('admin.statusUnderReview')}</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 text-[11px]">Rejected</Badge>;
+        return <Badge className="bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 text-[11px]">{t('admin.statusRejected')}</Badge>;
       default:
-        return <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[11px]">Not Verified</Badge>;
+        return <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[11px]">{t('admin.statusNotVerified')}</Badge>;
     }
   };
 
@@ -139,7 +139,7 @@ export default function AdminAwards() {
               <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="text-empty-state">
                 {t('admin.noBlockedAwards')}
               </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">No awards are currently blocked</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('admin.noBlockedAwardsDesc')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -153,26 +153,26 @@ export default function AdminAwards() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <CardTitle className="flex items-center gap-2 text-base flex-wrap">
-                          {award.tender?.title || "Unknown Tender"}
-                          <Badge variant="destructive" className="text-xs">Blocked</Badge>
+                          {award.tender?.title || t('admin.unknownTender')}
+                          <Badge variant="destructive" className="text-xs">{t('admin.blockedBadge')}</Badge>
                         </CardTitle>
 
                         <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-gray-600 dark:text-gray-400">
                           <div className="flex items-center gap-1.5">
                             <Building2 className="h-3.5 w-3.5" />
-                            <strong>Vendor:</strong> {award.company?.name || 'Unknown'}
+                            <strong>{t('admin.vendorLabelShort')}</strong> {award.company?.name || t('admin.unknownLabel')}
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <strong>Verification:</strong>
+                            <strong>{t('admin.verificationLabelShort')}</strong>
                             {getStatusBadge(award.company?.verificationStatus)}
                           </div>
-                          <div><strong>Tender deadline:</strong> {award.tender?.deadline ? format(new Date(award.tender.deadline), 'PP') : 'N/A'}</div>
-                          <div><strong>Blocked since:</strong> {award.createdAt ? format(new Date(award.createdAt), 'PP') : 'N/A'}</div>
+                          <div><strong>{t('admin.tenderDeadlineLabel')}</strong> {award.tender?.deadline ? format(new Date(award.tender.deadline), 'PP') : t('admin.na')}</div>
+                          <div><strong>{t('admin.blockedSinceLabel')}</strong> {award.createdAt ? format(new Date(award.createdAt), 'PP') : t('admin.na')}</div>
                         </div>
 
                         {award.blockReason && (
                           <div className="mt-2 p-2.5 bg-red-50 dark:bg-red-950/30 rounded-lg text-xs border border-red-100 dark:border-red-900/50">
-                            <strong className="text-red-800 dark:text-red-300">Block reason:</strong>{" "}
+                            <strong className="text-red-800 dark:text-red-300">{t('admin.blockReason')}</strong>{" "}
                             <span className="text-red-700 dark:text-red-400">{award.blockReason}</span>
                           </div>
                         )}
@@ -187,7 +187,7 @@ export default function AdminAwards() {
                         onClick={() => { setSelectedAward(award); setActionType("view_vendor"); }}
                       >
                         <Eye className="h-4 w-4 mr-2" />
-                        View Vendor
+                        {t('admin.viewVendor')}
                       </Button>
 
                       {isVendorVerified ? (
@@ -198,7 +198,7 @@ export default function AdminAwards() {
                           disabled={unblockMutation.isPending}
                         >
                           <Unlock className="h-4 w-4 mr-2" />
-                          Unblock Award
+                          {t('admin.unblockAwardBtn')}
                         </Button>
                       ) : (
                         <Button
@@ -207,7 +207,7 @@ export default function AdminAwards() {
                           onClick={() => { setSelectedAward(award); setActionType("verify_unblock"); }}
                         >
                           <ShieldCheck className="h-4 w-4 mr-2" />
-                          Verify Vendor & Unblock
+                          {t('admin.verifyVendorUnblock')}
                         </Button>
                       )}
 
@@ -217,7 +217,7 @@ export default function AdminAwards() {
                         onClick={() => { setSelectedAward(award); setActionType("reject_award"); }}
                       >
                         <XCircle className="h-4 w-4 mr-2" />
-                        Dismiss Award
+                        {t('admin.dismissAward')}
                       </Button>
                     </div>
                   </CardContent>
@@ -232,32 +232,32 @@ export default function AdminAwards() {
       <Dialog open={actionType === "view_vendor"} onOpenChange={handleClose}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Vendor Details</DialogTitle>
-            <DialogDescription>Company information and verification documents</DialogDescription>
+            <DialogTitle>{t('admin.vendorDetails')}</DialogTitle>
+            <DialogDescription>{t('admin.vendorDetailsDesc')}</DialogDescription>
           </DialogHeader>
           {selectedAward?.company && (
             <div className="space-y-5">
               {/* Company Info */}
               <div>
-                <h3 className="font-semibold mb-2 text-sm">Company Information</h3>
+                <h3 className="font-semibold mb-2 text-sm">{t('admin.companyInformation')}</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><strong>Name:</strong> {selectedAward.company.name}</div>
-                  <div><strong>Legal Name:</strong> {selectedAward.company.legalName || 'N/A'}</div>
-                  <div><strong>CR #:</strong> {selectedAward.company.crNumber || 'N/A'}</div>
-                  <div><strong>VAT #:</strong> {selectedAward.company.vatNumber || 'N/A'}</div>
-                  <div><strong>City:</strong> {selectedAward.company.city || 'N/A'}</div>
-                  <div><strong>Category:</strong> {selectedAward.company.category || 'N/A'}</div>
+                  <div><strong>{t('admin.nameLabel')}</strong> {selectedAward.company.name}</div>
+                  <div><strong>{t('admin.legalName')}</strong> {selectedAward.company.legalName || t('admin.na')}</div>
+                  <div><strong>{t('admin.crHash')}</strong> {selectedAward.company.crNumber || t('admin.na')}</div>
+                  <div><strong>{t('admin.vatHash')}</strong> {selectedAward.company.vatNumber || t('admin.na')}</div>
+                  <div><strong>{t('admin.city')}</strong> {selectedAward.company.city || t('admin.na')}</div>
+                  <div><strong>{t('admin.categoryLabel')}</strong> {selectedAward.company.category || t('admin.na')}</div>
                 </div>
               </div>
 
               {/* Status */}
               <div>
-                <h3 className="font-semibold mb-2 text-sm">Status</h3>
+                <h3 className="font-semibold mb-2 text-sm">{t('admin.statusSection')}</h3>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(selectedAward.company.verificationStatus)}
                   {selectedAward.company.rejectionReason && (
                     <span className="text-xs text-red-600 dark:text-red-400">
-                      Rejected: {selectedAward.company.rejectionReason}
+                      {t('admin.rejectedPrefix', { reason: selectedAward.company.rejectionReason })}
                     </span>
                   )}
                 </div>
@@ -265,17 +265,17 @@ export default function AdminAwards() {
 
               {/* Documents */}
               <div>
-                <h3 className="font-semibold mb-2 text-sm">Verification Documents</h3>
+                <h3 className="font-semibold mb-2 text-sm">{t('admin.verificationDocuments')}</h3>
                 {docsLoading ? (
                   <div className="flex items-center gap-2 py-4 justify-center text-gray-400">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">Loading documents...</span>
+                    <span className="text-sm">{t('admin.loadingDocuments')}</span>
                   </div>
                 ) : !vendorDocs || vendorDocs.length === 0 ? (
                   <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 text-center">
                     <AlertTriangle className="h-5 w-5 text-red-500 mx-auto mb-1.5" />
-                    <p className="text-sm text-red-700 dark:text-red-300 font-medium">No documents uploaded</p>
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">This vendor has not submitted any verification documents.</p>
+                    <p className="text-sm text-red-700 dark:text-red-300 font-medium">{t('admin.noDocumentsUploaded')}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">{t('admin.noDocumentsVendor')}</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -293,7 +293,7 @@ export default function AdminAwards() {
                               {DOC_TYPE_LABELS[doc.documentType] || doc.label || doc.documentType}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {doc.originalName || 'Document'} &middot; {format(new Date(doc.uploadedAt), 'PP')}
+                              {doc.originalName || t('admin.documentLabel')} &middot; {format(new Date(doc.uploadedAt), 'PP')}
                             </p>
                           </div>
                         </div>
@@ -305,7 +305,7 @@ export default function AdminAwards() {
                             onClick={() => viewAuthenticatedFile(doc.fileUrl)}
                           >
                             <ExternalLink className="h-3.5 w-3.5 mr-1" />
-                            <span className="text-xs">View</span>
+                            <span className="text-xs">{t('admin.viewBtn')}</span>
                           </Button>
                           <Button
                             variant="ghost"
@@ -314,7 +314,7 @@ export default function AdminAwards() {
                             onClick={() => downloadAuthenticatedFile(doc.fileUrl, doc.originalName || undefined)}
                           >
                             <Download className="h-3.5 w-3.5 mr-1" />
-                            <span className="text-xs">Download</span>
+                            <span className="text-xs">{t('admin.downloadBtn')}</span>
                           </Button>
                         </div>
                       </div>
@@ -325,7 +325,7 @@ export default function AdminAwards() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={handleClose}>Close</Button>
+            <Button variant="outline" onClick={handleClose}>{t('admin.close')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -334,29 +334,29 @@ export default function AdminAwards() {
       <Dialog open={actionType === "verify_unblock"} onOpenChange={handleClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Verify Vendor & Unblock Award</DialogTitle>
+            <DialogTitle>{t('admin.verifyVendorUnblockTitle')}</DialogTitle>
             <DialogDescription>
-              This will verify <strong>{selectedAward?.company?.name}</strong> and release their blocked award for <strong>{selectedAward?.tender?.title}</strong>.
+              {t('admin.verifyVendorUnblockDesc', { company: selectedAward?.company?.name || '', tender: selectedAward?.tender?.title || '' })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/50">
               <p className="text-xs text-purple-700 dark:text-purple-300">
-                <strong>What happens:</strong> The vendor's company will be marked as verified, and their award will be unblocked and released immediately.
+                <strong>{t('admin.whatHappens')}</strong> {t('admin.whatHappensDesc')}
               </p>
             </div>
             <div>
-              <label className="text-sm font-medium">Notes (optional)</label>
+              <label className="text-sm font-medium">{t('admin.notesOptionalLabel')}</label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any verification notes..."
+                placeholder={t('admin.addVerificationNotesPh')}
                 className="mt-2"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={handleClose}>Cancel</Button>
+            <Button variant="outline" onClick={handleClose}>{t('admin.cancel')}</Button>
             <Button
               className="bg-purple-600 hover:bg-purple-700"
               onClick={() => {
@@ -370,7 +370,7 @@ export default function AdminAwards() {
               }}
               disabled={verifyAndUnblockMutation.isPending}
             >
-              {verifyAndUnblockMutation.isPending ? "Processing..." : "Verify & Unblock"}
+              {verifyAndUnblockMutation.isPending ? t('admin.processingEllipsis') : t('admin.verifyUnblockBtn')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -380,18 +380,18 @@ export default function AdminAwards() {
       <Dialog open={actionType === "reject_award"} onOpenChange={handleClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Dismiss Blocked Award</DialogTitle>
+            <DialogTitle>{t('admin.dismissBlockedAwardTitle')}</DialogTitle>
             <DialogDescription>
-              This will remove the blocked award for <strong>{selectedAward?.tender?.title}</strong>. The vendor will not receive the award.
+              {t('admin.dismissBlockedAwardDesc', { tender: selectedAward?.tender?.title || '' })}
             </DialogDescription>
           </DialogHeader>
           <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50">
             <p className="text-xs text-red-700 dark:text-red-300">
-              This action cannot be undone. The requester will need to award the tender to a different vendor.
+              {t('admin.dismissCannotUndo')}
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={handleClose}>Cancel</Button>
+            <Button variant="outline" onClick={handleClose}>{t('admin.cancel')}</Button>
             <Button
               variant="destructive"
               onClick={() => {
@@ -401,7 +401,7 @@ export default function AdminAwards() {
               }}
               disabled={unblockMutation.isPending}
             >
-              {unblockMutation.isPending ? "Dismissing..." : "Dismiss Award"}
+              {unblockMutation.isPending ? t('admin.dismissing') : t('admin.dismissAwardBtn')}
             </Button>
           </DialogFooter>
         </DialogContent>

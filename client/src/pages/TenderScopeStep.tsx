@@ -6,48 +6,38 @@ import { useLocation } from "wouter";
 import { useState, useMemo } from "react";
 import { JollyDatePicker } from "@/components/ui/date-picker";
 import { CalendarDate } from "@internationalized/date";
-
-const SCOPE_OPTIONS = [
-  {
-    id: "large",
-    label: "Large",
-    description:
-      "Longer term or complex initiatives (ex. develop and execute a brand strategy (i.e., graphics, positioning))",
-  },
-  {
-    id: "medium",
-    label: "Medium",
-    description:
-      "Well-defined projects (ex. design business rebrand package (i.e., logos, icons))",
-  },
-  {
-    id: "small",
-    label: "Small",
-    description:
-      "Quick and straightforward tasks (ex. create logo for a new product)",
-  },
-];
-
-const DURATION_OPTIONS = [
-  {
-    id: "6plus",
-    label: "More than 6 months",
-  },
-  {
-    id: "3to6",
-    label: "3 to 6 months",
-  },
-  {
-    id: "1to3",
-    label: "1 to 3 months",
-  },
-];
+import { useI18n } from "@/lib/i18n";
 
 export default function TenderScopeStep() {
   const [, navigate] = useLocation();
+  const { t, isRtl } = useI18n();
   const [scope, setScope] = useState("");
   const [duration, setDuration] = useState("");
   const [deadline, setDeadline] = useState<CalendarDate | null>(null);
+
+  const SCOPE_OPTIONS = [
+    {
+      id: "large",
+      label: t('tenderSteps.scopeLarge'),
+      description: t('tenderSteps.scopeLargeDesc'),
+    },
+    {
+      id: "medium",
+      label: t('tenderSteps.scopeMedium'),
+      description: t('tenderSteps.scopeMediumDesc'),
+    },
+    {
+      id: "small",
+      label: t('tenderSteps.scopeSmall'),
+      description: t('tenderSteps.scopeSmallDesc'),
+    },
+  ];
+
+  const DURATION_OPTIONS = [
+    { id: "6plus", label: t('tenderSteps.duration6plus') },
+    { id: "3to6", label: t('tenderSteps.duration3to6') },
+    { id: "1to3", label: t('tenderSteps.duration1to3') },
+  ];
 
   const draft = useMemo(() => {
     try {
@@ -95,7 +85,7 @@ export default function TenderScopeStep() {
             data-testid="button-back"
           >
             <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
-              Back
+              {t('tenderSteps.back')}
             </span>
             <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
               <ArrowLeft
@@ -116,10 +106,10 @@ export default function TenderScopeStep() {
                 5 / 6
               </div>
               <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
-                Next, estimate the scope of your work.
+                {t('tenderSteps.scopeStepTitle')}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Consider the size of your project and the time it will take.
+                {t('tenderSteps.scopeStepDesc')}
               </p>
             </div>
           </div>
@@ -183,7 +173,7 @@ export default function TenderScopeStep() {
                     {/* Duration Question */}
                     <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6">
                       <h3 className="font-medium text-gray-900 dark:text-white">
-                        How long will your work take?
+                        {t('tenderSteps.durationQuestion')}
                       </h3>
                       <div className="space-y-3">
                         {DURATION_OPTIONS.map((option) => (
@@ -213,7 +203,7 @@ export default function TenderScopeStep() {
                     {duration && (
                       <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
                         <label className="block font-medium text-gray-900 dark:text-white">
-                          When is your submission deadline?
+                          {t('tenderSteps.submissionDeadlineQuestion')}
                         </label>
                         <JollyDatePicker
                           value={deadline}
@@ -235,7 +225,7 @@ export default function TenderScopeStep() {
                     className="flex-1"
                     data-testid="button-cancel"
                   >
-                    Back
+                    {t('tenderSteps.back')}
                   </Button>
                   <Button
                     onClick={handleNext}
@@ -243,8 +233,8 @@ export default function TenderScopeStep() {
                     className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
                     data-testid="button-next"
                   >
-                    Next
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                    {t('tenderSteps.next')}
+                    <ArrowRight className={`h-4 w-4 ${isRtl ? 'mr-2 rotate-180' : 'ml-2'}`} />
                   </Button>
                 </div>
               </div>

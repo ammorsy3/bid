@@ -145,10 +145,10 @@ export default function Login() {
               <span className="text-2xl font-bold tracking-tight">Bid</span>
             </div>
             <h1 className="text-4xl font-bold leading-tight mb-4">
-              Welcome back
+              {t('authPanel.welcomeBack')}
             </h1>
             <p className="text-lg text-white/70 leading-relaxed">
-              Sign in to manage your tenders, track proposals, and collaborate with your team.
+              {t('authPanel.welcomeBackDesc')}
             </p>
           </div>
 
@@ -158,8 +158,8 @@ export default function Login() {
                 <Building2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Company Workspaces</h3>
-                <p className="text-sm text-white/60">Organize your team and manage multiple projects under one roof.</p>
+                <h3 className="font-semibold mb-1">{t('authPanel.companyWorkspaces')}</h3>
+                <p className="text-sm text-white/60">{t('authPanel.companyWorkspacesDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -167,8 +167,8 @@ export default function Login() {
                 <Users className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Vendor Management</h3>
-                <p className="text-sm text-white/60">Build your vendor base and invite suppliers to bid on your projects.</p>
+                <h3 className="font-semibold mb-1">{t('authPanel.vendorManagement')}</h3>
+                <p className="text-sm text-white/60">{t('authPanel.vendorManagementDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -176,8 +176,8 @@ export default function Login() {
                 <Shield className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Secure & Compliant</h3>
-                <p className="text-sm text-white/60">Built for Saudi businesses with CR verification and compliance tools.</p>
+                <h3 className="font-semibold mb-1">{t('authPanel.secureCompliant')}</h3>
+                <p className="text-sm text-white/60">{t('authPanel.secureCompliantDesc')}</p>
               </div>
             </div>
           </div>
@@ -254,8 +254,8 @@ export default function Login() {
           ) : (
             <>
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-neutral-900 mb-2">Sign in to your account</h2>
-                <p className="text-neutral-500">Enter your credentials to continue.</p>
+                <h2 className="text-2xl font-bold text-neutral-900 mb-2">{t('authPanel.signInTitle')}</h2>
+                <p className="text-neutral-500">{t('authPanel.signInDesc')}</p>
               </div>
 
               <Form {...form}>

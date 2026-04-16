@@ -23,6 +23,7 @@ import {
   Tag, Users, Trash2, ImagePlus, ShieldCheck, Video, Award, Shield, Paperclip, AlertTriangle,
   Calendar as CalendarIcon, CloudOff,
 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 // ═══════════════════════════════════════════════════════════════════
 // Types & constants
@@ -48,13 +49,13 @@ interface InsurancePolicyItem {
   documentName?: string;
 }
 
-const INSURANCE_TYPE_LABELS: Record<InsuranceType, string> = {
-  general_liability: 'General liability',
-  professional_indemnity: 'Professional indemnity',
-  workers_compensation: 'Workers compensation',
-  public_liability: 'Public liability',
-  cyber: 'Cyber liability',
-  other: 'Other',
+const INSURANCE_TYPE_KEYS: Record<InsuranceType, string> = {
+  general_liability: 'insuranceGeneralLiability',
+  professional_indemnity: 'insuranceProfessionalIndemnity',
+  workers_compensation: 'insuranceWorkersComp',
+  public_liability: 'insurancePublicLiability',
+  cyber: 'insuranceCyber',
+  other: 'insuranceOther',
 };
 
 type ExpiryStatus = 'none' | 'active' | 'expiring' | 'expired';
@@ -155,20 +156,23 @@ interface EditState {
   insurancePolicies: InsurancePolicyItem[];
 }
 
-const AVAILABILITY_OPTIONS: { value: 'accepting' | 'limited' | 'booked'; label: string; color: string }[] = [
-  { value: 'accepting', label: 'Accepting projects', color: 'emerald' },
-  { value: 'limited', label: 'Limited capacity', color: 'amber' },
-  { value: 'booked', label: 'Currently booked', color: 'gray' },
+const AVAILABILITY_OPTION_KEYS: { value: 'accepting' | 'limited' | 'booked'; labelKey: string; color: string }[] = [
+  { value: 'accepting', labelKey: 'availAccepting', color: 'emerald' },
+  { value: 'limited', labelKey: 'availLimited', color: 'amber' },
+  { value: 'booked', labelKey: 'availBooked', color: 'gray' },
 ];
 
-const COMMON_LANGUAGES = ['Arabic', 'English'];
+const COMMON_LANGUAGE_KEYS = [
+  { value: 'Arabic', labelKey: 'langArabic' },
+  { value: 'English', labelKey: 'langEnglish' },
+];
 
-const COMPANY_SIZES = [
-  { value: '1-10', label: '1-10 employees' },
-  { value: '11-50', label: '11-50 employees' },
-  { value: '51-200', label: '51-200 employees' },
-  { value: '201-500', label: '201-500 employees' },
-  { value: '500+', label: '500+ employees' },
+const COMPANY_SIZE_KEYS = [
+  { value: '1-10', labelKey: 'size1to10' },
+  { value: '11-50', labelKey: 'size11to50' },
+  { value: '51-200', labelKey: 'size51to200' },
+  { value: '201-500', labelKey: 'size201to500' },
+  { value: '500+', labelKey: 'size500plus' },
 ];
 
 type SectionId =
@@ -180,14 +184,14 @@ type SectionId =
   | 'media'
   | 'links';
 
-const SECTIONS: { id: SectionId; label: string; icon: React.ComponentType<{ className?: string }>; description: string }[] = [
-  { id: 'basics',       label: 'Basics',                  icon: Type,       description: 'Logo, name, and short description' },
-  { id: 'availability', label: 'Availability',            icon: Clock,      description: 'Let requesters know your status' },
-  { id: 'facts',        label: 'Company facts',           icon: Building2,  description: 'Size, year, reach, and languages' },
-  { id: 'capabilities', label: 'Services & Portfolio',    icon: Tag,       description: 'What you offer and projects you’ve delivered' },
-  { id: 'credentials',  label: 'Credentials',             icon: ShieldCheck, description: 'Certifications and insurance' },
-  { id: 'media',        label: 'Media',                   icon: ImageIcon,  description: 'Header image, intro video, brochure' },
-  { id: 'links',        label: 'Links',                   icon: Link2,      description: 'Website and social profiles' },
+const SECTION_KEYS: { id: SectionId; labelKey: string; icon: React.ComponentType<{ className?: string }>; descKey: string }[] = [
+  { id: 'basics',       labelKey: 'sectionBasics',       icon: Type,        descKey: 'sectionBasicsDesc' },
+  { id: 'availability', labelKey: 'sectionAvailability', icon: Clock,       descKey: 'sectionAvailabilityDesc' },
+  { id: 'facts',        labelKey: 'sectionFacts',        icon: Building2,   descKey: 'sectionFactsDesc' },
+  { id: 'capabilities', labelKey: 'sectionCapabilities', icon: Tag,         descKey: 'sectionCapabilitiesDesc' },
+  { id: 'credentials',  labelKey: 'sectionCredentials',  icon: ShieldCheck, descKey: 'sectionCredentialsDesc' },
+  { id: 'media',        labelKey: 'sectionMedia',        icon: ImageIcon,   descKey: 'sectionMediaDesc' },
+  { id: 'links',        labelKey: 'sectionLinks',        icon: Link2,       descKey: 'sectionLinksDesc' },
 ];
 
 // ═══════════════════════════════════════════════════════════════════
@@ -196,6 +200,27 @@ const SECTIONS: { id: SectionId; label: string; icon: React.ComponentType<{ clas
 
 export default function CompanyProfileEditor() {
   const [location, navigate] = useLocation();
+  const { t } = useI18n();
+
+  const SECTIONS = SECTION_KEYS.map(s => ({
+    id: s.id,
+    label: t(`companyProfileEditor.${s.labelKey}`),
+    icon: s.icon,
+    description: t(`companyProfileEditor.${s.descKey}`),
+  }));
+  const AVAILABILITY_OPTIONS = AVAILABILITY_OPTION_KEYS.map(o => ({
+    value: o.value,
+    label: t(`companyProfileEditor.${o.labelKey}`),
+    color: o.color,
+  }));
+  const COMPANY_SIZES = COMPANY_SIZE_KEYS.map(s => ({
+    value: s.value,
+    label: t(`companyProfileEditor.${s.labelKey}`),
+  }));
+  const COMMON_LANGUAGES = COMMON_LANGUAGE_KEYS.map(l => l.value);
+  const INSURANCE_TYPE_LABELS = Object.fromEntries(
+    Object.entries(INSURANCE_TYPE_KEYS).map(([k, v]) => [k, t(`companyProfileEditor.${v}`)])
+  ) as Record<InsuranceType, string>;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
@@ -361,7 +386,7 @@ export default function CompanyProfileEditor() {
       setLastSavedAt(Date.now());
     },
     onError: () => {
-      toast({ title: "Save failed", description: "Could not save profile changes.", variant: "destructive" });
+      toast({ title: t('companyProfileEditor.saveFailed'), description: t('companyProfileEditor.saveFailedDesc'), variant: "destructive" });
     },
   });
 
@@ -407,11 +432,11 @@ export default function CompanyProfileEditor() {
     mutationFn: (file: File | Blob) => uploadFile('/api/company/logo', file, 'logo.jpg'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompanyId, 'profile'] });
-      toast({ title: "Logo updated" });
+      toast({ title: t('companyProfileEditor.logoUpdated') });
       setLogoPreview((url) => { if (url) URL.revokeObjectURL(url); return null; });
     },
     onError: () => {
-      toast({ title: "Failed to upload logo", variant: "destructive" });
+      toast({ title: t('companyProfileEditor.failedUploadLogo'), variant: "destructive" });
       setLogoPreview((url) => { if (url) URL.revokeObjectURL(url); return null; });
     },
   });
@@ -420,11 +445,11 @@ export default function CompanyProfileEditor() {
     mutationFn: (file: File | Blob) => uploadFile('/api/company/header', file, 'header.jpg'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompanyId, 'profile'] });
-      toast({ title: "Header image updated" });
+      toast({ title: t('companyProfileEditor.headerImageUpdated') });
       setHeaderPreview((url) => { if (url) URL.revokeObjectURL(url); return null; });
     },
     onError: () => {
-      toast({ title: "Failed to upload header", variant: "destructive" });
+      toast({ title: t('companyProfileEditor.failedUploadHeader'), variant: "destructive" });
       setHeaderPreview((url) => { if (url) URL.revokeObjectURL(url); return null; });
     },
   });
@@ -433,10 +458,10 @@ export default function CompanyProfileEditor() {
     mutationFn: (file: File) => uploadFile('/api/company/brochure', file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompanyId, 'profile'] });
-      toast({ title: "Brochure uploaded" });
+      toast({ title: t('companyProfileEditor.brochureUploadedToast') });
     },
     onError: () => {
-      toast({ title: "Failed to upload brochure", variant: "destructive" });
+      toast({ title: t('companyProfileEditor.failedUploadBrochure'), variant: "destructive" });
     },
   });
 
@@ -457,10 +482,10 @@ export default function CompanyProfileEditor() {
           return { ...s, insurancePolicies: next };
         }
       });
-      toast({ title: "Document uploaded" });
+      toast({ title: t('companyProfileEditor.documentUploadedToast') });
     },
     onError: () => {
-      toast({ title: "Failed to upload document", variant: "destructive" });
+      toast({ title: t('companyProfileEditor.failedUploadDocument'), variant: "destructive" });
     },
   });
 
@@ -475,10 +500,10 @@ export default function CompanyProfileEditor() {
       }));
       setPortfolioTitle('');
       setPortfolioDesc('');
-      toast({ title: "Portfolio image added" });
+      toast({ title: t('companyProfileEditor.portfolioImageAdded') });
     },
     onError: () => {
-      toast({ title: "Failed to upload image", variant: "destructive" });
+      toast({ title: t('companyProfileEditor.failedUploadImage'), variant: "destructive" });
     },
   });
 
@@ -488,11 +513,11 @@ export default function CompanyProfileEditor() {
 
   const validateImage = (file: File): boolean => {
     if (!file.type.startsWith('image/')) {
-      toast({ title: "Invalid file", description: "Please select an image file.", variant: "destructive" });
+      toast({ title: t('companyProfileEditor.invalidFile'), description: t('companyProfileEditor.invalidFileDesc'), variant: "destructive" });
       return false;
     }
     if (file.size > MAX_IMAGE_BYTES) {
-      toast({ title: "File too large", description: "Images must be under 5MB.", variant: "destructive" });
+      toast({ title: t('companyProfileEditor.fileTooLarge'), description: t('companyProfileEditor.fileTooLargeDesc'), variant: "destructive" });
       return false;
     }
     return true;
@@ -692,17 +717,17 @@ export default function CompanyProfileEditor() {
   const savedAgoLabel = (() => {
     if (!lastSavedAt) return null;
     const s = Math.floor((Date.now() - lastSavedAt) / 1000);
-    if (s < 5) return 'just now';
-    if (s < 60) return `${s}s ago`;
+    if (s < 5) return t('companyProfileEditor.justNow');
+    if (s < 60) return t('companyProfileEditor.secondsAgo', { n: s });
     const m = Math.floor(s / 60);
-    if (m < 60) return `${m}m ago`;
-    return 'a while ago';
+    if (m < 60) return t('companyProfileEditor.minutesAgo', { n: m });
+    return t('companyProfileEditor.aWhileAgo');
   })();
 
   const currentSectionMeta = SECTIONS.find(s => s.id === activeSection)!;
 
   const handleBack = () => {
-    if (isDirty && !window.confirm('You have unsaved changes. Leave without saving?')) return;
+    if (isDirty && !window.confirm(t('companyProfileEditor.unsavedConfirm'))) return;
     navigate('/settings');
   };
 
@@ -717,7 +742,7 @@ export default function CompanyProfileEditor() {
         onClose={() => setCropDialog(s => ({ ...s, open: false }))}
         imageSrc={cropDialog.imageSrc}
         aspect={cropDialog.aspect}
-        title={cropDialog.target === 'logo' ? 'Edit Logo' : 'Edit Header Image'}
+        title={cropDialog.target === 'logo' ? t('companyProfileEditor.editLogo') : t('companyProfileEditor.editHeaderImage')}
         onComplete={handleCropComplete}
         saving={uploadLogoMutation.isPending || uploadHeaderMutation.isPending}
       />
@@ -734,16 +759,16 @@ export default function CompanyProfileEditor() {
               className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors mb-3"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              Back to Settings
+              {t('companyProfileEditor.backToSettings')}
             </button>
-            <h2 className="text-sm font-semibold text-foreground">Edit Company Profile</h2>
+            <h2 className="text-sm font-semibold text-foreground">{t('companyProfileEditor.editCompanyProfile')}</h2>
             <p className="text-xs text-muted-foreground mt-0.5 truncate">{company.name}</p>
           </div>
 
           {/* Completeness */}
           <div className="p-4 border-b border-gray-100 dark:border-gray-800">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Profile strength</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('companyProfileEditor.profileStrength')}</span>
               <span className="text-xs font-bold text-[#E8614D]">{completenessPercent}%</span>
             </div>
             <div className="h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
@@ -753,7 +778,7 @@ export default function CompanyProfileEditor() {
               />
             </div>
             <p className="text-[11px] text-muted-foreground mt-2">
-              {overallDone} of {overallTotal} fields complete
+              {t('companyProfileEditor.fieldsComplete', { done: overallDone, total: overallTotal })}
             </p>
           </div>
 
@@ -797,15 +822,15 @@ export default function CompanyProfileEditor() {
           <div className="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-800">
             <div className="max-w-3xl mx-auto px-8 py-5 flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">Profile / Edit</p>
+                <p className="text-xs text-muted-foreground">{t('companyProfileEditor.profileEdit')}</p>
                 <h1 className="text-2xl font-bold text-foreground mt-0.5">{currentSectionMeta.label}</h1>
                 <p className="text-sm text-muted-foreground mt-1">{currentSectionMeta.description}</p>
               </div>
               <div className="flex items-center gap-3 flex-shrink-0">
-                <SaveStatus status={saveStatus} savedAgoLabel={savedAgoLabel} />
+                <SaveStatus status={saveStatus} savedAgoLabel={savedAgoLabel} t={t} />
                 <Button variant="outline" size="sm" onClick={openPreview} className="h-9">
                   <Eye className="h-3.5 w-3.5 mr-1.5" />
-                  Preview
+                  {t('companyProfileEditor.preview')}
                 </Button>
               </div>
             </div>
@@ -822,9 +847,9 @@ export default function CompanyProfileEditor() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                        Logo
+                        {t('companyProfileEditor.logo')}
                       </CardTitle>
-                      <CardDescription>Square crop, PNG or JPG. Shown in search results and on your public profile.</CardDescription>
+                      <CardDescription>{t('companyProfileEditor.logoDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center gap-4">
@@ -845,7 +870,7 @@ export default function CompanyProfileEditor() {
                               disabled={uploadLogoMutation.isPending}
                             >
                               <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
-                              Edit crop
+                              {t('companyProfileEditor.editCrop')}
                             </Button>
                           )}
                           <label>
@@ -862,7 +887,7 @@ export default function CompanyProfileEditor() {
                             <Button type="button" variant="outline" size="sm" asChild>
                               <span className="cursor-pointer">
                                 <Upload className="h-3.5 w-3.5 mr-1.5" />
-                                {uploadLogoMutation.isPending ? 'Uploading...' : currentLogoUrl ? 'Replace' : 'Upload logo'}
+                                {uploadLogoMutation.isPending ? t('companyProfileEditor.uploading') : currentLogoUrl ? t('companyProfileEditor.replace') : t('companyProfileEditor.uploadLogo')}
                               </span>
                             </Button>
                           </label>
@@ -873,14 +898,14 @@ export default function CompanyProfileEditor() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">Display name</CardTitle>
-                      <CardDescription>This is the name clients will see on your public profile.</CardDescription>
+                      <CardTitle className="text-base">{t('companyProfileEditor.displayName')}</CardTitle>
+                      <CardDescription>{t('companyProfileEditor.displayNameDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Input
                         value={editState.displayName}
                         onChange={(e) => setEditState(s => ({ ...s, displayName: e.target.value }))}
-                        placeholder="Your company name"
+                        placeholder={t('companyProfileEditor.displayNamePlaceholder')}
                         maxLength={100}
                       />
                     </CardContent>
@@ -888,14 +913,14 @@ export default function CompanyProfileEditor() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">About</CardTitle>
-                      <CardDescription>A short pitch for potential clients. Aim for 2–4 sentences.</CardDescription>
+                      <CardTitle className="text-base">{t('companyProfileEditor.about')}</CardTitle>
+                      <CardDescription>{t('companyProfileEditor.aboutDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Textarea
                         value={editState.bio}
                         onChange={(e) => setEditState(s => ({ ...s, bio: e.target.value }))}
-                        placeholder="Tell potential clients what you do, who you serve, and what makes you different..."
+                        placeholder={t('companyProfileEditor.aboutPlaceholder')}
                         className="resize-none"
                         rows={5}
                         maxLength={500}
@@ -910,8 +935,8 @@ export default function CompanyProfileEditor() {
               {activeSection === 'availability' && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Current availability</CardTitle>
-                    <CardDescription>Clients filter by this. Keep it up to date so you don't miss opportunities.</CardDescription>
+                    <CardTitle className="text-base">{t('companyProfileEditor.currentAvailability')}</CardTitle>
+                    <CardDescription>{t('companyProfileEditor.currentAvailabilityDesc')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-3 gap-2">
@@ -937,11 +962,11 @@ export default function CompanyProfileEditor() {
                       })}
                     </div>
                     <div>
-                      <Label className="text-sm mb-1.5 block">Note (optional)</Label>
+                      <Label className="text-sm mb-1.5 block">{t('companyProfileEditor.noteOptional')}</Label>
                       <Input
                         value={editState.availabilityNote}
                         onChange={(e) => setEditState(s => ({ ...s, availabilityNote: e.target.value }))}
-                        placeholder="e.g. Available from May 2026, or booked until Q3"
+                        placeholder={t('companyProfileEditor.availabilityNotePlaceholder')}
                         maxLength={200}
                         disabled={!editState.availabilityStatus}
                       />
@@ -958,8 +983,8 @@ export default function CompanyProfileEditor() {
                 <>
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">Company size</CardTitle>
-                      <CardDescription>How big is your team?</CardDescription>
+                      <CardTitle className="text-base">{t('companyProfileEditor.companySize')}</CardTitle>
+                      <CardDescription>{t('companyProfileEditor.companySizeDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Select
@@ -967,7 +992,7 @@ export default function CompanyProfileEditor() {
                         onValueChange={(v) => setEditState(s => ({ ...s, companySize: v }))}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select company size" />
+                          <SelectValue placeholder={t('companyProfileEditor.selectCompanySize')} />
                         </SelectTrigger>
                         <SelectContent>
                           {COMPANY_SIZES.map(s => (
@@ -980,8 +1005,8 @@ export default function CompanyProfileEditor() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">Year founded</CardTitle>
-                      <CardDescription>Used to calculate years in business on your profile.</CardDescription>
+                      <CardTitle className="text-base">{t('companyProfileEditor.yearFounded')}</CardTitle>
+                      <CardDescription>{t('companyProfileEditor.yearFoundedDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Input
@@ -991,15 +1016,15 @@ export default function CompanyProfileEditor() {
                         max={new Date().getFullYear()}
                         value={editState.yearFounded}
                         onChange={(e) => setEditState(s => ({ ...s, yearFounded: e.target.value }))}
-                        placeholder="e.g. 2015"
+                        placeholder={t('companyProfileEditor.yearFoundedPlaceholder')}
                       />
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">Industries served</CardTitle>
-                      <CardDescription>Which verticals do you work with?</CardDescription>
+                      <CardTitle className="text-base">{t('companyProfileEditor.industriesServed')}</CardTitle>
+                      <CardDescription>{t('companyProfileEditor.industriesServedDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex gap-2 mb-3">
@@ -1007,7 +1032,7 @@ export default function CompanyProfileEditor() {
                           value={industryInput}
                           onChange={(e) => setIndustryInput(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addIndustry(); } }}
-                          placeholder="e.g. Healthcare, Fintech, Retail..."
+                          placeholder={t('companyProfileEditor.industriesPlaceholder')}
                           className="flex-1"
                           maxLength={40}
                         />
@@ -1032,8 +1057,8 @@ export default function CompanyProfileEditor() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">Service areas</CardTitle>
-                      <CardDescription>Cities, regions, or countries you operate in.</CardDescription>
+                      <CardTitle className="text-base">{t('companyProfileEditor.serviceAreas')}</CardTitle>
+                      <CardDescription>{t('companyProfileEditor.serviceAreasDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex gap-2 mb-3">
@@ -1041,7 +1066,7 @@ export default function CompanyProfileEditor() {
                           value={serviceAreaInput}
                           onChange={(e) => setServiceAreaInput(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addServiceArea(); } }}
-                          placeholder="e.g. Riyadh, Jeddah, GCC-wide..."
+                          placeholder={t('companyProfileEditor.serviceAreasPlaceholder')}
                           className="flex-1"
                           maxLength={40}
                         />
@@ -1067,18 +1092,18 @@ export default function CompanyProfileEditor() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">Languages</CardTitle>
-                      <CardDescription>Languages your team can work in.</CardDescription>
+                      <CardTitle className="text-base">{t('companyProfileEditor.languages')}</CardTitle>
+                      <CardDescription>{t('companyProfileEditor.languagesDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex gap-1.5 flex-wrap">
-                        {COMMON_LANGUAGES.map((lang) => {
-                          const active = editState.languages.includes(lang);
+                        {COMMON_LANGUAGE_KEYS.map((langItem) => {
+                          const active = editState.languages.includes(langItem.value);
                           return (
                             <button
-                              key={lang}
+                              key={langItem.value}
                               type="button"
-                              onClick={() => toggleLanguage(lang)}
+                              onClick={() => toggleLanguage(langItem.value)}
                               className={cn(
                                 "text-sm font-medium rounded-full px-4 py-1.5 border transition-colors",
                                 active
@@ -1086,7 +1111,7 @@ export default function CompanyProfileEditor() {
                                   : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300'
                               )}
                             >
-                              {lang}
+                              {t(`companyProfileEditor.${langItem.labelKey}`)}
                             </button>
                           );
                         })}
@@ -1101,8 +1126,8 @@ export default function CompanyProfileEditor() {
                 <>
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">Services</CardTitle>
-                      <CardDescription>Specific services you offer. Used for matching and search.</CardDescription>
+                      <CardTitle className="text-base">{t('companyProfileEditor.services')}</CardTitle>
+                      <CardDescription>{t('companyProfileEditor.servicesDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex gap-2 mb-3">
@@ -1110,7 +1135,7 @@ export default function CompanyProfileEditor() {
                           value={tagInput}
                           onChange={(e) => setTagInput(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
-                          placeholder="Add a service..."
+                          placeholder={t('companyProfileEditor.addService')}
                           className="flex-1"
                           maxLength={40}
                         />
@@ -1133,7 +1158,7 @@ export default function CompanyProfileEditor() {
                           ))}
                         </div>
                       )}
-                      <p className="text-xs text-muted-foreground mt-2">{editState.tags.length}/15 services</p>
+                      <p className="text-xs text-muted-foreground mt-2">{t('companyProfileEditor.servicesCount', { count: editState.tags.length })}</p>
                     </CardContent>
                   </Card>
 
@@ -1141,9 +1166,9 @@ export default function CompanyProfileEditor() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <ImagePlus className="h-4 w-4 text-muted-foreground" />
-                        Portfolio
+                        {t('companyProfileEditor.portfolio')}
                       </CardTitle>
-                      <CardDescription>Showcase up to 8 past projects. Clients use this to judge quality.</CardDescription>
+                      <CardDescription>{t('companyProfileEditor.portfolioDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {editState.portfolio.length > 0 && (
@@ -1168,13 +1193,13 @@ export default function CompanyProfileEditor() {
                           <Input
                             value={portfolioTitle}
                             onChange={(e) => setPortfolioTitle(e.target.value)}
-                            placeholder="Project name"
+                            placeholder={t('companyProfileEditor.projectName')}
                             maxLength={60}
                           />
                           <Input
                             value={portfolioDesc}
                             onChange={(e) => setPortfolioDesc(e.target.value)}
-                            placeholder="Short description (optional)"
+                            placeholder={t('companyProfileEditor.shortDescriptionOptional')}
                             maxLength={120}
                           />
                           <label className={cn("block", portfolioTitle.trim() ? "cursor-pointer" : "cursor-not-allowed opacity-60")}>
@@ -1193,16 +1218,16 @@ export default function CompanyProfileEditor() {
                               <Upload className="h-4 w-4 text-muted-foreground" />
                               <span className="text-sm text-muted-foreground">
                                 {uploadPortfolioImageMutation.isPending
-                                  ? 'Uploading...'
+                                  ? t('companyProfileEditor.uploading')
                                   : portfolioTitle.trim()
-                                    ? 'Upload project image'
-                                    : 'Enter a project name first'}
+                                    ? t('companyProfileEditor.uploadProjectImage')
+                                    : t('companyProfileEditor.enterProjectNameFirst')}
                               </span>
                             </div>
                           </label>
                         </div>
                       )}
-                      <p className="text-xs text-muted-foreground">{editState.portfolio.length}/8 projects</p>
+                      <p className="text-xs text-muted-foreground">{t('companyProfileEditor.projectsCount', { count: editState.portfolio.length })}</p>
                     </CardContent>
                   </Card>
                 </>
@@ -1215,9 +1240,9 @@ export default function CompanyProfileEditor() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <Award className="h-4 w-4 text-muted-foreground" />
-                        Certifications
+                        {t('companyProfileEditor.certifications')}
                       </CardTitle>
-                      <CardDescription>ISO, industry, or trade certifications. Attach the document for a verified badge.</CardDescription>
+                      <CardDescription>{t('companyProfileEditor.certificationsDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {editState.certifications.length > 0 && (
@@ -1238,11 +1263,11 @@ export default function CompanyProfileEditor() {
                                 <div className="flex items-center gap-2 flex-wrap">
                                   {cert.documentUrl ? (
                                     <a href={cert.documentUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-full px-2.5 py-1 hover:bg-emerald-100 transition-colors">
-                                      <ShieldCheck className="h-3 w-3" /> Document on file
+                                      <ShieldCheck className="h-3 w-3" /> {t('companyProfileEditor.documentOnFile')}
                                     </a>
                                   ) : (
                                     <label className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full px-2.5 py-1 cursor-pointer hover:bg-gray-100 transition-colors">
-                                      <Paperclip className="h-3 w-3" /> {uploadCredentialDocMutation.isPending ? 'Uploading…' : 'Attach document'}
+                                      <Paperclip className="h-3 w-3" /> {uploadCredentialDocMutation.isPending ? t('companyProfileEditor.uploadingEllipsis') : t('companyProfileEditor.attachDocument')}
                                       <input
                                         type="file"
                                         accept=".pdf,.jpg,.jpeg,.png"
@@ -1256,16 +1281,16 @@ export default function CompanyProfileEditor() {
                                     </label>
                                   )}
                                   {status === 'active' && cert.expiryDate && (
-                                    <span className="text-xs text-muted-foreground">Expires {cert.expiryDate}</span>
+                                    <span className="text-xs text-muted-foreground">{t('companyProfileEditor.expires', { date: cert.expiryDate })}</span>
                                   )}
                                   {status === 'expiring' && (
                                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-full px-2 py-0.5">
-                                      <AlertTriangle className="h-3 w-3" /> Expiring {cert.expiryDate}
+                                      <AlertTriangle className="h-3 w-3" /> {t('companyProfileEditor.expiring', { date: cert.expiryDate || '' })}
                                     </span>
                                   )}
                                   {status === 'expired' && (
                                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-full px-2 py-0.5">
-                                      <AlertTriangle className="h-3 w-3" /> Expired {cert.expiryDate}
+                                      <AlertTriangle className="h-3 w-3" /> {t('companyProfileEditor.expired', { date: cert.expiryDate || '' })}
                                     </span>
                                   )}
                                 </div>
@@ -1280,17 +1305,17 @@ export default function CompanyProfileEditor() {
                           <Input
                             value={newCert.name}
                             onChange={(e) => setNewCert(c => ({ ...c, name: e.target.value }))}
-                            placeholder="e.g. ISO 9001:2015"
+                            placeholder={t('companyProfileEditor.certNamePlaceholder')}
                             maxLength={120}
                           />
                           <Input
                             value={newCert.issuer || ''}
                             onChange={(e) => setNewCert(c => ({ ...c, issuer: e.target.value }))}
-                            placeholder="Issuer (optional, e.g. BSI)"
+                            placeholder={t('companyProfileEditor.certIssuerPlaceholder')}
                             maxLength={120}
                           />
                           <div>
-                            <Label className="text-xs text-muted-foreground mb-1 block">Expiry date (optional)</Label>
+                            <Label className="text-xs text-muted-foreground mb-1 block">{t('companyProfileEditor.expiryDateOptional')}</Label>
                             <DatePickerField
                               value={newCert.expiryDate || ''}
                               onChange={(v) => setNewCert(c => ({ ...c, expiryDate: v }))}
@@ -1302,7 +1327,7 @@ export default function CompanyProfileEditor() {
                             disabled={!newCert.name.trim()}
                             className="w-full"
                           >
-                            <Plus className="h-4 w-4 mr-1.5" /> Add certification
+                            <Plus className="h-4 w-4 mr-1.5" /> {t('companyProfileEditor.addCertification')}
                           </Button>
                         </div>
                       )}
@@ -1314,9 +1339,9 @@ export default function CompanyProfileEditor() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <Shield className="h-4 w-4 text-muted-foreground" />
-                        Insurance
+                        {t('companyProfileEditor.insurance')}
                       </CardTitle>
-                      <CardDescription>Coverage clients expect from professional service providers.</CardDescription>
+                      <CardDescription>{t('companyProfileEditor.insuranceDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {editState.insurancePolicies.length > 0 && (
@@ -1333,18 +1358,18 @@ export default function CompanyProfileEditor() {
                                       {pol.coverageAmount ? ` · ${pol.coverageAmount.toLocaleString()} ${pol.currency || ''}` : ''}
                                     </p>
                                   </div>
-                                  <Button variant="ghost" size="icon" onClick={() => removeInsurancePolicy(i)} aria-label="Remove policy" className="h-7 w-7 text-muted-foreground hover:text-red-500">
+                                  <Button variant="ghost" size="icon" onClick={() => removeInsurancePolicy(i)} aria-label={t('companyProfileEditor.removePolicy')} className="h-7 w-7 text-muted-foreground hover:text-red-500">
                                     <Trash2 className="h-3.5 w-3.5" />
                                   </Button>
                                 </div>
                                 <div className="flex items-center gap-2 flex-wrap">
                                   {pol.documentUrl ? (
                                     <a href={pol.documentUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-full px-2.5 py-1 hover:bg-emerald-100 transition-colors">
-                                      <ShieldCheck className="h-3 w-3" /> Document on file
+                                      <ShieldCheck className="h-3 w-3" /> {t('companyProfileEditor.documentOnFile')}
                                     </a>
                                   ) : (
                                     <label className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full px-2.5 py-1 cursor-pointer hover:bg-gray-100 transition-colors">
-                                      <Paperclip className="h-3 w-3" /> {uploadCredentialDocMutation.isPending ? 'Uploading…' : 'Attach document'}
+                                      <Paperclip className="h-3 w-3" /> {uploadCredentialDocMutation.isPending ? t('companyProfileEditor.uploadingEllipsis') : t('companyProfileEditor.attachDocument')}
                                       <input
                                         type="file"
                                         accept=".pdf,.jpg,.jpeg,.png"
@@ -1358,16 +1383,16 @@ export default function CompanyProfileEditor() {
                                     </label>
                                   )}
                                   {status === 'active' && pol.expiryDate && (
-                                    <span className="text-xs text-muted-foreground">Expires {pol.expiryDate}</span>
+                                    <span className="text-xs text-muted-foreground">{t('companyProfileEditor.expires', { date: pol.expiryDate })}</span>
                                   )}
                                   {status === 'expiring' && (
                                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-full px-2 py-0.5">
-                                      <AlertTriangle className="h-3 w-3" /> Expiring {pol.expiryDate}
+                                      <AlertTriangle className="h-3 w-3" /> {t('companyProfileEditor.expiring', { date: pol.expiryDate || '' })}
                                     </span>
                                   )}
                                   {status === 'expired' && (
                                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-full px-2 py-0.5">
-                                      <AlertTriangle className="h-3 w-3" /> Expired {pol.expiryDate}
+                                      <AlertTriangle className="h-3 w-3" /> {t('companyProfileEditor.expired', { date: pol.expiryDate || '' })}
                                     </span>
                                   )}
                                 </div>
@@ -1384,15 +1409,15 @@ export default function CompanyProfileEditor() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {(Object.keys(INSURANCE_TYPE_LABELS) as InsuranceType[]).map(t => (
-                                <SelectItem key={t} value={t}>{INSURANCE_TYPE_LABELS[t]}</SelectItem>
+                              {(Object.keys(INSURANCE_TYPE_LABELS) as InsuranceType[]).map(insType => (
+                                <SelectItem key={insType} value={insType}>{INSURANCE_TYPE_LABELS[insType]}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                           <Input
                             value={newInsurance.provider}
                             onChange={(e) => setNewInsurance(p => ({ ...p, provider: e.target.value }))}
-                            placeholder="Provider (e.g. Tawuniya)"
+                            placeholder={t('companyProfileEditor.insuranceProviderPlaceholder')}
                             maxLength={120}
                           />
                           <div className="grid grid-cols-3 gap-2">
@@ -1401,7 +1426,7 @@ export default function CompanyProfileEditor() {
                               min={0}
                               value={newInsurance.coverageAmount ?? ''}
                               onChange={(e) => setNewInsurance(p => ({ ...p, coverageAmount: e.target.value ? Number(e.target.value) : undefined }))}
-                              placeholder="Coverage"
+                              placeholder={t('companyProfileEditor.coveragePlaceholder')}
                               className="col-span-2"
                             />
                             <Select value={newInsurance.currency || 'SAR'} onValueChange={(v) => setNewInsurance(p => ({ ...p, currency: v }))}>
@@ -1418,7 +1443,7 @@ export default function CompanyProfileEditor() {
                             </Select>
                           </div>
                           <div>
-                            <Label className="text-xs text-muted-foreground mb-1 block">Expiry date (optional)</Label>
+                            <Label className="text-xs text-muted-foreground mb-1 block">{t('companyProfileEditor.expiryDateOptional')}</Label>
                             <DatePickerField
                               value={newInsurance.expiryDate || ''}
                               onChange={(v) => setNewInsurance(p => ({ ...p, expiryDate: v }))}
@@ -1430,7 +1455,7 @@ export default function CompanyProfileEditor() {
                             disabled={!newInsurance.provider.trim()}
                             className="w-full"
                           >
-                            <Plus className="h-4 w-4 mr-1.5" /> Add policy
+                            <Plus className="h-4 w-4 mr-1.5" /> {t('companyProfileEditor.addPolicy')}
                           </Button>
                         </div>
                       )}
@@ -1447,9 +1472,9 @@ export default function CompanyProfileEditor() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                        Header image
+                        {t('companyProfileEditor.headerImage')}
                       </CardTitle>
-                      <CardDescription>Wide banner at the top of your public profile. 3:1 ratio works best.</CardDescription>
+                      <CardDescription>{t('companyProfileEditor.headerImageDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       {currentHeaderUrl ? (
@@ -1465,7 +1490,7 @@ export default function CompanyProfileEditor() {
                               className="bg-white/10 border-white/40 text-white hover:bg-white/20 hover:text-white"
                             >
                               <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
-                              Edit crop
+                              {t('companyProfileEditor.editCrop')}
                             </Button>
                             <label>
                               <input
@@ -1481,7 +1506,7 @@ export default function CompanyProfileEditor() {
                               <Button type="button" variant="outline" size="sm" asChild className="bg-white/10 border-white/40 text-white hover:bg-white/20 hover:text-white">
                                 <span className="cursor-pointer">
                                   <Upload className="h-3.5 w-3.5 mr-1.5" />
-                                  {uploadHeaderMutation.isPending ? 'Uploading...' : 'Replace'}
+                                  {uploadHeaderMutation.isPending ? t('companyProfileEditor.uploading') : t('companyProfileEditor.replace')}
                                 </span>
                               </Button>
                             </label>
@@ -1502,7 +1527,7 @@ export default function CompanyProfileEditor() {
                           <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 rounded-lg bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                             <Upload className="h-6 w-6 text-muted-foreground" />
                             <span className="text-sm text-muted-foreground">
-                              {uploadHeaderMutation.isPending ? 'Uploading...' : 'Upload header image'}
+                              {uploadHeaderMutation.isPending ? t('companyProfileEditor.uploading') : t('companyProfileEditor.uploadHeaderImage')}
                             </span>
                           </div>
                         </label>
@@ -1514,22 +1539,22 @@ export default function CompanyProfileEditor() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <Video className="h-4 w-4 text-muted-foreground" />
-                        Intro video
+                        {t('companyProfileEditor.introVideo')}
                       </CardTitle>
-                      <CardDescription>A short video helps clients get a feel for your team. YouTube or Vimeo links only.</CardDescription>
+                      <CardDescription>{t('companyProfileEditor.introVideoDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Input
                         value={editState.introVideoUrl}
                         onChange={(e) => setEditState(s => ({ ...s, introVideoUrl: e.target.value }))}
-                        placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+                        placeholder={t('companyProfileEditor.introVideoPlaceholder')}
                       />
                       {editState.introVideoUrl.trim() && !parseVideoEmbed(editState.introVideoUrl) && (
-                        <p className="text-xs text-red-500 mt-2">Must be a YouTube or Vimeo link.</p>
+                        <p className="text-xs text-red-500 mt-2">{t('companyProfileEditor.mustBeYtOrVimeo')}</p>
                       )}
                       {parseVideoEmbed(editState.introVideoUrl) && (
                         <p className="text-xs text-emerald-600 mt-2">
-                          ✓ {parseVideoEmbed(editState.introVideoUrl)?.provider === 'youtube' ? 'YouTube' : 'Vimeo'} video detected
+                          ✓ {t('companyProfileEditor.videoDetected', { provider: parseVideoEmbed(editState.introVideoUrl)?.provider === 'youtube' ? 'YouTube' : 'Vimeo' })}
                         </p>
                       )}
                     </CardContent>
@@ -1539,16 +1564,16 @@ export default function CompanyProfileEditor() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <FileText className="h-4 w-4 text-muted-foreground" />
-                        Company brochure
+                        {t('companyProfileEditor.companyBrochure')}
                       </CardTitle>
-                      <CardDescription>PDF, JPG, or PNG (max 10MB). Shown as a download on your profile.</CardDescription>
+                      <CardDescription>{t('companyProfileEditor.companyBrochureDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       {currentBrochureUrl && (
                         <div className="flex items-center gap-2 mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                           <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-sm text-muted-foreground truncate flex-1">Brochure uploaded</span>
-                          <a href={currentBrochureUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-[#E8614D] hover:underline flex-shrink-0">View</a>
+                          <span className="text-sm text-muted-foreground truncate flex-1">{t('companyProfileEditor.brochureUploaded')}</span>
+                          <a href={currentBrochureUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-[#E8614D] hover:underline flex-shrink-0">{t('companyProfileEditor.view')}</a>
                         </div>
                       )}
                       <label className="cursor-pointer block">
@@ -1561,9 +1586,9 @@ export default function CompanyProfileEditor() {
                             if (file) {
                               const okType = /\.(pdf|jpe?g|png)$/i.test(file.name);
                               if (!okType) {
-                                toast({ title: "Invalid file", description: "Brochure must be PDF, JPG, or PNG.", variant: "destructive" });
+                                toast({ title: t('companyProfileEditor.invalidFile'), description: t('companyProfileEditor.brochureInvalidDesc'), variant: "destructive" });
                               } else if (file.size > MAX_BROCHURE_BYTES) {
-                                toast({ title: "File too large", description: "Brochure must be under 10MB.", variant: "destructive" });
+                                toast({ title: t('companyProfileEditor.fileTooLarge'), description: t('companyProfileEditor.brochureTooLargeDesc'), variant: "destructive" });
                               } else {
                                 uploadBrochureMutation.mutate(file);
                               }
@@ -1574,7 +1599,7 @@ export default function CompanyProfileEditor() {
                         <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                           <Upload className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">
-                            {uploadBrochureMutation.isPending ? 'Uploading...' : (currentBrochureUrl ? 'Replace brochure' : 'Upload brochure')}
+                            {uploadBrochureMutation.isPending ? t('companyProfileEditor.uploading') : (currentBrochureUrl ? t('companyProfileEditor.replaceBrochure') : t('companyProfileEditor.uploadBrochure'))}
                           </span>
                         </div>
                       </label>
@@ -1587,21 +1612,21 @@ export default function CompanyProfileEditor() {
               {activeSection === 'links' && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Website & social</CardTitle>
-                    <CardDescription>Where clients can learn more about you.</CardDescription>
+                    <CardTitle className="text-base">{t('companyProfileEditor.websiteSocial')}</CardTitle>
+                    <CardDescription>{t('companyProfileEditor.websiteSocialDesc')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-muted-foreground" /> Website</Label>
-                      <Input value={editState.socialLinks.website} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, website: e.target.value } }))} placeholder="https://yourcompany.com" />
+                      <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-muted-foreground" /> {t('companyProfileEditor.website')}</Label>
+                      <Input value={editState.socialLinks.website} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, website: e.target.value } }))} placeholder={t('companyProfileEditor.websitePlaceholder')} />
                     </div>
                     <div>
-                      <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Linkedin className="h-3.5 w-3.5 text-muted-foreground" /> LinkedIn</Label>
-                      <Input value={editState.socialLinks.linkedin} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, linkedin: e.target.value } }))} placeholder="https://linkedin.com/company/..." />
+                      <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Linkedin className="h-3.5 w-3.5 text-muted-foreground" /> {t('companyProfileEditor.linkedin')}</Label>
+                      <Input value={editState.socialLinks.linkedin} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, linkedin: e.target.value } }))} placeholder={t('companyProfileEditor.linkedinPlaceholder')} />
                     </div>
                     <div>
-                      <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Twitter className="h-3.5 w-3.5 text-muted-foreground" /> X / Twitter</Label>
-                      <Input value={editState.socialLinks.twitter} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, twitter: e.target.value } }))} placeholder="https://x.com/..." />
+                      <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Twitter className="h-3.5 w-3.5 text-muted-foreground" /> {t('companyProfileEditor.xTwitter')}</Label>
+                      <Input value={editState.socialLinks.twitter} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, twitter: e.target.value } }))} placeholder={t('companyProfileEditor.twitterPlaceholder')} />
                     </div>
                   </CardContent>
                 </Card>
@@ -1619,7 +1644,9 @@ export default function CompanyProfileEditor() {
 // Save status indicator
 // ═══════════════════════════════════════════════════════════════════
 
-function DatePickerField({ value, onChange, placeholder = "Pick a date" }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+function DatePickerField({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const { t } = useI18n();
+  const ph = placeholder ?? t('companyProfileEditor.pickADate');
   const dateValue = value ? new Date(value) : undefined;
   const isValid = dateValue && !isNaN(dateValue.getTime());
   return (
@@ -1631,11 +1658,11 @@ function DatePickerField({ value, onChange, placeholder = "Pick a date" }: { val
           className={cn("w-full justify-start text-left font-normal", !isValid && "text-muted-foreground")}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {isValid ? format(dateValue!, "PPP") : <span>{placeholder}</span>}
+          {isValid ? format(dateValue!, "PPP") : <span>{ph}</span>}
           {isValid && (
             <span
               role="button"
-              aria-label="Clear date"
+              aria-label={t('companyProfileEditor.clearDate')}
               onClick={(e) => { e.stopPropagation(); e.preventDefault(); onChange(''); }}
               className="ml-auto text-muted-foreground hover:text-foreground"
             >
@@ -1663,12 +1690,12 @@ function DatePickerField({ value, onChange, placeholder = "Pick a date" }: { val
   );
 }
 
-function SaveStatus({ status, savedAgoLabel }: { status: 'saved' | 'dirty' | 'saving' | 'error'; savedAgoLabel: string | null }) {
+function SaveStatus({ status, savedAgoLabel, t }: { status: 'saved' | 'dirty' | 'saving' | 'error'; savedAgoLabel: string | null; t: (key: string, vars?: Record<string, string | number>) => string }) {
   if (status === 'saving') {
     return (
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        Saving…
+        {t('companyProfileEditor.saving')}
       </div>
     );
   }
@@ -1676,7 +1703,7 @@ function SaveStatus({ status, savedAgoLabel }: { status: 'saved' | 'dirty' | 'sa
     return (
       <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
         <CloudOff className="h-3.5 w-3.5" />
-        Save failed
+        {t('companyProfileEditor.saveFailedShort')}
       </div>
     );
   }
@@ -1684,14 +1711,14 @@ function SaveStatus({ status, savedAgoLabel }: { status: 'saved' | 'dirty' | 'sa
     return (
       <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
         <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-        Unsaved changes
+        {t('companyProfileEditor.unsavedChanges')}
       </div>
     );
   }
   return (
     <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
       <CheckCircle2 className="h-3.5 w-3.5" />
-      {savedAgoLabel ? `Saved ${savedAgoLabel}` : 'All changes saved'}
+      {savedAgoLabel ? t('companyProfileEditor.savedAgo', { when: savedAgoLabel }) : t('companyProfileEditor.allChangesSaved')}
     </div>
   );
 }

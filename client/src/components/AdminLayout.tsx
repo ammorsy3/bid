@@ -6,6 +6,7 @@ import {
 import { useAuthStore } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { useI18n } from "@/lib/i18n";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -14,6 +15,7 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [location, setLocation] = useLocation();
   const { logout, user } = useAuthStore();
+  const { t, isRtl } = useI18n();
 
   // Guard: redirect non-admins
   useEffect(() => {
@@ -38,57 +40,57 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const navSections = [
     {
-      label: "Overview",
+      label: t('admin.navOverview'),
       items: [
         {
           href: "/admin/dashboard",
-          label: "Dashboard",
+          label: t('admin.navDashboard'),
           icon: LayoutDashboard,
           count: 0,
         },
       ],
     },
     {
-      label: "Operations",
+      label: t('admin.navOperations'),
       items: [
         {
           href: "/admin/vendors",
-          label: "Company Verification",
+          label: t('admin.navCompanyVerification'),
           icon: Users,
           count: metrics?.pendingVerifications || 0,
         },
         {
           href: "/admin/marketplace",
-          label: "Marketplace",
+          label: t('admin.navMarketplace'),
           icon: Store,
           count: metrics?.pendingMarketplace || 0,
         },
         {
           href: "/admin/awards",
-          label: "Blocked Awards",
+          label: t('admin.navBlockedAwards'),
           icon: AlertTriangle,
           count: metrics?.blockedAwards || 0,
         },
       ],
     },
     {
-      label: "System",
+      label: t('admin.navSystem'),
       items: [
         {
           href: "/admin/users",
-          label: "User Management",
+          label: t('admin.navUserManagement'),
           icon: Shield,
           count: 0,
         },
         {
           href: "/admin/audit-logs",
-          label: "Audit Logs",
+          label: t('admin.navAuditLogs'),
           icon: FileText,
           count: 0,
         },
         {
           href: "/admin/errors",
-          label: "Error Logs",
+          label: t('admin.navErrorLogs'),
           icon: Bug,
           count: 0,
         },
@@ -114,14 +116,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             href="/dashboard"
             className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors mb-3"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Back to Dashboard
+            <ArrowLeft className={`h-3.5 w-3.5 ${isRtl ? 'rotate-180' : ''}`} />
+            {t('admin.backToDashboard')}
           </Link>
           <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-            Admin Panel
+            {t('admin.adminPanel')}
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            Platform management
+            {t('admin.platformManagement')}
           </p>
         </div>
 
@@ -193,7 +195,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
           >
             <LogOut className="h-4 w-4" />
-            Logout
+            {t('admin.navLogout')}
           </button>
         </div>
       </aside>

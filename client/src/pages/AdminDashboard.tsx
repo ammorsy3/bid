@@ -51,7 +51,7 @@ export default function AdminDashboard() {
       link: "/admin/awards",
     },
     {
-      title: t('admin.marketplaceRequests') || 'Marketplace Requests',
+      title: t('admin.marketplaceRequests'),
       value: metrics?.pendingMarketplace || 0,
       icon: Store,
       color: "text-orange-600 dark:text-orange-400",
@@ -83,7 +83,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-2 mb-1">
               <Activity className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-                {attentionItems.length} {attentionItems.length === 1 ? 'item needs' : 'items need'} your attention
+                {attentionItems.length === 1 ? t('admin.itemNeedsAttention', { count: attentionItems.length }) : t('admin.itemsNeedAttention', { count: attentionItems.length })}
               </span>
             </div>
             <p className="text-xs text-amber-700 dark:text-amber-400 pl-6">
@@ -163,8 +163,8 @@ export default function AdminDashboard() {
                   <Store className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Review Marketplace</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Approve or reject marketplace submissions</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{t('admin.reviewMarketplace')}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{t('admin.reviewMarketplaceDesc')}</div>
                 </div>
                 {(metrics?.pendingMarketplace || 0) > 0 && (
                   <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300">
@@ -194,7 +194,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Total Companies</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">{t('admin.totalCompanies')}</span>
                 <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{metrics?.totalCompanies ?? '--'}</span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
@@ -210,7 +210,7 @@ export default function AdminDashboard() {
                 <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{metrics?.totalProposals ?? '--'}</span>
               </div>
               <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Proposals (24h)</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">{t('admin.proposals24hLabel')}</span>
                 <div className="flex items-center gap-1.5">
                   <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
                   <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">

@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { Building2, Shield, Users, Zap } from "lucide-react";
+import { FlickeringGrid } from "@/components/ui/flickering-grid";
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -91,53 +92,59 @@ export default function Register() {
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
+      <div className="hidden lg:flex lg:w-1/2 bg-white relative overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <FlickeringGrid
+            className="size-full"
+            squareSize={4}
+            gridGap={6}
+            color="rgb(226, 94, 69)"
+            maxOpacity={0.15}
+            flickerChance={0.1}
+          />
         </div>
-        <div className="relative z-10 flex flex-col justify-center px-16 text-white">
+        <div className="relative z-10 flex flex-col justify-center px-16 text-gray-900">
           <div className="mb-12">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">B</span>
+              <div className="w-10 h-10 bg-[#E25E45]/15 rounded-xl flex items-center justify-center">
+                <span className="text-[#E25E45] font-bold text-lg">B</span>
               </div>
-              <span className="text-2xl font-bold tracking-tight">Bid</span>
+              <span className="text-2xl font-bold tracking-tight text-[#E25E45]">Bid</span>
             </div>
-            <h1 className="text-4xl font-bold leading-tight mb-4">
+            <h1 className="text-4xl font-bold leading-tight mb-4 drop-shadow-sm">
               {t('authPanel.streamlineProcurement')}
             </h1>
-            <p className="text-lg text-white/70 leading-relaxed">
+            <p className="text-lg text-gray-500 leading-relaxed">
               {t('authPanel.streamlineDesc')}
             </p>
           </div>
 
           <div className="space-y-6">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Building2 className="w-5 h-5" />
+              <div className="w-10 h-10 bg-[#E25E45]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Building2 className="w-5 h-5 text-[#E25E45]" />
               </div>
               <div>
                 <h3 className="font-semibold mb-1">{t('authPanel.companyWorkspaces')}</h3>
-                <p className="text-sm text-white/60">{t('authPanel.companyWorkspacesDesc')}</p>
+                <p className="text-sm text-gray-500">{t('authPanel.companyWorkspacesDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Users className="w-5 h-5" />
+              <div className="w-10 h-10 bg-[#E25E45]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Users className="w-5 h-5 text-[#E25E45]" />
               </div>
               <div>
                 <h3 className="font-semibold mb-1">{t('authPanel.vendorManagement')}</h3>
-                <p className="text-sm text-white/60">{t('authPanel.vendorManagementDesc')}</p>
+                <p className="text-sm text-gray-500">{t('authPanel.vendorManagementDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Shield className="w-5 h-5" />
+              <div className="w-10 h-10 bg-[#E25E45]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Shield className="w-5 h-5 text-[#E25E45]" />
               </div>
               <div>
                 <h3 className="font-semibold mb-1">{t('authPanel.secureCompliant')}</h3>
-                <p className="text-sm text-white/60">{t('authPanel.secureCompliantDesc')}</p>
+                <p className="text-sm text-gray-500">{t('authPanel.secureCompliantDesc')}</p>
               </div>
             </div>
           </div>

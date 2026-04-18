@@ -162,7 +162,8 @@
       "Bash(env)",
       "mcp__linear__linear_getViewer",
       "mcp__linear__linear_getTeams",
-      "mcp__linear__linear_getIssues"
+      "mcp__linear__linear_getIssues",
+      "WebFetch(domain:www.anthropic.com)"
     ]
   },
   "enabledMcpjsonServers": [

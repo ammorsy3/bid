@@ -12,10 +12,14 @@ We expose the Copilot as a **Model Context Protocol** server so Claude Desktop, 
 
 | Tool                       | Purpose                                                          |
 | -------------------------- | ---------------------------------------------------------------- |
-| `copilot.create_session`   | Start a new conversation. Returns `sessionId`.                   |
-| `copilot.send_message`     | Send a user message, get the agent's reply + current draft.      |
-| `copilot.launch_tender`    | Publish the tender from the session's current draft.             |
-| `copilot.get_session`      | Fetch the full message history and draft state (for debugging).  |
+| `copilot_create_session`   | Start a new conversation. Returns `sessionId`.                   |
+| `copilot_send_message`     | Send a user message, get the agent's reply + current draft.      |
+| `copilot_launch_tender`    | Publish the tender from the session's current draft.             |
+| `copilot_get_session`      | Fetch the full message history and draft state (for debugging).  |
+
+> Tool names use underscores (not dots) so they pass OpenAI's function-calling
+> name regex. If you wrap the MCP server in an agent framework (n8n's AI Agent,
+> LangChain, etc.) that forwards tools to OpenAI, you need this form.
 
 ## Claude Desktop
 
@@ -61,10 +65,10 @@ Cursor supports remote MCP directly. Add to `~/.cursor/mcp.json`:
 
 ## Example tool-call sequence
 
-1. `copilot.create_session({ name: "ACME RFP" })` → `{ sessionId }`
-2. `copilot.send_message({ sessionId, message: "We need a 3-month IT migration" })` → `{ reply, tenderDraft, readyToLaunch, ... }`
+1. `copilot_create_session({ name: "ACME RFP" })` → `{ sessionId }`
+2. `copilot_send_message({ sessionId, message: "We need a 3-month IT migration" })` → `{ reply, tenderDraft, readyToLaunch, ... }`
 3. Continue sending messages until `readyToLaunch === true`.
-4. `copilot.launch_tender({ sessionId })` → `{ tenderId, tenderUrl }`
+4. `copilot_launch_tender({ sessionId })` → `{ tenderId, tenderUrl }`
 
 ## Errors
 

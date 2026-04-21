@@ -56,11 +56,14 @@ function rpcError(id: JsonRpcRequest["id"], code: number, message: string, data?
 
 // ---- Tool schemas ----------------------------------------------------------
 
+// Tool names use underscores (not dots) to satisfy OpenAI's function-calling
+// regex `^[a-zA-Z0-9_-]+$`. n8n's MCP Client + AI Agent node wraps these as
+// OpenAI tools; dotted names fail validation before the request leaves n8n.
 const TOOLS = [
   {
-    name: "copilot.create_session",
+    name: "copilot_create_session",
     description:
-      "Start a new Copilot conversation. Returns a sessionId to pass to subsequent send_message / launch_tender calls.",
+      "Start a new Copilot conversation. Returns a sessionId to pass to subsequent copilot_send_message / copilot_launch_tender calls.",
     inputSchema: {
       type: "object",
       properties: {
@@ -69,7 +72,7 @@ const TOOLS = [
     },
   },
   {
-    name: "copilot.send_message",
+    name: "copilot_send_message",
     description:
       "Send a user message to the Copilot for a given session. Returns the agent's reply plus the current tender draft and a readiness flag.",
     inputSchema: {
@@ -82,7 +85,7 @@ const TOOLS = [
     },
   },
   {
-    name: "copilot.launch_tender",
+    name: "copilot_launch_tender",
     description:
       "Create the real tender from the current session draft. Fails if the draft isn't ready (missing fields) or the company isn't verified.",
     inputSchema: {
@@ -94,7 +97,7 @@ const TOOLS = [
     },
   },
   {
-    name: "copilot.get_session",
+    name: "copilot_get_session",
     description:
       "Return the current state of a session: all prior messages, the working tender draft, and whether it's ready to launch.",
     inputSchema: {
@@ -282,16 +285,16 @@ async function handleRpc(req: AuthRequest, rpc: JsonRpcRequest) {
       try {
         let result: unknown;
         switch (name) {
-          case "copilot.create_session":
+          case "copilot_create_session":
             result = await toolCreateSession(args, req.auth);
             break;
-          case "copilot.send_message":
+          case "copilot_send_message":
             result = await toolSendMessage(args, req.auth);
             break;
-          case "copilot.launch_tender":
+          case "copilot_launch_tender":
             result = await toolLaunchTender(args, req.auth);
             break;
-          case "copilot.get_session":
+          case "copilot_get_session":
             result = await toolGetSession(args, req.auth);
             break;
           default:

@@ -308,8 +308,14 @@ async function handleRpc(req: AuthRequest, rpc: JsonRpcRequest) {
         if (err instanceof McpError) {
           return rpcError(rpc.id, err.code, err.message, err.data);
         }
-        console.error("[mcp] tool error:", err);
-        return rpcError(rpc.id, ERR.INTERNAL, "Tool execution failed");
+        const detail = err instanceof Error ? err.message : String(err);
+        const errorName = err instanceof Error ? err.name : "Error";
+        console.error("[mcp] tool error:", name, err);
+        return rpcError(rpc.id, ERR.INTERNAL, `Tool ${name} failed: ${detail}`, {
+          tool: name,
+          error: errorName,
+          detail,
+        });
       }
     }
 

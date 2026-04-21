@@ -39,6 +39,7 @@ import TractionLink from "@/pages/TractionLink";
 import TractionLinkEditor from "@/pages/TractionLinkEditor";
 import Landing from "@/pages/Landing";
 import Settings from "@/pages/Settings";
+import SettingsIntegrations from "@/pages/SettingsIntegrations";
 import CompanyProfilePage from "@/pages/CompanyProfilePage";
 import CompanyProfileEditor from "@/pages/CompanyProfileEditor";
 import Marketplace from "@/pages/Marketplace";
@@ -123,6 +124,7 @@ export default function App() {
             <Route path="/admin/users" component={AdminUsers} />
             <Route path="/admin/audit-logs" component={AdminAuditLogs} />
             <Route path="/admin/errors" component={AdminErrors} />
+            <Route path="/settings/integrations" component={SettingsIntegrations} />
             <Route path="/settings" component={Settings} />
           </Switch>
           <Toaster />

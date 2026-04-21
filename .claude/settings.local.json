@@ -163,10 +163,16 @@
       "mcp__linear__linear_getViewer",
       "mcp__linear__linear_getTeams",
       "mcp__linear__linear_getIssues",
-      "WebFetch(domain:www.anthropic.com)"
+      "WebFetch(domain:www.anthropic.com)",
+      "WebFetch(domain:linear.app)",
+      "mcp__linear__list_teams",
+      "mcp__linear__list_issues",
+      "mcp__linear__list_projects"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "stitch"
+    "stitch",
+    "linear"
   ]
 }

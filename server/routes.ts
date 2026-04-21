@@ -18,6 +18,10 @@ import {
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import { registerCopilotRoutes } from "./replit_integrations/copilot";
+import { registerCopilotV1Routes } from "./routes/v1/copilot";
+import { registerWebhookAdapter } from "./routes/integrations/webhook";
+import { registerMcpAdapter } from "./routes/integrations/mcp";
+import { registerIntegrationsAdminRoutes } from "./routes/settings/integrations";
 import {
   sendNewOfferNotification,
   sendOfferDecisionNotification,
@@ -35,6 +39,17 @@ import {
   sendTeamInviteEmail,
   sendPasswordResetEmail,
 } from "./email";
+import {
+  getOpenAIConfig,
+  translateTexts,
+  suggestTenderCategory,
+  buildTenderTranslation,
+} from "./lib/tender-ai";
+import {
+  launchTenderFromPayload,
+  CompanyNotVerifiedError,
+  MarketplaceValidationError,
+} from "./lib/launch-tender";
 
 // Configure multer for file uploads (memory storage)
 const upload = multer({
@@ -55,23 +70,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 // TYPE DEFINITIONS
 // ============================================================================
 
-interface JWTPayload {
-  userId: string;
-  activeCompanyId: string | null;  // null for admins without active company
-  roleInCompany: string | null;    // null for admins
-  isAdmin: boolean;
-}
-
-interface AuthContext {
-  userId: string;
-  activeCompanyId: string | null;
-  roleInCompany: string | null;
-  isAdmin: boolean;
-}
-
-interface AuthRequest extends Request {
-  auth?: AuthContext;
-}
+import type { JWTPayload, AuthContext, AuthRequest } from "./middleware/auth-types";
 
 // ============================================================================
 // MIDDLEWARE - AUTHENTICATION & AUTHORIZATION
@@ -187,204 +186,6 @@ const generateSlug = (name: string): string => {
 const generateToken = (payload: JWTPayload): string => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 };
-
-// ============================================================================
-// AI HELPERS
-// ============================================================================
-
-async function suggestTenderCategory(tender: {
-  title?: string;
-  description?: string;
-  objective?: string;
-  skills?: string[];
-  deliverables?: any[];
-}): Promise<string | null> {
-  const config = getOpenAIConfig();
-  if (!config) return null;
-
-  const categoryList = VENDOR_CATEGORIES.join(", ");
-  const context = [
-    tender.title && `Title: ${tender.title}`,
-    tender.description && `Description: ${tender.description}`,
-    tender.objective && `Objective: ${tender.objective}`,
-    tender.skills?.length && `Skills: ${tender.skills.join(", ")}`,
-    tender.deliverables?.length && `Deliverables: ${tender.deliverables.map((d: any) => typeof d === 'string' ? d : d.name).filter(Boolean).join(", ")}`,
-  ].filter(Boolean).join("\n");
-
-  try {
-    const response = await fetch(config.url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${config.key}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: `You are a procurement specialist. Given an RFP brief, pick the single best-matching category from this list:\n${categoryList}\n\nRespond with ONLY the exact category name from the list, nothing else.`,
-          },
-          { role: "user", content: context },
-        ],
-        temperature: 0.2,
-        max_tokens: 30,
-      }),
-    });
-
-    if (!response.ok) return null;
-    const data = await response.json();
-    const suggested = data.choices?.[0]?.message?.content?.trim();
-    return (VENDOR_CATEGORIES as readonly string[]).includes(suggested) ? suggested : null;
-  } catch {
-    return null;
-  }
-}
-
-// Resolve OpenAI API endpoint and key.
-// Uses OPENAI_API_KEY directly.
-function getOpenAIConfig(): { url: string; key: string } | null {
-  const openaiKey = process.env.OPENAI_API_KEY;
-  if (openaiKey) {
-    return { url: "https://api.openai.com/v1/chat/completions", key: openaiKey };
-  }
-  return null;
-}
-
-// Translate an array of texts to the target language using OpenAI gpt-4o.
-// Returns the translated strings in the same order, or the originals on failure.
-async function translateTexts(texts: string[], targetLanguage: 'en' | 'ar'): Promise<string[]> {
-  const config = getOpenAIConfig();
-  if (!config || texts.length === 0) return texts;
-
-  const langName = targetLanguage === 'ar' ? 'Arabic' : 'English';
-  const numbered = texts.map((t, i) => `${i + 1}. ${t}`).join('\n');
-
-  try {
-    const response = await fetch(config.url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${config.key}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: `You are a professional procurement translator. You will receive a numbered list of texts. For each text, detect its language: if it is already in ${langName}, return it unchanged; otherwise translate it to ${langName}. Respond ONLY with the same numbered list preserving numbering and order. Do not add any commentary.`,
-          },
-          { role: "user", content: numbered },
-        ],
-        temperature: 0.2,
-        max_tokens: 4000,
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('Translation API error:', response.status, await response.text().catch(() => ''));
-      return texts;
-    }
-    const data = await response.json();
-    const raw = data.choices?.[0]?.message?.content?.trim() || '';
-
-    // Parse "N. text" lines back into array
-    const results: string[] = [...texts]; // fallback to originals
-    const lines = raw.split('\n');
-    let currentIdx = -1;
-    let currentLines: string[] = [];
-
-    const flush = () => {
-      if (currentIdx >= 0 && currentIdx < results.length) {
-        results[currentIdx] = currentLines.join('\n').trim();
-      }
-    };
-
-    for (const line of lines) {
-      const match = line.match(/^(\d+)\.\s*(.*)/);
-      if (match) {
-        flush();
-        currentIdx = parseInt(match[1], 10) - 1;
-        currentLines = [match[2]];
-      } else if (currentIdx >= 0) {
-        currentLines.push(line);
-      }
-    }
-    flush();
-
-    return results;
-  } catch {
-    return texts;
-  }
-}
-
-// Build translatedContent for a tender in BOTH directions (en + ar).
-// Handles mixed-language content by letting the AI detect each field's language.
-// Returns { en: { title, description, ... }, ar: { title, description, ... } }
-async function buildTenderTranslation(tender: any): Promise<Record<string, Record<string, string>> | null> {
-  const keys: string[] = [];
-  const texts: string[] = [];
-
-  if (tender.title) { keys.push('title'); texts.push(tender.title); }
-  if (tender.description) { keys.push('description'); texts.push(tender.description); }
-  if (tender.objective) { keys.push('objective'); texts.push(tender.objective); }
-  if (tender.category) { keys.push('category'); texts.push(tender.category); }
-
-  if (Array.isArray(tender.deliverables)) {
-    tender.deliverables.forEach((d: any, i: number) => {
-      const name = typeof d === 'string' ? d : d?.name;
-      if (name) { keys.push(`deliverable_name_${i}`); texts.push(name); }
-      if (typeof d !== 'string' && d?.description) {
-        keys.push(`deliverable_desc_${i}`); texts.push(d.description);
-      }
-    });
-  }
-
-  if (Array.isArray(tender.milestones)) {
-    tender.milestones.forEach((m: any, i: number) => {
-      if (m?.name) { keys.push(`milestone_name_${i}`); texts.push(m.name); }
-      if (m?.description) { keys.push(`milestone_desc_${i}`); texts.push(m.description); }
-    });
-  }
-
-  if (Array.isArray(tender.vendorRequirements)) {
-    tender.vendorRequirements.forEach((r: any, i: number) => {
-      if (r?.text) { keys.push(`vendor_req_${i}`); texts.push(r.text); }
-    });
-  }
-
-  if (Array.isArray(tender.skills)) {
-    tender.skills.forEach((s: string, i: number) => {
-      if (s) { keys.push(`skill_${i}`); texts.push(s); }
-    });
-  }
-
-  if (Array.isArray(tender.formCards)) {
-    tender.formCards.forEach((c: any, i: number) => {
-      if (c?.label) { keys.push(`card_label_${i}`); texts.push(c.label); }
-      if (typeof c?.value === 'string' && c.value) {
-        keys.push(`card_value_${i}`); texts.push(c.value);
-      }
-    });
-  }
-
-  if (texts.length === 0) return null;
-
-  // Translate to both languages in parallel
-  const [enTranslated, arTranslated] = await Promise.all([
-    translateTexts(texts, 'en'),
-    translateTexts(texts, 'ar'),
-  ]);
-
-  const enMap: Record<string, string> = {};
-  const arMap: Record<string, string> = {};
-  keys.forEach((key, idx) => {
-    enMap[key] = enTranslated[idx] || texts[idx];
-    arMap[key] = arTranslated[idx] || texts[idx];
-  });
-
-  return { en: enMap, ar: arMap };
-}
 
 // ============================================================================
 // ROUTE REGISTRATION
@@ -2439,14 +2240,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireCompanyRole('admin'),
     async (req: AuthRequest, res) => {
       try {
-        const tenderData = createTenderSchema.parse(req.body);
+        const activeCompany = await storage.getCompany(req.auth!.activeCompanyId!);
+        if (!activeCompany) {
+          return res.status(404).json({ message: "Company not found" });
+        }
 
-        // Extract optional marketplace fields (not part of tender schema)
         const {
           publishToMarketplace,
-          marketplaceTenderType: reqMarketplaceTenderType,
-          marketplaceDocumentFee: reqMarketplaceDocFee,
-          marketplaceInquiryDeadline: reqMarketplaceInquiryDeadline,
+          marketplaceTenderType,
+          marketplaceDocumentFee,
+          marketplaceInquiryDeadline,
         } = req.body as {
           publishToMarketplace?: boolean;
           marketplaceTenderType?: string;
@@ -2454,164 +2257,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           marketplaceInquiryDeadline?: string | null;
         };
 
-        // Require verified company before creating a tender
-        const activeCompany = await storage.getCompany(req.auth!.activeCompanyId!);
-        if (!activeCompany || activeCompany.verificationStatus !== 'verified') {
-          return res.status(403).json({
-            message: "Your company must be verified before creating tenders. Upload your documents in Settings to begin the verification process.",
-            requiresVerification: true,
-          });
-        }
-
-        // Validate marketplace fields if requested
-        if (publishToMarketplace) {
-          const VALID_TENDER_TYPES = ['open_tender', 'direct_purchase', 'framework_agreement'];
-          if (reqMarketplaceTenderType && !VALID_TENDER_TYPES.includes(reqMarketplaceTenderType)) {
-            return res.status(400).json({ message: "Invalid marketplace tender type" });
-          }
-          if (reqMarketplaceDocFee !== undefined && reqMarketplaceDocFee !== null) {
-            const fee = Number(reqMarketplaceDocFee);
-            if (!Number.isInteger(fee) || fee < 0 || fee > 100_000) {
-              return res.status(400).json({ message: "Document fee must be a non-negative integer up to 100,000 SAR" });
-            }
-          }
-          if (reqMarketplaceInquiryDeadline) {
-            const d = new Date(reqMarketplaceInquiryDeadline);
-            if (isNaN(d.getTime())) {
-              return res.status(400).json({ message: "Invalid inquiry deadline date" });
-            }
-          }
-        }
-
-        // Generate invitation token
-        const invitationToken = Math.random().toString(36).substring(2) +
-                                Math.random().toString(36).substring(2);
-
-        const tender = await storage.createTender({
-          ...tenderData,
-          companyId: req.auth!.activeCompanyId!,
-          createdBy: req.auth!.userId,
-          invitationToken,
-          allowConditionalSubmission: false,
-          status: 'published'
+        const result = await launchTenderFromPayload(req.body, {
+          company: { id: activeCompany.id, verificationStatus: activeCompany.verificationStatus },
+          user: { id: req.auth!.userId },
+          source: 'web',
+          marketplace: {
+            publishToMarketplace,
+            marketplaceTenderType,
+            marketplaceDocumentFee,
+            marketplaceInquiryDeadline,
+          },
         });
 
-        await storage.logMemberActivity({
-          companyId: req.auth!.activeCompanyId!,
-          actorUserId: req.auth!.userId,
-          action: 'tender.created',
-          targetType: 'tender',
-          targetId: tender.id,
-          summary: `Created tender: ${tender.title || 'Untitled'}`,
-          metadata: { tenderId: tender.id, publishToMarketplace: !!publishToMarketplace },
-        });
-
-        // If marketplace publishing requested, apply marketplace fields immediately
-        let marketplaceRefNumber: string | undefined;
-        if (publishToMarketplace) {
-          const refNum = `BID-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-          marketplaceRefNumber = refNum;
-          await storage.updateTender(tender.id, {
-            isMarketplace: true,
-            marketplaceStatus: 'pending',
-            referenceNumber: refNum,
-            tenderType: reqMarketplaceTenderType || 'open_tender',
-            documentFee: reqMarketplaceDocFee || null,
-            inquiryDeadline: reqMarketplaceInquiryDeadline || null,
-          });
-          await storage.logProductEvent({
-            eventType: 'marketplace_submission',
-            companyId: req.auth!.activeCompanyId!,
-            userId: req.auth!.userId,
-            metadata: { tenderId: tender.id },
-          });
-        }
-
-        // Helper to attach marketplace info to the response
-        const addMarketplaceInfo = (tenderObj: any) => {
-          if (marketplaceRefNumber) {
-            return { ...tenderObj, isMarketplace: true, marketplaceStatus: 'pending', referenceNumber: marketplaceRefNumber };
-          }
-          return tenderObj;
-        };
-
-        // Auto-assign category via AI if not set or set to fallback value
-        if (!tender.category || tender.category === 'Other') {
-          const suggestedCategory = await suggestTenderCategory({
-            title: tenderData.title,
-            description: tenderData.description,
-            objective: (tenderData as any).objective,
-            skills: (tenderData as any).skills,
-            deliverables: (tenderData as any).deliverables,
-          });
-          if (suggestedCategory) {
-            const updated = await storage.updateTender(tender.id, { category: suggestedCategory });
-            // Respond first, then translate asynchronously
-            const finalTender = updated ?? tender;
-            res.json(addMarketplaceInfo(finalTender));
-
-            // Fire-and-forget: notify team that a new tender was published
-            (async () => {
-              try {
-                const members = await storage.getCompanyMembers(req.auth!.activeCompanyId!);
-                const recipients = members
-                  .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-                  .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
-                console.log(`[Email] Tender created — sending to ${recipients.length} recipient(s):`, recipients.map(r => r.email));
-                await sendTenderCreatedNotification({
-                  tenderTitle: finalTender.title || 'Untitled Tender',
-                  tenderId: finalTender.id,
-                  recipients,
-                });
-              } catch (emailErr) {
-                console.error('[Email] Tender created notification failed:', emailErr);
-              }
-            })();
-
-            if (tenderData.allowTranslation) {
-              buildTenderTranslation({ ...(updated ?? tender), category: suggestedCategory })
-                .then(translatedContent => {
-                  if (translatedContent) {
-                    storage.updateTender(tender.id, { translatedContent }).catch(console.error);
-                  }
-                })
-                .catch(console.error);
-            }
-            return;
-          }
-        }
-
-        res.json(addMarketplaceInfo(tender));
-
-        // Fire-and-forget: notify team that a new tender was published
-        (async () => {
-          try {
-            const members = await storage.getCompanyMembers(req.auth!.activeCompanyId!);
-            const recipients = members
-              .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
-            console.log(`[Email] Tender created — sending to ${recipients.length} recipient(s):`, recipients.map(r => r.email));
-            await sendTenderCreatedNotification({
-              tenderTitle: tender.title || 'Untitled Tender',
-              tenderId: tender.id,
-              recipients,
-            });
-          } catch (emailErr) {
-            console.error('[Email] Tender created notification failed:', emailErr);
-          }
-        })();
-
-        // Translate asynchronously after responding so publish is not delayed
-        if (tenderData.allowTranslation) {
-          buildTenderTranslation(tender)
-            .then(translatedContent => {
-              if (translatedContent) {
-                storage.updateTender(tender.id, { translatedContent }).catch(console.error);
-              }
-            })
-            .catch(console.error);
-        }
+        res.json(result.tender);
       } catch (error) {
+        if (error instanceof CompanyNotVerifiedError) {
+          return res.status(403).json({ message: error.message, requiresVerification: true });
+        }
+        if (error instanceof MarketplaceValidationError) {
+          return res.status(400).json({ message: error.message });
+        }
         console.error('Create tender error:', error);
         res.status(400).json({ message: "Invalid tender data" });
       }
@@ -5661,7 +5326,11 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  registerCopilotRoutes(app);
+  registerCopilotRoutes(app, authenticateToken);
+  registerCopilotV1Routes(app);
+  registerWebhookAdapter(app);
+  registerMcpAdapter(app);
+  registerIntegrationsAdminRoutes(app, { authenticateToken, requireCompanyContext, requireCompanyRole });
 
   // ============================================================================
   // AI CHAT HISTORY

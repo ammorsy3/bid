@@ -646,6 +646,88 @@ export const memberActivityLog = pgTable("member_activity_log", {
 export type MemberActivityLog = typeof memberActivityLog.$inferSelect;
 export type InsertMemberActivityLog = typeof memberActivityLog.$inferInsert;
 
+// API Keys - Per-tenant programmatic auth for external integrations
+// (webhook adapter, MCP server, direct API access). Keys are prefix-indexed
+// for O(1) lookup; the full key is bcrypt-hashed and only returned once on
+// creation.
+export const apiKeys = pgTable("api_keys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  // First ~12 chars of the raw key (e.g. 'bidc_live_ab'), indexed for lookup.
+  prefix: varchar("prefix", { length: 24 }).notNull(),
+  hashedKey: text("hashed_key").notNull(),
+  scopes: text("scopes").array().notNull().default(sql`'{}'::text[]`),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  lastUsedAt: timestamp("last_used_at"),
+  revokedAt: timestamp("revoked_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  byPrefix: index("api_keys_prefix_idx").on(t.prefix),
+  byCompany: index("api_keys_company_idx").on(t.companyId),
+}));
+
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type InsertApiKey = typeof apiKeys.$inferInsert;
+
+// Integrations - One row per external channel (webhook, MCP, Slack-later) per
+// company. Holds NON-secret config only (persona, default language, etc.).
+// Tenant secrets (Slack bot tokens, webhook signing secrets) live in env vars
+// keyed by companyId — see server/lib/tenant-env.ts.
+export const integrations = pgTable("integrations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
+  channel: varchar("channel", { length: 32 }).notNull(), // 'webhook' | 'mcp' | 'slack' (reserved)
+  name: text("name").notNull(),
+  config: jsonb("config").$type<{
+    persona?: string;
+    defaultLanguage?: "en" | "ar";
+    defaultCategory?: string;
+    autoLaunch?: boolean;
+    [k: string]: unknown;
+  }>().notNull().default(sql`'{}'::jsonb`),
+  // External-system identifier (e.g. Slack workspace id) used to route inbound
+  // webhooks. Nullable for channels that don't need it.
+  externalIdentifier: text("external_identifier"),
+  enabled: boolean("enabled").default(true).notNull(),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  byCompany: index("integrations_company_idx").on(t.companyId),
+  byChannelExt: uniqueIndex("integrations_channel_external_uniq").on(t.channel, t.externalIdentifier),
+}));
+
+export type Integration = typeof integrations.$inferSelect;
+export type InsertIntegration = typeof integrations.$inferInsert;
+
+// Integration Logs - One row per external message/launch/error so customer
+// admins (and platform admins) can debug design-partner setups without DB
+// access. 30-day retention is expected but not enforced here; a cron task
+// trims old rows separately.
+export const integrationLogs = pgTable("integration_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
+  integrationId: varchar("integration_id").references(() => integrations.id, { onDelete: "set null" }),
+  apiKeyId: varchar("api_key_id").references(() => apiKeys.id, { onDelete: "set null" }),
+  sessionId: varchar("session_id").references(() => aiChatSessions.id, { onDelete: "set null" }),
+  action: varchar("action", { length: 32 }).notNull(), // 'message' | 'launch' | 'error'
+  status: varchar("status", { length: 32 }).notNull(), // 'ok' | '4xx' | '5xx' | 'rate_limited' | 'idempotent_replay'
+  errorCode: varchar("error_code", { length: 64 }),
+  requestBytes: integer("request_bytes"),
+  responseBytes: integer("response_bytes"),
+  latencyMs: integer("latency_ms"),
+  requestPreview: text("request_preview"),
+  responsePreview: text("response_preview"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  byCompany: index("integration_logs_company_idx").on(t.companyId, t.createdAt),
+  byIntegration: index("integration_logs_integration_idx").on(t.integrationId, t.createdAt),
+}));
+
+export type IntegrationLog = typeof integrationLogs.$inferSelect;
+export type InsertIntegrationLog = typeof integrationLogs.$inferInsert;
+
 // Tender Q&A - Anonymous questions from vendors, answered by requester
 export const tenderQuestions = pgTable("tender_questions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

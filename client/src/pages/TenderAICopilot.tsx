@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -32,6 +32,10 @@ import {
   Lightbulb,
   Building2,
   Copy,
+  Paperclip,
+  Pencil,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +48,8 @@ import { cn } from "@/lib/utils";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useI18n } from "@/lib/i18n";
 import { MarketplacePublishOption, type MarketplaceOptions } from "@/components/MarketplacePublishOption";
+import { TenderBriefCards } from "@/components/TenderBriefCards";
+import { draftToTenderPayload } from "@shared/tender-mapping";
 
 interface Message {
   id: string;
@@ -53,6 +59,208 @@ interface Message {
   tenderData?: Record<string, any>;
   isStreaming?: boolean;
 }
+
+// Merge an incoming LLM-produced patch into the tender draft. Treats explicit
+// `null` as a delete so the user can correct a hallucinated field instead of
+// being stuck with it. Undefined keys are left untouched.
+function mergeDraft(
+  prev: Record<string, any>,
+  patch: Record<string, any>,
+): Record<string, any> {
+  const next = { ...prev };
+  for (const [k, v] of Object.entries(patch)) {
+    if (v === null) {
+      delete next[k];
+    } else if (v !== undefined) {
+      next[k] = v;
+    }
+  }
+  return next;
+}
+
+// Writes the AI draft into the same localStorage shape the manual wizard
+// produces, so clicking "Edit in full builder" lands on /tenders/new/brief
+// with everything pre-filled. BriefStep reads some legacy key names (e.g.
+// `projectObjective` instead of `objective`, `keyDeliverables` instead of
+// `deliverables`), so we write BOTH the schema name and the legacy name.
+function draftToLocalStorageDraft(
+  draft: Record<string, any>,
+  mapped: Record<string, any>,
+): Record<string, any> {
+  const ls: Record<string, any> = { ...mapped };
+  if (mapped.description) ls.projectDescription = mapped.description;
+  if (mapped.objective) ls.projectObjective = mapped.objective;
+  if (mapped.deliverables) ls.keyDeliverables = mapped.deliverables;
+  // BriefStep flows back through earlier steps if user clicks back; keep the
+  // raw LLM fields alongside so those steps find their expected keys.
+  if (typeof draft.budgetType === "string") ls.budgetType = draft.budgetType;
+  if (typeof draft.projectObjective === "string") ls.projectObjective = draft.projectObjective;
+  return ls;
+}
+
+// ============================================================================
+// Attachments panel — audio, video URL, file uploads. Writes into tenderDraft
+// via `onChange`. The AI prompt is explicit that the model does NOT invent
+// these URLs; this panel is the only path that populates them.
+// ============================================================================
+
+const AttachmentsPanel: React.FC<{
+  draft: Record<string, any>;
+  onChange: (patch: Record<string, any>) => void;
+}> = ({ draft, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const [videoInput, setVideoInput] = useState<string>(draft.videoUrl ?? "");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const attachments: any[] = Array.isArray(draft.attachments) ? draft.attachments : [];
+
+  const commitVideo = () => {
+    const v = videoInput.trim();
+    onChange({ videoUrl: v ? v : null });
+  };
+
+  const handleFiles = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const next = [...attachments];
+    for (const file of Array.from(files)) {
+      const url = URL.createObjectURL(file);
+      next.push({
+        id: `a-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        name: file.name,
+        url,
+        size: file.size,
+        type: file.type || "application/octet-stream",
+      });
+    }
+    onChange({ attachments: next });
+  };
+
+  const removeAttachment = (id: string) => {
+    const next = attachments.filter((a) => a.id !== id);
+    onChange({ attachments: next.length > 0 ? next : null });
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full px-4 py-3 flex items-center justify-between text-left"
+      >
+        <div className="flex items-center gap-2">
+          <Paperclip className="h-4 w-4 text-gray-500" />
+          <span className="text-sm font-semibold text-gray-900 dark:text-white">Attach files</span>
+          {(attachments.length > 0 || draft.voiceNoteUrl || draft.videoUrl) && (
+            <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
+              {attachments.length + (draft.voiceNoteUrl ? 1 : 0) + (draft.videoUrl ? 1 : 0)}
+            </span>
+          )}
+        </div>
+        {open ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
+      </button>
+      {open && (
+        <div className="px-4 pb-4 space-y-3 border-t border-gray-100 dark:border-gray-700">
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Video explainer URL</label>
+            <div className="flex gap-2">
+              <Input
+                type="url"
+                placeholder="https://..."
+                value={videoInput}
+                onChange={(e) => setVideoInput(e.target.value)}
+                onBlur={commitVideo}
+                className="h-9 text-sm"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Supporting documents</label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={(e) => { handleFiles(e.target.files); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="h-9"
+            >
+              <Paperclip className="h-3.5 w-3.5 mr-1.5" />
+              Add files
+            </Button>
+            {attachments.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {attachments.map((a) => (
+                  <li key={a.id} className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
+                    <Paperclip className="h-3 w-3 text-gray-400 shrink-0" />
+                    <span className="truncate flex-1">{a.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(a.id)}
+                      className="text-gray-400 hover:text-rose-500"
+                      aria-label="Remove"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <p className="text-[11px] text-gray-400 leading-snug">
+            Files are previewed locally in this session. Uploading to permanent storage still happens via the full builder — click "Edit in full builder" to publish persistent attachments.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
+// Missing-fields alert — expanded to match the server-side readiness gate.
+// ============================================================================
+
+const REQUIRED_CHIPS: Array<{ key: string; label: string; check: (m: Record<string, any>) => boolean }> = [
+  { key: "title", label: "Title", check: (m) => !!m.title },
+  { key: "description", label: "Description (50+ words)", check: (m) => typeof m.description === "string" && m.description.trim().split(/\s+/).length >= 50 },
+  { key: "deadline", label: "Deadline", check: (m) => !!m.deadline },
+  { key: "budget", label: "Budget", check: (m) => m.budget != null || Number.isFinite(m.budgetMin) || Number.isFinite(m.budgetMax) },
+  { key: "deliverables", label: "Deliverables (≥2)", check: (m) => Array.isArray(m.deliverables) && m.deliverables.length >= 2 },
+  { key: "submissionType", label: "Submission type", check: (m) => !!m.submissionType },
+  { key: "inquiryType", label: "Q&A type", check: (m) => !!m.inquiryType },
+];
+
+const MissingFieldsAlert: React.FC<{ mapped: Record<string, any> }> = ({ mapped }) => {
+  const missing = REQUIRED_CHIPS.filter((c) => !c.check(mapped));
+  if (missing.length === 0) return null;
+  return (
+    <motion.div
+      className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <p className="text-xs font-medium text-amber-800 dark:text-amber-400 mb-2">
+        Still missing before launch:
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {missing.map((c) => (
+          <span
+            key={c.key}
+            className="text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full"
+          >
+            {c.label}
+          </span>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
 
 interface ActivityLogItem {
   id: string;
@@ -456,7 +664,7 @@ export default function TenderAICopilot() {
 
             if (parsed.tenderData) {
               setTenderDraft((prev) => {
-                latestTenderData = { ...prev, ...parsed.tenderData };
+                latestTenderData = mergeDraft(prev, parsed.tenderData);
                 return latestTenderData;
               });
               const updatedFields = Object.keys(parsed.tenderData);
@@ -539,14 +747,19 @@ export default function TenderAICopilot() {
     try {
       const sid = await ensureSession("RFP Creation Assistant");
 
+      const token = localStorage.getItem("token");
       const response = await fetch("/api/copilot/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           message: null,
           companyData,
           chatHistory: [],
           tenderDraft,
+          language: i18nLang,
         }),
       });
 
@@ -587,14 +800,19 @@ export default function TenderAICopilot() {
         content: m.content,
       }));
 
+      const token = localStorage.getItem("token");
       const response = await fetch("/api/copilot/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           message: content.trim(),
           companyData,
           chatHistory: [...chatHistory, { role: "user", content: content.trim() }],
           tenderDraft,
+          language: i18nLang,
         }),
       });
 
@@ -638,7 +856,10 @@ export default function TenderAICopilot() {
 
     try {
       const token = localStorage.getItem("token");
-      const bodyData: Record<string, any> = { ...tenderDraft };
+      const bodyData: Record<string, any> = draftToTenderPayload(tenderDraft, {
+        language: i18nLang,
+        emailFallback: user?.email || undefined,
+      });
       if (marketplaceOptions.enabled) {
         bodyData.publishToMarketplace = true;
         bodyData.marketplaceTenderType = marketplaceOptions.tenderType;
@@ -680,6 +901,20 @@ export default function TenderAICopilot() {
     }
   };
 
+  const handleEditInBuilder = () => {
+    const mapped = draftToTenderPayload(tenderDraft, {
+      language: i18nLang,
+      emailFallback: user?.email || undefined,
+    });
+    const lsDraft = draftToLocalStorageDraft(tenderDraft, mapped);
+    try {
+      localStorage.setItem("tenderDraft", JSON.stringify(lsDraft));
+    } catch (e) {
+      console.error("Failed to persist draft:", e);
+    }
+    navigate("/tenders/new/brief");
+  };
+
   const handleReset = () => {
     setMessages([]);
     setTenderDraft({});
@@ -701,6 +936,11 @@ export default function TenderAICopilot() {
 
   const hasPreviewContent = Object.keys(tenderDraft).length > 0;
   const progressPercentage = isReady ? 100 : hasPreviewContent ? 60 : messages.length > 0 ? 30 : 0;
+
+  const mappedPreview = useMemo(
+    () => draftToTenderPayload(tenderDraft, { language: i18nLang, emailFallback: user?.email || undefined }),
+    [tenderDraft, i18nLang, user?.email],
+  );
 
   return (
     <>
@@ -1074,21 +1314,32 @@ export default function TenderAICopilot() {
                       <MarketplacePublishOption
                         value={marketplaceOptions}
                         onChange={setMarketplaceOptions}
-                        deadline={tenderDraft.submissionDeadline || tenderDraft.deadline}
+                        deadline={tenderDraft.submissionDeadline}
                         language={i18nLang}
                         isRtl={i18nIsRtl}
                         t={t}
                       />
                     </div>
-                    <Button
-                      type="button"
-                      onClick={handleLaunchTender}
-                      disabled={marketplaceOptions.enabled && !marketplaceOptions.confirmed}
-                      className="h-12 px-6 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 rounded-xl gap-2 shadow-lg shadow-green-500/25"
-                    >
-                      <Rocket className="h-4 w-4" />
-                      Launch RFP
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        onClick={handleLaunchTender}
+                        disabled={marketplaceOptions.enabled && !marketplaceOptions.confirmed}
+                        className="h-12 px-6 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 rounded-xl gap-2 shadow-lg shadow-green-500/25"
+                      >
+                        <Rocket className="h-4 w-4" />
+                        Launch RFP
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleEditInBuilder}
+                        className="h-12 px-4 rounded-xl gap-2 border-gray-300"
+                      >
+                        <Pencil className="h-4 w-4" />
+                        Edit in full builder
+                      </Button>
+                    </div>
                   </motion.div>
                 )}
               </form>
@@ -1130,179 +1381,16 @@ export default function TenderAICopilot() {
               <div className="w-[480px] h-full overflow-y-auto">
                 {hasPreviewContent ? (
                   <div className="p-4 space-y-4">
-                    {/* Tender Header */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                    >
-                      <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-                        {tenderDraft.title || "Untitled RFP"}
-                      </h1>
-                      <p className="text-sm text-gray-500">
-                        {companyData.name || "Your Company"} • {companyData.city || "Location"}
-                      </p>
-                    </motion.div>
-
-                    {/* Description Card */}
-                    <motion.div
-                      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.05 }}
-                    >
-                      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">Description</h3>
-                      </div>
-                      <div className="p-4">
-                        <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-                          {tenderDraft.serviceDescription || "No description provided yet."}
-                        </p>
-                      </div>
-                    </motion.div>
-
-                    {/* Tender Details Card */}
-                    <motion.div
-                      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 }}
-                    >
-                      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">RFP Details</h3>
-                      </div>
-                      <div className="p-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="flex items-start gap-3">
-                            <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
-                            <div>
-                              <p className="text-xs text-gray-500">Submission Deadline</p>
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {tenderDraft.submissionDeadline || "Not set"}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <DollarSign className="h-5 w-5 text-gray-400 mt-0.5" />
-                            <div>
-                              <p className="text-xs text-gray-500">Budget Range</p>
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {tenderDraft.budget
-                                  ? typeof tenderDraft.budget === "object"
-                                    ? `${tenderDraft.budget.min?.toLocaleString()} - ${tenderDraft.budget.max?.toLocaleString()} SAR`
-                                    : `${tenderDraft.budget.toLocaleString()} SAR`
-                                  : "Not specified"}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <Clock className="h-5 w-5 text-gray-400 mt-0.5" />
-                            <div>
-                              <p className="text-xs text-gray-500">Project Timeline</p>
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {tenderDraft.timeline || "Not specified"}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <Building2 className="h-5 w-5 text-gray-400 mt-0.5" />
-                            <div>
-                              <p className="text-xs text-gray-500">Category</p>
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {companyData.category || "Not specified"}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-
-                    {/* Deliverables Card */}
-                    {tenderDraft.deliverables && tenderDraft.deliverables.length > 0 && (
-                      <motion.div
-                        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.15 }}
-                      >
-                        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                          <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                            <Target className="h-4 w-4" />
-                            Key Deliverables
-                          </h3>
-                        </div>
-                        <div className="p-4">
-                          <ul className="space-y-2">
-                            {tenderDraft.deliverables.map((d: string, i: number) => (
-                              <li
-                                key={i}
-                                className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
-                              >
-                                <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                                <span>{d}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Submit Offer CTA Card */}
-                    <motion.div
-                      className="bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 overflow-hidden"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <div className="px-4 py-3 border-b border-blue-100 dark:border-blue-800">
-                        <h3 className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          Submit Your Proposal
-                        </h3>
-                        <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                          Submit your technical and financial Proposal for this RFP.
-                        </p>
-                      </div>
-                      <div className="p-4">
-                        <Button
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                          disabled
-                        >
-                          <Send className="h-4 w-4 mr-2" />
-                          Submit Proposal
-                        </Button>
-                      </div>
-                    </motion.div>
-
-                    {/* Missing Fields */}
-                    {!isReady && (
-                      <motion.div
-                        className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.25 }}
-                      >
-                        <p className="text-xs font-medium text-amber-800 dark:text-amber-400 mb-2">
-                          Missing required fields:
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {!tenderDraft.title && (
-                            <span className="text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full">Title</span>
-                          )}
-                          {!tenderDraft.serviceDescription && (
-                            <span className="text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full">Description</span>
-                          )}
-                          {!tenderDraft.budget && (
-                            <span className="text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full">Budget</span>
-                          )}
-                          {!tenderDraft.submissionDeadline && (
-                            <span className="text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full">Deadline</span>
-                          )}
-                          {(!tenderDraft.deliverables || tenderDraft.deliverables.length === 0) && (
-                            <span className="text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full">Deliverables</span>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
+                    <TenderBriefCards
+                      tender={mappedPreview}
+                      companyName={companyData.name}
+                      companyCity={companyData.city}
+                    />
+                    <AttachmentsPanel
+                      draft={tenderDraft}
+                      onChange={(patch) => setTenderDraft((prev) => mergeDraft(prev, patch))}
+                    />
+                    <MissingFieldsAlert mapped={mappedPreview} />
                   </div>
                 ) : (
                   /* Empty State */

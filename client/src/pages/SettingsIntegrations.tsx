@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Copy, Trash2, KeyRound, Plug, Plus, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Copy, Trash2, KeyRound, Plug, Plus, AlertCircle, CheckCircle2, BookOpen, ExternalLink } from "lucide-react";
 
 type ApiKeyRow = {
   id: string;
@@ -147,12 +147,25 @@ export default function SettingsIntegrations() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
-      <header>
-        <h1 className="text-2xl font-semibold">Integrations & API keys</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Give external tools (n8n, Make.com, Claude Desktop, custom chatbots) access to the
-          Bid Copilot on behalf of your company.
-        </p>
+      <header className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-semibold">Integrations & API keys</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Give external tools (n8n, Make.com, Claude Desktop, custom chatbots) access to the
+            Bid Copilot on behalf of your company.
+          </p>
+        </div>
+        <a
+          href="/docs"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-md border hover:bg-muted transition-colors"
+          data-testid="link-api-docs"
+        >
+          <BookOpen size={14} />
+          View API docs
+          <ExternalLink size={12} className="text-muted-foreground" />
+        </a>
       </header>
 
       {/* ============= API KEYS ============= */}

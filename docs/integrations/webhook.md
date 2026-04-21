@@ -2,6 +2,13 @@
 
 A single HTTP endpoint that n8n, Make.com, custom chatbots — anything that can POST JSON — can use to drive a full Copilot conversation and end up with a real tender.
 
+## Endpoints
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| POST | `/integrations/webhook/{id}` | Send a message, get a Copilot reply |
+| POST | `/integrations/webhook/{id}/launch` | Explicitly launch the tender for a conversation |
+
 ## Endpoint
 
 `POST https://<your-host>/integrations/webhook/<integrationId>`

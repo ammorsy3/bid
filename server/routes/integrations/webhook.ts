@@ -8,7 +8,7 @@ import type { Express, Response } from "express";
 import { Router } from "express";
 import crypto from "crypto";
 import { db } from "../../db";
-import { integrations, aiChatSessions } from "@shared/schema";
+import { integrations, aiChatSessions, aiChatMessages } from "@shared/schema";
 import { and, eq } from "drizzle-orm";
 import { storage } from "../../storage";
 import { runCopilotTurn } from "../../replit_integrations/copilot/engine";
@@ -205,19 +205,27 @@ export function registerWebhookAdapter(app: Express): void {
           persona,
         });
 
-        await storage.createAiChatMessage({
-          sessionId: session.id,
-          role: "user",
-          content: message,
+        // Persist the turn + draft update atomically. If any step fails, the
+        // whole set rolls back so we don't leave a user message with no
+        // assistant reply (or an assistant reply not reflected in the draft).
+        await db.transaction(async (tx) => {
+          await tx.insert(aiChatMessages).values({
+            sessionId: session.id,
+            role: "user",
+            content: message,
+          });
+          await tx.insert(aiChatMessages).values({
+            sessionId: session.id,
+            role: "assistant",
+            content: result.message,
+            suggestions: result.suggestions,
+            tenderData: result.tenderData,
+          });
+          await tx
+            .update(aiChatSessions)
+            .set({ tenderData: result.mergedDraft, updatedAt: new Date() })
+            .where(eq(aiChatSessions.id, session.id));
         });
-        await storage.createAiChatMessage({
-          sessionId: session.id,
-          role: "assistant",
-          content: result.message,
-          suggestions: result.suggestions,
-          tenderData: result.tenderData,
-        });
-        await storage.updateAiChatSession(session.id, { tenderData: result.mergedDraft });
 
         let tenderUrl: string | null = null;
         let validationErrors: string[] | null = null;

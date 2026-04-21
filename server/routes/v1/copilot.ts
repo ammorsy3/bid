@@ -7,6 +7,9 @@
 import type { Express, Response } from "express";
 import { Router } from "express";
 import { storage } from "../../storage";
+import { db } from "../../db";
+import { aiChatMessages, aiChatSessions } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { runCopilotTurn } from "../../replit_integrations/copilot/engine";
 import {
   launchTenderFromDraft,
@@ -153,23 +156,25 @@ export function registerCopilotV1Routes(app: Express): void {
           tenderDraft: session.tenderData ?? {},
         });
 
-        // Persist the user turn and the assistant reply.
-        await storage.createAiChatMessage({
-          sessionId: session.id,
-          role: "user",
-          content: message,
-        });
-        await storage.createAiChatMessage({
-          sessionId: session.id,
-          role: "assistant",
-          content: result.message,
-          suggestions: result.suggestions,
-          tenderData: result.tenderData,
-        });
-
-        // Persist the merged draft so the next turn sees the accumulated state.
-        await storage.updateAiChatSession(session.id, {
-          tenderData: result.mergedDraft,
+        // Persist turn + draft atomically so a mid-sequence failure doesn't
+        // leave an orphaned user message with no assistant reply.
+        await db.transaction(async (tx) => {
+          await tx.insert(aiChatMessages).values({
+            sessionId: session.id,
+            role: "user",
+            content: message,
+          });
+          await tx.insert(aiChatMessages).values({
+            sessionId: session.id,
+            role: "assistant",
+            content: result.message,
+            suggestions: result.suggestions,
+            tenderData: result.tenderData,
+          });
+          await tx
+            .update(aiChatSessions)
+            .set({ tenderData: result.mergedDraft, updatedAt: new Date() })
+            .where(eq(aiChatSessions.id, session.id));
         });
 
         const responseBody = {

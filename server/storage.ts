@@ -229,7 +229,7 @@ export interface IStorage {
   // ============================================================================
   // ADMIN OPERATIONS
   // ============================================================================
-  makeUserAdmin(userId: string): Promise<User>;
+  makeUserAdmin(userId: string, adminId: string): Promise<User>;
   searchUsers(query: string): Promise<{ id: string; name: string; email: string; username: string; isAdmin: boolean; createdAt: Date }[]>;
   getAllCompaniesAdmin(status?: string): Promise<(Company & { profile?: CompanyProfile; owner?: { id: string; name: string; email: string }; documentCount: number })[]>;
   getAdminUsers(): Promise<User[]>;
@@ -1490,12 +1490,21 @@ export class DatabaseStorage implements IStorage {
   // ADMIN OPERATIONS
   // ============================================================================
 
-  async makeUserAdmin(userId: string): Promise<User> {
+  async makeUserAdmin(userId: string, adminId: string): Promise<User> {
     const [user] = await db
       .update(users)
       .set({ isAdmin: true })
       .where(eq(users.id, userId))
       .returning();
+    await this.logAuditAction({
+      adminId,
+      action: 'user_promoted_to_admin',
+      targetType: 'user',
+      targetId: userId,
+      beforeState: JSON.stringify({ isAdmin: false }),
+      afterState: JSON.stringify({ isAdmin: true }),
+      notes: null,
+    });
     return user;
   }
 

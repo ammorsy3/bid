@@ -71,10 +71,23 @@ export function MarketplacePublishOption({
       });
       if (!uploadRes.ok) throw new Error('Upload failed');
 
-      const fileUrl = new URL(uploadURL).pathname;
+      // Register ACL ownership and get the canonical "/objects/<entity-id>" path.
+      // Skipping this step leaves the file without an ACL owner and stores a raw
+      // bucket path that can break under future object-storage refactors.
+      const metaRes = await fetch('/api/objects/metadata', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ fileURL: uploadURL }),
+      });
+      if (!metaRes.ok) throw new Error('Failed to register file metadata');
+      const { objectPath } = await metaRes.json();
+
       onChange({
         ...value,
-        poFiles: [...value.poFiles, { fileUrl, originalName: file.name }],
+        poFiles: [...value.poFiles, { fileUrl: objectPath, originalName: file.name }],
       });
     } catch (err: any) {
       toast({
@@ -226,7 +239,7 @@ export function MarketplacePublishOption({
                       type="button"
                       onClick={() => removePoFile(idx)}
                       className="text-gray-400 hover:text-gray-600 flex-shrink-0"
-                      aria-label="Remove"
+                      aria-label={t('marketplace.remove') || 'Remove'}
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>

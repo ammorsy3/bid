@@ -33,6 +33,7 @@ interface MarketplaceTender {
   referenceNumber: string | null;
   tenderType: string | null;
   documentFee: number | null;
+  inquiryDeadline: string | null;
   marketplaceStatus: string | null;
   createdAt: string;
   company: {
@@ -231,6 +232,12 @@ export default function AdminMarketplace() {
                 <span>
                   {t('marketplace.docFee')} {tender.documentFee ? `${tender.documentFee} ${t('marketplace.sar')}` : t('marketplace.free')}
                 </span>
+                {tender.inquiryDeadline && (
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>{t('marketplace.inquiryDeadlineLabel') || 'Questions Cutoff'}: {formatDate(tender.inquiryDeadline)}</span>
+                  </div>
+                )}
               </div>
 
               <p className="text-sm text-gray-500 mt-2 line-clamp-2">

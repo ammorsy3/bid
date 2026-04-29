@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useLocation, useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -34,6 +35,7 @@ import {
   Pencil,
   ChevronDown,
   ChevronUp,
+  Shield,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -122,10 +124,12 @@ const AttachmentsPanel: React.FC<{
 
   // Upload via presigned URL (Replit Object Storage). Mirrors ObjectUploader's
   // contract: POST /api/objects/upload returns { uploadURL }, then PUT the file
-  // bytes to that URL. The persistent URL is uploadURL with the query string
-  // stripped — matching how other pages persist attachments.
+  // bytes to that URL. After the PUT, call PUT /api/objects/metadata to
+  // register ACL ownership and obtain the canonical "/objects/<entity-id>"
+  // path — that's the only URL form the public RFP page can actually fetch
+  // back later (the presigned URL is PUT-only and time-limited).
   const uploadOne = async (file: File): Promise<{ url: string } | null> => {
-    const res = await apiRequest("POST", "/api/objects/upload", {});
+    const res = await apiRequest("POST", "/api/objects/upload", { fileSize: file.size, fileType: file.type });
     const { uploadURL } = await res.json();
     if (!uploadURL) throw new Error("No upload URL returned");
     const put = await fetch(uploadURL, {
@@ -134,7 +138,9 @@ const AttachmentsPanel: React.FC<{
       body: file,
     });
     if (!put.ok) throw new Error(`Upload failed: ${put.status}`);
-    return { url: uploadURL.split("?")[0] };
+    const metaRes = await apiRequest("PUT", "/api/objects/metadata", { fileURL: uploadURL });
+    const { objectPath } = await metaRes.json();
+    return { url: objectPath };
   };
 
   const MAX_BYTES = 10 * 1024 * 1024;
@@ -504,6 +510,8 @@ export default function TenderAICopilot() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const sessionPromise = useRef<Promise<string | null> | null>(null);
   const loadedSessionRef = useRef<string | null>(null);
+  const [persistFailed, setPersistFailed] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   const firstName = user?.name?.split(" ")[0] || user?.username || t('copilot.greetFallbackName');
 
@@ -579,6 +587,11 @@ export default function TenderAICopilot() {
             ? (e?.message || t('copilot.sessionLimitDesc'))
             : t('copilot.sessionCreateFailedDesc'),
           variant: "destructive",
+          action: status === 409 ? (
+            <ToastAction altText={t('copilot.manageChats') || 'Manage chats'} onClick={() => navigate('/dashboard')}>
+              {t('copilot.manageChats') || 'Manage chats'}
+            </ToastAction>
+          ) : undefined,
         });
         return null;
       } finally {
@@ -599,6 +612,7 @@ export default function TenderAICopilot() {
       });
     } catch (e) {
       console.error("Failed to persist message:", e);
+      setPersistFailed(true);
     }
   }, []);
 
@@ -915,12 +929,9 @@ export default function TenderAICopilot() {
   };
 
   const handleQuickAction = (prompt: string) => {
-    if (messages.length === 0) {
-      sendInitialMessage();
-      setTimeout(() => sendMessage(prompt), 500);
-    } else {
-      sendMessage(prompt);
-    }
+    // Send the prompt directly — the AI handles "first message of a new conversation"
+    // naturally without needing an empty greeting turn first. Removes a setTimeout race.
+    sendMessage(prompt);
   };
 
   const handleLaunchTender = async () => {
@@ -1016,7 +1027,7 @@ export default function TenderAICopilot() {
     navigate("/tenders/new/brief");
   };
 
-  const handleReset = () => {
+  const performReset = () => {
     setMessages([]);
     setTenderDraft({});
     setIsReady(false);
@@ -1027,6 +1038,18 @@ export default function TenderAICopilot() {
     setSessionId(null);
     sessionPromise.current = null;
     loadedSessionRef.current = null;
+    setPersistFailed(false);
+    // Drop the ?session= URL param so a refresh doesn't reload the abandoned session
+    if (sessionParam) navigate('/tenders/new/ai');
+  };
+
+  const handleReset = () => {
+    // If there's nothing to lose (empty conversation), reset immediately
+    if (messages.length === 0) {
+      performReset();
+      return;
+    }
+    setConfirmReset(true);
   };
 
   const handleOrbClick = () => {
@@ -1364,15 +1387,25 @@ export default function TenderAICopilot() {
           {/* Input Area */}
           <div className="border-t border-gray-200/50 dark:border-gray-800/50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl p-4">
             <div className="max-w-3xl mx-auto">
+              {persistFailed && (
+                <div className="mb-3 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center justify-between gap-2">
+                  <span>{t('copilot.persistFailedNotice') || "Some messages may not have been saved — refresh to verify your chat history is up to date."}</span>
+                  <button
+                    type="button"
+                    onClick={() => setPersistFailed(false)}
+                    className="text-amber-700 hover:text-amber-900 shrink-0"
+                    aria-label={t('common.dismiss') || 'Dismiss'}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (messages.length === 0 && input.trim()) {
-                    sendInitialMessage();
-                    setTimeout(() => sendMessage(input), 300);
-                  } else {
-                    sendMessage(input);
-                  }
+                  // Same simplification as handleQuickAction — let sendMessage be the
+                  // entry point for the first turn instead of timing-out behind a greeting.
+                  sendMessage(input);
                 }}
                 className="flex items-center gap-3"
               >
@@ -1417,6 +1450,19 @@ export default function TenderAICopilot() {
                         t={t}
                       />
                     </div>
+                    {Array.isArray(tenderDraft.vendorRequirements) && tenderDraft.vendorRequirements.length > 0 && (
+                      <div
+                        className="text-xs text-gray-500 flex items-center gap-1.5"
+                        data-testid="copilot-vendor-reqs-detected"
+                      >
+                        <Shield className="h-3.5 w-3.5" />
+                        <span>
+                          {tenderDraft.vendorRequirements.filter((r: any) => r.type === 'mandatory').length} mandatory
+                          {' · '}
+                          {tenderDraft.vendorRequirements.filter((r: any) => r.type === 'preferred').length} preferred vendor requirements detected
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
@@ -1519,6 +1565,25 @@ export default function TenderAICopilot() {
         </AnimatePresence>
       </div>
     </div>
+    <AlertDialog open={confirmReset} onOpenChange={setConfirmReset}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t('copilot.confirmResetTitle') || 'Discard this chat?'}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t('copilot.confirmResetDesc') || 'This conversation, draft, and all activity will be cleared. This cannot be undone.'}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t('common.cancel') || 'Cancel'}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => { setConfirmReset(false); performReset(); }}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {t('copilot.startOver') || 'Start over'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     {tourOverlay}
     </>
   );

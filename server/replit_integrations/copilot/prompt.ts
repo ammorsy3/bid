@@ -77,6 +77,8 @@ Each milestone has an ISO \`dueDate\` and an \`amount\` (string, fraction of tot
 
 **vendorRequirements** — array of \`{ text, type }\` where type is "mandatory" or "preferred". 3–6 items. Typical: valid Saudi CR, relevant past work in the last 3 years, Arabic-speaking team if customer-facing, VAT registration, industry certifications.
 
+  **Auto-extract from the conversation.** Whenever the user mentions a vendor qualification, certification, license, experience, or capability requirement, capture it here as a discrete entry. Examples: "needs CR certificate" → \`{ text: "Valid CR certificate", type: "mandatory" }\`; "must have a Saudi business license" → \`{ text: "Valid Saudi business license", type: "mandatory" }\`; "should have prior healthcare experience" → \`{ text: "Prior healthcare experience", type: "preferred" }\`; "would prefer ISO 9001" → \`{ text: "ISO 9001 certified", type: "preferred" }\`. Default \`type\` to \`"mandatory"\` when the user's wording is ambiguous (e.g. "they need X", "must", "required"); use \`"preferred"\` only when the user explicitly softens it ("would prefer", "nice to have", "ideally"). Merge with — do not replace — any defaults you proposed earlier.
+
 **evaluationCriteria** — \`{ weights: [{categoryId, weight}], customCriteria: [{text, weight}] }\`. The three \`categoryId\` values are always "technical", "financial", "experience", and the three weights must sum to 100. Pick weights by project type:
 - Complex/strategic work: technical 40, experience 30, financial 30.
 - Commodity buy: financial 50, technical 30, experience 20.

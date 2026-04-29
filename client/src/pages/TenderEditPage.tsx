@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +15,8 @@ import { useAuthStore } from "@/lib/auth";
 import {
   ArrowLeft, Loader2, Save, Send, RotateCcw, Plus, X, Check, Copy,
   FileText, Calendar, CalendarIcon, DollarSign, ClipboardList, MessageSquare,
-  ListChecks, Flag, Eye, EyeOff, Scale, Briefcase, Clock as ClockIcon, Shield, ChevronDown
+  ListChecks, Flag, Eye, EyeOff, Scale, Briefcase, Clock as ClockIcon, Shield, ChevronDown,
+  Upload, Paperclip
 } from "lucide-react";
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -27,6 +28,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import VoiceRecorder from "@/components/voice-recorder";
+import VendorRequirementsEditor from "@/components/VendorRequirementsEditor";
 import type { Tender } from "@shared/schema";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -93,19 +96,6 @@ const ENTERPRISE_CRITERIA_CATEGORIES: CriteriaCategory[] = [
   },
 ];
 
-const PRESET_REQUIREMENTS = [
-  { id: "legal_registration", text: "Be legally registered in Saudi Arabia" },
-  { id: "cr_certificate", text: "Valid Commercial Registration (CR) certificate" },
-  { id: "business_license", text: "Valid business license" },
-  { id: "zakat_certificate", text: "Valid Zakat, Tax, and Customs Authority certificate" },
-  { id: "gosi_certificate", text: "Valid GOSI (Social Insurance) certificate" },
-  { id: "no_legal_disputes", text: "No ongoing legal disputes affecting project execution" },
-  { id: "reg_compliance", text: "Must comply with all local regulatory requirements" },
-  { id: "nda", text: "Signed Non-Disclosure Agreement (NDA) required" },
-  { id: "data_protection", text: "Compliance with Saudi data protection and cybersecurity regulations" },
-  { id: "local_content", text: "Commitment to local content regulations (if applicable)" },
-];
-
 // ─── Schema ──────────────────────────────────────────────────────────────────
 
 const editTenderSchema = z.object({
@@ -122,6 +112,7 @@ const editTenderSchema = z.object({
   submissionType: z.string().optional(),
   videoRequired: z.boolean().optional(),
   videoUrl: z.string().optional(),
+  voiceNoteUrl: z.string().optional(),
   inquiryType: z.string().optional(),
   whatsappContact: z.string().optional(),
   emailContact: z.string().optional(),
@@ -207,6 +198,9 @@ export default function TenderEditPage() {
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [formCards, setFormCards] = useState<Array<{ id: string; type: string; label: string; isRequired: boolean; options?: string[]; value?: any }>>([]);
+  const [attachments, setAttachments] = useState<Array<{ id: string; name: string; url: string; size: number; type: string }>>([]);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const attachmentFileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Evaluation criteria state
   const [expandedEvalCategories, setExpandedEvalCategories] = useState<string[]>(["experience"]);
@@ -218,9 +212,8 @@ export default function TenderEditPage() {
   const [newCriterionText, setNewCriterionText] = useState("");
   const [newCriterionWeight, setNewCriterionWeight] = useState(5);
 
-  // Vendor requirements state
+  // Vendor requirements state — rendering handled by <VendorRequirementsEditor />
   const [vendorRequirements, setVendorRequirements] = useState<VendorRequirement[]>([]);
-  const [customReqText, setCustomReqText] = useState("");
 
   const { data: tender, isLoading } = useQuery<Tender>({
     queryKey: ["/api/tenders", tenderId],
@@ -244,6 +237,7 @@ export default function TenderEditPage() {
       submissionType: "",
       videoRequired: false,
       videoUrl: "",
+      voiceNoteUrl: "",
       inquiryType: "",
       whatsappContact: "",
       emailContact: "",
@@ -290,6 +284,9 @@ export default function TenderEditPage() {
     if ((tender as any).formCards && Array.isArray((tender as any).formCards)) {
       setFormCards((tender as any).formCards);
     }
+    if (Array.isArray((tender as any).attachments)) {
+      setAttachments((tender as any).attachments);
+    }
 
     const formattedDeadline = new Date((tender as any).deadline).toISOString().slice(0, 16);
 
@@ -307,6 +304,7 @@ export default function TenderEditPage() {
       submissionType: (tender as any).submissionType || "",
       videoRequired: (tender as any).videoRequired || false,
       videoUrl: (tender as any).videoUrl || "",
+      voiceNoteUrl: (tender as any).voiceNoteUrl || "",
       inquiryType: (tender as any).inquiryType || "",
       whatsappContact: (tender as any).whatsappContact || "",
       emailContact: (tender as any).emailContact || "",
@@ -330,6 +328,7 @@ export default function TenderEditPage() {
         evaluationCriteria: evaluationCriteriaPayload,
         vendorRequirements: vendorRequirements.length > 0 ? vendorRequirements : null,
         formCards: formCards.length > 0 ? formCards : null,
+        attachments: attachments.length > 0 ? attachments : null,
       };
 
       if (budgetType === "exact") {
@@ -439,23 +438,43 @@ export default function TenderEditPage() {
   const updateCustomCriterionWeight = (id: string, weight: number) =>
     setCustomCriteria(prev => prev.map(c => c.id === id ? { ...c, weight } : c));
 
-  // Vendor requirements handlers
-  const isReqSelected = (id: string) => vendorRequirements.some(r => r.id === id);
-  const getReqType = (id: string): "mandatory" | "preferred" =>
-    vendorRequirements.find(r => r.id === id)?.type || "mandatory";
-  const toggleReq = (preset: { id: string; text: string }) => {
-    if (isReqSelected(preset.id)) setVendorRequirements(prev => prev.filter(r => r.id !== preset.id));
-    else setVendorRequirements(prev => [...prev, { id: preset.id, text: preset.text, type: "mandatory" }]);
+  // Attachments handlers (mirror the canonical pattern in TenderAICopilot.uploadOne).
+  // After PUTting bytes to the presigned GCS URL, PUT /api/objects/metadata to
+  // register ACL ownership and get the canonical "/objects/<entity-id>" path —
+  // the only URL form the public RFP page can fetch back later.
+  const handleUploadAttachment = async (file: File) => {
+    setUploadingAttachment(true);
+    try {
+      const res = await apiRequest('POST', '/api/objects/upload', { fileSize: file.size, fileType: file.type });
+      const { uploadURL } = await res.json();
+      if (!uploadURL) throw new Error('Failed to get upload URL');
+      const put = await fetch(uploadURL, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+      if (!put.ok) throw new Error('Upload failed');
+      const metaRes = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
+      const { objectPath } = await metaRes.json();
+      setAttachments(prev => [...prev, {
+        id: `a-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        name: file.name,
+        url: objectPath,
+        size: file.size,
+        type: file.type || 'application/octet-stream',
+      }]);
+    } catch (err: any) {
+      toast({ title: 'Upload failed', description: err?.message || 'Could not upload file', variant: 'destructive' });
+    } finally {
+      setUploadingAttachment(false);
+    }
   };
-  const setReqType = (id: string, type: "mandatory" | "preferred") =>
-    setVendorRequirements(prev => prev.map(r => r.id === id ? { ...r, type } : r));
-  const addCustomReq = () => {
-    const text = customReqText.trim();
-    if (!text) return;
-    setVendorRequirements(prev => [...prev, { id: `custom_${Date.now()}`, text, type: "mandatory" }]);
-    setCustomReqText("");
+
+  const handleRemoveAttachment = (id: string) => {
+    setAttachments(prev => prev.filter(a => a.id !== id));
   };
-  const removeVendorReq = (id: string) => setVendorRequirements(prev => prev.filter(r => r.id !== id));
+
+  const formatAttachmentSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   const customCriteriaWeight = customCriteria.reduce((sum, c) => sum + c.weight, 0);
   const totalWeight = categoryWeights.reduce((sum, cw) => sum + cw.weight, 0) + customCriteriaWeight;
@@ -795,6 +814,31 @@ export default function TenderEditPage() {
                   <FormMessage />
                 </FormItem>
               )} />
+
+              <FormField control={form.control} name="voiceNoteUrl" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Voice Note (optional)</FormLabel>
+                  <FormControl>
+                    <VoiceRecorder
+                      onRecordingComplete={(url) => field.onChange(url)}
+                      onRecordingDeleted={() => field.onChange("")}
+                      existingUrl={field.value || undefined}
+                    />
+                  </FormControl>
+                  <FormDescription>Record a brief voice intro for vendors. Replace anytime.</FormDescription>
+                  {field.value && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => field.onChange("")}
+                    >
+                      Remove voice note
+                    </Button>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )} />
             </SectionCard>
 
             {/* 5. Contact & Q&A */}
@@ -987,74 +1031,19 @@ export default function TenderEditPage() {
               </div>
             </SectionCard>
 
-            {/* 7. Submission Requirements */}
+            {/* 7. Vendor Requirements */}
             <SectionCard
               icon={<Shield className="h-4 w-4 text-blue-600" />}
-              title="Submission Requirements"
+              title="Vendor Requirements"
               description="Which vendors are eligible to respond — shown on the published RFP"
               color="bg-gradient-to-r from-blue-500 to-indigo-400"
             >
-              <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-                {PRESET_REQUIREMENTS.map((preset) => {
-                  const checked = isReqSelected(preset.id);
-                  const type = getReqType(preset.id);
-                  return (
-                    <div key={preset.id} className={`rounded-lg border transition-all ${checked ? "border-blue-300 bg-blue-50/60" : "border-gray-200 bg-white hover:border-gray-300"}`}>
-                      <div className="flex items-start gap-3 p-3">
-                        <button type="button" onClick={() => toggleReq(preset)}
-                          className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-colors ${checked ? "border-blue-500 bg-blue-500" : "border-gray-300 bg-white"}`}>
-                          {checked && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
-                        </button>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm leading-snug ${checked ? "text-gray-900 font-medium" : "text-gray-700"}`}>{preset.text}</p>
-                          {checked && (
-                            <div className="flex items-center gap-1.5 mt-2">
-                              <button type="button" onClick={() => setReqType(preset.id, "mandatory")}
-                                className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === "mandatory" ? "bg-red-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>Mandatory</button>
-                              <button type="button" onClick={() => setReqType(preset.id, "preferred")}
-                                className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === "preferred" ? "bg-amber-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>Preferred</button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Custom requirements */}
-              <div className="space-y-3 pt-3 border-t border-gray-200">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Add custom requirement</p>
-                <div className="flex gap-2">
-                  <input type="text" value={customReqText} onChange={(e) => setCustomReqText(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomReq())}
-                    placeholder="e.g., Must have ISO 9001 certification"
-                    className="flex-1 text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                  <Button type="button" variant="outline" size="sm" onClick={addCustomReq} disabled={!customReqText.trim()} className="flex-shrink-0">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                {vendorRequirements.filter(r => r.id.startsWith("custom_")).length > 0 && (
-                  <div className="space-y-1.5">
-                    {vendorRequirements.filter(r => r.id.startsWith("custom_")).map(req => (
-                      <div key={req.id} className="flex items-start gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-800 font-medium">{req.text}</p>
-                          <div className="flex items-center gap-1.5 mt-1.5">
-                            <button type="button" onClick={() => setReqType(req.id, "mandatory")}
-                              className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === "mandatory" ? "bg-red-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>Mandatory</button>
-                            <button type="button" onClick={() => setReqType(req.id, "preferred")}
-                              className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === "preferred" ? "bg-amber-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>Preferred</button>
-                          </div>
-                        </div>
-                        <button type="button" onClick={() => removeVendorReq(req.id)} className="flex-shrink-0 p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors mt-0.5">
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <VendorRequirementsEditor
+                value={vendorRequirements}
+                onChange={setVendorRequirements}
+                isRtl={isEditRtl}
+                compact
+              />
             </SectionCard>
 
             {/* 8. Milestones */}
@@ -1178,6 +1167,70 @@ export default function TenderEditPage() {
               )}
               <Button type="button" variant="outline" className="w-full" onClick={addDeliverable}>
                 <Plus className="h-4 w-4 mr-2" />Add Deliverable
+              </Button>
+            </SectionCard>
+
+            {/* Attachments — supporting documents the requester uploaded */}
+            <SectionCard
+              icon={<Paperclip className="h-4 w-4 text-sky-600" />}
+              title="Supporting Documents"
+              description="Attachments shared with vendors (specs, briefs, references)"
+              color="bg-gradient-to-r from-sky-500 to-cyan-400"
+            >
+              {attachments.length > 0 && (
+                <div className="space-y-2">
+                  {attachments.map((a) => (
+                    <div
+                      key={a.id}
+                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                    >
+                      <FileText className="h-4 w-4 text-sky-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <a
+                          href={a.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-medium text-gray-900 dark:text-white hover:text-sky-600 truncate block"
+                        >
+                          {a.name}
+                        </a>
+                        <p className="text-xs text-muted-foreground">{formatAttachmentSize(a.size)}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAttachment(a.id)}
+                        className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        aria-label="Remove attachment"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <input
+                ref={attachmentFileInputRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleUploadAttachment(file);
+                  if (e.target) e.target.value = "";
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => attachmentFileInputRef.current?.click()}
+                disabled={uploadingAttachment}
+              >
+                {uploadingAttachment ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Uploading...</>
+                ) : (
+                  <><Upload className="h-4 w-4 mr-2" />{attachments.length > 0 ? "Upload another" : "Upload document"}</>
+                )}
               </Button>
             </SectionCard>
 

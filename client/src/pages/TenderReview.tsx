@@ -226,6 +226,14 @@ export default function TenderReview() {
           }
           break;
 
+        case "video-url":
+          if (typeof card.value === "string" && card.value.trim()) data.videoUrl = card.value.trim();
+          break;
+
+        case "vendor-requirements":
+          if (Array.isArray(card.value) && card.value.length > 0) data.vendorRequirements = card.value;
+          break;
+
         default:
           // custom-* fields have no DB column — omitted to avoid Zod stripping noise
           break;

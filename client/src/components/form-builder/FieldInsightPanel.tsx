@@ -28,6 +28,18 @@ export function FieldInsightPanel({ cardType, cursorPos, onClose }: FieldInsight
     'evaluation-criteria': { title: t('formBuilder.insightEvalTitle'), description: t('formBuilder.insightEvalDesc'), vendorTip: t('formBuilder.insightEvalVendorTip'), bestPractice: t('formBuilder.insightEvalBestPractice') },
     'attachments': { title: t('formBuilder.insightAttachmentsTitle'), description: t('formBuilder.insightAttachmentsDesc'), vendorTip: t('formBuilder.insightAttachmentsVendorTip'), bestPractice: t('formBuilder.insightAttachmentsBestPractice') },
     'milestones': { title: t('formBuilder.insightMilestonesTitle'), description: t('formBuilder.insightMilestonesDesc'), vendorTip: t('formBuilder.insightMilestonesVendorTip'), bestPractice: t('formBuilder.insightMilestonesBestPractice') },
+    'video-url': {
+      title: t('formBuilder.insightVideoUrlTitle') || 'Video URL',
+      description: t('formBuilder.insightVideoUrlDesc') || 'An optional link to a short video introducing the project. Helps vendors quickly grasp context, tone, and scope beyond what text can convey.',
+      vendorTip: t('formBuilder.insightVideoUrlVendorTip') || 'A 2–5 minute video lets vendors see the people and environment behind the RFP, building trust and improving response quality.',
+      bestPractice: t('formBuilder.insightVideoUrlBestPractice') || 'Keep videos under 5 minutes. Make sure the link is publicly accessible (no sign-in required). YouTube unlisted or Vimeo work well.',
+    },
+    'vendor-requirements': {
+      title: t('formBuilder.insightVendorReqsTitle') || 'Vendor Requirements',
+      description: t('formBuilder.insightVendorReqsDesc') || 'Qualifications vendors must prove to apply — split into mandatory (hard filter) and preferred (nice-to-have, scored as a plus).',
+      vendorTip: t('formBuilder.insightVendorReqsVendorTip') || 'Clear mandatory vs preferred tags let vendors self-qualify and skip RFPs they cannot meet, improving the quality of submitted proposals.',
+      bestPractice: t('formBuilder.insightVendorReqsBestPractice') || 'Keep mandatory requirements minimal and provable (CR, Zakat, GOSI). Move soft preferences to preferred so you don\'t shrink the eligible pool.',
+    },
     'custom-text': { title: t('formBuilder.insightShortAnswerTitle'), description: t('formBuilder.insightShortAnswerDesc'), vendorTip: t('formBuilder.insightShortAnswerVendorTip'), bestPractice: t('formBuilder.insightShortAnswerBestPractice') },
     'custom-textarea': { title: t('formBuilder.insightLongAnswerTitle'), description: t('formBuilder.insightLongAnswerDesc'), vendorTip: t('formBuilder.insightLongAnswerVendorTip'), bestPractice: t('formBuilder.insightLongAnswerBestPractice') },
     'custom-date': { title: t('formBuilder.insightDateTitle'), description: t('formBuilder.insightDateDesc'), vendorTip: t('formBuilder.insightDateVendorTip'), bestPractice: t('formBuilder.insightDateBestPractice') },

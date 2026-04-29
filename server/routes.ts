@@ -5229,17 +5229,7 @@ Respond with ONLY a JSON object. Example:
         return res.status(400).json({ message: "User is already an admin" });
       }
       
-      const user = await storage.makeUserAdmin(userId);
-      
-      await storage.logAuditAction({
-        adminId: req.auth!.userId,
-        action: 'user_promoted_to_admin',
-        targetType: 'user',
-        targetId: userId,
-        beforeState: JSON.stringify({ isAdmin: false }),
-        afterState: JSON.stringify({ isAdmin: true }),
-        notes: null
-      });
+      const user = await storage.makeUserAdmin(userId, req.auth!.userId);
 
       res.json({ message: "User promoted to admin", user });
     } catch (error) {
@@ -5677,6 +5667,16 @@ Respond with ONLY a JSON object. Example:
 
       const VALID_TENDER_TYPES = ['open_tender', 'direct_purchase', 'framework_agreement'];
       const { tenderType: reqTenderType, documentFee: reqDocFee, inquiryDeadline: reqInquiryDeadline } = req.body;
+
+      // BID-125: this route only accepts metadata. PO files must be uploaded
+      // separately via POST /api/tenders/:id/purchase-orders. Reject explicitly
+      // so callers don't silently lose PO data and end up with a tender stuck
+      // in "pending" because the verified-PO check at admin approval can't find one.
+      if (req.body.marketplacePoFiles !== undefined) {
+        return res.status(400).json({
+          message: "marketplacePoFiles is not accepted on this route. Upload POs via POST /api/tenders/:id/purchase-orders before calling marketplace-submit."
+        });
+      }
 
       if (reqTenderType && !VALID_TENDER_TYPES.includes(reqTenderType)) {
         return res.status(400).json({ message: "Invalid tender type" });

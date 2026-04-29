@@ -2,14 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bug, AlertTriangle } from "lucide-react";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import AdminLayout from "@/components/AdminLayout";
 import { useI18n } from "@/lib/i18n";
 
 interface ErrorLog {
   id: string;
-  errorType: string;
+  errorType: string | null;
   message: string;
   stack: string | null;
   context: string | null;
@@ -23,11 +23,12 @@ export default function AdminErrors() {
     queryKey: ["/api/admin/errors"],
   });
 
-  const getSeverityColor = (errorType: string) => {
-    if (errorType.includes('critical') || errorType.includes('fatal')) {
+  const getSeverityColor = (errorType: string | null | undefined) => {
+    const t = (errorType ?? "").toLowerCase();
+    if (t.includes('critical') || t.includes('fatal')) {
       return "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300";
     }
-    if (errorType.includes('warning')) {
+    if (t.includes('warning')) {
       return "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300";
     }
     return "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300";
@@ -70,10 +71,13 @@ export default function AdminErrors() {
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
                       <Badge className={`text-xs ${getSeverityColor(error.errorType)}`}>
-                        {error.errorType}
+                        {error.errorType ?? 'unknown'}
                       </Badge>
                       <span className="text-xs text-gray-400 dark:text-gray-500">
-                        {format(new Date(error.createdAt), "PPpp", { locale: language === 'ar' ? ar : enUS })}
+                        {(() => {
+                          const d = new Date(error.createdAt ?? "");
+                          return isValid(d) ? format(d, "PPpp", { locale: language === 'ar' ? ar : enUS }) : "—";
+                        })()}
                       </span>
                     </div>
                   </div>

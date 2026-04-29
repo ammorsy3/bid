@@ -1550,7 +1550,7 @@ export default function TenderDetails() {
                               <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div className="min-w-0">
-                              <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{t('tenderFlow.contactEmailLabel')}</p>
                               <p className="font-medium text-blue-700 dark:text-blue-300 text-sm truncate">{tender.emailContact}</p>
                             </div>
                           </a>
@@ -1566,7 +1566,7 @@ export default function TenderDetails() {
                               <Phone className="h-4 w-4 text-green-600 dark:text-green-400" />
                             </div>
                             <div className="min-w-0">
-                              <p className="text-xs text-gray-500 dark:text-gray-400">WhatsApp</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{t('tenderFlow.contactWhatsappLabel')}</p>
                               <p className="font-medium text-green-700 dark:text-green-300 text-sm truncate">{tender.whatsappContact}</p>
                             </div>
                           </a>
@@ -1767,7 +1767,7 @@ export default function TenderDetails() {
                             {analysis && analysis.status === 'failed' && (
                               <div className="mx-5 mb-4 flex items-center gap-2 text-xs text-red-500 bg-red-50 rounded-lg p-2 border border-red-100">
                                 <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
-                                <span>Analysis failed: {analysis.errorMessage || 'Unknown error'}</span>
+                                <span>{t('tenderFlow.analysisFailedPrefix')} {analysis.errorMessage || t('tenderFlow.unknownError')}</span>
                               </div>
                             )}
                           </div>
@@ -2077,7 +2077,7 @@ export default function TenderDetails() {
             videoRequired: tender.videoRequired ?? undefined,
           }}
           requester={{
-            name: 'Company',
+            name: t('tenderFlow.companyDefault'),
             company: activeCompany?.name
           }}
         />
@@ -2216,7 +2216,7 @@ export default function TenderDetails() {
           {/* Hidden DialogHeader for accessibility */}
           <DialogHeader className="sr-only">
             <DialogTitle>{selectedOffer?.profile?.displayName || selectedOffer?.company.name}</DialogTitle>
-            <DialogDescription>{selectedOffer?.company.category || 'Company Profile'}</DialogDescription>
+            <DialogDescription>{selectedOffer?.company.category || t('tenderFlow.companyProfile')}</DialogDescription>
           </DialogHeader>
         </DialogContent>
       </Dialog>
@@ -2308,7 +2308,7 @@ export default function TenderDetails() {
           )}
           <DialogHeader className="sr-only">
             <DialogTitle>{qaProfileCompany?.displayName || qaProfileCompany?.name}</DialogTitle>
-            <DialogDescription>{qaProfileCompany?.category || 'Company Profile'}</DialogDescription>
+            <DialogDescription>{qaProfileCompany?.category || t('tenderFlow.companyProfile')}</DialogDescription>
           </DialogHeader>
         </DialogContent>
       </Dialog>

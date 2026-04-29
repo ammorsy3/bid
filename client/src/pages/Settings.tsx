@@ -244,9 +244,9 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { co
                     </div>
                     <p className="text-xs text-muted-foreground truncate">{member.email}</p>
                   </div>
-                  <Badge className={`${roleColors[member.role] || roleColors.member} capitalize flex-shrink-0`}>
+                  <Badge className={`${roleColors[member.role] || roleColors.member} flex-shrink-0`}>
                     {member.role === 'owner' && <Crown className="h-3 w-3 mr-1" />}
-                    {member.role}
+                    {t(`dashboard.role${member.role.charAt(0).toUpperCase()}${member.role.slice(1)}`) || member.role}
                   </Badge>
                   {canManage && (() => {
                     const canModify = member.userId !== currentUserId && member.role !== 'owner';

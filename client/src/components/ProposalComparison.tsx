@@ -279,7 +279,7 @@ export default function ProposalComparison({
           {!cannotAnalyze && (
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 border border-violet-200">
-                AI Beta
+                {t('tenderFlow.aiBetaBadge')}
               </span>
               <Button
                 onClick={() => analyzeMutation.mutate()}
@@ -326,7 +326,7 @@ export default function ProposalComparison({
                 {/* Avatar + name */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {offer.profile?.logoUrl ? (
-                    <img src={offer.profile.logoUrl} alt="" className="h-9 w-9 rounded-lg object-cover flex-shrink-0 ring-1 ring-gray-200" />
+                    <img src={offer.profile.logoUrl} alt={`${name} logo`} className="h-9 w-9 rounded-lg object-cover flex-shrink-0 ring-1 ring-gray-200" />
                   ) : (
                     <div className={`h-9 w-9 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}>
                       <span className="text-white text-[10px] font-bold leading-none">{name.slice(0, 2).toUpperCase()}</span>
@@ -505,7 +505,7 @@ export default function ProposalComparison({
         ) : (
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 border border-violet-200">
-              AI Beta
+              {t('tenderFlow.aiBetaBadge')}
             </span>
             <Button variant="outline" size="sm" onClick={() => analyzeMutation.mutate()} disabled={analyzeMutation.isPending} className="text-xs h-7">
               {analyzeMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RotateCcw className="h-3 w-3 mr-1" />}
@@ -561,7 +561,7 @@ export default function ProposalComparison({
                           />
                         )}
                         {offer.profile?.logoUrl ? (
-                          <img src={offer.profile.logoUrl} alt="" className="h-8 w-8 rounded-lg object-cover flex-shrink-0 ring-1 ring-gray-200" />
+                          <img src={offer.profile.logoUrl} alt={`${name} logo`} className="h-8 w-8 rounded-lg object-cover flex-shrink-0 ring-1 ring-gray-200" />
                         ) : (
                           <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}>
                             <span className="text-white text-[10px] font-bold leading-none">{name.slice(0, 2).toUpperCase()}</span>
@@ -643,14 +643,14 @@ export default function ProposalComparison({
                               size="sm"
                               className="flex-1 h-6 text-[10px] bg-[#E25E45] hover:bg-[#d54d35] text-white px-2 font-medium"
                               onClick={() => handleSelectVendor(offer)}
-                              disabled={savingsMutation.isPending || total == null}
+                              disabled={savingsMutation.isPending || total == null || isOfferAwarded(offer.id)}
                             >
                               <CheckCircle className="h-2.5 w-2.5 mr-1" /> {t('tenderFlow.selectBtn')}
                             </Button>
                           )}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm" className="h-6 w-6 p-0 border-gray-200">
+                              <Button variant="outline" size="sm" className="h-6 w-6 p-0 border-gray-200" disabled={isOfferAwarded(offer.id)}>
                                 <MoreHorizontal className="h-3 w-3" />
                               </Button>
                             </DropdownMenuTrigger>

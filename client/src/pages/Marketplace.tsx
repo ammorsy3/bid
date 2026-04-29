@@ -65,7 +65,7 @@ function CircleProgress({ percent, days, expired, size = 56 }: { percent: number
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percent / 100) * circumference;
-  const color = expired ? '#ef4444' : percent < 25 ? '#f59e0b' : '#E8614D';
+  const color = expired ? '#9ca3af' : percent < 25 ? '#f59e0b' : '#E8614D';
 
   return (
     <div className="relative flex-shrink-0" style={{ width: size, height: size }}>

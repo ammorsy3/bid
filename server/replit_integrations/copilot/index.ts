@@ -1,5 +1,7 @@
 import type { Express, Request, Response, RequestHandler } from "express";
 import { runCopilotTurnStream } from "./engine";
+import { getTenantSecret, TenantSecretKey } from "../../lib/tenant-env";
+import type { AuthRequest } from "../../middleware/auth-types";
 
 export {
   runCopilotTurn,
@@ -24,12 +26,18 @@ export function registerCopilotRoutes(app: Express, authenticateToken: RequestHa
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
+      const auth = (req as AuthRequest).auth;
+      const tenantKey = auth?.activeCompanyId
+        ? getTenantSecret(auth.activeCompanyId, TenantSecretKey.OpenAIApiKey)
+        : undefined;
+
       for await (const ev of runCopilotTurnStream({
         message,
         companyData,
         chatHistory,
         tenderDraft,
         language,
+        apiKey: tenantKey,
       })) {
         if (ev.type === "delta") {
           res.write(`data: ${JSON.stringify({ content: ev.delta })}\n\n`);

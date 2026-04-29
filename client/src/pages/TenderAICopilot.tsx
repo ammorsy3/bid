@@ -14,8 +14,6 @@ import {
   Sparkles,
   Rocket,
   ChevronRight,
-  Mic,
-  MicOff,
   FileText,
   DollarSign,
   Calendar,
@@ -108,8 +106,11 @@ const AttachmentsPanel: React.FC<{
   draft: Record<string, any>;
   onChange: (patch: Record<string, any>) => void;
 }> = ({ draft, onChange }) => {
+  const { toast } = useToast();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [videoInput, setVideoInput] = useState<string>(draft.videoUrl ?? "");
+  const [uploadingCount, setUploadingCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const attachments: any[] = Array.isArray(draft.attachments) ? draft.attachments : [];
@@ -119,20 +120,65 @@ const AttachmentsPanel: React.FC<{
     onChange({ videoUrl: v ? v : null });
   };
 
-  const handleFiles = (files: FileList | null) => {
+  // Upload via presigned URL (Replit Object Storage). Mirrors ObjectUploader's
+  // contract: POST /api/objects/upload returns { uploadURL }, then PUT the file
+  // bytes to that URL. The persistent URL is uploadURL with the query string
+  // stripped — matching how other pages persist attachments.
+  const uploadOne = async (file: File): Promise<{ url: string } | null> => {
+    const res = await apiRequest("POST", "/api/objects/upload", {});
+    const { uploadURL } = await res.json();
+    if (!uploadURL) throw new Error("No upload URL returned");
+    const put = await fetch(uploadURL, {
+      method: "PUT",
+      headers: { "Content-Type": file.type || "application/octet-stream" },
+      body: file,
+    });
+    if (!put.ok) throw new Error(`Upload failed: ${put.status}`);
+    return { url: uploadURL.split("?")[0] };
+  };
+
+  const MAX_BYTES = 10 * 1024 * 1024;
+
+  const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const next = [...attachments];
-    for (const file of Array.from(files)) {
-      const url = URL.createObjectURL(file);
-      next.push({
-        id: `a-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
-        name: file.name,
-        url,
-        size: file.size,
-        type: file.type || "application/octet-stream",
-      });
+    const list = Array.from(files);
+    setUploadingCount((n) => n + list.length);
+    try {
+      const uploaded: any[] = [];
+      for (const file of list) {
+        if (file.size > MAX_BYTES) {
+          toast({
+            title: t('copilot.fileTooLarge'),
+            description: t('copilot.fileTooLargeDesc', { name: file.name }),
+            variant: "destructive",
+          });
+          continue;
+        }
+        try {
+          const { url } = (await uploadOne(file)) ?? { url: "" };
+          if (!url) continue;
+          uploaded.push({
+            id: `a-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+            name: file.name,
+            url,
+            size: file.size,
+            type: file.type || "application/octet-stream",
+          });
+        } catch (err) {
+          console.error("Attachment upload failed:", err);
+          toast({
+            title: t('copilot.uploadFailed'),
+            description: t('copilot.uploadFailedDesc', { name: file.name }),
+            variant: "destructive",
+          });
+        }
+      }
+      if (uploaded.length > 0) {
+        onChange({ attachments: [...attachments, ...uploaded] });
+      }
+    } finally {
+      setUploadingCount((n) => Math.max(0, n - list.length));
     }
-    onChange({ attachments: next });
   };
 
   const removeAttachment = (id: string) => {
@@ -149,7 +195,7 @@ const AttachmentsPanel: React.FC<{
       >
         <div className="flex items-center gap-2">
           <Paperclip className="h-4 w-4 text-gray-500" />
-          <span className="text-sm font-semibold text-gray-900 dark:text-white">Attach files</span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-white">{t('copilot.attachFiles')}</span>
           {(attachments.length > 0 || draft.voiceNoteUrl || draft.videoUrl) && (
             <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
               {attachments.length + (draft.voiceNoteUrl ? 1 : 0) + (draft.videoUrl ? 1 : 0)}
@@ -161,7 +207,7 @@ const AttachmentsPanel: React.FC<{
       {open && (
         <div className="px-4 pb-4 space-y-3 border-t border-gray-100 dark:border-gray-700">
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">Video explainer URL</label>
+            <label className="text-xs text-gray-500 mb-1 block">{t('copilot.videoExplainerUrl')}</label>
             <div className="flex gap-2">
               <Input
                 type="url"
@@ -175,7 +221,7 @@ const AttachmentsPanel: React.FC<{
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">Supporting documents</label>
+            <label className="text-xs text-gray-500 mb-1 block">{t('copilot.supportingDocs')}</label>
             <input
               ref={fileInputRef}
               type="file"
@@ -188,10 +234,13 @@ const AttachmentsPanel: React.FC<{
               variant="outline"
               size="sm"
               onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingCount > 0}
               className="h-9"
             >
               <Paperclip className="h-3.5 w-3.5 mr-1.5" />
-              Add files
+              {uploadingCount > 0
+                ? t('copilot.uploading', { n: uploadingCount })
+                : t('copilot.addFiles')}
             </Button>
             {attachments.length > 0 && (
               <ul className="mt-2 space-y-1">
@@ -203,7 +252,7 @@ const AttachmentsPanel: React.FC<{
                       type="button"
                       onClick={() => removeAttachment(a.id)}
                       className="text-gray-400 hover:text-rose-500"
-                      aria-label="Remove"
+                      aria-label={t('copilot.remove')}
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -214,7 +263,7 @@ const AttachmentsPanel: React.FC<{
           </div>
 
           <p className="text-[11px] text-gray-400 leading-snug">
-            Files are previewed locally in this session. Uploading to permanent storage still happens via the full builder — click "Edit in full builder" to publish persistent attachments.
+            {t('copilot.attachmentsHelp')}
           </p>
         </div>
       )}
@@ -226,17 +275,18 @@ const AttachmentsPanel: React.FC<{
 // Missing-fields alert — expanded to match the server-side readiness gate.
 // ============================================================================
 
-const REQUIRED_CHIPS: Array<{ key: string; label: string; check: (m: Record<string, any>) => boolean }> = [
-  { key: "title", label: "Title", check: (m) => !!m.title },
-  { key: "description", label: "Description (50+ words)", check: (m) => typeof m.description === "string" && m.description.trim().split(/\s+/).length >= 50 },
-  { key: "deadline", label: "Deadline", check: (m) => !!m.deadline },
-  { key: "budget", label: "Budget", check: (m) => m.budget != null || Number.isFinite(m.budgetMin) || Number.isFinite(m.budgetMax) },
-  { key: "deliverables", label: "Deliverables (≥2)", check: (m) => Array.isArray(m.deliverables) && m.deliverables.length >= 2 },
-  { key: "submissionType", label: "Submission type", check: (m) => !!m.submissionType },
-  { key: "inquiryType", label: "Q&A type", check: (m) => !!m.inquiryType },
+const REQUIRED_CHIPS: Array<{ key: string; tKey: string; check: (m: Record<string, any>) => boolean }> = [
+  { key: "title", tKey: "reqTitle", check: (m) => !!m.title },
+  { key: "description", tKey: "reqDescription", check: (m) => typeof m.description === "string" && m.description.trim().split(/\s+/).length >= 50 },
+  { key: "deadline", tKey: "reqDeadline", check: (m) => !!m.deadline },
+  { key: "budget", tKey: "reqBudget", check: (m) => m.budget != null || Number.isFinite(m.budgetMin) || Number.isFinite(m.budgetMax) },
+  { key: "deliverables", tKey: "reqDeliverables", check: (m) => Array.isArray(m.deliverables) && m.deliverables.length >= 2 },
+  { key: "submissionType", tKey: "reqSubmissionType", check: (m) => !!m.submissionType },
+  { key: "inquiryType", tKey: "reqInquiryType", check: (m) => !!m.inquiryType },
 ];
 
 const MissingFieldsAlert: React.FC<{ mapped: Record<string, any> }> = ({ mapped }) => {
+  const { t } = useI18n();
   const missing = REQUIRED_CHIPS.filter((c) => !c.check(mapped));
   if (missing.length === 0) return null;
   return (
@@ -246,7 +296,7 @@ const MissingFieldsAlert: React.FC<{ mapped: Record<string, any> }> = ({ mapped 
       animate={{ opacity: 1 }}
     >
       <p className="text-xs font-medium text-amber-800 dark:text-amber-400 mb-2">
-        Still missing before launch:
+        {t('copilot.stillMissing')}
       </p>
       <div className="flex flex-wrap gap-1.5">
         {missing.map((c) => (
@@ -254,7 +304,7 @@ const MissingFieldsAlert: React.FC<{ mapped: Record<string, any> }> = ({ mapped 
             key={c.key}
             className="text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full"
           >
-            {c.label}
+            {t(`copilot.${c.tKey}`)}
           </span>
         ))}
       </div>
@@ -286,6 +336,7 @@ const InlineActivity: React.FC<{
   isExpanded: boolean;
   onToggle: () => void;
 }> = ({ activities, isExpanded, onToggle }) => {
+  const { t } = useI18n();
   if (activities.length === 0) return null;
 
   const latestActivity = activities[0];
@@ -302,6 +353,8 @@ const InlineActivity: React.FC<{
       <div className="w-full max-w-[90%]">
         <button
           onClick={onToggle}
+          aria-expanded={isExpanded}
+          aria-label={isExpanded ? t('copilot.a11yCollapseActivity') : t('copilot.a11yExpandActivity')}
           className={cn(
             "w-full flex items-start gap-3 px-4 py-3 rounded-xl text-left transition-all",
             "bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50",
@@ -332,7 +385,7 @@ const InlineActivity: React.FC<{
                   animate={{ opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
-                  processing...
+                  {t('copilot.activityProcessing')}
                 </motion.span>
               )}
             </div>
@@ -358,7 +411,7 @@ const InlineActivity: React.FC<{
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-2 ml-4 pl-4 border-l-2 border-gray-200/50 dark:border-gray-700/50 space-y-2"
+              className="mt-2 ml-4 pl-4 border-l-2 border-gray-200/50 dark:border-gray-700/50 space-y-2 max-h-72 overflow-y-auto"
             >
               {activities.slice(1).map((activity) => {
                 const actConfig = activityTypeConfig[activity.type];
@@ -392,40 +445,20 @@ const InlineActivity: React.FC<{
   );
 };
 
-// Quick action templates
-const quickActions = [
-  {
-    icon: Building2,
-    label: "Marketing Campaign",
-    prompt: "I need a marketing campaign for our product launch",
-    color: "bg-blue-500/10 text-blue-600 hover:bg-blue-500/20",
-  },
-  {
-    icon: Package,
-    label: "IT Services",
-    prompt: "We need IT infrastructure services for our office",
-    color: "bg-purple-500/10 text-purple-600 hover:bg-purple-500/20",
-  },
-  {
-    icon: Users,
-    label: "HR Consulting",
-    prompt: "Looking for HR consulting services for recruitment",
-    color: "bg-green-500/10 text-green-600 hover:bg-green-500/20",
-  },
-  {
-    icon: Lightbulb,
-    label: "Creative Design",
-    prompt: "We need creative design services for branding",
-    color: "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20",
-  },
+// Quick action templates — labels/prompts pulled via t() inside the component.
+const quickActionDefs: Array<{ key: string; icon: any; color: string }> = [
+  { key: "qaMarketing", icon: Building2, color: "bg-blue-500/10 text-blue-600 hover:bg-blue-500/20" },
+  { key: "qaIt", icon: Package, color: "bg-purple-500/10 text-purple-600 hover:bg-purple-500/20" },
+  { key: "qaHr", icon: Users, color: "bg-green-500/10 text-green-600 hover:bg-green-500/20" },
+  { key: "qaCreative", icon: Lightbulb, color: "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20" },
 ];
 
-// Task steps for progress visualization
-const taskSteps = [
-  { id: "understand", label: "Understanding", icon: Target },
-  { id: "analyze", label: "Analyzing", icon: Zap },
-  { id: "generate", label: "Generating", icon: FileText },
-  { id: "review", label: "Review", icon: CheckCircle2 },
+// Task steps for progress visualization — labels via t().
+const taskStepDefs: Array<{ id: string; tKey: string; icon: any }> = [
+  { id: "understand", tKey: "stepUnderstand", icon: Target },
+  { id: "analyze", tKey: "stepAnalyze", icon: Zap },
+  { id: "generate", tKey: "stepGenerate", icon: FileText },
+  { id: "review", tKey: "stepReview", icon: CheckCircle2 },
 ];
 
 export default function TenderAICopilot() {
@@ -453,16 +486,16 @@ export default function TenderAICopilot() {
   const [showPreview, setShowPreview] = useState(true);
   const [isReady, setIsReady] = useState(false);
   const [orbState, setOrbState] = useState<OrbState>("idle");
-  const [statusText, setStatusText] = useState("Ready to help you create an RFP");
+  const [statusText, setStatusText] = useState<string>(() => t('copilot.statusReady'));
   const [currentStep, setCurrentStep] = useState(0);
   const [activityLog, setActivityLog] = useState<ActivityLogItem[]>([]);
-  const [isListening, setIsListening] = useState(false);
   const [activityExpanded, setActivityExpanded] = useState(false);
   const [marketplaceOptions, setMarketplaceOptions] = useState<MarketplaceOptions>({
     enabled: false,
     tenderType: 'open_tender',
     documentFee: '',
     inquiryDeadline: '',
+    poFiles: [],
     confirmed: false,
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -472,7 +505,7 @@ export default function TenderAICopilot() {
   const sessionPromise = useRef<Promise<string | null> | null>(null);
   const loadedSessionRef = useRef<string | null>(null);
 
-  const firstName = user?.name?.split(" ")[0] || user?.username || "there";
+  const firstName = user?.name?.split(" ")[0] || user?.username || t('copilot.greetFallbackName');
 
   useEffect(() => {
     if (sessionParam && sessionParam !== loadedSessionRef.current) {
@@ -494,6 +527,17 @@ export default function TenderAICopilot() {
           setSessionId(sessionParam);
         } catch (e) {
           console.error("Failed to load session:", e);
+          loadedSessionRef.current = null;
+          toast({
+            title: t('copilot.sessionLoadFailed'),
+            description: t('copilot.sessionLoadFailedDesc'),
+            variant: "destructive",
+            action: (
+              <ToastAction altText={t('copilot.retry')} onClick={() => { loadedSessionRef.current = null; setSessionId(null); navigate(`/tenders/new/ai?session=${sessionParam}`); }}>
+                {t('copilot.retry')}
+              </ToastAction>
+            ),
+          });
         }
       };
       loadSession();
@@ -504,7 +548,7 @@ export default function TenderAICopilot() {
       setTenderDraft({});
       setIsReady(false);
       setOrbState("idle");
-      setStatusText("Ready to help you create an RFP");
+      setStatusText(t('copilot.statusReady'));
       setCurrentStep(0);
       setActivityLog([]);
       sessionPromise.current = null;
@@ -518,14 +562,24 @@ export default function TenderAICopilot() {
       try {
         const title = firstMessage
           ? firstMessage.slice(0, 60) + (firstMessage.length > 60 ? "..." : "")
-          : "New AI Chat";
+          : t('copilot.activityNewRfp');
         const res = await apiRequest("POST", "/api/ai-chat-sessions", { title });
         const session = await res.json();
         setSessionId(session.id);
         queryClient.invalidateQueries({ queryKey: ["/api/ai-chat-sessions"] });
         return session.id as string;
-      } catch (e) {
+      } catch (e: any) {
         console.error("Failed to create session:", e);
+        const status = typeof e?.statusCode === "number" ? e.statusCode : undefined;
+        toast({
+          title: status === 409
+            ? t('copilot.sessionLimit')
+            : t('copilot.sessionCreateFailed'),
+          description: status === 409
+            ? (e?.message || t('copilot.sessionLimitDesc'))
+            : t('copilot.sessionCreateFailedDesc'),
+          variant: "destructive",
+        });
         return null;
       } finally {
         sessionPromise.current = null;
@@ -566,6 +620,14 @@ export default function TenderAICopilot() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Re-translate the idle status text when the user toggles language so the
+  // orb caption doesn't get stuck in the previous language.
+  useEffect(() => {
+    if (orbState === "idle" && messages.length === 0) {
+      setStatusText(t('copilot.statusReady'));
+    }
+  }, [i18nLang, orbState, messages.length, t]);
+
   // Add activity log entry with specific details
   const addActivity = useCallback((
     type: ActivityLogItem["type"],
@@ -581,7 +643,7 @@ export default function TenderAICopilot() {
       status,
       timestamp: new Date(),
     };
-    setActivityLog((prev) => [newActivity, ...prev].slice(0, 10));
+    setActivityLog((prev) => [newActivity, ...prev]);
   }, []);
 
   // Update activity status
@@ -611,7 +673,7 @@ export default function TenderAICopilot() {
 
     // Simulate thinking phases
     setOrbState("thinking");
-    setStatusText("Analyzing your requirements...");
+    setStatusText(t('copilot.statusAnalyzing'));
     setCurrentStep(1);
 
     while (true) {
@@ -635,7 +697,7 @@ export default function TenderAICopilot() {
             if (fullContent.length > 20 && !hasAddedStreamingActivity.current) {
               hasAddedStreamingActivity.current = true;
               setOrbState("speaking");
-              setStatusText("Generating your RFP...");
+              setStatusText(t('copilot.statusGenerating'));
               setCurrentStep(2);
             }
 
@@ -668,39 +730,40 @@ export default function TenderAICopilot() {
                 return latestTenderData;
               });
               const updatedFields = Object.keys(parsed.tenderData);
+              const sarLabel = i18nLang === 'ar' ? 'ر.س' : 'SAR';
               if (updatedFields.includes('title')) {
-                addActivity("generating", "Generated RFP title", parsed.tenderData.title);
+                addActivity("generating", t('copilot.activityGenTitle'), parsed.tenderData.title);
               }
               if (updatedFields.includes('serviceDescription')) {
-                addActivity("generating", "Created service description", parsed.tenderData.serviceDescription?.slice(0, 80) + "...");
+                addActivity("generating", t('copilot.activityCreatedDesc'), parsed.tenderData.serviceDescription?.slice(0, 80) + "...");
               }
               if (updatedFields.includes('budget')) {
                 const budget = parsed.tenderData.budget;
                 const budgetStr = typeof budget === 'object'
-                  ? `${budget.min?.toLocaleString()} - ${budget.max?.toLocaleString()} SAR`
-                  : `${budget?.toLocaleString()} SAR`;
-                addActivity("extracting", "Identified budget range", budgetStr);
+                  ? `${budget.min?.toLocaleString()} - ${budget.max?.toLocaleString()} ${sarLabel}`
+                  : `${budget?.toLocaleString()} ${sarLabel}`;
+                addActivity("extracting", t('copilot.activityIdBudget'), budgetStr);
               }
               if (updatedFields.includes('timeline')) {
-                addActivity("extracting", "Set project timeline", parsed.tenderData.timeline);
+                addActivity("extracting", t('copilot.activitySetTimeline'), parsed.tenderData.timeline);
               }
               if (updatedFields.includes('deliverables')) {
-                addActivity("generating", "Defined deliverables", `${parsed.tenderData.deliverables?.length} items identified`);
+                addActivity("generating", t('copilot.activityDefDeliverables'), t('copilot.activityDeliverablesCount', { count: parsed.tenderData.deliverables?.length ?? 0 }));
               }
               if (updatedFields.includes('submissionDeadline')) {
-                addActivity("updating", "Set submission deadline", parsed.tenderData.submissionDeadline);
+                addActivity("updating", t('copilot.activitySetDeadline'), parsed.tenderData.submissionDeadline);
               }
             }
 
             if (parsed.readyToLaunch) {
               setIsReady(true);
               setOrbState("success");
-              setStatusText("Your RFP is ready to launch!");
+              setStatusText(t('copilot.statusReadyToLaunch'));
               setCurrentStep(4); // All steps complete
-              addActivity("complete", "RFP ready to launch", "All required fields have been filled");
+              addActivity("complete", t('copilot.activityReady'), t('copilot.activityReadyDetail'));
             } else {
               setOrbState("idle");
-              setStatusText("How can I help you further?");
+              setStatusText(t('copilot.statusHowElse'));
               setCurrentStep(4); // Mark all steps as complete for this response cycle
             }
           } else if (event.done && event.raw) {
@@ -721,7 +784,7 @@ export default function TenderAICopilot() {
               );
             }
             setOrbState("idle");
-            setStatusText("Ready to help");
+            setStatusText(t('copilot.statusReadyShort'));
             setCurrentStep(4); // Mark all steps as complete
           }
         } catch (e) {
@@ -742,10 +805,10 @@ export default function TenderAICopilot() {
   const sendInitialMessage = async () => {
     setIsLoading(true);
     setOrbState("thinking");
-    setStatusText("Getting ready to help you...");
+    setStatusText(t('copilot.statusGettingReady'));
 
     try {
-      const sid = await ensureSession("RFP Creation Assistant");
+      const sid = await ensureSession();
 
       const token = localStorage.getItem("token");
       const response = await fetch("/api/copilot/chat", {
@@ -767,7 +830,17 @@ export default function TenderAICopilot() {
     } catch (error) {
       console.error("Error sending initial message:", error);
       setOrbState("error");
-      setStatusText("Something went wrong. Click to retry.");
+      setStatusText(t('copilot.statusError'));
+      toast({
+        title: t('copilot.startFailed'),
+        description: t('copilot.startFailedDesc'),
+        variant: "destructive",
+        action: (
+          <ToastAction altText={t('copilot.retry')} onClick={() => sendInitialMessage()}>
+            {t('copilot.retry')}
+          </ToastAction>
+        ),
+      });
     } finally {
       setIsLoading(false);
     }
@@ -786,7 +859,7 @@ export default function TenderAICopilot() {
     setInput("");
     setIsLoading(true);
     setOrbState("listening");
-    setStatusText("Processing your request...");
+    setStatusText(t('copilot.statusProcessing'));
     setCurrentStep(0);
 
     try {
@@ -820,7 +893,17 @@ export default function TenderAICopilot() {
     } catch (error) {
       console.error("Error sending message:", error);
       setOrbState("error");
-      setStatusText("Failed to send message");
+      setStatusText(t('copilot.statusFailedSend'));
+      toast({
+        title: t('copilot.sendFailed'),
+        description: t('copilot.sendFailedDesc'),
+        variant: "destructive",
+        action: (
+          <ToastAction altText={t('copilot.retry')} onClick={() => sendMessage(content)}>
+            {t('copilot.retry')}
+          </ToastAction>
+        ),
+      });
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
@@ -851,8 +934,8 @@ export default function TenderAICopilot() {
     }
 
     setOrbState("thinking");
-    setStatusText("Launching your RFP...");
-    addActivity("generating", "Creating your RFP", tenderDraft.title || "New RFP", "in_progress");
+    setStatusText(t('copilot.statusLaunching'));
+    addActivity("generating", t('copilot.activityCreating'), tenderDraft.title || t('copilot.activityNewRfp'), "in_progress");
 
     try {
       const token = localStorage.getItem("token");
@@ -869,6 +952,9 @@ export default function TenderAICopilot() {
         if (marketplaceOptions.inquiryDeadline) {
           bodyData.marketplaceInquiryDeadline = new Date(marketplaceOptions.inquiryDeadline).toISOString();
         }
+        if (marketplaceOptions.poFiles.length > 0) {
+          bodyData.marketplacePoFiles = marketplaceOptions.poFiles;
+        }
       }
       const response = await fetch("/api/tenders", {
         method: "POST",
@@ -879,25 +965,40 @@ export default function TenderAICopilot() {
       if (response.ok) {
         const createdTender = await response.json();
         setOrbState("success");
-        setStatusText("RFP launched successfully!");
-        addActivity("complete", "RFP published!", "Your RFP is now live and accepting bids");
+        setStatusText(t('copilot.statusLaunchSuccess'));
+        addActivity("complete", t('copilot.activityPublished'), t('copilot.activityPublishedDetail'));
         const inviteLink = `${window.location.origin}/invite/${createdTender.invitationToken}`;
         toast({
-          title: "RFP published!",
-          description: "Your RFP is now live and accepting bids.",
+          title: t('copilot.publishedTitle'),
+          description: t('copilot.publishedDesc'),
           action: (
-            <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
-              <Copy className="h-3 w-3 mr-1" /> Copy Link
+            <ToastAction altText={t('copilot.copyInvitationLink')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('copilot.linkCopied') }); }}>
+              <Copy className="h-3 w-3 mr-1" /> {t('copilot.copyLink')}
             </ToastAction>
           ),
           duration: 10000,
         });
         setTimeout(() => navigate("/dashboard"), 3000);
+      } else {
+        let serverMessage = "";
+        try { serverMessage = (await response.json())?.message || ""; } catch {}
+        setOrbState("error");
+        setStatusText(t('copilot.statusLaunchFailed'));
+        toast({
+          title: t('copilot.launchFailed'),
+          description: serverMessage || t('copilot.launchFailedDesc'),
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error creating tender:", error);
       setOrbState("error");
-      setStatusText("Failed to launch RFP");
+      setStatusText(t('copilot.statusLaunchFailed'));
+      toast({
+        title: t('copilot.launchFailed'),
+        description: t('copilot.launchFailedNetwork'),
+        variant: "destructive",
+      });
     }
   };
 
@@ -920,7 +1021,7 @@ export default function TenderAICopilot() {
     setTenderDraft({});
     setIsReady(false);
     setOrbState("idle");
-    setStatusText("Ready to help you create an RFP");
+    setStatusText(t('copilot.statusReady'));
     setCurrentStep(0);
     setActivityLog([]);
     setSessionId(null);
@@ -945,6 +1046,15 @@ export default function TenderAICopilot() {
   return (
     <>
     <div className="h-screen flex flex-col bg-white dark:bg-gray-950 relative overflow-hidden">
+      {/* Off-screen live region announces orb/status changes for screen readers */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {statusText}
+      </div>
       {/* Flickering Grid Background - matches /tenders/new */}
       <div className="absolute inset-0 z-0">
         <FlickeringGrid
@@ -970,10 +1080,10 @@ export default function TenderAICopilot() {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-sm font-medium text-gray-900 dark:text-white">
-              AI Agent
+              {t('copilot.aiAgent')}
             </span>
             <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 border border-violet-200">
-              Beta
+              {t('copilot.beta')}
             </span>
           </div>
         </div>
@@ -987,7 +1097,7 @@ export default function TenderAICopilot() {
               className="text-gray-500 hover:text-gray-700"
             >
               <RotateCcw className="h-4 w-4 mr-1" />
-              Start Over
+              {t('copilot.startOver')}
             </Button>
           )}
           {hasPreviewContent && (
@@ -1058,10 +1168,10 @@ export default function TenderAICopilot() {
                     transition={{ delay: 0.3 }}
                   >
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                      Hey {firstName}, let's create something great
+                      {t('copilot.welcomeTitle', { name: firstName })}
                     </h2>
                     <p className="text-gray-500 dark:text-gray-400 max-w-md">
-                      Click on the orb or choose a quick action below to get started. I'll help you create a professional RFP in minutes.
+                      {t('copilot.welcomeSubtitle')}
                     </p>
                   </motion.div>
 
@@ -1073,10 +1183,10 @@ export default function TenderAICopilot() {
                     transition={{ delay: 0.4 }}
                     data-tour="quick-actions"
                   >
-                    {quickActions.map((action, idx) => (
+                    {quickActionDefs.map((action, idx) => (
                       <motion.button
-                        key={idx}
-                        onClick={() => handleQuickAction(action.prompt)}
+                        key={action.key}
+                        onClick={() => handleQuickAction(t(`copilot.${action.key}Prompt`))}
                         className={cn(
                           "flex items-center gap-3 p-4 rounded-xl border border-gray-200/80 dark:border-gray-700/80 transition-all hover:scale-[1.02] hover:shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm",
                           action.color
@@ -1085,7 +1195,7 @@ export default function TenderAICopilot() {
                         whileTap={{ scale: 0.98 }}
                       >
                         <action.icon className="h-5 w-5" />
-                        <span className="font-medium text-sm">{action.label}</span>
+                        <span className="font-medium text-sm">{t(`copilot.${action.key}Label`)}</span>
                         <ArrowRight className="h-4 w-4 ml-auto opacity-50" />
                       </motion.button>
                     ))}
@@ -1098,7 +1208,7 @@ export default function TenderAICopilot() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
                   >
-                    Or type your own request below
+                    {t('copilot.orTypeBelow')}
                   </motion.p>
                 </motion.div>
               ) : (
@@ -1124,7 +1234,7 @@ export default function TenderAICopilot() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    {taskSteps.map((step, idx) => {
+                    {taskStepDefs.map((step, idx) => {
                       const isActive = isLoading && idx === currentStep;
                       const isCompleted = currentStep > idx || (currentStep === 4 && !isLoading);
                       const isPending = isLoading && idx > currentStep;
@@ -1160,7 +1270,7 @@ export default function TenderAICopilot() {
                           ) : (
                             <step.icon className="h-3 w-3" />
                           )}
-                          {step.label}
+                          {t(`copilot.${step.tKey}`)}
                         </motion.div>
                       );
                     })}
@@ -1196,10 +1306,13 @@ export default function TenderAICopilot() {
                             "text-[15px] leading-relaxed whitespace-pre-wrap",
                             message.role === "assistant" && "text-gray-900 dark:text-white"
                           )}
+                          aria-live={message.isStreaming ? "polite" : undefined}
+                          aria-busy={message.isStreaming || undefined}
                         >
                           {message.content}
                           {message.isStreaming && (
                             <motion.span
+                              aria-hidden="true"
                               className="inline-block w-0.5 h-4 bg-[#E25E45] ml-0.5"
                               animate={{ opacity: [1, 0, 1] }}
                               transition={{ duration: 0.8, repeat: Infinity }}
@@ -1270,29 +1383,13 @@ export default function TenderAICopilot() {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={
                       messages.length === 0
-                        ? "Describe what you need... (e.g., 'I need a website redesign')"
-                        : "Type your message..."
+                        ? t('copilot.placeholderInitial')
+                        : t('copilot.placeholderActive')
                     }
                     disabled={isLoading}
                     className="pr-24 h-12 text-[15px] border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 focus-visible:ring-[#E25E45] shadow-sm"
                   />
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setIsListening(!isListening)}
-                      className={cn(
-                        "h-8 w-8 p-0 rounded-lg",
-                        isListening && "bg-red-100 text-red-600"
-                      )}
-                    >
-                      {isListening ? (
-                        <MicOff className="h-4 w-4" />
-                      ) : (
-                        <Mic className="h-4 w-4" />
-                      )}
-                    </Button>
                     <Button
                       type="submit"
                       size="sm"
@@ -1328,7 +1425,7 @@ export default function TenderAICopilot() {
                         className="h-12 px-6 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 rounded-xl gap-2 shadow-lg shadow-green-500/25"
                       >
                         <Rocket className="h-4 w-4" />
-                        Launch RFP
+                        {t('copilot.launchRfp')}
                       </Button>
                       <Button
                         type="button"
@@ -1337,7 +1434,7 @@ export default function TenderAICopilot() {
                         className="h-12 px-4 rounded-xl gap-2 border-gray-300"
                       >
                         <Pencil className="h-4 w-4" />
-                        Edit in full builder
+                        {t('copilot.editFullBuilder')}
                       </Button>
                     </div>
                   </motion.div>
@@ -1351,17 +1448,23 @@ export default function TenderAICopilot() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                 >
-                  {["Add more details", "Change budget", "Set deadline", "Add requirements"].map(
-                    (chip) => (
+                  {([
+                    'chipMoreDetails',
+                    'chipChangeBudget',
+                    'chipSetDeadline',
+                    'chipAddRequirements',
+                  ] as const).map((chipKey) => {
+                    const label = t(`copilot.${chipKey}`);
+                    return (
                       <button
-                        key={chip}
-                        onClick={() => sendMessage(chip)}
+                        key={chipKey}
+                        onClick={() => sendMessage(label)}
                         className="px-3 py-1.5 text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400 transition-colors"
                       >
-                        {chip}
+                        {label}
                       </button>
-                    )
-                  )}
+                    );
+                  })}
                 </motion.div>
               )}
             </div>
@@ -1403,10 +1506,10 @@ export default function TenderAICopilot() {
                       <FileText className="h-8 w-8 text-gray-400" />
                     </motion.div>
                     <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                      No preview yet
+                      {t('copilot.noPreviewYet')}
                     </h4>
                     <p className="text-xs text-gray-500 max-w-[200px]">
-                      Start chatting with the AI to build your RFP. The preview will update in real-time.
+                      {t('copilot.noPreviewDesc')}
                     </p>
                   </div>
                 )}

@@ -20,6 +20,7 @@ import { authenticateApiKeyOrJwt, requireScope } from "../../middleware/api-key"
 import type { AuthRequest } from "../../middleware/auth-types";
 import { takeToken } from "../../lib/rate-limit";
 import { lookupIdempotent, storeIdempotent } from "../../lib/idempotency";
+import { getTenantSecret, TenantSecretKey } from "../../lib/tenant-env";
 
 const MAX_MESSAGE_BYTES = 8 * 1024;
 const RATE_LIMIT_CAPACITY = 30;
@@ -60,6 +61,15 @@ export function registerCopilotV1Routes(app: Express): void {
       const companyId = req.auth?.activeCompanyId;
       if (!companyId) {
         return res.status(400).json({ message: "No active company on this auth context" });
+      }
+
+      const MAX_SESSIONS_PER_USER = 100;
+      const existing = await storage.getAiChatSessions(req.auth!.userId, companyId);
+      if (existing.length >= MAX_SESSIONS_PER_USER) {
+        return res.status(409).json({
+          message: `Session limit (${MAX_SESSIONS_PER_USER}) reached. Delete old sessions before creating new ones.`,
+          limit: MAX_SESSIONS_PER_USER,
+        });
       }
 
       const { name, tenderData, metadata } = req.body ?? {};
@@ -149,11 +159,13 @@ export function registerCopilotV1Routes(app: Express): void {
           content: m.content,
         }));
 
+        const tenantKey = getTenantSecret(companyId, TenantSecretKey.OpenAIApiKey);
         const result = await runCopilotTurn({
           message,
           companyData,
           chatHistory,
           tenderDraft: session.tenderData ?? {},
+          apiKey: tenantKey,
         });
 
         // Persist turn + draft atomically so a mid-sequence failure doesn't

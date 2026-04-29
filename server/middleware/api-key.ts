@@ -11,7 +11,14 @@ import { storage } from "../storage";
 import { extractKeyPrefix, verifyApiKey, type ApiKeyScope } from "../lib/api-keys";
 import type { AuthRequest, JWTPayload } from "./auth-types";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+// Hard-fail at startup if JWT_SECRET is missing — a literal default would let
+// anyone forge JWTs in any environment where the env var was forgotten.
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
+  throw new Error(
+    "JWT_SECRET env var is required and must be at least 16 characters",
+  );
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 function readApiKeyHeader(req: AuthRequest): string | null {
   const xApiKey = req.headers["x-api-key"];

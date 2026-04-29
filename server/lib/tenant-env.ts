@@ -36,4 +36,5 @@ export const TenantSecretKey = {
   SlackBotToken: "SLACK_BOT_TOKEN",
   SlackSigningSecret: "SLACK_SIGNING_SECRET",
   WebhookHmacSecret: "WEBHOOK_HMAC_SECRET",
+  OpenAIApiKey: "OPENAI_API_KEY",
 } as const;

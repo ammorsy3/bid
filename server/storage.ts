@@ -80,6 +80,9 @@ import {
   purchaseOrders,
   type PurchaseOrder,
   type InsertPurchaseOrder,
+  notificationPreferences,
+  type NotificationPreference,
+  type InsertNotificationPreference,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, asc, desc, ilike, or, isNull, sql, gte, count, ne, lt } from "drizzle-orm";
@@ -294,6 +297,24 @@ export interface IStorage {
   deleteAiChatSession(id: string): Promise<void>;
   getAiChatMessages(sessionId: string): Promise<AiChatMessage[]>;
   createAiChatMessage(message: InsertAiChatMessage): Promise<AiChatMessage>;
+
+  // ============================================================================
+  // NOTIFICATION PREFERENCES
+  // ============================================================================
+  getNotificationPreferences(userId: string, companyId: string): Promise<NotificationPreference[]>;
+  setNotificationPreference(
+    userId: string,
+    companyId: string,
+    category: string,
+    channel: string,
+    enabled: boolean,
+  ): Promise<NotificationPreference>;
+  filterRecipientsByPreference<R extends { userId: string }>(
+    recipients: R[],
+    companyId: string,
+    category: string,
+    channel: string,
+  ): Promise<R[]>;
 
   // ============================================================================
   // NEGOTIATION ACTION OPERATIONS
@@ -1833,6 +1854,74 @@ export class DatabaseStorage implements IStorage {
   async createAiChatMessage(message: InsertAiChatMessage): Promise<AiChatMessage> {
     const [created] = await db.insert(aiChatMessages).values(message).returning();
     return created;
+  }
+
+  // ============================================================================
+  // NOTIFICATION PREFERENCES
+  // ============================================================================
+
+  async getNotificationPreferences(
+    userId: string,
+    companyId: string,
+  ): Promise<NotificationPreference[]> {
+    return db
+      .select()
+      .from(notificationPreferences)
+      .where(and(
+        eq(notificationPreferences.userId, userId),
+        eq(notificationPreferences.companyId, companyId),
+      ));
+  }
+
+  async setNotificationPreference(
+    userId: string,
+    companyId: string,
+    category: string,
+    channel: string,
+    enabled: boolean,
+  ): Promise<NotificationPreference> {
+    const [row] = await db
+      .insert(notificationPreferences)
+      .values({ userId, companyId, category, channel, enabled })
+      .onConflictDoUpdate({
+        target: [
+          notificationPreferences.userId,
+          notificationPreferences.companyId,
+          notificationPreferences.category,
+          notificationPreferences.channel,
+        ],
+        set: { enabled, updatedAt: new Date() },
+      })
+      .returning();
+    return row;
+  }
+
+  /**
+   * Drop recipients whose preference for (companyId, category, channel) is
+   * explicitly disabled. Missing rows mean "enabled" (default-on), so a user
+   * who has never touched their prefs receives everything.
+   * One-shot query: pulls all opt-outs for this company × category × channel
+   * in a single round-trip, then filters in-memory.
+   */
+  async filterRecipientsByPreference<R extends { userId: string }>(
+    recipients: R[],
+    companyId: string,
+    category: string,
+    channel: string,
+  ): Promise<R[]> {
+    if (recipients.length === 0) return recipients;
+    const optedOut = await db
+      .select({ userId: notificationPreferences.userId })
+      .from(notificationPreferences)
+      .where(and(
+        eq(notificationPreferences.companyId, companyId),
+        eq(notificationPreferences.category, category),
+        eq(notificationPreferences.channel, channel),
+        eq(notificationPreferences.enabled, false),
+      ));
+    if (optedOut.length === 0) return recipients;
+    const muted = new Set(optedOut.map((r) => r.userId));
+    return recipients.filter((r) => !muted.has(r.userId));
   }
 
   // ============================================================================

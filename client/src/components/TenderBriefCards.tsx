@@ -25,8 +25,10 @@ import {
   List,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
 type AnyRecord = Record<string, any>;
+type TFn = (key: string, vars?: Record<string, string | number>) => string;
 
 interface Props {
   tender: AnyRecord;
@@ -34,10 +36,10 @@ interface Props {
   companyCity?: string;
 }
 
-const CATEGORY_META: Record<string, { label: string; color: string }> = {
-  technical: { label: "Technical", color: "bg-blue-500" },
-  financial: { label: "Financial", color: "bg-green-500" },
-  experience: { label: "Experience", color: "bg-purple-500" },
+const CATEGORY_META: Record<string, { tKey: string; color: string }> = {
+  technical: { tKey: "briefCatTechnical", color: "bg-blue-500" },
+  financial: { tKey: "briefCatFinancial", color: "bg-green-500" },
+  experience: { tKey: "briefCatExperience", color: "bg-purple-500" },
 };
 
 const FORM_CARD_ICON: Record<string, any> = {
@@ -77,29 +79,33 @@ function Card({
   );
 }
 
-function formatBudget(tender: AnyRecord): string | null {
+function formatBudget(tender: AnyRecord, t: TFn): string | null {
   const { budget, budgetMin, budgetMax } = tender;
   if (Number.isFinite(budgetMin) && Number.isFinite(budgetMax)) {
-    return `${Number(budgetMin).toLocaleString()} – ${Number(budgetMax).toLocaleString()} SAR`;
+    return t("copilot.briefBudgetRange", {
+      min: Number(budgetMin).toLocaleString(),
+      max: Number(budgetMax).toLocaleString(),
+    });
   }
-  if (Number.isFinite(budgetMin)) return `from ${Number(budgetMin).toLocaleString()} SAR`;
-  if (Number.isFinite(budgetMax)) return `up to ${Number(budgetMax).toLocaleString()} SAR`;
+  if (Number.isFinite(budgetMin)) return t("copilot.briefBudgetFrom", { amount: Number(budgetMin).toLocaleString() });
+  if (Number.isFinite(budgetMax)) return t("copilot.briefBudgetUpTo", { amount: Number(budgetMax).toLocaleString() });
   if (typeof budget === "string" && budget.trim()) return budget.trim();
   return null;
 }
 
-function formatSubmissionType(t: string | undefined): string {
-  switch (t) {
-    case "quote_only": return "Price quote only";
-    case "tech_fin_proposal": return "Technical + financial proposal";
-    case "video_only": return "Video pitch only";
-    case "tech_fin_with_video": return "Tech + financial proposal + video pitch";
-    default: return t || "";
+function formatSubmissionType(submissionType: string | undefined, t: TFn): string {
+  switch (submissionType) {
+    case "quote_only": return t("copilot.briefSubTypeQuoteOnly");
+    case "tech_fin_proposal": return t("copilot.briefSubTypeTechFin");
+    case "video_only": return t("copilot.briefSubTypeVideoOnly");
+    case "tech_fin_with_video": return t("copilot.briefSubTypeTechFinVideo");
+    default: return submissionType || "";
   }
 }
 
 export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
-  const budgetStr = formatBudget(tender);
+  const { t } = useI18n();
+  const budgetStr = formatBudget(tender, t);
   const hasDates = !!(tender.startDate || tender.endDate || tender.projectTimeline || tender.duration);
   const deliverables: any[] = Array.isArray(tender.deliverables) ? tender.deliverables : [];
   const milestones: any[] = Array.isArray(tender.milestones) ? tender.milestones : [];
@@ -124,10 +130,10 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-          {tender.title || "Untitled RFP"}
+          {tender.title || t("copilot.briefUntitled")}
         </h1>
         <p className="text-sm text-gray-500">
-          {companyName || "Your Company"}
+          {companyName || t("copilot.briefYourCompany")}
           {companyCity ? ` • ${companyCity}` : ""}
           {tender.category ? ` • ${tender.category}` : ""}
         </p>
@@ -135,16 +141,16 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
 
       {/* Description + objective */}
       {(tender.description || tender.objective) && (
-        <Card title="Project Scope" icon={FileText} iconClass="text-orange-500">
+        <Card title={t("copilot.briefProjectScope")} icon={FileText} iconClass="text-orange-500">
           {tender.objective && (
             <div className="mb-3">
-              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">Objective</p>
+              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">{t("copilot.briefObjective")}</p>
               <p className="text-sm text-gray-700 dark:text-gray-300">{tender.objective}</p>
             </div>
           )}
           {tender.description && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">Description</p>
+              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">{t("copilot.briefDescription")}</p>
               <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
                 {tender.description}
               </p>
@@ -154,23 +160,23 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
       )}
 
       {/* Meta grid */}
-      <Card title="RFP Details">
+      <Card title={t("copilot.briefRfpDetails")}>
         <div className="grid grid-cols-2 gap-4">
           <div className="flex items-start gap-3">
             <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
             <div>
-              <p className="text-xs text-gray-500">Submission Deadline</p>
+              <p className="text-xs text-gray-500">{t("copilot.briefSubmissionDeadline")}</p>
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {tender.deadline || "Not set"}
+                {tender.deadline || t("copilot.briefNotSet")}
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <DollarSign className="h-5 w-5 text-gray-400 mt-0.5" />
             <div>
-              <p className="text-xs text-gray-500">Budget</p>
+              <p className="text-xs text-gray-500">{t("copilot.briefBudget")}</p>
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {budgetStr || "Not specified"}
+                {budgetStr || t("copilot.briefNotSpecified")}
               </p>
             </div>
           </div>
@@ -178,7 +184,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
             <div className="flex items-start gap-3">
               <Clock className="h-5 w-5 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">Timeline</p>
+                <p className="text-xs text-gray-500">{t("copilot.briefTimeline")}</p>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                   {tender.startDate && tender.endDate
                     ? `${tender.startDate} → ${tender.endDate}`
@@ -191,7 +197,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
             <div className="flex items-start gap-3">
               <Target className="h-5 w-5 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">Project Size</p>
+                <p className="text-xs text-gray-500">{t("copilot.briefProjectSize")}</p>
                 <p className="text-sm font-medium capitalize text-gray-900 dark:text-white">
                   {tender.projectSize}
                 </p>
@@ -202,7 +208,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
             <div className="flex items-start gap-3">
               <Building2 className="h-5 w-5 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">Category</p>
+                <p className="text-xs text-gray-500">{t("copilot.briefCategory")}</p>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">{tender.category}</p>
               </div>
             </div>
@@ -212,7 +218,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
 
       {/* Skills */}
       {skills.length > 0 && (
-        <Card title="Required Skills" icon={Star} iconClass="text-indigo-500">
+        <Card title={t("copilot.briefRequiredSkills")} icon={Star} iconClass="text-indigo-500">
           <div className="flex flex-wrap gap-1.5">
             {skills.map((s, i) => (
               <span
@@ -228,7 +234,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
 
       {/* Deliverables */}
       {deliverables.length > 0 && (
-        <Card title="Key Deliverables" icon={Target} iconClass="text-green-500">
+        <Card title={t("copilot.briefKeyDeliverables")} icon={Target} iconClass="text-green-500">
           <ul className="space-y-2">
             {deliverables.map((d: any, i: number) => (
               <li key={d.id || i} className="flex items-start gap-2">
@@ -254,7 +260,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
 
       {/* Milestones */}
       {milestones.length > 0 && (
-        <Card title="Milestones & Payments" icon={Flag} iconClass="text-purple-500">
+        <Card title={t("copilot.briefMilestones")} icon={Flag} iconClass="text-purple-500">
           <ol className="space-y-3">
             {milestones.map((m: any, i: number) => (
               <li key={m.id || i} className="flex gap-3">
@@ -270,12 +276,12 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
                   <div className="flex gap-2 mt-1 flex-wrap">
                     {m.dueDate && (
                       <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
-                        Due {m.dueDate}
+                        {t("copilot.briefDue", { date: m.dueDate })}
                       </span>
                     )}
                     {m.amount && (
                       <span className="text-xs px-1.5 py-0.5 rounded bg-green-50 text-green-700">
-                        {m.amount} SAR
+                        {t("copilot.briefMilestoneAmount", { amount: m.amount })}
                       </span>
                     )}
                   </div>
@@ -288,10 +294,10 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
 
       {/* Vendor requirements */}
       {vendorRequirements.length > 0 && (
-        <Card title="Vendor Eligibility" icon={Shield} iconClass="text-rose-500">
+        <Card title={t("copilot.briefVendorEligibility")} icon={Shield} iconClass="text-rose-500">
           {mandatory.length > 0 && (
             <div className="mb-3">
-              <p className="text-xs uppercase tracking-wide text-rose-600 mb-1.5">Mandatory</p>
+              <p className="text-xs uppercase tracking-wide text-rose-600 mb-1.5">{t("copilot.briefMandatory")}</p>
               <ul className="space-y-1.5">
                 {mandatory.map((r: any, i: number) => (
                   <li key={r.id || i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
@@ -304,7 +310,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
           )}
           {preferred.length > 0 && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1.5">Preferred</p>
+              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1.5">{t("copilot.briefPreferred")}</p>
               <ul className="space-y-1.5">
                 {preferred.map((r: any, i: number) => (
                   <li key={r.id || i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -320,7 +326,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
 
       {/* Evaluation criteria */}
       {hasEval && (
-        <Card title="Evaluation Criteria" icon={Star} iconClass="text-amber-500">
+        <Card title={t("copilot.briefEvaluation")} icon={Star} iconClass="text-amber-500">
           {evalWeights.length > 0 && (
             <>
               <div className="flex h-2 rounded-full overflow-hidden mb-2">
@@ -336,7 +342,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
                 {evalWeights.map((w: any, i: number) => (
                   <div key={w.categoryId || i} className="flex items-center gap-1.5 text-xs text-gray-700 dark:text-gray-300">
                     <span className={cn("w-2 h-2 rounded-full", CATEGORY_META[w.categoryId]?.color || "bg-gray-400")} />
-                    <span>{CATEGORY_META[w.categoryId]?.label || w.categoryId}</span>
+                    <span>{CATEGORY_META[w.categoryId]?.tKey ? t(`copilot.${CATEGORY_META[w.categoryId].tKey}`) : w.categoryId}</span>
                     <span className="text-gray-500">{w.weight}%</span>
                   </div>
                 ))}
@@ -345,7 +351,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
           )}
           {evalCustom.length > 0 && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1.5">Additional criteria</p>
+              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1.5">{t("copilot.briefAdditionalCriteria")}</p>
               <ul className="space-y-1">
                 {evalCustom.map((c: any, i: number) => (
                   <li key={c.id || i} className="flex items-center justify-between text-sm">
@@ -363,29 +369,29 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
 
       {/* Submission requirements */}
       {hasSubmissionSection && tender.submissionType && (
-        <Card title="Submission Requirements" icon={ClipboardCheck} iconClass="text-cyan-500">
-          <p className="text-sm text-gray-700 dark:text-gray-300">{formatSubmissionType(tender.submissionType)}</p>
+        <Card title={t("copilot.briefSubmissionReq")} icon={ClipboardCheck} iconClass="text-cyan-500">
+          <p className="text-sm text-gray-700 dark:text-gray-300">{formatSubmissionType(tender.submissionType, t)}</p>
           {tender.submissionType === "tech_fin_with_video" && tender.videoRequired && (
-            <p className="text-xs text-orange-600 mt-1">Video pitch is mandatory.</p>
+            <p className="text-xs text-orange-600 mt-1">{t("copilot.briefVideoMandatory")}</p>
           )}
           {tender.deadline && (
-            <p className="text-xs text-gray-500 mt-1">Deadline: {tender.deadline}</p>
+            <p className="text-xs text-gray-500 mt-1">{t("copilot.briefDeadlineLabel", { date: tender.deadline })}</p>
           )}
         </Card>
       )}
 
       {/* Q&A */}
       {tender.inquiryType && (
-        <Card title="Questions & Clarifications" icon={MessageSquare} iconClass="text-blue-500">
+        <Card title={t("copilot.briefQuestions")} icon={MessageSquare} iconClass="text-blue-500">
           {tender.inquiryType === "inside_bid" ? (
             <p className="text-sm text-gray-700 dark:text-gray-300">
-              Vendors submit questions inside the platform; answers are shared publicly with all bidders.
+              {t("copilot.briefInsideQA")}
             </p>
           ) : (
             <div className="space-y-1.5 text-sm text-gray-700 dark:text-gray-300">
-              <p>Vendors contact the requester directly:</p>
-              {tender.emailContact && <p>• Email: {tender.emailContact}</p>}
-              {tender.whatsappContact && <p>• WhatsApp: {tender.whatsappContact}</p>}
+              <p>{t("copilot.briefDirectContact")}</p>
+              {tender.emailContact && <p>• {t("copilot.briefEmail")}: {tender.emailContact}</p>}
+              {tender.whatsappContact && <p>• {t("copilot.briefWhatsapp")}: {tender.whatsappContact}</p>}
             </div>
           )}
         </Card>
@@ -393,7 +399,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
 
       {/* Additional context (media) */}
       {hasMedia && (
-        <Card title="Additional Context" icon={Mic} iconClass="text-violet-500">
+        <Card title={t("copilot.briefAdditional")} icon={Mic} iconClass="text-violet-500">
           {tender.voiceNoteUrl && (
             <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 mb-1.5">
               <Mic className="h-4 w-4 text-violet-500" />
@@ -408,7 +414,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
               className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"
             >
               <Video className="h-4 w-4" />
-              Watch video explainer
+              {t("copilot.briefWatchVideo")}
             </a>
           )}
         </Card>
@@ -416,7 +422,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
 
       {/* Attachments */}
       {hasAttachments && (
-        <Card title="Attachments" icon={Paperclip} iconClass="text-gray-500">
+        <Card title={t("copilot.briefAttachments")} icon={Paperclip} iconClass="text-gray-500">
           <ul className="space-y-1">
             {tender.attachments.map((a: any, i: number) => (
               <li key={a.id || i} className="flex items-center gap-2 text-sm">
@@ -435,7 +441,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
 
       {/* Custom form cards */}
       {formCards.length > 0 && (
-        <Card title="Additional Requirements" icon={ClipboardCheck} iconClass="text-teal-500">
+        <Card title={t("copilot.briefAdditionalReq")} icon={ClipboardCheck} iconClass="text-teal-500">
           <ul className="space-y-3">
             {formCards.map((c: any, i: number) => {
               const Icon = FORM_CARD_ICON[c.type] || Hash;
@@ -446,7 +452,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
                     <span className="text-sm font-medium text-gray-900 dark:text-white">{c.label}</span>
                     {c.isRequired && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 uppercase tracking-wide">
-                        Required
+                        {t("copilot.briefRequiredPill")}
                       </span>
                     )}
                   </div>

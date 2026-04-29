@@ -10,6 +10,7 @@ import { db } from "../../db";
 import { apiKeys, integrations, integrationLogs, type Integration } from "@shared/schema";
 import { and, eq, isNull, desc } from "drizzle-orm";
 import { generateApiKey, ALL_SCOPES } from "../../lib/api-keys";
+import { logIntegrationEvent } from "../../lib/integration-logs";
 import type { AuthRequest } from "../../middleware/auth-types";
 
 interface MiddlewareDeps {
@@ -78,6 +79,15 @@ export function registerIntegrationsAdminRoutes(app: Express, deps: MiddlewareDe
         })
         .returning();
 
+      logIntegrationEvent({
+        companyId: req.auth!.activeCompanyId!,
+        apiKeyId: row.id,
+        action: "api_key.created",
+        status: "ok",
+        actorUserId: req.auth!.userId,
+        requestPreview: `name="${row.name}" scopes=[${(row.scopes || []).join(",")}] prefix=${row.prefix}`,
+      });
+
       res.status(201).json({
         id: row.id,
         name: row.name,
@@ -102,6 +112,16 @@ export function registerIntegrationsAdminRoutes(app: Express, deps: MiddlewareDe
         .where(and(eq(apiKeys.id, req.params.id), eq(apiKeys.companyId, req.auth!.activeCompanyId!), isNull(apiKeys.revokedAt)))
         .returning();
       if (result.length === 0) return res.status(404).json({ message: "API key not found" });
+
+      logIntegrationEvent({
+        companyId: req.auth!.activeCompanyId!,
+        apiKeyId: result[0].id,
+        action: "api_key.revoked",
+        status: "ok",
+        actorUserId: req.auth!.userId,
+        requestPreview: `name="${result[0].name}" prefix=${result[0].prefix}`,
+      });
+
       res.json({ ok: true });
     } catch (err) {
       console.error("[admin/integrations] revoke key error:", err);

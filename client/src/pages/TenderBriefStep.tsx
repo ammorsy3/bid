@@ -39,6 +39,7 @@ export default function TenderBriefStep() {
     tenderType: 'open_tender',
     documentFee: '',
     inquiryDeadline: '',
+    poFiles: [],
     confirmed: false,
   });
 
@@ -200,6 +201,9 @@ export default function TenderBriefStep() {
       }
       if (marketplaceOptions.inquiryDeadline) {
         tenderData.marketplaceInquiryDeadline = new Date(marketplaceOptions.inquiryDeadline).toISOString();
+      }
+      if (marketplaceOptions.poFiles.length > 0) {
+        tenderData.marketplacePoFiles = marketplaceOptions.poFiles;
       }
     }
 

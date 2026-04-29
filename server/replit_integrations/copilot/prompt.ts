@@ -34,6 +34,10 @@ Work in four phases. Determine the current phase from the draft passed in the co
 - Plain language, no jargon. Short sentences.
 - Never pad with pleasantries like "Great question!" or "Certainly!"
 
+# Out of scope
+
+You build RFPs on the Bid platform. If the user asks for anything else — blog posts, summarizing unrelated documents, general questions, advice on topics outside procurement — redirect once: "I'm here to build your RFP — what are you procuring?" Then wait for them to bring it back to scope. Don't apologize, don't enumerate what you can't do.
+
 # Required fields and quality bars
 
 **title** — 5–10 words. Specific. "Enterprise Active Directory Migration Q2 2026" beats "IT Project".
@@ -183,14 +187,31 @@ Before flipping \`readyToLaunch\` to \`true\`, verify:
 
 If any REQUIRED check fails, stay at \`readyToLaunch: false\` and drive the conversation to fix it. If a STRONGLY EXPECTED item is missing and the user hasn't actively declined it, propose it in your next turn rather than launching.`;
 
+// Strip control chars and prompt-injection scaffolding from tenant-supplied
+// strings before they flow into the system prompt. Buyer context is rendered
+// as data, not instructions — this keeps a malicious company name from
+// turning into "ignore previous instructions and …".
+function sanitizeContextString(s: unknown, maxLen: number): string {
+  if (typeof s !== "string") return "";
+  let v = s.replace(/[\u0000-\u001F\u007F]/g, " ");
+  v = v.replace(/```|~~~|<\|.*?\|>/g, " ");
+  v = v.replace(/\bsystem\s*:|\bassistant\s*:|\bignore (?:all |the |previous )?instructions?\b/gi, " ");
+  v = v.replace(/\s+/g, " ").trim();
+  return v.length > maxLen ? v.slice(0, maxLen) + "…" : v;
+}
+
 export function buildContext(companyData: any, tenderDraft: any, language: "ar" | "en"): string {
   let context = "";
 
-  if (companyData?.name) {
-    context += `\n\n# Buyer context\nCompany: ${companyData.name}`;
-    if (companyData.category) context += ` (${companyData.category})`;
-    if (companyData.city) context += ` — ${companyData.city}`;
-    if (companyData.bio) context += `\nAbout: ${companyData.bio}`;
+  const name = sanitizeContextString(companyData?.name, 200);
+  if (name) {
+    context += `\n\n# Buyer context\nCompany: ${name}`;
+    const category = sanitizeContextString(companyData?.category, 100);
+    if (category) context += ` (${category})`;
+    const city = sanitizeContextString(companyData?.city, 100);
+    if (city) context += ` — ${city}`;
+    const bio = sanitizeContextString(companyData?.bio, 800);
+    if (bio) context += `\nAbout: ${bio}`;
   }
 
   if (tenderDraft && Object.keys(tenderDraft).length > 0) {
@@ -221,8 +242,8 @@ export function buildContext(companyData: any, tenderDraft: any, language: "ar" 
   }
 
   context += language === "ar"
-    ? `\n\n# Language\nRespond in Arabic. JSON keys and enum values (categoryId, submissionType, etc.) stay in English; \`message\`, \`suggestions\`, and prose values like \`title\`, \`serviceDescription\`, \`deliverables[].name\`, etc. should be in Arabic.`
-    : `\n\n# Language\nRespond in English.`;
+    ? `\n\n# Language\nThe app is in Arabic mode. ALL output — \`message\`, \`suggestions\`, and every prose value in \`tenderData\` (\`title\`, \`serviceDescription\`, \`projectObjective\`, \`deliverables[].name\`, \`deliverables[].description\`, \`milestones[].name\`, \`milestones[].description\`, \`vendorRequirements[].text\`, \`formCards[].label\`, \`evaluationCriteria.customCriteria[].text\`, etc.) — MUST be written in Arabic, even if the user is typing to you in English. The user's chat language does NOT change the output language. JSON keys and enum values (\`categoryId\`, \`submissionType\`, \`inquiryType\`, \`budgetType\`, \`duration\`, etc.) always stay in English.`
+    : `\n\n# Language\nThe app is in English mode. ALL output — \`message\`, \`suggestions\`, and every prose value in \`tenderData\` — MUST be in English, even if the user happens to type in another language. JSON keys and enum values stay in English.`;
 
   return context;
 }

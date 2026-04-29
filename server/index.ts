@@ -2,6 +2,7 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { startIntegrationLogsCleanup } from "./jobs/integration-logs-cleanup";
 
 process.on("SIGTERM", () => process.exit(0));
 process.on("SIGINT", () => process.exit(0));
@@ -75,4 +76,6 @@ app.use((req, res, next) => {
     });
 
   await startListen(40);
+
+  startIntegrationLogsCleanup();
 })();

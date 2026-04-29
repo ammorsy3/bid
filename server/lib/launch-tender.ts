@@ -17,11 +17,17 @@ import { sendTenderCreatedNotification } from "../email";
 
 export type TenderCreationSource = "web" | "api_key" | "webhook" | "mcp";
 
+export interface LaunchMarketplacePoFile {
+  fileUrl: string;
+  originalName?: string | null;
+}
+
 export interface LaunchMarketplaceOptions {
   publishToMarketplace?: boolean;
   marketplaceTenderType?: string;
   marketplaceDocumentFee?: number | null;
   marketplaceInquiryDeadline?: string | null;
+  marketplacePoFiles?: LaunchMarketplacePoFile[];
 }
 
 export interface LaunchTenderContext {
@@ -131,6 +137,26 @@ export async function launchTenderFromPayload(
       userId: ctx.user.id,
       metadata: { tenderId: tender.id },
     });
+
+    const poFiles = ctx.marketplace.marketplacePoFiles ?? [];
+    if (poFiles.length > 0) {
+      console.log(`[launchTender] creating ${poFiles.length} PO record(s) for tender ${tender.id}`);
+    }
+    for (const po of poFiles) {
+      if (!po?.fileUrl) continue;
+      try {
+        await storage.createPurchaseOrder({
+          tenderId: tender.id,
+          uploadedBy: ctx.user.id,
+          fileUrl: po.fileUrl,
+          originalName: po.originalName ?? null,
+          notes: null,
+          status: "pending",
+        });
+      } catch (err) {
+        console.error("[launchTender] failed to save PO file:", err);
+      }
+    }
   }
 
   if (!tender.category || tender.category === "Other") {
@@ -189,6 +215,23 @@ function assertMarketplaceOptionsValid(opts: LaunchMarketplaceOptions) {
     if (isNaN(d.getTime())) {
       throw new MarketplaceValidationError("Invalid inquiry deadline date");
     }
+    if (d.getTime() < Date.now()) {
+      throw new MarketplaceValidationError(
+        "Inquiry deadline must be in the future",
+      );
+    }
+  }
+  if (opts.marketplacePoFiles != null) {
+    if (!Array.isArray(opts.marketplacePoFiles)) {
+      throw new MarketplaceValidationError("marketplacePoFiles must be an array");
+    }
+    for (const po of opts.marketplacePoFiles) {
+      if (!po || typeof po.fileUrl !== "string" || po.fileUrl.length === 0) {
+        throw new MarketplaceValidationError(
+          "Each PO file must include a fileUrl",
+        );
+      }
+    }
   }
 }
 
@@ -201,16 +244,23 @@ function scheduleTenderPostCreationTasks(
   (async () => {
     try {
       const members = await storage.getCompanyMembers(ctx.company.id);
-      const recipients = members
+      const recipientsAll = members
         .filter(
           (m: any) =>
             (m.roleInCompany === "owner" || m.roleInCompany === "admin") && m.user.email,
         )
         .map((m: any) => ({
+          userId: m.user.id as string,
           email: m.user.email as string,
           name: m.user.name || undefined,
           language: (m.user.language || "en") as "en" | "ar",
         }));
+      const recipients = await storage.filterRecipientsByPreference(
+        recipientsAll,
+        ctx.company.id,
+        "tender_lifecycle",
+        "email",
+      );
       console.log(
         `[Email] Tender created — sending to ${recipients.length} recipient(s):`,
         recipients.map((r: any) => r.email),

@@ -51,6 +51,7 @@ export default function TenderReview() {
     tenderType: 'open_tender',
     documentFee: '',
     inquiryDeadline: '',
+    poFiles: [],
     confirmed: false,
   });
 
@@ -355,6 +356,9 @@ export default function TenderReview() {
         }
         if (marketplaceOptions.inquiryDeadline) {
           tenderData.marketplaceInquiryDeadline = new Date(marketplaceOptions.inquiryDeadline).toISOString();
+        }
+        if (marketplaceOptions.poFiles.length > 0) {
+          tenderData.marketplacePoFiles = marketplaceOptions.poFiles;
         }
       }
       const response = await apiRequest("POST", "/api/tenders", tenderData);

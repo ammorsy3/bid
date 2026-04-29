@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Upload, User, Users, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield, Crown, MoreVertical, FileCheck2, CheckCircle2, Palette, Eye, ExternalLink, History, FileText, Send, Activity, Plug, ChevronRight } from "lucide-react";
+import { X, Upload, User, Users, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield, Crown, MoreVertical, FileCheck2, CheckCircle2, Palette, Eye, ExternalLink, History, FileText, Send, Activity, Plug, ChevronRight, Bell } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,6 +22,7 @@ import { usePageTour } from "@/lib/tour";
 import { SETTINGS_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import type { UploadResult } from "@/components/ObjectUploader";
+import { SettingsNotifications } from "@/pages/SettingsNotifications";
 
 const TIMEZONES = [
   { value: "Asia/Riyadh", label: "Riyadh (GMT+3)" },
@@ -41,7 +42,7 @@ const LANGUAGES = [
 
 type ThemeOption = "light" | "dark" | "system";
 
-type SettingsTab = "account" | "company";
+type SettingsTab = "account" | "company" | "notifications";
 
 const VERIFICATION_DOCUMENT_SLOTS = [
   { type: 'cr_certificate', label: 'Commercial Registration (CR)', description: 'Saudi CR certificate issued by the Ministry of Commerce', required: true },
@@ -721,6 +722,7 @@ export default function Settings() {
   const sidebarItems = [
     { id: "account" as const, label: user.name || user.username, icon: null, isUser: true },
     { id: "company" as const, label: activeCompany.name, icon: Building2, isCompany: true },
+    { id: "notifications" as const, label: t('notifications.sidebar'), icon: Bell, isNotifications: true },
   ];
 
   return (
@@ -767,6 +769,10 @@ export default function Settings() {
               {item.isUser ? (
                 <div className="h-6 w-6 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
                   {getInitials(user.name || user.username)}
+                </div>
+              ) : item.icon ? (
+                <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                  <item.icon className="h-3 w-3" />
                 </div>
               ) : (
                 <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
@@ -1467,6 +1473,8 @@ export default function Settings() {
               </div>
             </div>
           )}
+
+          {activeTab === "notifications" && <SettingsNotifications />}
         </div>
       </div>
     </div>

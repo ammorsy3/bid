@@ -728,6 +728,29 @@ export const integrationLogs = pgTable("integration_logs", {
 export type IntegrationLog = typeof integrationLogs.$inferSelect;
 export type InsertIntegrationLog = typeof integrationLogs.$inferInsert;
 
+// Notification Preferences — one row per (user, company, category, channel).
+// Missing rows default to enabled=true so existing users are never silently
+// muted. Each row controls only that user's own incoming notifications;
+// there is no path to mute another user.
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
+  // 'new_proposal' | 'proposal_decision' | 'award_outcome' | 'negotiation_activity'
+  // | 'tender_lifecycle' | 'qa_activity' | 'company_admin'
+  category: varchar("category", { length: 32 }).notNull(),
+  // 'email' | 'in_app' | 'sms'
+  channel: varchar("channel", { length: 16 }).notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  uniq: uniqueIndex("notif_prefs_unique").on(t.userId, t.companyId, t.category, t.channel),
+  byUserCompany: index("notif_prefs_user_company_idx").on(t.userId, t.companyId),
+}));
+
+export type NotificationPreference = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
+
 // Tender Q&A - Anonymous questions from vendors, answered by requester
 export const tenderQuestions = pgTable("tender_questions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

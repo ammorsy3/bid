@@ -5,7 +5,12 @@
 import { db } from "../db";
 import { integrationLogs } from "@shared/schema";
 
-export type IntegrationLogAction = "message" | "launch" | "error";
+export type IntegrationLogAction =
+  | "message"
+  | "launch"
+  | "error"
+  | "api_key.created"
+  | "api_key.revoked";
 export type IntegrationLogStatus = "ok" | "4xx" | "5xx" | "rate_limited" | "idempotent_replay";
 
 export interface IntegrationLogEvent {
@@ -21,6 +26,13 @@ export interface IntegrationLogEvent {
   latencyMs?: number;
   requestPreview?: string;
   responsePreview?: string;
+  /**
+   * For lifecycle events (api_key.created, api_key.revoked) — the user who
+   * performed the action. Stored in `request_preview` so we don't need a
+   * schema migration for this rare case; queries can filter by action and
+   * read the preview to find the actor.
+   */
+  actorUserId?: string;
 }
 
 const PREVIEW_MAX = 500;
@@ -32,6 +44,12 @@ function truncate(s: string | undefined | null, max: number = PREVIEW_MAX): stri
 
 /** Fire-and-forget. Never throws — a failed log must not break the request. */
 export function logIntegrationEvent(event: IntegrationLogEvent): void {
+  // For lifecycle events, encode the actor in requestPreview so a single
+  // schema serves both traffic logs and admin events.
+  const requestPreview = event.actorUserId
+    ? truncate(`actor=${event.actorUserId}${event.requestPreview ? ` ${event.requestPreview}` : ""}`)
+    : truncate(event.requestPreview);
+
   db.insert(integrationLogs)
     .values({
       companyId: event.companyId,
@@ -44,7 +62,7 @@ export function logIntegrationEvent(event: IntegrationLogEvent): void {
       requestBytes: event.requestBytes,
       responseBytes: event.responseBytes,
       latencyMs: event.latencyMs,
-      requestPreview: truncate(event.requestPreview),
+      requestPreview,
       responsePreview: truncate(event.responsePreview),
     })
     .catch((err) => {

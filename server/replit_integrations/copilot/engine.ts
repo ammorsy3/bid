@@ -1,9 +1,15 @@
 import OpenAI from "openai";
 import { SYSTEM_PROMPT, buildContext } from "./prompt";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Default to gpt-4.1; override via COPILOT_OPENAI_MODEL so we don't redeploy
+// to switch models. Per-tenant override flows through CopilotTurnInput.
+const DEFAULT_MODEL = process.env.COPILOT_OPENAI_MODEL || "gpt-4.1";
+const sharedOpenAI = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+function clientFor(apiKey?: string): OpenAI {
+  if (apiKey && apiKey.trim()) return new OpenAI({ apiKey: apiKey.trim() });
+  return sharedOpenAI;
+}
 
 const MIN_DESCRIPTION_WORDS = 50;
 const MIN_DELIVERABLES = 2;
@@ -100,6 +106,15 @@ export interface CopilotTurnInput {
    * and only voice/content can be tweaked per tenant.
    */
   persona?: string;
+  /**
+   * Optional per-tenant OpenAI API key. When set, overrides the shared
+   * OPENAI_API_KEY for this turn so a tenant can bring their own billing.
+   */
+  apiKey?: string;
+  /**
+   * Optional model override. Defaults to COPILOT_OPENAI_MODEL env or gpt-4.1.
+   */
+  model?: string;
 }
 
 export interface CopilotTurnResult {
@@ -189,8 +204,8 @@ function finalizeResult(raw: string, tenderDraft: unknown): CopilotTurnResult {
 export async function runCopilotTurn(input: CopilotTurnInput): Promise<CopilotTurnResult> {
   const messages = buildMessages(input);
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4.1",
+  const completion = await clientFor(input.apiKey).chat.completions.create({
+    model: input.model || DEFAULT_MODEL,
     messages,
     max_completion_tokens: 2048,
     response_format: { type: "json_object" },
@@ -216,8 +231,8 @@ export async function* runCopilotTurnStream(
 ): AsyncGenerator<CopilotStreamEvent, void, undefined> {
   const messages = buildMessages(input);
 
-  const stream = await openai.chat.completions.create({
-    model: "gpt-4.1",
+  const stream = await clientFor(input.apiKey).chat.completions.create({
+    model: input.model || DEFAULT_MODEL,
     messages,
     stream: true,
     max_completion_tokens: 2048,

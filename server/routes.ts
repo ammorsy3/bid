@@ -64,7 +64,12 @@ const upload = multer({
   }
 });
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
+  throw new Error(
+    "JWT_SECRET env var is required and must be at least 16 characters",
+  );
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -2250,11 +2255,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           marketplaceTenderType,
           marketplaceDocumentFee,
           marketplaceInquiryDeadline,
+          marketplacePoFiles,
         } = req.body as {
           publishToMarketplace?: boolean;
           marketplaceTenderType?: string;
           marketplaceDocumentFee?: number | null;
           marketplaceInquiryDeadline?: string | null;
+          marketplacePoFiles?: { fileUrl: string; originalName?: string | null }[];
         };
 
         const result = await launchTenderFromPayload(req.body, {
@@ -2266,6 +2273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             marketplaceTenderType,
             marketplaceDocumentFee,
             marketplaceInquiryDeadline,
+            marketplacePoFiles,
           },
         });
 
@@ -2578,9 +2586,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (async () => {
           try {
             const members = await storage.getCompanyMembers(tender.companyId!);
-            const recipients = members
+            const recipientsAll = members
               .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const recipients = await storage.filterRecipientsByPreference(
+              recipientsAll, tender.companyId!, 'qa_activity', 'email',
+            );
             await sendTenderQuestionNotification({
               tenderTitle: tender.title || 'Untitled Tender',
               tenderId: tender.id,
@@ -2629,7 +2640,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdAt: updated.createdAt,
         });
 
-        // Fire-and-forget: notify all vendors who submitted offers that Q&A was updated
+        // Fire-and-forget: notify all vendors who submitted offers that Q&A was updated.
+        // Q&A pref is filtered against the vendor's own company prefs (their incoming inbox).
         (async () => {
           try {
             const offers = await storage.getOffersByTender(req.params.id);
@@ -2637,10 +2649,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const vendorRecipients: { email: string; name?: string; language?: 'en' | 'ar' }[] = [];
             for (const companyId of uniqueCompanyIds) {
               const members = await storage.getCompanyMembers(companyId);
-              for (const m of members) {
-                if ((m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email) {
-                  vendorRecipients.push({ email: m.user.email, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' });
-                }
+              const perCompanyAll = members
+                .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+                .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              const perCompany = await storage.filterRecipientsByPreference(
+                perCompanyAll, companyId, 'qa_activity', 'email',
+              );
+              for (const r of perCompany) {
+                vendorRecipients.push({ email: r.email, name: r.name, language: r.language });
               }
             }
             await sendTenderAnswerNotification({
@@ -2760,9 +2776,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             // Always notify requester team
             const members = await storage.getCompanyMembers(tender.companyId!);
-            const requesterRecipients = members
+            const requesterAll = members
               .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const requesterRecipients = await storage.filterRecipientsByPreference(
+              requesterAll, tender.companyId!, 'tender_lifecycle', 'email',
+            );
 
             if (['published', 'closed', 'cancelled'].includes(status)) {
               await sendTenderStatusNotification({
@@ -2784,10 +2803,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const vendorRecipients: { email: string; name?: string; language?: 'en' | 'ar' }[] = [];
               for (const companyId of uniqueCompanyIds) {
                 const vendorMembers = await storage.getCompanyMembers(companyId);
-                for (const m of vendorMembers) {
-                  if ((m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email) {
-                    vendorRecipients.push({ email: m.user.email, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' });
-                  }
+                const perCompanyAll = vendorMembers
+                  .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+                  .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+                const perCompany = await storage.filterRecipientsByPreference(
+                  perCompanyAll, companyId, 'tender_lifecycle', 'email',
+                );
+                for (const r of perCompany) {
+                  vendorRecipients.push({ email: r.email, name: r.name, language: r.language });
                 }
               }
               await sendTenderClosedToVendorsNotification({
@@ -3750,9 +3773,12 @@ Respond with ONLY a JSON object. Example:
             const adminMembers = members.filter(
               m => m.roleInCompany === 'owner' || m.roleInCompany === 'admin'
             );
-            const recipients = adminMembers
+            const recipientsAll = adminMembers
               .filter(m => m.user.email)
-              .map(m => ({ email: m.user.email, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              .map(m => ({ userId: m.user.id, email: m.user.email, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const recipients = await storage.filterRecipientsByPreference(
+              recipientsAll, tender.companyId!, 'new_proposal', 'email',
+            );
 
             const vendorProfile = await storage.getCompanyProfile(req.auth!.activeCompanyId!);
             const vendorDisplayName = vendorProfile?.displayName || company.name;
@@ -3952,9 +3978,13 @@ Respond with ONLY a JSON object. Example:
               const requesterName = requesterProfile?.displayName || requesterCompany?.name || 'Unknown';
 
               const vendorMembers = await storage.getCompanyMembers(offer.companyId);
-              const recipients = vendorMembers
+              const recipientsAll = vendorMembers
                 .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-                .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+                .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              // Filter against the vendor company's prefs — their incoming inbox.
+              const recipients = await storage.filterRecipientsByPreference(
+                recipientsAll, offer.companyId, 'proposal_decision', 'email',
+              );
 
               await sendOfferDecisionNotification({
                 outcome: status,
@@ -4223,27 +4253,33 @@ Respond with ONLY a JSON object. Example:
 
             for (const action of createdActions) {
               const vendorMembers = await storage.getCompanyMembers(action.companyId);
-              const vendorRecipients = vendorMembers
+              const vendorRecipientsAll = vendorMembers
                 .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-                .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+                .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
 
               if (action.actionType === 'award') {
-                // Notify winning vendor unconditionally
+                // Filter against vendor company prefs — `award_outcome` covers wins.
+                const awardRecipients = await storage.filterRecipientsByPreference(
+                  vendorRecipientsAll, action.companyId, 'award_outcome', 'email',
+                );
                 await sendAwardNotification({
                   tenderTitle: tender.title || 'Untitled Tender',
                   tenderId: tender.id,
                   requesterCompanyName: requesterName,
                   message: action.message || undefined,
-                  recipients: vendorRecipients,
+                  recipients: awardRecipients,
                 });
               } else if (['resubmission_request', 'discount_request', 'free_message'].includes(action.actionType)) {
+                const negotiationRecipients = await storage.filterRecipientsByPreference(
+                  vendorRecipientsAll, action.companyId, 'negotiation_activity', 'email',
+                );
                 await sendNegotiationActionNotification({
                   actionType: action.actionType as 'resubmission_request' | 'discount_request' | 'free_message' | 'rejection',
                   tenderTitle: tender.title || 'Untitled Tender',
                   tenderId: tender.id,
                   requesterCompanyName: requesterName,
                   message: action.message,
-                  recipients: vendorRecipients,
+                  recipients: negotiationRecipients,
                 });
               }
             }
@@ -4436,9 +4472,12 @@ Respond with ONLY a JSON object. Example:
         (async () => {
           try {
             const vendorMembers = await storage.getCompanyMembers(joinRequest.vendorCompanyId!);
-            const recipients = vendorMembers
+            const recipientsAll = vendorMembers
               .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const recipients = await storage.filterRecipientsByPreference(
+              recipientsAll, joinRequest.vendorCompanyId!, 'company_admin', 'email',
+            );
             const requesterProfile = await storage.getCompanyProfile(joinRequest.requesterCompanyId!);
             const requesterCompany = await storage.getCompany(joinRequest.requesterCompanyId!);
             const requesterName = requesterProfile?.displayName || requesterCompany?.name || 'Unknown';
@@ -4496,9 +4535,12 @@ Respond with ONLY a JSON object. Example:
         (async () => {
           try {
             const vendorMembers = await storage.getCompanyMembers(joinRequest.vendorCompanyId!);
-            const recipients = vendorMembers
+            const recipientsAll = vendorMembers
               .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const recipients = await storage.filterRecipientsByPreference(
+              recipientsAll, joinRequest.vendorCompanyId!, 'company_admin', 'email',
+            );
             const requesterProfile = await storage.getCompanyProfile(joinRequest.requesterCompanyId!);
             const requesterCompany = await storage.getCompany(joinRequest.requesterCompanyId!);
             const requesterName = requesterProfile?.displayName || requesterCompany?.name || 'Unknown';
@@ -4691,9 +4733,12 @@ Respond with ONLY a JSON object. Example:
         (async () => {
           try {
             const requesterMembers = await storage.getCompanyMembers(result.company.id);
-            const recipients = requesterMembers
+            const recipientsAll = requesterMembers
               .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const recipients = await storage.filterRecipientsByPreference(
+              recipientsAll, result.company.id, 'company_admin', 'email',
+            );
             const vendorProfile = await storage.getCompanyProfile(req.auth!.activeCompanyId!);
             const vendorCompany = await storage.getCompany(req.auth!.activeCompanyId!);
             const vendorName = vendorProfile?.displayName || vendorCompany?.name || 'Unknown Vendor';
@@ -5005,9 +5050,12 @@ Respond with ONLY a JSON object. Example:
       (async () => {
         try {
           const members = await storage.getCompanyMembers(companyId);
-          const recipients = members
+          const recipientsAll = members
             .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-            .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+          const recipients = await storage.filterRecipientsByPreference(
+            recipientsAll, companyId, 'company_admin', 'email',
+          );
           const profile = await storage.getCompanyProfile(companyId);
           const company = await storage.getCompany(companyId);
           const companyName = profile?.displayName || company?.name || 'Your Company';
@@ -5041,9 +5089,12 @@ Respond with ONLY a JSON object. Example:
       (async () => {
         try {
           const members = await storage.getCompanyMembers(companyId);
-          const recipients = members
+          const recipientsAll = members
             .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-            .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+          const recipients = await storage.filterRecipientsByPreference(
+            recipientsAll, companyId, 'company_admin', 'email',
+          );
           const profile = await storage.getCompanyProfile(companyId);
           const company = await storage.getCompany(companyId);
           const companyName = profile?.displayName || company?.name || 'Your Company';
@@ -5365,9 +5416,19 @@ Respond with ONLY a JSON object. Example:
 
   app.post("/api/ai-chat-sessions", authenticateToken, async (req, res) => {
     try {
+      const MAX_SESSIONS_PER_USER = 100;
+      const userId = req.auth!.userId;
+      const companyId = req.auth!.activeCompanyId || undefined;
+      const existing = await storage.getAiChatSessions(userId, companyId);
+      if (existing.length >= MAX_SESSIONS_PER_USER) {
+        return res.status(409).json({
+          message: `You've reached the limit of ${MAX_SESSIONS_PER_USER} chat sessions. Delete some old ones to start a new chat.`,
+          limit: MAX_SESSIONS_PER_USER,
+        });
+      }
       const session = await storage.createAiChatSession({
-        userId: req.auth!.userId,
-        companyId: req.auth!.activeCompanyId || null,
+        userId,
+        companyId: companyId ?? null,
         title: req.body.title || "New Chat",
         tenderId: req.body.tenderId || null,
         tenderData: req.body.tenderData || null,
@@ -5432,6 +5493,77 @@ Respond with ONLY a JSON object. Example:
       res.status(201).json(message);
     } catch (error) {
       console.error("Error creating AI chat message:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ============================================================================
+  // NOTIFICATION PREFERENCES
+  // ============================================================================
+
+  // Allow-lists kept in routes.ts so an unknown category/channel from the
+  // client can never accidentally land in the table.
+  const NOTIF_CATEGORIES = [
+    "new_proposal",
+    "proposal_decision",
+    "award_outcome",
+    "negotiation_activity",
+    "tender_lifecycle",
+    "qa_activity",
+    "company_admin",
+  ] as const;
+  const NOTIF_CHANNELS = ["email", "in_app", "sms"] as const;
+
+  app.get("/api/notification-preferences", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const auth = req.auth!;
+      const userId = auth.userId;
+      const companyId = auth.activeCompanyId;
+      if (!companyId) {
+        return res.status(400).json({ message: "No active company on this auth context" });
+      }
+      const rows = await storage.getNotificationPreferences(userId, companyId);
+      res.json(
+        rows.map((r) => ({
+          category: r.category,
+          channel: r.channel,
+          enabled: r.enabled,
+        })),
+      );
+    } catch (error) {
+      console.error("Error fetching notification preferences:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.patch("/api/notification-preferences", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const auth = req.auth!;
+      const userId = auth.userId;
+      const companyId = auth.activeCompanyId;
+      if (!companyId) {
+        return res.status(400).json({ message: "No active company on this auth context" });
+      }
+      const { category, channel, enabled } = req.body ?? {};
+      if (typeof category !== "string" || !(NOTIF_CATEGORIES as readonly string[]).includes(category)) {
+        return res.status(400).json({ message: "Invalid category" });
+      }
+      if (typeof channel !== "string" || !(NOTIF_CHANNELS as readonly string[]).includes(channel)) {
+        return res.status(400).json({ message: "Invalid channel" });
+      }
+      if (typeof enabled !== "boolean") {
+        return res.status(400).json({ message: "`enabled` must be a boolean" });
+      }
+      const row = await storage.setNotificationPreference(
+        userId,
+        companyId,
+        category,
+        channel,
+        enabled,
+      );
+      res.json({ category: row.category, channel: row.channel, enabled: row.enabled });
+    } catch (error) {
+      console.error("Error updating notification preference:", error);
       res.status(500).json({ message: "Server error" });
     }
   });

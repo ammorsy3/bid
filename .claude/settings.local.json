@@ -162,10 +162,31 @@
       "Bash(env)",
       "mcp__linear__linear_getViewer",
       "mcp__linear__linear_getTeams",
-      "mcp__linear__linear_getIssues"
+      "mcp__linear__linear_getIssues",
+      "WebFetch(domain:www.anthropic.com)",
+      "WebFetch(domain:linear.app)",
+      "mcp__linear__list_teams",
+      "mcp__linear__list_issues",
+      "mcp__linear__list_projects",
+      "Bash(awk 'NR==192 {for\\(i=1;i<=length\\($0\\);i++\\){c=substr\\($0,i,1\\);printf \"%d:[%s]=0x%02x\\\\n\",i,c,sprintf\\(\"%c\",c\\)+0}}' /home/runner/workspace/server/replit_integrations/copilot/prompt.ts)",
+      "mcp__linear__get_issue",
+      "Bash(awk '/^    marketplace: \\\\{/,/^    \\\\},$/' /home/runner/workspace/client/src/lib/i18n.tsx)",
+      "mcp__linear__save_comment",
+      "mcp__linear__save_issue",
+      "Bash(touch /tmp/claude-server-restart-needed)",
+      "Bash(bash -c 'if [ -f /tmp/claude-server-restart-needed ]; then rm -f /tmp/claude-server-restart-needed; printf \"would-pkill-tsx\\\\n\"; printf \"would-start-npm-run-dev\\\\n\"; printf \"%s\\\\n\" \"{\\\\\"systemMessage\\\\\":\\\\\"Dev server restarted \\(server-side edits detected\\)\\\\\"}\"; fi')",
+      "Bash(rm -f /tmp/claude-server-restart-needed)",
+      "Bash(bash -c 'if [ -f /tmp/claude-server-restart-needed ]; then rm -f /tmp/claude-server-restart-needed; pkill -f \"tsx server/index.ts\" 2>/dev/null; \\(nohup npm run dev > /tmp/claude-dev-server.log 2>&1 < /dev/null &\\) ; printf \"%s\\\\n\" \"{\\\\\"systemMessage\\\\\":\\\\\"Dev server restarted \\(server-side edits detected\\)\\\\\"}\"; fi')",
+      "Bash(cp .claude/settings.local.json /tmp/settings.local.json.bak)",
+      "Bash(jq --argjson hooks '{\"PostToolUse\":[{\"matcher\":\"Write|Edit\",\"hooks\":[{\"type\":\"command\",\"command\":\"jq -r '\\\\''.tool_input.file_path // empty'\\\\'' | grep -qE '\\\\''/\\(server|shared\\)/'\\\\'' && touch /tmp/claude-server-restart-needed; true\"}]}],\"Stop\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"if [ -f /tmp/claude-server-restart-needed ]; then rm -f /tmp/claude-server-restart-needed; pkill -f '\\\\''tsx server/index.ts'\\\\'' 2>/dev/null; \\(cd /home/runner/workspace && nohup npm run dev > /tmp/claude-dev-server.log 2>&1 < /dev/null &\\) ; printf '\\\\''%s\\\\\\\\n'\\\\'' '\\\\''{\\\\\"systemMessage\\\\\":\\\\\"Dev server restarted \\(server-side edits detected\\)\\\\\"}'\\\\''; fi\"}]}]}' '. + {hooks: $hooks}' .claude/settings.local.json)",
+      "Bash(mv /tmp/settings.local.json.new .claude/settings.local.json)",
+      "Bash(pkill -f 'tsx server/index.ts')",
+      "Bash(awk '{print $2, $9, $10, $11, $12, $13}')"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "stitch"
+    "stitch",
+    "linear"
   ]
 }

@@ -79,8 +79,8 @@ export default function AdminAwards() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/companies/pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/metrics"] });
       toast({
-        title: "Company verified & award unblocked",
-        description: "The vendor has been verified and their award has been released.",
+        title: t('admin.awardVerifyAndUnblockedTitle'),
+        description: t('admin.awardVerifyAndUnblockedDesc'),
       });
       handleClose();
     },

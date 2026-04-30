@@ -11,15 +11,7 @@ import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { CheckCircle, XCircle } from "lucide-react";
 
-const resetSchema = z.object({
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(6),
-}).refine((d) => d.password === d.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
-
-type ResetForm = z.infer<typeof resetSchema>;
+type ResetForm = { password: string; confirmPassword: string };
 
 export default function ResetPassword() {
   const search = useSearch();
@@ -31,7 +23,15 @@ export default function ResetPassword() {
   const [invalid, setInvalid] = useState(!token);
 
   const form = useForm<ResetForm>({
-    resolver: zodResolver(resetSchema),
+    resolver: zodResolver(
+      z.object({
+        password: z.string().min(6, t('validation.passwordMin')),
+        confirmPassword: z.string().min(6, t('validation.passwordMin')),
+      }).refine((d) => d.password === d.confirmPassword, {
+        message: t('validation.passwordsNoMatch'),
+        path: ["confirmPassword"],
+      })
+    ),
     defaultValues: { password: "", confirmPassword: "" },
   });
 

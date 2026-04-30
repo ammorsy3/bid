@@ -78,18 +78,18 @@ export default function VerifyEmail() {
       await apiRequest('POST', '/api/auth/send-otp', {});
       setResendCooldown(60);
       toast({
-        title: "Code sent",
-        description: `We sent a verification code to ${user?.email}.`,
+        title: t('onboardingPanel.codeSentTitle'),
+        description: t('onboardingPanel.codeSentDesc', { email: user?.email ?? '' }),
       });
     } catch (error: any) {
       if (error.message?.includes("Too many")) {
         toast({
-          title: "Rate limited",
-          description: "Too many attempts. Please wait before requesting another code.",
+          title: t('onboardingPanel.rateLimitedTitle'),
+          description: t('onboardingPanel.rateLimitedDesc'),
           variant: "destructive",
         });
       } else {
-        let description = "Something went wrong. Please use the resend button.";
+        let description = t('onboardingPanel.sendCodeErrorDesc');
         try {
           const raw = error?.message ?? '';
           const jsonStr = raw.includes(': ') ? raw.slice(raw.indexOf(': ') + 2) : raw;
@@ -97,7 +97,7 @@ export default function VerifyEmail() {
           if (parsed?.message) description = parsed.message;
         } catch {}
         toast({
-          title: "Couldn't send code",
+          title: t('onboardingPanel.sendCodeErrorTitle'),
           description,
           variant: "destructive",
         });
@@ -110,8 +110,8 @@ export default function VerifyEmail() {
     if (!trimmed) return;
     if (trimmed.toLowerCase() === user?.email.toLowerCase()) {
       toast({
-        title: "Same email",
-        description: "This is already your current email address.",
+        title: t('onboardingPanel.sameEmailTitle'),
+        description: t('onboardingPanel.sameEmailDesc'),
         variant: "destructive",
       });
       return;
@@ -126,11 +126,11 @@ export default function VerifyEmail() {
       setChangeEmailOpen(false);
       setNewEmail("");
       toast({
-        title: "Email updated",
-        description: `A new verification code was sent to ${trimmed}.`,
+        title: t('onboardingPanel.emailUpdatedTitle'),
+        description: t('onboardingPanel.emailUpdatedDesc', { email: trimmed }),
       });
     } catch (error: any) {
-      let description = "Couldn't update your email. Please try again.";
+      let description = t('onboardingPanel.changeEmailErrorDesc') || "Couldn't update your email. Please try again.";
       try {
         const raw = error?.message ?? '';
         const jsonStr = raw.includes(': ') ? raw.slice(raw.indexOf(': ') + 2) : raw;
@@ -138,7 +138,7 @@ export default function VerifyEmail() {
         if (parsed?.message) description = parsed.message;
       } catch {}
       toast({
-        title: "Couldn't change email",
+        title: t('onboardingPanel.changeEmailErrorTitle'),
         description,
         variant: "destructive",
       });
@@ -212,8 +212,8 @@ export default function VerifyEmail() {
         sessionStorage.removeItem('otp_sent_by_login');
         await checkAuth();
         toast({
-          title: "Email verified",
-          description: "Your email has been verified successfully.",
+          title: t('onboardingPanel.emailVerifiedTitle'),
+          description: t('onboardingPanel.emailVerifiedDesc'),
         });
 
         const { activeCompany } = useAuthStore.getState();
@@ -229,8 +229,8 @@ export default function VerifyEmail() {
       }
     } catch (error: any) {
       toast({
-        title: "Verification failed",
-        description: error.message || "Invalid or expired code. Please try again.",
+        title: t('onboardingPanel.verifyFailedTitle'),
+        description: error.message || t('onboardingPanel.verifyFailedDesc'),
         variant: "destructive",
       });
       setCode(["", "", "", "", "", ""]);

@@ -24,6 +24,7 @@ import {
   Calendar as CalendarIcon, CloudOff,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // ═══════════════════════════════════════════════════════════════════
 // Types & constants
@@ -642,8 +643,39 @@ export default function CompanyProfileEditor() {
 
   if (isLoading || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      <div className="min-h-screen bg-gray-50" data-testid="loader-page">
+        {/* Header image area */}
+        <Skeleton className="h-48 w-full rounded-none" />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+          {/* Logo + name row */}
+          <div className="flex items-end gap-4 -mt-16">
+            <Skeleton className="h-24 w-24 rounded-xl border-4 border-white flex-shrink-0" />
+            <div className="space-y-2 pb-2">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          </div>
+          {/* Form sections */}
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+              <Skeleton className="h-5 w-40" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-10 w-full rounded-lg" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-10 w-full rounded-lg" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-24 w-full rounded-lg" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

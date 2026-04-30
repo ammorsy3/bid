@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Zap } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 const navLinks = [
   { name: "Features", href: "#features" },
@@ -13,6 +14,7 @@ const navLinks = [
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { t } = useI18n();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,7 +51,7 @@ export const Header = () => {
 
           <div className="hidden md:flex items-center space-x-4">
             <Link href="/login">
-              <Button variant="ghost" data-testid="button-login">Log In</Button>
+              <Button variant="ghost" data-testid="button-login">{t('landing.logIn')}</Button>
             </Link>
             <Link href="/register">
               <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-opacity" data-testid="button-signup">

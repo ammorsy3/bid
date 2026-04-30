@@ -12,6 +12,7 @@ import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useCallback } from "react";
 import VoiceRecorder from "@/components/voice-recorder";
+import VendorRequirementsEditor from "@/components/VendorRequirementsEditor";
 import { apiRequest } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
 
@@ -70,6 +71,21 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
 
     case "attachments":
       return <AttachmentsInput value={card.value || []} onChange={updateValue} readOnly={readOnly} />;
+
+    case "video-url":
+      return (
+        <input
+          type="url"
+          placeholder="https://youtube.com/..."
+          value={card.value || ""}
+          onChange={(e) => updateValue(e.target.value)}
+          disabled={readOnly}
+          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${readOnly ? "cursor-default opacity-60" : ""}`}
+        />
+      );
+
+    case "vendor-requirements":
+      return <VendorRequirementsEditor value={card.value || []} onChange={updateValue} compact />;
 
     case "custom-text":
       return (

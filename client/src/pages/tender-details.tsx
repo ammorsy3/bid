@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ArrowRight, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, FileCheck, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, Handshake, Store, Upload, Globe } from "lucide-react";
+import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ArrowRight, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, FileCheck, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, Handshake, Store, Upload, Globe, Paperclip } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +27,7 @@ import MarketplaceGuide from "@/components/MarketplaceGuide";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import { useI18n } from "@/lib/i18n";
+import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTour, TourBanner } from "@/lib/tour";
 import { TENDER_DETAILS_TOUR_STEPS, TOUR_BANNERS, getSteps } from "@/lib/tour-steps";
 
@@ -97,6 +98,7 @@ const DURATION_LABELS: Record<string, Record<string, string>> = {
 };
 
 function AudioPlayer({ src }: { src: string }) {
+  const { t } = useI18n();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -119,7 +121,7 @@ function AudioPlayer({ src }: { src: string }) {
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
       } catch (err) {
-        setError("Failed to load voice note");
+        setError(t('tenderFlow.failedLoadVoiceNote'));
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -152,7 +154,7 @@ function AudioPlayer({ src }: { src: string }) {
     return (
       <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
         <Loader2 className="h-5 w-5 animate-spin" />
-        <span className="text-sm text-muted-foreground">Loading voice note...</span>
+        <span className="text-sm text-muted-foreground">{t('tenderFlow.loadingVoiceNote')}</span>
       </div>
     );
   }
@@ -161,7 +163,7 @@ function AudioPlayer({ src }: { src: string }) {
     return (
       <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-red-600">
         <AlertCircle className="h-5 w-5" />
-        <span className="text-sm">{error || "Failed to load voice note"}</span>
+        <span className="text-sm">{error || t('tenderFlow.failedLoadVoiceNote')}</span>
       </div>
     );
   }
@@ -531,9 +533,14 @@ export default function TenderDetails() {
       const uploadRes = await fetch(uploadURL, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
       if (!uploadRes.ok) throw new Error('Upload failed');
 
-      const fileUrl = new URL(uploadURL).pathname;
+      // Register ACL ownership and get the canonical "/objects/<entity-id>" path.
+      // See BID-126 — every other upload flow in the app does this; PO uploads
+      // skipping it left files without explicit ACL and stored raw bucket paths.
+      const metaRes = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
+      const { objectPath } = await metaRes.json();
+
       return await apiRequest('POST', `/api/tenders/${id}/purchase-orders`, {
-        fileUrl,
+        fileUrl: objectPath,
         originalName: file.name,
       });
     },
@@ -709,8 +716,50 @@ export default function TenderDetails() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#E25E45]" />
+      <div className="min-h-screen bg-gray-50" dir={isRtl ? "rtl" : "ltr"} data-testid="loader-page">
+        {/* Hero header skeleton */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-5">
+            <Skeleton className="h-4 w-28" />
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 space-y-3">
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-3 w-48" />
+                <Skeleton className="h-9 w-3/4" />
+                <Skeleton className="h-3 w-40" />
+              </div>
+              <div className="flex gap-2 flex-shrink-0 pt-1">
+                <Skeleton className="h-9 w-24 rounded-lg" />
+                <Skeleton className="h-9 w-20 rounded-lg" />
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Body skeleton */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* TOC sidebar */}
+            <div className="hidden lg:block space-y-2">
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-9 w-full rounded-lg" />
+              ))}
+            </div>
+            {/* Main content */}
+            <div className="lg:col-span-3 space-y-6">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+                  <Skeleton className="h-5 w-48" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-5/6" />
+                  <Skeleton className="h-3 w-4/6" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -750,6 +799,10 @@ export default function TenderDetails() {
       : (evalCriteria.weights?.length > 0 || evalCriteria.requirements?.length > 0 || evalCriteria.customCriteria?.length > 0)
   );
   const hasInquiryMethod = !!tender.inquiryType;
+  const vendorReqs = (tender.vendorRequirements as Array<{ id: string; text: string; type: 'mandatory' | 'preferred' }> | null | undefined) || [];
+  const hasVendorRequirements = vendorReqs.length > 0;
+  const mandatoryRequirements = vendorReqs.filter(r => r.type === 'mandatory');
+  const preferredRequirements = vendorReqs.filter(r => r.type === 'preferred');
 
   const tocSections = [
     { id: 'description', label: t('tenderFlow.projectScope'),       icon: FileText,    show: true },
@@ -1074,6 +1127,62 @@ export default function TenderDetails() {
                 </div>
                 {/* end § Project Scope */}
 
+                {tender.attachments && tender.attachments.length > 0 && (
+                  <>
+                    <div className="mx-6 sm:mx-8 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                    <div id="section-attachments" className="p-6 sm:p-8 scroll-mt-24">
+                      <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-2">
+                        <Paperclip className="h-4 w-4" /> {t('tenderFlow.attachmentsLabel')}
+                      </h3>
+                      <p className="text-xs text-gray-400 mb-4">{t('tenderFlow.attachmentsHint')}</p>
+                      <div className="space-y-2">
+                        {tender.attachments.map((file) => {
+                          const icon = file.type?.includes('pdf') ? <FileText className="h-5 w-5 text-red-500" />
+                            : (file.type?.includes('sheet') || file.type?.includes('excel') || file.type?.includes('xls')) ? <FileText className="h-5 w-5 text-green-500" />
+                            : file.type?.includes('image') ? <FileText className="h-5 w-5 text-blue-500" />
+                            : <Paperclip className="h-5 w-5 text-gray-500" />;
+                          const sizeStr = file.size < 1024 ? `${file.size} B`
+                            : file.size < 1024 * 1024 ? `${(file.size / 1024).toFixed(1)} KB`
+                            : `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+                          return (
+                            <button
+                              key={file.id}
+                              onClick={async () => {
+                                try {
+                                  const token = localStorage.getItem("token");
+                                  const headers: HeadersInit = {};
+                                  if (token) headers.Authorization = `Bearer ${token}`;
+                                  const response = await fetch(file.url, { headers });
+                                  if (!response.ok) throw new Error("Download failed");
+                                  const blob = await response.blob();
+                                  const blobUrl = URL.createObjectURL(blob);
+                                  const a = document.createElement("a");
+                                  a.href = blobUrl;
+                                  a.download = file.name;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  document.body.removeChild(a);
+                                  URL.revokeObjectURL(blobUrl);
+                                } catch {
+                                  toast({ title: t('tenderFlow.downloadFailed'), description: t('tenderFlow.downloadFailedDesc'), variant: "destructive" });
+                                }
+                              }}
+                              className="w-full flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-300 hover:bg-gray-100 transition-colors group text-left"
+                            >
+                              {icon}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-gray-800 truncate group-hover:text-[#E25E45] transition-colors">{file.name}</p>
+                                <p className="text-xs text-gray-400">{sizeStr}</p>
+                              </div>
+                              <ExternalLink className="h-4 w-4 text-gray-300 group-hover:text-[#E25E45] transition-colors flex-shrink-0" />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 {(tender.voiceNoteUrl || tender.videoUrl) && (
                   <>
                     <div className="mx-6 sm:mx-8 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
@@ -1143,6 +1252,57 @@ export default function TenderDetails() {
                         <Calendar className="h-3.5 w-3.5" />
                         <span>{t('tenderFlow.submissionDeadlinePrefix')} <span className={`font-semibold ${isExpired ? 'text-red-500' : 'text-gray-600'}`}>{formatDate(tender.deadline)}</span></span>
                       </div>
+                    </div>
+                  </>
+                )}
+
+                {hasVendorRequirements && (
+                  <>
+                    <div className="mx-6 sm:mx-8 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                    <div id="section-vendor-requirements" className="p-6 sm:p-8 scroll-mt-24" data-testid="section-vendor-requirements">
+                      <h2 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
+                        <Shield className="h-5 w-5 text-[#E25E45]" />
+                        {t('tenderFlow.vendorRequirementsTitle') || 'Vendor Requirements'}
+                      </h2>
+                      <p className="text-sm text-gray-400 mb-5">
+                        {t('tenderFlow.eligibilityHint') || 'What vendors must (or should) prove to qualify for this RFP.'}
+                      </p>
+
+                      {mandatoryRequirements.length > 0 && (
+                        <div className="mb-5">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
+                            <span className="text-xs font-bold text-red-600 uppercase tracking-wider">{t('tenderFlow.mandatoryLabel') || 'Mandatory'}</span>
+                          </div>
+                          <div className="space-y-2">
+                            {mandatoryRequirements.map((req) => (
+                              <div key={req.id} className="flex items-center gap-3 p-3.5 bg-red-50 border border-red-100 rounded-xl">
+                                <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                                <span className="text-sm text-gray-800 flex-1">{req.text}</span>
+                                <span className="flex-shrink-0 text-xs font-semibold text-red-600 bg-red-100 px-2.5 py-1 rounded-full">{t('tenderFlow.requiredBadge') || 'Required'}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {preferredRequirements.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
+                            <span className="text-xs font-bold text-amber-600 uppercase tracking-wider">{t('tenderFlow.preferredLabel') || 'Preferred'}</span>
+                          </div>
+                          <div className="space-y-2">
+                            {preferredRequirements.map((req) => (
+                              <div key={req.id} className="flex items-center gap-3 p-3.5 bg-amber-50 border border-amber-100 rounded-xl">
+                                <CheckCircle2 className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                                <span className="text-sm text-gray-800 flex-1">{req.text}</span>
+                                <span className="flex-shrink-0 text-xs font-semibold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">{t('tenderFlow.preferredBadge') || 'Preferred'}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
@@ -1434,7 +1594,7 @@ export default function TenderDetails() {
                               <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div className="min-w-0">
-                              <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{t('tenderFlow.contactEmailLabel')}</p>
                               <p className="font-medium text-blue-700 dark:text-blue-300 text-sm truncate">{tender.emailContact}</p>
                             </div>
                           </a>
@@ -1450,7 +1610,7 @@ export default function TenderDetails() {
                               <Phone className="h-4 w-4 text-green-600 dark:text-green-400" />
                             </div>
                             <div className="min-w-0">
-                              <p className="text-xs text-gray-500 dark:text-gray-400">WhatsApp</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{t('tenderFlow.contactWhatsappLabel')}</p>
                               <p className="font-medium text-green-700 dark:text-green-300 text-sm truncate">{tender.whatsappContact}</p>
                             </div>
                           </a>
@@ -1651,7 +1811,7 @@ export default function TenderDetails() {
                             {analysis && analysis.status === 'failed' && (
                               <div className="mx-5 mb-4 flex items-center gap-2 text-xs text-red-500 bg-red-50 rounded-lg p-2 border border-red-100">
                                 <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
-                                <span>Analysis failed: {analysis.errorMessage || 'Unknown error'}</span>
+                                <span>{t('tenderFlow.analysisFailedPrefix')} {analysis.errorMessage || t('tenderFlow.unknownError')}</span>
                               </div>
                             )}
                           </div>
@@ -1959,9 +2119,10 @@ export default function TenderDetails() {
             budget: tender.budget || undefined,
             submissionType: tender.submissionType as any,
             videoRequired: tender.videoRequired ?? undefined,
+            vendorRequirements: tender.vendorRequirements as any,
           }}
           requester={{
-            name: 'Company',
+            name: t('tenderFlow.companyDefault'),
             company: activeCompany?.name
           }}
         />
@@ -2100,7 +2261,7 @@ export default function TenderDetails() {
           {/* Hidden DialogHeader for accessibility */}
           <DialogHeader className="sr-only">
             <DialogTitle>{selectedOffer?.profile?.displayName || selectedOffer?.company.name}</DialogTitle>
-            <DialogDescription>{selectedOffer?.company.category || 'Company Profile'}</DialogDescription>
+            <DialogDescription>{selectedOffer?.company.category || t('tenderFlow.companyProfile')}</DialogDescription>
           </DialogHeader>
         </DialogContent>
       </Dialog>
@@ -2192,7 +2353,7 @@ export default function TenderDetails() {
           )}
           <DialogHeader className="sr-only">
             <DialogTitle>{qaProfileCompany?.displayName || qaProfileCompany?.name}</DialogTitle>
-            <DialogDescription>{qaProfileCompany?.category || 'Company Profile'}</DialogDescription>
+            <DialogDescription>{qaProfileCompany?.category || t('tenderFlow.companyProfile')}</DialogDescription>
           </DialogHeader>
         </DialogContent>
       </Dialog>

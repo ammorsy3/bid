@@ -6,6 +6,7 @@ import { CheckCircle2, Clock, AlertCircle, Edit, FileCheck, ArrowRight } from "l
 import { Link } from "wouter";
 import { format } from "date-fns";
 import { useAuthStore } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 
 interface VendorQualification {
   id: string;
@@ -16,7 +17,8 @@ interface VendorQualification {
 
 export default function VendorStatus() {
   const { user } = useAuthStore();
-  
+  const { t } = useI18n();
+
   const { data: qualification, isLoading } = useQuery<VendorQualification>({
     queryKey: ['/api/vendor/qualification'],
   });
@@ -42,11 +44,11 @@ export default function VendorStatus() {
           badge: (
             <Badge className="bg-success-600 text-white px-4 py-2 text-base">
               <CheckCircle2 className="h-4 w-4 mr-2" />
-              Verified
+              {t('vendorStatus.badgeVerified')}
             </Badge>
           ),
-          title: "Your Account is Verified",
-          description: "Your vendor profile has been reviewed and approved. You can now receive tender invitations and submit proposals.",
+          title: t('vendorStatus.titleVerified'),
+          description: t('vendorStatus.descVerified'),
           bgColor: "bg-success-50",
           borderColor: "border-success-200"
         };
@@ -56,11 +58,11 @@ export default function VendorStatus() {
           badge: (
             <Badge className="bg-primary-600 text-white px-4 py-2 text-base">
               <Clock className="h-4 w-4 mr-2" />
-              Under Review
+              {t('vendorStatus.badgeUnderReview')}
             </Badge>
           ),
-          title: "Your Profile is Under Review",
-          description: "Our team is currently reviewing your compliance documents and company profile. This typically takes 1-3 business days. You'll be notified once the review is complete.",
+          title: t('vendorStatus.titleUnderReview'),
+          description: t('vendorStatus.descUnderReview'),
           bgColor: "bg-primary-50",
           borderColor: "border-primary-200"
         };
@@ -70,11 +72,11 @@ export default function VendorStatus() {
           badge: (
             <Badge variant="outline" className="border-neutral-400 text-neutral-700 px-4 py-2 text-base">
               <AlertCircle className="h-4 w-4 mr-2" />
-              Not Verified
+              {t('vendorStatus.badgeNotVerified')}
             </Badge>
           ),
-          title: "Complete Your Profile to Get Verified",
-          description: "You need to submit your vendor pre-qualification form with all required compliance documents to start receiving tender invitations.",
+          title: t('vendorStatus.titleDefault'),
+          description: t('vendorStatus.descDefault'),
           bgColor: "bg-neutral-50",
           borderColor: "border-neutral-200"
         };
@@ -82,29 +84,24 @@ export default function VendorStatus() {
   };
 
   const statusInfo = getStatusInfo();
-  const lastUpdated = qualification?.updatedAt 
-    ? format(new Date(qualification.updatedAt), "PPpp") 
-    : "Not available";
+  const lastUpdated = qualification?.updatedAt
+    ? format(new Date(qualification.updatedAt), "PPpp")
+    : t('vendorStatus.notAvailable');
 
   return (
     <div className="min-h-screen bg-neutral-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">Account Status</h1>
-          <p className="text-neutral-600">Track your verification status and manage your vendor profile</p>
+          <h1 className="text-3xl font-bold text-neutral-900 mb-2">{t('vendorStatus.accountStatusTitle')}</h1>
+          <p className="text-neutral-600">{t('vendorStatus.accountStatusDesc')}</p>
         </div>
 
-        {/* Status Card */}
         <Card className={`mb-6 border-2 ${statusInfo.borderColor} ${statusInfo.bgColor}`}>
           <CardContent className="p-8">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              {/* Icon */}
               <div className="flex-shrink-0">
                 {statusInfo.icon}
               </div>
-              
-              {/* Status Info */}
               <div className="flex-1">
                 <div className="mb-3">
                   {statusInfo.badge}
@@ -120,12 +117,10 @@ export default function VendorStatus() {
           </CardContent>
         </Card>
 
-        {/* Details Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {/* Last Updated */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Last Updated</CardTitle>
+              <CardTitle className="text-base">{t('vendorStatus.lastUpdatedTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-neutral-600" data-testid="text-last-updated">
@@ -134,11 +129,10 @@ export default function VendorStatus() {
             </CardContent>
           </Card>
 
-          {/* Reviewer Note (if exists) */}
           {qualification?.reviewerNote && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Reviewer Note</CardTitle>
+                <CardTitle className="text-base">{t('vendorStatus.reviewerNoteTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-neutral-700" data-testid="text-reviewer-note">
@@ -149,26 +143,25 @@ export default function VendorStatus() {
           )}
         </div>
 
-        {/* Quick Actions */}
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Manage your vendor profile and compliance</CardDescription>
+            <CardTitle>{t('vendorStatus.quickActionsTitle')}</CardTitle>
+            <CardDescription>{t('vendorStatus.quickActionsDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col sm:flex-row gap-3">
               <Link href="/vendor-prequalification">
                 <a className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full sm:w-auto transition-colors cursor-pointer" data-testid="button-edit-profile">
                   <Edit className="h-4 w-4 mr-2" />
-                  Edit Profile
+                  {t('vendorStatus.editProfile')}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </a>
               </Link>
-              
+
               <Link href="/vendor-prequalification">
                 <a className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full sm:w-auto transition-colors cursor-pointer" data-testid="button-update-compliance">
                   <FileCheck className="h-4 w-4 mr-2" />
-                  Update Compliance
+                  {t('vendorStatus.updateCompliance')}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </a>
               </Link>
@@ -176,7 +169,6 @@ export default function VendorStatus() {
           </CardContent>
         </Card>
 
-        {/* Info Card */}
         {user?.verificationStatus !== 'verified' && (
           <Card className="mt-6 bg-blue-50 border-blue-200">
             <CardContent className="p-6">
@@ -187,11 +179,11 @@ export default function VendorStatus() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-blue-900 mb-1">What's Next?</h3>
+                  <h3 className="font-semibold text-blue-900 mb-1">{t('vendorStatus.whatsNextTitle')}</h3>
                   <p className="text-sm text-blue-800">
-                    {user?.verificationStatus === 'under_review' 
-                      ? "Your documents are being reviewed. You'll receive an email notification once the review is complete."
-                      : "Complete your vendor pre-qualification form with all required documents to get verified and start receiving tender invitations."}
+                    {user?.verificationStatus === 'under_review'
+                      ? t('vendorStatus.whatsNextUnderReview')
+                      : t('vendorStatus.whatsNextDefault')}
                   </p>
                 </div>
               </div>

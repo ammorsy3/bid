@@ -15,17 +15,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 
-const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
-
-const forgotSchema = z.object({
-  email: z.string().email("Invalid email address"),
-});
-type ForgotForm = z.infer<typeof forgotSchema>;
+type LoginForm = { email: string; password: string };
+type ForgotForm = { email: string };
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -38,7 +29,9 @@ export default function Login() {
   const [forgotSent, setForgotSent] = useState(false);
 
   const forgotForm = useForm<ForgotForm>({
-    resolver: zodResolver(forgotSchema),
+    resolver: zodResolver(z.object({
+      email: z.string().email(t('validation.invalidEmail')),
+    })),
     defaultValues: { email: "" },
   });
 
@@ -56,7 +49,10 @@ export default function Login() {
   const redirectUrl = urlParams.get('redirect');
 
   const form = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(z.object({
+      email: z.string().email(t('validation.invalidEmail')),
+      password: z.string().min(6, t('validation.passwordMin')),
+    })),
     defaultValues: {
       email: "",
       password: "",
@@ -255,7 +251,7 @@ export default function Login() {
                       data-testid="checkbox-remember"
                     />
                     <label htmlFor="rememberDevice" className="text-sm text-neutral-600 cursor-pointer select-none">
-                      Remember this device for 7 days
+                      {t('auth.rememberDevice')}
                     </label>
                   </div>
 

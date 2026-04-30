@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
@@ -22,31 +23,27 @@ import { useLocation } from "wouter";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import type { UploadResult } from "@/components/ObjectUploader";
 
-// Helper to count words in bio
 const countWords = (text: string) => text.trim().split(/\s+/).filter(word => word.length > 0).length;
 
-const preQualificationSchema = z.object({
-  // Legal & Compliance
-  legalCompanyName: z.string().min(2, "Company name is required").max(120),
-  crNumber: z.string().regex(/^\d+$/, "CR number must contain only numbers"),
+const makePreQualSchema = (t: (k: string) => string) => z.object({
+  legalCompanyName: z.string().min(2, t('validation.companyNameRequired')).max(120),
+  crNumber: z.string().regex(/^\d+$/, t('validation.crNumberFormat')),
   vatCertificateUrl: z.string().optional(),
   vatNumber: z.string().optional(),
-  gosiCertificateUrl: z.string().min(1, "GOSI certificate is required"),
-  nationalAddressCertificateUrl: z.string().min(1, "National Address certificate is required"),
-  
-  // Public Profile
-  displayName: z.string().min(2, "Display name is required").max(60),
-  logoUrl: z.string().min(1, "Company logo is required"),
+  gosiCertificateUrl: z.string().min(1, t('validation.gosiRequired')),
+  nationalAddressCertificateUrl: z.string().min(1, t('validation.nationalAddressRequired')),
+  displayName: z.string().min(2, t('validation.displayNameRequired')).max(60),
+  logoUrl: z.string().min(1, t('validation.logoRequired')),
   headerUrl: z.string().optional(),
-  bio: z.string().min(5, "Bio must be at least 5 characters").max(100, "Bio must not exceed 100 characters"),
-  category: z.string().min(1, "Please select a category"),
-  profileFileUrl: z.string().min(1, "Company profile is required"),
-  linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  xUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  bio: z.string().min(5, t('validation.bioMin')).max(100, t('validation.bioMax')),
+  category: z.string().min(1, t('validation.categoryRequired')),
+  profileFileUrl: z.string().min(1, t('validation.profileRequired')),
+  linkedinUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
+  xUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
+  websiteUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
 });
 
-type PreQualificationForm = z.infer<typeof preQualificationSchema>;
+type PreQualificationForm = z.infer<ReturnType<typeof makePreQualSchema>>;
 
 const FORM_ID = 'vendor-prequalification';
 const REQUIRED_FIELDS: (keyof PreQualificationForm)[] = [
@@ -58,6 +55,7 @@ export default function VendorPreQualification() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { checkAuth } = useAuthStore();
+  const { t } = useI18n();
   const [, navigate] = useLocation();
   const [uploadedFiles, setUploadedFiles] = useState<{
     vat?: string;
@@ -69,7 +67,7 @@ export default function VendorPreQualification() {
   }>({});
 
   const form = useForm<PreQualificationForm>({
-    resolver: zodResolver(preQualificationSchema),
+    resolver: zodResolver(makePreQualSchema(t)),
     defaultValues: {
       legalCompanyName: "",
       crNumber: "",
@@ -93,7 +91,6 @@ export default function VendorPreQualification() {
   const { lastSaved, isSaving } = useAutosave(FORM_ID, formValues, true);
   const progress = calculateFormProgress(form, REQUIRED_FIELDS);
 
-  // Check if vendor has existing qualification
   const { data: existingQualification } = useQuery({
     queryKey: ['/api/vendor/qualification'],
   });
@@ -101,7 +98,6 @@ export default function VendorPreQualification() {
   useEffect(() => {
     if (existingQualification && typeof existingQualification === 'object') {
       const qual = existingQualification as any;
-      
       form.reset({
         ...qual,
         linkedinUrl: qual.linkedinUrl || "",
@@ -118,17 +114,17 @@ export default function VendorPreQualification() {
     },
     onSuccess: async () => {
       toast({
-        title: "Success!",
-        description: "Your pre-qualification has been submitted for review",
+        title: t('vendorPreQual.toastSuccess'),
+        description: t('vendorPreQual.toastSuccessDesc'),
       });
-      await checkAuth(); // Refresh auth store with updated verification status
+      await checkAuth();
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       navigate('/vendor-dashboard');
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to submit pre-qualification",
+        title: t('vendorPreQual.toastError'),
+        description: error.message || t('vendorPreQual.toastErrorDesc'),
         variant: "destructive",
       });
     },
@@ -141,27 +137,22 @@ export default function VendorPreQualification() {
   const handleGetUploadURL = async () => {
     const response = await apiRequest('POST', '/api/objects/upload', {});
     const data = await response.json();
-    return {
-      method: 'PUT' as const,
-      url: data.uploadURL,
-    };
+    return { method: 'PUT' as const, url: data.uploadURL };
   };
 
   const handleFileUpload = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>, fieldName: keyof PreQualificationForm, fileKey: string) => {
     if (result.successful && result.successful[0]) {
       const uploadURL = result.successful[0].uploadURL;
-      
-      const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', {
-        fileURL: uploadURL,
-      });
+
+      const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
       const { objectPath } = await metadataResponse.json();
-      
+
       form.setValue(fieldName, objectPath, { shouldValidate: true, shouldDirty: true });
       setUploadedFiles(prev => ({ ...prev, [fileKey]: result.successful![0].name }));
-      
+
       toast({
-        title: "Uploaded!",
-        description: `${result.successful[0].name} uploaded successfully`,
+        title: t('vendorPreQual.uploadedTitle'),
+        description: t('vendorPreQual.uploadedDesc', { name: result.successful[0].name }),
       });
     }
   };
@@ -172,19 +163,19 @@ export default function VendorPreQualification() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Sparkles className="h-8 w-8 text-primary-600" />
-            <h1 className="text-3xl font-bold text-neutral-900">Vendor Pre-Qualification</h1>
+            <h1 className="text-3xl font-bold text-neutral-900">{t('vendorPreQual.pageTitle')}</h1>
           </div>
           <p className="text-neutral-600">
-            Complete your profile to start receiving tender invitations. All legal documents are private and used only for verification.
+            {t('vendorPreQual.pageDesc')}
           </p>
         </div>
 
         <div className="mb-6">
-          <FormProgress 
+          <FormProgress
             progress={progress}
             steps={[
-              { label: 'Legal & Compliance', completed: progress >= 50 },
-              { label: 'Public Profile', completed: progress >= 100 },
+              { label: t('vendorPreQual.stepLegal'), completed: progress >= 50 },
+              { label: t('vendorPreQual.stepPublic'), completed: progress >= 100 },
             ]}
           />
         </div>
@@ -195,8 +186,8 @@ export default function VendorPreQualification() {
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-6">
                 <Building2 className="h-5 w-5 text-neutral-700" />
-                <h2 className="text-xl font-semibold text-neutral-900">Legal & Compliance</h2>
-                <Badge variant="outline" className="ml-auto">Private</Badge>
+                <h2 className="text-xl font-semibold text-neutral-900">{t('vendorPreQual.sectionLegalTitle')}</h2>
+                <Badge variant="outline" className="ml-auto">{t('vendorPreQual.sectionPrivate')}</Badge>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -205,10 +196,10 @@ export default function VendorPreQualification() {
                   name="legalCompanyName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Company Name (as per CR) *</FormLabel>
+                      <FormLabel>{t('vendorPreQual.fieldCompanyName')}</FormLabel>
                       <FormControl>
-                        <SmartInput 
-                          {...field} 
+                        <SmartInput
+                          {...field}
                           error={form.formState.errors.legalCompanyName}
                           isDirty={form.formState.dirtyFields.legalCompanyName}
                           data-testid="input-legal-company-name"
@@ -224,9 +215,9 @@ export default function VendorPreQualification() {
                   name="crNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>CR Number *</FormLabel>
+                      <FormLabel>{t('vendorPreQual.fieldCrNumber')}</FormLabel>
                       <FormControl>
-                        <SmartInput 
+                        <SmartInput
                           {...field}
                           onChange={(e) => {
                             const value = e.target.value.replace(/\D/g, '');
@@ -235,7 +226,7 @@ export default function VendorPreQualification() {
                           error={form.formState.errors.crNumber}
                           isDirty={form.formState.dirtyFields.crNumber}
                           data-testid="input-cr-number"
-                          placeholder="Numeric only"
+                          placeholder={t('vendorPreQual.crNumericOnly')}
                         />
                       </FormControl>
                       <FormMessage />
@@ -248,7 +239,7 @@ export default function VendorPreQualification() {
                   name="vatCertificateUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>VAT Certificate (if applicable)</FormLabel>
+                      <FormLabel>{t('vendorPreQual.fieldVatCert')}</FormLabel>
                       <FormControl>
                         <div className="space-y-2">
                           <ObjectUploader
@@ -262,7 +253,7 @@ export default function VendorPreQualification() {
                           >
                             <div className="flex items-center gap-2">
                               <Upload className="h-4 w-4" />
-                              <span>Upload VAT Certificate</span>
+                              <span>{t('vendorPreQual.uploadVatCert')}</span>
                             </div>
                           </ObjectUploader>
                           {uploadedFiles.vat && (
@@ -283,7 +274,7 @@ export default function VendorPreQualification() {
                   name="vatNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>VAT Number (if applicable)</FormLabel>
+                      <FormLabel>{t('vendorPreQual.fieldVatNumber')}</FormLabel>
                       <FormControl>
                         <Input {...field} data-testid="input-vat-number" />
                       </FormControl>
@@ -297,7 +288,7 @@ export default function VendorPreQualification() {
                   name="gosiCertificateUrl"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>GOSI Certificate *</FormLabel>
+                      <FormLabel>{t('vendorPreQual.fieldGosiCert')}</FormLabel>
                       <FormControl>
                         <div className="space-y-2">
                           <ObjectUploader
@@ -311,7 +302,7 @@ export default function VendorPreQualification() {
                           >
                             <div className="flex items-center gap-2">
                               <Upload className="h-4 w-4" />
-                              <span>Upload GOSI Certificate</span>
+                              <span>{t('vendorPreQual.uploadGosiCert')}</span>
                             </div>
                           </ObjectUploader>
                           {uploadedFiles.gosi && (
@@ -332,7 +323,7 @@ export default function VendorPreQualification() {
                   name="nationalAddressCertificateUrl"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>National Address Certificate *</FormLabel>
+                      <FormLabel>{t('vendorPreQual.fieldNatAddressCert')}</FormLabel>
                       <FormControl>
                         <div className="space-y-2">
                           <ObjectUploader
@@ -346,7 +337,7 @@ export default function VendorPreQualification() {
                           >
                             <div className="flex items-center gap-2">
                               <Upload className="h-4 w-4" />
-                              <span>Upload National Address Certificate</span>
+                              <span>{t('vendorPreQual.uploadNatAddressCert')}</span>
                             </div>
                           </ObjectUploader>
                           {uploadedFiles.nationalAddress && (
@@ -368,8 +359,8 @@ export default function VendorPreQualification() {
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-6">
                 <User className="h-5 w-5 text-neutral-700" />
-                <h2 className="text-xl font-semibold text-neutral-900">Public Profile</h2>
-                <Badge className="ml-auto bg-primary-600">Visible to Requesters</Badge>
+                <h2 className="text-xl font-semibold text-neutral-900">{t('vendorPreQual.sectionPublicTitle')}</h2>
+                <Badge className="ml-auto bg-primary-600">{t('vendorPreQual.visibleToRequesters')}</Badge>
               </div>
 
               <div className="space-y-6">
@@ -378,16 +369,16 @@ export default function VendorPreQualification() {
                   name="displayName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Display Name (Public) *</FormLabel>
+                      <FormLabel>{t('vendorPreQual.fieldDisplayName')}</FormLabel>
                       <FormControl>
-                        <SmartInput 
-                          {...field} 
+                        <SmartInput
+                          {...field}
                           error={form.formState.errors.displayName}
                           isDirty={form.formState.dirtyFields.displayName}
                           data-testid="input-display-name"
                         />
                       </FormControl>
-                      <FormDescription>How your company will appear to requesters</FormDescription>
+                      <FormDescription>{t('vendorPreQual.displayNameHint')}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -399,7 +390,7 @@ export default function VendorPreQualification() {
                     name="logoUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Logo *</FormLabel>
+                        <FormLabel>{t('vendorPreQual.fieldLogo')}</FormLabel>
                         <FormControl>
                           <div className="space-y-2">
                             <ObjectUploader
@@ -413,7 +404,7 @@ export default function VendorPreQualification() {
                             >
                               <div className="flex items-center gap-2">
                                 <Upload className="h-4 w-4" />
-                                <span>Upload Logo (512x512 min)</span>
+                                <span>{t('vendorPreQual.uploadLogo')}</span>
                               </div>
                             </ObjectUploader>
                             {uploadedFiles.logo && (
@@ -434,7 +425,7 @@ export default function VendorPreQualification() {
                     name="headerUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Header Image</FormLabel>
+                        <FormLabel>{t('vendorPreQual.fieldHeader')}</FormLabel>
                         <FormControl>
                           <div className="space-y-2">
                             <ObjectUploader
@@ -448,7 +439,7 @@ export default function VendorPreQualification() {
                             >
                               <div className="flex items-center gap-2">
                                 <Upload className="h-4 w-4" />
-                                <span>Upload Header Image</span>
+                                <span>{t('vendorPreQual.uploadHeader')}</span>
                               </div>
                             </ObjectUploader>
                             {uploadedFiles.header && (
@@ -470,13 +461,13 @@ export default function VendorPreQualification() {
                   name="bio"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Short Bio *</FormLabel>
+                      <FormLabel>{t('vendorPreQual.fieldBio')}</FormLabel>
                       <FormControl>
-                        <SmartTextarea 
-                          {...field} 
+                        <SmartTextarea
+                          {...field}
                           rows={6}
                           maxLength={100}
-                          placeholder="Describe your company, services, and expertise (5-100 characters)"
+                          placeholder={t('vendorPreQual.bioPlaceholder')}
                           error={form.formState.errors.bio}
                           isDirty={form.formState.dirtyFields.bio}
                           data-testid="input-bio"
@@ -484,9 +475,9 @@ export default function VendorPreQualification() {
                       </FormControl>
                       <FormDescription>
                         <div className="flex items-center justify-between">
-                          <span>Keep it clear and focused on your services</span>
+                          <span>{t('vendorPreQual.bioHint')}</span>
                           <span className="text-neutral-500">
-                            {(field.value || "").length} / 100 characters
+                            {t('vendorPreQual.bioCharCount', { count: (field.value || "").length })}
                           </span>
                         </div>
                       </FormDescription>
@@ -500,11 +491,11 @@ export default function VendorPreQualification() {
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Category *</FormLabel>
+                      <FormLabel>{t('vendorPreQual.fieldCategory')}</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-category">
-                            <SelectValue placeholder="Select a category" />
+                            <SelectValue placeholder={t('vendorPreQual.categoryPlaceholder')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -515,7 +506,7 @@ export default function VendorPreQualification() {
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormDescription>Select the category that best describes your work</FormDescription>
+                      <FormDescription>{t('vendorPreQual.categoryHint')}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -526,7 +517,7 @@ export default function VendorPreQualification() {
                   name="profileFileUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Company Profile *</FormLabel>
+                      <FormLabel>{t('vendorPreQual.fieldCompanyProfile')}</FormLabel>
                       <FormControl>
                         <div className="space-y-2">
                           <ObjectUploader
@@ -540,7 +531,7 @@ export default function VendorPreQualification() {
                           >
                             <div className="flex items-center gap-2">
                               <FileText className="h-4 w-4" />
-                              <span>Upload Company Brochure (PDF, 1-5 pages recommended)</span>
+                              <span>{t('vendorPreQual.uploadCompanyProfile')}</span>
                             </div>
                           </ObjectUploader>
                           {uploadedFiles.companyProfile && (
@@ -551,7 +542,7 @@ export default function VendorPreQualification() {
                           )}
                         </div>
                       </FormControl>
-                      <FormDescription>Upload a one-pager PDF to introduce your company</FormDescription>
+                      <FormDescription>{t('vendorPreQual.companyProfileHint')}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -563,7 +554,7 @@ export default function VendorPreQualification() {
                     name="linkedinUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>LinkedIn URL</FormLabel>
+                        <FormLabel>{t('vendorPreQual.fieldLinkedin')}</FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="https://linkedin.com/company/..." data-testid="input-linkedin" />
                         </FormControl>
@@ -577,7 +568,7 @@ export default function VendorPreQualification() {
                     name="xUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>X (Twitter) URL</FormLabel>
+                        <FormLabel>{t('vendorPreQual.fieldX')}</FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="https://x.com/..." data-testid="input-x" />
                         </FormControl>
@@ -591,7 +582,7 @@ export default function VendorPreQualification() {
                     name="websiteUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Website URL</FormLabel>
+                        <FormLabel>{t('vendorPreQual.fieldWebsite')}</FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="https://example.com" data-testid="input-website" />
                         </FormControl>
@@ -605,24 +596,28 @@ export default function VendorPreQualification() {
 
             <div className="flex items-center justify-between pt-4">
               <div className="text-sm text-neutral-600">
-                {isSaving ? "Saving..." : lastSaved ? `Last saved: ${lastSaved}` : ""}
+                {isSaving
+                  ? t('vendorPreQual.saving')
+                  : lastSaved
+                  ? t('vendorPreQual.lastSaved', { time: lastSaved })
+                  : ""}
               </div>
               <div className="flex gap-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => navigate('/vendor-dashboard')}
                   data-testid="button-cancel"
                 >
-                  Cancel
+                  {t('vendorPreQual.buttonCancel')}
                 </Button>
-                <Button 
+                <Button
                   type="submit"
                   className="bg-primary-600 hover:bg-primary-700"
                   disabled={submitMutation.isPending || progress < 100}
                   data-testid="button-submit"
                 >
-                  {submitMutation.isPending ? "Submitting..." : "Submit for Review"}
+                  {submitMutation.isPending ? t('vendorPreQual.buttonSubmitting') : t('vendorPreQual.buttonSubmit')}
                 </Button>
               </div>
             </div>

@@ -36,6 +36,8 @@ export function DraggableCard({
     'submission-deadline': t('formBuilder.cardDeadlineLabel'),
     'evaluation-criteria': t('formBuilder.cardEvalLabel'),
     'attachments': t('formBuilder.cardAttachmentsLabel'),
+    'video-url': t('formBuilder.cardVideoUrlLabel') || 'Video URL',
+    'vendor-requirements': t('formBuilder.cardVendorReqsLabel') || 'Vendor Requirements',
   };
 
   const definition = getCardDefinition(card.type);
@@ -60,6 +62,8 @@ export function DraggableCard({
       case "custom-date": return t('formBuilder.inputDatePicker');
       case "evaluation-criteria": return t('formBuilder.inputWeightedCriteria');
       case "attachments": return t('formBuilder.inputFileUpload');
+      case "video-url": return t('formBuilder.inputVideoUrl') || 'Video URL';
+      case "vendor-requirements": return t('formBuilder.inputVendorRequirements') || 'Vendor Requirements';
       case "custom-select": return t('formBuilder.inputDropdown');
       default: return t('formBuilder.inputField');
     }

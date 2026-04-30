@@ -19,39 +19,34 @@ import type { UploadResult } from "@/components/ObjectUploader";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 
-// Step 1: Account credentials
-const step1Schema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  company: z.string().min(2, "Company name is required"),
+const makeStep1Schema = (t: (k: string) => string) => z.object({
+  username: z.string().min(3, t('validation.usernameMin')),
+  email: z.string().email(t('validation.invalidEmail')),
+  password: z.string().min(6, t('validation.passwordMin')),
+  name: z.string().min(2, t('validation.nameMin')),
+  company: z.string().min(2, t('validation.companyNameRequired')),
 });
 
-// Step 2: Vendor pre-qualification (identical to VendorPreQualification)
-const step2Schema = z.object({
-  // Legal & Compliance
-  legalCompanyName: z.string().min(2, "Company name is required").max(120),
-  crNumber: z.string().regex(/^\d+$/, "CR number must contain only numbers"),
+const makeStep2Schema = (t: (k: string) => string) => z.object({
+  legalCompanyName: z.string().min(2, t('validation.companyNameRequired')).max(120),
+  crNumber: z.string().regex(/^\d+$/, t('validation.crNumberFormat')),
   vatCertificateUrl: z.string().optional(),
   vatNumber: z.string().optional(),
-  gosiCertificateUrl: z.string().min(1, "GOSI certificate is required"),
-  nationalAddressCertificateUrl: z.string().min(1, "National Address certificate is required"),
-  
-  // Public Profile
-  displayName: z.string().min(2, "Display name is required").max(60),
-  logoUrl: z.string().min(1, "Company logo is required"),
+  gosiCertificateUrl: z.string().min(1, t('validation.gosiRequired')),
+  nationalAddressCertificateUrl: z.string().min(1, t('validation.nationalAddressRequired')),
+  displayName: z.string().min(2, t('validation.displayNameRequired')).max(60),
+  logoUrl: z.string().min(1, t('validation.logoRequired')),
   headerUrl: z.string().optional(),
-  bio: z.string().min(5, "Bio must be at least 5 characters").max(100, "Bio must not exceed 100 characters"),
-  category: z.string().min(1, "Please select a category"),
-  profileFileUrl: z.string().min(1, "Company profile is required"),
-  linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  xUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  bio: z.string().min(5, t('validation.bioMin')).max(100, t('validation.bioMax')),
+  category: z.string().min(1, t('validation.categoryRequired')),
+  profileFileUrl: z.string().min(1, t('validation.profileRequired')),
+  linkedinUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
+  xUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
+  websiteUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
 });
 
-type Step1Form = z.infer<typeof step1Schema>;
-type Step2Form = z.infer<typeof step2Schema>;
+type Step1Form = z.infer<ReturnType<typeof makeStep1Schema>>;
+type Step2Form = z.infer<ReturnType<typeof makeStep2Schema>>;
 
 // Helper to count words in bio
 const countWords = (text: string) => text.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -80,7 +75,7 @@ export default function VendorOnboarding() {
 
   // Step 1 form
   const step1Form = useForm<Step1Form>({
-    resolver: zodResolver(step1Schema),
+    resolver: zodResolver(makeStep1Schema(t)),
     defaultValues: {
       username: "",
       email: "",
@@ -92,7 +87,7 @@ export default function VendorOnboarding() {
 
   // Step 2 form
   const step2Form = useForm<Step2Form>({
-    resolver: zodResolver(step2Schema),
+    resolver: zodResolver(makeStep2Schema(t)),
     defaultValues: {
       legalCompanyName: "",
       crNumber: "",
@@ -349,7 +344,7 @@ export default function VendorOnboarding() {
                 {/* Legal & Compliance Section */}
                 <Card className="p-6">
                   <div className="flex items-center gap-2 mb-6">
-                    <h3 className="text-lg font-semibold">Legal & Compliance</h3>
+                    <h3 className="text-lg font-semibold">{t('onboarding.legalCompliance')}</h3>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -358,7 +353,7 @@ export default function VendorOnboarding() {
                       name="legalCompanyName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Company Name (as per CR) *</FormLabel>
+                          <FormLabel>{t('onboarding.companyNameAsCR')}</FormLabel>
                           <FormControl>
                             <Input {...field} data-testid="input-legal-company-name" />
                           </FormControl>
@@ -408,7 +403,7 @@ export default function VendorOnboarding() {
                               >
                                 <div className="flex items-center gap-2">
                                   <Upload className="h-4 w-4" />
-                                  <span>Upload VAT Certificate</span>
+                                  <span>{t('onboarding.uploadVatCertificate')}</span>
                                 </div>
                               </ObjectUploader>
                               {uploadedFiles.vat && (
@@ -457,7 +452,7 @@ export default function VendorOnboarding() {
                               >
                                 <div className="flex items-center gap-2">
                                   <Upload className="h-4 w-4" />
-                                  <span>Upload GOSI Certificate</span>
+                                  <span>{t('onboarding.uploadGosiCertificate')}</span>
                                 </div>
                               </ObjectUploader>
                               {uploadedFiles.gosi && (
@@ -478,7 +473,7 @@ export default function VendorOnboarding() {
                       name="nationalAddressCertificateUrl"
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
-                          <FormLabel>National Address Certificate *</FormLabel>
+                          <FormLabel>{t('onboarding.nationalAddressCertificate')}</FormLabel>
                           <FormControl>
                             <div className="space-y-2">
                               <ObjectUploader
@@ -492,7 +487,7 @@ export default function VendorOnboarding() {
                               >
                                 <div className="flex items-center gap-2">
                                   <Upload className="h-4 w-4" />
-                                  <span>Upload National Address Certificate</span>
+                                  <span>{t('onboarding.uploadNationalAddress')}</span>
                                 </div>
                               </ObjectUploader>
                               {uploadedFiles.nationalAddress && (
@@ -513,7 +508,7 @@ export default function VendorOnboarding() {
                 {/* Public Profile Section */}
                 <Card className="p-6">
                   <div className="flex items-center gap-2 mb-6">
-                    <h3 className="text-lg font-semibold">Public Profile</h3>
+                    <h3 className="text-lg font-semibold">{t('onboarding.publicProfile')}</h3>
                   </div>
 
                   <div className="space-y-6">
@@ -522,11 +517,11 @@ export default function VendorOnboarding() {
                       name="displayName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Display Name (Public) *</FormLabel>
+                          <FormLabel>{t('onboarding.displayNamePublic')}</FormLabel>
                           <FormControl>
                             <Input {...field} data-testid="input-display-name" />
                           </FormControl>
-                          <FormDescription>How your company will appear to requesters</FormDescription>
+                          <FormDescription>{t('onboarding.displayNameDesc')}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -538,7 +533,7 @@ export default function VendorOnboarding() {
                         name="logoUrl"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Logo *</FormLabel>
+                            <FormLabel>{t('onboarding.logo')}</FormLabel>
                             <FormControl>
                               <div className="space-y-2">
                                 <ObjectUploader
@@ -552,7 +547,7 @@ export default function VendorOnboarding() {
                                 >
                                   <div className="flex items-center gap-2">
                                     <Upload className="h-4 w-4" />
-                                    <span>Upload Logo (512x512 min)</span>
+                                    <span>{t('onboarding.uploadLogo')}</span>
                                   </div>
                                 </ObjectUploader>
                                 {uploadedFiles.logo && (
@@ -573,7 +568,7 @@ export default function VendorOnboarding() {
                         name="headerUrl"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Header Image</FormLabel>
+                            <FormLabel>{t('onboarding.headerImage')}</FormLabel>
                             <FormControl>
                               <div className="space-y-2">
                                 <ObjectUploader
@@ -587,7 +582,7 @@ export default function VendorOnboarding() {
                                 >
                                   <div className="flex items-center gap-2">
                                     <Upload className="h-4 w-4" />
-                                    <span>Upload Header Image</span>
+                                    <span>{t('onboarding.uploadHeaderImage')}</span>
                                   </div>
                                 </ObjectUploader>
                                 {uploadedFiles.header && (
@@ -609,7 +604,7 @@ export default function VendorOnboarding() {
                       name="bio"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Short Bio *</FormLabel>
+                          <FormLabel>{t('onboarding.shortBio')}</FormLabel>
                           <FormControl>
                             <SmartTextarea 
                               {...field} 
@@ -621,7 +616,7 @@ export default function VendorOnboarding() {
                           </FormControl>
                           <FormDescription>
                             <div className="flex items-center justify-between">
-                              <span>Keep it clear and focused on your services</span>
+                              <span>{t('onboarding.shortBioDesc')}</span>
                               <span className="text-gray-500">
                                 {(field.value || "").length} / 100 characters
                               </span>
@@ -637,7 +632,7 @@ export default function VendorOnboarding() {
                       name="category"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Category *</FormLabel>
+                          <FormLabel>{t('onboarding.category')} *</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-category">
@@ -652,7 +647,7 @@ export default function VendorOnboarding() {
                               ))}
                             </SelectContent>
                           </Select>
-                          <FormDescription>Select the category that best describes your work</FormDescription>
+                          <FormDescription>{t('onboarding.categoryDesc')}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -663,7 +658,7 @@ export default function VendorOnboarding() {
                       name="profileFileUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Company Profile *</FormLabel>
+                          <FormLabel>{t('onboarding.companyProfile')}</FormLabel>
                           <FormControl>
                             <div className="space-y-2">
                               <ObjectUploader
@@ -677,7 +672,7 @@ export default function VendorOnboarding() {
                               >
                                 <div className="flex items-center gap-2">
                                   <Upload className="h-4 w-4" />
-                                  <span>Upload Company Brochure (PDF, 1-5 pages recommended)</span>
+                                  <span>{t('onboarding.uploadCompanyProfile')}</span>
                                 </div>
                               </ObjectUploader>
                               {uploadedFiles.companyProfile && (
@@ -688,7 +683,7 @@ export default function VendorOnboarding() {
                               )}
                             </div>
                           </FormControl>
-                          <FormDescription>Upload a one-pager PDF to introduce your company</FormDescription>
+                          <FormDescription>{t('onboarding.companyProfileDesc')}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -700,7 +695,7 @@ export default function VendorOnboarding() {
                         name="linkedinUrl"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>LinkedIn URL</FormLabel>
+                            <FormLabel>{t('onboarding.linkedinUrl')}</FormLabel>
                             <FormControl>
                               <Input {...field} placeholder="https://linkedin.com/company/..." data-testid="input-linkedin" />
                             </FormControl>
@@ -728,7 +723,7 @@ export default function VendorOnboarding() {
                         name="websiteUrl"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Website URL</FormLabel>
+                            <FormLabel>{t('onboarding.websiteUrl')}</FormLabel>
                             <FormControl>
                               <Input {...field} placeholder="https://example.com" data-testid="input-website" />
                             </FormControl>

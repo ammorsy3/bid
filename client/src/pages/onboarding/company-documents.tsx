@@ -9,6 +9,7 @@ import { ObjectUploader } from "@/components/ObjectUploader";
 import { ArrowLeft, ArrowRight, FileCheck2, Upload, CheckCircle2, SkipForward } from "lucide-react";
 import type { UploadResult } from "@/components/ObjectUploader";
 import OnboardingLayout from "@/components/onboarding-layout";
+import { useI18n } from "@/lib/i18n";
 
 const DRAFT_KEY = "onboarding-draft";
 
@@ -32,41 +33,41 @@ interface DocumentSlot {
   required: boolean;
 }
 
-const DOCUMENT_SLOTS: DocumentSlot[] = [
-  {
-    type: 'cr_certificate',
-    label: 'Commercial Registration (CR)',
-    description: 'Saudi CR certificate issued by the Ministry of Commerce',
-    required: true,
-  },
-  {
-    type: 'vat_certificate',
-    label: 'VAT Certificate',
-    description: 'VAT registration certificate from ZATCA',
-    required: false,
-  },
-  {
-    type: 'gosi_certificate',
-    label: 'GOSI Certificate',
-    description: 'General Organization for Social Insurance certificate',
-    required: false,
-  },
-  {
-    type: 'national_address_certificate',
-    label: 'National Address Certificate',
-    description: 'Registered national address from Saudi Post',
-    required: false,
-  },
-];
-
 export default function CompanyDocuments() {
   const [, setLocation] = useLocation();
   const { user } = useAuthStore();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [uploaded, setUploaded] = useState<Record<string, string>>({});
   const [fileNames, setFileNames] = useState<Record<string, string>>({});
 
-  // Load any previously saved documents from draft
+  const DOCUMENT_SLOTS: DocumentSlot[] = [
+    {
+      type: 'cr_certificate',
+      label: t('onboarding.docCrLabel'),
+      description: t('onboarding.docCrDesc'),
+      required: true,
+    },
+    {
+      type: 'vat_certificate',
+      label: t('onboarding.docVatLabel'),
+      description: t('onboarding.docVatDesc'),
+      required: false,
+    },
+    {
+      type: 'gosi_certificate',
+      label: t('onboarding.docGosiLabel'),
+      description: t('onboarding.docGosiDesc'),
+      required: false,
+    },
+    {
+      type: 'national_address_certificate',
+      label: t('onboarding.docNatLabel'),
+      description: t('onboarding.docNatDesc'),
+      required: false,
+    },
+  ];
+
   useEffect(() => {
     if (!user) { setLocation("/"); return; }
     if (!user.otpVerified) { setLocation("/verify-email"); return; }
@@ -91,10 +92,8 @@ export default function CompanyDocuments() {
       const metaRes = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
       const { objectPath } = await metaRes.json();
 
-      // Update local state
       setUploaded(prev => {
         const next = { ...prev, [docType]: objectPath };
-        // Persist to draft immediately
         const names = fileNames;
         saveDraft({ documents: next, documentNames: { ...names, [docType]: fileName } });
         return next;
@@ -104,13 +103,11 @@ export default function CompanyDocuments() {
         return next;
       });
     } catch {
-      toast({ title: "Upload failed", description: "Could not process the file. Please try again.", variant: "destructive" });
+      toast({ title: t('onboarding.uploadFailed'), description: t('onboarding.uploadFailedDesc'), variant: "destructive" });
     }
   };
 
   const handleNext = () => {
-    // Draft already saved on each upload — just navigate
-    // If no documents uploaded, save empty so the draft is still marked as complete
     if (Object.keys(uploaded).length === 0) {
       saveDraft({ documents: {}, documentNames: {} });
     }
@@ -128,17 +125,17 @@ export default function CompanyDocuments() {
               <FileCheck2 className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">Verification Documents</h2>
-              <p className="text-sm text-neutral-500">Completely optional — skip this if you're not ready</p>
+              <h2 className="text-xl font-bold text-neutral-900">{t('onboarding.verificationDocsTitle')}</h2>
+              <p className="text-sm text-neutral-500">{t('onboarding.verificationDocsOptional')}</p>
             </div>
           </div>
 
           <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-4 mb-6">
             <p className="text-sm text-neutral-600 mb-2">
-              You don't need to upload anything right now. Feel free to skip this step entirely and come back to it later from your settings.
+              {t('onboarding.skipNote1')}
             </p>
             <p className="text-sm text-neutral-500">
-              Uploading these documents lets us verify your company, which unlocks features like creating tenders, submitting proposals, and more. Until then, you can explore the platform freely.
+              {t('onboarding.skipNote2')}
             </p>
           </div>
 
@@ -158,7 +155,7 @@ export default function CompanyDocuments() {
                         <span className="text-sm font-medium text-neutral-900">{slot.label}</span>
                         {slot.required && (
                           <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
-                            Needed for verification
+                            {t('onboarding.neededForVerification')}
                           </span>
                         )}
                       </div>
@@ -166,7 +163,7 @@ export default function CompanyDocuments() {
                       {isUploaded && (
                         <p className="text-xs text-green-600 flex items-center gap-1 mt-1.5">
                           <CheckCircle2 className="h-3.5 w-3.5" />
-                          {fileNames[slot.type] || 'Uploaded'}
+                          {fileNames[slot.type] || t('onboarding.uploadedStatus')}
                         </p>
                       )}
                     </div>
@@ -181,7 +178,7 @@ export default function CompanyDocuments() {
                     >
                       <div className="flex items-center gap-1.5 text-sm">
                         <Upload className="h-3.5 w-3.5" />
-                        {isUploaded ? 'Replace' : 'Upload'}
+                        {isUploaded ? t('onboarding.replaceBtn') : t('onboarding.uploadBtn')}
                       </div>
                     </ObjectUploader>
                   </div>
@@ -197,7 +194,7 @@ export default function CompanyDocuments() {
               onClick={() => setLocation("/onboarding/company-basics")}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
+              {t('onboarding.backBtn')}
             </Button>
             {Object.keys(uploaded).length === 0 ? (
               <Button
@@ -207,7 +204,7 @@ export default function CompanyDocuments() {
                 className="text-neutral-600"
               >
                 <SkipForward className="mr-2 h-4 w-4" />
-                Skip for now
+                {t('onboarding.skipForNow')}
               </Button>
             ) : (
               <Button
@@ -215,7 +212,7 @@ export default function CompanyDocuments() {
                 size="lg"
                 className="bg-[#E25E45] hover:bg-[#d04a32]"
               >
-                Continue
+                {t('onboarding.continueBtn')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             )}

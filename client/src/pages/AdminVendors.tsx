@@ -529,12 +529,14 @@ export default function AdminVendors() {
                   <div>
                     <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
                       {!selectedCompany?.documents?.length
-                        ? "This company has no documents uploaded"
-                        : "Missing Commercial Registration (CR) certificate"
+                        ? t('admin.warnNoDocuments')
+                        : t('admin.warnNoCRCertificate')
                       }
                     </p>
                     <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
-                      Are you sure you want to verify this company without {!selectedCompany?.documents?.length ? 'any documents' : 'a CR certificate'}?
+                      {!selectedCompany?.documents?.length
+                        ? t('admin.warnVerifyWithoutDocuments')
+                        : t('admin.warnVerifyWithoutCR')}
                     </p>
                   </div>
                 </div>

@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +15,8 @@ import { useAuthStore } from "@/lib/auth";
 import {
   ArrowLeft, Loader2, Save, Send, RotateCcw, Plus, X, Check, Copy,
   FileText, Calendar, CalendarIcon, DollarSign, ClipboardList, MessageSquare,
-  ListChecks, Flag, Eye, EyeOff, Scale, Briefcase, Clock as ClockIcon, Shield, ChevronDown
+  ListChecks, Flag, Eye, EyeOff, Scale, Briefcase, Clock as ClockIcon, Shield, ChevronDown,
+  Upload, Paperclip
 } from "lucide-react";
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -27,22 +28,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import VoiceRecorder from "@/components/voice-recorder";
+import VendorRequirementsEditor from "@/components/VendorRequirementsEditor";
 import type { Tender } from "@shared/schema";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-
-const SUBMISSION_TYPE_OPTIONS = [
-  { value: "quote_only", label: "Price Quote Only" },
-  { value: "tech_fin_proposal", label: "Full Proposal (Technical + Financial)" },
-  { value: "video_only", label: "Video Pitch Only" },
-  { value: "tech_fin_with_video", label: "Full Proposal + Video Pitch" },
-  { value: "document_only", label: "Document Only" },
-];
-
-const INQUIRY_TYPE_OPTIONS = [
-  { value: "inside_bid", label: "Anonymous Q&A (through Bid platform)" },
-  { value: "email_whatsapp", label: "Direct Contact (Email & WhatsApp)" },
-];
 
 // ─── Eval Criteria Constants ──────────────────────────────────────────────────
 
@@ -93,25 +83,12 @@ const ENTERPRISE_CRITERIA_CATEGORIES: CriteriaCategory[] = [
   },
 ];
 
-const PRESET_REQUIREMENTS = [
-  { id: "legal_registration", text: "Be legally registered in Saudi Arabia" },
-  { id: "cr_certificate", text: "Valid Commercial Registration (CR) certificate" },
-  { id: "business_license", text: "Valid business license" },
-  { id: "zakat_certificate", text: "Valid Zakat, Tax, and Customs Authority certificate" },
-  { id: "gosi_certificate", text: "Valid GOSI (Social Insurance) certificate" },
-  { id: "no_legal_disputes", text: "No ongoing legal disputes affecting project execution" },
-  { id: "reg_compliance", text: "Must comply with all local regulatory requirements" },
-  { id: "nda", text: "Signed Non-Disclosure Agreement (NDA) required" },
-  { id: "data_protection", text: "Compliance with Saudi data protection and cybersecurity regulations" },
-  { id: "local_content", text: "Commitment to local content regulations (if applicable)" },
-];
-
 // ─── Schema ──────────────────────────────────────────────────────────────────
 
-const editTenderSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().refine(val => val.trim().split(/\s+/).filter(Boolean).length >= 50, "Description must be at least 50 words"),
-  deadline: z.string().min(1, "Deadline is required"),
+const makeEditTenderSchema = (t: (k: string) => string) => z.object({
+  title: z.string().min(3, t('validation.titleMin')),
+  description: z.string().refine(val => val.trim().split(/\s+/).filter(Boolean).length >= 50, t('validation.descriptionMinWords')),
+  deadline: z.string().min(1, t('validation.deadlineRequired')),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   duration: z.string().optional(),
@@ -122,12 +99,13 @@ const editTenderSchema = z.object({
   submissionType: z.string().optional(),
   videoRequired: z.boolean().optional(),
   videoUrl: z.string().optional(),
+  voiceNoteUrl: z.string().optional(),
   inquiryType: z.string().optional(),
   whatsappContact: z.string().optional(),
   emailContact: z.string().optional(),
 });
 
-type EditTenderForm = z.infer<typeof editTenderSchema>;
+type EditTenderForm = z.infer<ReturnType<typeof makeEditTenderSchema>>;
 
 interface Deliverable {
   id: string;
@@ -144,11 +122,6 @@ interface Milestone {
   dueDate: Date | undefined;
 }
 
-const DURATION_LABELS: Record<string, string> = {
-  "6plus": "More than 6 months",
-  "3to6": "3 to 6 months",
-  "1to3": "1 to 3 months",
-};
 
 function computeDurationFromDates(start: string, end: string): string | null {
   if (!start || !end) return null;
@@ -199,14 +172,68 @@ export default function TenderEditPage() {
   const [, navigate] = useLocation();
   const { activeCompany } = useAuthStore();
   const { toast } = useToast();
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const dateLocale = language === 'ar' ? arLocale : undefined;
+
+  const SUBMISSION_TYPE_OPTIONS = [
+    { value: "quote_only", label: t('tenderFlow.editSubmTypeQuoteOnly') },
+    { value: "tech_fin_proposal", label: t('tenderFlow.editSubmTypeTechFin') },
+    { value: "video_only", label: t('tenderFlow.editSubmTypeVideoOnly') },
+    { value: "tech_fin_with_video", label: t('tenderFlow.editSubmTypeTechFinVideo') },
+    { value: "document_only", label: t('tenderFlow.editSubmTypeDocOnly') },
+  ];
+  const INQUIRY_TYPE_OPTIONS = [
+    { value: "inside_bid", label: t('tenderFlow.editInquiryAnonymousQA') },
+    { value: "email_whatsapp", label: t('tenderFlow.editInquiryDirectContact') },
+  ];
+  const DURATION_LABELS: Record<string, string> = {
+    "6plus": t('tenderFlow.editDuration6plus'),
+    "3to6": t('tenderFlow.editDuration3to6'),
+    "1to3": t('tenderFlow.editDuration1to3'),
+  };
+  const PRESET_REQUIREMENTS = [
+    { id: "legal_registration", text: t('tenderFlow.editPresetLegalReg') },
+    { id: "cr_certificate", text: t('tenderFlow.editPresetCrCert') },
+    { id: "business_license", text: t('tenderFlow.editPresetBizLicense') },
+    { id: "zakat_certificate", text: t('tenderFlow.editPresetZakat') },
+    { id: "gosi_certificate", text: t('tenderFlow.editPresetGosi') },
+    { id: "no_legal_disputes", text: t('tenderFlow.editPresetNoDisputes') },
+    { id: "reg_compliance", text: t('tenderFlow.editPresetRegCompliance') },
+    { id: "nda", text: t('tenderFlow.editPresetNda') },
+    { id: "data_protection", text: t('tenderFlow.editPresetDataProt') },
+    { id: "local_content", text: t('tenderFlow.editPresetLocalContent') },
+  ];
+  const evalCategoryNames: Record<string, string> = {
+    experience: t('tenderFlow.evalCatExperienceName'),
+    financial: t('tenderFlow.evalCatFinancialName'),
+    technical: t('tenderFlow.evalCatTechnicalName'),
+  };
+  const evalReqLabels: Record<string, string> = {
+    years_in_market: t('tenderFlow.evalReqYearsInMarket'),
+    similar_projects_count: t('tenderFlow.evalReqSimilarProjects'),
+    min_project_value: t('tenderFlow.evalReqMinProjectValue'),
+    client_references: t('tenderFlow.evalReqClientRefs'),
+    financial_statements: t('tenderFlow.evalReqFinancialStatements'),
+    bank_guarantee: t('tenderFlow.evalReqBankGuarantee'),
+    methodology: t('tenderFlow.evalReqMethodology'),
+    timeline: t('tenderFlow.evalReqProjectTimeline'),
+    team_cvs: t('tenderFlow.evalReqTeamCVs'),
+    industry_certifications: t('tenderFlow.evalReqCertifications'),
+  };
+  const evalReqOptionLabels: Record<string, Record<string, string>> = {
+    years_in_market: { "1": t('tenderFlow.evalOpt1Year'), "3": t('tenderFlow.evalOpt3Year'), "5": t('tenderFlow.evalOpt5Year'), "10": t('tenderFlow.evalOpt10Year') },
+    similar_projects_count: { "1": t('tenderFlow.evalOptProj1'), "3": t('tenderFlow.evalOptProj3'), "5": t('tenderFlow.evalOptProj5'), "10": t('tenderFlow.evalOptProj10') },
+    min_project_value: { "50000": t('tenderFlow.evalOptVal50k'), "100000": t('tenderFlow.evalOptVal100k'), "250000": t('tenderFlow.evalOptVal250k'), "500000": t('tenderFlow.evalOptVal500k'), "1000000": t('tenderFlow.evalOptVal1m') },
+  };
   const tenderId = params?.id;
 
   const [budgetType, setBudgetType] = useState<"exact" | "range">("exact");
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [formCards, setFormCards] = useState<Array<{ id: string; type: string; label: string; isRequired: boolean; options?: string[]; value?: any }>>([]);
+  const [attachments, setAttachments] = useState<Array<{ id: string; name: string; url: string; size: number; type: string }>>([]);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const attachmentFileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Evaluation criteria state
   const [expandedEvalCategories, setExpandedEvalCategories] = useState<string[]>(["experience"]);
@@ -218,9 +245,8 @@ export default function TenderEditPage() {
   const [newCriterionText, setNewCriterionText] = useState("");
   const [newCriterionWeight, setNewCriterionWeight] = useState(5);
 
-  // Vendor requirements state
+  // Vendor requirements state — rendering handled by <VendorRequirementsEditor />
   const [vendorRequirements, setVendorRequirements] = useState<VendorRequirement[]>([]);
-  const [customReqText, setCustomReqText] = useState("");
 
   const { data: tender, isLoading } = useQuery<Tender>({
     queryKey: ["/api/tenders", tenderId],
@@ -228,7 +254,7 @@ export default function TenderEditPage() {
   } as any);
 
   const form = useForm<EditTenderForm>({
-    resolver: zodResolver(editTenderSchema),
+    resolver: zodResolver(makeEditTenderSchema(t)),
     mode: "onChange",
     defaultValues: {
       title: "",
@@ -244,6 +270,7 @@ export default function TenderEditPage() {
       submissionType: "",
       videoRequired: false,
       videoUrl: "",
+      voiceNoteUrl: "",
       inquiryType: "",
       whatsappContact: "",
       emailContact: "",
@@ -290,6 +317,9 @@ export default function TenderEditPage() {
     if ((tender as any).formCards && Array.isArray((tender as any).formCards)) {
       setFormCards((tender as any).formCards);
     }
+    if (Array.isArray((tender as any).attachments)) {
+      setAttachments((tender as any).attachments);
+    }
 
     const formattedDeadline = new Date((tender as any).deadline).toISOString().slice(0, 16);
 
@@ -307,6 +337,7 @@ export default function TenderEditPage() {
       submissionType: (tender as any).submissionType || "",
       videoRequired: (tender as any).videoRequired || false,
       videoUrl: (tender as any).videoUrl || "",
+      voiceNoteUrl: (tender as any).voiceNoteUrl || "",
       inquiryType: (tender as any).inquiryType || "",
       whatsappContact: (tender as any).whatsappContact || "",
       emailContact: (tender as any).emailContact || "",
@@ -330,6 +361,7 @@ export default function TenderEditPage() {
         evaluationCriteria: evaluationCriteriaPayload,
         vendorRequirements: vendorRequirements.length > 0 ? vendorRequirements : null,
         formCards: formCards.length > 0 ? formCards : null,
+        attachments: attachments.length > 0 ? attachments : null,
       };
 
       if (budgetType === "exact") {
@@ -349,11 +381,11 @@ export default function TenderEditPage() {
     onSuccess: (updatedTender) => {
       queryClient.setQueryData(["/api/tenders", tenderId], updatedTender);
       queryClient.invalidateQueries({ queryKey: ["/api/tenders"] });
-      toast({ title: "Saved", description: "Tender updated successfully" });
+      toast({ title: t('tenderFlow.editSaved'), description: t('tenderFlow.editSavedDesc') });
       navigate(`/tenders/${tenderId}`);
     },
     onError: (error: any) => {
-      toast({ title: "Error", description: error?.message || "Failed to update tender", variant: "destructive" });
+      toast({ title: t('common.error'), description: error?.message || t('tenderFlow.editFailed'), variant: "destructive" });
     },
   });
 
@@ -370,22 +402,22 @@ export default function TenderEditPage() {
       if (invToken) {
         const inviteLink = `${window.location.origin}/invite/${invToken}`;
         toast({
-          title: "Published!",
-          description: "Tender is now live and accepting proposals",
+          title: t('tenderFlow.publishedToast'),
+          description: t('tenderFlow.publishedToastDesc'),
           action: (
-            <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
-              <Copy className="h-3 w-3 mr-1" /> Copy Link
+            <ToastAction altText={t('tenderFlow.copyLinkAlt')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderFlow.linkCopiedToast') }); }}>
+              <Copy className="h-3 w-3 mr-1" /> {t('tenderFlow.editCopyLink')}
             </ToastAction>
           ),
           duration: 10000,
         });
       } else {
-        toast({ title: "Published!", description: "Tender is now live and accepting proposals" });
+        toast({ title: t('tenderFlow.publishedToast'), description: t('tenderFlow.publishedToastDesc') });
       }
       navigate(`/tenders/${tenderId}`);
     },
     onError: (error: any) => {
-      toast({ title: "Error", description: error?.message || "Failed to publish", variant: "destructive" });
+      toast({ title: t('common.error'), description: error?.message || t('tenderFlow.editFailedPublish'), variant: "destructive" });
     },
   });
 
@@ -397,10 +429,10 @@ export default function TenderEditPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tenders", tenderId] });
       queryClient.invalidateQueries({ queryKey: ["/api/tenders"] });
-      toast({ title: "Reverted to Draft" });
+      toast({ title: t('tenderFlow.editReverted') });
     },
     onError: (error: any) => {
-      toast({ title: "Error", description: error?.message || "Failed to revert", variant: "destructive" });
+      toast({ title: t('common.error'), description: error?.message || t('tenderFlow.editFailedRevert'), variant: "destructive" });
     },
   });
 
@@ -439,23 +471,43 @@ export default function TenderEditPage() {
   const updateCustomCriterionWeight = (id: string, weight: number) =>
     setCustomCriteria(prev => prev.map(c => c.id === id ? { ...c, weight } : c));
 
-  // Vendor requirements handlers
-  const isReqSelected = (id: string) => vendorRequirements.some(r => r.id === id);
-  const getReqType = (id: string): "mandatory" | "preferred" =>
-    vendorRequirements.find(r => r.id === id)?.type || "mandatory";
-  const toggleReq = (preset: { id: string; text: string }) => {
-    if (isReqSelected(preset.id)) setVendorRequirements(prev => prev.filter(r => r.id !== preset.id));
-    else setVendorRequirements(prev => [...prev, { id: preset.id, text: preset.text, type: "mandatory" }]);
+  // Attachments handlers (mirror the canonical pattern in TenderAICopilot.uploadOne).
+  // After PUTting bytes to the presigned GCS URL, PUT /api/objects/metadata to
+  // register ACL ownership and get the canonical "/objects/<entity-id>" path —
+  // the only URL form the public RFP page can fetch back later.
+  const handleUploadAttachment = async (file: File) => {
+    setUploadingAttachment(true);
+    try {
+      const res = await apiRequest('POST', '/api/objects/upload', { fileSize: file.size, fileType: file.type });
+      const { uploadURL } = await res.json();
+      if (!uploadURL) throw new Error('Failed to get upload URL');
+      const put = await fetch(uploadURL, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+      if (!put.ok) throw new Error('Upload failed');
+      const metaRes = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
+      const { objectPath } = await metaRes.json();
+      setAttachments(prev => [...prev, {
+        id: `a-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        name: file.name,
+        url: objectPath,
+        size: file.size,
+        type: file.type || 'application/octet-stream',
+      }]);
+    } catch (err: any) {
+      toast({ title: 'Upload failed', description: err?.message || 'Could not upload file', variant: 'destructive' });
+    } finally {
+      setUploadingAttachment(false);
+    }
   };
-  const setReqType = (id: string, type: "mandatory" | "preferred") =>
-    setVendorRequirements(prev => prev.map(r => r.id === id ? { ...r, type } : r));
-  const addCustomReq = () => {
-    const text = customReqText.trim();
-    if (!text) return;
-    setVendorRequirements(prev => [...prev, { id: `custom_${Date.now()}`, text, type: "mandatory" }]);
-    setCustomReqText("");
+
+  const handleRemoveAttachment = (id: string) => {
+    setAttachments(prev => prev.filter(a => a.id !== id));
   };
-  const removeVendorReq = (id: string) => setVendorRequirements(prev => prev.filter(r => r.id !== id));
+
+  const formatAttachmentSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   const customCriteriaWeight = customCriteria.reduce((sum, c) => sum + c.weight, 0);
   const totalWeight = categoryWeights.reduce((sum, cw) => sum + cw.weight, 0) + customCriteriaWeight;
@@ -485,8 +537,8 @@ export default function TenderEditPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">Tender not found</p>
-            <Button onClick={() => navigate("/dashboard")} className="mt-4">Back to Dashboard</Button>
+            <p className="text-muted-foreground">{t('tenderFlow.tenderNotFoundTitle')}</p>
+            <Button onClick={() => navigate("/dashboard")} className="mt-4">{t('tenderFlow.backToDashboard')}</Button>
           </CardContent>
         </Card>
       </div>
@@ -501,13 +553,13 @@ export default function TenderEditPage() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button variant="ghost" onClick={() => navigate(`/tenders/${tenderId}`)} className="mb-6 -ml-2">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Tender
+          {t('tenderFlow.backToTender')}
         </Button>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Tender</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('tenderFlow.editTenderTitle')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {isPublished ? "This tender is live. Changes apply immediately." : "Draft — not yet visible to vendors."}
+            {isPublished ? t('tenderFlow.tenderIsLive') : t('tenderFlow.tenderIsDraft')}
           </p>
         </div>
 
@@ -520,14 +572,14 @@ export default function TenderEditPage() {
             {/* 1. Basics */}
             <SectionCard
               icon={<FileText className="h-4 w-4 text-[#E25E45]" />}
-              title="Project Basics"
-              description="Core information about the project"
+              title={t('tenderFlow.editSectionBasicsTitle')}
+              description={t('tenderFlow.editSectionBasicsDesc')}
               color="bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]"
             >
               <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title *</FormLabel>
-                  <FormControl><Input placeholder="e.g., Brand Identity Design for Fintech Startup" {...field} /></FormControl>
+                  <FormLabel>{t('tenderFlow.editTitleLabel')}</FormLabel>
+                  <FormControl><Input placeholder={t('tenderFlow.editTitlePlaceholder')} {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -536,11 +588,11 @@ export default function TenderEditPage() {
                 const wc = field.value?.trim().split(/\s+/).filter(Boolean).length ?? 0;
                 return (
                   <FormItem>
-                    <FormLabel>Description *</FormLabel>
-                    <FormControl><Textarea rows={5} placeholder="Full project context, background, and requirements..." {...field} /></FormControl>
+                    <FormLabel>{t('tenderFlow.editDescriptionLabel')}</FormLabel>
+                    <FormControl><Textarea rows={5} placeholder={t('tenderFlow.editDescriptionPlaceholder')} {...field} /></FormControl>
                     <div className="flex justify-end">
                       <span className={`text-xs ${wc < 50 ? "text-amber-600" : "text-green-600"}`}>
-                        {wc < 50 ? `${50 - wc} more words needed` : "✓"} · {wc} / 50 words
+                        {wc < 50 ? t('tenderFlow.editWordsMoreNeeded', { n: 50 - wc }) : "✓"} {t('tenderFlow.editWordsMinCount', { wc })}
                       </span>
                     </div>
                     <FormMessage />
@@ -553,8 +605,8 @@ export default function TenderEditPage() {
             {/* 2. Timeline */}
             <SectionCard
               icon={<Calendar className="h-4 w-4 text-blue-600" />}
-              title="Timeline & Dates"
-              description="Submission deadline and project execution dates"
+              title={t('tenderFlow.editSectionTimelineTitle')}
+              description={t('tenderFlow.editSectionTimelineDesc')}
               color="bg-gradient-to-r from-blue-500 to-blue-400"
             >
               <FormField control={form.control} name="deadline" render={({ field }) => {
@@ -562,7 +614,7 @@ export default function TenderEditPage() {
                 const timeVal = field.value && field.value.length > 10 ? field.value.slice(11, 16) : "12:00";
                 return (
                   <FormItem>
-                    <FormLabel>Submission Deadline *</FormLabel>
+                    <FormLabel>{t('tenderFlow.editDeadlineLabel')}</FormLabel>
                     <div className="flex gap-2">
                       <Popover>
                         <PopoverTrigger asChild>
@@ -572,7 +624,7 @@ export default function TenderEditPage() {
                               !dateVal && "text-muted-foreground"
                             )}>
                               <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
-                              {dateVal ? format(new Date(dateVal), "MMM d, yyyy", { locale: dateLocale }) : "Pick a date"}
+                              {dateVal ? format(new Date(dateVal), "MMM d, yyyy", { locale: dateLocale }) : t('tenderFlow.editPickDate')}
                             </button>
                           </FormControl>
                         </PopoverTrigger>
@@ -600,12 +652,12 @@ export default function TenderEditPage() {
               }} />
 
               <div className="border-t border-gray-100 pt-4">
-                <p className="text-sm font-medium text-gray-700 mb-1">Project Duration Dates</p>
-                <p className="text-xs text-muted-foreground mb-3">When the project will start and end — this determines the duration shown to vendors.</p>
+                <p className="text-sm font-medium text-gray-700 mb-1">{t('tenderFlow.editProjectDurationTitle')}</p>
+                <p className="text-xs text-muted-foreground mb-3">{t('tenderFlow.editProjectDurationDesc')}</p>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="startDate" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Project Start Date</FormLabel>
+                      <FormLabel>{t('tenderFlow.editStartDateLabel')}</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -614,7 +666,7 @@ export default function TenderEditPage() {
                               !field.value && "text-muted-foreground"
                             )}>
                               <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
-                              {field.value ? format(new Date(field.value), "MMM d, yyyy") : "Pick a date"}
+                              {field.value ? format(new Date(field.value), "MMM d, yyyy") : t('tenderFlow.editPickDate')}
                             </button>
                           </FormControl>
                         </PopoverTrigger>
@@ -633,7 +685,7 @@ export default function TenderEditPage() {
                   )} />
                   <FormField control={form.control} name="endDate" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Project End Date</FormLabel>
+                      <FormLabel>{t('tenderFlow.editEndDateLabel')}</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -642,7 +694,7 @@ export default function TenderEditPage() {
                               !field.value && "text-muted-foreground"
                             )}>
                               <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
-                              {field.value ? format(new Date(field.value), "MMM d, yyyy") : "Pick a date"}
+                              {field.value ? format(new Date(field.value), "MMM d, yyyy") : t('tenderFlow.editPickDate')}
                             </button>
                           </FormControl>
                         </PopoverTrigger>
@@ -665,7 +717,7 @@ export default function TenderEditPage() {
                   const computed = computeDurationFromDates(startDateVal, endDateVal);
                   return computed ? (
                     <div className="mt-3 flex items-center gap-2 text-sm">
-                      <span className="text-gray-500">Computed duration:</span>
+                      <span className="text-gray-500">{t('tenderFlow.editComputedDuration')}</span>
                       <span className="font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{DURATION_LABELS[computed]}</span>
                     </div>
                   ) : null;
@@ -676,8 +728,8 @@ export default function TenderEditPage() {
             {/* 3. Budget */}
             <SectionCard
               icon={<DollarSign className="h-4 w-4 text-green-600" />}
-              title="Budget"
-              description="Project budget in SAR and visibility settings"
+              title={t('tenderFlow.editSectionBudgetTitle')}
+              description={t('tenderFlow.editSectionBudgetDesc')}
               color="bg-gradient-to-r from-green-500 to-emerald-400"
             >
               <div className="flex gap-2">
@@ -692,7 +744,7 @@ export default function TenderEditPage() {
                         : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300"
                     }`}
                   >
-                    {type === "exact" ? "Exact Amount" : "Range"}
+                    {type === "exact" ? t('tenderFlow.editBudgetExact') : t('tenderFlow.editBudgetRange')}
                   </button>
                 ))}
               </div>
@@ -700,11 +752,11 @@ export default function TenderEditPage() {
               {budgetType === "exact" ? (
                 <FormField control={form.control} name="budget" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Budget Amount (SAR)</FormLabel>
+                    <FormLabel>{t('tenderFlow.editBudgetAmountLabel')}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">SAR</span>
-                        <Input className="pl-12" placeholder="e.g., 50000" {...field} />
+                        <Input className="pl-12" placeholder={t('tenderFlow.editBudgetAmountPlaceholder')} {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -714,18 +766,18 @@ export default function TenderEditPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="budgetMin" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Min (SAR)</FormLabel>
+                      <FormLabel>{t('tenderFlow.editBudgetMinLabel')}</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="e.g., 30000" value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input type="number" placeholder={t('tenderFlow.editBudgetMinPlaceholder')} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="budgetMax" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Max (SAR)</FormLabel>
+                      <FormLabel>{t('tenderFlow.editBudgetMaxLabel')}</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="e.g., 80000" value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input type="number" placeholder={t('tenderFlow.editBudgetMaxPlaceholder')} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -739,8 +791,8 @@ export default function TenderEditPage() {
                     <div className="flex items-center gap-2">
                       {field.value ? <Eye className="h-4 w-4 text-gray-500" /> : <EyeOff className="h-4 w-4 text-gray-500" />}
                       <div>
-                        <p className="text-sm font-medium">Show budget to vendors</p>
-                        <p className="text-xs text-muted-foreground">{field.value ? "Vendors can see the budget" : "Budget is hidden"}</p>
+                        <p className="text-sm font-medium">{t('tenderFlow.editShowBudgetLabel')}</p>
+                        <p className="text-xs text-muted-foreground">{field.value ? t('tenderFlow.editBudgetVisible') : t('tenderFlow.editBudgetHidden')}</p>
                       </div>
                     </div>
                     <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
@@ -752,16 +804,16 @@ export default function TenderEditPage() {
             {/* 4. Submission */}
             <SectionCard
               icon={<ClipboardList className="h-4 w-4 text-purple-600" />}
-              title="Submission Requirements"
-              description="How vendors should respond to this RFP"
+              title={t('tenderFlow.editSubmissionsTitle')}
+              description={t('tenderFlow.editSectionSubmHowDesc')}
               color="bg-gradient-to-r from-purple-500 to-purple-400"
             >
               <FormField control={form.control} name="submissionType" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Submission Type</FormLabel>
+                  <FormLabel>{t('tenderFlow.editSubmTypeLabel')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value || ""}>
                     <FormControl>
-                      <SelectTrigger><SelectValue placeholder="Select how vendors should respond" /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder={t('tenderFlow.editSubmTypePlaceholder')} /></SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {SUBMISSION_TYPE_OPTIONS.map((opt) => (
@@ -778,8 +830,8 @@ export default function TenderEditPage() {
                   <FormItem>
                     <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
                       <div>
-                        <p className="text-sm font-medium text-orange-900 dark:text-orange-200">Require video submission</p>
-                        <p className="text-xs text-orange-700 dark:text-orange-400">Make the video pitch mandatory</p>
+                        <p className="text-sm font-medium text-orange-900 dark:text-orange-200">{t('tenderFlow.editRequireVideoLabel')}</p>
+                        <p className="text-xs text-orange-700 dark:text-orange-400">{t('tenderFlow.editRequireVideoDesc')}</p>
                       </div>
                       <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                     </div>
@@ -789,9 +841,34 @@ export default function TenderEditPage() {
 
               <FormField control={form.control} name="videoUrl" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Project Video URL (optional)</FormLabel>
-                  <FormControl><Input placeholder="https://youtube.com/watch?v=..." {...field} /></FormControl>
-                  <p className="text-xs text-muted-foreground">Include the full URL starting with https:// — e.g. https://youtube.com/watch?v=…</p>
+                  <FormLabel>{t('tenderFlow.editVideoUrlLabel')}</FormLabel>
+                  <FormControl><Input placeholder={t('tenderFlow.editVideoUrlPlaceholder')} {...field} /></FormControl>
+                  <p className="text-xs text-muted-foreground">{t('tenderFlow.editVideoUrlHint')}</p>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <FormField control={form.control} name="voiceNoteUrl" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('tenderFlow.voiceNoteOptionalLabel')}</FormLabel>
+                  <FormControl>
+                    <VoiceRecorder
+                      onRecordingComplete={(url) => field.onChange(url)}
+                      onRecordingDeleted={() => field.onChange("")}
+                      existingUrl={field.value || undefined}
+                    />
+                  </FormControl>
+                  <FormDescription>{t('tenderFlow.voiceNoteOptionalDesc')}</FormDescription>
+                  {field.value && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => field.onChange("")}
+                    >
+                      Remove voice note
+                    </Button>
+                  )}
                   <FormMessage />
                 </FormItem>
               )} />
@@ -800,16 +877,16 @@ export default function TenderEditPage() {
             {/* 5. Contact & Q&A */}
             <SectionCard
               icon={<MessageSquare className="h-4 w-4 text-green-600" />}
-              title="Contact & Q&A"
-              description="How vendors can reach you with questions"
+              title={t('tenderFlow.editSectionQaTitle')}
+              description={t('tenderFlow.editSectionQaDesc')}
               color="bg-gradient-to-r from-green-500 to-teal-400"
             >
               <FormField control={form.control} name="inquiryType" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Q&A Method</FormLabel>
+                  <FormLabel>{t('tenderFlow.editQaMethodLabel')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value || ""}>
                     <FormControl>
-                      <SelectTrigger><SelectValue placeholder="Select how vendors ask questions" /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder={t('tenderFlow.editQaMethodPlaceholder')} /></SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {INQUIRY_TYPE_OPTIONS.map((opt) => (
@@ -825,15 +902,15 @@ export default function TenderEditPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField control={form.control} name="emailContact" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Contact Email</FormLabel>
-                      <FormControl><Input type="email" placeholder="inquiries@company.com" {...field} /></FormControl>
+                      <FormLabel>{t('tenderFlow.editContactEmailLabel')}</FormLabel>
+                      <FormControl><Input type="email" placeholder={t('tenderFlow.editContactEmailPlaceholder')} {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="whatsappContact" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>WhatsApp Number</FormLabel>
-                      <FormControl><Input placeholder="+966 5X XXX XXXX" {...field} /></FormControl>
+                      <FormLabel>{t('tenderFlow.editWhatsappLabel')}</FormLabel>
+                      <FormControl><Input placeholder={t('tenderFlow.editWhatsappPlaceholder')} {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -844,8 +921,8 @@ export default function TenderEditPage() {
             {/* 6. Evaluation Criteria */}
             <SectionCard
               icon={<Scale className="h-4 w-4 text-amber-600" />}
-              title="Evaluation Criteria"
-              description="How vendor proposals will be scored — weights must total 100%"
+              title={t('tenderFlow.editSectionEvalTitle')}
+              description={t('tenderFlow.editSectionEvalDesc')}
               color="bg-gradient-to-r from-amber-500 to-orange-400"
             >
               {/* Weight indicator */}
@@ -881,7 +958,7 @@ export default function TenderEditPage() {
                 </div>
                 <div>
                   <p className={`text-sm font-medium ${totalWeight === 100 ? "text-green-700" : totalWeight > 100 ? "text-red-700" : "text-amber-700"}`}>
-                    {totalWeight === 100 ? "Perfect balance!" : totalWeight > 100 ? `Over by ${totalWeight - 100}%` : `${100 - totalWeight}% remaining`}
+                    {totalWeight === 100 ? t('tenderFlow.editWeightPerfect') : totalWeight > 100 ? t('tenderFlow.editWeightOver', { n: totalWeight - 100 }) : t('tenderFlow.editWeightRemaining', { n: 100 - totalWeight })}
                   </p>
                 </div>
               </div>
@@ -898,7 +975,7 @@ export default function TenderEditPage() {
                         className="w-full flex items-center justify-between p-3 hover:bg-gray-50">
                         <div className="flex items-center gap-2">
                           <div className={`p-1.5 rounded ${hasSelections ? "bg-[#E25E45]/10 text-[#E25E45]" : "bg-gray-100 text-gray-500"}`}>{category.icon}</div>
-                          <span className="font-medium text-sm text-gray-900">{category.name}</span>
+                          <span className="font-medium text-sm text-gray-900">{evalCategoryNames[category.id] ?? category.name}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-gray-500">{currentWeight}%</span>
@@ -909,7 +986,7 @@ export default function TenderEditPage() {
                         <div className="overflow-hidden">
                           <div className="border-t border-gray-200 p-3 space-y-3 bg-white">
                             <div className="space-y-1">
-                              <label className="text-xs text-gray-500">Weight: {currentWeight}%</label>
+                              <label className="text-xs text-gray-500">{t('tenderFlow.editWeightLabel', { n: currentWeight })}</label>
                               <input type="range" min="0" max="100" step="5" value={currentWeight}
                                 onChange={(e) => handleWeightChange(category.id, parseInt(e.target.value))}
                                 className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]" />
@@ -925,13 +1002,13 @@ export default function TenderEditPage() {
                                     </button>
                                   )}
                                   <div className="flex-1">
-                                    <label className="text-sm text-gray-900">{req.label}</label>
+                                    <label className="text-sm text-gray-900">{evalReqLabels[req.id] ?? req.label}</label>
                                     {req.type === "select" && req.options && (
                                       <Select value={(currentValue as string) || "none"} onValueChange={(v) => handleRequirementChange(category.id, req.id, v === "none" ? "" : v)}>
-                                        <SelectTrigger className="mt-1 w-full text-sm"><SelectValue placeholder="Not required" /></SelectTrigger>
+                                        <SelectTrigger className="mt-1 w-full text-sm"><SelectValue placeholder={t('tenderFlow.editNotRequired')} /></SelectTrigger>
                                         <SelectContent>
-                                          <SelectItem value="none">Not required</SelectItem>
-                                          {req.options.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                          <SelectItem value="none">{t('tenderFlow.editNotRequired')}</SelectItem>
+                                          {req.options.map(opt => <SelectItem key={opt.value} value={opt.value}>{evalReqOptionLabels[req.id]?.[opt.value] ?? opt.label}</SelectItem>)}
                                         </SelectContent>
                                       </Select>
                                     )}
@@ -949,7 +1026,7 @@ export default function TenderEditPage() {
 
               {/* Custom criteria */}
               <div className="space-y-3 pt-2 border-t border-gray-200">
-                <p className="text-sm font-medium text-gray-700">Custom criteria <span className="text-gray-400 font-normal text-xs">(optional)</span></p>
+                <p className="text-sm font-medium text-gray-700">{t('tenderFlow.editCustomCriteriaTitle')} <span className="text-gray-400 font-normal text-xs">{t('tenderFlow.editCustomCriteriaOptional')}</span></p>
                 {customCriteria.length > 0 && (
                   <div className="space-y-2">
                     {customCriteria.map(c => (
@@ -970,13 +1047,13 @@ export default function TenderEditPage() {
                   <div className="flex gap-2">
                     <input type="text" value={newCriterionText} onChange={(e) => setNewCriterionText(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomCriterion())}
-                      placeholder="e.g., Team communication skills..."
+                      placeholder={t('tenderFlow.editCustomCriteriaPlaceholder')}
                       className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E25E45]" />
                     <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#E25E45] hover:bg-[#d54d35]"><Plus className="h-4 w-4" /></Button>
                   </div>
                   {newCriterionText.trim() && (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">Weight:</span>
+                      <span className="text-xs text-gray-500">{t('tenderFlow.editWeightLabelShort')}</span>
                       <input type="range" min="0" max="50" step="5" value={newCriterionWeight}
                         onChange={(e) => setNewCriterionWeight(parseInt(e.target.value))}
                         className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]" />
@@ -987,81 +1064,26 @@ export default function TenderEditPage() {
               </div>
             </SectionCard>
 
-            {/* 7. Submission Requirements */}
+            {/* 7. Vendor Requirements */}
             <SectionCard
               icon={<Shield className="h-4 w-4 text-blue-600" />}
-              title="Submission Requirements"
-              description="Which vendors are eligible to respond — shown on the published RFP"
+              title={t('tenderFlow.editSubmissionsTitle')}
+              description={t('tenderFlow.editSectionEligDesc')}
               color="bg-gradient-to-r from-blue-500 to-indigo-400"
             >
-              <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-                {PRESET_REQUIREMENTS.map((preset) => {
-                  const checked = isReqSelected(preset.id);
-                  const type = getReqType(preset.id);
-                  return (
-                    <div key={preset.id} className={`rounded-lg border transition-all ${checked ? "border-blue-300 bg-blue-50/60" : "border-gray-200 bg-white hover:border-gray-300"}`}>
-                      <div className="flex items-start gap-3 p-3">
-                        <button type="button" onClick={() => toggleReq(preset)}
-                          className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-colors ${checked ? "border-blue-500 bg-blue-500" : "border-gray-300 bg-white"}`}>
-                          {checked && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
-                        </button>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm leading-snug ${checked ? "text-gray-900 font-medium" : "text-gray-700"}`}>{preset.text}</p>
-                          {checked && (
-                            <div className="flex items-center gap-1.5 mt-2">
-                              <button type="button" onClick={() => setReqType(preset.id, "mandatory")}
-                                className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === "mandatory" ? "bg-red-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>Mandatory</button>
-                              <button type="button" onClick={() => setReqType(preset.id, "preferred")}
-                                className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === "preferred" ? "bg-amber-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>Preferred</button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Custom requirements */}
-              <div className="space-y-3 pt-3 border-t border-gray-200">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Add custom requirement</p>
-                <div className="flex gap-2">
-                  <input type="text" value={customReqText} onChange={(e) => setCustomReqText(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomReq())}
-                    placeholder="e.g., Must have ISO 9001 certification"
-                    className="flex-1 text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                  <Button type="button" variant="outline" size="sm" onClick={addCustomReq} disabled={!customReqText.trim()} className="flex-shrink-0">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                {vendorRequirements.filter(r => r.id.startsWith("custom_")).length > 0 && (
-                  <div className="space-y-1.5">
-                    {vendorRequirements.filter(r => r.id.startsWith("custom_")).map(req => (
-                      <div key={req.id} className="flex items-start gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-800 font-medium">{req.text}</p>
-                          <div className="flex items-center gap-1.5 mt-1.5">
-                            <button type="button" onClick={() => setReqType(req.id, "mandatory")}
-                              className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === "mandatory" ? "bg-red-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>Mandatory</button>
-                            <button type="button" onClick={() => setReqType(req.id, "preferred")}
-                              className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === "preferred" ? "bg-amber-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>Preferred</button>
-                          </div>
-                        </div>
-                        <button type="button" onClick={() => removeVendorReq(req.id)} className="flex-shrink-0 p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors mt-0.5">
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <VendorRequirementsEditor
+                value={vendorRequirements}
+                onChange={setVendorRequirements}
+                isRtl={isEditRtl}
+                compact
+              />
             </SectionCard>
 
             {/* 8. Milestones */}
             <SectionCard
               icon={<Flag className="h-4 w-4 text-violet-600" />}
-              title="Milestones"
-              description="Key checkpoints throughout the project timeline (optional)"
+              title={t('tenderFlow.milestones')}
+              description={t('tenderFlow.editSectionMilestonesDesc')}
               color="bg-gradient-to-r from-violet-500 to-purple-400"
             >
               {milestones.length > 0 && (
@@ -1076,14 +1098,14 @@ export default function TenderEditPage() {
                           type="text"
                           value={m.name}
                           onChange={(e) => updateMilestone(m.id, "name", e.target.value)}
-                          placeholder="Milestone name..."
+                          placeholder={t('tenderFlow.milestoneName')}
                           className="w-full bg-transparent border-0 border-b border-transparent focus:border-violet-400 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 pb-1"
                         />
                         <input
                           type="text"
                           value={m.description}
                           onChange={(e) => updateMilestone(m.id, "description", e.target.value)}
-                          placeholder="Description (optional)..."
+                          placeholder={t('tenderFlow.editMilestoneDescOptional')}
                           className="w-full bg-transparent border-0 text-xs text-gray-600 dark:text-gray-400 placeholder-gray-400 focus:outline-none focus:ring-0"
                         />
                       </div>
@@ -1095,7 +1117,7 @@ export default function TenderEditPage() {
                               m.dueDate ? "bg-violet-100 text-violet-700 hover:bg-violet-200" : "text-gray-400 hover:text-gray-600 hover:bg-gray-200"
                             )}>
                               <CalendarIcon className="h-3.5 w-3.5" />
-                              {m.dueDate ? format(m.dueDate, "MMM d", { locale: dateLocale }) : "Date"}
+                              {m.dueDate ? format(m.dueDate, "MMM d", { locale: dateLocale }) : t('tenderFlow.date')}
                             </button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="end">
@@ -1117,7 +1139,7 @@ export default function TenderEditPage() {
                             ) : (
                               <div className="p-4 text-center text-sm text-gray-500 w-48">
                                 <CalendarIcon className="h-6 w-6 mx-auto mb-2 text-gray-300" />
-                                Set project start & end dates first to pick milestone dates.
+                                {t('tenderFlow.editMilestoneSetDates')}
                               </div>
                             )}
                           </PopoverContent>
@@ -1141,15 +1163,15 @@ export default function TenderEditPage() {
               >
                 <div className="w-2.5 h-2.5 rounded-full bg-gray-300 group-hover:bg-violet-400 transition-colors" />
                 <Plus className="h-4 w-4" />
-                <span className="text-sm">Add milestone</span>
+                <span className="text-sm">{t('tenderFlow.addMilestone')}</span>
               </button>
             </SectionCard>
 
             {/* 9. Deliverables */}
             <SectionCard
               icon={<ListChecks className="h-4 w-4 text-indigo-600" />}
-              title="Scope of Work & Deliverables"
-              description="Itemized list of what vendors must deliver"
+              title={t('tenderFlow.editSectionDeliverablesTitle')}
+              description={t('tenderFlow.editSectionDeliverablesDesc')}
               color="bg-gradient-to-r from-indigo-500 to-indigo-400"
             >
               {deliverables.length > 0 && (
@@ -1158,18 +1180,18 @@ export default function TenderEditPage() {
                     <div key={d.id} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 space-y-2">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-white bg-indigo-500 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{index + 1}</span>
-                        <Input placeholder="Deliverable name" value={d.name} onChange={(e) => updateDeliverable(d.id, "name", e.target.value)} className="flex-1" />
+                        <Input placeholder={t('tenderFlow.editDeliverableNamePlaceholder')} value={d.name} onChange={(e) => updateDeliverable(d.id, "name", e.target.value)} className="flex-1" />
                         <button type="button" onClick={() => removeDeliverable(d.id)} className="text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
                       </div>
-                      <Input placeholder="Description (optional)" value={d.description} onChange={(e) => updateDeliverable(d.id, "description", e.target.value)} />
+                      <Input placeholder={t('tenderFlow.editDeliverableDescPlaceholder')} value={d.description} onChange={(e) => updateDeliverable(d.id, "description", e.target.value)} />
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <Label className="text-xs text-muted-foreground">Quantity</Label>
+                          <Label className="text-xs text-muted-foreground">{t('tenderFlow.quantity')}</Label>
                           <Input type="number" min={1} value={d.quantity} onChange={(e) => updateDeliverable(d.id, "quantity", Number(e.target.value))} />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground">Unit</Label>
-                          <Input placeholder="e.g., page, hour, item" value={d.unit} onChange={(e) => updateDeliverable(d.id, "unit", e.target.value)} />
+                          <Label className="text-xs text-muted-foreground">{t('tenderFlow.editUnitLabel')}</Label>
+                          <Input placeholder={t('tenderFlow.editUnitPlaceholder')} value={d.unit} onChange={(e) => updateDeliverable(d.id, "unit", e.target.value)} />
                         </div>
                       </div>
                     </div>
@@ -1177,7 +1199,71 @@ export default function TenderEditPage() {
                 </div>
               )}
               <Button type="button" variant="outline" className="w-full" onClick={addDeliverable}>
-                <Plus className="h-4 w-4 mr-2" />Add Deliverable
+                <Plus className="h-4 w-4 mr-2" />{t('tenderFlow.addDeliverable')}
+              </Button>
+            </SectionCard>
+
+            {/* Attachments — supporting documents the requester uploaded */}
+            <SectionCard
+              icon={<Paperclip className="h-4 w-4 text-sky-600" />}
+              title={t('tenderFlow.editSectionDocsTitle')}
+              description={t('tenderFlow.editSectionDocsDesc')}
+              color="bg-gradient-to-r from-sky-500 to-cyan-400"
+            >
+              {attachments.length > 0 && (
+                <div className="space-y-2">
+                  {attachments.map((a) => (
+                    <div
+                      key={a.id}
+                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                    >
+                      <FileText className="h-4 w-4 text-sky-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <a
+                          href={a.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-medium text-gray-900 dark:text-white hover:text-sky-600 truncate block"
+                        >
+                          {a.name}
+                        </a>
+                        <p className="text-xs text-muted-foreground">{formatAttachmentSize(a.size)}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAttachment(a.id)}
+                        className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        aria-label={t('tenderFlow.editRemoveAttachment')}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <input
+                ref={attachmentFileInputRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleUploadAttachment(file);
+                  if (e.target) e.target.value = "";
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => attachmentFileInputRef.current?.click()}
+                disabled={uploadingAttachment}
+              >
+                {uploadingAttachment ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('tenderFlow.uploading')}</>
+                ) : (
+                  <><Upload className="h-4 w-4 mr-2" />{attachments.length > 0 ? "Upload another" : "Upload document"}</>
+                )}
               </Button>
             </SectionCard>
 
@@ -1185,8 +1271,8 @@ export default function TenderEditPage() {
             {formCards.length > 0 && (
               <SectionCard
                 icon={<ClipboardList className="h-4 w-4 text-violet-600" />}
-                title="Custom Fields"
-                description="Additional fields added via the form builder"
+                title={t('tenderFlow.editSectionCustomFieldsTitle')}
+                description={t('tenderFlow.editSectionCustomFieldsDesc')}
                 color="bg-gradient-to-r from-violet-500 to-violet-400"
               >
                 {formCards.map((card) => (
@@ -1199,7 +1285,7 @@ export default function TenderEditPage() {
                       <Textarea
                         value={card.value ?? ''}
                         onChange={(e) => setFormCards(prev => prev.map(c => c.id === card.id ? { ...c, value: e.target.value } : c))}
-                        placeholder={`Enter ${card.label.toLowerCase()}`}
+                        placeholder={t('tenderFlow.editEnterField', { field: card.label.toLowerCase() })}
                         rows={3}
                       />
                     ) : card.type === 'custom-date' ? (
@@ -1214,7 +1300,7 @@ export default function TenderEditPage() {
                         onValueChange={(val) => setFormCards(prev => prev.map(c => c.id === card.id ? { ...c, value: val } : c))}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={`Select ${card.label.toLowerCase()}`} />
+                          <SelectValue placeholder={t('tenderFlow.editSelectField', { field: card.label.toLowerCase() })} />
                         </SelectTrigger>
                         <SelectContent>
                           {(card.options ?? []).map((opt) => (
@@ -1226,7 +1312,7 @@ export default function TenderEditPage() {
                       <Input
                         value={card.value ?? ''}
                         onChange={(e) => setFormCards(prev => prev.map(c => c.id === card.id ? { ...c, value: e.target.value } : c))}
-                        placeholder={`Enter ${card.label.toLowerCase()}`}
+                        placeholder={t('tenderFlow.editEnterField', { field: card.label.toLowerCase() })}
                       />
                     )}
                   </div>
@@ -1240,41 +1326,41 @@ export default function TenderEditPage() {
                 <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   <span className="mt-0.5 flex-shrink-0">⚠</span>
                   <span>
-                    Evaluation criteria weights must add up to <strong>100%</strong>.{" "}
+                    {t('tenderFlow.editWeightWarning')}{" "}
                     {totalWeight > 100
-                      ? `Currently over by ${totalWeight - 100}% — reduce some weights before saving.`
-                      : `Currently at ${totalWeight}% — add ${100 - totalWeight}% more before saving.`}
+                      ? t('tenderFlow.editWeightOverWarning', { n: totalWeight - 100 })
+                      : t('tenderFlow.editWeightUnderWarning', { n: totalWeight, m: 100 - totalWeight })}
                   </span>
                 </div>
               )}
               <div className="flex gap-3">
                 <Button type="button" variant="outline" onClick={() => navigate(`/tenders/${tenderId}`)} className="flex-1">
-                  Cancel
+                  {t('tenderFlow.cancelBtn')}
                 </Button>
                 <Button
                   type="submit"
                   className="flex-1 bg-[#E25E45] hover:bg-[#d54d35] text-white disabled:opacity-50"
                   disabled={updateTenderMutation.isPending || ((selectedRequirements.length > 0 || customCriteria.length > 0) && totalWeight !== 100)}
                 >
-                  {updateTenderMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</> : <><Save className="h-4 w-4 mr-2" />Save Changes</>}
+                  {updateTenderMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('tenderFlow.editSaving')}</> : <><Save className="h-4 w-4 mr-2" />{t('tenderFlow.editSaveChanges')}</>}
                 </Button>
               </div>
 
               {isDraft && (
                 <>
                   <Button type="button" onClick={() => publishMutation.mutate()} className="w-full bg-green-600 hover:bg-green-700 text-white" disabled={publishMutation.isPending}>
-                    {publishMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Publishing...</> : <><Send className="h-4 w-4 mr-2" />Publish Tender</>}
+                    {publishMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('tenderFlow.editPublishing')}</> : <><Send className="h-4 w-4 mr-2" />{t('tenderFlow.editPublishTender')}</>}
                   </Button>
-                  <p className="text-xs text-muted-foreground text-center">Publishing will make this tender visible and open for proposals</p>
+                  <p className="text-xs text-muted-foreground text-center">{t('tenderFlow.editPublishHint')}</p>
                 </>
               )}
 
               {isPublished && (
                 <>
                   <Button type="button" onClick={() => revertMutation.mutate()} variant="outline" className="w-full border-amber-500 text-amber-600 hover:bg-amber-50" disabled={revertMutation.isPending}>
-                    {revertMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Reverting...</> : <><RotateCcw className="h-4 w-4 mr-2" />Revert to Draft</>}
+                    {revertMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('tenderFlow.editReverting')}</> : <><RotateCcw className="h-4 w-4 mr-2" />{t('tenderFlow.editRevertToDraft')}</>}
                   </Button>
-                  <p className="text-xs text-muted-foreground text-center">Reverting will unpublish this tender and stop accepting new proposals</p>
+                  <p className="text-xs text-muted-foreground text-center">{t('tenderFlow.editRevertHint')}</p>
                 </>
               )}
             </div>

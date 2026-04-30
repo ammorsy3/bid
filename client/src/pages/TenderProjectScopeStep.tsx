@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, ArrowRight, X, Plus, Mic, ChevronDown, CalendarIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, X, Plus, Mic, ChevronDown, CalendarIcon, Video } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
@@ -10,6 +10,8 @@ import { format } from "date-fns";
 import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import VoiceRecorder from "@/components/voice-recorder";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { AutocompleteInput } from "@/components/ui/autocomplete-input";
 import { getSuggestions } from "@/lib/tender-suggestions";
 import { smartSuggestionEngine } from "@/lib/smart-suggestions";
@@ -46,6 +48,8 @@ export default function TenderProjectScopeStep() {
   const [projectDescription, setProjectDescription] = useState("");
   const [inputMode, setInputMode] = useState<InputMode>("text");
   const [voiceNoteUrl, setVoiceNoteUrl] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoRequired, setVideoRequired] = useState(false);
 
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -82,6 +86,8 @@ export default function TenderProjectScopeStep() {
       }
       if (parsed.projectDescription) setProjectDescription(parsed.projectDescription);
       if (parsed.voiceNoteUrl) setVoiceNoteUrl(parsed.voiceNoteUrl);
+      if (typeof parsed.videoUrl === "string") setVideoUrl(parsed.videoUrl);
+      if (typeof parsed.videoRequired === "boolean") setVideoRequired(parsed.videoRequired);
       if (parsed.startDate) setStartDate(new Date(parsed.startDate));
       if (parsed.endDate) setEndDate(new Date(parsed.endDate));
 
@@ -316,6 +322,8 @@ export default function TenderProjectScopeStep() {
         milestones: serializedMilestones,
         projectDescription: inputMode === "text" ? projectDescription.trim() : "",
         voiceNoteUrl: inputMode === "voice" ? voiceNoteUrl : "",
+        videoUrl: videoUrl.trim() || "",
+        videoRequired,
       };
       localStorage.setItem("tenderDraft", JSON.stringify(updated));
       navigate("/tenders/new/ai-budget");
@@ -878,6 +886,54 @@ export default function TenderProjectScopeStep() {
                       </p>
                     </div>
                   )}
+                </div>
+
+                <div
+                  className={`space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6 transition-all duration-300 ease-out ${
+                    showDescription
+                      ? "opacity-100 max-h-[600px] translate-y-0"
+                      : "opacity-0 max-h-0 overflow-hidden -translate-y-2 pt-0 border-t-0"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Video className="h-4 w-4 text-[#E25E45]" />
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                      {t('tenderFlow.videoUrlLabel') || 'Video URL'} <span className="text-gray-400 font-normal">{t('tenderFlow.optional')}</span>
+                    </label>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Input
+                      type="url"
+                      value={videoUrl}
+                      onChange={(e) => setVideoUrl(e.target.value)}
+                      placeholder="https://youtube.com/..."
+                      data-testid="input-video-url"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {t('tenderFlow.videoUrlHint') || 'Optionally share a video that explains the project scope to vendors.'}
+                    </p>
+                  </div>
+
+                  <div className="flex items-start justify-between gap-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                    <div className="flex-1 min-w-0">
+                      <label
+                        htmlFor="switch-video-required"
+                        className="block text-sm font-medium text-gray-900 dark:text-white cursor-pointer"
+                      >
+                        {t('tenderFlow.requireVideoLabel') || 'Require vendors to submit a video pitch'}
+                      </label>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {t('tenderFlow.requireVideoHint') || 'Vendors will be required to provide a video link when submitting their offer.'}
+                      </p>
+                    </div>
+                    <Switch
+                      id="switch-video-required"
+                      checked={videoRequired}
+                      onCheckedChange={setVideoRequired}
+                      data-testid="switch-video-required"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">

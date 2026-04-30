@@ -1,20 +1,27 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
-import { Store, Globe, DollarSign, Clock, AlertCircle, Calendar } from "lucide-react";
+import { Store, Globe, DollarSign, Clock, AlertCircle, Calendar, FileCheck, FileText, Upload, Loader2, X } from "lucide-react";
 import { format } from "date-fns";
 import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+
+export interface MarketplacePoFile {
+  fileUrl: string;
+  originalName: string;
+}
 
 export interface MarketplaceOptions {
   enabled: boolean;
   tenderType: string;
   documentFee: string;
   inquiryDeadline: string;
+  poFiles: MarketplacePoFile[];
   confirmed: boolean;
 }
 
@@ -35,8 +42,66 @@ export function MarketplacePublishOption({
   isRtl,
   t,
 }: MarketplacePublishOptionProps) {
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const update = (partial: Partial<MarketplaceOptions>) => {
     onChange({ ...value, ...partial });
+  };
+
+  const handleUploadPO = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const uploadUrlRes = await fetch('/api/objects/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ fileSize: file.size, fileType: file.type }),
+      });
+      if (!uploadUrlRes.ok) throw new Error('Failed to get upload URL');
+      const { uploadURL } = await uploadUrlRes.json();
+
+      const uploadRes = await fetch(uploadURL, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type },
+      });
+      if (!uploadRes.ok) throw new Error('Upload failed');
+
+      // Register ACL ownership and get the canonical "/objects/<entity-id>" path.
+      // Skipping this step leaves the file without an ACL owner and stores a raw
+      // bucket path that can break under future object-storage refactors.
+      const metaRes = await fetch('/api/objects/metadata', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ fileURL: uploadURL }),
+      });
+      if (!metaRes.ok) throw new Error('Failed to register file metadata');
+      const { objectPath } = await metaRes.json();
+
+      onChange({
+        ...value,
+        poFiles: [...value.poFiles, { fileUrl: objectPath, originalName: file.name }],
+      });
+    } catch (err: any) {
+      toast({
+        title: t('marketplace.error') || 'Error',
+        description: err?.message || 'Upload failed',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const removePoFile = (idx: number) => {
+    update({ poFiles: value.poFiles.filter((_, i) => i !== idx) });
   };
 
   return (
@@ -150,6 +215,66 @@ export function MarketplacePublishOption({
                 />
               </PopoverContent>
             </Popover>
+          </div>
+
+          {/* PO Upload files */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
+              <FileCheck className="h-3.5 w-3.5 text-purple-600" />
+              {t('marketplace.formPoTitle') || 'Purchase Order'}
+            </label>
+            <p className="text-[11px] text-gray-500 leading-relaxed">
+              {t('marketplace.formPoHelper') || 'A signed document from your company confirming payment to the awarded vendor. Only visible to you and the Bid team.'}
+            </p>
+
+            {value.poFiles.length > 0 && (
+              <div className="space-y-1.5">
+                {value.poFiles.map((po, idx) => (
+                  <div key={`${po.fileUrl}-${idx}`} className="flex items-center justify-between gap-2 p-2 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                      <span className="text-xs text-gray-700 truncate">{po.originalName}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removePoFile(idx)}
+                      className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                      aria-label={t('marketplace.remove') || 'Remove'}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-9 w-full"
+              disabled={isUploading}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {isUploading ? <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> : <Upload className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />}
+              {isUploading
+                ? (t('marketplace.uploading') || 'Uploading...')
+                : value.poFiles.length > 0
+                  ? (t('marketplace.uploadAnother') || 'Upload another')
+                  : (t('marketplace.uploadPo') || 'Upload PO Document')}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleUploadPO(f);
+                e.target.value = '';
+              }}
+              disabled={isUploading}
+            />
           </div>
 
           {/* Confirmation checkbox */}

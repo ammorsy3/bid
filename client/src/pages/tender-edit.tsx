@@ -12,6 +12,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import {
   ArrowLeft, Loader2, Save, Send, RotateCcw, Plus, X, Copy,
   FileText, Calendar, DollarSign, ClipboardList, MessageSquare,
@@ -25,35 +26,14 @@ import { Label } from "@/components/ui/label";
 import type { Tender } from "@shared/schema";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const DURATION_OPTIONS = [
-  { value: "1to3", label: "1 to 3 months" },
-  { value: "3to6", label: "3 to 6 months" },
-  { value: "6plus", label: "More than 6 months" },
-];
-
-const SUBMISSION_TYPE_OPTIONS = [
-  { value: "quote_only", label: "Price Quote Only" },
-  { value: "tech_fin_proposal", label: "Full Proposal (Technical + Financial)" },
-  { value: "video_only", label: "Video Pitch Only" },
-  { value: "tech_fin_with_video", label: "Full Proposal + Video Pitch" },
-  { value: "document_only", label: "Document Only" },
-];
-
-const INQUIRY_TYPE_OPTIONS = [
-  { value: "inside_bid", label: "Anonymous Q&A (through Bid platform)" },
-  { value: "email_whatsapp", label: "Direct Contact (Email & WhatsApp)" },
-];
-
 // ─── Schema ──────────────────────────────────────────────────────────────────
 
-const editTenderSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
+const makeEditTenderSchema = (t: (k: string) => string) => z.object({
+  title: z.string().min(3, t('validation.titleMin')),
+  description: z.string().min(10, t('validation.descriptionMin')),
   objective: z.string().optional(),
   category: z.string().optional(),
-  deadline: z.string().min(1, "Deadline is required"),
+  deadline: z.string().min(1, t('validation.deadlineRequired')),
   duration: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
@@ -69,7 +49,7 @@ const editTenderSchema = z.object({
   emailContact: z.string().optional(),
 });
 
-type EditTenderForm = z.infer<typeof editTenderSchema>;
+type EditTenderForm = z.infer<ReturnType<typeof makeEditTenderSchema>>;
 
 interface Deliverable {
   id: string;
@@ -116,6 +96,26 @@ export default function TenderEdit() {
   const [, setLocation] = useLocation();
   const { user, activeCompany } = useAuthStore();
   const { toast } = useToast();
+  const { t } = useI18n();
+
+  const DURATION_OPTIONS = [
+    { value: "1to3", label: t('tenderFlow.editDuration1to3') },
+    { value: "3to6", label: t('tenderFlow.editDuration3to6') },
+    { value: "6plus", label: t('tenderFlow.editDuration6plus') },
+  ];
+
+  const SUBMISSION_TYPE_OPTIONS = [
+    { value: "quote_only", label: t('tenderFlow.editSubmTypeQuoteOnly') },
+    { value: "tech_fin_proposal", label: t('tenderFlow.editSubmTypeTechFin') },
+    { value: "video_only", label: t('tenderFlow.editSubmTypeVideoOnly') },
+    { value: "tech_fin_with_video", label: t('tenderFlow.editSubmTypeTechFinVideo') },
+    { value: "document_only", label: t('tenderFlow.editSubmTypeDocOnly') },
+  ];
+
+  const INQUIRY_TYPE_OPTIONS = [
+    { value: "inside_bid", label: t('tenderFlow.editInquiryAnonymousQA') },
+    { value: "email_whatsapp", label: t('tenderFlow.editInquiryDirectContact') },
+  ];
 
   const [budgetType, setBudgetType] = useState<"exact" | "range">("exact");
   const [skills, setSkills] = useState<string[]>([]);
@@ -135,7 +135,7 @@ export default function TenderEdit() {
   });
 
   const form = useForm<EditTenderForm>({
-    resolver: zodResolver(editTenderSchema),
+    resolver: zodResolver(makeEditTenderSchema(t)),
     mode: "onChange",
     defaultValues: {
       title: "",
@@ -224,11 +224,11 @@ export default function TenderEdit() {
     onSuccess: (updatedTender) => {
       queryClient.setQueryData(["/api/tenders", id], updatedTender);
       queryClient.invalidateQueries({ queryKey: ["/api/tenders"] });
-      toast({ title: "Saved", description: "Tender updated successfully" });
+      toast({ title: t('tenderFlow.editSaved'), description: t('tenderFlow.editSavedDesc') });
       setLocation(`/tenders/${id}`);
     },
     onError: (error: any) => {
-      toast({ title: "Error", description: error?.message || "Failed to update tender", variant: "destructive" });
+      toast({ title: "Error", description: error?.message || t('tenderFlow.editFailed'), variant: "destructive" });
     },
   });
 
@@ -246,17 +246,17 @@ export default function TenderEdit() {
       if (invToken) {
         const inviteLink = `${window.location.origin}/invite/${invToken}`;
         toast({
-          title: "Published!",
-          description: "Tender is now live and accepting proposals",
+          title: t('tenderFlow.publishedToast'),
+          description: t('tenderFlow.publishedToastDesc'),
           action: (
-            <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
-              <Copy className="h-3 w-3 mr-1" /> Copy Link
+            <ToastAction altText={t('tenderFlow.copyLinkAlt')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderFlow.linkCopiedToast') }); }}>
+              <Copy className="h-3 w-3 mr-1" /> {t('tenderFlow.editCopyLink')}
             </ToastAction>
           ),
           duration: 10000,
         });
       } else {
-        toast({ title: "Published!", description: "Tender is now live and accepting proposals" });
+        toast({ title: t('tenderFlow.publishedToast'), description: t('tenderFlow.publishedToastDesc') });
       }
       setLocation(`/tenders/${id}`);
     },
@@ -274,10 +274,10 @@ export default function TenderEdit() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tenders", id] });
       queryClient.invalidateQueries({ queryKey: ["/api/tenders"] });
-      toast({ title: "Reverted to Draft", description: "Tender is no longer accepting proposals" });
+      toast({ title: t('tenderFlow.editReverted'), description: t('tenderFlow.editRevertedDesc') });
     },
     onError: (error: any) => {
-      toast({ title: "Error", description: error?.message || "Failed to revert", variant: "destructive" });
+      toast({ title: "Error", description: error?.message || t('tenderFlow.editFailedRevert'), variant: "destructive" });
     },
   });
 
@@ -328,10 +328,10 @@ export default function TenderEdit() {
           <Card>
             <CardContent className="py-8 text-center">
               <p className="text-muted-foreground">
-                {!tender ? "Tender not found" : !isOwner ? "You don't have permission to edit this tender" : "Closed or cancelled tenders cannot be edited"}
+                {!tender ? t('tenderFlow.tenderNotFoundTitle') : !isOwner ? t('tenderFlow.editNoPermission') : t('tenderFlow.editClosedCannotEdit')}
               </p>
               <Button variant="outline" onClick={() => setLocation(`/tenders/${id}`)} className="mt-4">
-                Back to Tender
+                {t('tenderFlow.backToTender')}
               </Button>
             </CardContent>
           </Card>
@@ -350,13 +350,13 @@ export default function TenderEdit() {
           data-testid="button-back"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Tender
+          {t('tenderFlow.backToTender')}
         </Button>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Tender</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('tenderFlow.editTenderTitle')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {isPublished ? "This tender is live. Changes will apply immediately." : "Draft — not yet visible to vendors."}
+            {isPublished ? t('tenderFlow.tenderIsLive') : t('tenderFlow.tenderIsDraft')}
           </p>
         </div>
 
@@ -366,8 +366,8 @@ export default function TenderEdit() {
             {/* ── 1. Basics ─────────────────────────────────────────────── */}
             <SectionCard
               icon={<FileText className="h-4 w-4 text-[#E25E45]" />}
-              title="Project Basics"
-              description="Core information about the project"
+              title={t('tenderFlow.editSectionBasicsTitle')}
+              description={t('tenderFlow.editSectionBasicsDesc')}
               color="bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]"
             >
               <FormField
@@ -375,9 +375,9 @@ export default function TenderEdit() {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title *</FormLabel>
+                    <FormLabel>{t('tenderFlow.editTitleLabel')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Brand Identity Design for Fintech Startup" data-testid="input-title" {...field} />
+                      <Input placeholder={t('tenderFlow.editTitlePlaceholder')} data-testid="input-title" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -389,9 +389,9 @@ export default function TenderEdit() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description *</FormLabel>
+                    <FormLabel>{t('tenderFlow.editDescriptionLabel')}</FormLabel>
                     <FormControl>
-                      <Textarea rows={5} placeholder="Full project context, background, and requirements..." data-testid="input-description" {...field} />
+                      <Textarea rows={5} placeholder={t('tenderFlow.editDescriptionPlaceholder')} data-testid="input-description" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -403,9 +403,9 @@ export default function TenderEdit() {
                 name="objective"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Project Objective</FormLabel>
+                    <FormLabel>{t('tenderFlow.editObjectiveLabel')}</FormLabel>
                     <FormControl>
-                      <Textarea rows={2} placeholder="The primary outcome this project should achieve..." {...field} />
+                      <Textarea rows={2} placeholder={t('tenderFlow.editObjectivePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -417,11 +417,11 @@ export default function TenderEdit() {
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category</FormLabel>
+                    <FormLabel>{t('tenderFlow.editCategoryLabel')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
+                          <SelectValue placeholder={t('tenderFlow.editDurationPlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -439,8 +439,8 @@ export default function TenderEdit() {
             {/* ── 2. Timeline ───────────────────────────────────────────── */}
             <SectionCard
               icon={<Calendar className="h-4 w-4 text-blue-600" />}
-              title="Timeline & Dates"
-              description="Submission deadline and project schedule"
+              title={t('tenderFlow.editSectionTimelineTitle')}
+              description={t('tenderFlow.editSectionTimelineDesc')}
               color="bg-gradient-to-r from-blue-500 to-blue-400"
             >
               <FormField
@@ -448,7 +448,7 @@ export default function TenderEdit() {
                 name="deadline"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Submission Deadline *</FormLabel>
+                    <FormLabel>{t('tenderFlow.editDeadlineLabel')}</FormLabel>
                     <FormControl>
                       <Input type="datetime-local" data-testid="input-deadline" {...field} />
                     </FormControl>
@@ -462,11 +462,11 @@ export default function TenderEdit() {
                 name="duration"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Project Duration</FormLabel>
+                    <FormLabel>{t('tenderFlow.editDurationLabel')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select duration" />
+                          <SelectValue placeholder={t('tenderFlow.editDurationPlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -486,7 +486,7 @@ export default function TenderEdit() {
                   name="startDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Project Start Date</FormLabel>
+                      <FormLabel>{t('tenderFlow.editStartDateLabel')}</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -499,7 +499,7 @@ export default function TenderEdit() {
                   name="endDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Project End Date</FormLabel>
+                      <FormLabel>{t('tenderFlow.editEndDateLabel')}</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -513,11 +513,10 @@ export default function TenderEdit() {
             {/* ── 3. Budget ─────────────────────────────────────────────── */}
             <SectionCard
               icon={<DollarSign className="h-4 w-4 text-green-600" />}
-              title="Budget"
-              description="Project budget in SAR and visibility settings"
+              title={t('tenderFlow.editSectionBudgetTitle')}
+              description={t('tenderFlow.editSectionBudgetDesc')}
               color="bg-gradient-to-r from-green-500 to-emerald-400"
             >
-              {/* Budget type toggle */}
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -528,7 +527,7 @@ export default function TenderEdit() {
                       : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  Exact Amount
+                  {t('tenderFlow.editBudgetExact')}
                 </button>
                 <button
                   type="button"
@@ -539,7 +538,7 @@ export default function TenderEdit() {
                       : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  Range
+                  {t('tenderFlow.editBudgetRange')}
                 </button>
               </div>
 
@@ -549,11 +548,11 @@ export default function TenderEdit() {
                   name="budget"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Budget Amount (SAR)</FormLabel>
+                      <FormLabel>{t('tenderFlow.editBudgetAmountLabel')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">SAR</span>
-                          <Input className="pl-12" placeholder="e.g., 50000" data-testid="input-budget" {...field} />
+                          <Input className="pl-12" placeholder={t('tenderFlow.editBudgetAmountPlaceholder')} data-testid="input-budget" {...field} />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -567,11 +566,11 @@ export default function TenderEdit() {
                     name="budgetMin"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Min Budget (SAR)</FormLabel>
+                        <FormLabel>{t('tenderFlow.editBudgetMinLabel')}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
-                            placeholder="e.g., 30000"
+                            placeholder={t('tenderFlow.editBudgetMinPlaceholder')}
                             value={field.value ?? ""}
                             onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                           />
@@ -585,11 +584,11 @@ export default function TenderEdit() {
                     name="budgetMax"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Max Budget (SAR)</FormLabel>
+                        <FormLabel>{t('tenderFlow.editBudgetMaxLabel')}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
-                            placeholder="e.g., 80000"
+                            placeholder={t('tenderFlow.editBudgetMaxPlaceholder')}
                             value={field.value ?? ""}
                             onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                           />
@@ -610,9 +609,9 @@ export default function TenderEdit() {
                       <div className="flex items-center gap-2">
                         {field.value ? <Eye className="h-4 w-4 text-gray-500" /> : <EyeOff className="h-4 w-4 text-gray-500" />}
                         <div>
-                          <p className="text-sm font-medium">Show budget to vendors</p>
+                          <p className="text-sm font-medium">{t('tenderFlow.editShowBudgetLabel')}</p>
                           <p className="text-xs text-muted-foreground">
-                            {field.value ? "Vendors can see the budget amount" : "Budget is hidden from vendors"}
+                            {field.value ? t('tenderFlow.editBudgetVisible') : t('tenderFlow.editBudgetHidden')}
                           </p>
                         </div>
                       </div>
@@ -628,8 +627,8 @@ export default function TenderEdit() {
             {/* ── 4. Submission ─────────────────────────────────────────── */}
             <SectionCard
               icon={<ClipboardList className="h-4 w-4 text-purple-600" />}
-              title="Submission Requirements"
-              description="How vendors should respond to this RFP"
+              title={t('tenderFlow.editSubmissionsTitle')}
+              description={t('tenderFlow.editSectionSubmHowDesc')}
               color="bg-gradient-to-r from-purple-500 to-purple-400"
             >
               <FormField
@@ -637,11 +636,11 @@ export default function TenderEdit() {
                 name="submissionType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Submission Type</FormLabel>
+                    <FormLabel>{t('tenderFlow.editSubmTypeLabel')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select how vendors should respond" />
+                          <SelectValue placeholder={t('tenderFlow.editSubmTypePlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -663,8 +662,8 @@ export default function TenderEdit() {
                     <FormItem>
                       <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
                         <div>
-                          <p className="text-sm font-medium text-orange-900 dark:text-orange-200">Require video submission</p>
-                          <p className="text-xs text-orange-700 dark:text-orange-400">Make the video pitch mandatory</p>
+                          <p className="text-sm font-medium text-orange-900 dark:text-orange-200">{t('tenderFlow.editRequireVideoLabel')}</p>
+                          <p className="text-xs text-orange-700 dark:text-orange-400">{t('tenderFlow.editRequireVideoDesc')}</p>
                         </div>
                         <FormControl>
                           <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -680,11 +679,11 @@ export default function TenderEdit() {
                 name="videoUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Project Video URL (optional)</FormLabel>
+                    <FormLabel>{t('tenderFlow.editVideoUrlLabel')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://youtube.com/watch?v=..." {...field} />
+                      <Input placeholder={t('tenderFlow.editVideoUrlPlaceholder')} {...field} />
                     </FormControl>
-                    <p className="text-xs text-muted-foreground">A video you've recorded to explain the project to vendors</p>
+                    <p className="text-xs text-muted-foreground">{t('tenderFlow.editVideoNote')}</p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -694,8 +693,8 @@ export default function TenderEdit() {
             {/* ── 5. Contact & Q&A ──────────────────────────────────────── */}
             <SectionCard
               icon={<MessageSquare className="h-4 w-4 text-green-600" />}
-              title="Contact & Q&A"
-              description="How vendors can reach you with questions"
+              title={t('tenderFlow.editSectionQaTitle')}
+              description={t('tenderFlow.editSectionQaDesc')}
               color="bg-gradient-to-r from-green-500 to-teal-400"
             >
               <FormField
@@ -703,11 +702,11 @@ export default function TenderEdit() {
                 name="inquiryType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Q&A Method</FormLabel>
+                    <FormLabel>{t('tenderFlow.editQaMethodLabel')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select how vendors ask questions" />
+                          <SelectValue placeholder={t('tenderFlow.editQaMethodPlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -728,9 +727,9 @@ export default function TenderEdit() {
                     name="emailContact"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Contact Email</FormLabel>
+                        <FormLabel>{t('tenderFlow.editContactEmailLabel')}</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="inquiries@company.com" {...field} />
+                          <Input type="email" placeholder={t('tenderFlow.editContactEmailPlaceholder')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -741,9 +740,9 @@ export default function TenderEdit() {
                     name="whatsappContact"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>WhatsApp Number</FormLabel>
+                        <FormLabel>{t('tenderFlow.editWhatsappLabel')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="+966 5X XXX XXXX" {...field} />
+                          <Input placeholder={t('tenderFlow.editWhatsappPlaceholder')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -756,13 +755,13 @@ export default function TenderEdit() {
             {/* ── 6. Skills ─────────────────────────────────────────────── */}
             <SectionCard
               icon={<Tag className="h-4 w-4 text-amber-600" />}
-              title="Required Skills & Expertise"
-              description="Tags for the skills vendors should have"
+              title={t('tenderFlow.editSectionSkillsTitle')}
+              description={t('tenderFlow.editSectionSkillsDesc')}
               color="bg-gradient-to-r from-amber-500 to-orange-400"
             >
               <div className="flex gap-2">
                 <Input
-                  placeholder="e.g., React, UI/UX, Figma"
+                  placeholder={t('tenderFlow.editSkillsPlaceholder')}
                   value={skillInput}
                   onChange={(e) => setSkillInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -797,8 +796,8 @@ export default function TenderEdit() {
             {/* ── 7. Deliverables ───────────────────────────────────────── */}
             <SectionCard
               icon={<ListChecks className="h-4 w-4 text-indigo-600" />}
-              title="Scope of Work & Deliverables"
-              description="Itemized list of what vendors must deliver"
+              title={t('tenderFlow.editSectionDeliverablesTitle')}
+              description={t('tenderFlow.editSectionDeliverablesDesc')}
               color="bg-gradient-to-r from-indigo-500 to-indigo-400"
             >
               {deliverables.length > 0 && (
@@ -810,7 +809,7 @@ export default function TenderEdit() {
                           {index + 1}
                         </span>
                         <Input
-                          placeholder="Deliverable name"
+                          placeholder={t('tenderFlow.editDeliverableNamePlaceholder')}
                           value={d.name}
                           onChange={(e) => updateDeliverable(d.id, "name", e.target.value)}
                           className="flex-1"
@@ -824,13 +823,13 @@ export default function TenderEdit() {
                         </button>
                       </div>
                       <Input
-                        placeholder="Description (optional)"
+                        placeholder={t('tenderFlow.editDeliverableDescPlaceholder')}
                         value={d.description}
                         onChange={(e) => updateDeliverable(d.id, "description", e.target.value)}
                       />
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <Label className="text-xs text-muted-foreground">Quantity</Label>
+                          <Label className="text-xs text-muted-foreground">{t('tenderFlow.quantity')}</Label>
                           <Input
                             type="number"
                             min={1}
@@ -839,9 +838,9 @@ export default function TenderEdit() {
                           />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground">Unit</Label>
+                          <Label className="text-xs text-muted-foreground">{t('tenderFlow.editUnitLabel')}</Label>
                           <Input
-                            placeholder="e.g., page, hour, item"
+                            placeholder={t('tenderFlow.editUnitPlaceholder')}
                             value={d.unit}
                             onChange={(e) => updateDeliverable(d.id, "unit", e.target.value)}
                           />
@@ -853,7 +852,7 @@ export default function TenderEdit() {
               )}
               <Button type="button" variant="outline" className="w-full" onClick={addDeliverable}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Deliverable
+                {t('tenderFlow.addDeliverable')}
               </Button>
             </SectionCard>
 
@@ -867,7 +866,7 @@ export default function TenderEdit() {
                   className="flex-1"
                   data-testid="button-cancel"
                 >
-                  Cancel
+                  {t('tenderFlow.editCancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -876,9 +875,9 @@ export default function TenderEdit() {
                   data-testid="button-save"
                 >
                   {updateTenderMutation.isPending ? (
-                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</>
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('tenderFlow.editSaving')}</>
                   ) : (
-                    <><Save className="h-4 w-4 mr-2" />Save Changes</>
+                    <><Save className="h-4 w-4 mr-2" />{t('tenderFlow.editSaveChanges')}</>
                   )}
                 </Button>
               </div>
@@ -893,13 +892,13 @@ export default function TenderEdit() {
                     data-testid="button-publish"
                   >
                     {publishTenderMutation.isPending ? (
-                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Publishing...</>
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('tenderFlow.editPublishing')}</>
                     ) : (
-                      <><Send className="h-4 w-4 mr-2" />Publish Tender</>
+                      <><Send className="h-4 w-4 mr-2" />{t('tenderFlow.editPublishTender')}</>
                     )}
                   </Button>
                   <p className="text-xs text-muted-foreground text-center">
-                    Publishing will make this tender visible and open for proposals
+                    {t('tenderFlow.editPublishHint')}
                   </p>
                 </>
               )}
@@ -915,13 +914,13 @@ export default function TenderEdit() {
                     data-testid="button-revert"
                   >
                     {revertToDraftMutation.isPending ? (
-                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Reverting...</>
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('tenderFlow.editReverting')}</>
                     ) : (
-                      <><RotateCcw className="h-4 w-4 mr-2" />Revert to Draft</>
+                      <><RotateCcw className="h-4 w-4 mr-2" />{t('tenderFlow.editRevertToDraft')}</>
                     )}
                   </Button>
                   <p className="text-xs text-muted-foreground text-center">
-                    Reverting will unpublish this tender and stop accepting new proposals
+                    {t('tenderFlow.editRevertHint')}
                   </p>
                 </>
               )}

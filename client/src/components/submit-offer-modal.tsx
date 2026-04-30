@@ -128,7 +128,10 @@ const modalStrings: Record<string, Record<string, string>> = {
     priceCompetitively: "Price your offer competitively",
     verificationRequired: "Verification Required",
     completePreQual: "Complete your pre-qualification to submit offers.",
-    completeProfile: "Complete Profile",
+    completeProfile: "Verify Now",
+    viewDashboard: "View Dashboard",
+    errorTitle: "Error",
+    failedToSubmit: "Failed to submit offer",
     priceQuoteLabel: "Your Price Quote (SAR) *",
     enterPrice: "Enter your price in SAR",
     videoPitchUrl: "Video Pitch URL",
@@ -148,7 +151,7 @@ const modalStrings: Record<string, Record<string, string>> = {
     technicalHint: "PDF, DOC, DOCX \u2022 Max 10MB",
     financialLabel: "Financial Proposal *",
     uploadFinancial: "Upload financial proposal",
-    financialHint: "PDF, DOC, XLS \u2022 Max 10MB",
+    financialHint: "PDF, DOC, DOCX, XLS, XLSX \u2022 Max 10MB",
     additionalNotes: "Additional Notes",
     notesPlaceholder: "Any additional information, clarifications, or value propositions...",
     submissionSummary: "Submission Summary",
@@ -195,7 +198,10 @@ const modalStrings: Record<string, Record<string, string>> = {
     priceCompetitively: "قدّم سعراً تنافسياً",
     verificationRequired: "التحقق مطلوب",
     completePreQual: "أكمل التأهيل المسبق لتقديم العروض.",
-    completeProfile: "إكمال الملف",
+    completeProfile: "تحقّق الآن",
+    viewDashboard: "عرض لوحة التحكم",
+    errorTitle: "خطأ",
+    failedToSubmit: "فشل تقديم العرض",
     priceQuoteLabel: "عرض السعر (ريال سعودي) *",
     enterPrice: "أدخل السعر بالريال السعودي",
     videoPitchUrl: "رابط فيديو العرض",
@@ -215,7 +221,7 @@ const modalStrings: Record<string, Record<string, string>> = {
     technicalHint: "PDF, DOC, DOCX \u2022 حد أقصى 10 ميغابايت",
     financialLabel: "العرض المالي *",
     uploadFinancial: "ارفع العرض المالي",
-    financialHint: "PDF, DOC, XLS \u2022 حد أقصى 10 ميغابايت",
+    financialHint: "PDF, DOC, DOCX, XLS, XLSX \u2022 حد أقصى 10 ميغابايت",
     additionalNotes: "ملاحظات إضافية",
     notesPlaceholder: "أي معلومات إضافية أو توضيحات أو مقترحات قيمة...",
     submissionSummary: "ملخص التقديم",
@@ -242,6 +248,12 @@ const modalStrings: Record<string, Record<string, string>> = {
   },
 };
 
+interface VendorRequirement {
+  id: string;
+  text: string;
+  type: 'mandatory' | 'preferred';
+}
+
 interface SubmitOfferModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -252,6 +264,7 @@ interface SubmitOfferModalProps {
     budget?: string;
     submissionType?: SubmissionType;
     videoRequired?: boolean;
+    vendorRequirements?: VendorRequirement[] | null;
   };
   requester: {
     name: string;
@@ -292,6 +305,10 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   }>({});
   const [uploadMode, setUploadMode] = useState<UploadMode>('separate');
 
+  const mandatoryRequirements = (tender.vendorRequirements || []).filter(r => r.type === 'mandatory');
+  const [checkedRequirements, setCheckedRequirements] = useState<Record<string, boolean>>({});
+  const allMandatoryChecked = mandatoryRequirements.every(r => checkedRequirements[r.id]);
+
   const showQuoteField = tender.submissionType === 'quote_only';
   const showVideoField = tender.submissionType === 'video_only' || tender.submissionType === 'tech_fin_with_video';
   const showTechFinFields = !showQuoteField && tender.submissionType !== 'video_only';
@@ -317,7 +334,9 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   const hasExistingOffer = existingOffers && existingOffers.length > 0;
 
   const verificationStatus = activeCompany?.verificationStatus || 'not_verified';
-  const canSubmitOffer = verificationStatus === 'verified' || verificationStatus === 'under_review';
+  // Backend (`POST /api/tenders/:id/offers`) requires strictly 'verified'.
+  // Keep this gate aligned to avoid users filling out the form just to be 403'd on submit.
+  const canSubmitOffer = verificationStatus === 'verified';
 
   const requiredFields = useMemo(() => getRequiredFields(tender.submissionType, uploadMode), [tender.submissionType, uploadMode]);
 
@@ -420,9 +439,9 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
       setUploadedFiles({});
     },
     onError: (error: any) => {
-      const message = error?.message || "Failed to submit offer";
+      const message = error?.message || s('failedToSubmit');
       toast({
-        title: message.includes("already submitted") ? "Already Submitted" : "Error",
+        title: message.includes("already submitted") ? s('alreadySubmitted') : s('errorTitle'),
         description: message,
         variant: "destructive",
       });
@@ -510,10 +529,6 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
 
   function handleUploadModeChange(mode: UploadMode) {
     setUploadMode(mode);
-    setUploadedFiles({});
-    form.setValue('technicalFileUrl', '', { shouldValidate: false });
-    form.setValue('financialFileUrl', '', { shouldValidate: false });
-    form.setValue('combinedFileUrl', '', { shouldValidate: false });
   }
 
   return (
@@ -565,9 +580,18 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
             <p className="text-center text-neutral-600 mb-6">
               {s('alreadySubmittedDesc')}
             </p>
-            <Button variant="outline" onClick={handleClose} className="w-full sm:w-auto">
-              {s('close')}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <Button variant="outline" onClick={handleClose} className="w-full sm:w-auto" data-testid="button-close-already-submitted">
+                {s('close')}
+              </Button>
+              <Button
+                onClick={() => { handleClose(); navigate('/dashboard'); }}
+                className="w-full sm:w-auto bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                data-testid="button-view-dashboard"
+              >
+                {s('viewDashboard')}
+              </Button>
+            </div>
           </div>
         ) : (
           <Form {...form}>
@@ -935,6 +959,33 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </div>
             </div>
 
+            {mandatoryRequirements.length > 0 && (
+              <div className="p-4 bg-orange-50 rounded-lg border border-orange-200 space-y-3">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                  <p className="text-sm font-medium text-orange-800">
+                    {language === 'ar'
+                      ? 'يجب عليك تأكيد استيفاء المتطلبات الإلزامية التالية قبل التقديم:'
+                      : 'You must confirm you meet the following mandatory requirements before submitting:'}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  {mandatoryRequirements.map((req) => (
+                    <label key={req.id} className="flex items-start gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!checkedRequirements[req.id]}
+                        onChange={(e) => setCheckedRequirements(prev => ({ ...prev, [req.id]: e.target.checked }))}
+                        className="mt-0.5 h-4 w-4 rounded border-orange-400 text-orange-600 focus:ring-orange-500"
+                        data-testid={`checkbox-req-${req.id}`}
+                      />
+                      <span className="text-sm text-orange-900">{req.text}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center space-x-3 p-4 bg-warning-50 rounded-lg border border-warning-200">
               <AlertTriangle className="h-5 w-5 text-warning-600 flex-shrink-0" />
               <p className="text-sm text-warning-800">
@@ -956,7 +1007,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                 type="submit"
                 size="lg"
                 className="flex-1 bg-[#E25E45] hover:bg-[#d54d35] text-white"
-                disabled={submitOfferMutation.isPending || progress < 100 || !canSubmitOffer}
+                disabled={submitOfferMutation.isPending || progress < 100 || !canSubmitOffer || !allMandatoryChecked}
                 data-testid="button-submit-offer"
               >
                 {submitOfferMutation.isPending ? s('submitting') : !canSubmitOffer ? s('verificationRequired') : s('submitProposalBtn')}

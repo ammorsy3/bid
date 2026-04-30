@@ -11,6 +11,8 @@ import {
   AlignLeft,
   List,
   Flag,
+  Video,
+  ShieldCheck,
   LucideIcon,
 } from "lucide-react";
 
@@ -28,6 +30,8 @@ export type CardType =
   | "evaluation-criteria"
   | "attachments"
   | "milestones"
+  | "video-url"
+  | "vendor-requirements"
   // Custom
   | "custom-text"
   | "custom-textarea"
@@ -198,6 +202,18 @@ export const CARD_LIBRARY: {
       description: "Supporting documents and files",
       icon: Paperclip,
     },
+    {
+      type: "video-url",
+      label: "Video URL",
+      description: "Optional video introducing the project (YouTube, Vimeo, or direct link).",
+      icon: Video,
+    },
+    {
+      type: "vendor-requirements",
+      label: "Vendor Requirements",
+      description: "Mandatory and preferred qualifications vendors must prove to apply.",
+      icon: ShieldCheck,
+    },
   ],
   custom: [
     {
@@ -290,6 +306,10 @@ function getDefaultValue(type: CardType): any {
       } as EvaluationCriteriaValue;
     case "attachments":
       return [];
+    case "vendor-requirements":
+      return [];
+    case "video-url":
+      return "";
     case "custom-select":
       return null;
     default:
@@ -395,6 +415,24 @@ export const FIELD_INSIGHTS: Record<CardType, FieldInsight> = {
       "Vendors use milestones to plan team allocation and resources. Clear milestones with due dates lead to more accurate proposals and fewer surprises.",
     bestPractice:
       "Break your project into 3–7 milestones. Assign realistic due dates and include a brief description of what success looks like at each stage.",
+  },
+  "video-url": {
+    title: "Video URL",
+    description:
+      "An optional link to a short video introducing the project. Helps vendors quickly grasp context, tone, and scope beyond what text can convey.",
+    vendorTip:
+      "A 2–5 minute video lets vendors see the people and environment behind the RFP, building trust and improving response quality.",
+    bestPractice:
+      "Keep videos under 5 minutes. Make sure the link is publicly accessible (no sign-in required). YouTube unlisted or Vimeo work well.",
+  },
+  "vendor-requirements": {
+    title: "Vendor Requirements",
+    description:
+      "Qualifications vendors must prove to apply — split into mandatory (hard filter) and preferred (nice-to-have, scored as a plus).",
+    vendorTip:
+      "Clear mandatory vs preferred tags let vendors self-qualify and skip RFPs they cannot meet, improving the quality of submitted proposals.",
+    bestPractice:
+      "Keep mandatory requirements minimal and provable (CR, Zakat, GOSI). Move soft preferences to preferred so you don't shrink the eligible pool.",
   },
   "custom-text": {
     title: "Short Answer Field",

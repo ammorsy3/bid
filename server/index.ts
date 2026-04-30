@@ -2,6 +2,7 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { startIntegrationLogsCleanup } from "./jobs/integration-logs-cleanup";
 
 process.on("SIGTERM", () => process.exit(0));
 process.on("SIGINT", () => process.exit(0));
@@ -61,18 +62,30 @@ app.use((req, res, next) => {
 
   const startListen = (retriesLeft: number, delay = 250): Promise<void> =>
     new Promise((resolve, reject) => {
-      server.once("error", (err: any) => {
+      const onError = (err: any) => {
+        server.removeListener("listening", onListening);
         if (err.code === "EADDRINUSE" && retriesLeft > 0) {
           setTimeout(() => resolve(startListen(retriesLeft - 1, delay)), delay);
         } else {
+          if (err.code === "EADDRINUSE") {
+            log(
+              `port ${port} is still in use after retries — find and kill the holder with: lsof -i :${port}  or  fuser -k ${port}/tcp`,
+            );
+          }
           reject(err);
         }
-      });
-      server.listen({ port, host: "0.0.0.0" }, () => {
+      };
+      const onListening = () => {
+        server.removeListener("error", onError);
         log(`serving on port ${port}`);
         resolve();
-      });
+      };
+      server.once("error", onError);
+      server.once("listening", onListening);
+      server.listen({ port, host: "0.0.0.0" });
     });
 
   await startListen(40);
+
+  startIntegrationLogsCleanup();
 })();

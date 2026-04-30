@@ -7,6 +7,7 @@ import {
   Award, Shield,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useI18n } from "@/lib/i18n";
 
 interface CompanyStats {
   yearsInBusiness?: number;
@@ -17,13 +18,15 @@ interface CompanyStats {
   teamSize?: number;
 }
 
-const STAT_FIELDS: { key: keyof CompanyStats; label: string; suffix?: string }[] = [
-  { key: 'yearsInBusiness', label: 'Years in business' },
-  { key: 'projectsCompleted', label: 'Projects completed' },
-  { key: 'clientsServed', label: 'Clients served' },
-  { key: 'repeatClientPct', label: 'Repeat clients', suffix: '%' },
-  { key: 'citiesCovered', label: 'Cities covered' },
-  { key: 'teamSize', label: 'Team size' },
+type StatField = { key: keyof CompanyStats; labelKey: string; suffix?: string };
+
+const STAT_FIELD_DEFS: StatField[] = [
+  { key: 'yearsInBusiness', labelKey: 'statYearsInBusiness' },
+  { key: 'projectsCompleted', labelKey: 'statProjectsCompleted' },
+  { key: 'clientsServed', labelKey: 'statClientsServed' },
+  { key: 'repeatClientPct', labelKey: 'statRepeatClients', suffix: '%' },
+  { key: 'citiesCovered', labelKey: 'statCitiesCovered' },
+  { key: 'teamSize', labelKey: 'statTeamSize' },
 ];
 
 interface CertificationItem {
@@ -46,13 +49,13 @@ interface InsurancePolicyItem {
   documentName?: string;
 }
 
-const INSURANCE_TYPE_LABELS: Record<InsuranceType, string> = {
-  general_liability: 'General liability',
-  professional_indemnity: 'Professional indemnity',
-  workers_compensation: 'Workers compensation',
-  public_liability: 'Public liability',
-  cyber: 'Cyber liability',
-  other: 'Other',
+const INSURANCE_TYPE_KEYS: Record<InsuranceType, string> = {
+  general_liability: 'insTypeGeneralLiability',
+  professional_indemnity: 'insTypeProfessionalIndemnity',
+  workers_compensation: 'insTypeWorkersCompensation',
+  public_liability: 'insTypePublicLiability',
+  cyber: 'insTypeCyber',
+  other: 'insTypeOther',
 };
 
 function isExpired(expiryDate?: string): boolean {
@@ -119,12 +122,12 @@ interface CompanyProfileData {
 // Helper Components
 // ═══════════════════════════════════════════════════════════════════
 
-const COMPANY_SIZE_LABELS: Record<string, string> = {
-  '1-10': '1-10 employees',
-  '11-50': '11-50 employees',
-  '51-200': '51-200 employees',
-  '201-500': '201-500 employees',
-  '500+': '500+ employees',
+const COMPANY_SIZE_KEYS: Record<string, string> = {
+  '1-10': 'sizeLabel110',
+  '11-50': 'sizeLabel1150',
+  '51-200': 'sizeLabel51200',
+  '201-500': 'sizeLabel201500',
+  '500+': 'sizeLabelOver500',
 };
 
 function formatMemberSince(iso: string | null | undefined): string | null {
@@ -135,23 +138,24 @@ function formatMemberSince(iso: string | null | undefined): string | null {
 }
 
 function VerificationBadge({ status }: { status: string }) {
+  const { t } = useI18n();
   if (status === 'verified') {
     return (
       <span className="inline-flex items-center gap-1 text-[11px] font-bold rounded-full px-2.5 py-1 bg-emerald-50 text-emerald-600">
-        <CheckCircle2 className="h-3 w-3" /> Verified
+        <CheckCircle2 className="h-3 w-3" /> {t('companyProfile.badgeVerified')}
       </span>
     );
   }
   if (status === 'under_review') {
     return (
       <span className="inline-flex items-center gap-1 text-[11px] font-bold rounded-full px-2.5 py-1 bg-blue-50 text-blue-600">
-        <Clock className="h-3 w-3" /> Under Review
+        <Clock className="h-3 w-3" /> {t('companyProfile.badgeUnderReview')}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 text-[11px] font-bold rounded-full px-2.5 py-1 bg-gray-100 text-gray-500">
-      <AlertCircle className="h-3 w-3" /> Not Verified
+      <AlertCircle className="h-3 w-3" /> {t('companyProfile.badgeNotVerified')}
     </span>
   );
 }
@@ -183,6 +187,7 @@ function ProfileSkeleton() {
 export default function CompanyProfilePage() {
   const [, params] = useRoute("/company/:slug");
   const slug = params?.slug;
+  const { t } = useI18n();
 
   const { data, isLoading, error } = useQuery<CompanyProfileData>({
     queryKey: ['/api/companies/by-slug', slug, 'profile'],
@@ -199,15 +204,15 @@ export default function CompanyProfilePage() {
           <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto">
             <Building2 className="h-8 w-8 text-gray-400" />
           </div>
-          <h1 className="text-xl font-bold text-gray-900">Company Not Found</h1>
+          <h1 className="text-xl font-bold text-gray-900">{t('companyProfile.notFound')}</h1>
           <p className="text-sm text-gray-500 max-w-sm">
-            This company profile doesn't exist or has been removed.
+            {t('companyProfile.notFoundDesc')}
           </p>
           <button
             onClick={() => window.close()}
             className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
           >
-            Close this tab
+            {t('companyProfile.closeTab')}
           </button>
         </div>
       </div>
@@ -221,7 +226,8 @@ export default function CompanyProfilePage() {
   const hasTags = profile?.tags && profile.tags.length > 0;
   const hasCertifications = company.certifications && company.certifications.length > 0;
   const hasPortfolio = profile?.portfolio && profile.portfolio.length > 0;
-  const sizeLabel = profile?.companySize ? COMPANY_SIZE_LABELS[profile.companySize] : null;
+  const sizeLabelKey = profile?.companySize ? COMPANY_SIZE_KEYS[profile.companySize] : null;
+  const sizeLabel = sizeLabelKey ? t(`companyProfile.${sizeLabelKey}`) : null;
   const serviceAreas = profile?.serviceAreas || [];
   const languages = profile?.languages || [];
   const industriesServed = profile?.industriesServed || [];
@@ -232,7 +238,7 @@ export default function CompanyProfilePage() {
   const hasReach = serviceAreas.length > 0 || languages.length > 0 || industriesServed.length > 0;
   const hasFactsStrip = yearFounded || sizeLabel || company.city;
   const stats = profile?.stats || {};
-  const visibleStats = STAT_FIELDS.filter(f => {
+  const visibleStats = STAT_FIELD_DEFS.filter(f => {
     const v = stats[f.key];
     return v != null && (v as number) > 0;
   });
@@ -251,10 +257,10 @@ export default function CompanyProfilePage() {
             className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back</span>
+            <span className="hidden sm:inline">{t('companyProfile.navBack')}</span>
           </button>
           <div className="h-5 w-px bg-gray-200" />
-          <span className="text-sm font-semibold text-gray-900">Company Profile</span>
+          <span className="text-sm font-semibold text-gray-900">{t('companyProfile.navTitle')}</span>
         </div>
       </nav>
 
@@ -344,9 +350,9 @@ export default function CompanyProfilePage() {
                 : availabilityStatus === 'limited' ? 'text-amber-800'
                 : 'text-gray-700'
               }`}>
-                {availabilityStatus === 'accepting' ? 'Accepting new projects'
-                  : availabilityStatus === 'limited' ? 'Limited capacity'
-                  : 'Currently booked'}
+                {availabilityStatus === 'accepting' ? t('companyProfile.availabilityAccepting')
+                  : availabilityStatus === 'limited' ? t('companyProfile.availabilityLimited')
+                  : t('companyProfile.availabilityBooked')}
               </p>
               {availabilityNote && (
                 <p className={`text-[11px] mt-0.5 ${
@@ -366,7 +372,7 @@ export default function CompanyProfilePage() {
           <div className="bg-white rounded-2xl border border-gray-100 px-5 py-4 flex flex-wrap gap-x-8 gap-y-3">
             {yearFounded && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Founded</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">{t('companyProfile.factsFoundedLabel')}</p>
                 <p className="text-sm font-bold text-gray-800">
                   {yearFounded}
                   {yearsInBusiness !== null && yearsInBusiness > 0 && (
@@ -377,19 +383,19 @@ export default function CompanyProfilePage() {
             )}
             {sizeLabel && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Team</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">{t('companyProfile.factsTeamLabel')}</p>
                 <p className="text-sm font-bold text-gray-800">{sizeLabel}</p>
               </div>
             )}
             {company.city && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Headquarters</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">{t('companyProfile.factsHqLabel')}</p>
                 <p className="text-sm font-bold text-gray-800">{company.city}</p>
               </div>
             )}
             {company.category && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">Category</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">{t('companyProfile.factsCategoryLabel')}</p>
                 <p className="text-sm font-bold text-gray-800">{company.category}</p>
               </div>
             )}
@@ -402,15 +408,15 @@ export default function CompanyProfilePage() {
         <div className="max-w-[900px] mx-auto px-6 pt-6">
           <div className="bg-white rounded-2xl border border-gray-100 px-6 py-5">
             <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-4">
-              Track Record
+              {t('companyProfile.sectionTrackRecord')}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
-              {visibleStats.map(({ key, label, suffix }) => (
+              {visibleStats.map(({ key, labelKey, suffix }) => (
                 <div key={key}>
                   <p className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-[-0.02em]">
                     {(stats[key] as number).toLocaleString()}{suffix || ''}
                   </p>
-                  <p className="text-[11px] font-medium text-gray-400 mt-0.5">{label}</p>
+                  <p className="text-[11px] font-medium text-gray-400 mt-0.5">{t(`companyProfile.${labelKey}`)}</p>
                 </div>
               ))}
             </div>
@@ -432,17 +438,17 @@ export default function CompanyProfilePage() {
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-emerald-600" />
                     <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-700">
-                      Verified Credentials
+                      {t('companyProfile.sectionVerifiedCredentials')}
                     </h2>
                   </div>
                   {formatMemberSince(company.verifiedAt) && (
                     <span className="text-[10px] font-semibold text-emerald-600/70">
-                      Verified {formatMemberSince(company.verifiedAt)}
+                      {t('companyProfile.verifiedSince', { date: formatMemberSince(company.verifiedAt)! })}
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-emerald-700/80 mb-3 leading-relaxed">
-                  Bid has reviewed and verified the following official documents for this company.
+                  {t('companyProfile.verifiedByNote')}
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {company.verifiedDocuments.map((doc) => (
@@ -461,10 +467,10 @@ export default function CompanyProfilePage() {
             {/* About */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
               <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-3">
-                About
+                {t('companyProfile.sectionAbout')}
               </h2>
               <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                {profile?.bio || "This company hasn't added a description yet."}
+                {profile?.bio || t('companyProfile.noAbout')}
               </p>
             </div>
 
@@ -472,7 +478,7 @@ export default function CompanyProfilePage() {
             {videoEmbed && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-4">
-                  Intro Video
+                  {t('companyProfile.sectionIntroVideo')}
                 </h2>
                 <div className="relative w-full rounded-xl overflow-hidden bg-black" style={{ paddingTop: '56.25%' }}>
                   <iframe
@@ -490,7 +496,7 @@ export default function CompanyProfilePage() {
             {hasTags && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-3">
-                  Capabilities
+                  {t('companyProfile.sectionCapabilities')}
                 </h2>
                 <div className="flex gap-2 flex-wrap">
                   {profile!.tags.map((tag, i) => (
@@ -509,11 +515,11 @@ export default function CompanyProfilePage() {
             {hasReach && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300">
-                  Markets & Reach
+                  {t('companyProfile.sectionMarketsReach')}
                 </h2>
                 {industriesServed.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">Industries served</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">{t('companyProfile.industriesServedLabel')}</p>
                     <div className="flex gap-2 flex-wrap">
                       {industriesServed.map((ind, i) => (
                         <span key={i} className="text-xs font-semibold rounded-full px-3 py-1 bg-blue-50 text-blue-700 border border-blue-100">
@@ -525,7 +531,7 @@ export default function CompanyProfilePage() {
                 )}
                 {serviceAreas.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">Service areas</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">{t('companyProfile.serviceAreasLabel')}</p>
                     <div className="flex gap-2 flex-wrap">
                       {serviceAreas.map((area, i) => (
                         <span key={i} className="inline-flex items-center gap-1 text-xs font-semibold rounded-full px-3 py-1 bg-gray-50 text-gray-700 border border-gray-100">
@@ -538,7 +544,7 @@ export default function CompanyProfilePage() {
                 )}
                 {languages.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">Languages</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">{t('companyProfile.languagesLabel')}</p>
                     <div className="flex gap-2 flex-wrap">
                       {languages.map((lang, i) => (
                         <span key={i} className="text-xs font-semibold rounded-full px-3 py-1 bg-gray-50 text-gray-700 border border-gray-100">
@@ -555,14 +561,14 @@ export default function CompanyProfilePage() {
             {hasStructuredCredentials && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300">
-                  Credentials
+                  {t('companyProfile.sectionCredentials')}
                 </h2>
 
                 {visibleCertifications.length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <Award className="h-3.5 w-3.5 text-emerald-600" />
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Certifications</p>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">{t('companyProfile.subsectionCertifications')}</p>
                     </div>
                     <div className="space-y-2">
                       {visibleCertifications.map((cert, i) => (
@@ -572,10 +578,10 @@ export default function CompanyProfilePage() {
                             <p className="text-sm font-bold text-gray-800">{cert.name}</p>
                             <div className="flex items-center gap-2 flex-wrap mt-0.5">
                               {cert.issuer && (
-                                <span className="text-[11px] text-gray-500">Issued by {cert.issuer}</span>
+                                <span className="text-[11px] text-gray-500">{t('companyProfile.certIssuedBy', { issuer: cert.issuer })}</span>
                               )}
                               {cert.expiryDate && (
-                                <span className="text-[11px] text-gray-400">· Valid until {cert.expiryDate}</span>
+                                <span className="text-[11px] text-gray-400">{t('companyProfile.certValidUntil', { date: cert.expiryDate })}</span>
                               )}
                             </div>
                           </div>
@@ -586,7 +592,7 @@ export default function CompanyProfilePage() {
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-white border border-emerald-200 rounded-full px-2 py-1 hover:bg-emerald-50 transition-colors flex-shrink-0"
                             >
-                              <ShieldCheck className="h-3 w-3" /> Document
+                              <ShieldCheck className="h-3 w-3" /> {t('companyProfile.certDocument')}
                             </a>
                           )}
                         </div>
@@ -599,14 +605,14 @@ export default function CompanyProfilePage() {
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <Shield className="h-3.5 w-3.5 text-blue-600" />
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700">Insurance</p>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700">{t('companyProfile.subsectionInsurance')}</p>
                     </div>
                     <div className="space-y-2">
                       {visibleInsurance.map((pol, i) => (
                         <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-blue-100 bg-blue-50/40">
                           <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-800">{INSURANCE_TYPE_LABELS[pol.type]}</p>
+                            <p className="text-sm font-bold text-gray-800">{t(`companyProfile.${INSURANCE_TYPE_KEYS[pol.type]}`)}</p>
                             <div className="flex items-center gap-2 flex-wrap mt-0.5">
                               <span className="text-[11px] text-gray-500">{pol.provider}</span>
                               {pol.coverageAmount && (
@@ -624,7 +630,7 @@ export default function CompanyProfilePage() {
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-white border border-blue-200 rounded-full px-2 py-1 hover:bg-blue-50 transition-colors flex-shrink-0"
                             >
-                              <ShieldCheck className="h-3 w-3" /> Document
+                              <ShieldCheck className="h-3 w-3" /> {t('companyProfile.certDocument')}
                             </a>
                           )}
                         </div>
@@ -639,7 +645,7 @@ export default function CompanyProfilePage() {
             {!hasStructuredCredentials && hasCertifications && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-3">
-                  Certifications
+                  {t('companyProfile.sectionCertifications')}
                 </h2>
                 <div className="flex gap-2 flex-wrap">
                   {company.certifications.map((cert, i) => (
@@ -659,7 +665,7 @@ export default function CompanyProfilePage() {
             {hasPortfolio && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-4">
-                  Portfolio
+                  {t('companyProfile.sectionPortfolio')}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {profile!.portfolio.map((item, i) => (
@@ -685,7 +691,7 @@ export default function CompanyProfilePage() {
             {profile?.brochureUrl && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-3">
-                  Company Brochure
+                  {t('companyProfile.sectionBrochure')}
                 </h2>
                 <a
                   href={profile.brochureUrl}
@@ -694,7 +700,7 @@ export default function CompanyProfilePage() {
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-700 bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100 transition-colors"
                 >
                   <FileText className="h-4 w-4" />
-                  View Company Profile
+                  {t('companyProfile.viewCompanyProfile')}
                   <ExternalLink className="h-3 w-3 text-gray-400" />
                 </a>
               </div>
@@ -757,7 +763,7 @@ export default function CompanyProfilePage() {
                 {formatMemberSince(company.createdAt) && (
                   <div className="flex items-center gap-2.5 text-xs text-gray-500">
                     <Clock className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                    <span>Member since {formatMemberSince(company.createdAt)}</span>
+                    <span>{t('companyProfile.memberSince', { date: formatMemberSince(company.createdAt)! })}</span>
                   </div>
                 )}
               </div>
@@ -767,7 +773,7 @@ export default function CompanyProfilePage() {
             {hasSocialLinks && (
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-3">
-                  Connect
+                  {t('companyProfile.sectionConnect')}
                 </h3>
                 <div className="space-y-2">
                   {profile?.socialLinks?.website && (
@@ -777,7 +783,7 @@ export default function CompanyProfilePage() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-2.5 text-xs font-semibold text-gray-600 px-3 py-2 rounded-lg border border-gray-100 hover:border-gray-300 hover:bg-gray-50 transition-colors no-underline"
                     >
-                      <Globe className="h-3.5 w-3.5" /> Website
+                      <Globe className="h-3.5 w-3.5" /> {t('companyProfile.socialWebsite')}
                     </a>
                   )}
                   {profile?.socialLinks?.linkedin && (
@@ -787,7 +793,7 @@ export default function CompanyProfilePage() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-2.5 text-xs font-semibold text-gray-600 px-3 py-2 rounded-lg border border-gray-100 hover:border-gray-300 hover:bg-gray-50 transition-colors no-underline"
                     >
-                      <Linkedin className="h-3.5 w-3.5" /> LinkedIn
+                      <Linkedin className="h-3.5 w-3.5" /> {t('companyProfile.socialLinkedIn')}
                     </a>
                   )}
                   {profile?.socialLinks?.twitter && (
@@ -797,7 +803,7 @@ export default function CompanyProfilePage() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-2.5 text-xs font-semibold text-gray-600 px-3 py-2 rounded-lg border border-gray-100 hover:border-gray-300 hover:bg-gray-50 transition-colors no-underline"
                     >
-                      <Twitter className="h-3.5 w-3.5" /> X / Twitter
+                      <Twitter className="h-3.5 w-3.5" /> {t('companyProfile.socialTwitter')}
                     </a>
                   )}
                 </div>

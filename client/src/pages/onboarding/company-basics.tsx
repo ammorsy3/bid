@@ -16,16 +16,16 @@ import OnboardingLayout from "@/components/onboarding-layout";
 
 const DRAFT_KEY = "onboarding-draft";
 
-const companyBasicsSchema = z.object({
-  name: z.string().min(2, "Company name is required"),
-  legalName: z.string().min(2, "Legal name is required"),
-  crNumber: z.string().regex(/^\d+$/, "CR number must contain only numbers"),
+const makeCompanyBasicsSchema = (t: (k: string) => string) => z.object({
+  name: z.string().min(2, t('validation.companyNameRequired')),
+  legalName: z.string().min(2, t('validation.legalNameRequired')),
+  crNumber: z.string().regex(/^\d+$/, t('validation.crNumberFormat')),
   vatNumber: z.string().optional(),
-  city: z.string().min(1, "City is required"),
-  category: z.string().min(1, "Please select a category"),
+  city: z.string().min(1, t('validation.cityRequired')),
+  category: z.string().min(1, t('validation.categoryRequired')),
 });
 
-type CompanyBasicsForm = z.infer<typeof companyBasicsSchema>;
+type CompanyBasicsForm = z.infer<ReturnType<typeof makeCompanyBasicsSchema>>;
 
 function getDraft(): Record<string, any> {
   try {
@@ -48,7 +48,7 @@ export default function CompanyBasics() {
   const draft = getDraft();
 
   const form = useForm<CompanyBasicsForm>({
-    resolver: zodResolver(companyBasicsSchema),
+    resolver: zodResolver(makeCompanyBasicsSchema(t)),
     defaultValues: {
       name: draft.name || "",
       legalName: draft.legalName || "",
@@ -92,7 +92,7 @@ export default function CompanyBasics() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company Display Name *</FormLabel>
+                    <FormLabel>{t('onboarding.companyDisplayName')} *</FormLabel>
                     <FormControl>
                       <Input placeholder={t('onboardingPanel.companyNamePh')} {...field} data-testid="input-company-name" />
                     </FormControl>
@@ -106,7 +106,7 @@ export default function CompanyBasics() {
                 name="legalName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Legal Name *</FormLabel>
+                    <FormLabel>{t('onboarding.legalName')} *</FormLabel>
                     <FormControl>
                       <Input placeholder={t('onboardingPanel.legalNamePh')} {...field} data-testid="input-legal-name" />
                     </FormControl>
@@ -155,7 +155,7 @@ export default function CompanyBasics() {
                 name="city"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>City *</FormLabel>
+                    <FormLabel>{t('onboarding.city')} *</FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. Riyadh, Jeddah" {...field} data-testid="input-city" />
                     </FormControl>
@@ -169,7 +169,7 @@ export default function CompanyBasics() {
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Industry Category *</FormLabel>
+                    <FormLabel>{t('onboarding.industryCategory')} *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-category">

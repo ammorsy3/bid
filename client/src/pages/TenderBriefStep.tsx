@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown, Shield, Copy, Languages } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown, Shield, Copy, Languages, Paperclip, Upload, X } from "lucide-react";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
 import { useLocation } from "wouter";
-import { useMemo, useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -13,7 +13,11 @@ import { useAuthStore } from "@/lib/auth";
 import { format } from "date-fns";
 import { useI18n, type Language } from "@/lib/i18n";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import VoiceRecorder from "@/components/voice-recorder";
 import { MarketplacePublishOption, type MarketplaceOptions } from "@/components/MarketplacePublishOption";
+import VendorRequirementsEditor, { type VendorRequirement } from "@/components/VendorRequirementsEditor";
 
 const formatLabel = (value: string, labels?: Record<string, string>): string => {
   if (labels && labels[value]) {
@@ -39,8 +43,48 @@ export default function TenderBriefStep() {
     tenderType: 'open_tender',
     documentFee: '',
     inquiryDeadline: '',
+    poFiles: [],
     confirmed: false,
   });
+  const [attachments, setAttachments] = useState<Array<{ id: string; name: string; url: string; size: number; type: string }>>([]);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
+
+  // Mirrors the canonical pattern in TenderAICopilot.uploadOne: POST upload to
+  // get a presigned URL, PUT the bytes to GCS, then PUT /api/objects/metadata
+  // to register ACL ownership and get the canonical "/objects/<entity-id>"
+  // path — the only URL form the public RFP page can fetch back later.
+  const handleUpload = async (file: File) => {
+    setUploadingAttachment(true);
+    try {
+      const res = await apiRequest('POST', '/api/objects/upload', { fileSize: file.size, fileType: file.type });
+      const { uploadURL } = await res.json();
+      if (!uploadURL) throw new Error('Failed to get upload URL');
+      const put = await fetch(uploadURL, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+      if (!put.ok) throw new Error('Upload failed');
+      const metaRes = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
+      const { objectPath } = await metaRes.json();
+      setAttachments(prev => [...prev, {
+        id: `a-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        name: file.name,
+        url: objectPath,
+        size: file.size,
+        type: file.type || 'application/octet-stream',
+      }]);
+    } catch (err: any) {
+      toast({
+        title: t('voiceRecorder.uploadFailedTitle'),
+        description: err?.message || t('voiceRecorder.uploadFailedDesc'),
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingAttachment(false);
+    }
+  };
+
+  const removeAttachment = (id: string) => {
+    setAttachments(prev => prev.filter(a => a.id !== id));
+  };
 
   const CRITERIA_LABELS: Record<string, string> = {
     financial_offer: t('tenderFlow.criteriaFinancialOffer'),
@@ -98,16 +142,42 @@ export default function TenderBriefStep() {
     industry_certifications: t('tenderFlow.evalReqIndustryCertifications'),
   };
 
-  const draft = useMemo(() => {
+  const [draft, setDraft] = useState<any>(() => {
     try {
       return JSON.parse(localStorage.getItem("tenderDraft") || "{}");
     } catch {
       return {};
     }
-  }, []);
+  });
+
+  // Mirror writes back to localStorage so going Back to earlier steps and
+  // returning to the brief does not drop voice/video edits made here.
+  const updateDraft = (patch: Record<string, any>) => {
+    setDraft((prev: any) => {
+      const next = { ...prev, ...patch };
+      try {
+        localStorage.setItem("tenderDraft", JSON.stringify(next));
+      } catch {
+        // localStorage may be full / disabled — UI state still updates.
+      }
+      return next;
+    });
+  };
 
   const [expandedDeliverables, setExpandedDeliverables] = useState<Record<number, boolean>>({});
   const [expandedCriteria, setExpandedCriteria] = useState<Record<string, boolean>>({});
+
+  // Vendor requirements: editable inline on the Brief so they can be added/changed
+  // without re-walking the wizard. Mirrors writes back to the draft so other
+  // steps (and the localStorage-driven submit body below) stay in sync.
+  const [vendorRequirements, setVendorRequirements] = useState<VendorRequirement[]>(
+    Array.isArray(draft.vendorRequirements) ? draft.vendorRequirements : []
+  );
+
+  const handleVendorRequirementsChange = (next: VendorRequirement[]) => {
+    setVendorRequirements(next);
+    updateDraft({ vendorRequirements: next });
+  };
 
   const toggleDeliverable = (index: number) => {
     setExpandedDeliverables(prev => ({ ...prev, [index]: !prev[index] }));
@@ -174,6 +244,7 @@ export default function TenderBriefStep() {
       submissionType: draft.submissionType || undefined,
       videoRequired: draft.videoRequired || undefined,
       inquiryType: draft.inquiryType || undefined,
+      inquiryDeadline: draft.inquiryDeadline || undefined,
       whatsappContact: draft.whatsappContact || undefined,
       emailContact: draft.emailContact || undefined,
       evaluationCriteria: draft.evaluationCriteria && (
@@ -184,10 +255,11 @@ export default function TenderBriefStep() {
       objective: draft.projectObjective || undefined,
       deliverables: draft.keyDeliverables && draft.keyDeliverables.length > 0 ? draft.keyDeliverables : undefined,
       voiceNoteUrl: draft.voiceNoteUrl || undefined,
+      videoUrl: draft.videoUrl?.trim() || undefined,
       startDate: draft.startDate || undefined,
       endDate: draft.endDate || undefined,
       milestones: draft.milestones && draft.milestones.length > 0 ? draft.milestones : undefined,
-      vendorRequirements: draft.vendorRequirements && draft.vendorRequirements.length > 0 ? draft.vendorRequirements : undefined,
+      vendorRequirements: vendorRequirements.length > 0 ? vendorRequirements : undefined,
       language: rfpLanguage,
       allowTranslation,
     };
@@ -201,6 +273,13 @@ export default function TenderBriefStep() {
       if (marketplaceOptions.inquiryDeadline) {
         tenderData.marketplaceInquiryDeadline = new Date(marketplaceOptions.inquiryDeadline).toISOString();
       }
+      if (marketplaceOptions.poFiles.length > 0) {
+        tenderData.marketplacePoFiles = marketplaceOptions.poFiles;
+      }
+    }
+
+    if (attachments.length > 0) {
+      tenderData.attachments = attachments;
     }
 
     submitTender.mutate(tenderData);
@@ -254,7 +333,6 @@ export default function TenderBriefStep() {
   const hasDescription = !!(draft.description || draft.projectDescription);
   const hasObjective = !!draft.projectObjective;
   const hasContactInfo = !!(draft.emailContact || draft.whatsappContact);
-  const hasVendorRequirements = !!(draft.vendorRequirements && draft.vendorRequirements.length > 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -658,46 +736,174 @@ export default function TenderBriefStep() {
               </Card>
             )}
 
-            {hasVendorRequirements && (
-              <Card className="overflow-hidden">
-                <div className="h-1 bg-gradient-to-r from-[#E25E45] to-orange-400" />
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-[#E25E45]" />
-                    {t('tenderFlow.vendorRequirementsTitle')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2" data-testid="brief-vendor-requirements">
-                    {draft.vendorRequirements.map((req: any, index: number) => (
-                      <div key={req.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <span className="text-sm text-gray-800">{req.text}</span>
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${req.type === 'mandatory' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                          {req.type === 'mandatory' ? t('tenderFlow.mandatoryBadge') : t('tenderFlow.preferredBadge')}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <Card className="overflow-hidden" data-testid="brief-vendor-requirements">
+              <div className="h-1 bg-gradient-to-r from-[#E25E45] to-orange-400" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-[#E25E45]" />
+                  {t('tenderFlow.vendorRequirementsTitle')}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {t('tenderFlow.vendorRequirementsBriefHint') || 'What vendors must (or should) prove to qualify. Edit anytime before publishing.'}
+                </p>
+              </CardHeader>
+              <CardContent>
+                <VendorRequirementsEditor
+                  value={vendorRequirements}
+                  onChange={handleVendorRequirementsChange}
+                  isRtl={isRtl}
+                  compact
+                />
+              </CardContent>
+            </Card>
 
-            {draft.voiceNoteUrl && (
-              <Card className="overflow-hidden">
-                <div className="h-1 bg-gradient-to-r from-pink-500 to-pink-400" />
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Mic className="h-5 w-5 text-pink-600" />
-                    {t('tenderFlow.voiceNoteTitle')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <audio controls className="w-full" data-testid="brief-voice-note">
-                    <source src={draft.voiceNoteUrl} />
-                  </audio>
-                </CardContent>
-              </Card>
-            )}
+            <Card className="overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-pink-500 to-pink-400" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mic className="h-5 w-5 text-pink-600" />
+                  {t('tenderFlow.voiceNoteTitle')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <VoiceRecorder
+                  onRecordingComplete={(url) => updateDraft({ voiceNoteUrl: url })}
+                  onRecordingDeleted={() => updateDraft({ voiceNoteUrl: "" })}
+                  existingUrl={draft.voiceNoteUrl || undefined}
+                />
+                {draft.voiceNoteUrl && (
+                  <div className="pt-2 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 mb-2">
+                      {t('tenderFlow.savedVoiceNote') || 'Saved voice note'}
+                    </p>
+                    <audio controls className="w-full" data-testid="brief-voice-note">
+                      <source src={draft.voiceNoteUrl} />
+                    </audio>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-pink-500 to-rose-400" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="h-5 w-5 text-pink-600" />
+                  {t('tenderFlow.videoUrlLabel') || 'Video URL'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="video-url-input" className="text-sm font-medium text-gray-800">
+                    {t('tenderFlow.videoUrlLabel') || 'Video URL'}
+                  </Label>
+                  <Input
+                    id="video-url-input"
+                    type="url"
+                    placeholder="https://youtube.com/..."
+                    value={draft.videoUrl || ""}
+                    onChange={(e) => updateDraft({ videoUrl: e.target.value })}
+                    data-testid="input-video-url"
+                  />
+                  <p className="text-xs text-gray-500">
+                    {t('tenderFlow.videoUrlHint') || 'Optional: link to a video introducing the project'}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 pt-2 border-t border-gray-100">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">
+                      {t('tenderFlow.requireVideoLabel') || 'Require video pitch'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {t('tenderFlow.requireVideoHint') || 'Vendors must include a video URL with their proposal'}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={!!draft.videoRequired}
+                    onCheckedChange={(checked) => updateDraft({ videoRequired: checked })}
+                    data-testid="switch-video-required"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-slate-500 to-slate-400" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Paperclip className="h-5 w-5 text-slate-600" />
+                  {t('tenderFlow.supportingDocsTitle') || 'Supporting Documents'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3" data-testid="brief-attachments">
+                  <p className="text-sm text-gray-500">
+                    {t('tenderFlow.supportingDocsDesc') || 'Upload any documents that help vendors understand the scope (specs, drawings, references).'}
+                  </p>
+                  <input
+                    ref={attachmentInputRef}
+                    type="file"
+                    className="hidden"
+                    data-testid="input-attachment-file"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUpload(file);
+                      if (attachmentInputRef.current) attachmentInputRef.current.value = "";
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => attachmentInputRef.current?.click()}
+                    disabled={uploadingAttachment}
+                    className="h-9"
+                    data-testid="button-upload-attachment"
+                  >
+                    {uploadingAttachment ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                        {t('tenderFlow.uploading') || 'Uploading...'}
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-3.5 w-3.5 mr-1.5" />
+                        {t('tenderFlow.uploadDocuments') || 'Upload supporting documents'}
+                      </>
+                    )}
+                  </Button>
+                  {attachments.length > 0 && (
+                    <ul className="space-y-2 mt-3" data-testid="list-attachments">
+                      {attachments.map((a) => (
+                        <li
+                          key={a.id}
+                          className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                          data-testid={`attachment-${a.id}`}
+                        >
+                          <FileText className="h-4 w-4 text-gray-400 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-800 truncate">{a.name}</p>
+                            <p className="text-xs text-gray-500">
+                              {(a.size / 1024).toFixed(1)} KB
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeAttachment(a.id)}
+                            className="text-gray-400 hover:text-rose-500 transition-colors"
+                            aria-label={t('tenderFlow.removeAttachmentAria') || 'Remove attachment'}
+                            data-testid={`button-remove-attachment-${a.id}`}
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="space-y-6">
@@ -948,7 +1154,7 @@ export default function TenderBriefStep() {
         </div>
       </main>
 
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50">
         <div className="max-w-5xl mx-auto flex gap-3">
           <Button
             variant="outline"
@@ -966,12 +1172,12 @@ export default function TenderBriefStep() {
             {submitTender.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Publishing...
+                {t('tenderFlow.publishingRfp')}
               </>
             ) : (
               <>
                 <Check className="h-4 w-4 mr-2" />
-                Publish RFP
+                {t('tenderFlow.publishRfp')}
               </>
             )}
           </Button>

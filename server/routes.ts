@@ -18,6 +18,10 @@ import {
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import { registerCopilotRoutes } from "./replit_integrations/copilot";
+import { registerCopilotV1Routes } from "./routes/v1/copilot";
+import { registerWebhookAdapter } from "./routes/integrations/webhook";
+import { registerMcpAdapter } from "./routes/integrations/mcp";
+import { registerIntegrationsAdminRoutes } from "./routes/settings/integrations";
 import {
   sendNewOfferNotification,
   sendOfferDecisionNotification,
@@ -35,6 +39,17 @@ import {
   sendTeamInviteEmail,
   sendPasswordResetEmail,
 } from "./email";
+import {
+  getOpenAIConfig,
+  translateTexts,
+  suggestTenderCategory,
+  buildTenderTranslation,
+} from "./lib/tender-ai";
+import {
+  launchTenderFromPayload,
+  CompanyNotVerifiedError,
+  MarketplaceValidationError,
+} from "./lib/launch-tender";
 
 // Configure multer for file uploads (memory storage)
 const upload = multer({
@@ -49,29 +64,18 @@ const upload = multer({
   }
 });
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
+  throw new Error(
+    "JWT_SECRET env var is required and must be at least 16 characters",
+  );
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // ============================================================================
 // TYPE DEFINITIONS
 // ============================================================================
 
-interface JWTPayload {
-  userId: string;
-  activeCompanyId: string | null;  // null for admins without active company
-  roleInCompany: string | null;    // null for admins
-  isAdmin: boolean;
-}
-
-interface AuthContext {
-  userId: string;
-  activeCompanyId: string | null;
-  roleInCompany: string | null;
-  isAdmin: boolean;
-}
-
-interface AuthRequest extends Request {
-  auth?: AuthContext;
-}
+import type { JWTPayload, AuthContext, AuthRequest } from "./middleware/auth-types";
 
 // ============================================================================
 // MIDDLEWARE - AUTHENTICATION & AUTHORIZATION
@@ -173,6 +177,18 @@ const requireCompanyRole = (minRole: 'owner' | 'admin' | 'member' | 'viewer') =>
 // HELPER FUNCTIONS
 // ============================================================================
 
+// Returns an error message if evaluationCriteria.weights don't sum to 100 (±1 rounding tolerance)
+const validateEvalWeights = (ec: unknown): string | null => {
+  if (!ec || typeof ec !== 'object' || Array.isArray(ec)) return null;
+  const weights: any[] = Array.isArray((ec as any).weights) ? (ec as any).weights : [];
+  if (weights.length === 0) return null;
+  const total = weights.reduce((sum: number, w: any) => sum + (Number(w.weight) || 0), 0);
+  if (Math.abs(total - 100) > 1) {
+    return `Evaluation criteria weights must sum to 100% (currently ${total.toFixed(1)}%)`;
+  }
+  return null;
+};
+
 // Generate slug from company name
 const generateSlug = (name: string): string => {
   return name
@@ -187,204 +203,6 @@ const generateSlug = (name: string): string => {
 const generateToken = (payload: JWTPayload): string => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 };
-
-// ============================================================================
-// AI HELPERS
-// ============================================================================
-
-async function suggestTenderCategory(tender: {
-  title?: string;
-  description?: string;
-  objective?: string;
-  skills?: string[];
-  deliverables?: any[];
-}): Promise<string | null> {
-  const config = getOpenAIConfig();
-  if (!config) return null;
-
-  const categoryList = VENDOR_CATEGORIES.join(", ");
-  const context = [
-    tender.title && `Title: ${tender.title}`,
-    tender.description && `Description: ${tender.description}`,
-    tender.objective && `Objective: ${tender.objective}`,
-    tender.skills?.length && `Skills: ${tender.skills.join(", ")}`,
-    tender.deliverables?.length && `Deliverables: ${tender.deliverables.map((d: any) => typeof d === 'string' ? d : d.name).filter(Boolean).join(", ")}`,
-  ].filter(Boolean).join("\n");
-
-  try {
-    const response = await fetch(config.url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${config.key}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: `You are a procurement specialist. Given an RFP brief, pick the single best-matching category from this list:\n${categoryList}\n\nRespond with ONLY the exact category name from the list, nothing else.`,
-          },
-          { role: "user", content: context },
-        ],
-        temperature: 0.2,
-        max_tokens: 30,
-      }),
-    });
-
-    if (!response.ok) return null;
-    const data = await response.json();
-    const suggested = data.choices?.[0]?.message?.content?.trim();
-    return (VENDOR_CATEGORIES as readonly string[]).includes(suggested) ? suggested : null;
-  } catch {
-    return null;
-  }
-}
-
-// Resolve OpenAI API endpoint and key.
-// Uses OPENAI_API_KEY directly.
-function getOpenAIConfig(): { url: string; key: string } | null {
-  const openaiKey = process.env.OPENAI_API_KEY;
-  if (openaiKey) {
-    return { url: "https://api.openai.com/v1/chat/completions", key: openaiKey };
-  }
-  return null;
-}
-
-// Translate an array of texts to the target language using OpenAI gpt-4o.
-// Returns the translated strings in the same order, or the originals on failure.
-async function translateTexts(texts: string[], targetLanguage: 'en' | 'ar'): Promise<string[]> {
-  const config = getOpenAIConfig();
-  if (!config || texts.length === 0) return texts;
-
-  const langName = targetLanguage === 'ar' ? 'Arabic' : 'English';
-  const numbered = texts.map((t, i) => `${i + 1}. ${t}`).join('\n');
-
-  try {
-    const response = await fetch(config.url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${config.key}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: `You are a professional procurement translator. You will receive a numbered list of texts. For each text, detect its language: if it is already in ${langName}, return it unchanged; otherwise translate it to ${langName}. Respond ONLY with the same numbered list preserving numbering and order. Do not add any commentary.`,
-          },
-          { role: "user", content: numbered },
-        ],
-        temperature: 0.2,
-        max_tokens: 4000,
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('Translation API error:', response.status, await response.text().catch(() => ''));
-      return texts;
-    }
-    const data = await response.json();
-    const raw = data.choices?.[0]?.message?.content?.trim() || '';
-
-    // Parse "N. text" lines back into array
-    const results: string[] = [...texts]; // fallback to originals
-    const lines = raw.split('\n');
-    let currentIdx = -1;
-    let currentLines: string[] = [];
-
-    const flush = () => {
-      if (currentIdx >= 0 && currentIdx < results.length) {
-        results[currentIdx] = currentLines.join('\n').trim();
-      }
-    };
-
-    for (const line of lines) {
-      const match = line.match(/^(\d+)\.\s*(.*)/);
-      if (match) {
-        flush();
-        currentIdx = parseInt(match[1], 10) - 1;
-        currentLines = [match[2]];
-      } else if (currentIdx >= 0) {
-        currentLines.push(line);
-      }
-    }
-    flush();
-
-    return results;
-  } catch {
-    return texts;
-  }
-}
-
-// Build translatedContent for a tender in BOTH directions (en + ar).
-// Handles mixed-language content by letting the AI detect each field's language.
-// Returns { en: { title, description, ... }, ar: { title, description, ... } }
-async function buildTenderTranslation(tender: any): Promise<Record<string, Record<string, string>> | null> {
-  const keys: string[] = [];
-  const texts: string[] = [];
-
-  if (tender.title) { keys.push('title'); texts.push(tender.title); }
-  if (tender.description) { keys.push('description'); texts.push(tender.description); }
-  if (tender.objective) { keys.push('objective'); texts.push(tender.objective); }
-  if (tender.category) { keys.push('category'); texts.push(tender.category); }
-
-  if (Array.isArray(tender.deliverables)) {
-    tender.deliverables.forEach((d: any, i: number) => {
-      const name = typeof d === 'string' ? d : d?.name;
-      if (name) { keys.push(`deliverable_name_${i}`); texts.push(name); }
-      if (typeof d !== 'string' && d?.description) {
-        keys.push(`deliverable_desc_${i}`); texts.push(d.description);
-      }
-    });
-  }
-
-  if (Array.isArray(tender.milestones)) {
-    tender.milestones.forEach((m: any, i: number) => {
-      if (m?.name) { keys.push(`milestone_name_${i}`); texts.push(m.name); }
-      if (m?.description) { keys.push(`milestone_desc_${i}`); texts.push(m.description); }
-    });
-  }
-
-  if (Array.isArray(tender.vendorRequirements)) {
-    tender.vendorRequirements.forEach((r: any, i: number) => {
-      if (r?.text) { keys.push(`vendor_req_${i}`); texts.push(r.text); }
-    });
-  }
-
-  if (Array.isArray(tender.skills)) {
-    tender.skills.forEach((s: string, i: number) => {
-      if (s) { keys.push(`skill_${i}`); texts.push(s); }
-    });
-  }
-
-  if (Array.isArray(tender.formCards)) {
-    tender.formCards.forEach((c: any, i: number) => {
-      if (c?.label) { keys.push(`card_label_${i}`); texts.push(c.label); }
-      if (typeof c?.value === 'string' && c.value) {
-        keys.push(`card_value_${i}`); texts.push(c.value);
-      }
-    });
-  }
-
-  if (texts.length === 0) return null;
-
-  // Translate to both languages in parallel
-  const [enTranslated, arTranslated] = await Promise.all([
-    translateTexts(texts, 'en'),
-    translateTexts(texts, 'ar'),
-  ]);
-
-  const enMap: Record<string, string> = {};
-  const arMap: Record<string, string> = {};
-  keys.forEach((key, idx) => {
-    enMap[key] = enTranslated[idx] || texts[idx];
-    arMap[key] = arTranslated[idx] || texts[idx];
-  });
-
-  return { en: enMap, ar: arMap };
-}
 
 // ============================================================================
 // ROUTE REGISTRATION
@@ -2439,179 +2257,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireCompanyRole('admin'),
     async (req: AuthRequest, res) => {
       try {
-        const tenderData = createTenderSchema.parse(req.body);
+        const activeCompany = await storage.getCompany(req.auth!.activeCompanyId!);
+        if (!activeCompany) {
+          return res.status(404).json({ message: "Company not found" });
+        }
 
-        // Extract optional marketplace fields (not part of tender schema)
         const {
           publishToMarketplace,
-          marketplaceTenderType: reqMarketplaceTenderType,
-          marketplaceDocumentFee: reqMarketplaceDocFee,
-          marketplaceInquiryDeadline: reqMarketplaceInquiryDeadline,
+          marketplaceTenderType,
+          marketplaceDocumentFee,
+          marketplaceInquiryDeadline,
+          marketplacePoFiles,
         } = req.body as {
           publishToMarketplace?: boolean;
           marketplaceTenderType?: string;
           marketplaceDocumentFee?: number | null;
           marketplaceInquiryDeadline?: string | null;
+          marketplacePoFiles?: { fileUrl: string; originalName?: string | null }[];
         };
 
-        // Require verified company before creating a tender
-        const activeCompany = await storage.getCompany(req.auth!.activeCompanyId!);
-        if (!activeCompany || activeCompany.verificationStatus !== 'verified') {
-          return res.status(403).json({
-            message: "Your company must be verified before creating tenders. Upload your documents in Settings to begin the verification process.",
-            requiresVerification: true,
-          });
+        const evalWeightError = validateEvalWeights(req.body.evaluationCriteria);
+        if (evalWeightError) {
+          return res.status(400).json({ message: evalWeightError });
         }
 
-        // Validate marketplace fields if requested
-        if (publishToMarketplace) {
-          const VALID_TENDER_TYPES = ['open_tender', 'direct_purchase', 'framework_agreement'];
-          if (reqMarketplaceTenderType && !VALID_TENDER_TYPES.includes(reqMarketplaceTenderType)) {
-            return res.status(400).json({ message: "Invalid marketplace tender type" });
-          }
-          if (reqMarketplaceDocFee !== undefined && reqMarketplaceDocFee !== null) {
-            const fee = Number(reqMarketplaceDocFee);
-            if (!Number.isInteger(fee) || fee < 0 || fee > 100_000) {
-              return res.status(400).json({ message: "Document fee must be a non-negative integer up to 100,000 SAR" });
-            }
-          }
-          if (reqMarketplaceInquiryDeadline) {
-            const d = new Date(reqMarketplaceInquiryDeadline);
-            if (isNaN(d.getTime())) {
-              return res.status(400).json({ message: "Invalid inquiry deadline date" });
-            }
-          }
-        }
-
-        // Generate invitation token
-        const invitationToken = Math.random().toString(36).substring(2) +
-                                Math.random().toString(36).substring(2);
-
-        const tender = await storage.createTender({
-          ...tenderData,
-          companyId: req.auth!.activeCompanyId!,
-          createdBy: req.auth!.userId,
-          invitationToken,
-          allowConditionalSubmission: false,
-          status: 'published'
+        const result = await launchTenderFromPayload(req.body, {
+          company: { id: activeCompany.id, verificationStatus: activeCompany.verificationStatus },
+          user: { id: req.auth!.userId },
+          source: 'web',
+          marketplace: {
+            publishToMarketplace,
+            marketplaceTenderType,
+            marketplaceDocumentFee,
+            marketplaceInquiryDeadline,
+            marketplacePoFiles,
+          },
         });
 
-        await storage.logMemberActivity({
-          companyId: req.auth!.activeCompanyId!,
-          actorUserId: req.auth!.userId,
-          action: 'tender.created',
-          targetType: 'tender',
-          targetId: tender.id,
-          summary: `Created tender: ${tender.title || 'Untitled'}`,
-          metadata: { tenderId: tender.id, publishToMarketplace: !!publishToMarketplace },
-        });
-
-        // If marketplace publishing requested, apply marketplace fields immediately
-        let marketplaceRefNumber: string | undefined;
-        if (publishToMarketplace) {
-          const refNum = `BID-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-          marketplaceRefNumber = refNum;
-          await storage.updateTender(tender.id, {
-            isMarketplace: true,
-            marketplaceStatus: 'pending',
-            referenceNumber: refNum,
-            tenderType: reqMarketplaceTenderType || 'open_tender',
-            documentFee: reqMarketplaceDocFee || null,
-            inquiryDeadline: reqMarketplaceInquiryDeadline || null,
-          });
-          await storage.logProductEvent({
-            eventType: 'marketplace_submission',
-            companyId: req.auth!.activeCompanyId!,
-            userId: req.auth!.userId,
-            metadata: { tenderId: tender.id },
-          });
-        }
-
-        // Helper to attach marketplace info to the response
-        const addMarketplaceInfo = (tenderObj: any) => {
-          if (marketplaceRefNumber) {
-            return { ...tenderObj, isMarketplace: true, marketplaceStatus: 'pending', referenceNumber: marketplaceRefNumber };
-          }
-          return tenderObj;
-        };
-
-        // Auto-assign category via AI if not set or set to fallback value
-        if (!tender.category || tender.category === 'Other') {
-          const suggestedCategory = await suggestTenderCategory({
-            title: tenderData.title,
-            description: tenderData.description,
-            objective: (tenderData as any).objective,
-            skills: (tenderData as any).skills,
-            deliverables: (tenderData as any).deliverables,
-          });
-          if (suggestedCategory) {
-            const updated = await storage.updateTender(tender.id, { category: suggestedCategory });
-            // Respond first, then translate asynchronously
-            const finalTender = updated ?? tender;
-            res.json(addMarketplaceInfo(finalTender));
-
-            // Fire-and-forget: notify team that a new tender was published
-            (async () => {
-              try {
-                const members = await storage.getCompanyMembers(req.auth!.activeCompanyId!);
-                const recipients = members
-                  .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-                  .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
-                console.log(`[Email] Tender created — sending to ${recipients.length} recipient(s):`, recipients.map(r => r.email));
-                await sendTenderCreatedNotification({
-                  tenderTitle: finalTender.title || 'Untitled Tender',
-                  tenderId: finalTender.id,
-                  recipients,
-                });
-              } catch (emailErr) {
-                console.error('[Email] Tender created notification failed:', emailErr);
-              }
-            })();
-
-            if (tenderData.allowTranslation) {
-              buildTenderTranslation({ ...(updated ?? tender), category: suggestedCategory })
-                .then(translatedContent => {
-                  if (translatedContent) {
-                    storage.updateTender(tender.id, { translatedContent }).catch(console.error);
-                  }
-                })
-                .catch(console.error);
-            }
-            return;
-          }
-        }
-
-        res.json(addMarketplaceInfo(tender));
-
-        // Fire-and-forget: notify team that a new tender was published
-        (async () => {
-          try {
-            const members = await storage.getCompanyMembers(req.auth!.activeCompanyId!);
-            const recipients = members
-              .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
-            console.log(`[Email] Tender created — sending to ${recipients.length} recipient(s):`, recipients.map(r => r.email));
-            await sendTenderCreatedNotification({
-              tenderTitle: tender.title || 'Untitled Tender',
-              tenderId: tender.id,
-              recipients,
-            });
-          } catch (emailErr) {
-            console.error('[Email] Tender created notification failed:', emailErr);
-          }
-        })();
-
-        // Translate asynchronously after responding so publish is not delayed
-        if (tenderData.allowTranslation) {
-          buildTenderTranslation(tender)
-            .then(translatedContent => {
-              if (translatedContent) {
-                storage.updateTender(tender.id, { translatedContent }).catch(console.error);
-              }
-            })
-            .catch(console.error);
-        }
+        res.json(result.tender);
       } catch (error) {
+        if (error instanceof CompanyNotVerifiedError) {
+          return res.status(403).json({ message: error.message, requiresVerification: true });
+        }
+        if (error instanceof MarketplaceValidationError) {
+          return res.status(400).json({ message: error.message });
+        }
         console.error('Create tender error:', error);
         res.status(400).json({ message: "Invalid tender data" });
       }
@@ -2657,10 +2347,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Tender not found" });
         }
 
-        // Check access - either company owner or invited vendor
-        // For now, allow any authenticated user (TODO: implement proper access control)
+        const userCompanyId = req.auth!.activeCompanyId;
 
-        res.json(tender);
+        // Owner company always has access
+        if (tender.companyId === userCompanyId) {
+          return res.json(tender);
+        }
+
+        // Marketplace tenders that are live are accessible to any authenticated user
+        if (tender.isMarketplace && tender.marketplaceStatus === 'approved') {
+          return res.json(tender);
+        }
+
+        // Invited vendors have access
+        const invitationList = await storage.getInvitationsByTender(req.params.id);
+        const isInvited = invitationList.some(inv => inv.companyId === userCompanyId);
+        if (isInvited) {
+          return res.json(tender);
+        }
+
+        return res.status(403).json({ message: "Access denied" });
       } catch (error) {
         console.error('Get tender error:', error);
         res.status(500).json({ message: "Server error" });
@@ -2778,7 +2484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================================================
 
   // Translate text content for a tender (used by vendor-side language toggle as fallback)
-  app.post("/api/translate", async (req, res) => {
+  app.post("/api/translate", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const { texts, targetLanguage } = req.body;
 
@@ -2913,9 +2619,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (async () => {
           try {
             const members = await storage.getCompanyMembers(tender.companyId!);
-            const recipients = members
+            const recipientsAll = members
               .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const recipients = await storage.filterRecipientsByPreference(
+              recipientsAll, tender.companyId!, 'qa_activity', 'email',
+            );
             await sendTenderQuestionNotification({
               tenderTitle: tender.title || 'Untitled Tender',
               tenderId: tender.id,
@@ -2964,7 +2673,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdAt: updated.createdAt,
         });
 
-        // Fire-and-forget: notify all vendors who submitted offers that Q&A was updated
+        // Fire-and-forget: notify all vendors who submitted offers that Q&A was updated.
+        // Q&A pref is filtered against the vendor's own company prefs (their incoming inbox).
         (async () => {
           try {
             const offers = await storage.getOffersByTender(req.params.id);
@@ -2972,10 +2682,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const vendorRecipients: { email: string; name?: string; language?: 'en' | 'ar' }[] = [];
             for (const companyId of uniqueCompanyIds) {
               const members = await storage.getCompanyMembers(companyId);
-              for (const m of members) {
-                if ((m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email) {
-                  vendorRecipients.push({ email: m.user.email, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' });
-                }
+              const perCompanyAll = members
+                .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+                .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              const perCompany = await storage.filterRecipientsByPreference(
+                perCompanyAll, companyId, 'qa_activity', 'email',
+              );
+              for (const r of perCompany) {
+                vendorRecipients.push({ email: r.email, name: r.name, language: r.language });
               }
             }
             await sendTenderAnswerNotification({
@@ -3016,6 +2730,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Only allow editing draft or published tenders (not closed/cancelled)
         if (!['draft', 'published'].includes(tender.status)) {
           return res.status(400).json({ message: "Cannot edit closed or cancelled tenders" });
+        }
+
+        const evalWeightError = validateEvalWeights(req.body.evaluationCriteria);
+        if (evalWeightError) {
+          return res.status(400).json({ message: evalWeightError });
         }
 
         const updates = createTenderSchema.partial().parse(req.body);
@@ -3095,9 +2814,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             // Always notify requester team
             const members = await storage.getCompanyMembers(tender.companyId!);
-            const requesterRecipients = members
+            const requesterAll = members
               .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const requesterRecipients = await storage.filterRecipientsByPreference(
+              requesterAll, tender.companyId!, 'tender_lifecycle', 'email',
+            );
 
             if (['published', 'closed', 'cancelled'].includes(status)) {
               await sendTenderStatusNotification({
@@ -3119,10 +2841,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const vendorRecipients: { email: string; name?: string; language?: 'en' | 'ar' }[] = [];
               for (const companyId of uniqueCompanyIds) {
                 const vendorMembers = await storage.getCompanyMembers(companyId);
-                for (const m of vendorMembers) {
-                  if ((m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email) {
-                    vendorRecipients.push({ email: m.user.email, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' });
-                  }
+                const perCompanyAll = vendorMembers
+                  .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
+                  .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+                const perCompany = await storage.filterRecipientsByPreference(
+                  perCompanyAll, companyId, 'tender_lifecycle', 'email',
+                );
+                for (const r of perCompany) {
+                  vendorRecipients.push({ email: r.email, name: r.name, language: r.language });
                 }
               }
               await sendTenderClosedToVendorsNotification({
@@ -4085,9 +3811,12 @@ Respond with ONLY a JSON object. Example:
             const adminMembers = members.filter(
               m => m.roleInCompany === 'owner' || m.roleInCompany === 'admin'
             );
-            const recipients = adminMembers
+            const recipientsAll = adminMembers
               .filter(m => m.user.email)
-              .map(m => ({ email: m.user.email, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              .map(m => ({ userId: m.user.id, email: m.user.email, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const recipients = await storage.filterRecipientsByPreference(
+              recipientsAll, tender.companyId!, 'new_proposal', 'email',
+            );
 
             const vendorProfile = await storage.getCompanyProfile(req.auth!.activeCompanyId!);
             const vendorDisplayName = vendorProfile?.displayName || company.name;
@@ -4221,8 +3950,8 @@ Respond with ONLY a JSON object. Example:
         const { offerId } = req.params;
         const { status } = req.body;
         
-        if (!['accepted', 'rejected', 'pending'].includes(status)) {
-          return res.status(400).json({ message: "Invalid status. Must be 'accepted', 'rejected', or 'pending'" });
+        if (!['accepted', 'rejected', 'pending', 'shortlisted'].includes(status)) {
+          return res.status(400).json({ message: "Invalid status. Must be 'accepted', 'rejected', 'pending', or 'shortlisted'" });
         }
         
         // Get the offer with tender info to verify ownership
@@ -4269,7 +3998,7 @@ Respond with ONLY a JSON object. Example:
         
         // Log event
         await storage.logProductEvent({
-          eventType: status === 'accepted' ? 'proposal_accepted' : 'proposal_rejected',
+          eventType: status === 'accepted' ? 'proposal_accepted' : status === 'rejected' ? 'proposal_rejected' : 'proposal_shortlisted',
           companyId: req.auth!.activeCompanyId!,
           userId: req.auth!.userId,
           metadata: { offerId, tenderId: offer.tenderId, status }
@@ -4287,9 +4016,13 @@ Respond with ONLY a JSON object. Example:
               const requesterName = requesterProfile?.displayName || requesterCompany?.name || 'Unknown';
 
               const vendorMembers = await storage.getCompanyMembers(offer.companyId);
-              const recipients = vendorMembers
+              const recipientsAll = vendorMembers
                 .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-                .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+                .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              // Filter against the vendor company's prefs — their incoming inbox.
+              const recipients = await storage.filterRecipientsByPreference(
+                recipientsAll, offer.companyId, 'proposal_decision', 'email',
+              );
 
               await sendOfferDecisionNotification({
                 outcome: status,
@@ -4558,27 +4291,33 @@ Respond with ONLY a JSON object. Example:
 
             for (const action of createdActions) {
               const vendorMembers = await storage.getCompanyMembers(action.companyId);
-              const vendorRecipients = vendorMembers
+              const vendorRecipientsAll = vendorMembers
                 .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-                .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+                .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
 
               if (action.actionType === 'award') {
-                // Notify winning vendor unconditionally
+                // Filter against vendor company prefs — `award_outcome` covers wins.
+                const awardRecipients = await storage.filterRecipientsByPreference(
+                  vendorRecipientsAll, action.companyId, 'award_outcome', 'email',
+                );
                 await sendAwardNotification({
                   tenderTitle: tender.title || 'Untitled Tender',
                   tenderId: tender.id,
                   requesterCompanyName: requesterName,
                   message: action.message || undefined,
-                  recipients: vendorRecipients,
+                  recipients: awardRecipients,
                 });
               } else if (['resubmission_request', 'discount_request', 'free_message'].includes(action.actionType)) {
+                const negotiationRecipients = await storage.filterRecipientsByPreference(
+                  vendorRecipientsAll, action.companyId, 'negotiation_activity', 'email',
+                );
                 await sendNegotiationActionNotification({
                   actionType: action.actionType as 'resubmission_request' | 'discount_request' | 'free_message' | 'rejection',
                   tenderTitle: tender.title || 'Untitled Tender',
                   tenderId: tender.id,
                   requesterCompanyName: requesterName,
                   message: action.message,
-                  recipients: vendorRecipients,
+                  recipients: negotiationRecipients,
                 });
               }
             }
@@ -4771,9 +4510,12 @@ Respond with ONLY a JSON object. Example:
         (async () => {
           try {
             const vendorMembers = await storage.getCompanyMembers(joinRequest.vendorCompanyId!);
-            const recipients = vendorMembers
+            const recipientsAll = vendorMembers
               .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const recipients = await storage.filterRecipientsByPreference(
+              recipientsAll, joinRequest.vendorCompanyId!, 'company_admin', 'email',
+            );
             const requesterProfile = await storage.getCompanyProfile(joinRequest.requesterCompanyId!);
             const requesterCompany = await storage.getCompany(joinRequest.requesterCompanyId!);
             const requesterName = requesterProfile?.displayName || requesterCompany?.name || 'Unknown';
@@ -4831,9 +4573,12 @@ Respond with ONLY a JSON object. Example:
         (async () => {
           try {
             const vendorMembers = await storage.getCompanyMembers(joinRequest.vendorCompanyId!);
-            const recipients = vendorMembers
+            const recipientsAll = vendorMembers
               .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const recipients = await storage.filterRecipientsByPreference(
+              recipientsAll, joinRequest.vendorCompanyId!, 'company_admin', 'email',
+            );
             const requesterProfile = await storage.getCompanyProfile(joinRequest.requesterCompanyId!);
             const requesterCompany = await storage.getCompany(joinRequest.requesterCompanyId!);
             const requesterName = requesterProfile?.displayName || requesterCompany?.name || 'Unknown';
@@ -5026,9 +4771,12 @@ Respond with ONLY a JSON object. Example:
         (async () => {
           try {
             const requesterMembers = await storage.getCompanyMembers(result.company.id);
-            const recipients = requesterMembers
+            const recipientsAll = requesterMembers
               .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-              .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+              .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            const recipients = await storage.filterRecipientsByPreference(
+              recipientsAll, result.company.id, 'company_admin', 'email',
+            );
             const vendorProfile = await storage.getCompanyProfile(req.auth!.activeCompanyId!);
             const vendorCompany = await storage.getCompany(req.auth!.activeCompanyId!);
             const vendorName = vendorProfile?.displayName || vendorCompany?.name || 'Unknown Vendor';
@@ -5052,9 +4800,10 @@ Respond with ONLY a JSON object. Example:
   // OBJECT STORAGE ROUTES
   // ==========================================================================
 
-  // Serve PUBLIC objects (profile pictures, company logos) - NO authentication required
+  // Intentionally public: shown on public RFP/company pages without login
   app.get("/objects/profile-pictures/:filename", async (req, res) => {
     try {
+      res.setHeader("Cache-Control", "public, max-age=3600");
       const objectStorageService = new ObjectStorageService();
       const objectPath = `/objects/profile-pictures/${req.params.filename}`;
       const objectFile = await objectStorageService.getPublicFile(objectPath);
@@ -5070,6 +4819,7 @@ Respond with ONLY a JSON object. Example:
 
   app.get("/objects/company-logos/:filename", async (req, res) => {
     try {
+      res.setHeader("Cache-Control", "public, max-age=3600");
       const objectStorageService = new ObjectStorageService();
       const objectPath = `/objects/company-logos/${req.params.filename}`;
       const objectFile = await objectStorageService.getPublicFile(objectPath);
@@ -5085,6 +4835,7 @@ Respond with ONLY a JSON object. Example:
 
   app.get("/objects/company-headers/:filename", async (req, res) => {
     try {
+      res.setHeader("Cache-Control", "public, max-age=3600");
       const objectStorageService = new ObjectStorageService();
       const objectPath = `/objects/company-headers/${req.params.filename}`;
       const objectFile = await objectStorageService.getPublicFile(objectPath);
@@ -5098,14 +4849,15 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.get("/objects/company-brochures/:filename", async (req, res) => {
+  // Authenticated-only: brochures and portfolio images are company-sensitive materials
+  app.get("/objects/company-brochures/:filename", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const objectPath = `/objects/company-brochures/${req.params.filename}`;
       const objectFile = await objectStorageService.getPublicFile(objectPath);
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
-      console.error("Error serving public company brochure:", error);
+      console.error("Error serving company brochure:", error);
       if (error instanceof ObjectNotFoundError) {
         return res.sendStatus(404);
       }
@@ -5113,7 +4865,7 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.get("/objects/portfolio-images/:filename", async (req, res) => {
+  app.get("/objects/portfolio-images/:filename", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const objectPath = `/objects/portfolio-images/${req.params.filename}`;
@@ -5128,7 +4880,7 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.get("/objects/uploads/:filename", async (req, res) => {
+  app.get("/objects/uploads/:filename", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const objectPath = `/objects/uploads/${req.params.filename}`;
@@ -5139,7 +4891,7 @@ Respond with ONLY a JSON object. Example:
       const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
-      console.error("Error serving public upload:", error);
+      console.error("Error serving upload:", error);
       if (error instanceof ObjectNotFoundError) {
         return res.sendStatus(404);
       }
@@ -5340,9 +5092,12 @@ Respond with ONLY a JSON object. Example:
       (async () => {
         try {
           const members = await storage.getCompanyMembers(companyId);
-          const recipients = members
+          const recipientsAll = members
             .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-            .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+          const recipients = await storage.filterRecipientsByPreference(
+            recipientsAll, companyId, 'company_admin', 'email',
+          );
           const profile = await storage.getCompanyProfile(companyId);
           const company = await storage.getCompany(companyId);
           const companyName = profile?.displayName || company?.name || 'Your Company';
@@ -5376,9 +5131,12 @@ Respond with ONLY a JSON object. Example:
       (async () => {
         try {
           const members = await storage.getCompanyMembers(companyId);
-          const recipients = members
+          const recipientsAll = members
             .filter(m => (m.roleInCompany === 'owner' || m.roleInCompany === 'admin') && m.user.email)
-            .map(m => ({ email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+            .map(m => ({ userId: m.user.id, email: m.user.email as string, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
+          const recipients = await storage.filterRecipientsByPreference(
+            recipientsAll, companyId, 'company_admin', 'email',
+          );
           const profile = await storage.getCompanyProfile(companyId);
           const company = await storage.getCompany(companyId);
           const companyName = profile?.displayName || company?.name || 'Your Company';
@@ -5513,17 +5271,7 @@ Respond with ONLY a JSON object. Example:
         return res.status(400).json({ message: "User is already an admin" });
       }
       
-      const user = await storage.makeUserAdmin(userId);
-      
-      await storage.logAuditAction({
-        adminId: req.auth!.userId,
-        action: 'user_promoted_to_admin',
-        targetType: 'user',
-        targetId: userId,
-        beforeState: JSON.stringify({ isAdmin: false }),
-        afterState: JSON.stringify({ isAdmin: true }),
-        notes: null
-      });
+      const user = await storage.makeUserAdmin(userId, req.auth!.userId);
 
       res.json({ message: "User promoted to admin", user });
     } catch (error) {
@@ -5537,7 +5285,7 @@ Respond with ONLY a JSON object. Example:
   // ============================================================================
 
   // Create a new template
-  app.post("/api/templates", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+  app.post("/api/templates", authenticateToken, requireCompanyContext, requireCompanyRole('admin'), async (req: AuthRequest, res) => {
     try {
       const validatedData = createTenderTemplateSchema.parse(req.body);
 
@@ -5600,7 +5348,7 @@ Respond with ONLY a JSON object. Example:
   });
 
   // Update a template
-  app.patch("/api/templates/:id", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+  app.patch("/api/templates/:id", authenticateToken, requireCompanyContext, requireCompanyRole('admin'), async (req: AuthRequest, res) => {
     try {
       const template = await storage.getTenderTemplate(req.params.id);
 
@@ -5631,7 +5379,7 @@ Respond with ONLY a JSON object. Example:
   });
 
   // Delete a template
-  app.delete("/api/templates/:id", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+  app.delete("/api/templates/:id", authenticateToken, requireCompanyContext, requireCompanyRole('admin'), async (req: AuthRequest, res) => {
     try {
       const template = await storage.getTenderTemplate(req.params.id);
 
@@ -5661,7 +5409,11 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  registerCopilotRoutes(app);
+  registerCopilotRoutes(app, authenticateToken);
+  registerCopilotV1Routes(app);
+  registerWebhookAdapter(app);
+  registerMcpAdapter(app);
+  registerIntegrationsAdminRoutes(app, { authenticateToken, requireCompanyContext, requireCompanyRole });
 
   // ============================================================================
   // AI CHAT HISTORY
@@ -5696,9 +5448,19 @@ Respond with ONLY a JSON object. Example:
 
   app.post("/api/ai-chat-sessions", authenticateToken, async (req, res) => {
     try {
+      const MAX_SESSIONS_PER_USER = 100;
+      const userId = req.auth!.userId;
+      const companyId = req.auth!.activeCompanyId || undefined;
+      const existing = await storage.getAiChatSessions(userId, companyId);
+      if (existing.length >= MAX_SESSIONS_PER_USER) {
+        return res.status(409).json({
+          message: `You've reached the limit of ${MAX_SESSIONS_PER_USER} chat sessions. Delete some old ones to start a new chat.`,
+          limit: MAX_SESSIONS_PER_USER,
+        });
+      }
       const session = await storage.createAiChatSession({
-        userId: req.auth!.userId,
-        companyId: req.auth!.activeCompanyId || null,
+        userId,
+        companyId: companyId ?? null,
         title: req.body.title || "New Chat",
         tenderId: req.body.tenderId || null,
         tenderData: req.body.tenderData || null,
@@ -5763,6 +5525,77 @@ Respond with ONLY a JSON object. Example:
       res.status(201).json(message);
     } catch (error) {
       console.error("Error creating AI chat message:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ============================================================================
+  // NOTIFICATION PREFERENCES
+  // ============================================================================
+
+  // Allow-lists kept in routes.ts so an unknown category/channel from the
+  // client can never accidentally land in the table.
+  const NOTIF_CATEGORIES = [
+    "new_proposal",
+    "proposal_decision",
+    "award_outcome",
+    "negotiation_activity",
+    "tender_lifecycle",
+    "qa_activity",
+    "company_admin",
+  ] as const;
+  const NOTIF_CHANNELS = ["email", "in_app", "sms"] as const;
+
+  app.get("/api/notification-preferences", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const auth = req.auth!;
+      const userId = auth.userId;
+      const companyId = auth.activeCompanyId;
+      if (!companyId) {
+        return res.status(400).json({ message: "No active company on this auth context" });
+      }
+      const rows = await storage.getNotificationPreferences(userId, companyId);
+      res.json(
+        rows.map((r) => ({
+          category: r.category,
+          channel: r.channel,
+          enabled: r.enabled,
+        })),
+      );
+    } catch (error) {
+      console.error("Error fetching notification preferences:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.patch("/api/notification-preferences", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const auth = req.auth!;
+      const userId = auth.userId;
+      const companyId = auth.activeCompanyId;
+      if (!companyId) {
+        return res.status(400).json({ message: "No active company on this auth context" });
+      }
+      const { category, channel, enabled } = req.body ?? {};
+      if (typeof category !== "string" || !(NOTIF_CATEGORIES as readonly string[]).includes(category)) {
+        return res.status(400).json({ message: "Invalid category" });
+      }
+      if (typeof channel !== "string" || !(NOTIF_CHANNELS as readonly string[]).includes(channel)) {
+        return res.status(400).json({ message: "Invalid channel" });
+      }
+      if (typeof enabled !== "boolean") {
+        return res.status(400).json({ message: "`enabled` must be a boolean" });
+      }
+      const row = await storage.setNotificationPreference(
+        userId,
+        companyId,
+        category,
+        channel,
+        enabled,
+      );
+      res.json({ category: row.category, channel: row.channel, enabled: row.enabled });
+    } catch (error) {
+      console.error("Error updating notification preference:", error);
       res.status(500).json({ message: "Server error" });
     }
   });
@@ -5876,6 +5709,16 @@ Respond with ONLY a JSON object. Example:
 
       const VALID_TENDER_TYPES = ['open_tender', 'direct_purchase', 'framework_agreement'];
       const { tenderType: reqTenderType, documentFee: reqDocFee, inquiryDeadline: reqInquiryDeadline } = req.body;
+
+      // BID-125: this route only accepts metadata. PO files must be uploaded
+      // separately via POST /api/tenders/:id/purchase-orders. Reject explicitly
+      // so callers don't silently lose PO data and end up with a tender stuck
+      // in "pending" because the verified-PO check at admin approval can't find one.
+      if (req.body.marketplacePoFiles !== undefined) {
+        return res.status(400).json({
+          message: "marketplacePoFiles is not accepted on this route. Upload POs via POST /api/tenders/:id/purchase-orders before calling marketplace-submit."
+        });
+      }
 
       if (reqTenderType && !VALID_TENDER_TYPES.includes(reqTenderType)) {
         return res.status(400).json({ message: "Invalid tender type" });

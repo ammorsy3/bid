@@ -18,14 +18,14 @@ import OnboardingLayout from "@/components/onboarding-layout";
 
 const DRAFT_KEY = "onboarding-draft";
 
-const companyProfileSchema = z.object({
+const makeCompanyProfileSchema = (t: (k: string) => string) => z.object({
   logoUrl: z.string().optional(),
-  bio: z.string().max(100, "Bio must not exceed 100 characters").optional(),
-  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  bio: z.string().max(100, t('validation.bioMax')).optional(),
+  websiteUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
+  linkedinUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
 });
 
-type CompanyProfileForm = z.infer<typeof companyProfileSchema>;
+type CompanyProfileForm = z.infer<ReturnType<typeof makeCompanyProfileSchema>>;
 
 function getDraft(): Record<string, any> {
   try {
@@ -65,7 +65,7 @@ export default function CompanyProfile() {
   }, []);
 
   const form = useForm<CompanyProfileForm>({
-    resolver: zodResolver(companyProfileSchema),
+    resolver: zodResolver(makeCompanyProfileSchema(t)),
     defaultValues: {
       logoUrl: draft.logoUrl || "",
       bio: draft.bio || "",
@@ -123,8 +123,8 @@ export default function CompanyProfile() {
               <Palette className="w-5 h-5 text-violet-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">Company Profile</h2>
-              <p className="text-sm text-neutral-500">Make your company stand out (optional)</p>
+              <h2 className="text-xl font-bold text-neutral-900">{t('onboarding.companyProfileHeading')}</h2>
+              <p className="text-sm text-neutral-500">{t('onboarding.companyProfileOptionalDesc')}</p>
             </div>
           </div>
 
@@ -135,7 +135,7 @@ export default function CompanyProfile() {
                 name="logoUrl"
                 render={() => (
                   <FormItem>
-                    <FormLabel>Company Logo</FormLabel>
+                    <FormLabel>{t('onboarding.companyLogoLabel')}</FormLabel>
                     <FormControl>
                       <div className="flex items-center gap-4">
                         {/* Logo preview */}
@@ -181,7 +181,7 @@ export default function CompanyProfile() {
                 name="bio"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Short Bio</FormLabel>
+                    <FormLabel>{t('onboarding.shortBioLabel')}</FormLabel>
                     <FormControl>
                       <SmartTextarea
                         {...field}
@@ -207,7 +207,7 @@ export default function CompanyProfile() {
                   name="websiteUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Website</FormLabel>
+                      <FormLabel>{t('onboarding.websiteLabel')}</FormLabel>
                       <FormControl>
                         <Input placeholder="https://example.com" {...field} data-testid="input-website" />
                       </FormControl>
@@ -221,7 +221,7 @@ export default function CompanyProfile() {
                   name="linkedinUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Your LinkedIn</FormLabel>
+                      <FormLabel>{t('onboarding.yourLinkedin')}</FormLabel>
                       <FormControl>
                         <Input placeholder="https://linkedin.com/in/yourname" {...field} data-testid="input-linkedin" />
                       </FormControl>

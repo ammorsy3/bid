@@ -850,7 +850,7 @@ export default function TenderEditPage() {
 
               <FormField control={form.control} name="voiceNoteUrl" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Voice Note (optional)</FormLabel>
+                  <FormLabel>{t('tenderFlow.voiceNoteOptionalLabel')}</FormLabel>
                   <FormControl>
                     <VoiceRecorder
                       onRecordingComplete={(url) => field.onChange(url)}
@@ -858,7 +858,7 @@ export default function TenderEditPage() {
                       existingUrl={field.value || undefined}
                     />
                   </FormControl>
-                  <FormDescription>Record a brief voice intro for vendors. Replace anytime.</FormDescription>
+                  <FormDescription>{t('tenderFlow.voiceNoteOptionalDesc')}</FormDescription>
                   {field.value && (
                     <Button
                       type="button"
@@ -1260,7 +1260,7 @@ export default function TenderEditPage() {
                 disabled={uploadingAttachment}
               >
                 {uploadingAttachment ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Uploading...</>
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('tenderFlow.uploading')}</>
                 ) : (
                   <><Upload className="h-4 w-4 mr-2" />{attachments.length > 0 ? "Upload another" : "Upload document"}</>
                 )}

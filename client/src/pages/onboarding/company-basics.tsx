@@ -92,7 +92,7 @@ export default function CompanyBasics() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company Display Name *</FormLabel>
+                    <FormLabel>{t('onboarding.companyDisplayName')} *</FormLabel>
                     <FormControl>
                       <Input placeholder={t('onboardingPanel.companyNamePh')} {...field} data-testid="input-company-name" />
                     </FormControl>
@@ -106,7 +106,7 @@ export default function CompanyBasics() {
                 name="legalName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Legal Name *</FormLabel>
+                    <FormLabel>{t('onboarding.legalName')} *</FormLabel>
                     <FormControl>
                       <Input placeholder={t('onboardingPanel.legalNamePh')} {...field} data-testid="input-legal-name" />
                     </FormControl>
@@ -155,7 +155,7 @@ export default function CompanyBasics() {
                 name="city"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>City *</FormLabel>
+                    <FormLabel>{t('onboarding.city')} *</FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. Riyadh, Jeddah" {...field} data-testid="input-city" />
                     </FormControl>
@@ -169,7 +169,7 @@ export default function CompanyBasics() {
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Industry Category *</FormLabel>
+                    <FormLabel>{t('onboarding.industryCategory')} *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-category">

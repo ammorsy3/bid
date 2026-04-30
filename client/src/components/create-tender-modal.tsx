@@ -60,7 +60,7 @@ const REQUIRED_FIELDS: (keyof CreateTenderForm)[] = ['title', 'description', 'de
 export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModalProps) {
   const { user } = useAuthStore();
   const { toast } = useToast();
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const dateLocale = language === 'ar' ? arLocale : undefined;
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
@@ -249,7 +249,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Company Verification Required</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">{t('createTender.verificationRequired')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-5 py-2">
             <div className="flex items-start gap-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
@@ -257,14 +257,14 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 <Info className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-amber-900 mb-1">Your company isn't verified yet</p>
+                <p className="text-sm font-medium text-amber-900 mb-1">{t('createTender.notVerifiedYet')}</p>
                 <p className="text-sm text-amber-700">
                   Creating tenders, submitting proposals, and other key actions require a verified company. Upload your Commercial Registration (CR) certificate to get verified — it only takes a moment.
                 </p>
               </div>
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium text-neutral-700">To unlock verified features, upload:</p>
+              <p className="text-sm font-medium text-neutral-700">{t('createTender.toUnlockFeatures')}</p>
               <ul className="text-sm text-neutral-600 space-y-1.5">
                 <li className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#E25E45] flex-shrink-0" />
@@ -310,14 +310,14 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
           <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-lg font-medium text-neutral-900 mb-2">{createdTender.title}</h3>
-              <p className="text-neutral-600">Your tender is now live and ready for vendor invitations</p>
+              <p className="text-neutral-600">{t('createTender.tenderLiveDesc')}</p>
             </div>
             
             <Card className="bg-primary-50 border-primary-200">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <Mail className="h-5 w-5 text-primary-600" />
-                  <h4 className="font-semibold text-primary-900">Invitation Link</h4>
+                  <h4 className="font-semibold text-primary-900">{t('tenderFlow.invitationLink')}</h4>
                 </div>
                 <p className="text-sm text-primary-800 mb-4">
                   Share this link with qualified vendors to invite them to submit offers:
@@ -333,26 +333,26 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                     data-testid="button-copy-link"
                   >
                     {invitationCopied ? (
-                      <><Check className="h-4 w-4 mr-2" />Copied!</>
+                      <><Check className="h-4 w-4 mr-2" />{t('tenderFlow.copied')}</>
                     ) : (
-                      <><Copy className="h-4 w-4 mr-2" />Copy Link</>
+                      <><Copy className="h-4 w-4 mr-2" />{t('tenderFlow.copyLink')}</>
                     )}
                   </Button>
-                  <Button 
+                  <Button
                     onClick={copyInvitationMessage}
                     variant="outline"
                     size="sm"
                     className="flex-1"
                     data-testid="button-copy-message"
                   >
-                    <Mail className="h-4 w-4 mr-2" />Copy Message
+                    <Mail className="h-4 w-4 mr-2" />{t('tenderFlow.copyMessage')}
                   </Button>
                 </div>
               </CardContent>
             </Card>
             
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-              <h4 className="font-medium text-neutral-900 mb-2">Next Steps</h4>
+              <h4 className="font-medium text-neutral-900 mb-2">{t('createTender.nextSteps')}</h4>
               <ul className="text-sm text-neutral-600 space-y-1">
                 <li>• Share the invitation link with qualified vendors via email or messaging</li>
                 <li>• Vendors can register and submit offers using this link</li>
@@ -406,7 +406,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
           <Alert className="bg-primary-50 border-primary-200">
             <Info className="h-4 w-4 text-primary-600" />
             <AlertDescription className="flex items-center justify-between">
-              <span className="text-primary-900">You have an unsaved draft from earlier</span>
+              <span className="text-primary-900">{t('createTender.unsavedDraftFromEarlier')}</span>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={handleDiscardDraft}>
                   Discard
@@ -439,7 +439,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tender Title *</FormLabel>
+                    <FormLabel>{t('createTender.tenderTitleLabel')}</FormLabel>
                     <FormControl>
                       <SmartInput 
                         placeholder="e.g., Website Development for E-commerce Platform" 
@@ -460,7 +460,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description *</FormLabel>
+                    <FormLabel>{t('createTender.descriptionRequired')}</FormLabel>
                     <FormControl>
                       <SmartTextarea 
                         rows={4}
@@ -511,7 +511,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
 
                   return (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Submission Deadline *</FormLabel>
+                      <FormLabel>{t('createTender.submissionDeadline')}</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -553,7 +553,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 name="budget"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estimated Budget</FormLabel>
+                    <FormLabel>{t('createTender.estimatedBudget')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-budget">
@@ -579,7 +579,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               name="projectTimeline"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Project Timeline *</FormLabel>
+                  <FormLabel>{t('createTender.projectTimelineRequired')}</FormLabel>
                   <FormControl>
                     <SmartInput 
                       placeholder="e.g., 3 months, Q1 2025, or 6-8 weeks" 
@@ -606,14 +606,14 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 View Advanced Options
               </span>
-              <span className="text-xs text-neutral-400">Optional</span>
+              <span className="text-xs text-neutral-400">{t('createTender.optional')}</span>
             </Button>
 
             {/* Advanced Options Section */}
             {showAdvanced && (
               <div className="space-y-6 p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
                 <div>
-                  <h4 className="font-medium text-neutral-900 mb-3">Voice Note</h4>
+                  <h4 className="font-medium text-neutral-900 mb-3">{t('createTender.voiceNoteTitle')}</h4>
                   <p className="text-sm text-neutral-600 mb-3">
                     Record a voice message to explain your project in detail (max 5 minutes)
                   </p>
@@ -644,7 +644,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                             {...field} 
                           />
                         </FormControl>
-                        <p className="text-xs text-neutral-500">Add a link to a video explaining your project</p>
+                        <p className="text-xs text-neutral-500">{t('createTender.addVideoLink')}</p>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -654,17 +654,17 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
             )}
 
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-              <h4 className="font-medium text-neutral-900 mb-2">Invitation System</h4>
+              <h4 className="font-medium text-neutral-900 mb-2">{t('createTender.invitationSystem')}</h4>
               <p className="text-sm text-neutral-600 mb-3">
                 After creating this tender, you'll receive a unique invitation link to share with qualified vendors.
               </p>
               <div className="flex items-center space-x-2 text-xs text-neutral-500">
                 <span>•</span>
-                <span>Share via email, messaging, or any preferred channel</span>
+                <span>{t('createTender.shareViaChannel')}</span>
               </div>
               <div className="flex items-center space-x-2 text-xs text-neutral-500 mt-1">
                 <span>•</span>
-                <span>Vendors register and submit offers using the link</span>
+                <span>{t('createTender.vendorsSubmitViaLink')}</span>
               </div>
             </div>
 

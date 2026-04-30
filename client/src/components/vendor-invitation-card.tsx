@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import { useState } from "react";
 import SubmitOfferModal from "./submit-offer-modal";
+import { useI18n } from "@/lib/i18n";
 
 interface VendorInvitationCardProps {
   invitation: {
@@ -28,6 +29,7 @@ interface VendorInvitationCardProps {
 
 export default function VendorInvitationCard({ invitation }: VendorInvitationCardProps) {
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const { t } = useI18n();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -71,26 +73,26 @@ export default function VendorInvitationCard({ invitation }: VendorInvitationCar
           <div className="space-y-3 mb-4">
             <div className="flex items-center text-sm text-neutral-600">
               <Calendar className="w-4 h-4 mr-2" />
-              <span>Deadline: <span className={`font-medium ${getUrgencyColor(invitation.tender.deadline)}`}>
+              <span>{t('vendorInvitationCard.deadline')} <span className={`font-medium ${getUrgencyColor(invitation.tender.deadline)}`}>
                 {format(new Date(invitation.tender.deadline), 'MMM d, yyyy', { locale: enUS })}
               </span></span>
             </div>
             {invitation.tender.budget && (
               <div className="flex items-center text-sm text-neutral-600">
                 <DollarSign className="w-4 h-4 mr-2" />
-                <span>Budget: <span className="font-medium">{invitation.tender.budget}</span></span>
+                <span>{t('vendorInvitationCard.budget')} <span className="font-medium">{invitation.tender.budget}</span></span>
               </div>
             )}
             {invitation.tender.duration && (
               <div className="flex items-center text-sm text-neutral-600">
                 <Clock className="w-4 h-4 mr-2" />
-                <span>Duration: <span className="font-medium">{invitation.tender.duration}</span></span>
+                <span>{t('vendorInvitationCard.duration')} <span className="font-medium">{invitation.tender.duration}</span></span>
               </div>
             )}
             {isSubmitted && (
               <div className="flex items-center text-sm text-success-600">
                 <CheckCircle className="w-4 h-4 mr-2" />
-                <span>Offer submitted</span>
+                <span>{t('vendorInvitationCard.offerSubmitted')}</span>
               </div>
             )}
           </div>

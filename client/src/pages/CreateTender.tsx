@@ -100,7 +100,7 @@ function AnimatedCircle() {
 export default function CreateTender() {
   const { user, activeCompany } = useAuthStore();
   const { toast } = useToast();
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const dateLocale = language === 'ar' ? arLocale : undefined;
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
@@ -266,7 +266,7 @@ export default function CreateTender() {
               className="group relative overflow-hidden"
               data-testid="button-back"
             >
-              <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">Back</span>
+              <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">{t('onboarding.back')}</span>
               <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
                 <ArrowLeft className="opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
               </i>
@@ -280,18 +280,18 @@ export default function CreateTender() {
                   <Check className="h-10 w-10 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Tender Created!</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t('createTender.tenderCreated')}</h2>
                   <p className="text-xl font-semibold text-[#E25E45] mb-4">{createdTender.title}</p>
-                  <p className="text-gray-600 dark:text-gray-400">Your tender is now live and ready for vendor invitations</p>
+                  <p className="text-gray-600 dark:text-gray-400">{t('createTender.tenderLiveDesc')}</p>
                 </div>
 
                 <Card className="mt-8 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      <h4 className="font-semibold text-blue-900 dark:text-blue-100">Share Your Invitation Link</h4>
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-100">{t('createTender.shareInvitationLink')}</h4>
                     </div>
-                    <p className="text-sm text-blue-800 dark:text-blue-200 mb-4">Share this with vendors to invite them to submit offers:</p>
+                    <p className="text-sm text-blue-800 dark:text-blue-200 mb-4">{t('createTender.shareInvitationLinkDesc')}</p>
                     <div className="bg-white dark:bg-gray-900 rounded-lg p-3 mb-4 break-all">
                       <code className="text-xs text-blue-900 dark:text-blue-100 font-mono">{invitationLink}</code>
                     </div>
@@ -303,12 +303,12 @@ export default function CreateTender() {
                         data-testid="button-copy-link"
                       >
                         {invitationCopied ? (
-                          <><Check className="h-4 w-4 mr-2" />Copied!</>
+                          <><Check className="h-4 w-4 mr-2" />{t('tenderFlow.copied')}</>
                         ) : (
-                          <><Copy className="h-4 w-4 mr-2" />Copy Link</>
+                          <><Copy className="h-4 w-4 mr-2" />{t('tenderFlow.copyLink')}</>
                         )}
                       </Button>
-                      <Button 
+                      <Button
                         onClick={() => navigate(`/tenders/${createdTender.id}`)}
                         variant="outline"
                         size="sm"
@@ -353,7 +353,7 @@ export default function CreateTender() {
               className="group relative overflow-hidden"
               data-testid="button-back-to-edit"
             >
-              <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">Edit</span>
+              <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">{t('createTender.editBtn')}</span>
               <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
                 <ArrowLeft className="opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
               </i>
@@ -369,8 +369,8 @@ export default function CreateTender() {
                   <Check className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-bold">Review Your Tender</CardTitle>
-                  <CardDescription>Please confirm the details before publishing</CardDescription>
+                  <CardTitle className="text-2xl font-bold">{t('createTender.reviewYourTender')}</CardTitle>
+                  <CardDescription>{t('createTender.confirmBeforePublishing')}</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -379,18 +379,18 @@ export default function CreateTender() {
               {/* Tender Brief */}
               <div className="space-y-4">
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Project Title</h3>
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">{t('tenderFlow.projectTitleLabel')}</h3>
                   <p className="text-lg font-bold text-gray-900 dark:text-white" data-testid="review-title">{reviewData.title}</p>
                 </div>
 
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Description</h3>
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">{t('createTender.descriptionLabel')}</h3>
                   <p className="text-gray-900 dark:text-white whitespace-pre-wrap" data-testid="review-description">{reviewData.description}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Deadline</h3>
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">{t('createTender.deadlineLabel')}</h3>
                     <p className="text-gray-900 dark:text-white font-medium flex items-center gap-2" data-testid="review-deadline">
                       <CalendarIcon className="h-4 w-4 text-[#E25E45]" />
                       {reviewData.deadline ? format(new Date(reviewData.deadline), "PPP 'at' HH:mm", { locale: dateLocale }) : "Not specified"}
@@ -398,14 +398,14 @@ export default function CreateTender() {
                   </div>
 
                   <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Budget Range</h3>
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">{t('tenderFlow.budgetRange')}</h3>
                     <p className="text-gray-900 dark:text-white font-medium" data-testid="review-budget">
                       {reviewData.budget || "Not specified"}
                     </p>
                   </div>
 
                   <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Project Timeline</h3>
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">{t('tenderFlow.projectTimeline')}</h3>
                     <p className="text-gray-900 dark:text-white font-medium" data-testid="review-timeline">
                       {reviewData.projectTimeline}
                     </p>
@@ -413,7 +413,7 @@ export default function CreateTender() {
 
                   {(reviewData.voiceNoteUrl || reviewData.videoUrl) && (
                     <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                      <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Attachments</h3>
+                      <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">{t('tenderFlow.attachmentsLabel')}</h3>
                       <div className="flex flex-wrap gap-2">
                         {reviewData.voiceNoteUrl && (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E25E45]/10 text-[#E25E45]">
@@ -461,7 +461,7 @@ export default function CreateTender() {
                   data-testid="button-publish-tender"
                 >
                   {createTenderMutation.isPending ? (
-                    <>Publishing...</>
+                    <>{t('tenderFlow.publishingRfp')}</>
                   ) : (
                     <>
                       <Check className="h-4 w-4 mr-2" />
@@ -549,7 +549,7 @@ export default function CreateTender() {
             className="group relative overflow-hidden"
             data-testid="button-back"
           >
-            <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">Back</span>
+            <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">{t('onboarding.back')}</span>
             <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
               <ArrowLeft className="opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
             </i>
@@ -567,7 +567,7 @@ export default function CreateTender() {
                 </div>
                 Create Your Tender
               </CardTitle>
-              <CardDescription>Fill in the details below to post your tender</CardDescription>
+              <CardDescription>{t('createTender.fillDetailsDesc')}</CardDescription>
             </div>
             {lastSaved && <p className="text-xs text-green-600 dark:text-green-400 mt-2">✓ Auto-saved</p>}
           </CardHeader>
@@ -577,10 +577,10 @@ export default function CreateTender() {
               <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
                 <Info className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="flex items-center justify-between">
-                  <span className="text-blue-900 dark:text-blue-100">You have an unsaved draft</span>
+                  <span className="text-blue-900 dark:text-blue-100">{t('createTender.unsavedDraft')}</span>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" onClick={() => setShowDraftPrompt(false)}>Discard</Button>
-                    <Button size="sm" onClick={handleLoadDraft} className="bg-[#E25E45] hover:bg-[#d54d35]">Load Draft</Button>
+                    <Button size="sm" onClick={handleLoadDraft} className="bg-[#E25E45] hover:bg-[#d54d35]">{t('createTender.loadDraft')}</Button>
                   </div>
                 </AlertDescription>
               </Alert>
@@ -610,7 +610,7 @@ export default function CreateTender() {
                       name="title"
                       render={({ field }) => (
                         <FormItem className="mb-4">
-                          <FormLabel className="text-base font-semibold">What's the project about?</FormLabel>
+                          <FormLabel className="text-base font-semibold">{t('createTender.whatProjectAbout')}</FormLabel>
                           <FormControl>
                             <SmartInput 
                               placeholder="E.g., Website Development for E-commerce Platform" 
@@ -631,7 +631,7 @@ export default function CreateTender() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base font-semibold">Tell us more</FormLabel>
+                          <FormLabel className="text-base font-semibold">{t('createTender.tellUsMore')}</FormLabel>
                           <FormControl>
                             <SmartTextarea 
                               rows={5}
@@ -686,7 +686,7 @@ export default function CreateTender() {
                         };
                         return (
                           <FormItem className="flex flex-col">
-                            <FormLabel className="text-sm font-semibold">When's the deadline?</FormLabel>
+                            <FormLabel className="text-sm font-semibold">{t('createTender.whenDeadline')}</FormLabel>
                             <Popover>
                               <PopoverTrigger asChild>
                                 <FormControl>
@@ -716,7 +716,7 @@ export default function CreateTender() {
                       name="budget"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-semibold">Budget range</FormLabel>
+                          <FormLabel className="text-sm font-semibold">{t('tenderFlow.budgetRange')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-budget">
@@ -741,7 +741,7 @@ export default function CreateTender() {
                     name="projectTimeline"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-semibold">Project timeline</FormLabel>
+                        <FormLabel className="text-sm font-semibold">{t('tenderFlow.projectTimeline')}</FormLabel>
                         <FormControl>
                           <SmartInput 
                             placeholder="E.g., 3 months, Q1 2025, or 6-8 weeks" 
@@ -767,7 +767,7 @@ export default function CreateTender() {
                 >
                   <span className="flex items-center gap-2">
                     {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    <span className="text-sm font-semibold">Add Voice Note or Video (Optional)</span>
+                    <span className="text-sm font-semibold">{t('createTender.addVoiceVideo')}</span>
                   </span>
                 </Button>
 
@@ -778,7 +778,7 @@ export default function CreateTender() {
                         <Sparkles className="h-4 w-4 text-[#E25E45]" />
                         Voice Note
                       </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Record a message to explain your project (max 5 minutes)</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{t('createTender.voiceNoteDesc')}</p>
                       <VoiceRecorder
                         onRecordingComplete={(url) => form.setValue('voiceNoteUrl', url)}
                         onRecordingDeleted={() => form.setValue('voiceNoteUrl', '')}

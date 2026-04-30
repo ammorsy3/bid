@@ -63,7 +63,7 @@ export default function OnboardingChoice() {
               Set up your company workspace, add your team, and start managing tenders.
             </p>
             <div className="flex items-center justify-center text-sm font-medium text-[#E25E45] group-hover:gap-2 transition-all">
-              <span>Get started</span>
+              <span>{t('onboarding.getStarted')}</span>
               <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
             </div>
           </CardContent>
@@ -84,7 +84,7 @@ export default function OnboardingChoice() {
             <div
               className="flex items-center justify-center text-sm font-medium text-neutral-400 cursor-default"
             >
-              <span>Requires an invitation</span>
+              <span>{t('onboarding.requiresInvitation')}</span>
             </div>
           </CardContent>
         </Card>

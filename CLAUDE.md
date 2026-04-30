@@ -2,14 +2,13 @@
 
 ## Git workflow
 
-**After every commit, immediately run `git push origin <current-branch>` without waiting to be asked.**
+At the start of every session, set the GitHub remote URL using the token from `.env`:
+```
+GITHUB_TOKEN=$(grep GITHUB_TOKEN .env | cut -d= -f2)
+git remote set-url origin https://${GITHUB_TOKEN}@github.com/ammorsy3/bid.git
+```
 
-This applies after:
-- A single task is completed and committed
-- A batch of related changes is committed
-- Any `git commit` command is run
-
-Never leave commits unpushed at the end of a task. Push right after committing, every time.
+Pushing to GitHub is low priority — only push when explicitly asked. The dev server hot-reloads on every file save, so the user sees changes instantly in the browser without any push needed.
 
 ## Stack
 

@@ -97,6 +97,7 @@ const DURATION_LABELS: Record<string, Record<string, string>> = {
 };
 
 function AudioPlayer({ src }: { src: string }) {
+  const { t } = useI18n();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -119,7 +120,7 @@ function AudioPlayer({ src }: { src: string }) {
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
       } catch (err) {
-        setError("Failed to load voice note");
+        setError(t('tenderFlow.failedLoadVoiceNote'));
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -152,7 +153,7 @@ function AudioPlayer({ src }: { src: string }) {
     return (
       <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
         <Loader2 className="h-5 w-5 animate-spin" />
-        <span className="text-sm text-muted-foreground">Loading voice note...</span>
+        <span className="text-sm text-muted-foreground">{t('tenderFlow.loadingVoiceNote')}</span>
       </div>
     );
   }
@@ -161,7 +162,7 @@ function AudioPlayer({ src }: { src: string }) {
     return (
       <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-red-600">
         <AlertCircle className="h-5 w-5" />
-        <span className="text-sm">{error || "Failed to load voice note"}</span>
+        <span className="text-sm">{error || t('tenderFlow.failedLoadVoiceNote')}</span>
       </div>
     );
   }

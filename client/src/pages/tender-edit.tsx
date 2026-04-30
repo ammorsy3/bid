@@ -28,12 +28,12 @@ import { VENDOR_CATEGORIES } from "@shared/schema";
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
 
-const editTenderSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
+const makeEditTenderSchema = (t: (k: string) => string) => z.object({
+  title: z.string().min(3, t('validation.titleMin')),
+  description: z.string().min(10, t('validation.descriptionMin')),
   objective: z.string().optional(),
   category: z.string().optional(),
-  deadline: z.string().min(1, "Deadline is required"),
+  deadline: z.string().min(1, t('validation.deadlineRequired')),
   duration: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
@@ -49,7 +49,7 @@ const editTenderSchema = z.object({
   emailContact: z.string().optional(),
 });
 
-type EditTenderForm = z.infer<typeof editTenderSchema>;
+type EditTenderForm = z.infer<ReturnType<typeof makeEditTenderSchema>>;
 
 interface Deliverable {
   id: string;
@@ -135,7 +135,7 @@ export default function TenderEdit() {
   });
 
   const form = useForm<EditTenderForm>({
-    resolver: zodResolver(editTenderSchema),
+    resolver: zodResolver(makeEditTenderSchema(t)),
     mode: "onChange",
     defaultValues: {
       title: "",

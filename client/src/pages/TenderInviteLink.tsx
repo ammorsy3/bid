@@ -19,6 +19,7 @@ import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-prev
 import SubmitOfferModal from "@/components/submit-offer-modal";
 import { formatCurrency } from "@/lib/format-currency";
 import { useI18n } from "@/lib/i18n";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Milestone {
   id?: string;
@@ -474,8 +475,78 @@ export default function TenderInviteLink() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <Loader2 className="h-8 w-8 animate-spin text-[#E25E45]" data-testid="loader-page" />
+      <div className="min-h-screen bg-gray-50" data-testid="loader-page">
+        {/* Nav skeleton */}
+        <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-4 w-16" />
+              <div className="h-5 w-px bg-gray-200 hidden sm:block" />
+              <img src={logoPath} alt="Bid" className="h-9 opacity-80" />
+            </div>
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-8 w-20 rounded-lg hidden sm:block" />
+              <Skeleton className="h-8 w-24 rounded-lg" />
+            </div>
+          </div>
+        </nav>
+
+        {/* Header skeleton */}
+        <div className="bg-white border-b border-gray-100">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+            <div className="flex items-start gap-4">
+              <Skeleton className="h-14 w-14 rounded-xl flex-shrink-0" />
+              <div className="flex-1 space-y-3">
+                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-8 w-3/4" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Body skeleton — two-column */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main content */}
+            <div className="lg:col-span-2 space-y-6">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-5/6" />
+                  <Skeleton className="h-3 w-4/6" />
+                </div>
+              ))}
+            </div>
+            {/* Sidebar */}
+            <div className="space-y-4">
+              <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+                <Skeleton className="h-5 w-28" />
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-8 w-8 rounded-lg" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-3 w-1/3" />
+                      <Skeleton className="h-4 w-2/3" />
+                    </div>
+                  </div>
+                ))}
+                <Skeleton className="h-10 w-full rounded-lg mt-2" />
+              </div>
+              <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-4/5" />
+                <Skeleton className="h-3 w-3/4" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -628,9 +699,13 @@ export default function TenderInviteLink() {
         });
       }
 
+      const token = localStorage.getItem('token');
       const res = await fetch('/api/translate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ texts: textsToTranslate, targetLanguage: targetLang }),
       });
 
@@ -1823,6 +1898,7 @@ export default function TenderInviteLink() {
             budget: tender.budget,
             submissionType: tender.submissionType,
             videoRequired: tender.videoRequired,
+            vendorRequirements: tender.vendorRequirements,
           }}
           requester={{
             name: displayName || 'Unknown',

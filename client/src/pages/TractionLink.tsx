@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest, ApiError } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Building2, CheckCircle2, Loader2, UserPlus, LogIn,
   Globe, Linkedin, ArrowRight,
@@ -264,8 +265,36 @@ export default function TractionLink() {
   // ── Loading state ──
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-300" />
+      <div className="min-h-screen bg-gray-50" data-testid="loader-page">
+        {/* Header area */}
+        <Skeleton className="h-40 w-full rounded-none" />
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+          {/* Logo + name */}
+          <div className="flex items-end gap-4 -mt-14">
+            <Skeleton className="h-20 w-20 rounded-xl border-4 border-white flex-shrink-0" />
+            <div className="space-y-2 pb-2">
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+          {/* Bio */}
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-3/4" />
+          </div>
+          {/* Stats row */}
+          <div className="flex gap-4">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex-1 bg-white rounded-xl border border-gray-200 p-4 space-y-2">
+                <Skeleton className="h-3 w-2/3" />
+                <Skeleton className="h-6 w-12" />
+              </div>
+            ))}
+          </div>
+          {/* Action button */}
+          <Skeleton className="h-11 w-full rounded-lg" />
+        </div>
       </div>
     );
   }

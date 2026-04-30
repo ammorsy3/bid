@@ -244,6 +244,7 @@ export default function TenderBriefStep() {
       submissionType: draft.submissionType || undefined,
       videoRequired: draft.videoRequired || undefined,
       inquiryType: draft.inquiryType || undefined,
+      inquiryDeadline: draft.inquiryDeadline || undefined,
       whatsappContact: draft.whatsappContact || undefined,
       emailContact: draft.emailContact || undefined,
       evaluationCriteria: draft.evaluationCriteria && (

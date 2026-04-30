@@ -25,25 +25,25 @@ import type { UploadResult } from "@/components/ObjectUploader";
 
 const countWords = (text: string) => text.trim().split(/\s+/).filter(word => word.length > 0).length;
 
-const preQualificationSchema = z.object({
-  legalCompanyName: z.string().min(2, "Company name is required").max(120),
-  crNumber: z.string().regex(/^\d+$/, "CR number must contain only numbers"),
+const makePreQualSchema = (t: (k: string) => string) => z.object({
+  legalCompanyName: z.string().min(2, t('validation.companyNameRequired')).max(120),
+  crNumber: z.string().regex(/^\d+$/, t('validation.crNumberFormat')),
   vatCertificateUrl: z.string().optional(),
   vatNumber: z.string().optional(),
-  gosiCertificateUrl: z.string().min(1, "GOSI certificate is required"),
-  nationalAddressCertificateUrl: z.string().min(1, "National Address certificate is required"),
-  displayName: z.string().min(2, "Display name is required").max(60),
-  logoUrl: z.string().min(1, "Company logo is required"),
+  gosiCertificateUrl: z.string().min(1, t('validation.gosiRequired')),
+  nationalAddressCertificateUrl: z.string().min(1, t('validation.nationalAddressRequired')),
+  displayName: z.string().min(2, t('validation.displayNameRequired')).max(60),
+  logoUrl: z.string().min(1, t('validation.logoRequired')),
   headerUrl: z.string().optional(),
-  bio: z.string().min(5, "Bio must be at least 5 characters").max(100, "Bio must not exceed 100 characters"),
-  category: z.string().min(1, "Please select a category"),
-  profileFileUrl: z.string().min(1, "Company profile is required"),
-  linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  xUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  bio: z.string().min(5, t('validation.bioMin')).max(100, t('validation.bioMax')),
+  category: z.string().min(1, t('validation.categoryRequired')),
+  profileFileUrl: z.string().min(1, t('validation.profileRequired')),
+  linkedinUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
+  xUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
+  websiteUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
 });
 
-type PreQualificationForm = z.infer<typeof preQualificationSchema>;
+type PreQualificationForm = z.infer<ReturnType<typeof makePreQualSchema>>;
 
 const FORM_ID = 'vendor-prequalification';
 const REQUIRED_FIELDS: (keyof PreQualificationForm)[] = [
@@ -67,7 +67,7 @@ export default function VendorPreQualification() {
   }>({});
 
   const form = useForm<PreQualificationForm>({
-    resolver: zodResolver(preQualificationSchema),
+    resolver: zodResolver(makePreQualSchema(t)),
     defaultValues: {
       legalCompanyName: "",
       crNumber: "",

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Search, FileText, MapPin, ChevronLeft, ChevronRight, Loader2, ChevronDown, Building2, Users, ArrowRight, Calendar } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { Skeleton } from "@/components/ui/skeleton";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
 import { useAuthStore } from "@/lib/auth";
@@ -334,8 +335,33 @@ export default function Marketplace() {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="h-8 w-8 animate-spin text-[#E8614D]" />
+          <div className="space-y-4" data-testid="loader-page">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="flex items-stretch">
+                  {/* Progress circle area */}
+                  <div className="flex flex-col items-center justify-center px-8 py-8 border-e border-gray-100 min-w-[160px]">
+                    <Skeleton className="h-20 w-20 rounded-full" />
+                    <Skeleton className="h-3 w-16 mt-3" />
+                    <Skeleton className="h-3 w-12 mt-1.5" />
+                  </div>
+                  {/* Main content */}
+                  <div className="flex-1 p-6 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-20 rounded-full" />
+                      <Skeleton className="h-5 w-24 rounded-full" />
+                    </div>
+                    <Skeleton className="h-5 w-2/3" />
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-4/5" />
+                    <div className="flex items-center gap-4 pt-2">
+                      <Skeleton className="h-3 w-28" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : tenders.length === 0 ? (
           <div className="text-center py-24">

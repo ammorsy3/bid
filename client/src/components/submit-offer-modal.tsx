@@ -248,6 +248,12 @@ const modalStrings: Record<string, Record<string, string>> = {
   },
 };
 
+interface VendorRequirement {
+  id: string;
+  text: string;
+  type: 'mandatory' | 'preferred';
+}
+
 interface SubmitOfferModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -258,6 +264,7 @@ interface SubmitOfferModalProps {
     budget?: string;
     submissionType?: SubmissionType;
     videoRequired?: boolean;
+    vendorRequirements?: VendorRequirement[] | null;
   };
   requester: {
     name: string;
@@ -297,6 +304,10 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     combined?: string;
   }>({});
   const [uploadMode, setUploadMode] = useState<UploadMode>('separate');
+
+  const mandatoryRequirements = (tender.vendorRequirements || []).filter(r => r.type === 'mandatory');
+  const [checkedRequirements, setCheckedRequirements] = useState<Record<string, boolean>>({});
+  const allMandatoryChecked = mandatoryRequirements.every(r => checkedRequirements[r.id]);
 
   const showQuoteField = tender.submissionType === 'quote_only';
   const showVideoField = tender.submissionType === 'video_only' || tender.submissionType === 'tech_fin_with_video';
@@ -948,6 +959,33 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </div>
             </div>
 
+            {mandatoryRequirements.length > 0 && (
+              <div className="p-4 bg-orange-50 rounded-lg border border-orange-200 space-y-3">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                  <p className="text-sm font-medium text-orange-800">
+                    {language === 'ar'
+                      ? 'يجب عليك تأكيد استيفاء المتطلبات الإلزامية التالية قبل التقديم:'
+                      : 'You must confirm you meet the following mandatory requirements before submitting:'}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  {mandatoryRequirements.map((req) => (
+                    <label key={req.id} className="flex items-start gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!checkedRequirements[req.id]}
+                        onChange={(e) => setCheckedRequirements(prev => ({ ...prev, [req.id]: e.target.checked }))}
+                        className="mt-0.5 h-4 w-4 rounded border-orange-400 text-orange-600 focus:ring-orange-500"
+                        data-testid={`checkbox-req-${req.id}`}
+                      />
+                      <span className="text-sm text-orange-900">{req.text}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center space-x-3 p-4 bg-warning-50 rounded-lg border border-warning-200">
               <AlertTriangle className="h-5 w-5 text-warning-600 flex-shrink-0" />
               <p className="text-sm text-warning-800">
@@ -969,7 +1007,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                 type="submit"
                 size="lg"
                 className="flex-1 bg-[#E25E45] hover:bg-[#d54d35] text-white"
-                disabled={submitOfferMutation.isPending || progress < 100 || !canSubmitOffer}
+                disabled={submitOfferMutation.isPending || progress < 100 || !canSubmitOffer || !allMandatoryChecked}
                 data-testid="button-submit-offer"
               >
                 {submitOfferMutation.isPending ? s('submitting') : !canSubmitOffer ? s('verificationRequired') : s('submitProposalBtn')}

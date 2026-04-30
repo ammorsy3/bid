@@ -74,7 +74,7 @@ export default function InviteTeam() {
     try {
       // Validate required draft fields before hitting the API
       if (!draft.name || !draft.legalName || !draft.crNumber) {
-        throw new Error("Missing required company information. Please go back and complete Company Basics.");
+        throw new Error(t('onboardingSetup.missingRequiredInfo'));
       }
 
       // Create company from draft data — include profile data so logo/bio are saved in one request
@@ -142,15 +142,15 @@ export default function InviteTeam() {
       await checkAuth();
 
       toast({
-        title: "Setup complete!",
-        description: "Your workspace is ready. Welcome to Bid.",
+        title: t('onboardingSetup.setupComplete'),
+        description: t('onboardingSetup.workspaceReady'),
       });
 
       setLocation(getPostOnboardingRedirect());
     } catch (error: any) {
       toast({
-        title: "Something went wrong",
-        description: error.message || "Failed to complete setup. Please try again.",
+        title: t('onboardingSetup.somethingWentWrong'),
+        description: error.message || t('onboardingSetup.failedToComplete'),
         variant: "destructive",
       });
     } finally {

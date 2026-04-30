@@ -85,10 +85,10 @@ const ENTERPRISE_CRITERIA_CATEGORIES: CriteriaCategory[] = [
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
 
-const editTenderSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().refine(val => val.trim().split(/\s+/).filter(Boolean).length >= 50, "Description must be at least 50 words"),
-  deadline: z.string().min(1, "Deadline is required"),
+const makeEditTenderSchema = (t: (k: string) => string) => z.object({
+  title: z.string().min(3, t('validation.titleMin')),
+  description: z.string().refine(val => val.trim().split(/\s+/).filter(Boolean).length >= 50, t('validation.descriptionMinWords')),
+  deadline: z.string().min(1, t('validation.deadlineRequired')),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   duration: z.string().optional(),
@@ -105,7 +105,7 @@ const editTenderSchema = z.object({
   emailContact: z.string().optional(),
 });
 
-type EditTenderForm = z.infer<typeof editTenderSchema>;
+type EditTenderForm = z.infer<ReturnType<typeof makeEditTenderSchema>>;
 
 interface Deliverable {
   id: string;
@@ -254,7 +254,7 @@ export default function TenderEditPage() {
   } as any);
 
   const form = useForm<EditTenderForm>({
-    resolver: zodResolver(editTenderSchema),
+    resolver: zodResolver(makeEditTenderSchema(t)),
     mode: "onChange",
     defaultValues: {
       title: "",

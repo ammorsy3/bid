@@ -33,22 +33,22 @@ import { calculateFormProgress, getConstraints } from "@/lib/form-validation";
 import { useFormKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const createTenderSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  deadline: z.string().min(1, "Deadline is required").refine((val) => {
+const makeCreateTenderSchema = (t: (k: string) => string) => z.object({
+  title: z.string().min(3, t('validation.titleMin')),
+  description: z.string().min(10, t('validation.descriptionMin')),
+  deadline: z.string().min(1, t('validation.deadlineRequired')).refine((val) => {
     const deadlineDate = new Date(val);
     const now = new Date();
     return deadlineDate.getTime() > now.getTime();
-  }, "Must be a future date"),
+  }, t('validation.futureDateRequired')),
   budget: z.string().optional(),
   duration: z.string().optional(),
-  projectTimeline: z.string().min(3, "Project timeline is required"),
+  projectTimeline: z.string().min(3, t('validation.projectTimelineRequired')),
   voiceNoteUrl: z.string().optional(),
-  videoUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  videoUrl: z.string().url(t('validation.validUrlRequired')).optional().or(z.literal("")),
 });
 
-type CreateTenderForm = z.infer<typeof createTenderSchema>;
+type CreateTenderForm = z.infer<ReturnType<typeof makeCreateTenderSchema>>;
 
 const FORM_ID = 'create-tender';
 const REQUIRED_FIELDS: (keyof CreateTenderForm)[] = ['title', 'description', 'deadline', 'projectTimeline'];
@@ -120,7 +120,7 @@ export default function CreateTender() {
   });
 
   const form = useForm<CreateTenderForm>({
-    resolver: zodResolver(createTenderSchema),
+    resolver: zodResolver(makeCreateTenderSchema(t)),
     mode: 'onChange',
     defaultValues: {
       title: "",

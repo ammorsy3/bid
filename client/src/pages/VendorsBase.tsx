@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
 import { Search, Users, CheckCircle, XCircle, Loader2, Building2, Mail, FileText, UserPlus, Eye, ShieldCheck, Clock, CalendarDays, Briefcase, Globe } from "lucide-react";
 import VendorProfileDrawer from "@/components/VendorProfileDrawer";
+import { SkeletonList } from "@/components/skeletons";
 
 interface VendorProfile {
   id: string;
@@ -182,9 +183,7 @@ export default function VendorsBase() {
           </Card>
 
           {loadingVendors ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
+            <SkeletonList items={4} />
           ) : vendors.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16">

@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Copy, Trash2, KeyRound, Plug, Plus, AlertCircle, CheckCircle2, BookOpen, ExternalLink } from "lucide-react";
+import { Copy, Trash2, KeyRound, Plug, Plus, AlertCircle, CheckCircle2, BookOpen, ExternalLink, ArrowLeft } from "lucide-react";
 
 type ApiKeyRow = {
   id: string;
@@ -143,6 +143,15 @@ export default function SettingsIntegrations() {
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation("/settings")}
+            className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            {t('settings.backToSettings')}
+          </Button>
           <h1 className="text-2xl font-semibold">{t('settings.intPageTitle')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {t('settings.intPageDesc')}

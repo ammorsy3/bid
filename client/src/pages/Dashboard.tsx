@@ -23,7 +23,7 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase, BookmarkPlus, Bookmark } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
@@ -50,6 +50,7 @@ import {
   BookDemoVisual,
 } from "@/components/OnboardingTaskVisuals";
 import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { SkeletonList } from "@/components/skeletons";
 
 interface VendorProfile {
   id: string;
@@ -122,7 +123,7 @@ interface MyOffer {
   videoUrl: string | null;
   notes: string | null;
   submittedAt: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'accepted' | 'rejected' | 'shortlisted';
   tender: {
     id: string;
     title: string;
@@ -145,7 +146,7 @@ interface IncomingOffer {
   videoUrl: string | null;
   notes: string | null;
   submittedAt: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'accepted' | 'rejected' | 'shortlisted';
   isViewed: boolean;
   tender: {
     id: string;
@@ -706,9 +707,11 @@ export default function Dashboard() {
         queryClient.invalidateQueries({ queryKey: ['/api/vendors-base'] });
       }
       toast({
-        title: variables.status === 'accepted' ? "Proposal Accepted" : "Proposal Ignored",
-        description: variables.status === 'accepted' 
+        title: variables.status === 'accepted' ? t('dashboard.accepted') : variables.status === 'shortlisted' ? t('dashboard.shortlisted') : t('dashboard.rejected'),
+        description: variables.status === 'accepted'
           ? "Vendor has been added to your Vendors Base."
+          : variables.status === 'shortlisted'
+          ? "Proposal has been shortlisted."
           : "This proposal has been marked as ignored.",
       });
     },
@@ -1799,9 +1802,7 @@ export default function Dashboard() {
 
               {/* Tenders List */}
               {loadingTenders ? (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
+                <SkeletonList items={3} />
               ) : filteredTenders.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-16">
@@ -1975,9 +1976,7 @@ export default function Dashboard() {
               {/* Submitted Proposals Sub-Tab */}
               <TabsContent value="submitted" className="space-y-4">
                 {loadingMyOffers ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  </div>
+                  <SkeletonList items={3} />
                 ) : myOffers.length === 0 ? (
                   <Card>
                     <CardContent className="flex flex-col items-center justify-center py-12">
@@ -1998,7 +1997,7 @@ export default function Dashboard() {
                         <SpotlightCard
                           key={offer.id}
                           className="bg-white border-neutral-200"
-                          spotlightColor={offer.status === 'accepted' ? 'green' : offer.status === 'rejected' ? 'red' : 'orange'}
+                          spotlightColor={offer.status === 'accepted' ? 'green' : offer.status === 'rejected' ? 'red' : offer.status === 'shortlisted' ? 'blue' : 'orange'}
                           data-testid={`card-my-offer-${offer.id}`}
                         >
                           <div className="p-6">
@@ -2038,6 +2037,12 @@ export default function Dashboard() {
                                     <Badge className="bg-yellow-100 text-yellow-800 text-xs">
                                       <Clock className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
                                       {t('dashboard.pending')}
+                                    </Badge>
+                                  )}
+                                  {offer.status === 'shortlisted' && (
+                                    <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                      <Bookmark className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                      {t('dashboard.shortlisted')}
                                     </Badge>
                                   )}
                                 </div>
@@ -2135,9 +2140,7 @@ export default function Dashboard() {
               {/* Received Proposals Sub-Tab */}
               <TabsContent value="received" className="space-y-4">
                 {loadingIncomingOffers ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  </div>
+                  <SkeletonList items={3} />
                 ) : incomingOffers.length === 0 ? (
                   <Card>
                     <CardContent className="flex flex-col items-center justify-center py-12">
@@ -2181,6 +2184,12 @@ export default function Dashboard() {
                                     <Badge className="bg-gray-100 text-gray-600 text-xs">
                                       <XCircle className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
                                       {t('dashboard.rejected')}
+                                    </Badge>
+                                  )}
+                                  {offer.status === 'shortlisted' && (
+                                    <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                      <Bookmark className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                      {t('dashboard.shortlisted')}
                                     </Badge>
                                   )}
                                 </div>
@@ -2526,9 +2535,7 @@ export default function Dashboard() {
 
                   {/* Vendors List */}
                   {loadingVendors ? (
-                    <div className="flex justify-center py-12">
-                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    </div>
+                    <SkeletonList items={4} />
                   ) : filteredVendors.length === 0 ? (
                     <Card>
                       <CardContent className="flex flex-col items-center justify-center py-16">
@@ -2922,8 +2929,8 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {/* Accept/Ignore Actions */}
-              {selectedProposal.status === 'pending' && (
+              {/* Accept/Shortlist/Ignore Actions */}
+              {(selectedProposal.status === 'pending' || selectedProposal.status === 'shortlisted') && (
                 <div className="flex gap-2 pt-4 border-t">
                   <Button
                     className="flex-1 bg-green-600 hover:bg-green-700"
@@ -2936,6 +2943,20 @@ export default function Dashboard() {
                     <Check className="h-4 w-4 mr-2" />
                     {t('dashboard.accept')}
                   </Button>
+                  {selectedProposal.status === 'pending' && (
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
+                      size="sm"
+                      onClick={() => {
+                        updateOfferStatus.mutate({ offerId: selectedProposal.id, status: 'shortlisted' });
+                        setSelectedProposal(null);
+                      }}
+                    >
+                      <BookmarkPlus className="h-4 w-4 mr-2" />
+                      {t('dashboard.shortlist')}
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     className="flex-1"
@@ -2955,6 +2976,13 @@ export default function Dashboard() {
                 <div className="flex items-center justify-center gap-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border-t mt-4 pt-4">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                   <span className="font-medium text-green-800 dark:text-green-200">{t('dashboard.accepted')}</span>
+                </div>
+              )}
+
+              {selectedProposal.status === 'shortlisted' && (
+                <div className="flex items-center justify-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border-t mt-4 pt-4">
+                  <Bookmark className="h-5 w-5 text-blue-600" />
+                  <span className="font-medium text-blue-800 dark:text-blue-200">{t('dashboard.shortlisted')}</span>
                 </div>
               )}
             </div>

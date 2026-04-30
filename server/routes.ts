@@ -177,6 +177,18 @@ const requireCompanyRole = (minRole: 'owner' | 'admin' | 'member' | 'viewer') =>
 // HELPER FUNCTIONS
 // ============================================================================
 
+// Returns an error message if evaluationCriteria.weights don't sum to 100 (±1 rounding tolerance)
+const validateEvalWeights = (ec: unknown): string | null => {
+  if (!ec || typeof ec !== 'object' || Array.isArray(ec)) return null;
+  const weights: any[] = Array.isArray((ec as any).weights) ? (ec as any).weights : [];
+  if (weights.length === 0) return null;
+  const total = weights.reduce((sum: number, w: any) => sum + (Number(w.weight) || 0), 0);
+  if (Math.abs(total - 100) > 1) {
+    return `Evaluation criteria weights must sum to 100% (currently ${total.toFixed(1)}%)`;
+  }
+  return null;
+};
+
 // Generate slug from company name
 const generateSlug = (name: string): string => {
   return name
@@ -2264,6 +2276,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           marketplacePoFiles?: { fileUrl: string; originalName?: string | null }[];
         };
 
+        const evalWeightError = validateEvalWeights(req.body.evaluationCriteria);
+        if (evalWeightError) {
+          return res.status(400).json({ message: evalWeightError });
+        }
+
         const result = await launchTenderFromPayload(req.body, {
           company: { id: activeCompany.id, verificationStatus: activeCompany.verificationStatus },
           user: { id: req.auth!.userId },
@@ -2330,10 +2347,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Tender not found" });
         }
 
-        // Check access - either company owner or invited vendor
-        // For now, allow any authenticated user (TODO: implement proper access control)
+        const userCompanyId = req.auth!.activeCompanyId;
 
-        res.json(tender);
+        // Owner company always has access
+        if (tender.companyId === userCompanyId) {
+          return res.json(tender);
+        }
+
+        // Marketplace tenders that are live are accessible to any authenticated user
+        if (tender.isMarketplace && tender.marketplaceStatus === 'approved') {
+          return res.json(tender);
+        }
+
+        // Invited vendors have access
+        const invitationList = await storage.getInvitationsByTender(req.params.id);
+        const isInvited = invitationList.some(inv => inv.companyId === userCompanyId);
+        if (isInvited) {
+          return res.json(tender);
+        }
+
+        return res.status(403).json({ message: "Access denied" });
       } catch (error) {
         console.error('Get tender error:', error);
         res.status(500).json({ message: "Server error" });
@@ -2451,7 +2484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================================================
 
   // Translate text content for a tender (used by vendor-side language toggle as fallback)
-  app.post("/api/translate", async (req, res) => {
+  app.post("/api/translate", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const { texts, targetLanguage } = req.body;
 
@@ -2697,6 +2730,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Only allow editing draft or published tenders (not closed/cancelled)
         if (!['draft', 'published'].includes(tender.status)) {
           return res.status(400).json({ message: "Cannot edit closed or cancelled tenders" });
+        }
+
+        const evalWeightError = validateEvalWeights(req.body.evaluationCriteria);
+        if (evalWeightError) {
+          return res.status(400).json({ message: evalWeightError });
         }
 
         const updates = createTenderSchema.partial().parse(req.body);
@@ -3912,8 +3950,8 @@ Respond with ONLY a JSON object. Example:
         const { offerId } = req.params;
         const { status } = req.body;
         
-        if (!['accepted', 'rejected', 'pending'].includes(status)) {
-          return res.status(400).json({ message: "Invalid status. Must be 'accepted', 'rejected', or 'pending'" });
+        if (!['accepted', 'rejected', 'pending', 'shortlisted'].includes(status)) {
+          return res.status(400).json({ message: "Invalid status. Must be 'accepted', 'rejected', 'pending', or 'shortlisted'" });
         }
         
         // Get the offer with tender info to verify ownership
@@ -3960,7 +3998,7 @@ Respond with ONLY a JSON object. Example:
         
         // Log event
         await storage.logProductEvent({
-          eventType: status === 'accepted' ? 'proposal_accepted' : 'proposal_rejected',
+          eventType: status === 'accepted' ? 'proposal_accepted' : status === 'rejected' ? 'proposal_rejected' : 'proposal_shortlisted',
           companyId: req.auth!.activeCompanyId!,
           userId: req.auth!.userId,
           metadata: { offerId, tenderId: offer.tenderId, status }
@@ -4762,9 +4800,10 @@ Respond with ONLY a JSON object. Example:
   // OBJECT STORAGE ROUTES
   // ==========================================================================
 
-  // Serve PUBLIC objects (profile pictures, company logos) - NO authentication required
+  // Intentionally public: shown on public RFP/company pages without login
   app.get("/objects/profile-pictures/:filename", async (req, res) => {
     try {
+      res.setHeader("Cache-Control", "public, max-age=3600");
       const objectStorageService = new ObjectStorageService();
       const objectPath = `/objects/profile-pictures/${req.params.filename}`;
       const objectFile = await objectStorageService.getPublicFile(objectPath);
@@ -4780,6 +4819,7 @@ Respond with ONLY a JSON object. Example:
 
   app.get("/objects/company-logos/:filename", async (req, res) => {
     try {
+      res.setHeader("Cache-Control", "public, max-age=3600");
       const objectStorageService = new ObjectStorageService();
       const objectPath = `/objects/company-logos/${req.params.filename}`;
       const objectFile = await objectStorageService.getPublicFile(objectPath);
@@ -4795,6 +4835,7 @@ Respond with ONLY a JSON object. Example:
 
   app.get("/objects/company-headers/:filename", async (req, res) => {
     try {
+      res.setHeader("Cache-Control", "public, max-age=3600");
       const objectStorageService = new ObjectStorageService();
       const objectPath = `/objects/company-headers/${req.params.filename}`;
       const objectFile = await objectStorageService.getPublicFile(objectPath);
@@ -4808,14 +4849,15 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.get("/objects/company-brochures/:filename", async (req, res) => {
+  // Authenticated-only: brochures and portfolio images are company-sensitive materials
+  app.get("/objects/company-brochures/:filename", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const objectPath = `/objects/company-brochures/${req.params.filename}`;
       const objectFile = await objectStorageService.getPublicFile(objectPath);
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
-      console.error("Error serving public company brochure:", error);
+      console.error("Error serving company brochure:", error);
       if (error instanceof ObjectNotFoundError) {
         return res.sendStatus(404);
       }
@@ -4823,7 +4865,7 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.get("/objects/portfolio-images/:filename", async (req, res) => {
+  app.get("/objects/portfolio-images/:filename", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const objectPath = `/objects/portfolio-images/${req.params.filename}`;
@@ -4838,7 +4880,7 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.get("/objects/uploads/:filename", async (req, res) => {
+  app.get("/objects/uploads/:filename", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const objectPath = `/objects/uploads/${req.params.filename}`;
@@ -4849,7 +4891,7 @@ Respond with ONLY a JSON object. Example:
       const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
-      console.error("Error serving public upload:", error);
+      console.error("Error serving upload:", error);
       if (error instanceof ObjectNotFoundError) {
         return res.sendStatus(404);
       }
@@ -5243,7 +5285,7 @@ Respond with ONLY a JSON object. Example:
   // ============================================================================
 
   // Create a new template
-  app.post("/api/templates", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+  app.post("/api/templates", authenticateToken, requireCompanyContext, requireCompanyRole('admin'), async (req: AuthRequest, res) => {
     try {
       const validatedData = createTenderTemplateSchema.parse(req.body);
 
@@ -5306,7 +5348,7 @@ Respond with ONLY a JSON object. Example:
   });
 
   // Update a template
-  app.patch("/api/templates/:id", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+  app.patch("/api/templates/:id", authenticateToken, requireCompanyContext, requireCompanyRole('admin'), async (req: AuthRequest, res) => {
     try {
       const template = await storage.getTenderTemplate(req.params.id);
 
@@ -5337,7 +5379,7 @@ Respond with ONLY a JSON object. Example:
   });
 
   // Delete a template
-  app.delete("/api/templates/:id", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+  app.delete("/api/templates/:id", authenticateToken, requireCompanyContext, requireCompanyRole('admin'), async (req: AuthRequest, res) => {
     try {
       const template = await storage.getTenderTemplate(req.params.id);
 

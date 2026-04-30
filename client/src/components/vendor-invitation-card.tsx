@@ -19,6 +19,7 @@ interface VendorInvitationCardProps {
       deadline: string;
       budget?: string;
       duration?: string;
+      vendorRequirements?: Array<{ id: string; text: string; type: 'mandatory' | 'preferred' }> | null;
     };
     requester: {
       name: string;

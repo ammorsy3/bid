@@ -18,14 +18,14 @@ import OnboardingLayout from "@/components/onboarding-layout";
 
 const DRAFT_KEY = "onboarding-draft";
 
-const companyProfileSchema = z.object({
+const makeCompanyProfileSchema = (t: (k: string) => string) => z.object({
   logoUrl: z.string().optional(),
-  bio: z.string().max(100, "Bio must not exceed 100 characters").optional(),
-  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  bio: z.string().max(100, t('validation.bioMax')).optional(),
+  websiteUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
+  linkedinUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
 });
 
-type CompanyProfileForm = z.infer<typeof companyProfileSchema>;
+type CompanyProfileForm = z.infer<ReturnType<typeof makeCompanyProfileSchema>>;
 
 function getDraft(): Record<string, any> {
   try {
@@ -65,7 +65,7 @@ export default function CompanyProfile() {
   }, []);
 
   const form = useForm<CompanyProfileForm>({
-    resolver: zodResolver(companyProfileSchema),
+    resolver: zodResolver(makeCompanyProfileSchema(t)),
     defaultValues: {
       logoUrl: draft.logoUrl || "",
       bio: draft.bio || "",

@@ -27,6 +27,7 @@ import MarketplaceGuide from "@/components/MarketplaceGuide";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import { useI18n } from "@/lib/i18n";
+import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTour, TourBanner } from "@/lib/tour";
 import { TENDER_DETAILS_TOUR_STEPS, TOUR_BANNERS, getSteps } from "@/lib/tour-steps";
 
@@ -715,8 +716,50 @@ export default function TenderDetails() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#E25E45]" />
+      <div className="min-h-screen bg-gray-50" dir={isRtl ? "rtl" : "ltr"} data-testid="loader-page">
+        {/* Hero header skeleton */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-5">
+            <Skeleton className="h-4 w-28" />
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 space-y-3">
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-3 w-48" />
+                <Skeleton className="h-9 w-3/4" />
+                <Skeleton className="h-3 w-40" />
+              </div>
+              <div className="flex gap-2 flex-shrink-0 pt-1">
+                <Skeleton className="h-9 w-24 rounded-lg" />
+                <Skeleton className="h-9 w-20 rounded-lg" />
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Body skeleton */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* TOC sidebar */}
+            <div className="hidden lg:block space-y-2">
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-9 w-full rounded-lg" />
+              ))}
+            </div>
+            {/* Main content */}
+            <div className="lg:col-span-3 space-y-6">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+                  <Skeleton className="h-5 w-48" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-5/6" />
+                  <Skeleton className="h-3 w-4/6" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -2076,6 +2119,7 @@ export default function TenderDetails() {
             budget: tender.budget || undefined,
             submissionType: tender.submissionType as any,
             videoRequired: tender.videoRequired ?? undefined,
+            vendorRequirements: tender.vendorRequirements as any,
           }}
           requester={{
             name: t('tenderFlow.companyDefault'),

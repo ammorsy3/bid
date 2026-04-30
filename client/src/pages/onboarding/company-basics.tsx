@@ -16,16 +16,16 @@ import OnboardingLayout from "@/components/onboarding-layout";
 
 const DRAFT_KEY = "onboarding-draft";
 
-const companyBasicsSchema = z.object({
-  name: z.string().min(2, "Company name is required"),
-  legalName: z.string().min(2, "Legal name is required"),
-  crNumber: z.string().regex(/^\d+$/, "CR number must contain only numbers"),
+const makeCompanyBasicsSchema = (t: (k: string) => string) => z.object({
+  name: z.string().min(2, t('validation.companyNameRequired')),
+  legalName: z.string().min(2, t('validation.legalNameRequired')),
+  crNumber: z.string().regex(/^\d+$/, t('validation.crNumberFormat')),
   vatNumber: z.string().optional(),
-  city: z.string().min(1, "City is required"),
-  category: z.string().min(1, "Please select a category"),
+  city: z.string().min(1, t('validation.cityRequired')),
+  category: z.string().min(1, t('validation.categoryRequired')),
 });
 
-type CompanyBasicsForm = z.infer<typeof companyBasicsSchema>;
+type CompanyBasicsForm = z.infer<ReturnType<typeof makeCompanyBasicsSchema>>;
 
 function getDraft(): Record<string, any> {
   try {
@@ -48,7 +48,7 @@ export default function CompanyBasics() {
   const draft = getDraft();
 
   const form = useForm<CompanyBasicsForm>({
-    resolver: zodResolver(companyBasicsSchema),
+    resolver: zodResolver(makeCompanyBasicsSchema(t)),
     defaultValues: {
       name: draft.name || "",
       legalName: draft.legalName || "",

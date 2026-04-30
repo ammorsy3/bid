@@ -11,17 +11,7 @@ import { useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 
-const registerSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string(),
-  name: z.string().min(2, "Name must be at least 2 characters"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
-
-type RegisterForm = z.infer<typeof registerSchema>;
+type RegisterForm = { email: string; password: string; confirmPassword: string; name: string };
 
 export default function Register() {
   const [, setLocation] = useLocation();
@@ -35,7 +25,17 @@ export default function Register() {
   const redirectUrl = urlParams.get('redirect');
 
   const form = useForm<RegisterForm>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(
+      z.object({
+        email: z.string().email(t('validation.invalidEmail')),
+        password: z.string().min(6, t('validation.passwordMin')),
+        confirmPassword: z.string(),
+        name: z.string().min(2, t('validation.nameMin')),
+      }).refine((data) => data.password === data.confirmPassword, {
+        message: t('validation.passwordsNoMatch'),
+        path: ["confirmPassword"],
+      })
+    ),
     defaultValues: {
       email: "",
       password: "",

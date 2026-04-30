@@ -19,39 +19,34 @@ import type { UploadResult } from "@/components/ObjectUploader";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 
-// Step 1: Account credentials
-const step1Schema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  company: z.string().min(2, "Company name is required"),
+const makeStep1Schema = (t: (k: string) => string) => z.object({
+  username: z.string().min(3, t('validation.usernameMin')),
+  email: z.string().email(t('validation.invalidEmail')),
+  password: z.string().min(6, t('validation.passwordMin')),
+  name: z.string().min(2, t('validation.nameMin')),
+  company: z.string().min(2, t('validation.companyNameRequired')),
 });
 
-// Step 2: Vendor pre-qualification (identical to VendorPreQualification)
-const step2Schema = z.object({
-  // Legal & Compliance
-  legalCompanyName: z.string().min(2, "Company name is required").max(120),
-  crNumber: z.string().regex(/^\d+$/, "CR number must contain only numbers"),
+const makeStep2Schema = (t: (k: string) => string) => z.object({
+  legalCompanyName: z.string().min(2, t('validation.companyNameRequired')).max(120),
+  crNumber: z.string().regex(/^\d+$/, t('validation.crNumberFormat')),
   vatCertificateUrl: z.string().optional(),
   vatNumber: z.string().optional(),
-  gosiCertificateUrl: z.string().min(1, "GOSI certificate is required"),
-  nationalAddressCertificateUrl: z.string().min(1, "National Address certificate is required"),
-  
-  // Public Profile
-  displayName: z.string().min(2, "Display name is required").max(60),
-  logoUrl: z.string().min(1, "Company logo is required"),
+  gosiCertificateUrl: z.string().min(1, t('validation.gosiRequired')),
+  nationalAddressCertificateUrl: z.string().min(1, t('validation.nationalAddressRequired')),
+  displayName: z.string().min(2, t('validation.displayNameRequired')).max(60),
+  logoUrl: z.string().min(1, t('validation.logoRequired')),
   headerUrl: z.string().optional(),
-  bio: z.string().min(5, "Bio must be at least 5 characters").max(100, "Bio must not exceed 100 characters"),
-  category: z.string().min(1, "Please select a category"),
-  profileFileUrl: z.string().min(1, "Company profile is required"),
-  linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  xUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  bio: z.string().min(5, t('validation.bioMin')).max(100, t('validation.bioMax')),
+  category: z.string().min(1, t('validation.categoryRequired')),
+  profileFileUrl: z.string().min(1, t('validation.profileRequired')),
+  linkedinUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
+  xUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
+  websiteUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
 });
 
-type Step1Form = z.infer<typeof step1Schema>;
-type Step2Form = z.infer<typeof step2Schema>;
+type Step1Form = z.infer<ReturnType<typeof makeStep1Schema>>;
+type Step2Form = z.infer<ReturnType<typeof makeStep2Schema>>;
 
 // Helper to count words in bio
 const countWords = (text: string) => text.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -80,7 +75,7 @@ export default function VendorOnboarding() {
 
   // Step 1 form
   const step1Form = useForm<Step1Form>({
-    resolver: zodResolver(step1Schema),
+    resolver: zodResolver(makeStep1Schema(t)),
     defaultValues: {
       username: "",
       email: "",
@@ -92,7 +87,7 @@ export default function VendorOnboarding() {
 
   // Step 2 form
   const step2Form = useForm<Step2Form>({
-    resolver: zodResolver(step2Schema),
+    resolver: zodResolver(makeStep2Schema(t)),
     defaultValues: {
       legalCompanyName: "",
       crNumber: "",

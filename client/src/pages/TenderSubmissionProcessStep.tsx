@@ -29,6 +29,7 @@ export default function TenderSubmissionProcessStep() {
   const [submissionType, setSubmissionType] = useState<SubmissionType | null>(null);
   const [videoRequired, setVideoRequired] = useState(false);
   const [inquiryType, setInquiryType] = useState<InquiryType | null>(null);
+  const [inquiryDeadline, setInquiryDeadline] = useState<Date | undefined>(undefined);
   const [whatsappContact, setWhatsappContact] = useState("");
   const [useAccountEmail, setUseAccountEmail] = useState(true);
   const [customEmail, setCustomEmail] = useState("");
@@ -56,6 +57,9 @@ export default function TenderSubmissionProcessStep() {
     if (draft.inquiryType) {
       setInquiryType(draft.inquiryType);
     }
+    if (draft.inquiryDeadline) {
+      setInquiryDeadline(new Date(draft.inquiryDeadline));
+    }
     if (draft.whatsappContact) {
       setWhatsappContact(draft.whatsappContact);
     }
@@ -70,7 +74,7 @@ export default function TenderSubmissionProcessStep() {
       setCustomEmail(user.tenderInquiryEmail);
       setSaveCustomEmail(true);
     }
-  }, [draft.submissionDeadline, draft.submissionType, draft.videoRequired, draft.inquiryType, draft.whatsappContact, draft.useAccountEmail, draft.customEmail, user?.tenderInquiryEmail]);
+  }, [draft.submissionDeadline, draft.submissionType, draft.videoRequired, draft.inquiryType, draft.inquiryDeadline, draft.whatsappContact, draft.useAccountEmail, draft.customEmail, user?.tenderInquiryEmail]);
 
   const handleSaveEmail = async (email: string) => {
     setIsSavingEmail(true);
@@ -123,6 +127,9 @@ export default function TenderSubmissionProcessStep() {
         submissionType,
         videoRequired: submissionType === "tech_fin_with_video" ? videoRequired : undefined,
         inquiryType,
+        inquiryDeadline: inquiryType === "inside_bid" && inquiryDeadline
+          ? inquiryDeadline.toISOString().split('T')[0]
+          : undefined,
         whatsappContact: inquiryType === "email_whatsapp" ? whatsappContact : undefined,
         emailContact: inquiryType === "email_whatsapp" ? emailToUse : undefined,
         useAccountEmail,
@@ -525,11 +532,52 @@ export default function TenderSubmissionProcessStep() {
                     )}
 
                     {inquiryType === "inside_bid" && (
-                      <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg animate-in fade-in slide-in-from-top-2 duration-300">
-                        <MessageSquare className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs text-blue-700 dark:text-blue-300">
-                          {t('tenderFlow.insideBidInfo')}
-                        </p>
+                      <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                          <MessageSquare className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-blue-700 dark:text-blue-300">
+                            {t('tenderFlow.insideBidInfo')}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            {t('tenderFlow.insideBidInquiryDeadlineLabel')}
+                          </label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                className={cn(
+                                  "w-full flex items-center gap-2 px-3 py-2 text-sm border rounded-lg bg-white dark:bg-gray-800 text-left",
+                                  inquiryDeadline
+                                    ? "border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                                    : "border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500"
+                                )}
+                                data-testid="button-inquiry-deadline"
+                              >
+                                <CalendarIcon className="h-4 w-4 flex-shrink-0" />
+                                {inquiryDeadline
+                                  ? format(inquiryDeadline, "PPP", { locale: dateLocale })
+                                  : t('tenderFlow.selectDate') || "Pick a date"}
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={inquiryDeadline}
+                                onSelect={setInquiryDeadline}
+                                disabled={(d) =>
+                                  d < new Date() ||
+                                  (submissionDeadline ? d >= submissionDeadline : false)
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            {t('tenderFlow.insideBidInquiryDeadlineHint')}
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>

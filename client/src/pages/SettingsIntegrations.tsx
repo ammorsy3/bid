@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,11 +48,6 @@ type IntegrationRow = {
   updatedAt: string;
 };
 
-const SCOPE_LABELS: Record<string, string> = {
-  "copilot:chat": "Chat with the agent",
-  "tender:create": "Create tenders",
-};
-
 function copyToClipboard(text: string) {
   navigator.clipboard?.writeText(text).catch(() => {});
 }
@@ -59,6 +55,7 @@ function copyToClipboard(text: string) {
 export default function SettingsIntegrations() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { t } = useI18n();
   const user = useAuthStore((s) => s.user);
   const activeCompany = useAuthStore((s) => s.activeCompany);
 
@@ -71,9 +68,6 @@ export default function SettingsIntegrations() {
     [],
   );
 
-  // Server-side admin gate lives on the API routes. Client just bounces
-  // unauthenticated visitors to login; non-admins get empty lists + 403s on
-  // mutations, which is acceptable for an internal settings page.
   if (!user) {
     setLocation("/login");
     return null;
@@ -107,14 +101,14 @@ export default function SettingsIntegrations() {
       setNewlyCreatedKey({ name: data.name, rawKey: data.rawKey });
       setCreateKeyOpen(false);
     },
-    onError: (err: any) => toast({ title: "Failed to create key", description: err?.message ?? "Try again", variant: "destructive" }),
+    onError: (err: any) => toast({ title: t('settings.intCreateKeyFailed'), description: err?.message ?? t('settings.intTryAgain'), variant: "destructive" }),
   });
 
   const revokeKeyMutation = useMutation({
     mutationFn: async (id: string) => apiRequest("DELETE", `/api/api-keys/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/api-keys"] });
-      toast({ title: "API key revoked" });
+      toast({ title: t('settings.intApiKeyRevoked') });
     },
   });
 
@@ -126,9 +120,9 @@ export default function SettingsIntegrations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/integrations"] });
       setCreateIntegrationOpen(false);
-      toast({ title: "Integration created" });
+      toast({ title: t('settings.intCreatedToast') });
     },
-    onError: (err: any) => toast({ title: "Failed to create integration", description: err?.message ?? "Try again", variant: "destructive" }),
+    onError: (err: any) => toast({ title: t('settings.intCreateIntFailed'), description: err?.message ?? t('settings.intTryAgain'), variant: "destructive" }),
   });
 
   const toggleIntegrationMutation = useMutation({
@@ -141,7 +135,7 @@ export default function SettingsIntegrations() {
     mutationFn: async (id: string) => apiRequest("DELETE", `/api/integrations/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/integrations"] });
-      toast({ title: "Integration deleted" });
+      toast({ title: t('settings.intDeletedToast') });
     },
   });
 
@@ -149,10 +143,9 @@ export default function SettingsIntegrations() {
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold">Integrations & API keys</h1>
+          <h1 className="text-2xl font-semibold">{t('settings.intPageTitle')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Give external tools (n8n, Make.com, Claude Desktop, custom chatbots) access to the
-            Bid Copilot on behalf of your company.
+            {t('settings.intPageDesc')}
           </p>
         </div>
         <a
@@ -163,7 +156,7 @@ export default function SettingsIntegrations() {
           data-testid="link-api-docs"
         >
           <BookOpen size={14} />
-          View API docs
+          {t('settings.intViewApiDocs')}
           <ExternalLink size={12} className="text-muted-foreground" />
         </a>
       </header>
@@ -174,31 +167,30 @@ export default function SettingsIntegrations() {
           <div>
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <KeyRound size={18} />
-              API keys
+              {t('settings.intApiKeysTitle')}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Each key grants programmatic access to your company's data. Keys are shown once on
-              creation — store them somewhere safe.
+              {t('settings.intApiKeysDesc')}
             </p>
           </div>
           <Button onClick={() => setCreateKeyOpen(true)} data-testid="button-create-api-key">
             <Plus size={16} className="mr-1" />
-            Create API key
+            {t('settings.intCreateApiKey')}
           </Button>
         </div>
 
         <div className="border rounded-lg overflow-hidden">
           {keysQuery.isLoading ? (
-            <div className="p-6 text-sm text-muted-foreground">Loading…</div>
+            <div className="p-6 text-sm text-muted-foreground">{t('settings.intLoading')}</div>
           ) : keysQuery.data && keysQuery.data.length > 0 ? (
             <table className="w-full text-sm">
               <thead className="bg-muted text-muted-foreground text-left">
                 <tr>
-                  <th className="px-4 py-2 font-medium">Name</th>
-                  <th className="px-4 py-2 font-medium">Prefix</th>
-                  <th className="px-4 py-2 font-medium">Scopes</th>
-                  <th className="px-4 py-2 font-medium">Created</th>
-                  <th className="px-4 py-2 font-medium">Last used</th>
+                  <th className="px-4 py-2 font-medium">{t('settings.intColName')}</th>
+                  <th className="px-4 py-2 font-medium">{t('settings.intColPrefix')}</th>
+                  <th className="px-4 py-2 font-medium">{t('settings.intColScopes')}</th>
+                  <th className="px-4 py-2 font-medium">{t('settings.intColCreated')}</th>
+                  <th className="px-4 py-2 font-medium">{t('settings.intColLastUsed')}</th>
                   <th className="px-4 py-2 font-medium w-8"></th>
                 </tr>
               </thead>
@@ -225,7 +217,7 @@ export default function SettingsIntegrations() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          if (confirm(`Revoke key "${k.name}"? This cannot be undone.`)) {
+                          if (confirm(t('settings.intRevokeConfirm', { name: k.name }))) {
                             revokeKeyMutation.mutate(k.id);
                           }
                         }}
@@ -240,7 +232,7 @@ export default function SettingsIntegrations() {
             </table>
           ) : (
             <div className="p-6 text-sm text-muted-foreground text-center">
-              No API keys yet. Create one to start building an integration.
+              {t('settings.intNoApiKeys')}
             </div>
           )}
         </div>
@@ -252,22 +244,21 @@ export default function SettingsIntegrations() {
           <div>
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <Plug size={18} />
-              Integrations
+              {t('settings.intSectionTitle')}
             </h2>
             <p className="text-sm text-muted-foreground">
-              One row per channel. Share the endpoint URL with your n8n/Make/MCP client along
-              with an API key.
+              {t('settings.intSectionDesc')}
             </p>
           </div>
           <Button onClick={() => setCreateIntegrationOpen(true)} data-testid="button-create-integration">
             <Plus size={16} className="mr-1" />
-            Create integration
+            {t('settings.intCreateIntegration')}
           </Button>
         </div>
 
         <div className="space-y-3">
           {integrationsQuery.isLoading ? (
-            <div className="p-6 text-sm text-muted-foreground border rounded-lg">Loading…</div>
+            <div className="p-6 text-sm text-muted-foreground border rounded-lg">{t('settings.intLoading')}</div>
           ) : integrationsQuery.data && integrationsQuery.data.length > 0 ? (
             integrationsQuery.data.map((i) => {
               const url =
@@ -283,10 +274,10 @@ export default function SettingsIntegrations() {
                         <Badge variant={i.channel === "webhook" ? "default" : "outline"}>
                           {i.channel}
                         </Badge>
-                        {!i.enabled && <Badge variant="destructive">Disabled</Badge>}
+                        {!i.enabled && <Badge variant="destructive">{t('settings.intDisabledBadge')}</Badge>}
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        Created {new Date(i.createdAt).toLocaleDateString()}
+                        {t('settings.intCreatedOn', { date: new Date(i.createdAt).toLocaleDateString() })}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -297,13 +288,13 @@ export default function SettingsIntegrations() {
                           toggleIntegrationMutation.mutate({ id: i.id, enabled: !i.enabled })
                         }
                       >
-                        {i.enabled ? "Disable" : "Enable"}
+                        {i.enabled ? t('settings.intDisableBtn') : t('settings.intEnableBtn')}
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          if (confirm(`Delete integration "${i.name}"?`)) {
+                          if (confirm(t('settings.intDeleteConfirm', { name: i.name }))) {
                             deleteIntegrationMutation.mutate(i.id);
                           }
                         }}
@@ -319,17 +310,17 @@ export default function SettingsIntegrations() {
                       size="sm"
                       onClick={() => {
                         copyToClipboard(url);
-                        toast({ title: "URL copied" });
+                        toast({ title: t('settings.intUrlCopied') });
                       }}
                     >
                       <Copy size={12} />
                     </Button>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Use header <code className="bg-muted px-1">X-Api-Key: bidc_live_…</code> on every request.
+                    {t('settings.intUsageHintPre')} <code className="bg-muted px-1">X-Api-Key: bidc_live_…</code> {t('settings.intUsageHintPost')}
                     {i.channel === "webhook" && (
                       <>
-                        {" "}Body: <code className="bg-muted px-1">{`{ conversationId, message }`}</code>.
+                        {" "}{t('settings.intWebhookBodyHintPre')} <code className="bg-muted px-1">{`{ conversationId, message }`}</code>.
                       </>
                     )}
                   </div>
@@ -339,7 +330,7 @@ export default function SettingsIntegrations() {
             })
           ) : (
             <div className="p-6 text-sm text-muted-foreground text-center border rounded-lg">
-              No integrations yet.
+              {t('settings.intNoIntegrations')}
             </div>
           )}
         </div>
@@ -384,6 +375,7 @@ type IntegrationLog = {
 
 function IntegrationActivityPanel({ integrationId }: { integrationId: string }) {
   const [expanded, setExpanded] = useState(false);
+  const { t } = useI18n();
   const logsQuery = useQuery<IntegrationLog[]>({
     queryKey: [`/api/integrations/${integrationId}/logs`],
     queryFn: async () => {
@@ -399,12 +391,12 @@ function IntegrationActivityPanel({ integrationId }: { integrationId: string }) 
         className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
         onClick={() => setExpanded((v) => !v)}
       >
-        {expanded ? "Hide" : "Show"} recent activity
+        {expanded ? t('settings.intHideActivity') : t('settings.intShowActivity')} {t('settings.intRecentActivity')}
       </button>
       {expanded && (
         <div className="mt-2 space-y-1 max-h-64 overflow-y-auto">
           {logsQuery.isLoading ? (
-            <div className="text-xs text-muted-foreground">Loading…</div>
+            <div className="text-xs text-muted-foreground">{t('settings.intLoading')}</div>
           ) : logsQuery.data && logsQuery.data.length > 0 ? (
             logsQuery.data.map((log) => (
               <div key={log.id} className="text-xs flex items-center gap-2 py-1 border-b last:border-b-0">
@@ -427,7 +419,7 @@ function IntegrationActivityPanel({ integrationId }: { integrationId: string }) 
               </div>
             ))
           ) : (
-            <div className="text-xs text-muted-foreground">No activity yet.</div>
+            <div className="text-xs text-muted-foreground">{t('settings.intNoActivity')}</div>
           )}
         </div>
       )}
@@ -445,8 +437,14 @@ function CreateApiKeyDialog(props: {
   onCreate: (values: { name: string; scopes: string[] }) => void;
   pending: boolean;
 }) {
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [scopes, setScopes] = useState<string[]>(["copilot:chat", "tender:create"]);
+
+  const SCOPE_LABELS: Record<string, string> = {
+    "copilot:chat": t('settings.intScopeCopilotChat'),
+    "tender:create": t('settings.intScopeTenderCreate'),
+  };
 
   const toggleScope = (s: string) => {
     setScopes((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
@@ -456,23 +454,23 @@ function CreateApiKeyDialog(props: {
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create API key</DialogTitle>
+          <DialogTitle>{t('settings.intCreateKeyTitle')}</DialogTitle>
           <DialogDescription>
-            Name the key after the tool that will use it. You'll see the raw key only once.
+            {t('settings.intCreateKeyDesc')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="api-key-name">Name</Label>
+            <Label htmlFor="api-key-name">{t('settings.intKeyNameLabel')}</Label>
             <Input
               id="api-key-name"
-              placeholder="e.g. n8n procurement flow"
+              placeholder={t('settings.intKeyNamePlaceholder')}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div>
-            <Label>Scopes</Label>
+            <Label>{t('settings.intScopesLabel')}</Label>
             <div className="space-y-2 mt-2">
               {Object.entries(SCOPE_LABELS).map(([scope, label]) => (
                 <label key={scope} className="flex items-start gap-2 text-sm cursor-pointer">
@@ -489,12 +487,12 @@ function CreateApiKeyDialog(props: {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => props.onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => props.onOpenChange(false)}>{t('settings.intCancelBtn')}</Button>
           <Button
             onClick={() => props.onCreate({ name: name.trim(), scopes })}
             disabled={!name.trim() || scopes.length === 0 || props.pending}
           >
-            {props.pending ? "Creating…" : "Create key"}
+            {props.pending ? t('settings.intCreatingBtn') : t('settings.intCreateKeyBtn')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -512,6 +510,7 @@ function CreateIntegrationDialog(props: {
   onCreate: (values: { channel: string; name: string; config: Record<string, any> }) => void;
   pending: boolean;
 }) {
+  const { t } = useI18n();
   const [channel, setChannel] = useState<"webhook" | "mcp">("webhook");
   const [name, setName] = useState("");
   const [persona, setPersona] = useState("");
@@ -522,51 +521,51 @@ function CreateIntegrationDialog(props: {
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create integration</DialogTitle>
+          <DialogTitle>{t('settings.intCreateIntTitle')}</DialogTitle>
           <DialogDescription>
-            Each integration is one pipe from an external tool to your Copilot.
+            {t('settings.intCreateIntDesc')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label>Channel</Label>
+            <Label>{t('settings.intChannelLabel')}</Label>
             <Select value={channel} onValueChange={(v) => setChannel(v as "webhook" | "mcp")}>
               <SelectTrigger className="mt-1">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="webhook">Webhook (n8n / Make / custom chatbot)</SelectItem>
-                <SelectItem value="mcp">MCP (Claude Desktop / Cursor / AI clients)</SelectItem>
+                <SelectItem value="webhook">{t('settings.intWebhookOption')}</SelectItem>
+                <SelectItem value="mcp">{t('settings.intMcpOption')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label htmlFor="integration-name">Name</Label>
+            <Label htmlFor="integration-name">{t('settings.intIntNameLabel')}</Label>
             <Input
               id="integration-name"
-              placeholder="e.g. ACME procurement bot"
+              placeholder={t('settings.intIntNamePlaceholder')}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div>
-            <Label htmlFor="persona">Agent persona / tone override (optional)</Label>
+            <Label htmlFor="persona">{t('settings.intPersonaLabel')}</Label>
             <Input
               id="persona"
-              placeholder="e.g. Speak formally, always in Arabic"
+              placeholder={t('settings.intPersonaPlaceholder')}
               value={persona}
               onChange={(e) => setPersona(e.target.value)}
             />
           </div>
           <div>
-            <Label>Default language</Label>
+            <Label>{t('settings.intDefaultLangLabel')}</Label>
             <Select value={defaultLanguage} onValueChange={(v) => setDefaultLanguage(v as "en" | "ar")}>
               <SelectTrigger className="mt-1">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="ar">Arabic</SelectItem>
+                <SelectItem value="en">{t('settings.intLangEnglish')}</SelectItem>
+                <SelectItem value="ar">{t('settings.intLangArabic')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -574,14 +573,13 @@ function CreateIntegrationDialog(props: {
             <label className="flex items-start gap-2 text-sm cursor-pointer">
               <Checkbox checked={autoLaunch} onCheckedChange={() => setAutoLaunch((v) => !v)} />
               <span>
-                <strong>Auto-launch</strong> — automatically create the tender when the agent
-                says it's ready, instead of waiting for an explicit launch call.
+                <strong>{t('settings.intAutoLaunchStrong')}</strong> {t('settings.intAutoLaunchDesc')}
               </span>
             </label>
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => props.onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => props.onOpenChange(false)}>{t('settings.intCancelBtn')}</Button>
           <Button
             disabled={!name.trim() || props.pending}
             onClick={() =>
@@ -596,7 +594,7 @@ function CreateIntegrationDialog(props: {
               })
             }
           >
-            {props.pending ? "Creating…" : "Create"}
+            {props.pending ? t('settings.intCreatingBtn') : t('settings.intCreateBtn')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -612,6 +610,7 @@ function NewKeyDisplayDialog(props: {
   value: { name: string; rawKey: string } | null;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   if (!props.value) return null;
   return (
     <Dialog open onOpenChange={(open) => !open && props.onClose()}>
@@ -619,19 +618,19 @@ function NewKeyDisplayDialog(props: {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle2 className="text-green-600" size={20} />
-            API key created
+            {t('settings.intKeyCreatedTitle')}
           </DialogTitle>
           <DialogDescription>
-            This is the only time you'll see the raw key. Copy it somewhere safe now.
+            {t('settings.intKeyCreatedDesc')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div>
-            <Label>Name</Label>
+            <Label>{t('settings.intColName')}</Label>
             <div className="text-sm mt-1">{props.value.name}</div>
           </div>
           <div>
-            <Label>Raw key</Label>
+            <Label>{t('settings.intRawKeyLabel')}</Label>
             <div className="flex items-center gap-2 mt-1 bg-muted rounded px-3 py-2 font-mono text-xs break-all">
               <span className="flex-1">{props.value.rawKey}</span>
               <Button
@@ -645,14 +644,11 @@ function NewKeyDisplayDialog(props: {
           </div>
           <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 p-3 rounded">
             <AlertCircle size={14} className="mt-0.5 shrink-0" />
-            <span>
-              We only store a hash of this key. If you lose it, you'll need to revoke it and create
-              a new one.
-            </span>
+            <span>{t('settings.intKeyWarning')}</span>
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={props.onClose}>I've saved it</Button>
+          <Button onClick={props.onClose}>{t('settings.intSavedItBtn')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

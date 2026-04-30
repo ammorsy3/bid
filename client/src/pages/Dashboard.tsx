@@ -800,8 +800,8 @@ export default function Dashboard() {
               <button
                 type="button"
                 onClick={() => window.open(`/company/${activeCompany.slug}`, '_blank', 'noopener,noreferrer')}
-                title="View public profile"
-                aria-label="View public profile"
+                title={t('settings.viewPublicProfile')}
+                aria-label={t('settings.viewPublicProfile')}
                 className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-[#E8614D] hover:bg-[#E8614D]/10 transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden"
                 data-testid="button-view-public-profile-sidebar"
               >
@@ -983,21 +983,21 @@ export default function Dashboard() {
                   ) : activeCompany.verificationStatus === 'under_review' ? (
                     <div
                       className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-blue-400 flex items-center justify-center"
-                      title="Verification in progress"
+                      title={t('settings.verificationInProgress')}
                     >
                       <Clock className="h-2.5 w-2.5 text-white" />
                     </div>
                   ) : activeCompany.verificationStatus === 'rejected' ? (
                     <div
                       className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 flex items-center justify-center"
-                      title="Verification rejected"
+                      title={t('settings.verificationRejected')}
                     >
                       <XCircle className="h-2.5 w-2.5 text-white" />
                     </div>
                   ) : (
                     <div
                       className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-amber-500 flex items-center justify-center"
-                      title="Not verified"
+                      title={t('settings.companyNotVerified')}
                     >
                       <X className="h-2.5 w-2.5 text-white" />
                     </div>

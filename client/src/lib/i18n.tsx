@@ -78,6 +78,7 @@ const translations = {
       verificationRejectedDesc: "Your documents were not accepted. Please re-upload them to try again.",
       reUploadDocuments: "Re-upload documents →",
       companyProfileMenuItem: "Company Profile",
+      viewPublicProfile: "View public profile",
       // Settings extras
       noRecordedActivity: "No recorded activity yet.",
       roleUpdated: "Role updated",
@@ -2822,6 +2823,7 @@ const translations = {
       verificationRejectedDesc: "لم يتم قبول مستنداتك. يُرجى إعادة رفعها والمحاولة مرة أخرى.",
       reUploadDocuments: "إعادة رفع المستندات ←",
       companyProfileMenuItem: "ملف الشركة",
+      viewPublicProfile: "عرض الملف العام",
       // Settings extras
       noRecordedActivity: "لا يوجد نشاط مسجّل بعد.",
       roleUpdated: "تم تحديث الدور",

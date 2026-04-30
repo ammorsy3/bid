@@ -140,6 +140,7 @@ const translations = {
       replace: "Replace",
       upload: "Upload",
       // SettingsIntegrations page (BID-145)
+      intNavLabel: "Integrations & API",
       intPageTitle: "Integrations & API keys",
       intPageDesc: "Give external tools (n8n, Make.com, Claude Desktop, custom chatbots) access to the Bid Copilot on behalf of your company.",
       intViewApiDocs: "View API docs",
@@ -3247,6 +3248,7 @@ const translations = {
       replace: "استبدال",
       upload: "رفع",
       // SettingsIntegrations page (BID-145)
+      intNavLabel: "التكاملات وواجهة API",
       intPageTitle: "التكاملات ومفاتيح API",
       intPageDesc: "أعطِ الأدوات الخارجية (n8n، Make.com، Claude Desktop، روبوتات المحادثة المخصصة) إمكانية الوصول إلى مساعد Bid نيابةً عن شركتك.",
       intViewApiDocs: "عرض وثائق API",

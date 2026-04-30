@@ -793,7 +793,7 @@ export default function Settings() {
               <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
                 <Plug className="h-3 w-3" />
               </div>
-              <span className="text-sm font-medium truncate flex-1">Integrations & API</span>
+              <span className="text-sm font-medium truncate flex-1">{t('settings.intNavLabel')}</span>
               <ChevronRight className="h-3 w-3 text-muted-foreground" />
             </button>
           </div>

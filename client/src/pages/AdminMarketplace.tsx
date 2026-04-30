@@ -269,7 +269,7 @@ export default function AdminMarketplace() {
                                 // Open window immediately so browser doesn't block popup
                                 const win = window.open('', '_blank');
                                 if (!win) {
-                                  toast({ title: 'Error', description: 'Popup blocked — please allow popups', variant: 'destructive' });
+                                  toast({ title: t('admin.error'), description: t('admin.popupBlocked'), variant: 'destructive' });
                                   return;
                                 }
                                 win.document.write(`<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666">${t('admin.loadingFile')}</body></html>`);
@@ -289,7 +289,7 @@ export default function AdminMarketplace() {
                                   })
                                   .catch(() => {
                                     win.close();
-                                    toast({ title: 'Error', description: 'Could not open file', variant: 'destructive' });
+                                    toast({ title: t('admin.error'), description: t('admin.couldNotOpenFile'), variant: 'destructive' });
                                   });
                               }}
                             >

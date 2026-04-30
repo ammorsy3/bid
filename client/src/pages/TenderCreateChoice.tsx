@@ -14,17 +14,17 @@ import { useState } from "react";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import type { UploadResult } from "@/components/ObjectUploader";
 
-const DOCUMENT_SLOTS = [
-  { type: 'cr_certificate', label: 'Commercial Registration (CR)', description: 'Saudi CR certificate issued by the Ministry of Commerce', required: true },
-  { type: 'vat_certificate', label: 'VAT Certificate', description: 'VAT registration certificate from ZATCA', required: false },
-  { type: 'gosi_certificate', label: 'GOSI Certificate', description: 'General Organization for Social Insurance certificate', required: false },
-  { type: 'national_address_certificate', label: 'National Address Certificate', description: 'Registered national address from Saudi Post', required: false },
-];
-
 export default function TenderCreateChoice() {
   const [, setLocation] = useLocation();
   const { user } = useAuthStore();
   const { t, isRtl, language } = useI18n();
+
+  const DOCUMENT_SLOTS = [
+    { type: 'cr_certificate', label: t('onboarding.docCrLabel'), description: t('onboarding.docCrDesc'), required: true },
+    { type: 'vat_certificate', label: t('onboarding.docVatLabel'), description: t('onboarding.docVatDesc'), required: false },
+    { type: 'gosi_certificate', label: t('onboarding.docGosiLabel'), description: t('onboarding.docGosiDesc'), required: false },
+    { type: 'national_address_certificate', label: t('onboarding.docNationalAddressLabel'), description: t('onboarding.docNationalAddressDesc'), required: false },
+  ];
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [docUploadedTypes, setDocUploadedTypes] = useState<Set<string>>(new Set());
@@ -79,9 +79,9 @@ export default function TenderCreateChoice() {
       const { objectPath } = await metaRes.json();
       await saveDocumentMutation.mutateAsync({ documentType: docType, fileUrl: objectPath, originalName: fileName });
       setDocUploadedTypes(prev => new Set([...prev, docType]));
-      toast({ title: "Document uploaded", description: `${fileName} has been saved. We'll review it shortly.` });
+      toast({ title: t('settings.documentUploadedToast'), description: t('tenderFlow.docUploadedReviewDesc', { name: fileName }) });
     } catch {
-      toast({ title: "Upload failed", description: "Could not save the document. Please try again.", variant: "destructive" });
+      toast({ title: t('settings.uploadFailedToast'), description: t('settings.uploadFailedDesc'), variant: "destructive" });
     }
   };
 
@@ -125,18 +125,18 @@ export default function TenderCreateChoice() {
 
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 {isRejected
-                  ? 'Verification Rejected'
+                  ? t('onboarding.verificationRejectedTitle')
                   : isUnderReview
-                  ? 'Verification In Progress'
-                  : 'Verify Your Company to Continue'}
+                  ? t('onboarding.verificationInProgressTitle')
+                  : t('onboarding.verifyToContinueTitle')}
               </h2>
 
               <p className="text-gray-500 text-sm">
                 {isRejected
-                  ? 'Your documents were not accepted. Please re-upload them below and we\'ll review them again.'
+                  ? t('onboarding.verificationRejectedDesc')
                   : isUnderReview
-                  ? 'Your documents are under review. You\'ll be notified once your company is verified and you can start creating tenders.'
-                  : 'Upload your company documents below. Once verified, you\'ll be able to create tenders, submit proposals, and more.'}
+                  ? t('onboarding.verificationInProgressDesc')
+                  : t('onboarding.verifyToContinueDesc')}
               </p>
             </div>
 
@@ -159,7 +159,7 @@ export default function TenderCreateChoice() {
                             <span className="text-sm font-medium text-neutral-900">{slot.label}</span>
                             {slot.required && !isUploaded && (
                               <span className="text-xs font-medium text-[#E25E45] bg-[#E25E45]/10 px-1.5 py-0.5 rounded">
-                                Required
+                                {t('onboarding.requiredBadge')}
                               </span>
                             )}
                           </div>
@@ -167,7 +167,7 @@ export default function TenderCreateChoice() {
                           {isUploaded && (
                             <p className="text-xs text-green-600 flex items-center gap-1 mt-1.5">
                               <CheckCircle2 className="h-3.5 w-3.5" />
-                              {existingDoc?.originalName || 'Uploaded'}
+                              {existingDoc?.originalName || t('onboarding.uploadedLabel')}
                             </p>
                           )}
                         </div>
@@ -182,7 +182,7 @@ export default function TenderCreateChoice() {
                         >
                           <div className="flex items-center gap-1.5 text-sm">
                             <Upload className="h-3.5 w-3.5" />
-                            {isUploaded ? 'Replace' : 'Upload'}
+                            {isUploaded ? t('onboarding.replaceBtn') : t('onboarding.uploadBtn')}
                           </div>
                         </ObjectUploader>
                       </div>
@@ -197,7 +197,7 @@ export default function TenderCreateChoice() {
               onClick={() => setLocation('/dashboard')}
               className="w-full h-11 border-gray-300 text-gray-700 text-sm font-medium rounded-lg"
             >
-              Back to Dashboard
+              {t('onboarding.backToDashboard')}
             </Button>
           </div>
         </div>

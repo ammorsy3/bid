@@ -1206,8 +1206,8 @@ export default function TenderEditPage() {
             {/* Attachments — supporting documents the requester uploaded */}
             <SectionCard
               icon={<Paperclip className="h-4 w-4 text-sky-600" />}
-              title="Supporting Documents"
-              description="Attachments shared with vendors (specs, briefs, references)"
+              title={t('tenderFlow.editSectionDocsTitle')}
+              description={t('tenderFlow.editSectionDocsDesc')}
               color="bg-gradient-to-r from-sky-500 to-cyan-400"
             >
               {attachments.length > 0 && (
@@ -1233,7 +1233,7 @@ export default function TenderEditPage() {
                         type="button"
                         onClick={() => handleRemoveAttachment(a.id)}
                         className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors"
-                        aria-label="Remove attachment"
+                        aria-label={t('tenderFlow.editRemoveAttachment')}
                       >
                         <X className="h-4 w-4" />
                       </button>

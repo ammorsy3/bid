@@ -7,9 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
 import { Search, Users, CheckCircle, XCircle, Loader2, Building2, Mail, FileText, UserPlus, Eye, ShieldCheck, Clock, CalendarDays, Briefcase, Globe } from "lucide-react";
 import VendorProfileDrawer from "@/components/VendorProfileDrawer";
 
@@ -54,11 +53,11 @@ interface JoinRequest {
 
 export default function VendorsBase() {
   const { toast } = useToast();
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState("");
   const [profileDrawerOpen, setProfileDrawerOpen] = useState(false);
   const [profileJoinRequestId, setProfileJoinRequestId] = useState<string | null>(null);
 
-  // Fetch vendors in base
   const { data: vendors = [], isLoading: loadingVendors } = useQuery<VendorProfile[]>({
     queryKey: ['/api/vendors-base', searchQuery],
     queryFn: async () => {
@@ -72,7 +71,6 @@ export default function VendorsBase() {
     staleTime: 0,
   });
 
-  // Fetch pending join requests
   const { data: pendingRequests = [] } = useQuery<JoinRequest[]>({
     queryKey: ['/api/join-requests', 'pending'],
     queryFn: async () => {
@@ -84,7 +82,6 @@ export default function VendorsBase() {
     }
   });
 
-  // Fetch all join requests for history
   const { data: allRequests = [] } = useQuery<JoinRequest[]>({
     queryKey: ['/api/join-requests'],
     queryFn: async () => {
@@ -96,7 +93,6 @@ export default function VendorsBase() {
     }
   });
 
-  // Approve join request mutation
   const approveRequest = useMutation({
     mutationFn: async (id: string) => {
       return await apiRequest('POST', `/api/join-requests/${id}/approve`, {});
@@ -105,22 +101,21 @@ export default function VendorsBase() {
       queryClient.invalidateQueries({ queryKey: ['/api/join-requests'] });
       queryClient.invalidateQueries({ queryKey: ['/api/vendors-base'] });
       toast({
-        title: "Request approved",
-        description: data.message || "Vendor has been added to your base",
+        title: t('vendorsBase.toastApproved'),
+        description: data.message || t('vendorsBase.toastApprovedDesc'),
       });
       setProfileDrawerOpen(false);
       setProfileJoinRequestId(null);
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to approve",
+        title: t('vendorsBase.toastApproveError'),
         description: error.message,
         variant: "destructive",
       });
     }
   });
 
-  // Reject join request mutation
   const rejectRequest = useMutation({
     mutationFn: async (id: string) => {
       return await apiRequest('POST', `/api/join-requests/${id}/reject`, {});
@@ -128,15 +123,15 @@ export default function VendorsBase() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/join-requests'] });
       toast({
-        title: "Request rejected",
-        description: "Vendor application has been declined",
+        title: t('vendorsBase.toastRejected'),
+        description: t('vendorsBase.toastRejectedDesc'),
       });
       setProfileDrawerOpen(false);
       setProfileJoinRequestId(null);
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to reject",
+        title: t('vendorsBase.toastRejectError'),
         description: error.message,
         variant: "destructive",
       });
@@ -146,9 +141,9 @@ export default function VendorsBase() {
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2" data-testid="text-page-title">Vendors Base</h1>
+        <h1 className="text-4xl font-bold mb-2" data-testid="text-page-title">{t('vendorsBase.pageTitle')}</h1>
         <p className="text-muted-foreground" data-testid="text-page-description">
-          Manage your approved vendors and review new applications
+          {t('vendorsBase.pageDesc')}
         </p>
       </div>
 
@@ -156,11 +151,11 @@ export default function VendorsBase() {
         <TabsList className="grid w-full max-w-md grid-cols-2" data-tour="vendors-tabs">
           <TabsTrigger value="vendors" className="gap-2" data-testid="tab-vendors">
             <Users className="h-4 w-4" />
-            Vendors ({vendors.length})
+            {t('vendorsBase.tabVendors', { count: vendors.length })}
           </TabsTrigger>
           <TabsTrigger value="requests" className="gap-2" data-testid="tab-requests" data-tour="vendors-requests-tab">
             <UserPlus className="h-4 w-4" />
-            Join Requests
+            {t('vendorsBase.tabJoinRequests')}
             {pendingRequests.length > 0 && (
               <Badge variant="destructive" className="ml-2" data-testid="badge-pending-count">
                 {pendingRequests.length}
@@ -171,13 +166,12 @@ export default function VendorsBase() {
 
         {/* Vendors Tab */}
         <TabsContent value="vendors" className="space-y-6">
-          {/* Search */}
           <Card data-tour="vendors-search">
             <CardContent className="pt-6">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search vendors by name, company, or category..."
+                  placeholder={t('vendorsBase.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -187,7 +181,6 @@ export default function VendorsBase() {
             </CardContent>
           </Card>
 
-          {/* Vendors List */}
           {loadingVendors ? (
             <div className="flex justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -197,12 +190,12 @@ export default function VendorsBase() {
               <CardContent className="flex flex-col items-center justify-center py-16">
                 <Users className="h-16 w-16 text-muted-foreground mb-4" />
                 <h3 className="text-xl font-semibold mb-2" data-testid="text-empty-title">
-                  {searchQuery ? "No vendors found" : "No vendors yet"}
+                  {searchQuery ? t('vendorsBase.emptyNoVendorsSearch') : t('vendorsBase.emptyNoVendors')}
                 </h3>
                 <p className="text-muted-foreground text-center max-w-md" data-testid="text-empty-description">
-                  {searchQuery 
-                    ? "Try adjusting your search terms" 
-                    : "Your approved vendors will appear here. Invite vendors or review join requests to build your base."}
+                  {searchQuery
+                    ? t('vendorsBase.emptyNoVendorsSearchDesc')
+                    : t('vendorsBase.emptyNoVendorsDesc')}
                 </p>
               </CardContent>
             </Card>
@@ -220,7 +213,7 @@ export default function VendorsBase() {
                           {vendor.verificationStatus === 'verified' && (
                             <Badge variant="secondary" className="gap-1 text-xs" data-testid={`badge-verified-${vendor.id}`}>
                               <CheckCircle className="h-3 w-3" />
-                              Verified
+                              {t('vendorsBase.badgeVerified')}
                             </Badge>
                           )}
                           <Badge
@@ -228,7 +221,7 @@ export default function VendorsBase() {
                             className="text-xs"
                             data-testid={`badge-join-method-${vendor.id}`}
                           >
-                            {vendor.joinMethod === 'invitation' ? 'Invited' : 'Applied'}
+                            {vendor.joinMethod === 'invitation' ? t('vendorsBase.badgeInvited') : t('vendorsBase.badgeApplied')}
                           </Badge>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-600">
@@ -241,7 +234,7 @@ export default function VendorsBase() {
                           </div>
                           {vendor.rating && (
                             <div className="flex items-center gap-2">
-                              <span className="text-muted-foreground">Rating:</span>
+                              <span className="text-muted-foreground">{t('vendorsBase.ratingLabel')}</span>
                               <Badge variant="secondary" className="text-xs" data-testid={`text-vendor-rating-${vendor.id}`}>
                                 {vendor.rating}
                               </Badge>
@@ -262,7 +255,7 @@ export default function VendorsBase() {
                         disabled={!vendor.slug}
                       >
                         <FileText className="h-4 w-4 mr-2" />
-                        View Profile
+                        {t('vendorsBase.viewProfile')}
                       </Button>
                     </div>
                   </div>
@@ -277,9 +270,11 @@ export default function VendorsBase() {
           {pendingRequests.length > 0 && (
             <div>
               <div className="mb-4" data-testid="text-pending-title">
-                <h2 className="text-lg font-semibold text-gray-900">Pending Requests ({pendingRequests.length})</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {t('vendorsBase.pendingRequestsTitle', { count: pendingRequests.length })}
+                </h2>
                 <p className="text-sm text-muted-foreground">
-                  Review and approve vendors requesting to join your network
+                  {t('vendorsBase.pendingRequestsDesc')}
                 </p>
               </div>
               <div className="space-y-3">
@@ -311,7 +306,7 @@ export default function VendorsBase() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-3 mb-2">
                                 <h3 className="text-xl font-bold text-neutral-900 truncate" data-testid={`text-request-company-${request.id}`}>
-                                  {request.vendor?.company || 'Unknown Vendor'}
+                                  {request.vendor?.company || t('vendorsBase.unknownVendor')}
                                 </h3>
                                 <Badge
                                   variant="outline"
@@ -326,9 +321,9 @@ export default function VendorsBase() {
                                 >
                                   {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 mr-1" />}
                                   {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 mr-1" />}
-                                  {request.vendor?.verificationStatus === 'verified' ? 'Verified' :
-                                   request.vendor?.verificationStatus === 'under_review' ? 'Under Review' :
-                                   'Not Verified'}
+                                  {request.vendor?.verificationStatus === 'verified' ? t('vendorsBase.statusVerified') :
+                                   request.vendor?.verificationStatus === 'under_review' ? t('vendorsBase.statusUnderReview') :
+                                   t('vendorsBase.statusNotVerified')}
                                 </Badge>
                               </div>
                             </div>
@@ -382,7 +377,7 @@ export default function VendorsBase() {
                             data-testid={`button-view-profile-${request.id}`}
                           >
                             <Eye className="h-4 w-4 mr-2" />
-                            View
+                            {t('vendorsBase.buttonView')}
                           </Button>
                           <Button
                             size="sm"
@@ -393,7 +388,7 @@ export default function VendorsBase() {
                             data-testid={`button-reject-inline-${request.id}`}
                           >
                             <XCircle className="h-4 w-4 mr-2" />
-                            Reject
+                            {t('vendorsBase.buttonReject')}
                           </Button>
                           <Button
                             size="sm"
@@ -407,7 +402,7 @@ export default function VendorsBase() {
                             ) : (
                               <CheckCircle className="h-4 w-4 mr-2" />
                             )}
-                            Approve
+                            {t('vendorsBase.buttonApprove')}
                           </Button>
                         </div>
                       </div>
@@ -418,12 +413,11 @@ export default function VendorsBase() {
             </div>
           )}
 
-          {/* History */}
           <Card>
             <CardHeader>
-              <CardTitle data-testid="text-history-title">Request History</CardTitle>
+              <CardTitle data-testid="text-history-title">{t('vendorsBase.historyTitle')}</CardTitle>
               <CardDescription>
-                View all past vendor applications
+                {t('vendorsBase.historyDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -431,7 +425,7 @@ export default function VendorsBase() {
                 <div className="text-center py-8">
                   <UserPlus className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
                   <p className="text-muted-foreground" data-testid="text-no-history">
-                    No join requests yet
+                    {t('vendorsBase.noHistory')}
                   </p>
                 </div>
               ) : (
@@ -458,7 +452,7 @@ export default function VendorsBase() {
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate" data-testid={`text-history-company-${request.id}`}>
-                            {request.vendor?.company || 'Unknown Vendor'}
+                            {request.vendor?.company || t('vendorsBase.unknownVendor')}
                           </p>
                           {request.vendor?.expertise && (
                             <p className="text-xs text-muted-foreground">{request.vendor.expertise}</p>
@@ -484,7 +478,6 @@ export default function VendorsBase() {
         </TabsContent>
       </Tabs>
 
-      {/* Vendor Profile Drawer */}
       {profileJoinRequestId && (
         <VendorProfileDrawer
           open={profileDrawerOpen}

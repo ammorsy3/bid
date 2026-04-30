@@ -3,16 +3,18 @@ import { useParams } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Copy, Check, Mail } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
 import type { Tender } from "@shared/schema";
 
 export default function InvitationLinks() {
   const { id } = useParams();
   const { user } = useAuthStore();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [copiedLinks, setCopiedLinks] = useState<Set<string>>(new Set());
   const [copiedMessage, setCopiedMessage] = useState(false);
 
@@ -20,8 +22,6 @@ export default function InvitationLinks() {
     queryKey: ['/api/tenders', id],
     enabled: !!user && !!id,
   });
-
-  // No longer need separate invitations query since we have the token in the tender
 
   const copyToClipboard = async (text: string, invitationId: string) => {
     try {
@@ -35,13 +35,13 @@ export default function InvitationLinks() {
         });
       }, 2000);
       toast({
-        title: "Copied!",
-        description: "Invitation link copied to clipboard",
+        title: t('invitationLinks.toastCopied'),
+        description: t('invitationLinks.toastCopiedDesc'),
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to copy link",
+        title: t('invitationLinks.toastError'),
+        description: t('invitationLinks.toastErrorLink'),
         variant: "destructive",
       });
     }
@@ -49,22 +49,32 @@ export default function InvitationLinks() {
 
   const copyInvitationMessage = async () => {
     if (!tender) return;
-    
+
     const invitationLink = `${window.location.origin}/invite/${tender.id}`;
-    const message = `You're invited to submit an offer for "${tender.title}"\n\nTender Details:\n- Budget: ${tender.budget || 'Not specified'}\n- Deadline: ${tender.deadline}\n- Duration: ${tender.duration || 'Not specified'}\n\nClick here to view details and submit your offer:\n${invitationLink}`;
-    
+    const message = [
+      t('invitationLinks.inviteSubject', { title: tender.title }),
+      '',
+      t('invitationLinks.inviteTenderDetails'),
+      t('invitationLinks.inviteBudget', { budget: tender.budget || t('invitationLinks.notSpecified') }),
+      t('invitationLinks.inviteDeadline', { deadline: tender.deadline }),
+      t('invitationLinks.inviteDuration', { duration: tender.duration || t('invitationLinks.notSpecified') }),
+      '',
+      t('invitationLinks.inviteClickHere'),
+      invitationLink,
+    ].join('\n');
+
     try {
       await navigator.clipboard.writeText(message);
       setCopiedMessage(true);
       setTimeout(() => setCopiedMessage(false), 2000);
       toast({
-        title: "Copied!",
-        description: "Invitation message copied to clipboard",
+        title: t('invitationLinks.toastMessageCopied'),
+        description: t('invitationLinks.toastMessageCopiedDesc'),
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to copy message",
+        title: t('invitationLinks.toastError'),
+        description: t('invitationLinks.toastErrorMessage'),
         variant: "destructive",
       });
     }
@@ -75,7 +85,7 @@ export default function InvitationLinks() {
       <div className="min-h-screen bg-neutral-50">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-center text-neutral-600">Loading invitation links...</p>
+          <p className="text-center text-neutral-600">{t('invitationLinks.loading')}</p>
         </div>
       </div>
     );
@@ -86,7 +96,7 @@ export default function InvitationLinks() {
       <div className="min-h-screen bg-neutral-50">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-center text-neutral-600">Tender not found</p>
+          <p className="text-center text-neutral-600">{t('invitationLinks.notFound')}</p>
         </div>
       </div>
     );
@@ -95,12 +105,12 @@ export default function InvitationLinks() {
   return (
     <div className="min-h-screen bg-neutral-50">
       <Navbar />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">Invitation Link</h1>
-          <p className="text-neutral-600">Share this link with qualified vendors to invite them to submit offers</p>
-          <p className="text-sm text-neutral-500 mt-1">Tender: {tender.title}</p>
+          <h1 className="text-3xl font-bold text-neutral-900 mb-2">{t('invitationLinks.pageTitle')}</h1>
+          <p className="text-neutral-600">{t('invitationLinks.pageDesc')}</p>
+          <p className="text-sm text-neutral-500 mt-1">{t('invitationLinks.tenderLabel', { title: tender.title })}</p>
         </div>
 
         {tender.id ? (
@@ -111,7 +121,7 @@ export default function InvitationLinks() {
                   <div className="flex items-center space-x-3">
                     <Mail className="h-5 w-5 text-neutral-400" />
                     <span className="font-medium text-neutral-900">
-                      Tender Invitation Link
+                      {t('invitationLinks.cardTitle')}
                     </span>
                   </div>
                   <div className="bg-neutral-50 rounded-lg p-3 font-mono text-sm text-neutral-700 break-all">
@@ -128,12 +138,12 @@ export default function InvitationLinks() {
                       {copiedLinks.has(tender.id) ? (
                         <>
                           <Check className="h-4 w-4 text-success-600" />
-                          <span>Link Copied</span>
+                          <span>{t('invitationLinks.linkCopied')}</span>
                         </>
                       ) : (
                         <>
                           <Copy className="h-4 w-4" />
-                          <span>Copy Link</span>
+                          <span>{t('invitationLinks.copyLink')}</span>
                         </>
                       )}
                     </Button>
@@ -147,25 +157,25 @@ export default function InvitationLinks() {
                       {copiedMessage ? (
                         <>
                           <Check className="h-4 w-4 text-success-600" />
-                          <span>Message Copied</span>
+                          <span>{t('invitationLinks.messageCopied')}</span>
                         </>
                       ) : (
                         <>
                           <Mail className="h-4 w-4" />
-                          <span>Copy Message</span>
+                          <span>{t('invitationLinks.copyMessage')}</span>
                         </>
                       )}
                     </Button>
                   </div>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-medium text-blue-900 mb-2">Invitation Message Preview</h4>
+                    <h4 className="font-medium text-blue-900 mb-2">{t('invitationLinks.messagePreviewTitle')}</h4>
                     <div className="text-sm text-blue-800 whitespace-pre-line">
-                      You're invited to submit an offer for "{tender.title}"<br/><br/>
-                      Tender Details:<br/>
-                      - Budget: {tender.budget || 'Not specified'}<br/>
-                      - Deadline: {tender.deadline}<br/>
-                      - Duration: {tender.duration || 'Not specified'}<br/><br/>
-                      Click here to view details and submit your offer:<br/>
+                      {t('invitationLinks.inviteSubject', { title: tender.title })}<br /><br />
+                      {t('invitationLinks.inviteTenderDetails')}<br />
+                      {t('invitationLinks.inviteBudget', { budget: tender.budget || t('invitationLinks.notSpecified') })}<br />
+                      - Deadline: {tender.deadline}<br />
+                      {t('invitationLinks.inviteDuration', { duration: tender.duration || t('invitationLinks.notSpecified') })}<br /><br />
+                      {t('invitationLinks.inviteClickHere')}<br />
                       {`${window.location.origin}/invite/${tender.id}`}
                     </div>
                   </div>
@@ -175,16 +185,16 @@ export default function InvitationLinks() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-neutral-600">No invitation link available</p>
+            <p className="text-neutral-600">{t('invitationLinks.noLinkAvailable')}</p>
           </div>
         )}
 
         <div className="mt-8 text-center">
           <p className="text-sm text-neutral-500 mb-4">
-            Send these links directly to vendors via email, messaging, or any communication method you prefer.
+            {t('invitationLinks.footerNote1')}
           </p>
           <p className="text-xs text-neutral-400">
-            Vendors can register using these links and submit their offers for your tender.
+            {t('invitationLinks.footerNote2')}
           </p>
         </div>
       </main>

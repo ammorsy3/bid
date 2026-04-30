@@ -603,7 +603,7 @@ export default function TractionLinkEditor() {
                   <Input
                     value={theme.ctaText || ''}
                     onChange={(e) => updateTheme({ ctaText: e.target.value || undefined })}
-                    placeholder="Apply to Join"
+                    placeholder={t('tractionPage.editorApplyToJoinDefault')}
                     className="text-sm h-9"
                   />
                 </div>

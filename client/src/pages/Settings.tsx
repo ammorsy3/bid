@@ -108,10 +108,10 @@ function MemberActivityDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <History className="h-5 w-5" />
-            {member?.name}'s activity
+            {t('settings.memberActivityTitle', { name: member?.name ?? '' })}
           </DialogTitle>
           <DialogDescription>
-            Recent actions this member has taken inside the company.
+            {t('settings.memberActivityDesc')}
           </DialogDescription>
         </DialogHeader>
         {isLoading ? (
@@ -215,7 +215,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { co
     <div className="space-y-4">
       <h2 className="text-lg font-semibold flex items-center gap-2">
         <Users className="h-5 w-5" />
-        Team Members
+        {t('settings.teamMembers')}
         {!isLoading && <span className="text-sm font-normal text-muted-foreground">({members.length})</span>}
       </h2>
       <Card>
@@ -240,7 +240,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { co
                   <div className={`flex-1 min-w-0 ${isRtl ? 'text-right' : ''}`}>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm truncate">{member.name}</span>
-                      {member.userId === currentUserId && <span className="text-xs text-muted-foreground">(you)</span>}
+                      {member.userId === currentUserId && <span className="text-xs text-muted-foreground">{t('settings.youLabel')}</span>}
                     </div>
                     <p className="text-xs text-muted-foreground truncate">{member.email}</p>
                   </div>
@@ -260,7 +260,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { co
                         <DropdownMenuContent align={isRtl ? 'start' : 'end'}>
                           <DropdownMenuItem onClick={() => setActivityFor(member)}>
                             <History className="h-4 w-4 mr-2" />
-                            View activity
+                            {t('settings.viewActivity')}
                           </DropdownMenuItem>
                           {canModify && (
                             <>
@@ -271,7 +271,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { co
                                   onClick={() => updateRoleMutation.mutate({ userId: member.userId, role })}
                                 >
                                   <Shield className="h-4 w-4 mr-2" />
-                                  Make {role.charAt(0).toUpperCase() + role.slice(1)}
+                                  {t('settings.makeRole', { role: role.charAt(0).toUpperCase() + role.slice(1) })}
                                 </DropdownMenuItem>
                               ))}
                               <DropdownMenuSeparator />
@@ -280,7 +280,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { co
                                 onClick={() => removeMemberMutation.mutate(member.userId)}
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Remove
+                                {t('settings.removeMemberBtn')}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -473,14 +473,14 @@ export default function Settings() {
     },
     onSuccess: () => {
       toast({
-        title: "Profile updated",
-        description: "Your personal information has been saved.",
+        title: t('settings.profileUpdated'),
+        description: t('settings.profileUpdatedDesc'),
       });
       checkAuth();
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to update profile",
+        title: t('settings.failedUpdateProfile'),
         description: error.message,
         variant: "destructive",
       });
@@ -497,15 +497,15 @@ export default function Settings() {
     },
     onSuccess: () => {
       toast({
-        title: "Company updated",
-        description: "Your company information has been saved.",
+        title: t('settings.companyUpdated'),
+        description: t('settings.companyUpdatedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       checkAuth();
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to update company",
+        title: t('settings.failedUpdateCompany'),
         description: error.message,
         variant: "destructive",
       });
@@ -530,8 +530,8 @@ export default function Settings() {
     },
     onSuccess: (data) => {
       toast({
-        title: "Profile picture updated",
-        description: "Your profile picture has been saved.",
+        title: t('settings.profilePictureUpdated'),
+        description: t('settings.profilePictureUpdatedDesc'),
       });
       if (data.url) {
         setProfilePicturePreview(data.url);
@@ -541,7 +541,7 @@ export default function Settings() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to upload picture",
+        title: t('settings.failedUploadPicture'),
         description: error.message,
         variant: "destructive",
       });
@@ -566,8 +566,8 @@ export default function Settings() {
     },
     onSuccess: (data) => {
       toast({
-        title: "Company logo updated",
-        description: "Your company logo has been saved.",
+        title: t('settings.companyLogoUpdated'),
+        description: t('settings.companyLogoUpdatedDesc'),
       });
       if (data.url) {
         setCompanyLogoPreview(data.url);
@@ -578,7 +578,7 @@ export default function Settings() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to upload logo",
+        title: t('settings.failedUploadLogo'),
         description: error.message,
         variant: "destructive",
       });
@@ -595,8 +595,8 @@ export default function Settings() {
       const sentCount = data.results.filter((r: any) => r.status === 'sent').length;
       if (sentCount > 0) {
         toast({
-          title: "Invitations sent",
-          description: `${sentCount} invitation(s) sent successfully.`,
+          title: t('settings.invitationsSent'),
+          description: t('settings.invitationsSentDesc', { count: sentCount }),
         });
       }
       // Reset rows after sending
@@ -604,7 +604,7 @@ export default function Settings() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to send invitations",
+        title: t('settings.failedSendInvitations'),
         description: error.message,
         variant: "destructive",
       });
@@ -658,8 +658,8 @@ export default function Settings() {
     const validInvites = inviteRows.filter(r => r.email.trim() && r.email.includes('@'));
     if (validInvites.length === 0) {
       toast({
-        title: "No valid emails",
-        description: "Please enter at least one valid email address.",
+        title: t('settings.noValidEmails'),
+        description: t('settings.noValidEmailsDesc'),
         variant: "destructive",
       });
       return;
@@ -733,13 +733,13 @@ export default function Settings() {
         <div className="p-4 border-b">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-sm text-muted-foreground">{t('settings.accountSettings')}</h2>
-            <Button 
+            <Button
               className="group relative overflow-hidden h-8"
               onClick={() => setLocation('/dashboard')}
               data-testid="button-close-settings"
             >
               <span className="w-12 translate-x-2 transition-opacity duration-500 group-hover:opacity-0 text-sm">
-                Back
+                {t('common.back')}
               </span>
               <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
                 <ArrowLeft
@@ -1217,12 +1217,12 @@ export default function Settings() {
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
                   <UserPlus className="h-5 w-5" />
-                  Invite Team Members
+                  {t('settings.inviteTeamMembers')}
                 </h2>
                 <Card>
                   <CardContent className="pt-6 space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Invite people to join <span className="font-medium text-neutral-700">{activeCompany.name}</span>. They'll receive an email with a link to accept the invitation.
+                      {t('settings.inviteDesc', { company: activeCompany.name })}
                     </p>
 
                     {/* Invite rows */}
@@ -1232,7 +1232,7 @@ export default function Settings() {
                           <div className="flex-1">
                             <Input
                               type="email"
-                              placeholder="colleague@company.com"
+                              placeholder={t('settings.inviteEmailPlaceholder')}
                               value={row.email}
                               onChange={(e) => {
                                 const updated = [...inviteRows];
@@ -1283,7 +1283,7 @@ export default function Settings() {
                         data-testid="button-add-invite-row"
                       >
                         <UserPlus className="h-4 w-4 mr-2" />
-                        Add another
+                        {t('settings.addAnother')}
                       </Button>
                     )}
 
@@ -1301,10 +1301,10 @@ export default function Settings() {
                             )}
                             <span className="font-medium">{result.email}</span>
                             <span className="text-muted-foreground">
-                              {result.status === 'sent' && '— Invitation sent'}
-                              {result.status === 'already_member' && '— Already a member'}
-                              {result.status === 'invalid' && '— Invalid'}
-                              {result.status === 'email_failed' && '— Email delivery failed'}
+                              {result.status === 'sent' && t('settings.resultSent')}
+                              {result.status === 'already_member' && t('settings.resultAlreadyMember')}
+                              {result.status === 'invalid' && t('settings.resultInvalid')}
+                              {result.status === 'email_failed' && t('settings.resultEmailFailed')}
                             </span>
                           </div>
                         ))}
@@ -1320,12 +1320,12 @@ export default function Settings() {
                       {inviteTeamMutation.isPending ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Sending...
+                          {t('settings.sending')}
                         </>
                       ) : (
                         <>
                           <Mail className="h-4 w-4 mr-2" />
-                          Send Invitations
+                          {t('settings.sendInvitations')}
                         </>
                       )}
                     </Button>
@@ -1339,18 +1339,18 @@ export default function Settings() {
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
-                  Company Profile Page
+                  {t('settings.companyProfilePage')}
                 </h2>
                 <Card>
                   <CardContent className="pt-6 space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Customize how your company profile appears to requesters when they review your proposals.
+                      {t('settings.companyProfilePageDesc')}
                     </p>
                     <div className="flex items-center gap-3">
                       <a href="/company/edit">
                         <Button style={{ background: '#E8614D' }} className="text-white">
                           <Palette className="h-4 w-4 mr-2" />
-                          Customize Profile Page
+                          {t('settings.customizeProfilePage')}
                         </Button>
                       </a>
                       {activeCompany?.slug && (
@@ -1361,7 +1361,7 @@ export default function Settings() {
                           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
                         >
                           <Eye className="h-4 w-4" />
-                          Preview
+                          {t('settings.preview')}
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
@@ -1387,7 +1387,7 @@ export default function Settings() {
                       <a href={`/traction/${activeCompany.profile?.tractionSlug}/edit`}>
                         <Button style={{ background: '#E8614D' }} className="text-white">
                           <Palette className="h-4 w-4 mr-2" />
-                          Customize Traction Page
+                          {t('settings.customizeTractionPage')}
                         </Button>
                       </a>
                       <a
@@ -1436,7 +1436,7 @@ export default function Settings() {
                                 <span className="text-sm font-medium text-neutral-900">{slot.label}</span>
                                 {slot.required && !isUploaded && (
                                   <span className="text-xs font-medium text-[#E25E45] bg-[#E25E45]/10 px-1.5 py-0.5 rounded">
-                                    Required for tenders
+                                    {t('settings.requiredForTenders')}
                                   </span>
                                 )}
                               </div>
@@ -1444,7 +1444,7 @@ export default function Settings() {
                               {isUploaded && (
                                 <p className="text-xs text-green-600 flex items-center gap-1 mt-1.5">
                                   <CheckCircle2 className="h-3.5 w-3.5" />
-                                  {existingDoc?.originalName || 'Uploaded'}
+                                  {existingDoc?.originalName || t('settings.uploaded')}
                                 </p>
                               )}
                             </div>
@@ -1460,7 +1460,7 @@ export default function Settings() {
                               >
                                 <div className="flex items-center gap-1.5 text-sm">
                                   <Upload className="h-3.5 w-3.5" />
-                                  {isUploaded ? 'Replace' : 'Upload'}
+                                  {isUploaded ? t('settings.replace') : t('settings.upload')}
                                 </div>
                               </ObjectUploader>
                             )}

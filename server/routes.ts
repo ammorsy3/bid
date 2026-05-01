@@ -14,8 +14,11 @@ import {
   createOfferSchema,
   createJoinRequestSchema,
   createTenderTemplateSchema,
+  createMembershipRequestSchema,
+  decideMembershipRequestSchema,
   VENDOR_CATEGORIES
 } from "@shared/schema";
+import { getEmailDomain, isPublicEmailDomain } from "./publicEmailDomains";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import { registerCopilotRoutes } from "./replit_integrations/copilot";
@@ -36,6 +39,8 @@ import {
   sendCompanyVerificationNotification,
   sendJoinRequestNotification,
   sendJoinRequestDecisionNotification,
+  sendMembershipRequestNotification,
+  sendMembershipDecisionNotification,
   sendVerificationOTP,
   sendTeamInviteEmail,
   sendPasswordResetEmail,
@@ -1325,6 +1330,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       console.error('Log settings visit error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Domain-based workspace discovery — surface existing workspaces whose
+  // members share the user's email domain so they can request to join
+  // instead of creating a duplicate workspace.
+  // Public email domains (gmail, hotmail, etc.) never match — see
+  // ./publicEmailDomains.ts for the list.
+  app.get("/api/onboarding/domain-match", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = await storage.getUser(req.auth!.userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const domain = getEmailDomain(user.email);
+      if (!domain || isPublicEmailDomain(domain)) {
+        return res.json({ domain, isPublic: true, workspaces: [] });
+      }
+
+      const matches = await storage.findCompaniesByMemberDomain(domain, 5);
+
+      // Annotate each match with whether the user already has a pending request
+      const annotated = await Promise.all(matches.map(async (w) => {
+        const existing = await storage.getPendingMembershipRequest(w.id, user.id);
+        return { ...w, alreadyRequested: !!existing };
+      }));
+
+      res.json({ domain, isPublic: false, workspaces: annotated });
+    } catch (error) {
+      console.error('Domain-match error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Create a membership request — user asks to join a workspace.
+  // Rate-limited to 3 outstanding requests per user.
+  app.post("/api/companies/:companyId/membership-requests", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { companyId } = req.params;
+      const { message } = createMembershipRequestSchema.parse(req.body);
+
+      const company = await storage.getCompany(companyId);
+      if (!company) return res.status(404).json({ message: "Workspace not found" });
+
+      // Already a member?
+      const existingRole = await storage.getUserRoleInCompany(req.auth!.userId, companyId);
+      if (existingRole) {
+        return res.status(409).json({ code: 'ALREADY_MEMBER', message: "You're already a member of this workspace." });
+      }
+
+      // Already has a pending request for this workspace?
+      const existing = await storage.getPendingMembershipRequest(companyId, req.auth!.userId);
+      if (existing) {
+        return res.status(409).json({ code: 'ALREADY_REQUESTED', message: "You already have a pending request for this workspace." });
+      }
+
+      // Per-user outstanding cap
+      const outstanding = await storage.countOutstandingMembershipRequestsByUser(req.auth!.userId);
+      if (outstanding >= 3) {
+        return res.status(429).json({
+          code: 'RATE_LIMIT',
+          message: "You already have 3 pending join requests. Wait for a decision before sending more.",
+        });
+      }
+
+      const created = await storage.createMembershipRequest({
+        companyId,
+        requesterUserId: req.auth!.userId,
+        status: 'pending',
+        message: message || null,
+      });
+
+      // Notify admins (best-effort, don't block on email)
+      const requester = await storage.getUser(req.auth!.userId);
+      sendMembershipRequestNotification({
+        companyId,
+        companyName: company.name,
+        requesterName: requester?.name || requester?.email || 'A user',
+        requesterEmail: requester?.email || '',
+        message: message || null,
+        requestId: created.id,
+      }).catch(err => console.error('[Email] sendMembershipRequestNotification failed:', err));
+
+      res.status(201).json({
+        id: created.id,
+        companyId: created.companyId,
+        status: created.status,
+        createdAt: created.createdAt,
+      });
+    } catch (error: any) {
+      if (error?.name === 'ZodError') {
+        return res.status(400).json({ message: error.errors?.[0]?.message || 'Invalid request' });
+      }
+      console.error('Create membership request error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // List pending/decided membership requests for the active workspace (admins only)
+  app.get("/api/companies/:companyId/membership-requests",
+    authenticateToken,
+    requireCompanyContext,
+    requireCompanyRole('admin'),
+    async (req: AuthRequest, res) => {
+      try {
+        const { companyId } = req.params;
+        if (companyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: 'Cannot read a different company' });
+        }
+        const status = typeof req.query.status === 'string' ? req.query.status : undefined;
+        const requests = await storage.listMembershipRequestsByCompany(companyId, status);
+        res.json(requests);
+      } catch (error) {
+        console.error('List membership requests error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  // Approve or deny a membership request (admins only)
+  app.patch("/api/companies/:companyId/membership-requests/:reqId/decide",
+    authenticateToken,
+    requireCompanyContext,
+    requireCompanyRole('admin'),
+    async (req: AuthRequest, res) => {
+      try {
+        const { companyId, reqId } = req.params;
+        if (companyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: 'Cannot modify a different company' });
+        }
+
+        const { decision, reason, role } = decideMembershipRequestSchema.parse(req.body);
+
+        const reqRow = await storage.getMembershipRequestById(reqId);
+        if (!reqRow || reqRow.companyId !== companyId) {
+          return res.status(404).json({ message: 'Membership request not found' });
+        }
+        if (reqRow.status !== 'pending') {
+          return res.status(409).json({ message: `This request has already been ${reqRow.status}.` });
+        }
+
+        const updated = await storage.decideMembershipRequest(reqId, decision, req.auth!.userId, reason);
+
+        if (decision === 'approved') {
+          await storage.addUserToCompany({
+            userId: reqRow.requesterUserId,
+            companyId,
+            roleInCompany: role || 'member',
+            invitedBy: req.auth!.userId,
+          });
+        }
+
+        // Notify the requester (best-effort)
+        const requester = await storage.getUser(reqRow.requesterUserId);
+        const company = await storage.getCompany(companyId);
+        if (requester && company) {
+          sendMembershipDecisionNotification({
+            requesterEmail: requester.email,
+            requesterName: requester.name,
+            companyName: company.name,
+            decision,
+            reason: reason || null,
+          }).catch(err => console.error('[Email] sendMembershipDecisionNotification failed:', err));
+        }
+
+        res.json({
+          id: updated.id,
+          status: updated.status,
+          decidedAt: updated.decidedAt,
+        });
+      } catch (error: any) {
+        if (error?.name === 'ZodError') {
+          return res.status(400).json({ message: error.errors?.[0]?.message || 'Invalid decision' });
+        }
+        console.error('Decide membership request error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  // List the current user's outstanding join requests (so onboarding UI can
+  // mark "already requested" workspaces and a pending-state UI can show them).
+  app.get("/api/users/me/membership-requests", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const status = typeof req.query.status === 'string' ? req.query.status : undefined;
+      const rows = await storage.listMembershipRequestsByUser(req.auth!.userId, status);
+      res.json(rows);
+    } catch (error) {
+      console.error('List my membership requests error:', error);
       res.status(500).json({ message: "Server error" });
     }
   });

@@ -1271,3 +1271,117 @@ export async function sendTeamInviteEmail(params: {
   }
   return true;
 }
+
+// =============================================================================
+// MEMBERSHIP REQUESTS — user → workspace
+// =============================================================================
+
+export async function sendMembershipRequestNotification(params: {
+  companyId: string;
+  companyName: string;
+  requesterName: string;
+  requesterEmail: string;
+  message: string | null;
+  requestId: string;
+  appBaseUrl?: string;
+}): Promise<void> {
+  const { companyName, requesterName, requesterEmail, message, appBaseUrl } = params;
+
+  // Look up the company's owners/admins via storage (lazy import to avoid circular)
+  const { storage } = await import("./storage");
+  const members = await storage.getCompanyMembers(params.companyId);
+  const adminRecipients = members
+    .filter((m: any) => m.roleInCompany === 'owner' || m.roleInCompany === 'admin')
+    .map((m: any) => ({ email: m.user.email, name: m.user.name, language: (m.user.language as Lang) || 'en' }));
+  if (adminRecipients.length === 0) return;
+
+  const baseUrl = getBaseUrl(appBaseUrl);
+  const dashboardUrl = `${baseUrl}/settings?tab=company#membership-requests`;
+
+  for (const recipient of adminRecipients) {
+    const lang: Lang = recipient.language || 'en';
+    const isAr = lang === 'ar';
+
+    const subject = isAr
+      ? `طلب انضمام جديد إلى ${companyName}`
+      : `New join request for ${companyName}`;
+
+    const html = buildEmailHtml({
+      language: lang,
+      iconEmoji: "&#128101;",
+      iconBg: "#EFF6FF",
+      headline:    isAr ? "طلب انضمام جديد"                             : "New join request",
+      subheadline: isAr ? `${requesterName} يريد الانضمام إلى ${companyName}.` : `${requesterName} wants to join ${companyName}.`,
+      recipientName: recipient.name,
+      bodyText: isAr
+        ? `قدّم <strong>${requesterName}</strong> (${requesterEmail}) طلباً للانضمام إلى مساحة العمل الخاصة بك. يمكنك قبوله أو رفضه من إعدادات الشركة.`
+        : `<strong>${requesterName}</strong> (${requesterEmail}) requested to join your workspace. You can approve or deny the request from company settings.`,
+      details: [
+        { iconEmoji: "&#128100;", iconBg: "#EFF6FF", label: isAr ? "المستخدم" : "User",     value: `${requesterName} (${requesterEmail})` },
+        { iconEmoji: "&#127970;", iconBg: "#FFF1EE", label: isAr ? "الشركة"   : "Workspace", value: companyName },
+      ],
+      messageBlock: message ? {
+        label: isAr ? "رسالة من المستخدم" : "Message from user",
+        text: message,
+        borderColor: BRAND_COLOR,
+      } : undefined,
+      ctaLabel: isAr ? "مراجعة الطلب" : "Review request",
+      ctaUrl: dashboardUrl,
+      ctaColor: BRAND_COLOR,
+      reasonText: isAr
+        ? `لقد تلقيت هذا البريد لأنك مسؤول في ${companyName} على منصة بِد.`
+        : `You received this email because you are an admin of ${companyName} on Bid.`,
+    });
+    sendEmail(recipient.email, subject, html).catch(err => console.error(`[Email] Failed to send to ${recipient.email}:`, err));
+  }
+}
+
+export async function sendMembershipDecisionNotification(params: {
+  requesterEmail: string;
+  requesterName: string;
+  companyName: string;
+  decision: 'approved' | 'denied';
+  reason: string | null;
+  appBaseUrl?: string;
+  language?: Lang;
+}): Promise<void> {
+  const { requesterEmail, requesterName, companyName, decision, reason, appBaseUrl, language = 'en' } = params;
+  const isAr = language === 'ar';
+  const isApproved = decision === 'approved';
+  const baseUrl = getBaseUrl(appBaseUrl);
+
+  const subject = isApproved
+    ? (isAr ? `تمت الموافقة على طلب انضمامك إلى ${companyName}` : `You're in — welcome to ${companyName}`)
+    : (isAr ? `تحديث طلب الانضمام إلى ${companyName}` : `Join request update — ${companyName}`);
+
+  const html = buildEmailHtml({
+    language,
+    iconEmoji: isApproved ? "&#10003;" : "&#10007;",
+    iconBg:    isApproved ? "#F0FDF4"  : "#FFF1EE",
+    headline: isApproved
+      ? (isAr ? "تمت الموافقة على الانضمام" : "Join request approved")
+      : (isAr ? "لم تتم الموافقة"           : "Join request not approved"),
+    subheadline: isApproved
+      ? (isAr ? `أنت الآن عضو في ${companyName}.`                : `You're now a member of ${companyName}.`)
+      : (isAr ? `لم تتم الموافقة على طلبك للانضمام إلى ${companyName}.` : `Your request to join ${companyName} was not approved.`),
+    recipientName: requesterName,
+    bodyText: isApproved
+      ? (isAr ? `يمكنك الآن الوصول إلى مساحة عمل <strong>${companyName}</strong>. سجّل الدخول لاستكشاف المنصة.`
+              : `You now have access to <strong>${companyName}</strong>'s workspace. Sign in to explore.`)
+      : (isAr ? `لم تتم الموافقة على طلبك للانضمام إلى <strong>${companyName}</strong> في الوقت الحالي.`
+              : `Your request to join <strong>${companyName}</strong> was not approved at this time.`),
+    messageBlock: !isApproved && reason ? {
+      label: isAr ? "السبب" : "Reason",
+      text: reason,
+      borderColor: BRAND_COLOR,
+    } : undefined,
+    ctaLabel: isApproved ? (isAr ? "افتح المنصة" : "Open Bid") : (isAr ? "العودة إلى بِد" : "Back to Bid"),
+    ctaUrl: `${baseUrl}/dashboard`,
+    ctaColor: isApproved ? "#16a34a" : BRAND_COLOR,
+    reasonText: isAr
+      ? `لقد تلقيت هذا البريد لأنك قدّمت طلب انضمام إلى ${companyName} على منصة بِد.`
+      : `You received this email because you requested to join ${companyName} on Bid.`,
+  });
+
+  sendEmail(requesterEmail, subject, html).catch(err => console.error(`[Email] Failed to send to ${requesterEmail}:`, err));
+}

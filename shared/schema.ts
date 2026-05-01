@@ -481,6 +481,26 @@ export const joinRequests = pgTable("join_requests", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Membership Requests — a USER asks to join an existing company workspace
+// (distinct from `joinRequests` above, which is buyer ↔ vendor base.)
+export const membershipRequests = pgTable("membership_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id),
+  requesterUserId: varchar("requester_user_id").notNull().references(() => users.id),
+
+  status: text("status").notNull().default("pending"), // 'pending' | 'approved' | 'denied'
+  message: text("message"), // optional message from requester
+  decisionReason: text("decision_reason"), // optional reason on deny
+
+  decidedBy: varchar("decided_by").references(() => users.id),
+  decidedAt: timestamp("decided_at"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  byCompanyStatus: index("membership_requests_company_status_idx").on(table.companyId, table.status),
+  byRequester: index("membership_requests_requester_idx").on(table.requesterUserId),
+}));
+
 // Trusted Browsers - Remember device for OTP skip
 export const trustedBrowsers = pgTable("trusted_browsers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1205,6 +1225,26 @@ export const createJoinRequestSchema = insertJoinRequestSchema.omit({
   decidedBy: true,
 });
 
+export const insertMembershipRequestSchema = createInsertSchema(membershipRequests).omit({
+  id: true,
+  createdAt: true,
+  decidedAt: true,
+  decidedBy: true,
+  decisionReason: true,
+});
+
+export const createMembershipRequestSchema = z.object({
+  message: z.string().max(500, "Message must not exceed 500 characters").optional(),
+});
+
+export const decideMembershipRequestSchema = z.object({
+  decision: z.enum(["approved", "denied"], {
+    errorMap: () => ({ message: "Decision must be 'approved' or 'denied'" }),
+  }),
+  reason: z.string().max(500).optional(),
+  role: z.enum(["admin", "member", "viewer"]).optional(), // role to assign on approval
+});
+
 export const insertProductEventSchema = createInsertSchema(productEvents).omit({
   id: true,
   createdAt: true,
@@ -1282,6 +1322,10 @@ export type InsertVendorBase = z.infer<typeof insertVendorBaseSchema>;
 export type JoinRequest = typeof joinRequests.$inferSelect;
 export type InsertJoinRequest = z.infer<typeof insertJoinRequestSchema>;
 export type CreateJoinRequest = z.infer<typeof createJoinRequestSchema>;
+export type MembershipRequest = typeof membershipRequests.$inferSelect;
+export type InsertMembershipRequest = z.infer<typeof insertMembershipRequestSchema>;
+export type CreateMembershipRequest = z.infer<typeof createMembershipRequestSchema>;
+export type DecideMembershipRequest = z.infer<typeof decideMembershipRequestSchema>;
 
 export type InvitationLink = typeof invitationLinks.$inferSelect;
 

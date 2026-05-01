@@ -9,6 +9,7 @@ import {
   invitations,
   vendorsBase,
   joinRequests,
+  membershipRequests,
   invitationLinks,
   awards,
   productEvents,
@@ -37,6 +38,8 @@ import {
   type InsertVendorBase,
   type JoinRequest,
   type InsertJoinRequest,
+  type MembershipRequest,
+  type InsertMembershipRequest,
   type InvitationLink,
   type Award,
   type InsertAward,
@@ -198,6 +201,20 @@ export interface IStorage {
   getJoinRequestByCompanies(vendorCompanyId: string, requesterCompanyId: string): Promise<JoinRequest | undefined>;
   updateJoinRequestStatus(id: string, status: string, decidedBy: string): Promise<JoinRequest>;
   getPendingJoinRequestsCount(requesterCompanyId: string): Promise<number>;
+
+  // ============================================================================
+  // MEMBERSHIP REQUEST OPERATIONS — user → workspace join requests
+  // (distinct from JOIN REQUEST OPERATIONS above which is buyer ↔ vendor base)
+  // ============================================================================
+  createMembershipRequest(req: InsertMembershipRequest): Promise<MembershipRequest>;
+  getMembershipRequestById(id: string): Promise<MembershipRequest | undefined>;
+  getPendingMembershipRequest(companyId: string, requesterUserId: string): Promise<MembershipRequest | undefined>;
+  countOutstandingMembershipRequestsByUser(requesterUserId: string): Promise<number>;
+  listMembershipRequestsByCompany(companyId: string, status?: string): Promise<(MembershipRequest & { requester: { id: string; name: string; email: string } })[]>;
+  listMembershipRequestsByUser(requesterUserId: string, status?: string): Promise<(MembershipRequest & { company: { id: string; name: string; slug: string } })[]>;
+  decideMembershipRequest(id: string, decision: 'approved' | 'denied', decidedBy: string, reason?: string): Promise<MembershipRequest>;
+  // Find companies that have at least one member with the given email domain.
+  findCompaniesByMemberDomain(domain: string, limit?: number): Promise<{ id: string; name: string; slug: string; memberCount: number }[]>;
 
   // ============================================================================
   // AWARD OPERATIONS
@@ -1333,6 +1350,123 @@ export class DatabaseStorage implements IStorage {
         eq(joinRequests.status, 'pending')
       ));
     return results.length;
+  }
+
+  // ============================================================================
+  // MEMBERSHIP REQUEST OPERATIONS
+  // ============================================================================
+
+  async createMembershipRequest(req: InsertMembershipRequest): Promise<MembershipRequest> {
+    const [created] = await db.insert(membershipRequests).values(req).returning();
+    return created;
+  }
+
+  async getMembershipRequestById(id: string): Promise<MembershipRequest | undefined> {
+    const [row] = await db.select().from(membershipRequests).where(eq(membershipRequests.id, id));
+    return row || undefined;
+  }
+
+  async getPendingMembershipRequest(companyId: string, requesterUserId: string): Promise<MembershipRequest | undefined> {
+    const [row] = await db
+      .select()
+      .from(membershipRequests)
+      .where(and(
+        eq(membershipRequests.companyId, companyId),
+        eq(membershipRequests.requesterUserId, requesterUserId),
+        eq(membershipRequests.status, 'pending'),
+      ))
+      .limit(1);
+    return row || undefined;
+  }
+
+  async countOutstandingMembershipRequestsByUser(requesterUserId: string): Promise<number> {
+    const rows = await db
+      .select()
+      .from(membershipRequests)
+      .where(and(
+        eq(membershipRequests.requesterUserId, requesterUserId),
+        eq(membershipRequests.status, 'pending'),
+      ));
+    return rows.length;
+  }
+
+  async listMembershipRequestsByCompany(companyId: string, status?: string): Promise<(MembershipRequest & { requester: { id: string; name: string; email: string } })[]> {
+    const whereClause = status
+      ? and(eq(membershipRequests.companyId, companyId), eq(membershipRequests.status, status))
+      : eq(membershipRequests.companyId, companyId);
+
+    const results = await db
+      .select({
+        request: membershipRequests,
+        requester: { id: users.id, name: users.name, email: users.email },
+      })
+      .from(membershipRequests)
+      .innerJoin(users, eq(membershipRequests.requesterUserId, users.id))
+      .where(whereClause)
+      .orderBy(desc(membershipRequests.createdAt));
+
+    return results.map(r => ({ ...r.request, requester: r.requester }));
+  }
+
+  async listMembershipRequestsByUser(requesterUserId: string, status?: string): Promise<(MembershipRequest & { company: { id: string; name: string; slug: string } })[]> {
+    const whereClause = status
+      ? and(eq(membershipRequests.requesterUserId, requesterUserId), eq(membershipRequests.status, status))
+      : eq(membershipRequests.requesterUserId, requesterUserId);
+
+    const results = await db
+      .select({
+        request: membershipRequests,
+        company: { id: companies.id, name: companies.name, slug: companies.slug },
+      })
+      .from(membershipRequests)
+      .innerJoin(companies, eq(membershipRequests.companyId, companies.id))
+      .where(whereClause)
+      .orderBy(desc(membershipRequests.createdAt));
+
+    return results.map(r => ({ ...r.request, company: r.company }));
+  }
+
+  async decideMembershipRequest(id: string, decision: 'approved' | 'denied', decidedBy: string, reason?: string): Promise<MembershipRequest> {
+    const [updated] = await db
+      .update(membershipRequests)
+      .set({
+        status: decision,
+        decidedBy,
+        decidedAt: new Date(),
+        decisionReason: reason ?? null,
+      })
+      .where(eq(membershipRequests.id, id))
+      .returning();
+    return updated;
+  }
+
+  async findCompaniesByMemberDomain(domain: string, limit: number = 5): Promise<{ id: string; name: string; slug: string; memberCount: number }[]> {
+    const safe = domain.toLowerCase().replace(/[%_]/g, '');
+    if (!safe) return [];
+    const results = await db
+      .select({
+        id: companies.id,
+        name: companies.name,
+        slug: companies.slug,
+        memberCount: count(userCompanies.id),
+      })
+      .from(companies)
+      .innerJoin(userCompanies, eq(userCompanies.companyId, companies.id))
+      .innerJoin(users, eq(userCompanies.userId, users.id))
+      .where(and(
+        ilike(users.email, `%@${safe}`),
+        isNull(companies.deletedAt),
+      ))
+      .groupBy(companies.id, companies.name, companies.slug)
+      .orderBy(desc(count(userCompanies.id)))
+      .limit(limit);
+
+    return results.map(r => ({
+      id: r.id,
+      name: r.name,
+      slug: r.slug,
+      memberCount: Number(r.memberCount),
+    }));
   }
 
   // ============================================================================

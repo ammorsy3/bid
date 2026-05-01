@@ -1,33 +1,29 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
-import { useDebouncedSave } from "@/lib/autosave";
 import { VENDOR_CATEGORIES } from "@shared/schema";
-import { ArrowRight, ArrowLeft, Building2, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, Building2, Loader2 } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 const DRAFT_KEY = "onboarding-draft";
 
-const makeCompanyBasicsSchema = (t: (k: string) => string) => z.object({
-  name: z.string().min(2, t('validation.companyNameRequired')),
-  legalName: z.string().min(2, t('validation.legalNameRequired')),
-  crNumber: z.string().regex(/^\d{10}$/, t('validation.crNumberFormat')),
-  vatNumber: z.string().optional(),
-  city: z.string().min(1, t('validation.cityRequired')),
-  category: z.string().min(1, t('validation.categoryRequired')),
+const companyBasicsSchema = z.object({
+  name: z.string().min(2, "Company name is required"),
+  category: z.string().min(1, "Please select a category"),
 });
 
-type CompanyBasicsForm = z.infer<ReturnType<typeof makeCompanyBasicsSchema>>;
+type CompanyBasicsForm = z.infer<typeof companyBasicsSchema>;
 
 function getDraft(): Record<string, any> {
   try {
@@ -37,26 +33,28 @@ function getDraft(): Record<string, any> {
   }
 }
 
-function saveDraft(data: Partial<CompanyBasicsForm>) {
-  const existing = getDraft();
-  localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...existing, ...data }));
-}
+const getPostOnboardingRedirect = () => {
+  const redirect = localStorage.getItem('postOnboardingRedirect');
+  if (redirect) {
+    localStorage.removeItem('postOnboardingRedirect');
+    return redirect;
+  }
+  return '/dashboard';
+};
 
 export default function CompanyBasics() {
   const [, setLocation] = useLocation();
-  const { user } = useAuthStore();
+  const { user, checkAuth } = useAuthStore();
+  const { toast } = useToast();
   const { t } = useI18n();
+  const [submitting, setSubmitting] = useState(false);
 
   const draft = getDraft();
 
   const form = useForm<CompanyBasicsForm>({
-    resolver: zodResolver(makeCompanyBasicsSchema(t)),
+    resolver: zodResolver(companyBasicsSchema),
     defaultValues: {
       name: draft.name || "",
-      legalName: draft.legalName || "",
-      crNumber: draft.crNumber || "",
-      vatNumber: draft.vatNumber || "",
-      city: draft.city || "",
       category: draft.category || "",
     },
   });
@@ -66,51 +64,41 @@ export default function CompanyBasics() {
     else if (!user.otpVerified) setLocation("/verify-email");
   }, [user, setLocation]);
 
-  const crValue = form.watch("crNumber");
-  const [crStatus, setCrStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
-  const crCheckTimeoutRef = useRef<NodeJS.Timeout>();
-  const lastCheckedCrRef = useRef<string>("");
-
-  useEffect(() => {
-    if (crCheckTimeoutRef.current) clearTimeout(crCheckTimeoutRef.current);
-    if (!/^\d{10}$/.test(crValue || "")) {
-      setCrStatus('idle');
-      return;
-    }
-    if (crValue === lastCheckedCrRef.current) return;
-    setCrStatus('checking');
-    crCheckTimeoutRef.current = setTimeout(async () => {
-      try {
-        const res = await apiRequest('GET', `/api/companies/check-cr/${crValue}`);
-        const { taken } = await res.json();
-        lastCheckedCrRef.current = crValue;
-        setCrStatus(taken ? 'taken' : 'available');
-      } catch {
-        setCrStatus('idle');
+  const onSubmit = async (data: CompanyBasicsForm) => {
+    setSubmitting(true);
+    try {
+      const response = await apiRequest('POST', '/api/companies', {
+        name: data.name,
+        category: data.category,
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create workspace");
       }
-    }, 500);
-    return () => {
-      if (crCheckTimeoutRef.current) clearTimeout(crCheckTimeoutRef.current);
-    };
-  }, [crValue]);
-
-  const watched = form.watch();
-  const autosave = useCallback((values: CompanyBasicsForm) => {
-    saveDraft(values);
-  }, []);
-  useDebouncedSave(watched, autosave);
-
-  const onSubmit = (data: CompanyBasicsForm) => {
-    if (crStatus === 'taken') return;
-    const existing = getDraft();
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...existing, ...data, step1Complete: true }));
-    setLocation("/onboarding/company-documents");
+      const result = await response.json();
+      localStorage.setItem('token', result.token);
+      localStorage.removeItem(DRAFT_KEY);
+      await checkAuth();
+      toast({
+        title: "Workspace ready",
+        description: "You can verify your company anytime to unlock tenders and offers.",
+      });
+      setLocation(getPostOnboardingRedirect());
+    } catch (error: any) {
+      toast({
+        title: "Couldn't create workspace",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!user) return null;
 
   return (
-    <OnboardingLayout step={1}>
+    <OnboardingLayout>
       <Card>
         <CardContent className="pt-8 pb-8">
           <div className="flex items-center gap-3 mb-6">
@@ -119,7 +107,7 @@ export default function CompanyBasics() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-neutral-900">{t('onboardingPanel.companyDetailsTitle')}</h2>
-              <p className="text-sm text-neutral-500">{t('onboardingPanel.companyDetailsSubtitle')}</p>
+              <p className="text-sm text-neutral-500">Tell us the basics. You can verify your company later from settings.</p>
             </div>
           </div>
 
@@ -130,93 +118,11 @@ export default function CompanyBasics() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('onboarding.companyDisplayName')} *</FormLabel>
+                    <FormLabel>Company Display Name *</FormLabel>
                     <FormControl>
                       <Input placeholder={t('onboardingPanel.companyNamePh')} {...field} data-testid="input-company-name" />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="legalName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('onboarding.legalName')} *</FormLabel>
-                    <FormControl>
-                      <Input placeholder={t('onboardingPanel.legalNamePh')} {...field} data-testid="input-legal-name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="crNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CR Number *</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="10-digit CR number"
-                          inputMode="numeric"
-                          maxLength={10}
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                          data-testid="input-cr-number"
-                        />
-                      </FormControl>
-                      {crStatus === 'checking' && (
-                        <p className="text-xs text-neutral-400 flex items-center gap-1 mt-1">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          Checking availability…
-                        </p>
-                      )}
-                      {crStatus === 'available' && (
-                        <p className="text-xs text-emerald-600 flex items-center gap-1 mt-1">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Available
-                        </p>
-                      )}
-                      {crStatus === 'taken' && (
-                        <p className="text-xs text-red-600 flex items-start gap-1 mt-1">
-                          <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
-                          <span>This CR is already registered to a workspace on Bid. Ask one of its admins to invite you.</span>
-                        </p>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="vatNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('onboardingPanel.vatNumberLabel')}</FormLabel>
-                      <FormControl>
-                        <Input placeholder={t('onboardingPanel.optionalPh')} {...field} data-testid="input-vat-number" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('onboarding.city')} *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Riyadh, Jeddah" {...field} data-testid="input-city" />
-                    </FormControl>
+                    <FormDescription>This is what other users will see on Bid.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -227,7 +133,7 @@ export default function CompanyBasics() {
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('onboarding.industryCategory')} *</FormLabel>
+                    <FormLabel>Industry Category *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-category">
@@ -242,16 +148,22 @@ export default function CompanyBasics() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormDescription>Helps us recommend relevant tenders.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              <div className="rounded-lg bg-neutral-50 border border-neutral-200 p-3 text-xs text-neutral-500">
+                Legal info (CR number, legal name, VAT) and verification documents are collected later from <span className="font-medium text-neutral-700">Settings → Company</span> when you're ready. You can browse Bid and explore right after this step.
+              </div>
 
               <div className="flex justify-between pt-4">
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setLocation("/onboarding")}
+                  disabled={submitting}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back
@@ -259,11 +171,20 @@ export default function CompanyBasics() {
                 <Button
                   type="submit"
                   size="lg"
-                  disabled={crStatus === 'taken' || crStatus === 'checking'}
+                  disabled={submitting}
                   className="bg-[#E25E45] hover:bg-[#d04a32]"
                 >
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  {submitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating workspace…
+                    </>
+                  ) : (
+                    <>
+                      Go to dashboard
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               </div>
             </form>

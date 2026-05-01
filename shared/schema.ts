@@ -62,8 +62,10 @@ export const companies = pgTable("companies", {
   slug: text("slug").notNull().unique(), // For URLs and lookups
   
   // Legal & Compliance (Private - for admin review)
-  legalName: text("legal_name").notNull(),
-  crNumber: text("cr_number").notNull().unique(),
+  // Nullable so users can sign up with just name+category and provide
+  // verification info later via PATCH /api/companies/:id/verify-info.
+  legalName: text("legal_name"),
+  crNumber: text("cr_number").unique(),
   vatNumber: text("vat_number").unique(),
   city: text("city"),
   category: text("category"),
@@ -1093,16 +1095,33 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   deletedAt: true,
 });
 
+// Light onboarding: only name + category required at workspace creation.
+// Legal info (legalName, crNumber, vatNumber, city) is collected later via
+// the verification flow — see verifyCompanySchema below.
 export const createCompanySchema = insertCompanySchema.omit({
   slug: true,
   verificationStatus: true,
   onboardingState: true,
   rejectionReason: true,
+  verifiedAt: true,
 }).extend({
+  name: z.string().min(2, "Company name is required"),
+  legalName: z.string().min(2).optional(),
+  crNumber: z.string().regex(/^\d{10}$/, "CR number must be exactly 10 digits").optional(),
+  vatNumber: z.string().optional(),
+  city: z.string().optional(),
+  category: z.enum(VENDOR_CATEGORIES, {
+    errorMap: () => ({ message: "Please select a valid category" })
+  }),
+});
+
+// Submitted when a workspace completes verification.
+// Required fields are the bare minimum needed for legal review.
+export const verifyCompanySchema = z.object({
+  legalName: z.string().min(2, "Legal name is required"),
   crNumber: z.string().regex(/^\d{10}$/, "CR number must be exactly 10 digits"),
-  category: z.enum(VENDOR_CATEGORIES, { 
-    errorMap: () => ({ message: "Please select a valid category" }) 
-  }).optional(),
+  vatNumber: z.string().optional(),
+  city: z.string().min(1, "City is required"),
 });
 
 // Company Profile schemas

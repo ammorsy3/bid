@@ -8,6 +8,7 @@ import multer from "multer";
 import {
   registerUserSchema,
   createCompanySchema,
+  verifyCompanySchema,
   updateCompanyProfileSchema,
   createTenderSchema,
   createOfferSchema,
@@ -116,9 +117,34 @@ const authenticateToken = async (req: AuthRequest, res: Response, next: Function
 // Middleware: Require active company context
 const requireCompanyContext = (req: AuthRequest, res: Response, next: Function) => {
   if (!req.auth?.activeCompanyId) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       message: 'No active company. Please select a company first.',
       requiresCompany: true
+    });
+  }
+  next();
+};
+
+// Middleware: Require the active company to be verified.
+// Used to gate actions that need legal verification (creating tenders,
+// submitting offers). Frontend should route the user to the verification
+// form on receiving `requiresVerification: true`.
+const requireVerifiedCompany = async (req: AuthRequest, res: Response, next: Function) => {
+  if (!req.auth?.activeCompanyId) {
+    return res.status(400).json({
+      message: 'No active company. Please select a company first.',
+      requiresCompany: true,
+    });
+  }
+  const company = await storage.getCompany(req.auth.activeCompanyId);
+  if (!company) {
+    return res.status(404).json({ message: 'Company not found' });
+  }
+  if (company.verificationStatus !== 'verified') {
+    return res.status(403).json({
+      message: 'Your company must be verified before you can perform this action.',
+      requiresVerification: true,
+      verificationStatus: company.verificationStatus,
     });
   }
   next();
@@ -1365,6 +1391,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create company (and auto-add creator as owner)
+  // Light onboarding: only name + category are required. Legal info
+  // (legalName, crNumber, vatNumber, city) is optional here and collected
+  // later via PATCH /api/companies/:id/verify-info.
   app.post("/api/companies", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const { logoUrl, bio, websiteUrl, documents: rawDocuments, ...rest } = req.body;
@@ -1378,13 +1407,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             )
           : [];
 
-      // Check CR number uniqueness
-      const existingCompany = await storage.getCompanyByCrNumber(companyData.crNumber);
-      if (existingCompany) {
-        return res.status(409).json({
-          code: 'CR_TAKEN',
-          message: "This CR number is already registered to a workspace on Bid. If you're joining that company, ask one of its admins to invite you.",
-        });
+      // CR uniqueness only matters when one is supplied (light onboarding lets
+      // workspaces start without a CR number and add it later via verify-info).
+      if (companyData.crNumber) {
+        const existingCompany = await storage.getCompanyByCrNumber(companyData.crNumber);
+        if (existingCompany) {
+          return res.status(409).json({
+            code: 'CR_TAKEN',
+            message: "This CR number is already registered to a workspace on Bid. If you're joining that company, ask one of its admins to invite you.",
+          });
+        }
       }
 
       // Generate unique slug
@@ -1513,6 +1545,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: error?.message || "Failed to create company" });
     }
   });
+
+  // Read the active company's verification info (legal name, CR, VAT, city).
+  // Private — only members of the company can read.
+  app.get("/api/companies/:companyId/verify-info",
+    authenticateToken,
+    requireCompanyContext,
+    async (req: AuthRequest, res) => {
+      try {
+        const { companyId } = req.params;
+        if (companyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: 'Cannot read a different company' });
+        }
+        const company = await storage.getCompany(companyId);
+        if (!company) {
+          return res.status(404).json({ message: 'Company not found' });
+        }
+        res.json({
+          legalName: company.legalName ?? '',
+          crNumber: company.crNumber ?? '',
+          vatNumber: company.vatNumber ?? '',
+          city: company.city ?? '',
+          verificationStatus: company.verificationStatus,
+        });
+      } catch (error) {
+        console.error('Get verification info error:', error);
+        res.status(500).json({ message: 'Server error' });
+      }
+    }
+  );
+
+  // Submit / update verification info for the active company. This is the
+  // back-half of light onboarding — users provide legalName, CR, VAT, and city
+  // here when they're ready, instead of upfront at signup time.
+  app.patch("/api/companies/:companyId/verify-info",
+    authenticateToken,
+    requireCompanyContext,
+    requireCompanyRole('admin'),
+    async (req: AuthRequest, res) => {
+      try {
+        const { companyId } = req.params;
+        if (companyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: 'Cannot update a different company' });
+        }
+
+        const data = verifyCompanySchema.parse(req.body);
+
+        // CR uniqueness check (excluding this company)
+        const existingByCr = await storage.getCompanyByCrNumber(data.crNumber);
+        if (existingByCr && existingByCr.id !== companyId) {
+          return res.status(409).json({
+            code: 'CR_TAKEN',
+            message: "This CR number is already registered to another workspace on Bid.",
+          });
+        }
+
+        const updated = await storage.updateCompany(companyId, {
+          legalName: data.legalName,
+          crNumber: data.crNumber,
+          vatNumber: data.vatNumber || null,
+          city: data.city,
+        });
+
+        res.json({
+          company: {
+            id: updated.id,
+            legalName: updated.legalName,
+            crNumber: updated.crNumber,
+            vatNumber: updated.vatNumber,
+            city: updated.city,
+            verificationStatus: updated.verificationStatus,
+          },
+        });
+      } catch (error: any) {
+        console.error('Update verification info error:', error);
+        if (error?.name === 'ZodError') {
+          const firstIssue = error.errors?.[0];
+          const message = firstIssue
+            ? `${firstIssue.path.join('.')}: ${firstIssue.message}`
+            : "Invalid verification data";
+          return res.status(400).json({ message, errors: error.errors });
+        }
+        if (error?.code === '23505') {
+          const constraint = error?.constraint || '';
+          if (constraint.includes('vat_number')) {
+            return res.status(409).json({ message: "This VAT number is already registered to another workspace." });
+          }
+          if (constraint.includes('cr_number')) {
+            return res.status(409).json({ code: 'CR_TAKEN', message: "This CR number is already registered to another workspace." });
+          }
+        }
+        res.status(500).json({ message: error?.message || "Failed to update verification info" });
+      }
+    }
+  );
 
   // Invite team members to company
   app.post("/api/companies/:companyId/invite-team", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
@@ -2315,6 +2441,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     authenticateToken,
     requireCompanyContext,
     requireCompanyRole('admin'),
+    requireVerifiedCompany,
     async (req: AuthRequest, res) => {
       try {
         const activeCompany = await storage.getCompany(req.auth!.activeCompanyId!);
@@ -3751,6 +3878,7 @@ Respond with ONLY a JSON object. Example:
   app.post("/api/tenders/:id/offers",
     authenticateToken,
     requireCompanyContext,
+    requireVerifiedCompany,
     async (req: AuthRequest, res) => {
       try {
         const company = await storage.getCompany(req.auth!.activeCompanyId!);

@@ -640,6 +640,64 @@ export default function Settings() {
     enabled: !!activeCompany?.id && activeTab === 'company',
   });
 
+  // Verification info (legal name, CR, VAT, city) — populated lazily so users
+  // who signed up via the light onboarding flow can fill these in here.
+  const { data: verifyInfo } = useQuery<{ legalName: string; crNumber: string; vatNumber: string; city: string; verificationStatus: string }>({
+    queryKey: ['/api/companies', activeCompany?.id, 'verify-info'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', `/api/companies/${activeCompany!.id}/verify-info`);
+      if (!res.ok) throw new Error('Failed to load verification info');
+      return res.json();
+    },
+    enabled: !!activeCompany?.id && activeTab === 'company',
+  });
+
+  const [legalName, setLegalName] = useState('');
+  const [crNumber, setCrNumber] = useState('');
+  const [vatNumberField, setVatNumberField] = useState('');
+  const [cityField, setCityField] = useState('');
+
+  useEffect(() => {
+    if (!verifyInfo) return;
+    setLegalName(verifyInfo.legalName || '');
+    setCrNumber(verifyInfo.crNumber || '');
+    setVatNumberField(verifyInfo.vatNumber || '');
+    setCityField(verifyInfo.city || '');
+  }, [verifyInfo]);
+
+  const saveVerifyInfoMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('PATCH', `/api/companies/${activeCompany!.id}/verify-info`, {
+        legalName: legalName.trim(),
+        crNumber: crNumber.trim(),
+        vatNumber: vatNumberField.trim() || undefined,
+        city: cityField.trim(),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to save verification info');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompany?.id, 'verify-info'] });
+      toast({ title: 'Saved', description: 'Verification info updated.' });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Couldn't save", description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const verifyInfoDirty =
+    !!verifyInfo && (
+      legalName !== (verifyInfo.legalName || '') ||
+      crNumber !== (verifyInfo.crNumber || '') ||
+      vatNumberField !== (verifyInfo.vatNumber || '') ||
+      cityField !== (verifyInfo.city || '')
+    );
+
+  const verifyInfoValid = legalName.trim().length >= 2 && /^\d{10}$/.test(crNumber.trim()) && cityField.trim().length >= 1;
+
   const saveDocumentMutation = useMutation({
     mutationFn: async ({ documentType, fileUrl, originalName }: { documentType: string; fileUrl: string; originalName?: string }) => {
       const res = await apiRequest('POST', `/api/companies/${activeCompany!.id}/documents`, { documentType, fileUrl, originalName });
@@ -1423,6 +1481,96 @@ export default function Settings() {
                 </Card>
               </div>
               )}
+
+              {/* Legal info — required for verification */}
+              <div id="verification-info">
+                <Card>
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center">
+                        <Shield className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">Legal information</CardTitle>
+                        <CardDescription className="text-xs">
+                          Required to get your workspace verified — unlocks creating tenders and submitting offers.
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="legalName">Legal name *</Label>
+                      <Input
+                        id="legalName"
+                        value={legalName}
+                        onChange={(e) => setLegalName(e.target.value)}
+                        placeholder="Registered legal entity name"
+                        disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
+                        data-testid="input-legal-name"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="crNumber">CR number *</Label>
+                        <Input
+                          id="crNumber"
+                          value={crNumber}
+                          inputMode="numeric"
+                          maxLength={10}
+                          onChange={(e) => setCrNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          placeholder="10-digit CR"
+                          disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
+                          data-testid="input-cr"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="vatNumber">VAT number</Label>
+                        <Input
+                          id="vatNumber"
+                          value={vatNumberField}
+                          onChange={(e) => setVatNumberField(e.target.value)}
+                          placeholder="Optional"
+                          disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
+                          data-testid="input-vat"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City *</Label>
+                      <Input
+                        id="city"
+                        value={cityField}
+                        onChange={(e) => setCityField(e.target.value)}
+                        placeholder="e.g. Riyadh, Jeddah"
+                        disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
+                        data-testid="input-city"
+                      />
+                    </div>
+
+                    {canManageCompany && (
+                      <div className="pt-2 flex justify-end">
+                        <Button
+                          onClick={() => saveVerifyInfoMutation.mutate()}
+                          disabled={!verifyInfoDirty || !verifyInfoValid || saveVerifyInfoMutation.isPending}
+                          data-testid="button-save-verify-info"
+                        >
+                          {saveVerifyInfoMutation.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Saving…
+                            </>
+                          ) : (
+                            'Save legal info'
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
 
               {/* Verification Documents */}
               <div id="verification">

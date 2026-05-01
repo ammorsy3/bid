@@ -37,7 +37,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { SetupChecklist } from "@/components/SetupChecklist";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
@@ -1360,9 +1359,6 @@ export default function Dashboard() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-10 w-full pt-2 px-1 sm:px-2">
-
-            {/* Setup checklist — auto-hides once all items complete or dismissed */}
-            <SetupChecklist />
 
             {/* ── Stat Cards Row ──────────────────────────────────────── */}
             {canManage && (

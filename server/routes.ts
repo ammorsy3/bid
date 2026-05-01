@@ -1367,9 +1367,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create company (and auto-add creator as owner)
   app.post("/api/companies", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const { logoUrl, bio, websiteUrl, ...rest } = req.body;
+      const { logoUrl, bio, websiteUrl, documents: rawDocuments, ...rest } = req.body;
       const companyData = createCompanySchema.parse(rest);
-      
+
+      const validDocTypes = ['cr_certificate', 'vat_certificate', 'gosi_certificate', 'national_address_certificate', 'other'];
+      const inputDocuments: Array<{ documentType: string; fileUrl: string; originalName?: string | null; label?: string | null }> =
+        Array.isArray(rawDocuments)
+          ? rawDocuments.filter((d: any) =>
+              d && typeof d.documentType === 'string' && typeof d.fileUrl === 'string' && validDocTypes.includes(d.documentType)
+            )
+          : [];
+
       // Check CR number uniqueness
       const existingCompany = await storage.getCompanyByCrNumber(companyData.crNumber);
       if (existingCompany) {
@@ -1387,11 +1395,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         slugSuffix++;
       }
 
+      const initialVerificationStatus = inputDocuments.length > 0 ? 'under_review' : 'not_verified';
+
       // Create company
       const company = await storage.createCompany({
         ...companyData,
         slug,
-        verificationStatus: 'not_verified',
+        verificationStatus: initialVerificationStatus,
         onboardingState: 'draft'
       });
 
@@ -1421,6 +1431,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         invitedBy: null
       });
 
+      // Persist verification documents inline (single-handler atomic-ish path —
+      // closes the cross-request gap where company existed but doc rows didn't).
+      const failedDocuments: Array<{ documentType: string; error: string }> = [];
+      for (const d of inputDocuments) {
+        try {
+          const doc = await storage.createCompanyDocument({
+            companyId: company.id,
+            documentType: d.documentType,
+            fileUrl: d.fileUrl,
+            originalName: d.originalName || null,
+            label: d.label || null,
+            uploadedBy: req.auth!.userId,
+          });
+          await storage.logMemberActivity({
+            companyId: company.id,
+            actorUserId: req.auth!.userId,
+            action: 'company.verification_doc_uploaded',
+            targetType: 'document',
+            targetId: doc.id,
+            summary: `Uploaded verification document: ${d.documentType}`,
+            metadata: { documentType: d.documentType, originalName: d.originalName || null },
+          });
+        } catch (docErr: any) {
+          console.error('Inline document create failed:', d.documentType, docErr);
+          failedDocuments.push({ documentType: d.documentType, error: docErr?.message || 'unknown error' });
+        }
+      }
+
       // Generate new token with active company
       const token = generateToken({
         userId: req.auth!.userId,
@@ -1434,7 +1472,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventType: 'company_created',
         companyId: company.id,
         userId: req.auth!.userId,
-        metadata: { verificationStatus: 'not_verified' }
+        metadata: { verificationStatus: initialVerificationStatus }
       });
 
       res.json({
@@ -1443,11 +1481,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: company.id,
           name: company.name,
           slug: company.slug,
-          verificationStatus: company.verificationStatus,
+          verificationStatus: initialVerificationStatus,
           onboardingState: company.onboardingState,
           role: 'owner',
           profile
-        }
+        },
+        failedDocuments: failedDocuments.length > 0 ? failedDocuments : undefined,
       });
     } catch (error: any) {
       console.error('Create company error:', error);

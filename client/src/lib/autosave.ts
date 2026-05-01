@@ -126,6 +126,30 @@ export function useAutosave<T extends Record<string, any>>(
   };
 }
 
+export function useDebouncedSave<T>(
+  value: T,
+  save: (value: T) => void,
+  delay: number = 500
+) {
+  const timeoutRef = useRef<NodeJS.Timeout>();
+  const previousRef = useRef<string>('');
+
+  useEffect(() => {
+    const serialized = JSON.stringify(value);
+    if (serialized === previousRef.current) return;
+
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      save(value);
+      previousRef.current = serialized;
+    }, delay);
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [value, save, delay]);
+}
+
 export function formatSaveTime(date: Date | null): string {
   if (!date) return '';
   

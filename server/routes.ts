@@ -742,8 +742,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!token || !password) {
         return res.status(400).json({ message: "Token and new password are required" });
       }
-      if (password.length < 6) {
-        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      if (password.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters" });
       }
 
       // Find user by reset token
@@ -1349,6 +1349,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // COMPANY ROUTES
   // ==========================================================================
 
+  // Check whether a CR number is already registered (for early form validation)
+  app.get("/api/companies/check-cr/:crNumber", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { crNumber } = req.params;
+      if (!/^\d{10}$/.test(crNumber)) {
+        return res.json({ taken: false, valid: false });
+      }
+      const existing = await storage.getCompanyByCrNumber(crNumber);
+      res.json({ taken: !!existing, valid: true });
+    } catch (error) {
+      console.error('Check CR error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Create company (and auto-add creator as owner)
   app.post("/api/companies", authenticateToken, async (req: AuthRequest, res) => {
     try {
@@ -1358,7 +1373,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check CR number uniqueness
       const existingCompany = await storage.getCompanyByCrNumber(companyData.crNumber);
       if (existingCompany) {
-        return res.status(400).json({ message: "A company with this CR number already exists" });
+        return res.status(409).json({
+          code: 'CR_TAKEN',
+          message: "This CR number is already registered to a workspace on Bid. If you're joining that company, ask one of its admins to invite you.",
+        });
       }
 
       // Generate unique slug
@@ -1446,7 +1464,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "A company with this VAT number already exists" });
         }
         if (constraint.includes('cr_number')) {
-          return res.status(400).json({ message: "A company with this CR number already exists" });
+          return res.status(409).json({
+            code: 'CR_TAKEN',
+            message: "This CR number is already registered to a workspace on Bid. If you're joining that company, ask one of its admins to invite you.",
+          });
         }
         return res.status(400).json({ message: "A company with these details already exists" });
       }

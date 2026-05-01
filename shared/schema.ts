@@ -1081,6 +1081,8 @@ export const registerUserSchema = insertUserSchema.omit({
   emailVerified: true,
   emailVerificationCode: true,
   emailVerificationExpiry: true,
+}).extend({
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 // Company schemas
@@ -1097,7 +1099,7 @@ export const createCompanySchema = insertCompanySchema.omit({
   onboardingState: true,
   rejectionReason: true,
 }).extend({
-  crNumber: z.string().regex(/^\d+$/, "CR number must contain only numbers"),
+  crNumber: z.string().regex(/^\d{10}$/, "CR number must be exactly 10 digits"),
   category: z.enum(VENDOR_CATEGORIES, { 
     errorMap: () => ({ message: "Please select a valid category" }) 
   }).optional(),

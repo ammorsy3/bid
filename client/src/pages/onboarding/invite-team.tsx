@@ -26,6 +26,9 @@ function getDraft(): Record<string, any> {
   }
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const isInvalidEmailRow = (email: string) => email.trim() !== '' && !EMAIL_RE.test(email.trim());
+
 const getPostOnboardingRedirect = () => {
   const redirect = localStorage.getItem('postOnboardingRedirect');
   if (redirect) {
@@ -127,7 +130,7 @@ export default function InviteTeam() {
 
       // Send team invitations if requested
       if (sendInvites) {
-        const validInvitations = invitations.filter(inv => inv.email.trim() && inv.email.includes('@'));
+        const validInvitations = invitations.filter(inv => EMAIL_RE.test(inv.email.trim()));
         if (validInvitations.length > 0) {
           await apiRequest('POST', `/api/companies/${companyResult.company.id}/invite-team`, {
             invitations: validInvitations,
@@ -158,13 +161,12 @@ export default function InviteTeam() {
     }
   };
 
+  const hasInvalidRow = invitations.some(inv => isInvalidEmailRow(inv.email));
+
   const handleSubmitWithInvites = async () => {
-    const validInvitations = invitations.filter(inv => inv.email.trim());
-    if (validInvitations.length === 0) {
-      await createCompanyAndFinish(false);
-    } else {
-      await createCompanyAndFinish(true);
-    }
+    if (hasInvalidRow) return;
+    const filledRows = invitations.filter(inv => inv.email.trim());
+    await createCompanyAndFinish(filledRows.length > 0);
   };
 
   const handleSkip = () => createCompanyAndFinish(false);
@@ -186,44 +188,55 @@ export default function InviteTeam() {
           </div>
 
           <div className="space-y-3 mb-6">
-            {invitations.map((inv, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <Input
-                  type="email"
-                  placeholder="colleague@company.com"
-                  value={inv.email}
-                  onChange={(e) => updateInvitation(index, 'email', e.target.value)}
-                  className="flex-1"
-                  disabled={loading}
-                />
-                <Select
-                  value={inv.role}
-                  onValueChange={(value) => updateInvitation(index, 'role', value)}
-                  disabled={loading}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">{t('onboardingPanel.roleAdminLabel')}</SelectItem>
-                    <SelectItem value="member">{t('onboardingPanel.roleMemberLabel')}</SelectItem>
-                    <SelectItem value="viewer">{t('onboardingPanel.roleViewerLabel')}</SelectItem>
-                  </SelectContent>
-                </Select>
-                {invitations.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeRow(index)}
-                    disabled={loading}
-                    className="flex-shrink-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
+            {invitations.map((inv, index) => {
+              const invalid = isInvalidEmailRow(inv.email);
+              return (
+                <div key={index}>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <Input
+                        type="email"
+                        placeholder="colleague@company.com"
+                        value={inv.email}
+                        onChange={(e) => updateInvitation(index, 'email', e.target.value)}
+                        className={`w-full ${invalid ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                        disabled={loading}
+                        aria-invalid={invalid}
+                      />
+                    </div>
+                    <Select
+                      value={inv.role}
+                      onValueChange={(value) => updateInvitation(index, 'role', value)}
+                      disabled={loading}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">{t('onboardingPanel.roleAdminLabel')}</SelectItem>
+                        <SelectItem value="member">{t('onboardingPanel.roleMemberLabel')}</SelectItem>
+                        <SelectItem value="viewer">{t('onboardingPanel.roleViewerLabel')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {invitations.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeRow(index)}
+                        disabled={loading}
+                        className="flex-shrink-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  {invalid && (
+                    <p className="text-xs text-red-600 mt-1 ml-1">Enter a valid email address</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {invitations.length < 10 && (
@@ -271,7 +284,7 @@ export default function InviteTeam() {
               <Button
                 onClick={handleSubmitWithInvites}
                 size="lg"
-                disabled={loading}
+                disabled={loading || hasInvalidRow}
                 className="bg-[#E25E45] hover:bg-[#d04a32]"
               >
                 {loading ? (

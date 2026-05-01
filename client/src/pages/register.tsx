@@ -7,11 +7,30 @@ import { z } from "zod";
 import { Link, useLocation, useSearch } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
+import { Eye, EyeOff } from "lucide-react";
 
 type RegisterForm = { email: string; password: string; confirmPassword: string; name: string };
+
+function scorePassword(pw: string): { score: 0 | 1 | 2 | 3 | 4; label: string; barClass: string; textClass: string } {
+  if (!pw) return { score: 0, label: "", barClass: "bg-neutral-200", textClass: "text-neutral-400" };
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (pw.length >= 12) s++;
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s++;
+  if (/\d/.test(pw) && /[^a-zA-Z0-9]/.test(pw)) s++;
+  const labels = ["Too short", "Weak", "Fair", "Good", "Strong"];
+  const barClasses = ["bg-red-500", "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-emerald-500"];
+  const textClasses = ["text-red-600", "text-red-600", "text-orange-600", "text-yellow-700", "text-emerald-600"];
+  return {
+    score: s as 0 | 1 | 2 | 3 | 4,
+    label: labels[s],
+    barClass: barClasses[s],
+    textClass: textClasses[s],
+  };
+}
 
 export default function Register() {
   const [, setLocation] = useLocation();
@@ -28,7 +47,7 @@ export default function Register() {
     resolver: zodResolver(
       z.object({
         email: z.string().email(t('validation.invalidEmail')),
-        password: z.string().min(6, t('validation.passwordMin')),
+        password: z.string().min(8, t('validation.passwordMin')),
         confirmPassword: z.string(),
         name: z.string().min(2, t('validation.nameMin')),
       }).refine((data) => data.password === data.confirmPassword, {
@@ -43,6 +62,11 @@ export default function Register() {
       name: "",
     },
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const passwordValue = form.watch("password");
+  const strength = scorePassword(passwordValue || "");
 
   useEffect(() => {
     if (user && user.otpVerified) {
@@ -149,8 +173,40 @@ export default function Register() {
                     <FormItem>
                       <FormLabel>{t('auth.password')}</FormLabel>
                       <FormControl>
-                        <Input data-testid="input-password" type="password" placeholder={t('auth.passwordCreatePlaceholder')} className="bg-white" {...field} />
+                        <div className="relative">
+                          <Input
+                            data-testid="input-password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder={t('auth.passwordCreatePlaceholder')}
+                            className="bg-white pr-10"
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(s => !s)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-1"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            tabIndex={-1}
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
                       </FormControl>
+                      {passwordValue && (
+                        <div className="mt-1.5 space-y-1">
+                          <div className="flex gap-1" aria-hidden="true">
+                            {[1, 2, 3, 4].map(i => (
+                              <div
+                                key={i}
+                                className={`h-1 flex-1 rounded-full transition-colors ${
+                                  i <= strength.score ? strength.barClass : "bg-neutral-200"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <p className={`text-xs ${strength.textClass}`}>{strength.label}</p>
+                        </div>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -163,7 +219,24 @@ export default function Register() {
                     <FormItem>
                       <FormLabel>{t('authPanel.confirmPasswordLabel')}</FormLabel>
                       <FormControl>
-                        <Input data-testid="input-confirm-password" type="password" placeholder={t('authPanel.reenterPassword')} className="bg-white" {...field} />
+                        <div className="relative">
+                          <Input
+                            data-testid="input-confirm-password"
+                            type={showConfirm ? "text" : "password"}
+                            placeholder={t('authPanel.reenterPassword')}
+                            className="bg-white pr-10"
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirm(s => !s)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-1"
+                            aria-label={showConfirm ? "Hide password" : "Show password"}
+                            tabIndex={-1}
+                          >
+                            {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

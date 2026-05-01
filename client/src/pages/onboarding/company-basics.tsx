@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { apiRequest } from "@/lib/queryClient";
 import { VENDOR_CATEGORIES } from "@shared/schema";
-import { ArrowRight, ArrowLeft, Building2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, Building2, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 const DRAFT_KEY = "onboarding-draft";
@@ -19,7 +20,7 @@ const DRAFT_KEY = "onboarding-draft";
 const makeCompanyBasicsSchema = (t: (k: string) => string) => z.object({
   name: z.string().min(2, t('validation.companyNameRequired')),
   legalName: z.string().min(2, t('validation.legalNameRequired')),
-  crNumber: z.string().regex(/^\d+$/, t('validation.crNumberFormat')),
+  crNumber: z.string().regex(/^\d{10}$/, t('validation.crNumberFormat')),
   vatNumber: z.string().optional(),
   city: z.string().min(1, t('validation.cityRequired')),
   category: z.string().min(1, t('validation.categoryRequired')),
@@ -64,7 +65,36 @@ export default function CompanyBasics() {
     else if (!user.otpVerified) setLocation("/verify-email");
   }, [user, setLocation]);
 
+  const crValue = form.watch("crNumber");
+  const [crStatus, setCrStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const crCheckTimeoutRef = useRef<NodeJS.Timeout>();
+  const lastCheckedCrRef = useRef<string>("");
+
+  useEffect(() => {
+    if (crCheckTimeoutRef.current) clearTimeout(crCheckTimeoutRef.current);
+    if (!/^\d{10}$/.test(crValue || "")) {
+      setCrStatus('idle');
+      return;
+    }
+    if (crValue === lastCheckedCrRef.current) return;
+    setCrStatus('checking');
+    crCheckTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await apiRequest('GET', `/api/companies/check-cr/${crValue}`);
+        const { taken } = await res.json();
+        lastCheckedCrRef.current = crValue;
+        setCrStatus(taken ? 'taken' : 'available');
+      } catch {
+        setCrStatus('idle');
+      }
+    }, 500);
+    return () => {
+      if (crCheckTimeoutRef.current) clearTimeout(crCheckTimeoutRef.current);
+    };
+  }, [crValue]);
+
   const onSubmit = (data: CompanyBasicsForm) => {
+    if (crStatus === 'taken') return;
     saveDraft(data);
     setLocation("/onboarding/company-documents");
   };
@@ -124,12 +154,32 @@ export default function CompanyBasics() {
                       <FormLabel>CR Number *</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder={t('onboardingPanel.numericOnly')}
+                          placeholder="10-digit CR number"
+                          inputMode="numeric"
+                          maxLength={10}
                           {...field}
-                          onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ''))}
+                          onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 10))}
                           data-testid="input-cr-number"
                         />
                       </FormControl>
+                      {crStatus === 'checking' && (
+                        <p className="text-xs text-neutral-400 flex items-center gap-1 mt-1">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Checking availability…
+                        </p>
+                      )}
+                      {crStatus === 'available' && (
+                        <p className="text-xs text-emerald-600 flex items-center gap-1 mt-1">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Available
+                        </p>
+                      )}
+                      {crStatus === 'taken' && (
+                        <p className="text-xs text-red-600 flex items-start gap-1 mt-1">
+                          <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
+                          <span>This CR is already registered to a workspace on Bid. Ask one of its admins to invite you.</span>
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -198,7 +248,12 @@ export default function CompanyBasics() {
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back
                 </Button>
-                <Button type="submit" size="lg" className="bg-[#E25E45] hover:bg-[#d04a32]">
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={crStatus === 'taken' || crStatus === 'checking'}
+                  className="bg-[#E25E45] hover:bg-[#d04a32]"
+                >
                   Next
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

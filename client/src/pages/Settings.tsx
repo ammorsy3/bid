@@ -321,6 +321,161 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { co
   );
 }
 
+interface MembershipRequest {
+  id: string;
+  status: 'pending' | 'approved' | 'denied';
+  message: string | null;
+  createdAt: string;
+  requester: { id: string; name: string; email: string };
+}
+
+function MembershipRequestsSection({ companyId }: { companyId: string }) {
+  const { toast } = useToast();
+  const [decidingId, setDecidingId] = useState<string | null>(null);
+  const [denyReasonFor, setDenyReasonFor] = useState<string | null>(null);
+  const [denyReason, setDenyReason] = useState("");
+
+  const { data: requests = [], isLoading } = useQuery<MembershipRequest[]>({
+    queryKey: ['/api/companies', companyId, 'membership-requests', 'pending'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', `/api/companies/${companyId}/membership-requests?status=pending`);
+      if (!res.ok) throw new Error('Failed to load join requests');
+      return res.json();
+    },
+  });
+
+  const decideMutation = useMutation({
+    mutationFn: async ({ id, decision, reason }: { id: string; decision: 'approved' | 'denied'; reason?: string }) => {
+      const res = await apiRequest('PATCH', `/api/companies/${companyId}/membership-requests/${id}/decide`, {
+        decision,
+        reason: reason || undefined,
+        role: 'member',
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to decide request');
+      }
+      return res.json();
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/companies', companyId, 'membership-requests', 'pending'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/companies', companyId, 'members'] });
+      setDecidingId(null);
+      setDenyReasonFor(null);
+      setDenyReason("");
+      toast({
+        title: vars.decision === 'approved' ? 'Member added' : 'Request denied',
+        description: vars.decision === 'approved'
+          ? 'They now have access to the workspace.'
+          : 'The user has been notified.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Action failed', description: error.message, variant: 'destructive' });
+      setDecidingId(null);
+    },
+  });
+
+  if (isLoading || requests.length === 0) return null;
+
+  return (
+    <div data-tour="settings-membership-requests">
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center">
+              <UserPlus className="h-4 w-4 text-emerald-600" />
+            </div>
+            <div>
+              <CardTitle className="text-base">Pending join requests</CardTitle>
+              <CardDescription className="text-xs">
+                People asking to join this workspace. Approving adds them as a member.
+              </CardDescription>
+            </div>
+            <Badge variant="secondary" className="ml-auto">{requests.length}</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {requests.map(req => {
+            const isThisDeciding = decidingId === req.id;
+            const showDeny = denyReasonFor === req.id;
+            return (
+              <div key={req.id} className="border rounded-xl p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-neutral-900 truncate">{req.requester.name}</p>
+                    <p className="text-xs text-neutral-500 truncate">{req.requester.email}</p>
+                    {req.message && (
+                      <p className="text-xs text-neutral-600 mt-2 italic border-l-2 border-neutral-200 pl-2">
+                        "{req.message}"
+                      </p>
+                    )}
+                  </div>
+                  <p className="text-xs text-neutral-400 whitespace-nowrap">
+                    {formatDistanceToNow(new Date(req.createdAt), { addSuffix: true })}
+                  </p>
+                </div>
+
+                {showDeny ? (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={denyReason}
+                      onChange={(e) => setDenyReason(e.target.value.slice(0, 500))}
+                      placeholder="Optional: explain why (the user will see this)"
+                      rows={2}
+                      className="text-sm"
+                      disabled={isThisDeciding}
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { setDenyReasonFor(null); setDenyReason(""); }}
+                        disabled={isThisDeciding}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => { setDecidingId(req.id); decideMutation.mutate({ id: req.id, decision: 'denied', reason: denyReason }); }}
+                        disabled={isThisDeciding}
+                      >
+                        {isThisDeciding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Confirm deny'}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => { setDenyReasonFor(req.id); setDenyReason(""); }}
+                      disabled={isThisDeciding}
+                      data-testid={`button-deny-${req.id}`}
+                    >
+                      Deny
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => { setDecidingId(req.id); decideMutation.mutate({ id: req.id, decision: 'approved' }); }}
+                      disabled={isThisDeciding}
+                      className="bg-emerald-600 hover:bg-emerald-700"
+                      data-testid={`button-approve-${req.id}`}
+                    >
+                      {isThisDeciding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Approve'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function Settings() {
   const { user, activeCompany, checkAuth } = useAuthStore();
   const [, setLocation] = useLocation();
@@ -1287,6 +1442,11 @@ export default function Settings() {
               <div data-tour="settings-team-section">
                 <TeamMembersSection companyId={activeCompany.id} canManage={!!canManageCompany} currentUserId={user.id} isRtl={isRtl} />
               </div>
+
+              {/* Pending join requests (admins only) */}
+              {canManageCompany && (
+                <MembershipRequestsSection companyId={activeCompany.id} />
+              )}
 
               {/* Invite Team Members (owners/admins only) */}
               {canManageCompany && (

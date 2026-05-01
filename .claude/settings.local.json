@@ -163,7 +163,9 @@
       "mcp__linear__linear_getViewer",
       "mcp__linear__linear_getTeams",
       "mcp__linear__linear_getIssues",
-      "Bash(ps -o lstart= -p 814)"
+      "Bash(ps -o lstart= -p 814)",
+      "Bash(gh pr create --base main --head ahmorsy07/bid-163-domain-based-workspace-discovery-request-to-join-flow --title 'BID-163: domain-based workspace discovery + request-to-join flow' --body ' *)",
+      "Bash(gh pr *)"
     ]
   },
   "enableAllProjectMcpServers": true,

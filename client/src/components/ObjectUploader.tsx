@@ -39,7 +39,10 @@ export function ObjectUploader({
   const [progress, setProgress] = useState(0);
   const [isDragOver, setIsDragOver] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [attemptNum, setAttemptNum] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_ATTEMPTS = 3;
 
   const validateFile = (file: File): string | null => {
     if (file.size > maxFileSize) {
@@ -78,34 +81,65 @@ export function ObjectUploader({
     if (!selectedFile) return;
     setState("uploading");
     setProgress(0);
-    try {
-      const { url } = await onGetUploadParameters();
+    setAttemptNum(1);
 
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.upload.addEventListener("progress", (e) => {
-          if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
+    let lastError: { message?: string; status?: number } | null = null;
+    let uploadedURL: string | null = null;
+
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      setAttemptNum(attempt);
+      if (attempt > 1) {
+        // Exponential backoff: 1s, 2s
+        await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt - 2)));
+        setProgress(0);
+      }
+      try {
+        const { url } = await onGetUploadParameters();
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.upload.addEventListener("progress", (e) => {
+            if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
+          });
+          xhr.addEventListener("load", () => {
+            if (xhr.status < 300) {
+              resolve();
+            } else {
+              const err: { message: string; status: number } = {
+                message: `Upload failed: ${xhr.status}`,
+                status: xhr.status,
+              };
+              reject(err);
+            }
+          });
+          xhr.addEventListener("error", () => reject({ message: "Network error" }));
+          xhr.addEventListener("timeout", () => reject({ message: "Upload timed out" }));
+          xhr.open("PUT", url);
+          xhr.setRequestHeader("Content-Type", selectedFile.type || "application/octet-stream");
+          xhr.send(selectedFile);
         });
-        xhr.addEventListener("load", () =>
-          xhr.status < 300 ? resolve() : reject(new Error(`Upload failed: ${xhr.status}`)),
-        );
-        xhr.addEventListener("error", () => reject(new Error("Network error")));
-        xhr.open("PUT", url);
-        xhr.setRequestHeader("Content-Type", selectedFile.type || "application/octet-stream");
-        xhr.send(selectedFile);
-      });
+        uploadedURL = url;
+        break;
+      } catch (err: any) {
+        lastError = err;
+        // 4xx is permanent (bad file, auth, etc.) — don't retry
+        if (err?.status && err.status >= 400 && err.status < 500) break;
+      }
+    }
 
+    if (uploadedURL) {
       setProgress(100);
       setState("success");
-
       onComplete?.({
-        successful: [{ uploadURL: url, name: selectedFile.name }],
+        successful: [{ uploadURL: uploadedURL, name: selectedFile.name }],
         failed: [],
       });
-
       setTimeout(() => handleOpenChange(false), 1200);
-    } catch {
-      setErrorMsg("Upload failed. Please check your connection and try again.");
+    } else {
+      setErrorMsg(
+        lastError?.status && lastError.status >= 400 && lastError.status < 500
+          ? "Server rejected the upload. Please check the file and try again."
+          : `Upload failed after ${MAX_ATTEMPTS} attempts. Please check your connection and try again.`,
+      );
       setState("error");
     }
   };
@@ -115,6 +149,7 @@ export function ObjectUploader({
     setSelectedFile(null);
     setProgress(0);
     setErrorMsg("");
+    setAttemptNum(1);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -264,7 +299,11 @@ export function ObjectUploader({
                     <p className="text-sm font-medium text-neutral-900 truncate">
                       {selectedFile?.name}
                     </p>
-                    <p className="text-xs text-neutral-500 mt-0.5">Uploading… {progress}%</p>
+                    <p className="text-xs text-neutral-500 mt-0.5">
+                      {attemptNum > 1
+                        ? `Retrying… (attempt ${attemptNum} of ${MAX_ATTEMPTS}) — ${progress}%`
+                        : `Uploading… ${progress}%`}
+                    </p>
                   </div>
                 </div>
                 <Progress value={progress} className="h-1.5 rounded-full" />

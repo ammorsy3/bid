@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { SmartTextarea } from "@/components/ui/smart-input";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { useDebouncedSave } from "@/lib/autosave";
 import { apiRequest } from "@/lib/queryClient";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { ArrowRight, ArrowLeft, Palette, Upload, Building2 } from "lucide-react";
@@ -18,9 +19,11 @@ import OnboardingLayout from "@/components/onboarding-layout";
 
 const DRAFT_KEY = "onboarding-draft";
 
+const BIO_MAX = 250;
+
 const makeCompanyProfileSchema = (t: (k: string) => string) => z.object({
   logoUrl: z.string().optional(),
-  bio: z.string().max(100, t('validation.bioMax')).optional(),
+  bio: z.string().max(BIO_MAX, `Bio must not exceed ${BIO_MAX} characters`).optional(),
   websiteUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
   linkedinUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
 });
@@ -37,7 +40,7 @@ function getDraft(): Record<string, any> {
 
 function saveDraft(data: Partial<CompanyProfileForm>) {
   const existing = getDraft();
-  localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...existing, ...data, step2Complete: true }));
+  localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...existing, ...data }));
 }
 
 export default function CompanyProfile() {
@@ -102,13 +105,24 @@ export default function CompanyProfile() {
     }
   };
 
+  const watched = form.watch();
+  const autosave = useCallback((values: CompanyProfileForm) => {
+    saveDraft(values);
+  }, []);
+  useDebouncedSave(watched, autosave);
+
   const onSubmit = (data: CompanyProfileForm) => {
-    saveDraft(data);
+    const existing = getDraft();
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...existing, ...data, step2Complete: true }));
     setLocation("/onboarding/invite-team");
   };
 
   const handleSkip = () => {
-    saveDraft({ logoUrl: "", bio: "", websiteUrl: "", linkedinUrl: "" });
+    const existing = getDraft();
+    localStorage.setItem(
+      DRAFT_KEY,
+      JSON.stringify({ ...existing, logoUrl: "", bio: "", websiteUrl: "", linkedinUrl: "", step2Complete: true })
+    );
     setLocation("/onboarding/invite-team");
   };
 
@@ -186,14 +200,14 @@ export default function CompanyProfile() {
                       <SmartTextarea
                         {...field}
                         rows={3}
-                        maxLength={100}
+                        maxLength={BIO_MAX}
                         placeholder="Briefly describe your company and services"
                         data-testid="input-bio"
                       />
                     </FormControl>
                     <FormDescription>
                       <span className="text-neutral-400">
-                        {(field.value || "").length} / 100 characters
+                        {(field.value || "").length} / {BIO_MAX} characters
                       </span>
                     </FormDescription>
                     <FormMessage />

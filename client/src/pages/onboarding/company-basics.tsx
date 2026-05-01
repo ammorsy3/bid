@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
+import { useDebouncedSave } from "@/lib/autosave";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { ArrowRight, ArrowLeft, Building2, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
@@ -38,7 +39,7 @@ function getDraft(): Record<string, any> {
 
 function saveDraft(data: Partial<CompanyBasicsForm>) {
   const existing = getDraft();
-  localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...existing, ...data, step1Complete: true }));
+  localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...existing, ...data }));
 }
 
 export default function CompanyBasics() {
@@ -93,9 +94,16 @@ export default function CompanyBasics() {
     };
   }, [crValue]);
 
+  const watched = form.watch();
+  const autosave = useCallback((values: CompanyBasicsForm) => {
+    saveDraft(values);
+  }, []);
+  useDebouncedSave(watched, autosave);
+
   const onSubmit = (data: CompanyBasicsForm) => {
     if (crStatus === 'taken') return;
-    saveDraft(data);
+    const existing = getDraft();
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...existing, ...data, step1Complete: true }));
     setLocation("/onboarding/company-documents");
   };
 

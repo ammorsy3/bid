@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
+import { useDebouncedSave } from "@/lib/autosave";
 import { ArrowLeft, Users, Plus, X, Loader2, Rocket } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
@@ -24,6 +25,11 @@ function getDraft(): Record<string, any> {
   } catch {
     return {};
   }
+}
+
+function saveDraft(data: Record<string, any>) {
+  const existing = getDraft();
+  localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...existing, ...data }));
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,11 +50,17 @@ export default function InviteTeam() {
   const { toast } = useToast();
   const { t } = useI18n();
   const [loading, setLoading] = useState(false);
-  const [invitations, setInvitations] = useState<Invitation[]>([
-    { email: "", role: "member" },
-  ]);
-
   const draft = getDraft();
+  const initialInvitations = useMemo<Invitation[]>(() => {
+    const saved = Array.isArray(draft.invitations) ? draft.invitations : null;
+    return saved && saved.length > 0 ? saved : [{ email: "", role: "member" }];
+  }, []);
+  const [invitations, setInvitations] = useState<Invitation[]>(initialInvitations);
+
+  const autosave = useCallback((values: Invitation[]) => {
+    saveDraft({ invitations: values });
+  }, []);
+  useDebouncedSave(invitations, autosave);
 
   useEffect(() => {
     if (!user) { setLocation("/signup"); return; }
@@ -80,7 +92,17 @@ export default function InviteTeam() {
         throw new Error(t('onboardingSetup.missingRequiredInfo'));
       }
 
-      // Create company from draft data — include profile data so logo/bio are saved in one request
+      // Create company from draft data — include profile + documents inline so the
+      // company row, profile, and verification-document rows are persisted in a single
+      // request (no cross-request gap that could leave files orphaned in object storage).
+      const savedDocs: Record<string, string> = draft.documents || {};
+      const savedDocNames: Record<string, string> = draft.documentNames || {};
+      const documentsPayload = Object.entries(savedDocs).map(([documentType, fileUrl]) => ({
+        documentType,
+        fileUrl,
+        originalName: savedDocNames[documentType] || undefined,
+      }));
+
       const companyData: Record<string, any> = {
         name: draft.name,
         legalName: draft.legalName,
@@ -92,6 +114,7 @@ export default function InviteTeam() {
       if (draft.logoUrl) companyData.logoUrl = draft.logoUrl;
       if (draft.bio) companyData.bio = draft.bio;
       if (draft.websiteUrl) companyData.websiteUrl = draft.websiteUrl;
+      if (documentsPayload.length > 0) companyData.documents = documentsPayload;
 
       const companyResponse = await apiRequest('POST', '/api/companies', companyData);
       if (!companyResponse.ok) {
@@ -117,15 +140,13 @@ export default function InviteTeam() {
         }
       }
 
-      // Upload verification documents saved during onboarding
-      const savedDocs: Record<string, string> = draft.documents || {};
-      const savedDocNames: Record<string, string> = draft.documentNames || {};
-      for (const [docType, fileUrl] of Object.entries(savedDocs)) {
-        await apiRequest('POST', `/api/companies/${companyResult.company.id}/documents`, {
-          documentType: docType,
-          fileUrl,
-          originalName: savedDocNames[docType] || undefined,
-        }).catch(err => console.error('Failed to save document:', err));
+      const failedDocuments: Array<{ documentType: string; error: string }> = companyResult.failedDocuments || [];
+      if (failedDocuments.length > 0) {
+        toast({
+          title: "Some documents didn't save",
+          description: `Couldn't save: ${failedDocuments.map(f => f.documentType).join(', ')}. You can re-upload them from settings.`,
+          variant: "destructive",
+        });
       }
 
       // Send team invitations if requested

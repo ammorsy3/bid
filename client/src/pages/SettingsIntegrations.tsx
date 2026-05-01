@@ -144,13 +144,21 @@ export default function SettingsIntegrations() {
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <Button
-            variant="ghost"
-            size="sm"
+            className="group relative overflow-hidden h-8 mb-3"
             onClick={() => setLocation("/settings")}
-            className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
+            data-testid="button-back-to-settings"
           >
-            <ArrowLeft className={`h-4 w-4 ${isRtl ? 'ml-1 rotate-180' : 'mr-1'}`} />
-            {t('settings.backToSettings')}
+            <span className="w-12 translate-x-2 transition-opacity duration-500 group-hover:opacity-0 text-sm">
+              {t('common.back')}
+            </span>
+            <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
+              <ArrowLeft
+                className={`opacity-60 ${isRtl ? 'rotate-180' : ''}`}
+                size={16}
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+            </i>
           </Button>
           <h1 className="text-2xl font-semibold">{t('settings.intPageTitle')}</h1>
           <p className="text-sm text-muted-foreground mt-1">

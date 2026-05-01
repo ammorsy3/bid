@@ -55,7 +55,7 @@ function copyToClipboard(text: string) {
 export default function SettingsIntegrations() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { t } = useI18n();
+  const { t, isRtl } = useI18n();
   const user = useAuthStore((s) => s.user);
   const activeCompany = useAuthStore((s) => s.activeCompany);
 
@@ -149,7 +149,7 @@ export default function SettingsIntegrations() {
             onClick={() => setLocation("/settings")}
             className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="h-4 w-4 mr-1" />
+            <ArrowLeft className={`h-4 w-4 ${isRtl ? 'ml-1 rotate-180' : 'mr-1'}`} />
             {t('settings.backToSettings')}
           </Button>
           <h1 className="text-2xl font-semibold">{t('settings.intPageTitle')}</h1>

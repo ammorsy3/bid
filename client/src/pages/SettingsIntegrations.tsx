@@ -160,7 +160,7 @@ export default function SettingsIntegrations() {
               />
             </i>
           </Button>
-          <h1 className="text-2xl font-semibold">{t('settings.intPageTitle')}</h1>
+          <h1 className="font-display font-black text-3xl tracking-[-0.04em]">{t('settings.intPageTitle')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {t('settings.intPageDesc')}
           </p>
@@ -182,7 +182,7 @@ export default function SettingsIntegrations() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold flex items-center gap-2">
+            <h2 className="font-display font-black text-xl flex items-center gap-2 tracking-[-0.02em]">
               <KeyRound size={18} />
               {t('settings.intApiKeysTitle')}
             </h2>
@@ -259,7 +259,7 @@ export default function SettingsIntegrations() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold flex items-center gap-2">
+            <h2 className="font-display font-black text-xl flex items-center gap-2 tracking-[-0.02em]">
               <Plug size={18} />
               {t('settings.intSectionTitle')}
             </h2>
@@ -659,7 +659,7 @@ function NewKeyDisplayDialog(props: {
               </Button>
             </div>
           </div>
-          <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 p-3 rounded">
+          <div className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 p-3 rounded">
             <AlertCircle size={14} className="mt-0.5 shrink-0" />
             <span>{t('settings.intKeyWarning')}</span>
           </div>

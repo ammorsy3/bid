@@ -91,23 +91,23 @@ export function FieldInsightPanel({ cardType, cursorPos, onClose }: FieldInsight
               mass: 0.7,
             }}
             style={{ top: panelStyle.top, left: panelStyle.left }}
-            className="fixed z-50 w-[340px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl"
+            className="fixed z-50 w-[340px] bg-white dark:bg-background border border-border dark:border-border rounded-2xl shadow-2xl"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3">
               <div className="flex items-center gap-2.5">
                 {Icon && (
-                  <div className="p-1.5 rounded-lg bg-[#E25E45]/10">
-                    <Icon className="h-4 w-4 text-[#E25E45]" />
+                  <div className="p-1.5 rounded-lg bg-[#FE3C01]/10">
+                    <Icon className="h-4 w-4 text-[#FE3C01]" />
                   </div>
                 )}
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-foreground">
                   {insight.title}
                 </h3>
               </div>
               <button
                 onClick={onClose}
-                className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="p-1 rounded-lg hover:bg-muted dark:hover:bg-gray-800 transition-colors"
               >
                 <X className="h-3.5 w-3.5 text-gray-400" />
               </button>
@@ -120,7 +120,7 @@ export function FieldInsightPanel({ cardType, cursorPos, onClose }: FieldInsight
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.08, duration: 0.25 }}
-                className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed"
+                className="text-xs text-muted-foreground dark:text-muted-foreground leading-relaxed"
               >
                 {insight.description}
               </motion.p>
@@ -167,7 +167,7 @@ export function FieldInsightPanel({ cardType, cursorPos, onClose }: FieldInsight
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.25 }}
                 onClick={onClose}
-                className="w-full py-2 rounded-lg bg-[#E25E45] hover:bg-[#d54d35] text-white text-xs font-medium transition-colors"
+                className="w-full py-2 rounded-lg bg-[#FE3C01] hover:bg-[#d54d35] text-white text-xs font-medium transition-colors"
               >
                 {t('formBuilder.gotIt')}
               </motion.button>

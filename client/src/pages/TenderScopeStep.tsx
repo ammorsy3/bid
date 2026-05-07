@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Edit2 } from "lucide-react";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
 import { useState, useMemo } from "react";
 import { JollyDatePicker } from "@/components/ui/date-picker";
@@ -73,12 +73,7 @@ export default function TenderScopeStep() {
     <div className="py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <img
-            src={logoPath}
-            alt="Bid"
-            className="h-16 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate("/dashboard")}
-          />
+          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
           <Button
             onClick={handleBack}
             className="group relative overflow-hidden"
@@ -105,7 +100,7 @@ export default function TenderScopeStep() {
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 5 / 6
               </div>
-              <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
+              <h1 className="font-display font-black text-5xl text-gray-900 dark:text-foreground leading-[0.92] tracking-[-0.045em]">
                 {t('tenderSteps.scopeStepTitle')}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
@@ -117,7 +112,7 @@ export default function TenderScopeStep() {
           {/* Right Section - Scope and Duration Options */}
           <div>
             <Card className="border-0 shadow-xl overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
 
               <div className="p-8 space-y-6">
                 {/* Scope Options - Only show if not selected */}
@@ -126,7 +121,7 @@ export default function TenderScopeStep() {
                     {SCOPE_OPTIONS.map((option) => (
                       <label
                         key={option.id}
-                        className="flex items-start gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-[#E25E45] transition-colors"
+                        className="flex items-start gap-4 p-4 border border-border dark:border-border rounded-lg cursor-pointer hover:border-[#FE3C01] transition-colors"
                         data-testid={`label-scope-${option.id}`}
                       >
                         <input
@@ -135,11 +130,11 @@ export default function TenderScopeStep() {
                           value={option.id}
                           checked={scope === option.id}
                           onChange={(e) => setScope(e.target.value)}
-                          className="mt-1 h-5 w-5 text-[#E25E45] cursor-pointer"
+                          className="mt-1 h-5 w-5 text-[#FE3C01] cursor-pointer"
                           data-testid={`input-scope-${option.id}`}
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 dark:text-white">
+                          <p className="font-medium text-gray-900 dark:text-foreground">
                             {option.label}
                           </p>
                           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -152,9 +147,9 @@ export default function TenderScopeStep() {
                 ) : (
                   <>
                     {/* Selected Scope with Edit Button */}
-                    <div className="flex items-start justify-between gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-start justify-between gap-4 p-4 bg-gray-50 dark:bg-card rounded-lg">
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">
+                        <p className="font-medium text-gray-900 dark:text-foreground">
                           {selectedScopeOption?.label}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -171,15 +166,15 @@ export default function TenderScopeStep() {
                     </div>
 
                     {/* Duration Question */}
-                    <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6">
-                      <h3 className="font-medium text-gray-900 dark:text-white">
+                    <div className="space-y-4 border-t border-border dark:border-border pt-6">
+                      <h3 className="font-medium text-gray-900 dark:text-foreground">
                         {t('tenderSteps.durationQuestion')}
                       </h3>
                       <div className="space-y-3">
                         {DURATION_OPTIONS.map((option) => (
                           <label
                             key={option.id}
-                            className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-[#E25E45] transition-colors"
+                            className="flex items-center gap-3 p-3 border border-border dark:border-border rounded-lg cursor-pointer hover:border-[#FE3C01] transition-colors"
                             data-testid={`label-duration-${option.id}`}
                           >
                             <input
@@ -188,10 +183,10 @@ export default function TenderScopeStep() {
                               value={option.id}
                               checked={duration === option.id}
                               onChange={(e) => setDuration(e.target.value)}
-                              className="h-4 w-4 text-[#E25E45] cursor-pointer"
+                              className="h-4 w-4 text-[#FE3C01] cursor-pointer"
                               data-testid={`input-duration-${option.id}`}
                             />
-                            <span className="text-gray-900 dark:text-white">
+                            <span className="text-gray-900 dark:text-foreground">
                               {option.label}
                             </span>
                           </label>
@@ -201,8 +196,8 @@ export default function TenderScopeStep() {
 
                     {/* Deadline Date Picker */}
                     {duration && (
-                      <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
-                        <label className="block font-medium text-gray-900 dark:text-white">
+                      <div className="space-y-3 border-t border-border dark:border-border pt-6">
+                        <label className="block font-medium text-gray-900 dark:text-foreground">
                           {t('tenderSteps.submissionDeadlineQuestion')}
                         </label>
                         <JollyDatePicker
@@ -217,7 +212,7 @@ export default function TenderScopeStep() {
                 )}
 
                 {/* Navigation Buttons */}
-                <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex gap-3 pt-6 border-t border-border dark:border-border">
                   <Button
                     type="button"
                     variant="outline"
@@ -230,7 +225,7 @@ export default function TenderScopeStep() {
                   <Button
                     onClick={handleNext}
                     disabled={!isFormValid}
-                    className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
+                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
                     data-testid="button-next"
                   >
                     {t('tenderSteps.next')}

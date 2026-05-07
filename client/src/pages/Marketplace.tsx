@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
 import { useAuthStore } from "@/lib/auth";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import heroBg from "@assets/image_1775799187200.png";
 
 interface MarketplaceTender {
@@ -66,7 +66,7 @@ function CircleProgress({ percent, days, expired, size = 56 }: { percent: number
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percent / 100) * circumference;
-  const color = expired ? '#9ca3af' : percent < 25 ? '#f59e0b' : '#E8614D';
+  const color = expired ? '#9ca3af' : percent < 25 ? '#f59e0b' : '#FE3C01';
 
   return (
     <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
@@ -139,16 +139,16 @@ export default function Marketplace() {
 
   return (
     <div className={`min-h-screen bg-[#F3F4F6] ${isRtl ? 'rtl' : 'ltr'}`} dir={isRtl ? 'rtl' : 'ltr'}>
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-card border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-8">
               <Link href={marketplaceHome} className="flex items-center gap-2">
-                <img src={logoPath} alt="Bid" className="h-8 object-contain" />
+                <BidLogo size={28} />
               </Link>
               <nav className="hidden sm:flex items-center gap-6 text-sm font-medium">
                 <Link href={marketplaceHome}>
-                  <span className="text-[#E8614D] font-semibold">
+                  <span className="text-[#FE3C01] font-semibold">
                     {t('marketplace.title')}
                   </span>
                 </Link>
@@ -158,12 +158,12 @@ export default function Marketplace() {
               {user ? (
                 <div className="flex items-center gap-2">
                   <Link href="/tenders/new">
-                    <Button size="sm" variant="outline" className="text-sm px-4 rounded border-[#E8614D]/30 text-[#E8614D] hover:bg-[#E8614D]/5">
+                    <Button size="sm" variant="outline" className="text-sm px-4 rounded border-[#FE3C01]/30 text-[#FE3C01] hover:bg-[#FE3C01]/5">
                       {t('marketplace.postTender') || 'Post a Tender'}
                     </Button>
                   </Link>
                   <Link href="/dashboard">
-                    <Button size="sm" className="bg-[#E8614D] hover:bg-[#d4553f] text-white text-sm px-5 rounded">
+                    <Button size="sm" className="bg-[#FE3C01] hover:bg-[#E83501] text-white text-sm px-5 rounded">
                       {t('marketplace.dashboard')}
                     </Button>
                   </Link>
@@ -171,12 +171,12 @@ export default function Marketplace() {
               ) : (
                 <>
                   <Link href="/login">
-                    <Button variant="ghost" size="sm" className="text-sm text-gray-600 hover:text-gray-900">
+                    <Button variant="ghost" size="sm" className="text-sm text-muted-foreground hover:text-foreground">
                       {t('marketplace.login')}
                     </Button>
                   </Link>
                   <Link href="/signup">
-                    <Button size="sm" className="bg-[#E8614D] hover:bg-[#d4553f] text-white text-sm px-5 rounded">
+                    <Button size="sm" className="bg-[#FE3C01] hover:bg-[#E83501] text-white text-sm px-5 rounded">
                       {t('marketplace.getStarted')}
                     </Button>
                   </Link>
@@ -195,45 +195,45 @@ export default function Marketplace() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/50" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
+          <h1 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-white leading-[0.92] tracking-[-0.04em]">
             {t('marketplace.title')}
           </h1>
         </div>
       </section>
 
 
-      <section className="bg-white py-14 px-4 sm:px-6 lg:px-8">
+      <section className="bg-card py-14 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-3">
+          <h2 className="font-display font-black text-2xl sm:text-3xl text-foreground text-center mb-3 tracking-[-0.03em]">
             {t('marketplace.howItWorks')}
           </h2>
-          <p className="text-gray-500 text-center max-w-2xl mx-auto mb-10 text-sm sm:text-base">
+          <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-10 text-sm sm:text-base">
             {t('marketplace.howItWorksDesc')}
           </p>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-7 flex flex-col items-center text-center">
-              <div className="h-14 w-14 rounded-2xl bg-[#E8614D]/10 flex items-center justify-center mb-5">
-                <Building2 className="h-7 w-7 text-[#E8614D]" />
+            <div className="rounded-2xl border border-border bg-muted p-7 flex flex-col items-center text-center">
+              <div className="h-14 w-14 rounded-2xl bg-[#FE3C01]/10 flex items-center justify-center mb-5">
+                <Building2 className="h-7 w-7 text-[#FE3C01]" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">{t('marketplace.buyers')}</h3>
-              <p className="text-sm text-gray-500 mb-5">{t('marketplace.buyersDesc')}</p>
+              <h3 className="text-lg font-bold text-foreground mb-1">{t('marketplace.buyers')}</h3>
+              <p className="text-sm text-muted-foreground mb-5">{t('marketplace.buyersDesc')}</p>
               <Link href="/signup">
-                <Button className="bg-[#E8614D] hover:bg-[#d4553f] text-white px-6">
+                <Button className="bg-[#FE3C01] hover:bg-[#E83501] text-white px-6">
                   {t('marketplace.startBuying')}
                   <ArrowRight className={`h-4 w-4 ${isRtl ? 'mr-2 rotate-180' : 'ml-2'}`} />
                 </Button>
               </Link>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-7 flex flex-col items-center text-center">
-              <div className="h-14 w-14 rounded-2xl bg-[#E8614D]/10 flex items-center justify-center mb-5">
-                <Users className="h-7 w-7 text-[#E8614D]" />
+            <div className="rounded-2xl border border-border bg-muted p-7 flex flex-col items-center text-center">
+              <div className="h-14 w-14 rounded-2xl bg-[#FE3C01]/10 flex items-center justify-center mb-5">
+                <Users className="h-7 w-7 text-[#FE3C01]" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">{t('marketplace.suppliers')}</h3>
-              <p className="text-sm text-gray-500 mb-5">{t('marketplace.suppliersDesc')}</p>
+              <h3 className="text-lg font-bold text-foreground mb-1">{t('marketplace.suppliers')}</h3>
+              <p className="text-sm text-muted-foreground mb-5">{t('marketplace.suppliersDesc')}</p>
               <Link href="/signup">
-                <Button variant="outline" className="border-[#E8614D] text-[#E8614D] hover:bg-red-50 px-6">
+                <Button variant="outline" className="border-[#FE3C01] text-[#FE3C01] hover:bg-red-50 px-6">
                   {t('marketplace.startSelling')}
                   <ArrowRight className={`h-4 w-4 ${isRtl ? 'mr-2 rotate-180' : 'ml-2'}`} />
                 </Button>
@@ -244,7 +244,7 @@ export default function Marketplace() {
       </section>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-8">
+        <h2 className="font-display font-black text-2xl sm:text-3xl text-foreground text-center mb-8 tracking-[-0.03em]">
           {t('marketplace.latestOpportunities')}
         </h2>
 
@@ -255,18 +255,18 @@ export default function Marketplace() {
                 onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                 aria-expanded={showCategoryDropdown}
                 aria-haspopup="listbox"
-                className="flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white hover:border-gray-400 transition-colors"
+                className="flex items-center gap-2 border border-border rounded-lg px-4 py-2.5 text-sm bg-card hover:border-gray-400 transition-colors"
               >
                 {category || t('marketplace.category')}
                 <ChevronDown className="h-4 w-4 text-gray-400" />
               </button>
               {showCategoryDropdown && (
-                <div role="listbox" className={`absolute top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-30 min-w-[200px] max-h-60 overflow-y-auto ${isRtl ? 'right-0' : 'left-0'}`}>
+                <div role="listbox" className={`absolute top-full mt-1 bg-card border border-border rounded-lg shadow-lg z-30 min-w-[200px] max-h-60 overflow-y-auto ${isRtl ? 'right-0' : 'left-0'}`}>
                   <button
                     role="option"
                     aria-selected={!category}
                     onClick={() => { setCategory(""); setShowCategoryDropdown(false); setPage(1); }}
-                    className={`block w-full text-start px-4 py-2 text-sm hover:bg-gray-50 ${!category ? 'text-[#E8614D] font-medium' : 'text-gray-700'}`}
+                    className={`block w-full text-start px-4 py-2 text-sm hover:bg-muted ${!category ? 'text-[#FE3C01] font-medium' : 'text-muted-foreground'}`}
                   >
                     {t('marketplace.allCategories')}
                   </button>
@@ -276,7 +276,7 @@ export default function Marketplace() {
                       role="option"
                       aria-selected={category === cat}
                       onClick={() => { setCategory(cat); setShowCategoryDropdown(false); setPage(1); }}
-                      className={`block w-full text-start px-4 py-2 text-sm hover:bg-gray-50 ${category === cat ? 'text-[#E8614D] font-medium' : 'text-gray-700'}`}
+                      className={`block w-full text-start px-4 py-2 text-sm hover:bg-muted ${category === cat ? 'text-[#FE3C01] font-medium' : 'text-muted-foreground'}`}
                     >
                       {cat}
                     </button>
@@ -286,7 +286,7 @@ export default function Marketplace() {
             </div>
 
             <Select value={tenderType || "all"} onValueChange={(v) => { setTenderType(v === "all" ? "" : v); setPage(1); }}>
-              <SelectTrigger className="w-[170px] h-10 text-sm bg-white border-gray-300">
+              <SelectTrigger className="w-[170px] h-10 text-sm bg-card border-border">
                 <SelectValue placeholder={t('marketplace.allTypes')} />
               </SelectTrigger>
               <SelectContent>
@@ -298,7 +298,7 @@ export default function Marketplace() {
             </Select>
 
             <Select value={city || "all"} onValueChange={(v) => { setCity(v === "all" ? "" : v); setPage(1); }}>
-              <SelectTrigger className="w-[160px] h-10 text-sm bg-white border-gray-300">
+              <SelectTrigger className="w-[160px] h-10 text-sm bg-card border-border">
                 <SelectValue placeholder={t('marketplace.city')} />
               </SelectTrigger>
               <SelectContent>
@@ -312,7 +312,7 @@ export default function Marketplace() {
 
           <div className="flex items-center gap-3">
             <Select value={sort} onValueChange={(v) => { setSort(v); setPage(1); }}>
-              <SelectTrigger className="w-[160px] h-10 text-sm bg-white border-gray-300">
+              <SelectTrigger className="w-[160px] h-10 text-sm bg-card border-border">
                 <SelectValue placeholder={t('marketplace.sortBy')} />
               </SelectTrigger>
               <SelectContent>
@@ -328,7 +328,7 @@ export default function Marketplace() {
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                 placeholder={t('marketplace.searchPlaceholder')}
-                className={`w-48 sm:w-64 h-10 text-sm bg-white border-gray-300 rounded-lg ${isRtl ? 'pr-10' : 'pl-10'}`}
+                className={`w-48 sm:w-64 h-10 text-sm bg-card border-border rounded-lg ${isRtl ? 'pr-10' : 'pl-10'}`}
               />
             </div>
           </div>
@@ -337,10 +337,10 @@ export default function Marketplace() {
         {isLoading ? (
           <div className="space-y-4" data-testid="loader-page">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div key={i} className="bg-card rounded-xl border border-border overflow-hidden">
                 <div className="flex items-stretch">
                   {/* Progress circle area */}
-                  <div className="flex flex-col items-center justify-center px-8 py-8 border-e border-gray-100 min-w-[160px]">
+                  <div className="flex flex-col items-center justify-center px-8 py-8 border-e border-border min-w-[160px]">
                     <Skeleton className="h-20 w-20 rounded-full" />
                     <Skeleton className="h-3 w-16 mt-3" />
                     <Skeleton className="h-3 w-12 mt-1.5" />
@@ -366,7 +366,7 @@ export default function Marketplace() {
         ) : tenders.length === 0 ? (
           <div className="text-center py-24">
             <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-500">{t('marketplace.noTenders')}</h3>
+            <h3 className="font-display font-black text-2xl text-muted-foreground tracking-[-0.03em]">{t('marketplace.noTenders')}</h3>
             <p className="text-sm text-gray-400 mt-2">{t('marketplace.checkBackLater')}</p>
           </div>
         ) : (
@@ -386,15 +386,15 @@ export default function Marketplace() {
                 <a
                   key={tender.id}
                   href={`/invite/${tender.invitationToken}`}
-                  className="block bg-white rounded-xl border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer group no-underline overflow-hidden"
+                  className="block bg-card rounded-xl border border-border hover:shadow-md hover:border-border transition-all cursor-pointer group no-underline overflow-hidden"
                   onClick={(e) => { e.preventDefault(); setLocation(user ? `/invite/${tender.invitationToken}` : '/login'); }}
                 >
                   {/* Main content area */}
                   <div className="flex items-stretch">
                     {/* Left: Circle progress */}
-                    <div className="flex flex-col items-center justify-center px-8 py-8 border-e border-gray-100 min-w-[160px]">
+                    <div className="flex flex-col items-center justify-center px-8 py-8 border-e border-border min-w-[160px]">
                       <CircleProgress percent={percent} days={days} expired={expired} size={110} />
-                      <p className={`text-xs mt-3 ${expired ? 'text-red-500' : 'text-gray-500'}`}>
+                      <p className={`text-xs mt-3 ${expired ? 'text-red-500' : 'text-muted-foreground'}`}>
                         {expired ? t('marketplace.deadlinePassed') : `${days} ${t('marketplace.daysRemaining')}`}
                       </p>
                     </div>
@@ -403,25 +403,25 @@ export default function Marketplace() {
                     <div className="flex-1 min-w-0 px-6 py-6 flex flex-col justify-between">
                       {/* Top row: publish date + badge */}
                       <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Calendar className="h-3.5 w-3.5" />
                           <span>{t('marketplace.publishDate')}:</span>
-                          <span className="font-medium text-gray-700">{formatDate(tender.createdAt)}</span>
+                          <span className="font-medium text-muted-foreground">{formatDate(tender.createdAt)}</span>
                         </div>
-                        <Badge className="bg-[#E8614D] text-white border-0 text-[11px] font-medium px-2.5 py-0.5 rounded">
+                        <Badge className="bg-[#FE3C01] text-white border-0 text-[11px] font-medium px-2.5 py-0.5 rounded">
                           {tenderTypeLabel}
                         </Badge>
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#E8614D] transition-colors leading-snug mb-2 line-clamp-2">
+                      <h3 className="text-lg font-bold text-foreground group-hover:text-[#FE3C01] transition-colors leading-snug mb-2 line-clamp-2">
                         {tender.title}
                       </h3>
 
                       {/* Company info */}
-                      <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                         {tender.profile?.logoUrl && tender.profile.logoUrl.includes('/company-logos/') ? (
-                          <img src={tender.profile.logoUrl} alt="" className="h-5 w-5 rounded-full object-cover border border-gray-100 flex-shrink-0" />
+                          <img src={tender.profile.logoUrl} alt="" className="h-5 w-5 rounded-full object-cover border border-border flex-shrink-0" />
                         ) : (
                           <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
                         )}
@@ -440,9 +440,9 @@ export default function Marketplace() {
                       {/* Category + details link */}
                       <div className="flex items-center justify-between">
                         {tender.category && (
-                          <span className="text-xs text-[#E8614D] font-medium">{tender.category}</span>
+                          <span className="text-xs text-[#FE3C01] font-medium">{tender.category}</span>
                         )}
-                        <span className="text-xs text-gray-500 underline underline-offset-2 group-hover:text-[#E8614D] transition-colors">
+                        <span className="text-xs text-muted-foreground underline underline-offset-2 group-hover:text-[#FE3C01] transition-colors">
                           {t('marketplace.viewDetails')}
                         </span>
                       </div>
@@ -450,22 +450,22 @@ export default function Marketplace() {
                   </div>
 
                   {/* Metadata row */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-gray-100 border-t border-gray-100">
-                    <div className="bg-white px-5 py-4 text-center">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-muted border-t border-border">
+                    <div className="bg-card px-5 py-4 text-center">
                       <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.refNumber')}</p>
-                      <p className="text-sm font-semibold text-gray-800 font-mono">{tender.referenceNumber || '—'}</p>
+                      <p className="text-sm font-semibold text-foreground font-mono">{tender.referenceNumber || '—'}</p>
                     </div>
-                    <div className="bg-white px-5 py-4 text-center">
+                    <div className="bg-card px-5 py-4 text-center">
                       <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.inquiryDeadline')}</p>
-                      <p className="text-sm font-semibold text-gray-800">{tender.inquiryDeadline ? formatDate(tender.inquiryDeadline) : '—'}</p>
+                      <p className="text-sm font-semibold text-foreground">{tender.inquiryDeadline ? formatDate(tender.inquiryDeadline) : '—'}</p>
                     </div>
-                    <div className="bg-white px-5 py-4 text-center">
+                    <div className="bg-card px-5 py-4 text-center">
                       <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.submissionDeadline')}</p>
-                      <p className={`text-sm font-semibold ${expired ? 'text-red-500' : 'text-gray-800'}`}>{formatDate(tender.deadline)}</p>
+                      <p className={`text-sm font-semibold ${expired ? 'text-red-500' : 'text-foreground'}`}>{formatDate(tender.deadline)}</p>
                     </div>
-                    <div className="bg-white px-5 py-4 text-center">
+                    <div className="bg-card px-5 py-4 text-center">
                       <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.documentFee')}</p>
-                      <p className={`text-sm font-semibold ${tender.documentFee ? 'text-gray-800' : 'text-green-600'}`}>
+                      <p className={`text-sm font-semibold ${tender.documentFee ? 'text-foreground' : 'text-green-600'}`}>
                         {tender.documentFee ? <>{tender.documentFee.toLocaleString()} <span className="saudi-riyal-symbol" /></> : t('marketplace.free')}
                       </p>
                     </div>
@@ -499,7 +499,7 @@ export default function Marketplace() {
                   variant={page === pageNum ? "default" : "ghost"}
                   size="icon"
                   onClick={() => setPage(pageNum)}
-                  className={`h-9 w-9 rounded-lg text-sm ${page === pageNum ? 'bg-[#E8614D] hover:bg-[#d4553f] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`h-9 w-9 rounded-lg text-sm ${page === pageNum ? 'bg-[#FE3C01] hover:bg-[#E83501] text-white' : 'text-muted-foreground hover:bg-muted'}`}
                 >
                   {pageNum}
                 </Button>
@@ -518,20 +518,20 @@ export default function Marketplace() {
         )}
       </main>
 
-      <footer className="bg-white border-t border-gray-200">
+      <footer className="bg-card border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src={logoPath} alt="Bid" className="h-6 object-contain opacity-60" />
+              <BidLogo size={20} className="opacity-60" />
               <span className="text-sm text-gray-400">
                 {t('marketplace.copyright')}
               </span>
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-400">
-              <Link href={isSubdomain ? "/" : "/"} className="hover:text-gray-700 transition-colors">
+              <Link href={isSubdomain ? "/" : "/"} className="hover:text-muted-foreground transition-colors">
                 {t('marketplace.home')}
               </Link>
-              <Link href={marketplaceHome} className="hover:text-gray-700 transition-colors">
+              <Link href={marketplaceHome} className="hover:text-muted-foreground transition-colors">
                 {t('marketplace.title')}
               </Link>
             </div>

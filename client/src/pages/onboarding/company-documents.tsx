@@ -121,20 +121,20 @@ export default function CompanyDocuments() {
       <Card>
         <CardContent className="pt-8 pb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-              <FileCheck2 className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-[var(--bid-orange)]/5 rounded-xl flex items-center justify-center">
+              <FileCheck2 className="w-5 h-5 text-[var(--bid-orange)]" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">{t('onboarding.verificationDocsTitle')}</h2>
-              <p className="text-sm text-neutral-500">{t('onboarding.verificationDocsOptional')}</p>
+              <h2 className="font-display font-black text-2xl text-foreground tracking-[-0.03em]">{t('onboarding.verificationDocsTitle')}</h2>
+              <p className="text-sm text-muted-foreground">{t('onboarding.verificationDocsOptional')}</p>
             </div>
           </div>
 
-          <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-4 mb-6">
-            <p className="text-sm text-neutral-600 mb-2">
+          <div className="bg-muted border border-border rounded-xl p-4 mb-6">
+            <p className="text-sm text-muted-foreground mb-2">
               {t('onboarding.skipNote1')}
             </p>
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-muted-foreground">
               {t('onboarding.skipNote2')}
             </p>
           </div>
@@ -146,15 +146,15 @@ export default function CompanyDocuments() {
                 <div
                   key={slot.type}
                   className={`border rounded-xl p-4 transition-colors ${
-                    isUploaded ? 'border-green-200 bg-green-50/40' : 'border-neutral-200 bg-white'
+                    isUploaded ? 'border-green-200 bg-green-50/40' : 'border-border bg-card'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-sm font-medium text-neutral-900">{slot.label}</span>
+                        <span className="text-sm font-medium text-foreground">{slot.label}</span>
                         {slot.required && (
-                          <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                          <span className="text-xs font-medium text-[var(--bid-orange)] bg-[var(--bid-orange)]/5 px-1.5 py-0.5 rounded">
                             {t('onboarding.neededForVerification')}
                           </span>
                         )}
@@ -201,7 +201,7 @@ export default function CompanyDocuments() {
                 onClick={handleNext}
                 size="lg"
                 variant="outline"
-                className="text-neutral-600"
+                className="text-muted-foreground"
               >
                 <SkipForward className="mr-2 h-4 w-4" />
                 {t('onboarding.skipForNow')}
@@ -210,7 +210,7 @@ export default function CompanyDocuments() {
               <Button
                 onClick={handleNext}
                 size="lg"
-                className="bg-[#E25E45] hover:bg-[#d04a32]"
+                className="bg-[#FE3C01] hover:bg-[#E83501]"
               >
                 {t('onboarding.continueBtn')}
                 <ArrowRight className="ml-2 h-4 w-4" />

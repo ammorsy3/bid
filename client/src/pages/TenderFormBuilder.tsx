@@ -22,7 +22,7 @@ import {
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { CardLibrarySidebar } from "@/components/form-builder/CardLibrarySidebar";
 import { FormBuilderCanvas } from "@/components/form-builder/FormBuilderCanvas";
 import { DraggableCard, LibraryCard } from "@/components/form-builder/DraggableCard";
@@ -239,18 +239,13 @@ export default function TenderFormBuilder() {
     >
       <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
         {/* Header */}
-        <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <header className="flex-shrink-0 bg-white dark:bg-background border-b border-border dark:border-border px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <img
-                src={logoPath}
-                alt="Bid"
-                className="h-10 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => navigate("/dashboard")}
-              />
+              <BidLogo size={40} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
               <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
               <div>
-                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h1 className="text-lg font-semibold text-gray-900 dark:text-foreground">
                   {t('tenderFlow.formBuilderTitle')}
                 </h1>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -272,7 +267,7 @@ export default function TenderFormBuilder() {
               <Button
                 onClick={handleContinue}
                 disabled={!canContinue}
-                className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                className="bg-[#FE3C01] hover:bg-[#d54d35] text-white"
               >
                 {t('tenderFlow.continueToDetails')}
                 <ArrowRight className="h-4 w-4 ml-2" />
@@ -318,9 +313,9 @@ export default function TenderFormBuilder() {
                 {/* Resize Handle - left of sidebar */}
                 <div
                   onMouseDown={handleMouseDown}
-                  className="w-1 hover:w-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-[#E25E45] cursor-col-resize transition-all flex-shrink-0 group relative"
+                  className="w-1 hover:w-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-[#FE3C01] cursor-col-resize transition-all flex-shrink-0 group relative"
                 >
-                  <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-[#E25E45]/10" />
+                  <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-[#FE3C01]/10" />
                 </div>
 
                 <CardLibrarySidebar

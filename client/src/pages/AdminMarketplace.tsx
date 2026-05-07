@@ -11,6 +11,8 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
+import { StatusBadge } from "@/components/brand/StatusDot";
+import { verificationStatusToState } from "@/components/brand/statusMap";
 
 interface PurchaseOrder {
   id: string;
@@ -179,31 +181,23 @@ export default function AdminMarketplace() {
                     {tender.referenceNumber}
                   </Badge>
                 )}
-                <Badge className={`text-xs ${
-                  tender.company.verificationStatus === 'verified'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-amber-100 text-amber-700'
-                }`}>
-                  {tender.company.verificationStatus === 'verified' ? t('marketplace.verifiedCompany') : t('marketplace.unverified')}
-                </Badge>
+                <StatusBadge
+                  state={verificationStatusToState(tender.company.verificationStatus || 'not_verified')}
+                  label={tender.company.verificationStatus === 'verified' ? t('marketplace.verifiedCompany') : t('marketplace.unverified')}
+                />
                 {activeTab === 'approved' && (
-                  <Badge className="text-xs bg-green-100 text-green-700">
-                    <Store className="h-3 w-3 mr-1" />
-                    {t('marketplace.liveOnMarketplace')}
-                  </Badge>
+                  <StatusBadge state="live" label={t('marketplace.liveOnMarketplace')} />
                 )}
                 {isExpired && (
-                  <Badge className="text-xs bg-red-100 text-red-700">
-                    {t('tenderFlow.expiredLabel') || 'Expired'}
-                  </Badge>
+                  <StatusBadge state="lost" label={t('tenderFlow.expiredLabel') || 'Expired'} />
                 )}
               </div>
 
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              <h3 className="text-lg font-semibold text-foreground mb-1">
                 {tender.title}
               </h3>
 
-              <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                 <Building2 className="h-4 w-4" />
                 <span>{tender.profile?.displayName || tender.company.name}</span>
                 {tender.company.city && (
@@ -211,7 +205,7 @@ export default function AdminMarketplace() {
                 )}
               </div>
 
-              <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                 {tender.category && (
                   <div className="flex items-center gap-1">
                     <Tag className="h-3.5 w-3.5" />
@@ -240,11 +234,11 @@ export default function AdminMarketplace() {
                 )}
               </div>
 
-              <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+              <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
                 {tender.description}
               </p>
 
-              <div className="mt-3 pt-2 border-t border-gray-100">
+              <div className="mt-3 pt-2 border-t border-border">
                 {pos.length === 0 ? (
                   <div className="flex items-center gap-1.5 text-xs text-amber-600">
                     <AlertTriangle className="h-3.5 w-3.5" />
@@ -253,25 +247,21 @@ export default function AdminMarketplace() {
                 ) : (
                   <div className="space-y-1.5">
                     {pos.map(po => (
-                      <div key={po.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 border border-gray-100">
+                      <div key={po.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-muted border border-border">
                         <div className="flex items-center gap-2 min-w-0">
                           <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                          <span className="text-xs font-medium text-gray-700 truncate">{po.originalName || 'PO Document'}</span>
-                          <Badge className={`text-[10px] ${
-                            po.status === 'verified' ? 'bg-green-100 text-green-700' :
-                            po.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                            'bg-amber-100 text-amber-700'
-                          }`}>
-                            {po.status === 'verified' ? <ShieldCheck className="h-3 w-3 mr-0.5" /> : null}
-                            {po.status}
-                          </Badge>
+                          <span className="text-xs font-medium text-muted-foreground truncate">{po.originalName || 'PO Document'}</span>
+                          <StatusBadge
+                            state={po.status === 'verified' ? 'won' : po.status === 'rejected' ? 'lost' : 'pending'}
+                            label={po.status}
+                          />
                         </div>
                         <div className="flex items-center gap-1">
                           {po.fileUrl && (
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              className="h-7 px-2 text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:bg-blue-50"
                               onClick={() => {
                                 // Open window immediately so browser doesn't block popup
                                 const win = window.open('', '_blank');
@@ -309,7 +299,7 @@ export default function AdminMarketplace() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                className="h-7 px-2 text-green-600 hover:text-green-700 dark:text-green-300 hover:bg-green-50"
                                 onClick={() => verifyPOMutation.mutate({ poId: po.id, status: 'verified' })}
                                 disabled={verifyPOMutation.isPending}
                               >
@@ -319,7 +309,7 @@ export default function AdminMarketplace() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="h-7 px-2 text-red-600 hover:text-red-700 dark:text-red-300 hover:bg-red-50"
                                 onClick={() => verifyPOMutation.mutate({ poId: po.id, status: 'rejected' })}
                                 disabled={verifyPOMutation.isPending}
                               >
@@ -389,7 +379,7 @@ export default function AdminMarketplace() {
     <AdminLayout>
       <div className={`p-8 max-w-6xl mx-auto ${isRtl ? 'rtl' : 'ltr'}`} dir={isRtl ? 'rtl' : 'ltr'}>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]">
             {t('marketplace.requests')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -401,12 +391,12 @@ export default function AdminMarketplace() {
           <Button
             variant={activeTab === 'pending' ? 'default' : 'outline'}
             onClick={() => setActiveTab('pending')}
-            className={activeTab === 'pending' ? 'bg-[#E8614D] hover:bg-[#d54d35]' : ''}
+            className={activeTab === 'pending' ? 'bg-[#FE3C01] hover:bg-[#d54d35]' : ''}
           >
             <Clock className="h-4 w-4 mr-1.5" />
             {t('marketplace.pendingReview')}
             {pendingTenders.length > 0 && (
-              <Badge className="ml-2 bg-white/20 text-white text-xs">{pendingTenders.length}</Badge>
+              <Badge className="ml-2 bg-card/20 text-white text-xs">{pendingTenders.length}</Badge>
             )}
           </Button>
           <Button
@@ -417,7 +407,7 @@ export default function AdminMarketplace() {
             <Store className="h-4 w-4 mr-1.5" />
             {t('marketplace.liveOnMarketplace')}
             {approvedTenders.length > 0 && (
-              <Badge className="ml-2 bg-white/20 text-white text-xs">{approvedTenders.length}</Badge>
+              <Badge className="ml-2 bg-card/20 text-white text-xs">{approvedTenders.length}</Badge>
             )}
           </Button>
         </div>
@@ -432,7 +422,7 @@ export default function AdminMarketplace() {
               {activeTab === 'pending' ? (
                 <>
                   <CheckCircle className="h-12 w-12 text-green-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-600">
+                  <h3 className="text-lg font-medium text-muted-foreground">
                     {t('marketplace.noPendingRequests')}
                   </h3>
                   <p className="text-sm text-gray-400 mt-1">
@@ -442,7 +432,7 @@ export default function AdminMarketplace() {
               ) : (
                 <>
                   <Store className="h-12 w-12 text-gray-300 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-600">
+                  <h3 className="text-lg font-medium text-muted-foreground">
                     {t('marketplace.noApprovedTenders') || 'No approved tenders yet'}
                   </h3>
                   <p className="text-sm text-gray-400 mt-1">

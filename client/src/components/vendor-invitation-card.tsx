@@ -36,7 +36,7 @@ export default function VendorInvitationCard({ invitation }: VendorInvitationCar
     switch (status) {
       case 'pending': return 'bg-secondary-100 text-secondary-orange';
       case 'submitted': return 'bg-success-100 text-success-600';
-      default: return 'bg-neutral-100 text-neutral-800';
+      default: return 'bg-muted text-foreground';
     }
   };
 
@@ -47,45 +47,45 @@ export default function VendorInvitationCard({ invitation }: VendorInvitationCar
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays <= 3) return 'text-error-600';
-    return 'text-neutral-900';
+    return 'text-foreground';
   };
 
   const isSubmitted = invitation.status === 'submitted';
 
   return (
     <>
-      <Card className="bg-white rounded-xl shadow-sm border border-neutral-200 hover:shadow-md transition-shadow">
+      <Card className="bg-card rounded-xl shadow-sm border border-border hover:shadow-md transition-shadow">
         <CardContent className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <div className="flex items-center mb-2">
-                <h3 className="text-lg font-semibold text-neutral-900 mr-3">{invitation.tender.title}</h3>
+                <h3 className="text-lg font-semibold text-foreground mr-3">{invitation.tender.title}</h3>
                 <Badge className={`${getStatusColor(invitation.status)} text-xs font-medium px-2.5 py-0.5 rounded-full`}>
                   {invitation.status === 'pending' ? 'New' : invitation.status}
                 </Badge>
               </div>
-              <p className="text-sm text-neutral-600 mb-3">
+              <p className="text-sm text-muted-foreground mb-3">
                 {invitation.requester.company || invitation.requester.name}
               </p>
-              <p className="text-sm text-neutral-600 line-clamp-2">{invitation.tender.description}</p>
+              <p className="text-sm text-muted-foreground line-clamp-2">{invitation.tender.description}</p>
             </div>
           </div>
           
           <div className="space-y-3 mb-4">
-            <div className="flex items-center text-sm text-neutral-600">
+            <div className="flex items-center text-sm text-muted-foreground">
               <Calendar className="w-4 h-4 mr-2" />
               <span>{t('vendorInvitationCard.deadline')} <span className={`font-medium ${getUrgencyColor(invitation.tender.deadline)}`}>
                 {format(new Date(invitation.tender.deadline), 'MMM d, yyyy', { locale: enUS })}
               </span></span>
             </div>
             {invitation.tender.budget && (
-              <div className="flex items-center text-sm text-neutral-600">
+              <div className="flex items-center text-sm text-muted-foreground">
                 <DollarSign className="w-4 h-4 mr-2" />
                 <span>{t('vendorInvitationCard.budget')} <span className="font-medium">{invitation.tender.budget}</span></span>
               </div>
             )}
             {invitation.tender.duration && (
-              <div className="flex items-center text-sm text-neutral-600">
+              <div className="flex items-center text-sm text-muted-foreground">
                 <Clock className="w-4 h-4 mr-2" />
                 <span>{t('vendorInvitationCard.duration')} <span className="font-medium">{invitation.tender.duration}</span></span>
               </div>
@@ -111,7 +111,7 @@ export default function VendorInvitationCard({ invitation }: VendorInvitationCar
                 Offer Submitted
               </Button>
             )}
-            <Button variant="ghost" size="sm" className="px-4 py-2 text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100">
+            <Button variant="ghost" size="sm" className="px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-muted">
               <Eye className="h-4 w-4" />
             </Button>
           </div>

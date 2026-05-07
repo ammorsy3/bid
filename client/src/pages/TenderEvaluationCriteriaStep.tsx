@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Check, Scale, ChevronDown, Briefcase, Clock, Plus, X, Shield } from "lucide-react";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { ENTERPRISE_CRITERIA_CATEGORIES, CRITERIA_TRANSLATIONS_AR } from "@/lib/evaluation-criteria-data";
@@ -231,12 +231,7 @@ export default function TenderEvaluationCriteriaStep() {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <img
-            src={logoPath}
-            alt="Bid"
-            className="h-16 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate("/dashboard")}
-          />
+          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
           <Button
             onClick={handleBack}
             className="group relative overflow-hidden"
@@ -258,24 +253,24 @@ export default function TenderEvaluationCriteriaStep() {
 
             {/* Evaluation section label */}
             <div className="space-y-3">
-              <div className="text-sm font-medium text-gray-500">{t('tenderFlow.step5Label')}</div>
-              <h1 className="text-5xl font-bold text-gray-900 leading-tight">
+              <div className="text-sm font-medium text-muted-foreground">{t('tenderFlow.step5Label')}</div>
+              <h1 className="font-display font-black text-5xl text-foreground leading-[0.92] tracking-[-0.045em]">
                 {t('tenderFlow.evaluationCriteria')}
               </h1>
-              <p className="text-gray-600 text-lg">
+              <p className="text-muted-foreground text-lg">
                 {t('tenderFlow.step5Desc')}
               </p>
             </div>
 
             {/* Divider */}
-            <div className="border-t border-gray-100" />
+            <div className="border-t border-border" />
 
             {/* Submission requirements label */}
             <div className="space-y-3">
-              <h2 className="text-3xl font-bold text-gray-900 leading-tight">
+              <h2 className="font-display font-black text-3xl text-foreground leading-[0.95] tracking-[-0.04em]">
                 {t('tenderFlow.submissionRequirements')}
               </h2>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 {t('tenderFlow.submissionReqDesc')}
               </p>
               {vendorRequirements.length > 0 && (
@@ -283,13 +278,13 @@ export default function TenderEvaluationCriteriaStep() {
                   {mandatoryCount > 0 && (
                     <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
                       <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                      <span className="text-sm font-medium text-red-700">{mandatoryCount} {t('tenderFlow.mandatoryLabel').toLowerCase()}</span>
+                      <span className="text-sm font-medium text-red-700 dark:text-red-300">{mandatoryCount} {t('tenderFlow.mandatoryLabel').toLowerCase()}</span>
                     </div>
                   )}
                   {preferredCount > 0 && (
                     <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full">
                       <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      <span className="text-sm font-medium text-amber-700">{preferredCount} {t('tenderFlow.preferredLabel').toLowerCase()}</span>
+                      <span className="text-sm font-medium text-amber-700 dark:text-amber-300">{preferredCount} {t('tenderFlow.preferredLabel').toLowerCase()}</span>
                     </div>
                   )}
                 </div>
@@ -309,12 +304,12 @@ export default function TenderEvaluationCriteriaStep() {
 
             {/* ── Card 1: Evaluation Criteria ─────────────────────────────── */}
             <Card className="border-0 shadow-xl overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
 
               <div className="p-6 space-y-6">
 
                 {/* Weight ring */}
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200">
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border border-border">
                   <div className="relative w-16 h-16 flex-shrink-0">
                     <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64">
                       <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="none" className="text-gray-200" />
@@ -334,7 +329,7 @@ export default function TenderEvaluationCriteriaStep() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-gray-900">{totalWeight === 100 ? t('tenderFlow.perfectBalance') : t('tenderFlow.weightDistribution')}</span>
+                      <span className="font-semibold text-foreground">{totalWeight === 100 ? t('tenderFlow.perfectBalance') : t('tenderFlow.weightDistribution')}</span>
                       {totalWeight === 100 && <Check className="h-4 w-4 text-green-500" />}
                     </div>
                     <p className={`text-sm mt-0.5 transition-colors duration-300 ${totalWeight === 100 ? "text-green-600" : totalWeight > 100 ? "text-red-500" : "text-amber-600"}`}>
@@ -351,35 +346,35 @@ export default function TenderEvaluationCriteriaStep() {
                   const hasCategorySelections = categoryReqs.length > 0;
 
                   return (
-                    <div key={category.id} className={`border rounded-lg overflow-hidden transition-all ${hasCategorySelections ? "border-[#E25E45]/50 bg-[#E25E45]/5" : "border-gray-200"}`}>
+                    <div key={category.id} className={`border rounded-lg overflow-hidden transition-all ${hasCategorySelections ? "border-[#FE3C01]/50 bg-[#FE3C01]/5" : "border-border"}`}>
                       <button
                         type="button"
                         onClick={() => toggleCategory(category.id)}
-                        className="w-full flex items-center justify-between p-3 hover:bg-gray-50"
+                        className="w-full flex items-center justify-between p-3 hover:bg-muted"
                       >
                         <div className="flex items-center gap-2">
-                          <div className={`p-1.5 rounded ${hasCategorySelections ? "bg-[#E25E45]/10 text-[#E25E45]" : "bg-gray-100 text-gray-500"}`}>
+                          <div className={`p-1.5 rounded ${hasCategorySelections ? "bg-[#FE3C01]/10 text-[#FE3C01]" : "bg-muted text-muted-foreground"}`}>
                             {category.id === "experience" && <Briefcase className="h-5 w-5" />}
                             {category.id === "financial" && <Scale className="h-5 w-5" />}
                             {category.id === "technical" && <Clock className="h-5 w-5" />}
                           </div>
-                          <span className="font-medium text-sm text-gray-900">{tr(category.id, 'name') ?? category.name}</span>
+                          <span className="font-medium text-sm text-foreground">{tr(category.id, 'name') ?? category.name}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500">{currentWeight}%</span>
+                          <span className="text-xs text-muted-foreground">{currentWeight}%</span>
                           <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                         </div>
                       </button>
 
                       <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                         <div className="overflow-hidden">
-                          <div className="border-t border-gray-200 p-3 space-y-3 bg-white">
+                          <div className="border-t border-border p-3 space-y-3 bg-card">
                             <div className="space-y-1">
-                              <label className="text-xs text-gray-500">{t('tenderFlow.weight')} {currentWeight}%</label>
+                              <label className="text-xs text-muted-foreground">{t('tenderFlow.weight')} {currentWeight}%</label>
                               <input
                                 type="range" min="0" max="100" step="5" value={currentWeight}
                                 onChange={(e) => handleWeightChange(category.id, parseInt(e.target.value))}
-                                className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]"
+                                className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#FE3C01]"
                               />
                             </div>
                             {category.requirements.map((req) => {
@@ -390,13 +385,13 @@ export default function TenderEvaluationCriteriaStep() {
                                     <button
                                       type="button"
                                       onClick={() => handleRequirementChange(category.id, req.id, !currentValue)}
-                                      className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${currentValue ? "border-[#E25E45] bg-[#E25E45]" : "border-gray-300"}`}
+                                      className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${currentValue ? "border-[#FE3C01] bg-[#FE3C01]" : "border-border"}`}
                                     >
                                       {currentValue && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
                                     </button>
                                   )}
                                   <div className="flex-1">
-                                    <label className="text-sm text-gray-900">{tr(req.id, 'label') ?? req.label}</label>
+                                    <label className="text-sm text-foreground">{tr(req.id, 'label') ?? req.label}</label>
                                     {req.type === "select" && req.options && (
                                       <Select
                                         value={(currentValue as string) || "none"}
@@ -425,22 +420,22 @@ export default function TenderEvaluationCriteriaStep() {
                 })}
 
                 {/* Custom criteria */}
-                <div className="space-y-3 pt-2 border-t border-gray-200">
+                <div className="space-y-3 pt-2 border-t border-border">
                   <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-gray-900">
+                    <label className="block text-sm font-medium text-foreground">
                       {t('tenderFlow.customCriteria')} <span className="text-gray-400 font-normal">{t('tenderFlow.optional')}</span>
                     </label>
                     {customCriteria.length > 0 && (
-                      <span className="text-xs text-gray-500">{t('tenderFlow.total')} {customCriteriaWeight}%</span>
+                      <span className="text-xs text-muted-foreground">{t('tenderFlow.total')} {customCriteriaWeight}%</span>
                     )}
                   </div>
                   {customCriteria.length > 0 && (
                     <div className="space-y-2">
                       {customCriteria.map((criterion) => (
-                        <div key={criterion.id} className="px-3 py-2 bg-[#E25E45]/5 border border-[#E25E45]/20 rounded-lg space-y-2">
+                        <div key={criterion.id} className="px-3 py-2 bg-[#FE3C01]/5 border border-[#FE3C01]/20 rounded-lg space-y-2">
                           <div className="flex items-center gap-2">
-                            <span className="flex-1 text-sm text-gray-900">{criterion.text}</span>
-                            <span className="text-xs font-medium text-[#E25E45]">{criterion.weight}%</span>
+                            <span className="flex-1 text-sm text-foreground">{criterion.text}</span>
+                            <span className="text-xs font-medium text-[#FE3C01]">{criterion.weight}%</span>
                             <button type="button" onClick={() => removeCustomCriterion(criterion.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                               <X className="h-4 w-4" />
                             </button>
@@ -448,7 +443,7 @@ export default function TenderEvaluationCriteriaStep() {
                           <input
                             type="range" min="0" max="50" step="5" value={criterion.weight}
                             onChange={(e) => updateCustomCriterionWeight(criterion.id, parseInt(e.target.value))}
-                            className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]"
+                            className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#FE3C01]"
                           />
                         </div>
                       ))}
@@ -461,21 +456,21 @@ export default function TenderEvaluationCriteriaStep() {
                         onChange={(e) => setNewCriterionText(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && addCustomCriterion()}
                         placeholder={t('tenderFlow.customCriteriaPlaceholder')}
-                        className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                        className="flex-1 px-3 py-2 text-sm border border-border rounded-lg bg-card text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                       />
-                      <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#E25E45] hover:bg-[#d54d35]">
+                      <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#FE3C01] hover:bg-[#d54d35]">
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
                     {newCriterionText.trim() && (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">{t('tenderFlow.weight')}</span>
+                        <span className="text-xs text-muted-foreground">{t('tenderFlow.weight')}</span>
                         <input
                           type="range" min="0" max="50" step="5" value={newCriterionWeight}
                           onChange={(e) => setNewCriterionWeight(parseInt(e.target.value))}
-                          className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]"
+                          className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#FE3C01]"
                         />
-                        <span className="text-xs font-medium text-[#E25E45] w-8">{newCriterionWeight}%</span>
+                        <span className="text-xs font-medium text-[#FE3C01] w-8">{newCriterionWeight}%</span>
                       </div>
                     )}
                   </div>
@@ -497,12 +492,12 @@ export default function TenderEvaluationCriteriaStep() {
 
                 {/* Header */}
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <Shield className="h-5 w-5 text-blue-600" />
+                  <div className="p-2 bg-[var(--bid-orange)]/5 rounded-lg">
+                    <Shield className="h-5 w-5 text-[var(--bid-orange)]" />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">{t('tenderFlow.submissionRequirements')}</p>
-                    <p className="text-xs text-gray-500">{t('tenderFlow.displayedToVendors')}</p>
+                    <p className="font-semibold text-foreground">{t('tenderFlow.submissionRequirements')}</p>
+                    <p className="text-xs text-muted-foreground">{t('tenderFlow.displayedToVendors')}</p>
                   </div>
                 </div>
 
@@ -514,19 +509,19 @@ export default function TenderEvaluationCriteriaStep() {
                     return (
                       <div
                         key={preset.id}
-                        className={`rounded-lg border transition-all ${checked ? 'border-blue-300 bg-blue-50/60' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                        className={`rounded-lg border transition-all ${checked ? 'border-blue-300 bg-[var(--bid-orange)]/5/60' : 'border-border bg-card hover:border-border'}`}
                       >
                         <div className="flex items-start gap-3 p-3">
                           <button
                             type="button"
                             onClick={() => toggleReq(preset)}
-                            className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-colors ${checked ? 'border-blue-500 bg-blue-500' : 'border-gray-300 bg-white'}`}
+                            className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-colors ${checked ? 'border-[var(--bid-orange)] bg-[var(--bid-orange)]' : 'border-border bg-card'}`}
                             data-testid={`checkbox-${preset.id}`}
                           >
                             {checked && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
                           </button>
                           <div className="flex-1 min-w-0">
-                            <p className={`text-sm leading-snug ${checked ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>
+                            <p className={`text-sm leading-snug ${checked ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
                               {preset.text}
                             </p>
 
@@ -536,14 +531,14 @@ export default function TenderEvaluationCriteriaStep() {
                                 <button
                                   type="button"
                                   onClick={() => setReqType(preset.id, 'mandatory')}
-                                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200'}`}
                                 >
                                   {t('tenderFlow.mandatoryLabel')}
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => setReqType(preset.id, 'preferred')}
-                                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200'}`}
                                 >
                                   {t('tenderFlow.preferredLabel')}
                                 </button>
@@ -557,8 +552,8 @@ export default function TenderEvaluationCriteriaStep() {
                 </div>
 
                 {/* Custom requirements */}
-                <div className="space-y-3 pt-2 border-t border-gray-200">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('tenderFlow.addCustomRequirement')}</p>
+                <div className="space-y-3 pt-2 border-t border-border">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('tenderFlow.addCustomRequirement')}</p>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -566,7 +561,7 @@ export default function TenderEvaluationCriteriaStep() {
                       onChange={(e) => setCustomReqText(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && addCustomReq()}
                       placeholder={t('tenderFlow.customReqPlaceholder')}
-                      className="flex-1 text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="flex-1 text-sm px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       data-testid="input-custom-requirement"
                     />
                     <Button
@@ -585,21 +580,21 @@ export default function TenderEvaluationCriteriaStep() {
                   {customReqs.length > 0 && (
                     <div className="space-y-1.5">
                       {customReqs.map((req) => (
-                        <div key={req.id} className="flex items-start gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-200">
+                        <div key={req.id} className="flex items-start gap-2 p-2.5 bg-muted rounded-lg border border-border">
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-800 font-medium">{req.text}</p>
+                            <p className="text-sm text-foreground font-medium">{req.text}</p>
                             <div className="flex items-center gap-1.5 mt-1.5">
                               <button
                                 type="button"
                                 onClick={() => setReqType(req.id, 'mandatory')}
-                                className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                                className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200'}`}
                               >
                                 {t('tenderFlow.mandatoryLabel')}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setReqType(req.id, 'preferred')}
-                                className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                                className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200'}`}
                               >
                                 {t('tenderFlow.preferredLabel')}
                               </button>
@@ -608,7 +603,7 @@ export default function TenderEvaluationCriteriaStep() {
                           <button
                             type="button"
                             onClick={() => removeCustomReq(req.id)}
-                            className="flex-shrink-0 p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors mt-0.5"
+                            className="flex-shrink-0 p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-muted-foreground transition-colors mt-0.5"
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
@@ -627,7 +622,7 @@ export default function TenderEvaluationCriteriaStep() {
               <Button
                 onClick={() => handleContinue(false)}
                 disabled={!isWeightValid}
-                className="w-full bg-[#E25E45] hover:bg-[#d54d35] py-6"
+                className="w-full bg-[#FE3C01] hover:bg-[#d54d35] py-6"
                 data-testid="button-continue"
               >
                 {vendorRequirements.length > 0

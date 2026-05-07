@@ -12,6 +12,8 @@ import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
 import { viewAuthenticatedFile, downloadAuthenticatedFile } from "@/lib/downloadFile";
+import { StatusBadge } from "@/components/brand/StatusDot";
+import { verificationStatusToState } from "@/components/brand/statusMap";
 
 const DOC_TYPE_LABELS: Record<string, string> = {
   cr_certificate: "Commercial Registration (CR)",
@@ -100,23 +102,25 @@ export default function AdminAwards() {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'verified':
-        return <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[11px]"><ShieldCheck className="h-3 w-3 mr-1" />{t('admin.statusVerified')}</Badge>;
-      case 'under_review':
-        return <Badge className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[11px]">{t('admin.statusUnderReview')}</Badge>;
-      case 'rejected':
-        return <Badge className="bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 text-[11px]">{t('admin.statusRejected')}</Badge>;
-      default:
-        return <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[11px]">{t('admin.statusNotVerified')}</Badge>;
-    }
+    const labelMap: Record<string, string> = {
+      verified: t('admin.statusVerified'),
+      under_review: t('admin.statusUnderReview'),
+      rejected: t('admin.statusRejected'),
+      not_verified: t('admin.statusNotVerified'),
+    };
+    return (
+      <StatusBadge
+        state={verificationStatusToState(status)}
+        label={labelMap[status] ?? labelMap.not_verified}
+      />
+    );
   };
 
   return (
     <AdminLayout>
       <div className="p-8 max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-page-title">
+          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]" data-testid="text-page-title">
             {t('admin.blockedAwardsManagement')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -127,13 +131,13 @@ export default function AdminAwards() {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2].map((i) => (
-              <div key={i} className="h-40 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+              <div key={i} className="h-40 bg-gray-100 dark:bg-card rounded-xl animate-pulse" />
             ))}
           </div>
         ) : !awards || (awards as any[]).length === 0 ? (
-          <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <Card className="border-border dark:border-border bg-white dark:bg-background">
             <CardContent className="py-16 text-center">
-              <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
+              <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-card flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle className="h-7 w-7 text-gray-400" />
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="text-empty-state">
@@ -148,7 +152,7 @@ export default function AdminAwards() {
               const isVendorVerified = award.company?.verificationStatus === 'verified';
 
               return (
-                <Card key={award.id} className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900" data-testid={`card-award-${award.id}`}>
+                <Card key={award.id} className="border-border dark:border-border bg-white dark:bg-background" data-testid={`card-award-${award.id}`}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -282,14 +286,14 @@ export default function AdminAwards() {
                     {vendorDocs.map((doc: any) => (
                       <div
                         key={doc.id}
-                        className="flex items-center justify-between gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
+                        className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border dark:border-border bg-gray-50 dark:bg-card/50"
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="h-9 w-9 rounded-lg bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center flex-shrink-0">
                             <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                            <p className="text-sm font-medium text-gray-900 dark:text-foreground truncate">
                               {DOC_TYPE_LABELS[doc.documentType] || doc.label || doc.documentType}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -301,7 +305,7 @@ export default function AdminAwards() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                            className="h-8 px-2 text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                             onClick={() => viewAuthenticatedFile(doc.fileUrl)}
                           >
                             <ExternalLink className="h-3.5 w-3.5 mr-1" />
@@ -310,7 +314,7 @@ export default function AdminAwards() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 text-gray-600 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="h-8 px-2 text-muted-foreground hover:text-muted-foreground hover:bg-muted dark:hover:bg-gray-700"
                             onClick={() => downloadAuthenticatedFile(doc.fileUrl, doc.originalName || undefined)}
                           >
                             <Download className="h-3.5 w-3.5 mr-1" />

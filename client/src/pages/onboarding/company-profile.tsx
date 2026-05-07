@@ -137,8 +137,8 @@ export default function CompanyProfile() {
               <Palette className="w-5 h-5 text-violet-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">{t('onboarding.companyProfileHeading')}</h2>
-              <p className="text-sm text-neutral-500">{t('onboarding.companyProfileOptionalDesc')}</p>
+              <h2 className="font-display font-black text-2xl text-foreground tracking-[-0.03em]">{t('onboarding.companyProfileHeading')}</h2>
+              <p className="text-sm text-muted-foreground">{t('onboarding.companyProfileOptionalDesc')}</p>
             </div>
           </div>
 
@@ -153,7 +153,7 @@ export default function CompanyProfile() {
                     <FormControl>
                       <div className="flex items-center gap-4">
                         {/* Logo preview */}
-                        <div className="w-20 h-20 rounded-2xl border-2 border-neutral-200 bg-neutral-50 flex items-center justify-center overflow-hidden shrink-0">
+                        <div className="w-20 h-20 rounded-2xl border-2 border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
                           {logoPreviewUrl ? (
                             <img
                               src={logoPreviewUrl}
@@ -258,11 +258,11 @@ export default function CompanyProfile() {
                   <button
                     type="button"
                     onClick={handleSkip}
-                    className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors"
+                    className="text-sm text-neutral-400 hover:text-muted-foreground transition-colors"
                   >
                     Skip for now
                   </button>
-                  <Button type="submit" size="lg" className="bg-[#E25E45] hover:bg-[#d04a32]">
+                  <Button type="submit" size="lg" className="bg-[#FE3C01] hover:bg-[#E83501]">
                     Next
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>

@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { CheckCircle, XCircle } from "lucide-react";
+import { BidLogo } from "@/components/brand/BidLogo";
 
 type ResetForm = { password: string; confirmPassword: string };
 
@@ -50,40 +51,37 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-muted p-6">
       <div className="w-full max-w-md">
-        <div className="flex items-center gap-2 mb-8 justify-center">
-          <div className="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center">
-            <span className="text-white font-bold text-lg">B</span>
-          </div>
-          <span className="text-xl font-bold text-neutral-900">Bid</span>
+        <div className="flex items-center justify-center mb-8">
+          <BidLogo size={40} />
         </div>
 
         {done ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center space-y-4">
+          <div className="bg-card rounded-2xl border border-border shadow-sm p-8 text-center space-y-4">
             <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto">
               <CheckCircle className="h-7 w-7 text-green-500" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">{t("auth.passwordResetSuccess")}</h2>
+            <h2 className="text-xl font-bold text-foreground">{t("auth.passwordResetSuccess")}</h2>
             <NeonButton className="w-full mt-2" onClick={() => setLocation("/login")}>
               {t("auth.signIn")}
             </NeonButton>
           </div>
         ) : invalid ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center space-y-4">
+          <div className="bg-card rounded-2xl border border-border shadow-sm p-8 text-center space-y-4">
             <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto">
               <XCircle className="h-7 w-7 text-red-400" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">{t("auth.resetLinkInvalid")}</h2>
+            <h2 className="text-xl font-bold text-foreground">{t("auth.resetLinkInvalid")}</h2>
             <NeonButton className="w-full mt-2" onClick={() => setLocation("/login")}>
               {t("auth.requestNewLink")}
             </NeonButton>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+          <div className="bg-card rounded-2xl border border-border shadow-sm p-8">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-neutral-900 mb-1">{t("auth.forgotPasswordTitle")}</h2>
-              <p className="text-sm text-neutral-500">{t("auth.newPassword")}</p>
+              <h2 className="font-display font-black text-2xl text-foreground mb-1 tracking-[-0.03em]">{t("auth.forgotPasswordTitle")}</h2>
+              <p className="text-sm text-muted-foreground">{t("auth.newPassword")}</p>
             </div>
 
             <Form {...form}>
@@ -129,7 +127,7 @@ export default function ResetPassword() {
               <button
                 type="button"
                 onClick={() => setLocation("/login")}
-                className="text-sm text-neutral-500 hover:text-neutral-800 transition-colors"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 {t("auth.backToLogin")}
               </button>

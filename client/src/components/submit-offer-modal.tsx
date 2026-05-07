@@ -536,8 +536,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
       <DialogContent className={`max-w-3xl max-h-[90vh] overflow-y-auto ${isRtl ? 'text-right' : ''}`} dir={isRtl ? 'rtl' : 'ltr'}>
         <DialogHeader>
           <div className={`flex items-center justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
-            <DialogTitle className={`text-2xl font-semibold text-neutral-900 flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-              <ClipboardList className="h-6 w-6 text-[#E25E45]" />
+            <DialogTitle className={`font-display font-black text-2xl text-foreground flex items-center gap-2 tracking-[-0.03em] ${isRtl ? 'flex-row-reverse' : ''}`}>
+              <ClipboardList className="h-6 w-6 text-[#FE3C01]" />
               {s('submitProposal')}
             </DialogTitle>
             <DraftIndicator
@@ -548,9 +548,9 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               language={language}
             />
           </div>
-          <p className="text-neutral-600 mt-2">{tender.title} - {requester.company || requester.name}</p>
-          <p className="text-sm text-neutral-600 mt-1">
-            {s('pressToSubmit')} <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-300 rounded text-xs">Ctrl+Enter</kbd> {s('toSubmit')} • <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-300 rounded text-xs">Esc</kbd> {s('toClose')}
+          <p className="text-muted-foreground mt-2">{tender.title} - {requester.company || requester.name}</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {s('pressToSubmit')} <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs">Ctrl+Enter</kbd> {s('toSubmit')} • <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs">Esc</kbd> {s('toClose')}
           </p>
         </DialogHeader>
 
@@ -576,8 +576,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success-100 mb-4">
               <Check className="h-8 w-8 text-success-600" />
             </div>
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">{s('alreadySubmitted')}</h3>
-            <p className="text-center text-neutral-600 mb-6">
+            <h3 className="font-display font-black text-xl text-foreground mb-2 tracking-[-0.02em]">{s('alreadySubmitted')}</h3>
+            <p className="text-center text-muted-foreground mb-6">
               {s('alreadySubmittedDesc')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -586,7 +586,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </Button>
               <Button
                 onClick={() => { handleClose(); navigate('/dashboard'); }}
-                className="w-full sm:w-auto bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                className="w-full sm:w-auto bg-[#FE3C01] hover:bg-[#d54d35] text-white"
                 data-testid="button-view-dashboard"
               >
                 {s('viewDashboard')}
@@ -597,11 +597,11 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
           <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {tender.submissionType && (
-              <Alert className="bg-blue-50 border-blue-200">
-                <Info className="h-4 w-4 text-blue-600" />
+              <Alert className="bg-[var(--bid-orange)]/5 border-[var(--bid-orange)]/20">
+                <Info className="h-4 w-4 text-[var(--bid-orange)]" />
                 <AlertDescription>
-                  <strong className="text-blue-900">{s('submissionType')}</strong>{' '}
-                  <span className="text-blue-800">{stLabel(tender.submissionType)}</span>
+                  <strong className="text-blue-900 dark:text-blue-200">{s('submissionType')}</strong>{' '}
+                  <span className="text-blue-800 dark:text-blue-300">{stLabel(tender.submissionType)}</span>
                   {tender.videoRequired && tender.submissionType === 'tech_fin_with_video' && (
                     <span className={`text-orange-600 ${isRtl ? 'mr-2' : 'ml-2'}`}>{s('videoRequired')}</span>
                   )}
@@ -639,7 +639,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                   }
                 />
               </div>
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isUrgent ? 'bg-error-50 text-error-700' : 'bg-neutral-100 text-neutral-700'}`}>
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isUrgent ? 'bg-error-50 text-error-700' : 'bg-muted text-muted-foreground'}`}>
                 <Clock className="h-4 w-4" />
                 <span className="text-sm font-medium">{timeRemaining}</span>
               </div>
@@ -694,7 +694,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                         <input
                           type="number"
                           placeholder={s('enterPrice')}
-                          className={`w-full ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
+                          className={`w-full ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
                           dir="ltr"
                           value={field.value ?? ''}
                           onChange={(e) => {
@@ -732,13 +732,13 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                           type="url"
                           placeholder={s('videoPlaceholder')}
                           dir="ltr"
-                          className={`w-full ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
+                          className={`w-full ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
                           data-testid="input-video-url"
                           {...field}
                         />
                       </div>
                     </FormControl>
-                    <p className="text-xs text-neutral-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {s('videoHelp')}
                     </p>
                     <FormMessage />
@@ -750,23 +750,23 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
             {showUploadModeChoice && (
               <>
                 <div>
-                  <p className="text-sm font-medium text-neutral-700 mb-3">{s('uploadQuestion')}</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-3">{s('uploadQuestion')}</p>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => handleUploadModeChange('combined')}
                       className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
                         uploadMode === 'combined'
-                          ? 'border-[#E25E45] bg-[#E25E45]/5'
-                          : 'border-neutral-200 hover:border-neutral-300'
+                          ? 'border-[#FE3C01] bg-[#FE3C01]/5'
+                          : 'border-border hover:border-border'
                       }`}
                     >
-                      <div className={`p-2 rounded-lg ${uploadMode === 'combined' ? 'bg-[#E25E45]/10' : 'bg-neutral-100'}`}>
-                        <File className={`h-5 w-5 ${uploadMode === 'combined' ? 'text-[#E25E45]' : 'text-neutral-400'}`} />
+                      <div className={`p-2 rounded-lg ${uploadMode === 'combined' ? 'bg-[#FE3C01]/10' : 'bg-muted'}`}>
+                        <File className={`h-5 w-5 ${uploadMode === 'combined' ? 'text-[#FE3C01]' : 'text-neutral-400'}`} />
                       </div>
                       <div>
-                        <p className={`text-sm font-medium ${uploadMode === 'combined' ? 'text-[#E25E45]' : 'text-neutral-700'}`}>{s('singleFile')}</p>
-                        <p className="text-xs text-neutral-500">{s('singleFileDesc')}</p>
+                        <p className={`text-sm font-medium ${uploadMode === 'combined' ? 'text-[#FE3C01]' : 'text-muted-foreground'}`}>{s('singleFile')}</p>
+                        <p className="text-xs text-muted-foreground">{s('singleFileDesc')}</p>
                       </div>
                     </button>
                     <button
@@ -774,16 +774,16 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                       onClick={() => handleUploadModeChange('separate')}
                       className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
                         uploadMode === 'separate'
-                          ? 'border-[#E25E45] bg-[#E25E45]/5'
-                          : 'border-neutral-200 hover:border-neutral-300'
+                          ? 'border-[#FE3C01] bg-[#FE3C01]/5'
+                          : 'border-border hover:border-border'
                       }`}
                     >
-                      <div className={`p-2 rounded-lg ${uploadMode === 'separate' ? 'bg-[#E25E45]/10' : 'bg-neutral-100'}`}>
-                        <Files className={`h-5 w-5 ${uploadMode === 'separate' ? 'text-[#E25E45]' : 'text-neutral-400'}`} />
+                      <div className={`p-2 rounded-lg ${uploadMode === 'separate' ? 'bg-[#FE3C01]/10' : 'bg-muted'}`}>
+                        <Files className={`h-5 w-5 ${uploadMode === 'separate' ? 'text-[#FE3C01]' : 'text-neutral-400'}`} />
                       </div>
                       <div>
-                        <p className={`text-sm font-medium ${uploadMode === 'separate' ? 'text-[#E25E45]' : 'text-neutral-700'}`}>{s('separateFiles')}</p>
-                        <p className="text-xs text-neutral-500">{s('separateFilesDesc')}</p>
+                        <p className={`text-sm font-medium ${uploadMode === 'separate' ? 'text-[#FE3C01]' : 'text-muted-foreground'}`}>{s('separateFiles')}</p>
+                        <p className="text-xs text-muted-foreground">{s('separateFilesDesc')}</p>
                       </div>
                     </button>
                   </div>
@@ -810,8 +810,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                               <div className="flex flex-col items-center gap-2">
                                 <File className="h-6 w-6 text-neutral-400" />
                                 <div className="text-center">
-                                  <p className="text-sm text-neutral-600">{s('uploadCombined')}</p>
-                                  <p className="text-xs text-neutral-500">{s('combinedHint')}</p>
+                                  <p className="text-sm text-muted-foreground">{s('uploadCombined')}</p>
+                                  <p className="text-xs text-muted-foreground">{s('combinedHint')}</p>
                                 </div>
                               </div>
                             </ObjectUploader>
@@ -851,8 +851,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                                 <div className="flex flex-col items-center gap-2">
                                   <FileText className="h-6 w-6 text-neutral-400" />
                                   <div className="text-center">
-                                    <p className="text-sm text-neutral-600">{s('uploadTechnical')}</p>
-                                    <p className="text-xs text-neutral-500">{s('technicalHint')}</p>
+                                    <p className="text-sm text-muted-foreground">{s('uploadTechnical')}</p>
+                                    <p className="text-xs text-muted-foreground">{s('technicalHint')}</p>
                                   </div>
                                 </div>
                               </ObjectUploader>
@@ -889,8 +889,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                                 <div className="flex flex-col items-center gap-2">
                                   <DollarSign className="h-6 w-6 text-neutral-400" />
                                   <div className="text-center">
-                                    <p className="text-sm text-neutral-600">{s('uploadFinancial')}</p>
-                                    <p className="text-xs text-neutral-500">{s('financialHint')}</p>
+                                    <p className="text-sm text-muted-foreground">{s('uploadFinancial')}</p>
+                                    <p className="text-xs text-muted-foreground">{s('financialHint')}</p>
                                   </div>
                                 </div>
                               </ObjectUploader>
@@ -933,9 +933,9 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               )}
             />
 
-            <div className="bg-neutral-50 rounded-lg p-4">
-              <h4 className="font-medium text-neutral-900 mb-2">{s('submissionSummary')}</h4>
-              <div className="space-y-2 text-sm text-neutral-600">
+            <div className="bg-muted rounded-lg p-4">
+              <h4 className="font-medium text-foreground mb-2">{s('submissionSummary')}</h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
                 <div className="flex justify-between">
                   <span>{s('tender')}</span>
                   <span className="font-medium">{tender.title}</span>
@@ -963,7 +963,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               <div className="p-4 bg-orange-50 rounded-lg border border-orange-200 space-y-3">
                 <div className="flex items-center gap-2">
                   <ShieldAlert className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                  <p className="text-sm font-medium text-orange-800">
+                  <p className="text-sm font-medium text-orange-800 dark:text-orange-300">
                     {language === 'ar'
                       ? 'يجب عليك تأكيد استيفاء المتطلبات الإلزامية التالية قبل التقديم:'
                       : 'You must confirm you meet the following mandatory requirements before submitting:'}
@@ -979,7 +979,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                         className="mt-0.5 h-4 w-4 rounded border-orange-400 text-orange-600 focus:ring-orange-500"
                         data-testid={`checkbox-req-${req.id}`}
                       />
-                      <span className="text-sm text-orange-900">{req.text}</span>
+                      <span className="text-sm text-orange-900 dark:text-orange-200">{req.text}</span>
                     </label>
                   ))}
                 </div>
@@ -993,7 +993,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </p>
             </div>
 
-            <div className="flex space-x-4 pt-4 border-t border-neutral-200">
+            <div className="flex space-x-4 pt-4 border-t border-border">
               <Button
                 type="button"
                 variant="outline"
@@ -1006,7 +1006,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               <Button
                 type="submit"
                 size="lg"
-                className="flex-1 bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] text-white"
                 disabled={submitOfferMutation.isPending || progress < 100 || !canSubmitOffer || !allMandatoryChecked}
                 data-testid="button-submit-offer"
               >

@@ -167,14 +167,14 @@ export default function RequesterProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-8">
+    <div className="min-h-screen bg-muted py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Sparkles className="h-8 w-8 text-primary-600" />
-            <h1 className="text-3xl font-bold text-neutral-900">{t('requesterProfile.heading')}</h1>
+            <h1 className="font-display font-black text-3xl text-foreground tracking-[-0.04em]">{t('requesterProfile.heading')}</h1>
           </div>
-          <p className="text-neutral-600">
+          <p className="text-muted-foreground">
             {t('requesterProfile.subheading')}
           </p>
         </div>
@@ -195,7 +195,7 @@ export default function RequesterProfile() {
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Building2 className="h-5 w-5 text-primary-600" />
-                <h2 className="text-xl font-semibold text-neutral-900">{t('requesterProfile.companyInformation')}</h2>
+                <h2 className="text-xl font-semibold text-foreground">{t('requesterProfile.companyInformation')}</h2>
               </div>
 
               <div className="space-y-4">
@@ -290,7 +290,7 @@ export default function RequesterProfile() {
                       <FormDescription>
                         <div className="flex items-center justify-between">
                           <span>{t('requesterProfile.keepConcise')}</span>
-                          <span className="text-neutral-500">
+                          <span className="text-muted-foreground">
                             {t('requesterProfile.charsCount', { current: (field.value || "").length })}
                           </span>
                         </div>
@@ -367,7 +367,7 @@ export default function RequesterProfile() {
 
             {/* Contact Information */}
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-neutral-900 mb-4">{t('requesterProfile.contactInformation')}</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-4">{t('requesterProfile.contactInformation')}</h2>
 
               <div className="space-y-4">
                 <FormField

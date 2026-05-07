@@ -53,7 +53,7 @@ interface TractionData {
 
 const DEFAULT_THEME: TractionTheme = {
   themeId: 'modern',
-  primaryColor: '#E25E45',
+  primaryColor: '#FE3C01',
   accentColor: '#1a1a2e',
   headerStyle: 'gradient',
 };
@@ -279,9 +279,9 @@ export default function TractionLinkEditor() {
   // Access check
   if (!user || !activeCompany) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
         <div className="text-center">
-          <p className="text-gray-500 mb-4">{t('tractionPage.editorLoginRequired')}</p>
+          <p className="text-muted-foreground mb-4">{t('tractionPage.editorLoginRequired')}</p>
           <Button variant="outline" onClick={() => navigate(`/traction/${slug}`)}>
             <ArrowLeft className="h-4 w-4 mr-2" />{t('tractionPage.editorViewPage')}
           </Button>
@@ -292,7 +292,7 @@ export default function TractionLinkEditor() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
         <Loader2 className="h-8 w-8 animate-spin text-gray-300" />
       </div>
     );
@@ -300,9 +300,9 @@ export default function TractionLinkEditor() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
         <div className="text-center">
-          <p className="text-gray-500 mb-4">{t('tractionPage.pageNotFound')}</p>
+          <p className="text-muted-foreground mb-4">{t('tractionPage.pageNotFound')}</p>
           <Button variant="outline" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="h-4 w-4 mr-2" />{t('tractionPage.editorBackToDashboard')}
           </Button>
@@ -338,34 +338,34 @@ export default function TractionLinkEditor() {
   ];
 
   return (
-    <div className="h-screen flex flex-col bg-white overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
+    <div className="h-screen flex flex-col bg-card overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
 
       {/* ══════════════════════ TOP BAR ══════════════════════ */}
-      <div className="h-14 border-b border-gray-200 flex items-center justify-between px-4 flex-shrink-0 bg-white z-20">
+      <div className="h-14 border-b border-border flex items-center justify-between px-4 flex-shrink-0 bg-card z-20">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(`/traction/${slug}`)}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline">{t('tractionPage.editorBackToPage')}</span>
           </button>
           <div className="h-5 w-px bg-gray-200" />
-          <span className="text-sm font-semibold text-gray-900">{t('tractionPage.editorTitle')}</span>
+          <span className="text-sm font-semibold text-foreground">{t('tractionPage.editorTitle')}</span>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Preview mode toggle */}
-          <div className="hidden sm:flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+          <div className="hidden sm:flex items-center gap-1 bg-muted rounded-lg p-0.5">
             <button
               onClick={() => setPreviewMode('desktop')}
-              className={`p-1.5 rounded-md transition-colors ${previewMode === 'desktop' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`p-1.5 rounded-md transition-colors ${previewMode === 'desktop' ? 'bg-card shadow-sm text-foreground' : 'text-gray-400 hover:text-muted-foreground'}`}
             >
               <Monitor className="h-4 w-4" />
             </button>
             <button
               onClick={() => setPreviewMode('mobile')}
-              className={`p-1.5 rounded-md transition-colors ${previewMode === 'mobile' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`p-1.5 rounded-md transition-colors ${previewMode === 'mobile' ? 'bg-card shadow-sm text-foreground' : 'text-gray-400 hover:text-muted-foreground'}`}
             >
               <Smartphone className="h-4 w-4" />
             </button>
@@ -376,7 +376,7 @@ export default function TractionLinkEditor() {
             href={`/traction/${slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:text-gray-900 border border-gray-200 hover:border-gray-300 transition-colors"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground border border-border hover:border-border transition-colors"
           >
             <Eye className="h-3.5 w-3.5" />
             {t('tractionPage.editorViewLive')}
@@ -402,20 +402,20 @@ export default function TractionLinkEditor() {
       <div className="flex-1 flex overflow-hidden">
 
         {/* ── LEFT: Editor Panel ── */}
-        <ScrollArea className="w-[340px] flex-shrink-0 border-r border-gray-200 bg-gray-50">
+        <ScrollArea className="w-[340px] flex-shrink-0 border-r border-border bg-muted">
           <div className="p-5 space-y-7">
 
             {/* ─── Logo ─── */}
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Image className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">{t('tractionPage.editorLogo')}</h3>
+                <h3 className="text-sm font-semibold text-foreground">{t('tractionPage.editorLogo')}</h3>
               </div>
               <div className="flex items-center gap-3">
                 {currentLogoUrl ? (
-                  <img src={currentLogoUrl} alt="Logo" className="w-14 h-14 rounded-xl object-cover border border-gray-200" />
+                  <img src={currentLogoUrl} alt="Logo" className="w-14 h-14 rounded-xl object-cover border border-border" />
                 ) : (
-                  <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-400">
+                  <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center text-sm font-bold text-gray-400">
                     {initials}
                   </div>
                 )}
@@ -433,7 +433,7 @@ export default function TractionLinkEditor() {
                         }
                       }}
                     />
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-white transition-colors">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground border border-border hover:border-border hover:bg-card transition-colors">
                       <Upload className="h-3 w-3" />
                       {uploadLogoMutation.isPending ? t('tractionPage.editorUploading') : t('tractionPage.editorUploadLogo')}
                     </span>
@@ -447,7 +447,7 @@ export default function TractionLinkEditor() {
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Paintbrush className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">{t('tractionPage.editorBackground')}</h3>
+                <h3 className="text-sm font-semibold text-foreground">{t('tractionPage.editorBackground')}</h3>
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {bgStyles.map((bg) => (
@@ -462,7 +462,7 @@ export default function TractionLinkEditor() {
                     style={theme.headerStyle === bg.id ? { '--tw-ring-color': theme.primaryColor } as React.CSSProperties : undefined}
                   >
                     <div className="h-12 rounded-xl" style={bg.preview} />
-                    <p className="text-[10px] font-medium text-gray-500 mt-1 text-center pb-1">{bg.label}</p>
+                    <p className="text-[10px] font-medium text-muted-foreground mt-1 text-center pb-1">{bg.label}</p>
                     {theme.headerStyle === bg.id && (
                       <div className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: theme.primaryColor }}>
                         <Check className="h-2.5 w-2.5 text-white" />
@@ -474,7 +474,7 @@ export default function TractionLinkEditor() {
               {theme.headerStyle === 'image' && (
                 <div className="mt-3 space-y-2">
                   {(headerPreview || data.profile.headerUrl) ? (
-                    <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                    <div className="relative rounded-lg overflow-hidden border border-border">
                       <img
                         src={headerPreview || data.profile.headerUrl}
                         alt="Header background"
@@ -513,9 +513,9 @@ export default function TractionLinkEditor() {
                           }
                         }}
                       />
-                      <div className="flex items-center justify-center gap-2 px-3 py-3 rounded-lg border border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center justify-center gap-2 px-3 py-3 rounded-lg border border-dashed border-border hover:border-gray-400 hover:bg-muted transition-colors">
                         <Upload className="h-4 w-4 text-gray-400" />
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           {uploadHeaderMutation.isPending ? t('tractionPage.editorUploading') : t('tractionPage.editorUploadHeader')}
                         </span>
                       </div>
@@ -530,17 +530,17 @@ export default function TractionLinkEditor() {
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Palette className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">{t('tractionPage.editorColors')}</h3>
+                <h3 className="text-sm font-semibold text-foreground">{t('tractionPage.editorColors')}</h3>
               </div>
               <div className="space-y-3">
                 <div>
-                  <Label className="text-xs text-gray-500 mb-1.5 block">{t('tractionPage.editorPrimaryColor')}</Label>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">{t('tractionPage.editorPrimaryColor')}</Label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
                       value={theme.primaryColor}
                       onChange={(e) => updateTheme({ primaryColor: e.target.value })}
-                      className="w-9 h-9 rounded-lg border border-gray-200 cursor-pointer p-0.5"
+                      className="w-9 h-9 rounded-lg border border-border cursor-pointer p-0.5"
                     />
                     <Input
                       value={theme.primaryColor}
@@ -552,13 +552,13 @@ export default function TractionLinkEditor() {
                 </div>
                 {(theme.headerStyle === 'gradient') && (
                   <div>
-                    <Label className="text-xs text-gray-500 mb-1.5 block">{t('tractionPage.editorAccentColor')}</Label>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">{t('tractionPage.editorAccentColor')}</Label>
                     <div className="flex items-center gap-2">
                       <input
                         type="color"
                         value={theme.accentColor}
                         onChange={(e) => updateTheme({ accentColor: e.target.value })}
-                        className="w-9 h-9 rounded-lg border border-gray-200 cursor-pointer p-0.5"
+                        className="w-9 h-9 rounded-lg border border-border cursor-pointer p-0.5"
                       />
                       <Input
                         value={theme.accentColor}
@@ -576,11 +576,11 @@ export default function TractionLinkEditor() {
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Type className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">{t('tractionPage.editorContent')}</h3>
+                <h3 className="text-sm font-semibold text-foreground">{t('tractionPage.editorContent')}</h3>
               </div>
               <div className="space-y-3">
                 <div>
-                  <Label className="text-xs text-gray-500 mb-1.5 block">{t('tractionPage.editorHeading')}</Label>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">{t('tractionPage.editorHeading')}</Label>
                   <Input
                     value={theme.welcomeHeading || ''}
                     onChange={(e) => updateTheme({ welcomeHeading: e.target.value || undefined })}
@@ -589,7 +589,7 @@ export default function TractionLinkEditor() {
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500 mb-1.5 block">{t('tractionPage.editorSubtext')}</Label>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">{t('tractionPage.editorSubtext')}</Label>
                   <Textarea
                     value={theme.welcomeSubtext || ''}
                     onChange={(e) => updateTheme({ welcomeSubtext: e.target.value || undefined })}
@@ -599,7 +599,7 @@ export default function TractionLinkEditor() {
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500 mb-1.5 block">{t('tractionPage.editorButtonText')}</Label>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">{t('tractionPage.editorButtonText')}</Label>
                   <Input
                     value={theme.ctaText || ''}
                     onChange={(e) => updateTheme({ ctaText: e.target.value || undefined })}
@@ -614,7 +614,7 @@ export default function TractionLinkEditor() {
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Paintbrush className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">{t('tractionPage.editorQuickPresets')}</h3>
+                <h3 className="text-sm font-semibold text-foreground">{t('tractionPage.editorQuickPresets')}</h3>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {([
@@ -628,13 +628,13 @@ export default function TractionLinkEditor() {
                     onClick={() => updateTheme({ themeId: preset.id, headerStyle: preset.headerStyle })}
                     className={`rounded-xl p-2.5 text-left transition-all ${
                       theme.themeId === preset.id
-                        ? 'ring-2 ring-offset-1 bg-white'
-                        : 'bg-white border border-gray-200 hover:border-gray-300'
+                        ? 'ring-2 ring-offset-1 bg-card'
+                        : 'bg-card border border-border hover:border-border'
                     }`}
                     style={theme.themeId === preset.id ? { '--tw-ring-color': theme.primaryColor } as React.CSSProperties : undefined}
                   >
                     <div className="h-8 rounded-lg mb-1.5" style={preset.preview} />
-                    <p className="text-[11px] font-semibold text-gray-700">{preset.name}</p>
+                    <p className="text-[11px] font-semibold text-muted-foreground">{preset.name}</p>
                   </button>
                 ))}
               </div>
@@ -739,7 +739,7 @@ function BidTraction_open(e){
                 <section>
                   <div className="flex items-center gap-2 mb-3">
                     <Code2 className="h-4 w-4 text-gray-400" />
-                    <h3 className="text-sm font-semibold text-gray-900">{t('tractionPage.editorEmbed') || 'Embed on your website'}</h3>
+                    <h3 className="text-sm font-semibold text-foreground">{t('tractionPage.editorEmbed') || 'Embed on your website'}</h3>
                   </div>
 
                   <div className="grid grid-cols-3 gap-1.5 mb-3">
@@ -749,8 +749,8 @@ function BidTraction_open(e){
                         onClick={() => setEmbedVariant(v.id)}
                         className={`px-2 py-2 rounded-lg text-[10px] font-semibold transition-all ${
                           embedVariant === v.id
-                            ? 'bg-white ring-2 ring-offset-1 text-gray-900'
-                            : 'bg-white border border-gray-200 text-gray-500 hover:text-gray-700'
+                            ? 'bg-card ring-2 ring-offset-1 text-foreground'
+                            : 'bg-card border border-border text-muted-foreground hover:text-muted-foreground'
                         }`}
                         style={embedVariant === v.id ? { '--tw-ring-color': color } as React.CSSProperties : undefined}
                       >
@@ -759,13 +759,13 @@ function BidTraction_open(e){
                     ))}
                   </div>
 
-                  <p className="text-[11px] text-gray-500 mb-3 leading-relaxed">{current.desc}</p>
+                  <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">{current.desc}</p>
 
                   <Textarea
                     readOnly
                     value={currentSnippet}
                     onClick={(e) => (e.target as HTMLTextAreaElement).select()}
-                    className="text-[10px] font-mono resize-none mb-2 bg-gray-50"
+                    className="text-[10px] font-mono resize-none mb-2 bg-muted"
                     rows={8}
                   />
                   <Button
@@ -790,7 +790,7 @@ function BidTraction_open(e){
         {/* ── RIGHT: Live Preview ── */}
         <div className="flex-1 bg-[#e8e8e8] flex items-start justify-center p-6 overflow-auto">
           <div
-            className={`bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${
+            className={`bg-card rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${
               previewMode === 'mobile' ? 'w-[390px]' : 'w-full max-w-[1024px]'
             }`}
             style={{ minHeight: '600px' }}
@@ -832,20 +832,20 @@ function BidTraction_open(e){
             </div>
 
             {/* ── Preview: Page Body ── */}
-            <div className="bg-gray-50">
+            <div className="bg-muted">
               <div className="max-w-[860px] mx-auto px-4 py-8">
                 <div className={`grid gap-6 items-start ${previewMode === 'mobile' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-[1fr_320px]'}`}>
 
                   {/* Company Profile Card */}
-                  <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                  <div className="bg-card rounded-2xl border border-border overflow-hidden">
                     <div className="flex items-start gap-4 p-6 border-b border-gray-50">
                       {currentLogoUrl ? (
-                        <img src={currentLogoUrl} alt="" className="w-14 h-14 rounded-[14px] object-cover flex-shrink-0 border border-gray-100" />
+                        <img src={currentLogoUrl} alt="" className="w-14 h-14 rounded-[14px] object-cover flex-shrink-0 border border-border" />
                       ) : (
-                        <div className="w-14 h-14 rounded-[14px] bg-gray-50 flex items-center justify-center text-base font-extrabold text-gray-400 flex-shrink-0">{initials}</div>
+                        <div className="w-14 h-14 rounded-[14px] bg-muted flex items-center justify-center text-base font-extrabold text-gray-400 flex-shrink-0">{initials}</div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <h2 className="text-lg font-extrabold text-gray-900 tracking-[-0.01em] mb-1">{data.profile.displayName}</h2>
+                        <h2 className="text-lg font-extrabold text-foreground tracking-[-0.01em] mb-1">{data.profile.displayName}</h2>
                         <div className="flex items-center gap-2.5 flex-wrap">
                           {data.company.city && (
                             <span className="flex items-center gap-1 text-xs text-gray-400 font-medium">
@@ -868,7 +868,7 @@ function BidTraction_open(e){
                     <div className="p-6 space-y-5">
                       <div>
                         <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-2">{t('tractionPage.about')}</p>
-                        <p className="text-sm text-gray-500 leading-relaxed">{data.profile.bio || t('tractionPage.noCompanyBio')}</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{data.profile.bio || t('tractionPage.noCompanyBio')}</p>
                       </div>
                       {data.profile.tags && data.profile.tags.length > 0 && (
                         <div>
@@ -883,12 +883,12 @@ function BidTraction_open(e){
                       {hasSocialLinks && (
                         <div className="flex gap-2 pt-2 border-t border-gray-50">
                           {data.profile.socialLinks?.website && (
-                            <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 px-3 py-1.5 rounded-lg" style={{ border: '1px solid #e5e7eb' }}>
+                            <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground px-3 py-1.5 rounded-lg" style={{ border: '1px solid #e5e7eb' }}>
                               <Globe className="h-3.5 w-3.5" />{t('tractionPage.website')}
                             </span>
                           )}
                           {data.profile.socialLinks?.linkedin && (
-                            <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 px-3 py-1.5 rounded-lg" style={{ border: '1px solid #e5e7eb' }}>
+                            <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground px-3 py-1.5 rounded-lg" style={{ border: '1px solid #e5e7eb' }}>
                               <Linkedin className="h-3.5 w-3.5" />{t('tractionPage.linkedin')}
                             </span>
                           )}
@@ -898,9 +898,9 @@ function BidTraction_open(e){
                   </div>
 
                   {/* Action Card */}
-                  <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                  <div className="bg-card rounded-2xl border border-border p-6">
                     <div className="mb-5">
-                      <h3 className="text-base font-bold text-gray-900">{t('tractionPage.joinNetwork')}</h3>
+                      <h3 className="text-base font-bold text-foreground">{t('tractionPage.joinNetwork')}</h3>
                       <p className="text-xs text-gray-400 mt-0.5">{t('tractionPage.quickApplication')}</p>
                     </div>
                     <div
@@ -912,8 +912,8 @@ function BidTraction_open(e){
                     <p className="text-[11px] text-gray-400 text-center mt-3">
                       {t('tractionPage.freeAccountHint')}
                     </p>
-                    <div className="mt-4 pt-4 border-t border-gray-100 text-center">
-                      <span className="text-xs text-gray-500">{t('tractionPage.alreadyHaveAccount')} </span>
+                    <div className="mt-4 pt-4 border-t border-border text-center">
+                      <span className="text-xs text-muted-foreground">{t('tractionPage.alreadyHaveAccount')} </span>
                       <span className="text-xs font-semibold" style={{ color: pc }}>
                         {t('tractionPage.signIn')}
                       </span>
@@ -924,7 +924,7 @@ function BidTraction_open(e){
             </div>
 
             {/* ── Preview: Footer ── */}
-            <div className="bg-gray-50 border-t border-gray-100 py-5 px-6">
+            <div className="bg-muted border-t border-border py-5 px-6">
               <div className="max-w-[860px] mx-auto flex items-center justify-between">
                 <span className="text-xs text-gray-300">
                   {t('tractionPage.poweredBy')}{' '}<strong style={{ color: pc }}>Bid</strong>

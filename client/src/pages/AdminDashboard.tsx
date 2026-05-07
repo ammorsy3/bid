@@ -69,7 +69,7 @@ export default function AdminDashboard() {
       <div className="p-8 max-w-6xl mx-auto">
         {/* Page header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]">
             {t('admin.adminDashboard')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
         {isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-[120px] bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+              <div key={i} className="h-[120px] bg-gray-100 dark:bg-card rounded-xl animate-pulse" />
             ))}
           </div>
         ) : (
@@ -106,8 +106,8 @@ export default function AdminDashboard() {
               const hasItems = card.value > 0;
               return (
                 <Link key={card.title} href={card.link} className="block group">
-                  <div className={`relative rounded-xl border bg-white dark:bg-gray-900 p-5 transition-all hover:shadow-md hover:-translate-y-0.5 ${
-                    hasItems ? 'border-gray-200 dark:border-gray-700' : 'border-gray-100 dark:border-gray-800'
+                  <div className={`relative rounded-xl border bg-white dark:bg-background p-5 transition-all hover:shadow-md hover:-translate-y-0.5 ${
+                    hasItems ? 'border-border dark:border-border' : 'border-border dark:border-border'
                   }`}>
                     <div className="flex items-center justify-between mb-3">
                       <div className={`${card.bgColor} rounded-lg p-2`}>
@@ -117,7 +117,7 @@ export default function AdminDashboard() {
                         <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
                       )}
                     </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-0.5">
+                    <div className="text-2xl font-bold text-gray-900 dark:text-foreground mb-0.5">
                       {card.value}
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
@@ -132,7 +132,7 @@ export default function AdminDashboard() {
 
         {/* Quick actions + System overview */}
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <Card className="border-border dark:border-border bg-white dark:bg-background">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">{t('admin.quickActions')}</CardTitle>
               <CardDescription className="text-xs">{t('admin.quickActionsDesc')}</CardDescription>
@@ -140,13 +140,13 @@ export default function AdminDashboard() {
             <CardContent className="space-y-1">
               <Link
                 href="/admin/vendors"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted dark:hover:bg-gray-800/50 transition-colors group"
               >
                 <div className="h-9 w-9 rounded-lg bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 transition-colors">
                   <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{t('admin.verifyVendors')}</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-foreground">{t('admin.verifyVendors')}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">{t('admin.verifyVendorsDesc')}</div>
                 </div>
                 {(metrics?.pendingVerifications || 0) > 0 && (
@@ -157,13 +157,13 @@ export default function AdminDashboard() {
               </Link>
               <Link
                 href="/admin/marketplace"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted dark:hover:bg-gray-800/50 transition-colors group"
               >
                 <div className="h-9 w-9 rounded-lg bg-orange-50 dark:bg-orange-950/40 flex items-center justify-center flex-shrink-0 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/40 transition-colors">
                   <Store className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{t('admin.reviewMarketplace')}</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-foreground">{t('admin.reviewMarketplace')}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">{t('admin.reviewMarketplaceDesc')}</div>
                 </div>
                 {(metrics?.pendingMarketplace || 0) > 0 && (
@@ -174,46 +174,46 @@ export default function AdminDashboard() {
               </Link>
               <Link
                 href="/admin/audit-logs"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted dark:hover:bg-gray-800/50 transition-colors group"
               >
-                <div className="h-9 w-9 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
+                <div className="h-9 w-9 rounded-lg bg-gray-100 dark:bg-card flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
                   <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{t('admin.viewAuditLogs')}</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-foreground">{t('admin.viewAuditLogs')}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">{t('admin.viewAuditLogsDesc')}</div>
                 </div>
               </Link>
             </CardContent>
           </Card>
 
-          <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <Card className="border-border dark:border-border bg-white dark:bg-background">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">{t('admin.systemOverview')}</CardTitle>
               <CardDescription className="text-xs">{t('admin.systemOverviewDesc')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center justify-between py-2 border-b border-border dark:border-border">
                 <span className="text-sm text-gray-600 dark:text-gray-400">{t('admin.totalCompanies')}</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{metrics?.totalCompanies ?? '--'}</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-foreground">{metrics?.totalCompanies ?? '--'}</span>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center justify-between py-2 border-b border-border dark:border-border">
                 <span className="text-sm text-gray-600 dark:text-gray-400">{t('admin.activeVendors')}</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{metrics?.verifiedCompanies ?? '--'}</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-foreground">{metrics?.verifiedCompanies ?? '--'}</span>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center justify-between py-2 border-b border-border dark:border-border">
                 <span className="text-sm text-gray-600 dark:text-gray-400">{t('admin.activeTenders')}</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{metrics?.totalTenders ?? '--'}</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-foreground">{metrics?.totalTenders ?? '--'}</span>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center justify-between py-2 border-b border-border dark:border-border">
                 <span className="text-sm text-gray-600 dark:text-gray-400">{t('admin.totalProposals')}</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{metrics?.totalProposals ?? '--'}</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-foreground">{metrics?.totalProposals ?? '--'}</span>
               </div>
               <div className="flex items-center justify-between py-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400">{t('admin.proposals24hLabel')}</span>
                 <div className="flex items-center gap-1.5">
                   <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  <span className="text-sm font-semibold text-gray-900 dark:text-foreground">
                     {metrics?.proposalsLast24h || 0}
                   </span>
                 </div>

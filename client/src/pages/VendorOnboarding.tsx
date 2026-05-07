@@ -344,7 +344,7 @@ export default function VendorOnboarding() {
                 {/* Legal & Compliance Section */}
                 <Card className="p-6">
                   <div className="flex items-center gap-2 mb-6">
-                    <h3 className="text-lg font-semibold">{t('onboarding.legalCompliance')}</h3>
+                    <h3 className="font-display font-black text-lg tracking-[-0.02em]">{t('onboarding.legalCompliance')}</h3>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -508,7 +508,7 @@ export default function VendorOnboarding() {
                 {/* Public Profile Section */}
                 <Card className="p-6">
                   <div className="flex items-center gap-2 mb-6">
-                    <h3 className="text-lg font-semibold">{t('onboarding.publicProfile')}</h3>
+                    <h3 className="font-display font-black text-lg tracking-[-0.02em]">{t('onboarding.publicProfile')}</h3>
                   </div>
 
                   <div className="space-y-6">
@@ -617,7 +617,7 @@ export default function VendorOnboarding() {
                           <FormDescription>
                             <div className="flex items-center justify-between">
                               <span>{t('onboarding.shortBioDesc')}</span>
-                              <span className="text-gray-500">
+                              <span className="text-muted-foreground">
                                 {(field.value || "").length} / 100 characters
                               </span>
                             </div>

@@ -24,89 +24,114 @@
   mask-repeat: no-repeat;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Bid — Brand Identity Tokens (Volume 01)
+   Signal Orange #FE3C01 · Ink #1A1613 · Cream #F4EDE1 · Stone #8A8078 · Paper #FFFFFF
+   Dot states: Idle Stone · Live Orange · Decision Ink · Won Green · Lost Red · Pending Amber
+   ───────────────────────────────────────────────────────────────────────── */
 :root {
+  /* Brand neutrals (raw) */
+  --bid-ink:    #1A1613;
+  --bid-cream:  #F4EDE1;
+  --bid-stone:  #8A8078;
+  --bid-paper:  #FFFFFF;
+  --bid-orange: #FE3C01;
+
+  /* Dot states (raw) */
+  --state-idle:     #8A8078; /* Stone — static */
+  --state-live:     #FE3C01; /* Signal Orange — pulse */
+  --state-decision: #1A1613; /* Ink — stamped */
+  --state-won:      #1FA56A; /* Green — outcome */
+  --state-lost:     #D7321F; /* Red — outcome */
+  --state-pending:  #F0A800; /* Amber — blink */
+
+  /* shadcn semantic tokens — light surface = Paper, ink type, orange signal */
   --background: hsl(0, 0%, 100%);
-  --foreground: hsl(240, 10%, 3.9%);
-  --muted: hsl(0, 0%, 96.1%);
-  --muted-foreground: hsl(0, 0%, 45.1%);
+  --foreground: hsl(26, 16%, 9%);
+  --muted: hsl(38, 47%, 96%);
+  --muted-foreground: hsl(28, 7%, 42%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(26, 16%, 9%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(240, 10%, 3.9%);
-  --border: hsl(240, 5.9%, 90%);
-  --input: hsl(240, 5.9%, 90%);
-  --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(0, 0%, 98%);
-  --secondary: hsl(240, 4.8%, 95.9%);
-  --secondary-foreground: hsl(240, 5.9%, 10%);
-  --accent: hsl(240, 4.8%, 95.9%);
-  --accent-foreground: hsl(240, 5.9%, 10%);
-  --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(26, 16%, 9%);
+  --border: hsl(28, 12%, 88%);
+  --input: hsl(28, 12%, 88%);
+  --primary: hsl(14, 99%, 50%);
+  --primary-foreground: hsl(38, 47%, 96%);
+  --secondary: hsl(38, 47%, 92%);
+  --secondary-foreground: hsl(26, 16%, 9%);
+  --accent: hsl(38, 47%, 92%);
+  --accent-foreground: hsl(26, 16%, 9%);
+  --destructive: hsl(6, 75%, 48%);
+  --destructive-foreground: hsl(38, 47%, 96%);
+  --ring: hsl(14, 99%, 50%);
   --radius: 0.5rem;
-  
-  /* Rainbow button colors */
+
+  /* Rainbow button colors (legacy effect — left intact) */
   --color-1: 0, 100%, 50%;
   --color-2: 60, 100%, 50%;
   --color-3: 120, 100%, 50%;
   --color-4: 240, 100%, 50%;
   --color-5: 300, 100%, 50%;
-  
-  /* Custom colors based on design */
-  --primary-50: hsl(207, 100%, 97%);
-  --primary-100: hsl(207, 94%, 89%);
-  --primary-500: hsl(207, 90%, 54%);
-  --primary-600: hsl(207, 90%, 54%);
-  --primary-700: hsl(207, 100%, 29%);
-  
-  --secondary-orange: hsl(24, 100%, 50%);
-  --secondary-orange-600: hsl(25, 100%, 45%);
-  
-  --success-500: hsl(122, 39%, 49%);
-  --success-600: hsl(122, 41%, 40%);
-  --success-100: hsl(122, 39%, 95%);
-  
-  --warning-500: hsl(35, 100%, 50%);
-  --warning-600: hsl(35, 100%, 45%);
-  --warning-100: hsl(35, 100%, 95%);
-  
-  --error-500: hsl(4, 90%, 58%);
-  --error-600: hsl(4, 90%, 50%);
-  --error-100: hsl(4, 90%, 95%);
-  
-  --neutral-50: hsl(0, 0%, 98%);
-  --neutral-100: hsl(0, 0%, 96%);
-  --neutral-200: hsl(0, 0%, 93%);
-  --neutral-300: hsl(0, 0%, 88%);
-  --neutral-400: hsl(0, 0%, 74%);
-  --neutral-500: hsl(0, 0%, 62%);
-  --neutral-600: hsl(0, 0%, 46%);
-  --neutral-700: hsl(0, 0%, 38%);
-  --neutral-800: hsl(0, 0%, 26%);
-  --neutral-900: hsl(240, 6%, 10%);
+
+  /* Brand-aligned primary scale (orange) — replaces legacy blue scale */
+  --primary-50:  hsl(14, 100%, 96%);
+  --primary-100: hsl(14, 100%, 90%);
+  --primary-500: hsl(14, 99%, 50%);
+  --primary-600: hsl(14, 99%, 50%);
+  --primary-700: hsl(14, 99%, 42%);
+
+  /* Legacy "secondary-orange" — now points at Signal Orange (single canonical orange) */
+  --secondary-orange: hsl(14, 99%, 50%);
+  --secondary-orange-600: hsl(14, 99%, 42%);
+
+  /* Status scales — re-tuned to brand state hexes (Won Green / Lost Red / Pending Amber) */
+  --success-500: hsl(151, 68%, 38%);
+  --success-600: hsl(151, 68%, 32%);
+  --success-100: hsl(151, 60%, 94%);
+
+  --warning-500: hsl(42, 100%, 47%);
+  --warning-600: hsl(42, 100%, 40%);
+  --warning-100: hsl(42, 100%, 94%);
+
+  --error-500: hsl(6, 75%, 48%);
+  --error-600: hsl(6, 75%, 42%);
+  --error-100: hsl(6, 75%, 95%);
+
+  /* Neutrals — warmed toward the Ink/Stone/Cream family (was pure gray) */
+  --neutral-50:  hsl(38, 47%, 97%);
+  --neutral-100: hsl(38, 40%, 94%);
+  --neutral-200: hsl(32, 22%, 89%);
+  --neutral-300: hsl(28, 14%, 82%);
+  --neutral-400: hsl(28, 9%, 68%);
+  --neutral-500: hsl(28, 7%, 51%);
+  --neutral-600: hsl(28, 8%, 40%);
+  --neutral-700: hsl(26, 10%, 28%);
+  --neutral-800: hsl(26, 12%, 18%);
+  --neutral-900: hsl(26, 16%, 9%);
 }
 
 .dark {
-  --background: hsl(240, 10%, 3.9%);
-  --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(240, 3.7%, 15.9%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(240, 10%, 3.9%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
-  --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(0, 0%, 98%);
-  --secondary: hsl(240, 3.7%, 15.9%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(240, 3.7%, 15.9%);
-  --accent-foreground: hsl(0, 0%, 98%);
-  --destructive: hsl(0, 62.8%, 30.6%);
-  --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(240, 4.9%, 83.9%);
+  /* Colorway 02 — Cream wordmark on Ink surface */
+  --background: hsl(26, 16%, 9%);
+  --foreground: hsl(38, 47%, 92%);
+  --muted: hsl(26, 12%, 14%);
+  --muted-foreground: hsl(28, 9%, 64%);
+  --popover: hsl(26, 16%, 9%);
+  --popover-foreground: hsl(38, 47%, 92%);
+  --card: hsl(26, 14%, 11%);
+  --card-foreground: hsl(38, 47%, 92%);
+  --border: hsl(26, 10%, 20%);
+  --input: hsl(26, 10%, 20%);
+  --primary: hsl(14, 99%, 50%);
+  --primary-foreground: hsl(38, 47%, 96%);
+  --secondary: hsl(26, 12%, 14%);
+  --secondary-foreground: hsl(38, 47%, 92%);
+  --accent: hsl(26, 12%, 14%);
+  --accent-foreground: hsl(38, 47%, 92%);
+  --destructive: hsl(6, 65%, 42%);
+  --destructive-foreground: hsl(38, 47%, 96%);
+  --ring: hsl(14, 99%, 50%);
 }
 
 @layer base {
@@ -134,12 +159,12 @@
   --docs-card: hsl(0, 0%, 100%);
   --docs-code-bg: hsl(220, 14%, 96%);
 
-  --docs-primary: hsl(22, 95%, 52%);
-  --docs-primary-hover: hsl(22, 95%, 46%);
-  --docs-primary-soft: hsl(28, 100%, 96%);
-  --docs-primary-soft-border: hsl(25, 95%, 88%);
+  --docs-primary: hsl(14, 99%, 50%);
+  --docs-primary-hover: hsl(14, 99%, 42%);
+  --docs-primary-soft: hsl(14, 100%, 96%);
+  --docs-primary-soft-border: hsl(14, 95%, 88%);
   --docs-primary-fg: hsl(0, 0%, 100%);
-  --docs-ring: hsl(22, 95%, 52%);
+  --docs-ring: hsl(14, 99%, 50%);
 
   --docs-method-get: hsl(142, 71%, 35%);
   --docs-method-get-bg: hsl(142, 76%, 96%);
@@ -168,8 +193,8 @@
   --docs-border-strong: hsl(220, 13%, 26%);
   --docs-card: hsl(220, 14%, 9%);
   --docs-code-bg: hsl(220, 14%, 12%);
-  --docs-primary-soft: hsl(22, 60%, 14%);
-  --docs-primary-soft-border: hsl(22, 60%, 22%);
+  --docs-primary-soft: hsl(14, 60%, 14%);
+  --docs-primary-soft-border: hsl(14, 60%, 22%);
   --docs-method-get-bg: hsl(142, 50%, 14%);
   --docs-method-post-bg: hsl(217, 50%, 16%);
   --docs-method-patch-bg: hsl(35, 60%, 14%);
@@ -419,6 +444,28 @@
   .bg-error-100 {
     background-color: var(--error-100);
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Bid · Dot motion · Live pulses, Pending blinks
+   ───────────────────────────────────────────────────────────────────────── */
+@keyframes bid-dot-pulse {
+  0%   { box-shadow: 0 0 0 0    rgba(254, 60, 1, 0.55); }
+  70%  { box-shadow: 0 0 0 0.5em rgba(254, 60, 1, 0); }
+  100% { box-shadow: 0 0 0 0    rgba(254, 60, 1, 0); }
+}
+
+@keyframes bid-dot-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+.bid-dot-pulse { animation: bid-dot-pulse 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite; }
+.bid-dot-blink { animation: bid-dot-blink 1.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bid-dot-pulse,
+  .bid-dot-blink { animation: none; }
 }
 
 @keyframes ticker-scroll {

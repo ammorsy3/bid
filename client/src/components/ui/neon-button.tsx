@@ -7,9 +7,9 @@ const neonButtonVariants = cva(
     {
         variants: {
             variant: {
-                default: "bg-blue-500/5 hover:bg-blue-500/0 border-blue-500/20",
-                solid: "bg-blue-500 hover:bg-blue-600 text-white border-transparent hover:border-foreground/50 transition-all duration-200",
-                ghost: "border-transparent bg-transparent hover:border-zinc-600 hover:bg-white/10",
+                default: "bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/0 border-[var(--bid-orange)]/20",
+                solid: "bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90 text-white border-transparent hover:border-foreground/50 transition-all duration-200",
+                ghost: "border-transparent bg-transparent hover:border-zinc-600 hover:bg-card/10",
             },
             size: {
                 default: "px-7 py-1.5 ",

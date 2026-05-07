@@ -50,14 +50,14 @@ export default function AwardDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5 text-emerald-600" />
+            <Award className="h-5 w-5 text-[var(--state-won)]" />
             {t('tenderFlow.awardDialogTitle')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
-          <div className="text-xs text-gray-500">
-            {t('tenderFlow.awardingTo')}: <span className="font-semibold text-emerald-700">{vendorName}</span>
+          <div className="text-xs text-muted-foreground">
+            {t('tenderFlow.awardingTo')}: <span className="font-semibold text-[var(--state-won)]">{vendorName}</span>
           </div>
 
           <div>
@@ -74,13 +74,13 @@ export default function AwardDialog({
             <>
               <Alert className="border-amber-200 bg-amber-50">
                 <AlertCircle className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-sm text-amber-800">
+                <AlertDescription className="text-sm text-amber-800 dark:text-amber-300">
                   {t('tenderFlow.rejectionWarning')}
                 </AlertDescription>
               </Alert>
 
-              <div className="text-xs text-gray-500">
-                {t('tenderFlow.vendorsToReject')}: <span className="font-medium text-gray-700">{otherVendorNames.join(", ")}</span>
+              <div className="text-xs text-muted-foreground">
+                {t('tenderFlow.vendorsToReject')}: <span className="font-medium text-muted-foreground">{otherVendorNames.join(", ")}</span>
               </div>
 
               <div>
@@ -110,7 +110,7 @@ export default function AwardDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               {t('tenderFlow.cancelBtn')}
             </Button>
-            <Button onClick={handleSubmit} disabled={isPending || !awardMessage.trim()} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+            <Button onClick={handleSubmit} disabled={isPending || !awardMessage.trim()} className="bg-[var(--state-won)] hover:bg-[var(--state-won)]/90 text-white">
               {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Award className="h-4 w-4 mr-1" />}
               {t('tenderFlow.confirmAwardBtn')}
             </Button>

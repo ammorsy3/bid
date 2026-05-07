@@ -1,5 +1,4 @@
 import { useToast } from "@/hooks/use-toast"
-import { AlertCircle } from "lucide-react"
 import {
   Toast,
   ToastClose,
@@ -8,6 +7,7 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast"
+import { StatusDot } from "@/components/brand/StatusDot"
 
 export function Toaster() {
   const { toasts } = useToast()
@@ -19,13 +19,15 @@ export function Toaster() {
         return (
           <Toast key={id} variant={variant} {...props}>
             <div className="flex gap-3 items-start">
-              {isDestructive && (
-                <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
-              )}
+              <StatusDot
+                state={isDestructive ? "lost" : "decision"}
+                size={10}
+                className="flex-shrink-0 mt-2"
+              />
               <div className="grid gap-1">
                 {title && <ToastTitle>{title}</ToastTitle>}
                 {description && (
-                  <ToastDescription className={isDestructive ? "text-gray-500" : undefined}>
+                  <ToastDescription className={isDestructive ? "text-muted-foreground" : undefined}>
                     {description}
                   </ToastDescription>
                 )}

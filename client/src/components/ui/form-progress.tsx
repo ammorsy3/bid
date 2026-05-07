@@ -30,9 +30,9 @@ export function FormProgress({ progress, showPercentage = true, steps, language 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-neutral-700">{ps('progress')}</span>
+        <span className="text-sm font-medium text-muted-foreground">{ps('progress')}</span>
         {showPercentage && (
-          <span className="text-sm font-semibold text-neutral-900">
+          <span className="text-sm font-semibold text-foreground">
             {progress}%
           </span>
         )}
@@ -45,7 +45,7 @@ export function FormProgress({ progress, showPercentage = true, steps, language 
               key={idx}
               className={cn(
                 'flex items-center gap-2 text-sm transition-colors',
-                step.completed ? 'text-success-600' : 'text-neutral-500'
+                step.completed ? 'text-success-600' : 'text-muted-foreground'
               )}
             >
               {step.completed ? (

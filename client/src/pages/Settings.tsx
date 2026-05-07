@@ -215,14 +215,14 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { co
 
   const roleColors: Record<string, string> = {
     owner: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-    admin: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-    member: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-    viewer: 'bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400',
+    admin: 'bg-[var(--bid-orange)]/10 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+    member: 'bg-gray-100 text-muted-foreground dark:bg-card dark:text-muted-foreground',
+    viewer: 'bg-gray-50 text-gray-500 dark:bg-background dark:text-gray-400',
   };
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold flex items-center gap-2">
+      <h2 className="font-display font-black text-xl tracking-[-0.02em] flex items-center gap-2">
         <Users className="h-5 w-5" />
         {t('settings.teamMembers')}
         {!isLoading && <span className="text-sm font-normal text-muted-foreground">({members.length})</span>}
@@ -383,8 +383,8 @@ function MembershipRequestsSection({ companyId }: { companyId: string }) {
       <Card>
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center">
-              <UserPlus className="h-4 w-4 text-emerald-600" />
+            <div className="w-9 h-9 bg-[var(--state-won)]/5 rounded-xl flex items-center justify-center">
+              <UserPlus className="h-4 w-4 text-[var(--state-won)]" />
             </div>
             <div>
               <CardTitle className="text-base">Pending join requests</CardTitle>
@@ -403,10 +403,10 @@ function MembershipRequestsSection({ companyId }: { companyId: string }) {
               <div key={req.id} className="border rounded-xl p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-neutral-900 truncate">{req.requester.name}</p>
-                    <p className="text-xs text-neutral-500 truncate">{req.requester.email}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{req.requester.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{req.requester.email}</p>
                     {req.message && (
-                      <p className="text-xs text-neutral-600 mt-2 italic border-l-2 border-neutral-200 pl-2">
+                      <p className="text-xs text-muted-foreground mt-2 italic border-l-2 border-border pl-2">
                         "{req.message}"
                       </p>
                     )}
@@ -460,7 +460,7 @@ function MembershipRequestsSection({ companyId }: { companyId: string }) {
                       size="sm"
                       onClick={() => { setDecidingId(req.id); decideMutation.mutate({ id: req.id, decision: 'approved' }); }}
                       disabled={isThisDeciding}
-                      className="bg-emerald-600 hover:bg-emerald-700"
+                      className="bg-[var(--state-won)] hover:bg-[var(--state-won)]/90"
                       data-testid={`button-approve-${req.id}`}
                     >
                       {isThisDeciding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Approve'}
@@ -958,9 +958,9 @@ export default function Settings() {
 
   return (
     <>
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 flex ${isRtl ? 'flex-row-reverse' : ''}`}>
+    <div className={`min-h-screen bg-gray-50 dark:bg-background flex ${isRtl ? 'flex-row-reverse' : ''}`}>
       {/* Sidebar - Left for LTR, Right for RTL */}
-      <div className={`w-64 bg-white dark:bg-gray-800 flex flex-col ${isRtl ? 'border-l' : 'border-r'}`}>
+      <div className={`w-64 bg-white dark:bg-card flex flex-col ${isRtl ? 'border-l' : 'border-r'}`}>
         <div className="p-4 border-b">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-sm text-muted-foreground">{t('settings.accountSettings')}</h2>
@@ -991,8 +991,8 @@ export default function Settings() {
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${isRtl ? 'text-right' : 'text-left'} ${
                 activeTab === item.id
-                  ? 'bg-[#E25E45]/10 text-[#E25E45]'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'bg-[#FE3C01]/10 text-[#FE3C01]'
+                  : 'hover:bg-muted dark:hover:bg-gray-700'
               }`}
               data-testid={`sidebar-${item.id}`}
               data-tour={item.id === 'account' ? 'settings-account-tab' : item.id === 'company' ? 'settings-company-tab' : undefined}
@@ -1015,10 +1015,10 @@ export default function Settings() {
           ))}
 
           {/* External links (navigate away, don't switch tab state) */}
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-4 pt-4 border-t border-border dark:border-border">
             <button
               onClick={() => setLocation("/settings/integrations")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${isRtl ? 'text-right' : 'text-left'}`}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted dark:hover:bg-gray-700 ${isRtl ? 'text-right' : 'text-left'}`}
               data-testid="sidebar-integrations"
             >
               <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
@@ -1037,7 +1037,7 @@ export default function Settings() {
           {activeTab === "account" && (
             <div className="space-y-8">
               <div>
-                <h1 className="text-2xl font-bold">{t('settings.accountSettings')}</h1>
+                <h1 className="font-display font-black text-3xl tracking-[-0.04em]">{t('settings.accountSettings')}</h1>
                 <p className="text-muted-foreground mt-1">{t('settings.personalInfo')}</p>
               </div>
 
@@ -1199,7 +1199,7 @@ export default function Settings() {
 
               {/* Appearance Section */}
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold">{t('settings.appearance')}</h2>
+                <h2 className="font-display font-black text-xl tracking-[-0.02em]">{t('settings.appearance')}</h2>
                 <Card>
                   <CardContent className="pt-6 space-y-6">
                     <div className={`flex items-start justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -1214,8 +1214,8 @@ export default function Settings() {
                           onClick={() => setTheme("light")}
                           className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all ${
                             theme === "light" 
-                              ? "ring-2 ring-[#E25E45]" 
-                              : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                              ? "ring-2 ring-[#FE3C01]" 
+                              : "hover:bg-muted dark:hover:bg-gray-700"
                           }`}
                           data-testid="theme-light"
                         >
@@ -1224,7 +1224,7 @@ export default function Settings() {
                               <Check className="h-3 w-3 text-white" />
                             </div>
                           )}
-                          <div className="w-14 h-10 bg-white border-2 border-gray-200 rounded-md flex items-center justify-center text-gray-700 font-semibold">
+                          <div className="w-14 h-10 bg-card border-2 border-border rounded-md flex items-center justify-center text-muted-foreground font-semibold">
                             Aa
                           </div>
                           <span className="text-xs text-muted-foreground">{t('settings.light')}</span>
@@ -1233,8 +1233,8 @@ export default function Settings() {
                           onClick={() => setTheme("dark")}
                           className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all ${
                             theme === "dark" 
-                              ? "ring-2 ring-[#E25E45]" 
-                              : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                              ? "ring-2 ring-[#FE3C01]" 
+                              : "hover:bg-muted dark:hover:bg-gray-700"
                           }`}
                           data-testid="theme-dark"
                         >
@@ -1252,8 +1252,8 @@ export default function Settings() {
                           onClick={() => setTheme("system")}
                           className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all ${
                             theme === "system" 
-                              ? "ring-2 ring-[#E25E45]" 
-                              : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                              ? "ring-2 ring-[#FE3C01]" 
+                              : "hover:bg-muted dark:hover:bg-gray-700"
                           }`}
                           data-testid="theme-system"
                         >
@@ -1262,8 +1262,8 @@ export default function Settings() {
                               <Check className="h-3 w-3 text-white" />
                             </div>
                           )}
-                          <div className="w-14 h-10 bg-gradient-to-r from-white to-gray-800 border-2 border-gray-300 rounded-md flex items-center justify-center">
-                            <span className="text-gray-700 font-semibold text-xs">Aa</span>
+                          <div className="w-14 h-10 bg-gradient-to-r from-white to-gray-800 border-2 border-border rounded-md flex items-center justify-center">
+                            <span className="text-muted-foreground font-semibold text-xs">Aa</span>
                             <span className="text-white font-semibold text-xs">Aa</span>
                           </div>
                           <span className="text-xs text-muted-foreground">{t('settings.system')}</span>
@@ -1297,7 +1297,7 @@ export default function Settings() {
 
               {/* GDPR Section */}
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold">{t('settings.gdpr')}</h2>
+                <h2 className="font-display font-black text-xl tracking-[-0.02em]">{t('settings.gdpr')}</h2>
                 <Card>
                   <CardContent className="pt-6">
                     <div className={`flex items-start gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -1320,12 +1320,12 @@ export default function Settings() {
           {activeTab === "company" && (
             <div className="space-y-8">
               <div>
-                <h1 className="text-2xl font-bold">{t('settings.teamSettings')}</h1>
+                <h1 className="font-display font-black text-3xl tracking-[-0.04em]">{t('settings.teamSettings')}</h1>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-muted-foreground">{activeCompany.name}</p>
                   {activeCompany.verificationStatus === 'verified' ? (
                     <div 
-                      className="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center"
+                      className="h-5 w-5 rounded-full bg-[var(--bid-orange)] flex items-center justify-center"
                       title={t('dashboard.verified')}
                     >
                       <Check className="h-3 w-3 text-white" />
@@ -1451,7 +1451,7 @@ export default function Settings() {
               {/* Invite Team Members (owners/admins only) */}
               {canManageCompany && (
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
+                <h2 className="font-display font-black text-xl tracking-[-0.02em] flex items-center gap-2">
                   <UserPlus className="h-5 w-5" />
                   {t('settings.inviteTeamMembers')}
                 </h2>
@@ -1525,7 +1525,7 @@ export default function Settings() {
 
                     {/* Results */}
                     {inviteResults && (
-                      <div className="border rounded-lg p-3 space-y-2 bg-neutral-50">
+                      <div className="border rounded-lg p-3 space-y-2 bg-muted">
                         {inviteResults.map((result, i) => (
                           <div key={i} className="flex items-center gap-2 text-sm">
                             {result.status === 'sent' ? (
@@ -1573,7 +1573,7 @@ export default function Settings() {
               {/* Company Profile Page */}
               {canManageCompany && (
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
+                <h2 className="font-display font-black text-xl tracking-[-0.02em] flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
                   {t('settings.companyProfilePage')}
                 </h2>
@@ -1584,7 +1584,7 @@ export default function Settings() {
                     </p>
                     <div className="flex items-center gap-3">
                       <a href="/company/edit">
-                        <Button style={{ background: '#E8614D' }} className="text-white">
+                        <Button style={{ background: '#FE3C01' }} className="text-white">
                           <Palette className="h-4 w-4 mr-2" />
                           {t('settings.customizeProfilePage')}
                         </Button>
@@ -1610,7 +1610,7 @@ export default function Settings() {
               {/* Traction Page */}
               {canManageCompany && activeCompany?.profile?.tractionSlug && (
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
+                <h2 className="font-display font-black text-xl tracking-[-0.02em] flex items-center gap-2">
                   <Palette className="h-5 w-5" />
                   {t('dashboard.tractionPage')}
                 </h2>
@@ -1621,7 +1621,7 @@ export default function Settings() {
                     </p>
                     <div className="flex items-center gap-3">
                       <a href={`/traction/${activeCompany.profile?.tractionSlug}/edit`}>
-                        <Button style={{ background: '#E8614D' }} className="text-white">
+                        <Button style={{ background: '#FE3C01' }} className="text-white">
                           <Palette className="h-4 w-4 mr-2" />
                           {t('settings.customizeTractionPage')}
                         </Button>
@@ -1737,8 +1737,8 @@ export default function Settings() {
                 <Card>
                   <CardHeader className="pb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
-                        <FileCheck2 className="h-4 w-4 text-blue-600" />
+                      <div className="w-9 h-9 bg-[var(--bid-orange)]/5 rounded-xl flex items-center justify-center">
+                        <FileCheck2 className="h-4 w-4 text-[var(--bid-orange)]" />
                       </div>
                       <div>
                         <CardTitle className="text-base">{t('settings.verificationDocsTitle')}</CardTitle>
@@ -1754,14 +1754,14 @@ export default function Settings() {
                       return (
                         <div
                           key={slot.type}
-                          className={`border rounded-xl p-4 transition-colors ${isUploaded ? 'border-green-200 bg-green-50/40' : 'border-neutral-200 bg-white'}`}
+                          className={`border rounded-xl p-4 transition-colors ${isUploaded ? 'border-green-200 bg-green-50/40' : 'border-border bg-card'}`}
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-0.5">
-                                <span className="text-sm font-medium text-neutral-900">{slot.label}</span>
+                                <span className="text-sm font-medium text-foreground">{slot.label}</span>
                                 {slot.required && !isUploaded && (
-                                  <span className="text-xs font-medium text-[#E25E45] bg-[#E25E45]/10 px-1.5 py-0.5 rounded">
+                                  <span className="text-xs font-medium text-[#FE3C01] bg-[#FE3C01]/10 px-1.5 py-0.5 rounded">
                                     {t('settings.requiredForTenders')}
                                   </span>
                                 )}

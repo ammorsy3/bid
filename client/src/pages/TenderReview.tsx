@@ -14,7 +14,7 @@ import {
   Copy,
   Languages,
 } from "lucide-react";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useTheme } from "next-themes";
 import { FormCard, getCardDefinition, FIELD_INSIGHTS } from "@/lib/form-builder-types";
 import { useToast } from "@/hooks/use-toast";
@@ -87,10 +87,11 @@ export default function TenderReview() {
     'attachments': t('formBuilder.cardAttachmentsLabel'),
   };
 
+  // Bid grid texture — low-opacity Stone on light, low-opacity Cream on Ink (dark mode).
   const dotColor =
     theme === "dark"
-      ? "rgba(139, 92, 246, 0.15)"
-      : "rgba(156, 163, 175, 0.3)";
+      ? "rgba(244, 237, 225, 0.10)"
+      : "rgba(138, 128, 120, 0.22)";
 
   useEffect(() => {
     const savedState = localStorage.getItem(TENDER_STATE_KEY);
@@ -494,7 +495,7 @@ export default function TenderReview() {
 
   return (
     <div
-      className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-gray-900"
+      className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-background"
       style={{
         backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
         backgroundSize: "20px 20px",
@@ -504,12 +505,7 @@ export default function TenderReview() {
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <div className="flex items-center justify-between mb-10">
-          <img
-            src={logoPath}
-            alt="Bid"
-            className="h-14 cursor-pointer hover:opacity-80 transition-opacity duration-300"
-            onClick={() => navigate("/dashboard")}
-          />
+          <BidLogo size={56} className="cursor-pointer hover:opacity-80 transition-opacity duration-300" onClick={() => navigate("/dashboard")} />
 
           <StepIndicator
             steps={[
@@ -542,7 +538,7 @@ export default function TenderReview() {
         >
         {/* ── Headline ───────────────────────────────────────────── */}
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white leading-tight mb-3">
+          <h1 className="font-display font-black text-4xl text-gray-900 dark:text-foreground leading-[0.95] tracking-[-0.04em] mb-3">
             {t('tenderFlow.reviewRfpTitle')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-xl mx-auto">
@@ -562,13 +558,13 @@ export default function TenderReview() {
         )}
 
         {/* ── RFP Language & Translation Settings ────────────── */}
-        <div className="mb-6 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg p-6 space-y-5">
+        <div className="mb-6 bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-lg p-6 space-y-5">
           {/* RFP Language (required) */}
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <Languages className="h-5 w-5 text-[#E8614D]" />
+              <Languages className="h-5 w-5 text-[#FE3C01]" />
               <div>
-                <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                <h3 className="text-base font-bold text-gray-900 dark:text-foreground">
                   {t('tenderFlow.rfpLanguageLabel')} <span className="text-red-500">*</span>
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -582,8 +578,8 @@ export default function TenderReview() {
                 onClick={() => setRfpLanguage('en')}
                 className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
                   rfpLanguage === 'en'
-                    ? 'border-[#E8614D] bg-[#E8614D]/10 text-[#E8614D]'
-                    : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-300'
+                    ? 'border-[#FE3C01] bg-[#FE3C01]/10 text-[#FE3C01]'
+                    : 'border-gray-200 dark:border-gray-600 text-muted-foreground dark:text-muted-foreground hover:border-gray-300'
                 }`}
               >
                 English
@@ -593,8 +589,8 @@ export default function TenderReview() {
                 onClick={() => setRfpLanguage('ar')}
                 className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
                   rfpLanguage === 'ar'
-                    ? 'border-[#E8614D] bg-[#E8614D]/10 text-[#E8614D]'
-                    : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-300'
+                    ? 'border-[#FE3C01] bg-[#FE3C01]/10 text-[#FE3C01]'
+                    : 'border-gray-200 dark:border-gray-600 text-muted-foreground dark:text-muted-foreground hover:border-gray-300'
                 }`}
               >
                 العربية
@@ -603,16 +599,16 @@ export default function TenderReview() {
           </div>
 
           {/* Divider */}
-          <div className="border-t border-gray-200 dark:border-gray-700" />
+          <div className="border-t border-border dark:border-border" />
 
           {/* Allow Translation toggle */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                <Languages className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <div className="p-2 rounded-lg bg-[var(--bid-orange)]/5 dark:bg-blue-900/20">
+                <Languages className="h-4 w-4 text-[var(--bid-orange)] dark:text-blue-400" />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-900 dark:text-white">
+                <label className="text-sm font-medium text-gray-900 dark:text-foreground">
                   {t('tenderFlow.allowTranslationLabel')}
                 </label>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -687,17 +683,17 @@ export default function TenderReview() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05, duration: 0.35, ease: "easeOut" }}
-                className={`bg-white dark:bg-gray-800 rounded-2xl border-2 shadow-lg transition-all duration-300 ease-in-out ${
+                className={`bg-white dark:bg-card rounded-2xl border-2 shadow-lg transition-all duration-300 ease-in-out ${
                   hasValue
-                    ? "border-[#E8614D] shadow-[#E8614D]/10"
+                    ? "border-[#FE3C01] shadow-[#FE3C01]/10"
                     : card.isRequired
                     ? "border-red-300 dark:border-red-700"
-                    : "border-gray-200 dark:border-gray-700"
+                    : "border-border dark:border-border"
                 }`}
               >
                 {/* Gradient top strip */}
                 <div
-                  className={`h-1 rounded-t-2xl bg-gradient-to-r from-[#E8614D] to-[#F19A8F] transition-opacity duration-300 ${
+                  className={`h-1 rounded-t-2xl bg-gradient-to-r from-[#FE3C01] to-[#F19A8F] transition-opacity duration-300 ${
                     hasValue ? "opacity-100" : "opacity-0"
                   }`}
                 />
@@ -709,8 +705,8 @@ export default function TenderReview() {
                       <div
                         className={`p-3 rounded-xl flex-shrink-0 transition-all duration-300 ease-in-out ${
                           hasValue
-                            ? "bg-[#E8614D] text-white"
-                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                            ? "bg-[#FE3C01] text-white"
+                            : "bg-gray-100 dark:bg-gray-700 text-muted-foreground dark:text-muted-foreground"
                         }`}
                       >
                         <Icon className="h-6 w-6" />
@@ -722,8 +718,8 @@ export default function TenderReview() {
                         <h3
                           className={`text-xl font-bold transition-colors duration-300 ${
                             hasValue
-                              ? "text-[#E8614D]"
-                              : "text-gray-900 dark:text-white"
+                              ? "text-[#FE3C01]"
+                              : "text-gray-900 dark:text-foreground"
                           }`}
                         >
                           {displayLabel}
@@ -764,7 +760,7 @@ export default function TenderReview() {
                   <div
                     className={`ml-[3.25rem] text-sm leading-relaxed whitespace-pre-wrap ${
                       hasValue
-                        ? "text-gray-700 dark:text-gray-300"
+                        ? "text-muted-foreground dark:text-muted-foreground"
                         : "text-gray-400 dark:text-gray-500 italic"
                     }`}
                   >
@@ -777,20 +773,20 @@ export default function TenderReview() {
         </div>
 
         {/* ── Save as Template ────────────────────────────────────── */}
-        <div className="mb-10 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden">
+        <div className="mb-10 bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-lg overflow-hidden">
           <button
             type="button"
             aria-expanded={templateExpanded}
             aria-controls="template-section"
             onClick={() => setTemplateExpanded(!templateExpanded)}
-            className="w-full p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+            className="w-full p-6 flex items-center justify-between hover:bg-muted dark:hover:bg-gray-700/50 transition-colors"
           >
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-[#E8614D]/10 flex-shrink-0">
-                <Save className="h-6 w-6 text-[#E8614D]" />
+              <div className="p-3 rounded-xl bg-[#FE3C01]/10 flex-shrink-0">
+                <Save className="h-6 w-6 text-[#FE3C01]" />
               </div>
               <div className="text-left">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-foreground">
                   {t('tenderFlow.saveAsTemplate')}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -815,11 +811,11 @@ export default function TenderReview() {
                 transition={{ duration: 0.25, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="px-6 pb-6 border-t border-border dark:border-border">
                   <div className="pt-5 space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <label className="text-sm font-medium text-gray-900 dark:text-white">
+                        <label className="text-sm font-medium text-gray-900 dark:text-foreground">
                           {t('tenderFlow.saveRfpAsTemplate')}
                         </label>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -839,9 +835,9 @@ export default function TenderReview() {
                     </div>
 
                     {saveAsTemplate && (
-                      <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                      <div className="space-y-4 pt-4 border-t border-border dark:border-border">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-900 dark:text-white">
+                          <label className="text-sm font-medium text-gray-900 dark:text-foreground">
                             {t('tenderFlow.templateNameLabel')} <span className="text-red-500">*</span>
                           </label>
                           <input
@@ -849,12 +845,12 @@ export default function TenderReview() {
                             value={templateName}
                             onChange={(e) => setTemplateName(e.target.value)}
                             placeholder={t('tenderFlow.templateNamePlaceholder')}
-                            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E8614D] focus:border-transparent"
+                            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-900 dark:text-white">
+                          <label className="text-sm font-medium text-gray-900 dark:text-foreground">
                             {t('tenderFlow.descriptionLabel')}
                           </label>
                           <textarea
@@ -862,7 +858,7 @@ export default function TenderReview() {
                             onChange={(e) => setTemplateDescription(e.target.value)}
                             placeholder={t('tenderFlow.templateDescPlaceholder')}
                             rows={3}
-                            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E8614D] focus:border-transparent resize-none"
+                            className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none"
                           />
                         </div>
                       </div>
@@ -897,7 +893,7 @@ export default function TenderReview() {
                 className="flex flex-col items-center gap-3 py-6"
               >
                 <CheckCircle2 className="h-12 w-12 text-green-500" />
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">{t('tenderFlow.rfpLaunchedSuccess')}</p>
+                <p className="text-lg font-semibold text-gray-900 dark:text-foreground">{t('tenderFlow.rfpLaunchedSuccess')}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{t('tenderFlow.redirectingToDashboard')}</p>
               </motion.div>
             ) : (
@@ -914,7 +910,7 @@ export default function TenderReview() {
                 <Button
                   onClick={handleLaunchTender}
                   disabled={isSubmitting || validationErrors.length > 0 || (marketplaceOptions.enabled && !marketplaceOptions.confirmed)}
-                  className="min-w-[160px] h-12 text-base bg-[#E8614D] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                  className="min-w-[160px] h-12 text-base bg-[#FE3C01] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed text-white"
                   title={
                     validationErrors.length > 0
                       ? `${t('tenderFlow.completeRequiredFields')} ${validationErrors.join(", ")}`

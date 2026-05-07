@@ -49,7 +49,7 @@ export const SmartInput = forwardRef<HTMLInputElement, SmartInputProps>(
                 key={idx}
                 className={cn(
                   'text-xs flex items-center gap-1.5 transition-colors',
-                  constraint.met ? 'text-success-600' : 'text-neutral-500'
+                  constraint.met ? 'text-success-600' : 'text-muted-foreground'
                 )}
               >
                 {constraint.met ? (
@@ -94,7 +94,7 @@ export const SmartTextarea = forwardRef<HTMLTextAreaElement, SmartTextareaProps>
           {...props}
         />
         {showCounter && maxLength && (
-          <div className="absolute bottom-2 right-2 text-xs text-neutral-500 bg-white px-2 py-1 rounded">
+          <div className="absolute bottom-2 right-2 text-xs text-muted-foreground bg-card px-2 py-1 rounded">
             {currentLength}/{maxLength}
           </div>
         )}

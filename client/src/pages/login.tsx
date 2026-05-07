@@ -14,6 +14,7 @@ import { CheckCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
+import { BidLogo } from "@/components/brand/BidLogo";
 
 type LoginForm = { email: string; password: string };
 type ForgotForm = { email: string };
@@ -121,13 +122,13 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-screen bg-white flex flex-col overflow-hidden">
+    <div className="relative min-h-screen bg-card flex flex-col overflow-hidden">
       <div className="absolute inset-0 z-0">
         <FlickeringGrid
           className="size-full"
           squareSize={4}
           gridGap={6}
-          color="rgb(226, 94, 69)"
+          color="rgb(254, 60, 1)"
           maxOpacity={0.15}
           flickerChance={0.1}
         />
@@ -136,16 +137,16 @@ export default function Login() {
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-12">
         <header className="mb-10">
           <Link href="/">
-            <h1 className="text-center text-4xl font-bold text-[#E25E45] tracking-tight cursor-pointer hover:opacity-80 transition-opacity">Bid</h1>
+            <BidLogo size={48} className="cursor-pointer hover:opacity-80 transition-opacity" />
           </Link>
         </header>
 
         <div className="w-full max-w-md">
           {forgotMode ? (
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-neutral-200/60 shadow-sm p-8">
+            <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/60 shadow-sm p-8">
               <div className="mb-6 text-center">
-                <h2 className="text-xl font-bold text-neutral-900 mb-1">{t('auth.forgotPasswordTitle')}</h2>
-                <p className="text-sm text-neutral-500">{t('auth.forgotPasswordDesc')}</p>
+                <h2 className="text-xl font-bold text-foreground mb-1">{t('auth.forgotPasswordTitle')}</h2>
+                <p className="text-sm text-muted-foreground">{t('auth.forgotPasswordDesc')}</p>
               </div>
 
               {forgotSent ? (
@@ -153,12 +154,12 @@ export default function Login() {
                   <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto">
                     <CheckCircle className="h-7 w-7 text-green-500" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">{t('auth.resetLinkSent')}</h3>
-                  <p className="text-sm text-neutral-500">{t('auth.resetLinkSentDesc')}</p>
+                  <h3 className="text-lg font-semibold text-foreground">{t('auth.resetLinkSent')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('auth.resetLinkSentDesc')}</p>
                   <button
                     type="button"
                     onClick={() => { setForgotMode(false); setForgotSent(false); }}
-                    className="text-sm text-[#E25E45] hover:text-[#d54d35] font-medium transition-colors"
+                    className="text-sm text-[#FE3C01] hover:text-[#d54d35] font-medium transition-colors"
                   >
                     {t('auth.backToLogin')}
                   </button>
@@ -174,7 +175,7 @@ export default function Login() {
                           <FormItem>
                             <FormLabel>{t('auth.email')}</FormLabel>
                             <FormControl>
-                              <Input placeholder={t('auth.emailPlaceholder')} className="bg-white" {...field} />
+                              <Input placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -189,7 +190,7 @@ export default function Login() {
                     <button
                       type="button"
                       onClick={() => setForgotMode(false)}
-                      className="text-sm text-neutral-500 hover:text-neutral-800 transition-colors"
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {t('auth.backToLogin')}
                     </button>
@@ -198,10 +199,10 @@ export default function Login() {
               )}
             </div>
           ) : (
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-neutral-200/60 shadow-sm p-8">
+            <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/60 shadow-sm p-8">
               <div className="mb-6 text-center">
-                <h2 className="text-xl font-bold text-neutral-900 mb-1">{t('authPanel.signInTitle')}</h2>
-                <p className="text-sm text-neutral-500">{t('authPanel.signInDesc')}</p>
+                <h2 className="text-xl font-bold text-foreground mb-1">{t('authPanel.signInTitle')}</h2>
+                <p className="text-sm text-muted-foreground">{t('authPanel.signInDesc')}</p>
               </div>
 
               <Form {...form}>
@@ -213,7 +214,7 @@ export default function Login() {
                       <FormItem>
                         <FormLabel>{t('auth.email')}</FormLabel>
                         <FormControl>
-                          <Input data-testid="input-email" placeholder={t('auth.emailPlaceholder')} className="bg-white" {...field} />
+                          <Input data-testid="input-email" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -230,13 +231,13 @@ export default function Login() {
                           <button
                             type="button"
                             onClick={() => setForgotMode(true)}
-                            className="text-xs text-[#E25E45] hover:text-[#d54d35] font-medium transition-colors"
+                            className="text-xs text-[#FE3C01] hover:text-[#d54d35] font-medium transition-colors"
                           >
                             {t('auth.forgotPassword')}
                           </button>
                         </div>
                         <FormControl>
-                          <Input data-testid="input-password" type="password" placeholder={t('auth.passwordPlaceholder')} className="bg-white" {...field} />
+                          <Input data-testid="input-password" type="password" placeholder={t('auth.passwordPlaceholder')} className="bg-card" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -250,7 +251,7 @@ export default function Login() {
                       onCheckedChange={(checked) => setRememberDevice(checked as boolean)}
                       data-testid="checkbox-remember"
                     />
-                    <label htmlFor="rememberDevice" className="text-sm text-neutral-600 cursor-pointer select-none">
+                    <label htmlFor="rememberDevice" className="text-sm text-muted-foreground cursor-pointer select-none">
                       {t('auth.rememberDevice')}
                     </label>
                   </div>
@@ -262,9 +263,9 @@ export default function Login() {
               </Form>
 
               <div className="mt-6 text-center">
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-muted-foreground">
                   {t('auth.noAccount')}{" "}
-                  <Link href="/signup" className="text-[#E25E45] hover:text-[#d54d35] font-medium">
+                  <Link href="/signup" className="text-[#FE3C01] hover:text-[#d54d35] font-medium">
                     {t('auth.signUp')}
                   </Link>
                 </p>

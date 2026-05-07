@@ -7,6 +7,7 @@ import { useAuthStore } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
+import { BidLogo } from "@/components/brand/BidLogo";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -106,20 +107,23 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
       {/* Sidebar */}
-      <aside className="w-[272px] flex-shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col">
+      <aside className="w-[272px] flex-shrink-0 bg-white dark:bg-background border-r border-border dark:border-border flex flex-col">
         {/* Brand accent strip */}
-        <div className="h-0.5 bg-gradient-to-r from-purple-500 to-indigo-500 flex-shrink-0" />
+        <div className="h-0.5 bg-[var(--bid-orange)] flex-shrink-0" />
 
         {/* Header */}
-        <div className="px-5 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="px-5 pt-5 pb-4 border-b border-border dark:border-border">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors mb-3"
+            className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-muted-foreground dark:hover:text-gray-300 transition-colors mb-3"
           >
             <ArrowLeft className={`h-3.5 w-3.5 ${isRtl ? 'rotate-180' : ''}`} />
             {t('admin.backToDashboard')}
           </Link>
-          <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+          <div className="mb-2">
+            <BidLogo size={24} />
+          </div>
+          <h1 className="font-display font-black text-xl text-gray-900 dark:text-foreground tracking-[-0.03em]">
             {t('admin.adminPanel')}
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -144,19 +148,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       href={item.href}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                         isActive
-                          ? "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300"
-                          : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-200"
+                          ? "bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] dark:bg-[var(--bid-orange)]/15"
+                          : "text-gray-600 dark:text-gray-400 hover:bg-muted dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-200"
                       }`}
                     >
                       <Icon className={`h-[18px] w-[18px] flex-shrink-0 ${
-                        isActive ? "text-purple-600 dark:text-purple-400" : "text-gray-400 dark:text-gray-500"
+                        isActive ? "text-[var(--bid-orange)]" : "text-gray-400 dark:text-gray-500"
                       }`} />
                       <span className="flex-1 truncate">{item.label}</span>
                       {item.count > 0 && (
-                        <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold ${
+                        <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold font-mono tabular-nums ${
                           isActive
-                            ? "bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200"
-                            : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
+                            ? "bg-[var(--bid-orange)] text-white"
+                            : "bg-[var(--state-lost)]/15 text-[var(--state-lost)]"
                         }`}>
                           {item.count}
                         </span>
@@ -170,7 +174,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </nav>
 
         {/* Footer — user info */}
-        <div className="border-t border-gray-100 dark:border-gray-800 px-4 py-4">
+        <div className="border-t border-border dark:border-border px-4 py-4">
           <div className="flex items-center gap-3 mb-3">
             {user.profilePictureUrl ? (
               <img
@@ -179,12 +183,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 className="h-8 w-8 rounded-full object-cover flex-shrink-0"
               />
             ) : (
-              <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center text-purple-700 dark:text-purple-300 text-sm font-semibold flex-shrink-0">
+              <div className="h-8 w-8 rounded-full bg-[var(--bid-orange)]/15 flex items-center justify-center text-[var(--bid-orange)] text-sm font-semibold flex-shrink-0 font-display">
                 {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+              <p className="text-sm font-medium text-gray-900 dark:text-foreground truncate">
                 {user.name || user.username}
               </p>
               <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
@@ -192,7 +196,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-muted dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
           >
             <LogOut className="h-4 w-4" />
             {t('admin.navLogout')}

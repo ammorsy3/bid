@@ -59,7 +59,7 @@ export const SpotlightCard = ({
       onBlur={handleBlur}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`relative isolate rounded-2xl border border-neutral-200 bg-white overflow-hidden ${className}`}
+      className={`relative isolate rounded-2xl border border-border bg-card overflow-hidden ${className}`}
     >
       {/* Static corner glow - top left */}
       <div

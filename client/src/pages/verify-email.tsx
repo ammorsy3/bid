@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { BidLogo } from "@/components/brand/BidLogo";
 
 export default function VerifyEmail() {
   const [, setLocation] = useLocation();
@@ -243,16 +244,19 @@ export default function VerifyEmail() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
       <div className="w-full max-w-md">
+        <div className="flex justify-center mb-8">
+          <BidLogo size={40} />
+        </div>
         <div className="text-center mb-8">
           <div className="mx-auto w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mb-6">
             <Mail className="w-8 h-8 text-primary-600" />
           </div>
-          <h1 className="text-2xl font-bold text-neutral-900 mb-2">{t('onboardingPanel.checkYourEmail')}</h1>
-          <p className="text-neutral-500">
+          <h1 className="font-display font-black text-3xl text-foreground mb-2 tracking-[-0.04em]">{t('onboardingPanel.checkYourEmail')}</h1>
+          <p className="text-muted-foreground">
             {t('onboardingPanel.sentCodeTo')}{" "}
-            <span className="font-medium text-neutral-700">{user.email}</span>
+            <span className="font-medium text-muted-foreground">{user.email}</span>
           </p>
           <button
             type="button"
@@ -308,7 +312,7 @@ export default function VerifyEmail() {
             </Button>
 
             <div className="text-center">
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-muted-foreground">
                 {t('onboardingPanel.didntReceiveCode')}{" "}
                 {resendCooldown > 0 ? (
                   <span className="text-neutral-400">{t('onboardingPanel.resendIn', { seconds: resendCooldown })}</span>

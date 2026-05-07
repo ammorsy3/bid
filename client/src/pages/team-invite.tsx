@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Building2, UserPlus, Shield, Loader2, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { BidLogo } from "@/components/brand/BidLogo";
 
 interface InvitationDetails {
   id: string;
@@ -119,7 +120,7 @@ export default function TeamInvite() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
         <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
       </div>
     );
@@ -127,15 +128,15 @@ export default function TeamInvite() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-muted p-4">
         <div className="w-full max-w-md">
           <Card>
             <CardContent className="pt-8 pb-8 text-center">
               <div className="mx-auto w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mb-4">
                 <XCircle className="w-7 h-7 text-red-500" />
               </div>
-              <h2 className="text-xl font-bold text-neutral-900 mb-2">{t('teamInvite.invalidInvitationTitle')}</h2>
-              <p className="text-neutral-500 mb-6">{error}</p>
+              <h2 className="font-display font-black text-2xl text-foreground mb-2 tracking-[-0.03em]">{t('teamInvite.invalidInvitationTitle')}</h2>
+              <p className="text-muted-foreground mb-6">{error}</p>
               <Link href="/login">
                 <Button variant="outline">{t('teamInvite.goToLogin')}</Button>
               </Link>
@@ -149,39 +150,42 @@ export default function TeamInvite() {
   if (!invitation) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-muted p-4">
+      <div className="mb-8">
+        <BidLogo size={40} />
+      </div>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-6">
-            <UserPlus className="w-8 h-8 text-green-600" />
+          <div className="mx-auto w-16 h-16 bg-[var(--state-won)]/10 rounded-2xl flex items-center justify-center mb-6">
+            <UserPlus className="w-8 h-8 text-[var(--state-won)]" />
           </div>
-          <h1 className="text-2xl font-bold text-neutral-900 mb-2">{t('teamInvite.invitedHeading')}</h1>
-          <p className="text-neutral-500">
-            <span className="font-medium text-neutral-700">{invitation.inviterName}</span> {t('teamInvite.invitedBy')}
+          <h1 className="font-display font-black text-3xl text-foreground mb-2 tracking-[-0.04em]">{t('teamInvite.invitedHeading')}</h1>
+          <p className="text-muted-foreground">
+            <span className="font-medium text-muted-foreground">{invitation.inviterName}</span> {t('teamInvite.invitedBy')}
           </p>
         </div>
 
         <Card>
           <CardContent className="pt-6 space-y-4">
             {/* Company details */}
-            <div className="bg-neutral-50 rounded-xl p-4 space-y-3">
+            <div className="bg-muted rounded-xl p-4 space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
                   <Building2 className="w-5 h-5 text-primary-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-neutral-500">{t('teamInvite.company')}</p>
-                  <p className="font-semibold text-neutral-900">{invitation.companyName}</p>
+                  <p className="text-sm text-muted-foreground">{t('teamInvite.company')}</p>
+                  <p className="font-semibold text-foreground">{invitation.companyName}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-[var(--bid-orange)]/5 rounded-lg flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-[var(--bid-orange)]" />
                 </div>
                 <div>
-                  <p className="text-sm text-neutral-500">{t('teamInvite.yourRole')}</p>
-                  <p className="font-semibold text-neutral-900">{roleLabel(invitation.role)}</p>
+                  <p className="text-sm text-muted-foreground">{t('teamInvite.yourRole')}</p>
+                  <p className="font-semibold text-foreground">{roleLabel(invitation.role)}</p>
                 </div>
               </div>
             </div>
@@ -190,7 +194,7 @@ export default function TeamInvite() {
             {user && user.email.toLowerCase() !== invitation.email.toLowerCase() && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-amber-800">
+                <p className="text-sm text-amber-800 dark:text-amber-300">
                   {t('teamInvite.emailMismatch', { inviteEmail: invitation.email, userEmail: user.email })}
                 </p>
               </div>
@@ -218,7 +222,7 @@ export default function TeamInvite() {
               </Button>
             ) : (
               <div className="space-y-3">
-                <p className="text-center text-sm text-neutral-500">
+                <p className="text-center text-sm text-muted-foreground">
                   {t('teamInvite.signInPrompt')}
                 </p>
                 <div className="flex gap-3">

@@ -158,14 +158,14 @@ export default function VendorPreQualification() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-8">
+    <div className="min-h-screen bg-muted py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Sparkles className="h-8 w-8 text-primary-600" />
-            <h1 className="text-3xl font-bold text-neutral-900">{t('vendorPreQual.pageTitle')}</h1>
+            <h1 className="font-display font-black text-3xl text-foreground tracking-[-0.04em]">{t('vendorPreQual.pageTitle')}</h1>
           </div>
-          <p className="text-neutral-600">
+          <p className="text-muted-foreground">
             {t('vendorPreQual.pageDesc')}
           </p>
         </div>
@@ -185,8 +185,8 @@ export default function VendorPreQualification() {
             {/* Legal & Compliance Section */}
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-6">
-                <Building2 className="h-5 w-5 text-neutral-700" />
-                <h2 className="text-xl font-semibold text-neutral-900">{t('vendorPreQual.sectionLegalTitle')}</h2>
+                <Building2 className="h-5 w-5 text-muted-foreground" />
+                <h2 className="font-display font-black text-2xl text-foreground tracking-[-0.03em]">{t('vendorPreQual.sectionLegalTitle')}</h2>
                 <Badge variant="outline" className="ml-auto">{t('vendorPreQual.sectionPrivate')}</Badge>
               </div>
 
@@ -358,8 +358,8 @@ export default function VendorPreQualification() {
             {/* Public Profile Section */}
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-6">
-                <User className="h-5 w-5 text-neutral-700" />
-                <h2 className="text-xl font-semibold text-neutral-900">{t('vendorPreQual.sectionPublicTitle')}</h2>
+                <User className="h-5 w-5 text-muted-foreground" />
+                <h2 className="font-display font-black text-2xl text-foreground tracking-[-0.03em]">{t('vendorPreQual.sectionPublicTitle')}</h2>
                 <Badge className="ml-auto bg-primary-600">{t('vendorPreQual.visibleToRequesters')}</Badge>
               </div>
 
@@ -476,7 +476,7 @@ export default function VendorPreQualification() {
                       <FormDescription>
                         <div className="flex items-center justify-between">
                           <span>{t('vendorPreQual.bioHint')}</span>
-                          <span className="text-neutral-500">
+                          <span className="text-muted-foreground">
                             {t('vendorPreQual.bioCharCount', { count: (field.value || "").length })}
                           </span>
                         </div>
@@ -595,7 +595,7 @@ export default function VendorPreQualification() {
             </Card>
 
             <div className="flex items-center justify-between pt-4">
-              <div className="text-sm text-neutral-600">
+              <div className="text-sm text-muted-foreground">
                 {isSaving
                   ? t('vendorPreQual.saving')
                   : lastSaved

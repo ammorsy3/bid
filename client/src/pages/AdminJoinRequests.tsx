@@ -91,7 +91,7 @@ export default function AdminJoinRequests() {
     <AdminLayout>
       <div className="p-8 max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-page-title">
+          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]" data-testid="text-page-title">
             {t('admin.joinRequestsManagement')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -102,13 +102,13 @@ export default function AdminJoinRequests() {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+              <div key={i} className="h-32 bg-gray-100 dark:bg-card rounded-xl animate-pulse" />
             ))}
           </div>
         ) : pendingRequests.length === 0 ? (
-          <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <Card className="border-border dark:border-border bg-white dark:bg-background">
             <CardContent className="py-16 text-center">
-              <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
+              <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-card flex items-center justify-center mx-auto mb-4">
                 <UserIcon className="h-7 w-7 text-gray-400" />
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="text-empty-state">
@@ -120,7 +120,7 @@ export default function AdminJoinRequests() {
         ) : (
           <div className="space-y-4">
             {pendingRequests.map((request: any) => (
-              <Card key={request.id} className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900" data-testid={`card-request-${request.id}`}>
+              <Card key={request.id} className="border-border dark:border-border bg-white dark:bg-background" data-testid={`card-request-${request.id}`}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -189,7 +189,7 @@ export default function AdminJoinRequests() {
           <div className="space-y-4">
             <div>
               <p className="text-sm font-medium mb-2">{t('admin.vendorLabel')} {selectedRequest?.vendor?.name}</p>
-              <p className="text-sm text-gray-600">{t('admin.emailLabel')} {selectedRequest?.vendor?.email}</p>
+              <p className="text-sm text-muted-foreground">{t('admin.emailLabel')} {selectedRequest?.vendor?.email}</p>
             </div>
             {actionType === "reject" && (
               <div>

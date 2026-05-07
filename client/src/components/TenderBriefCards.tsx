@@ -37,9 +37,9 @@ interface Props {
 }
 
 const CATEGORY_META: Record<string, { tKey: string; color: string }> = {
-  technical: { tKey: "briefCatTechnical", color: "bg-blue-500" },
+  technical: { tKey: "briefCatTechnical", color: "bg-[var(--bid-orange)]" },
   financial: { tKey: "briefCatFinancial", color: "bg-green-500" },
-  experience: { tKey: "briefCatExperience", color: "bg-purple-500" },
+  experience: { tKey: "briefCatExperience", color: "bg-[var(--bid-orange)]" },
 };
 
 const FORM_CARD_ICON: Record<string, any> = {
@@ -62,14 +62,14 @@ function Card({
 }) {
   return (
     <motion.div
-      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+      className="bg-white dark:bg-card rounded-xl border border-border dark:border-border overflow-hidden"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
       {title && (
-        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-          <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2 text-sm">
-            {Icon && <Icon className={cn("h-4 w-4", iconClass ?? "text-gray-500")} />}
+        <div className="px-4 py-3 border-b border-border dark:border-border">
+          <h3 className="font-semibold text-gray-900 dark:text-foreground flex items-center gap-2 text-sm">
+            {Icon && <Icon className={cn("h-4 w-4", iconClass ?? "text-muted-foreground")} />}
             {title}
           </h3>
         </div>
@@ -129,10 +129,10 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
     <div className="space-y-4">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-foreground mb-1">
           {tender.title || t("copilot.briefUntitled")}
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           {companyName || t("copilot.briefYourCompany")}
           {companyCity ? ` • ${companyCity}` : ""}
           {tender.category ? ` • ${tender.category}` : ""}
@@ -144,14 +144,14 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
         <Card title={t("copilot.briefProjectScope")} icon={FileText} iconClass="text-orange-500">
           {tender.objective && (
             <div className="mb-3">
-              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">{t("copilot.briefObjective")}</p>
-              <p className="text-sm text-gray-700 dark:text-gray-300">{tender.objective}</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">{t("copilot.briefObjective")}</p>
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground">{tender.objective}</p>
             </div>
           )}
           {tender.description && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">{t("copilot.briefDescription")}</p>
-              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">{t("copilot.briefDescription")}</p>
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground whitespace-pre-wrap leading-relaxed">
                 {tender.description}
               </p>
             </div>
@@ -165,8 +165,8 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
           <div className="flex items-start gap-3">
             <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
             <div>
-              <p className="text-xs text-gray-500">{t("copilot.briefSubmissionDeadline")}</p>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <p className="text-xs text-muted-foreground">{t("copilot.briefSubmissionDeadline")}</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-foreground">
                 {tender.deadline || t("copilot.briefNotSet")}
               </p>
             </div>
@@ -174,8 +174,8 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
           <div className="flex items-start gap-3">
             <DollarSign className="h-5 w-5 text-gray-400 mt-0.5" />
             <div>
-              <p className="text-xs text-gray-500">{t("copilot.briefBudget")}</p>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <p className="text-xs text-muted-foreground">{t("copilot.briefBudget")}</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-foreground">
                 {budgetStr || t("copilot.briefNotSpecified")}
               </p>
             </div>
@@ -184,8 +184,8 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
             <div className="flex items-start gap-3">
               <Clock className="h-5 w-5 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">{t("copilot.briefTimeline")}</p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                <p className="text-xs text-muted-foreground">{t("copilot.briefTimeline")}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-foreground">
                   {tender.startDate && tender.endDate
                     ? `${tender.startDate} → ${tender.endDate}`
                     : tender.projectTimeline || tender.duration || ""}
@@ -197,8 +197,8 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
             <div className="flex items-start gap-3">
               <Target className="h-5 w-5 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">{t("copilot.briefProjectSize")}</p>
-                <p className="text-sm font-medium capitalize text-gray-900 dark:text-white">
+                <p className="text-xs text-muted-foreground">{t("copilot.briefProjectSize")}</p>
+                <p className="text-sm font-medium capitalize text-gray-900 dark:text-foreground">
                   {tender.projectSize}
                 </p>
               </div>
@@ -208,8 +208,8 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
             <div className="flex items-start gap-3">
               <Building2 className="h-5 w-5 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-xs text-gray-500">{t("copilot.briefCategory")}</p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{tender.category}</p>
+                <p className="text-xs text-muted-foreground">{t("copilot.briefCategory")}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-foreground">{tender.category}</p>
               </div>
             </div>
           )}
@@ -223,7 +223,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
             {skills.map((s, i) => (
               <span
                 key={`${s}-${i}`}
-                className="px-2.5 py-1 text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full"
+                className="px-2.5 py-1 text-xs bg-indigo-50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 rounded-full"
               >
                 {s}
               </span>
@@ -241,15 +241,15 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
                 <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{d.name}</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-foreground">{d.name}</span>
                     {d.quantity != null && d.unit && (
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                         {d.quantity} {d.unit}
                       </span>
                     )}
                   </div>
                   {d.description && (
-                    <p className="text-xs text-gray-500 mt-0.5">{d.description}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{d.description}</p>
                   )}
                 </div>
               </li>
@@ -265,22 +265,22 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
             {milestones.map((m: any, i: number) => (
               <li key={m.id || i} className="flex gap-3">
                 <div className="flex flex-col items-center">
-                  <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-semibold">
+                  <div className="w-6 h-6 rounded-full bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] flex items-center justify-center text-xs font-semibold">
                     {i + 1}
                   </div>
                   {i < milestones.length - 1 && <div className="w-px flex-1 bg-purple-200 mt-1" />}
                 </div>
                 <div className="flex-1 pb-2">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{m.name}</p>
-                  {m.description && <p className="text-xs text-gray-500 mt-0.5">{m.description}</p>}
+                  <p className="text-sm font-medium text-gray-900 dark:text-foreground">{m.name}</p>
+                  {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
                   <div className="flex gap-2 mt-1 flex-wrap">
                     {m.dueDate && (
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                         {t("copilot.briefDue", { date: m.dueDate })}
                       </span>
                     )}
                     {m.amount && (
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-green-50 text-green-700">
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-green-50 text-green-700 dark:text-green-300">
                         {t("copilot.briefMilestoneAmount", { amount: m.amount })}
                       </span>
                     )}
@@ -300,7 +300,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
               <p className="text-xs uppercase tracking-wide text-rose-600 mb-1.5">{t("copilot.briefMandatory")}</p>
               <ul className="space-y-1.5">
                 {mandatory.map((r: any, i: number) => (
-                  <li key={r.id || i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <li key={r.id || i} className="flex items-start gap-2 text-sm text-muted-foreground dark:text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
                     <span>{r.text}</span>
                   </li>
@@ -310,7 +310,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
           )}
           {preferred.length > 0 && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1.5">{t("copilot.briefPreferred")}</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1.5">{t("copilot.briefPreferred")}</p>
               <ul className="space-y-1.5">
                 {preferred.map((r: any, i: number) => (
                   <li key={r.id || i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -340,10 +340,10 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
                 {evalWeights.map((w: any, i: number) => (
-                  <div key={w.categoryId || i} className="flex items-center gap-1.5 text-xs text-gray-700 dark:text-gray-300">
+                  <div key={w.categoryId || i} className="flex items-center gap-1.5 text-xs text-muted-foreground dark:text-muted-foreground">
                     <span className={cn("w-2 h-2 rounded-full", CATEGORY_META[w.categoryId]?.color || "bg-gray-400")} />
                     <span>{CATEGORY_META[w.categoryId]?.tKey ? t(`copilot.${CATEGORY_META[w.categoryId].tKey}`) : w.categoryId}</span>
-                    <span className="text-gray-500">{w.weight}%</span>
+                    <span className="text-muted-foreground">{w.weight}%</span>
                   </div>
                 ))}
               </div>
@@ -351,13 +351,13 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
           )}
           {evalCustom.length > 0 && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1.5">{t("copilot.briefAdditionalCriteria")}</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1.5">{t("copilot.briefAdditionalCriteria")}</p>
               <ul className="space-y-1">
                 {evalCustom.map((c: any, i: number) => (
                   <li key={c.id || i} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-700 dark:text-gray-300">{c.text}</span>
+                    <span className="text-muted-foreground dark:text-muted-foreground">{c.text}</span>
                     {c.weight > 0 && (
-                      <span className="text-xs text-gray-500 ml-2 shrink-0">{c.weight}%</span>
+                      <span className="text-xs text-muted-foreground ml-2 shrink-0">{c.weight}%</span>
                     )}
                   </li>
                 ))}
@@ -370,12 +370,12 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
       {/* Submission requirements */}
       {hasSubmissionSection && tender.submissionType && (
         <Card title={t("copilot.briefSubmissionReq")} icon={ClipboardCheck} iconClass="text-cyan-500">
-          <p className="text-sm text-gray-700 dark:text-gray-300">{formatSubmissionType(tender.submissionType, t)}</p>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">{formatSubmissionType(tender.submissionType, t)}</p>
           {tender.submissionType === "tech_fin_with_video" && tender.videoRequired && (
             <p className="text-xs text-orange-600 mt-1">{t("copilot.briefVideoMandatory")}</p>
           )}
           {tender.deadline && (
-            <p className="text-xs text-gray-500 mt-1">{t("copilot.briefDeadlineLabel", { date: tender.deadline })}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("copilot.briefDeadlineLabel", { date: tender.deadline })}</p>
           )}
         </Card>
       )}
@@ -384,11 +384,11 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
       {tender.inquiryType && (
         <Card title={t("copilot.briefQuestions")} icon={MessageSquare} iconClass="text-blue-500">
           {tender.inquiryType === "inside_bid" ? (
-            <p className="text-sm text-gray-700 dark:text-gray-300">
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground">
               {t("copilot.briefInsideQA")}
             </p>
           ) : (
-            <div className="space-y-1.5 text-sm text-gray-700 dark:text-gray-300">
+            <div className="space-y-1.5 text-sm text-muted-foreground dark:text-muted-foreground">
               <p>{t("copilot.briefDirectContact")}</p>
               {tender.emailContact && <p>• {t("copilot.briefEmail")}: {tender.emailContact}</p>}
               {tender.whatsappContact && <p>• {t("copilot.briefWhatsapp")}: {tender.whatsappContact}</p>}
@@ -401,7 +401,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
       {hasMedia && (
         <Card title={t("copilot.briefAdditional")} icon={Mic} iconClass="text-violet-500">
           {tender.voiceNoteUrl && (
-            <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 mb-1.5">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground mb-1.5">
               <Mic className="h-4 w-4 text-violet-500" />
               <audio controls src={tender.voiceNoteUrl} className="h-8" />
             </div>
@@ -411,7 +411,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
               href={tender.videoUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"
+              className="inline-flex items-center gap-2 text-sm text-[var(--bid-orange)] hover:underline"
             >
               <Video className="h-4 w-4" />
               {t("copilot.briefWatchVideo")}
@@ -422,12 +422,12 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
 
       {/* Attachments */}
       {hasAttachments && (
-        <Card title={t("copilot.briefAttachments")} icon={Paperclip} iconClass="text-gray-500">
+        <Card title={t("copilot.briefAttachments")} icon={Paperclip} iconClass="text-muted-foreground">
           <ul className="space-y-1">
             {tender.attachments.map((a: any, i: number) => (
               <li key={a.id || i} className="flex items-center gap-2 text-sm">
                 <Paperclip className="h-3.5 w-3.5 text-gray-400" />
-                <a href={a.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline truncate">
+                <a href={a.url} target="_blank" rel="noreferrer" className="text-[var(--bid-orange)] hover:underline truncate">
                   {a.name}
                 </a>
                 {a.size && (
@@ -446,12 +446,12 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
             {formCards.map((c: any, i: number) => {
               const Icon = FORM_CARD_ICON[c.type] || Hash;
               return (
-                <li key={c.id || i} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                <li key={c.id || i} className="border border-border dark:border-border rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon className="h-3.5 w-3.5 text-gray-500" />
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{c.label}</span>
+                    <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-sm font-medium text-gray-900 dark:text-foreground">{c.label}</span>
                     {c.isRequired && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 uppercase tracking-wide">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 dark:text-rose-300 uppercase tracking-wide">
                         {t("copilot.briefRequiredPill")}
                       </span>
                     )}
@@ -462,7 +462,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
                   {c.type === "custom-select" && Array.isArray(c.options) && c.options.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {c.options.map((o: string, j: number) => (
-                        <span key={j} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                        <span key={j} className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                           {o}
                         </span>
                       ))}

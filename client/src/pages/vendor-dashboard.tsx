@@ -43,15 +43,15 @@ export default function VendorDashboard() {
   const verificationStatus = user.verificationStatus || 'not_verified';
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-muted">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-neutral-900">{t('dashboard.tenderInvitations')}</h1>
-              <p className="text-neutral-600 mt-1">{t('dashboard.tenderInvitationsDesc')}</p>
+              <h1 className="font-display font-black text-3xl text-foreground tracking-[-0.04em]">{t('dashboard.tenderInvitations')}</h1>
+              <p className="text-muted-foreground mt-1">{t('dashboard.tenderInvitationsDesc')}</p>
             </div>
             {verificationStatus === 'verified' && (
               <Badge className="bg-success-600 text-white">
@@ -101,7 +101,7 @@ export default function VendorDashboard() {
 
         {/* Status Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+          <Card className="bg-card p-6 rounded-xl shadow-sm border border-border">
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -110,14 +110,14 @@ export default function VendorDashboard() {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">{t('dashboard.newInvitations')}</p>
-                  <p className="text-2xl font-bold text-neutral-900">{newInvitations.length}</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('dashboard.newInvitations')}</p>
+                  <p className="text-2xl font-bold text-foreground">{newInvitations.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+          <Card className="bg-card p-6 rounded-xl shadow-sm border border-border">
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -126,14 +126,14 @@ export default function VendorDashboard() {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">{t('dashboard.offersSubmitted')}</p>
-                  <p className="text-2xl font-bold text-neutral-900">{offersSubmitted}</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('dashboard.offersSubmitted')}</p>
+                  <p className="text-2xl font-bold text-foreground">{offersSubmitted}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+          <Card className="bg-card p-6 rounded-xl shadow-sm border border-border">
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -142,8 +142,8 @@ export default function VendorDashboard() {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">{t('dashboard.awardsWon')}</p>
-                  <p className="text-2xl font-bold text-neutral-900">{awardsWon}</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('dashboard.awardsWon')}</p>
+                  <p className="text-2xl font-bold text-foreground">{awardsWon}</p>
                 </div>
               </div>
             </CardContent>
@@ -153,12 +153,12 @@ export default function VendorDashboard() {
         {/* Invitations Grid */}
         {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-neutral-600">{t('dashboard.loadingInvitations')}</p>
+            <p className="text-muted-foreground">{t('dashboard.loadingInvitations')}</p>
           </div>
         ) : invitations?.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-neutral-600">{t('dashboard.noInvitationsYet')}</p>
-            <p className="text-sm text-neutral-500 mt-2">{t('dashboard.noInvitationsDesc')}</p>
+            <p className="text-muted-foreground">{t('dashboard.noInvitationsYet')}</p>
+            <p className="text-sm text-muted-foreground mt-2">{t('dashboard.noInvitationsDesc')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

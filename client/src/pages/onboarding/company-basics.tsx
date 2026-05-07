@@ -102,12 +102,12 @@ export default function CompanyBasics() {
       <Card>
         <CardContent className="pt-8 pb-8">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-[#E25E45]/10 rounded-xl flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-[#E25E45]" />
+            <div className="w-10 h-10 bg-[#FE3C01]/10 rounded-xl flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-[#FE3C01]" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">{t('onboardingPanel.companyDetailsTitle')}</h2>
-              <p className="text-sm text-neutral-500">Tell us the basics. You can verify your company later from settings.</p>
+              <h2 className="font-display font-black text-2xl text-foreground tracking-[-0.03em]">{t('onboardingPanel.companyDetailsTitle')}</h2>
+              <p className="text-sm text-muted-foreground">Tell us the basics. You can verify your company later from settings.</p>
             </div>
           </div>
 
@@ -154,8 +154,8 @@ export default function CompanyBasics() {
                 )}
               />
 
-              <div className="rounded-lg bg-neutral-50 border border-neutral-200 p-3 text-xs text-neutral-500">
-                Legal info (CR number, legal name, VAT) and verification documents are collected later from <span className="font-medium text-neutral-700">Settings → Company</span> when you're ready. You can browse Bid and explore right after this step.
+              <div className="rounded-lg bg-muted border border-border p-3 text-xs text-muted-foreground">
+                Legal info (CR number, legal name, VAT) and verification documents are collected later from <span className="font-medium text-muted-foreground">Settings → Company</span> when you're ready. You can browse Bid and explore right after this step.
               </div>
 
               <div className="flex justify-between pt-4">
@@ -172,7 +172,7 @@ export default function CompanyBasics() {
                   type="submit"
                   size="lg"
                   disabled={submitting}
-                  className="bg-[#E25E45] hover:bg-[#d04a32]"
+                  className="bg-[#FE3C01] hover:bg-[#E83501]"
                 >
                   {submitting ? (
                     <>

@@ -4,6 +4,7 @@ import { Sparkles, ShieldAlert, Clock, XCircle, Upload, CheckCircle2 } from "luc
 import { AILoader } from "@/components/ui/ai-loader";
 import { useAuthStore } from "@/lib/auth";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useI18n } from "@/lib/i18n";
 import { usePageTour } from "@/lib/tour";
 import { TENDER_CREATE_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
@@ -91,21 +92,21 @@ export default function TenderCreateChoice() {
     const showUploader = !isUnderReview;
 
     return (
-      <div className="relative min-h-screen bg-white flex flex-col overflow-hidden">
+      <div className="relative min-h-screen bg-card flex flex-col overflow-hidden">
         <div className="absolute inset-0 z-0">
           <FlickeringGrid
             className="size-full"
             squareSize={4}
             gridGap={6}
-            color="rgb(226, 94, 69)"
+            color="rgb(254, 60, 1)"
             maxOpacity={0.08}
             flickerChance={0.1}
           />
         </div>
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-16">
           <header className="absolute top-0 left-0 right-0 pt-12 pb-8">
-            <button onClick={() => setLocation('/dashboard')} className="w-full cursor-pointer">
-              <h1 className="text-center text-4xl font-bold text-[#E25E45] tracking-tight hover:opacity-80 transition-opacity">Bid</h1>
+            <button onClick={() => setLocation('/dashboard')} className="w-full flex justify-center cursor-pointer">
+              <BidLogo size={48} className="hover:opacity-80 transition-opacity" />
             </button>
           </header>
 
@@ -123,7 +124,7 @@ export default function TenderCreateChoice() {
                 )}
               </div>
 
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="font-display font-black text-2xl text-foreground mb-2 tracking-[-0.03em]">
                 {isRejected
                   ? t('onboarding.verificationRejectedTitle')
                   : isUnderReview
@@ -131,7 +132,7 @@ export default function TenderCreateChoice() {
                   : t('onboarding.verifyToContinueTitle')}
               </h2>
 
-              <p className="text-gray-500 text-sm">
+              <p className="text-muted-foreground text-sm">
                 {isRejected
                   ? t('onboarding.verificationRejectedDesc')
                   : isUnderReview
@@ -149,16 +150,16 @@ export default function TenderCreateChoice() {
                   return (
                     <div
                       key={slot.type}
-                      className={`border rounded-xl p-4 bg-white transition-colors ${
-                        isUploaded ? 'border-green-200 bg-green-50/40' : 'border-neutral-200'
+                      className={`border rounded-xl p-4 bg-card transition-colors ${
+                        isUploaded ? 'border-green-200 bg-green-50/40' : 'border-border'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-sm font-medium text-neutral-900">{slot.label}</span>
+                            <span className="text-sm font-medium text-foreground">{slot.label}</span>
                             {slot.required && !isUploaded && (
-                              <span className="text-xs font-medium text-[#E25E45] bg-[#E25E45]/10 px-1.5 py-0.5 rounded">
+                              <span className="text-xs font-medium text-[#FE3C01] bg-[#FE3C01]/10 px-1.5 py-0.5 rounded">
                                 {t('onboarding.requiredBadge')}
                               </span>
                             )}
@@ -195,7 +196,7 @@ export default function TenderCreateChoice() {
             <Button
               variant="outline"
               onClick={() => setLocation('/dashboard')}
-              className="w-full h-11 border-gray-300 text-gray-700 text-sm font-medium rounded-lg"
+              className="w-full h-11 border-border text-muted-foreground text-sm font-medium rounded-lg"
             >
               {t('onboarding.backToDashboard')}
             </Button>
@@ -207,7 +208,7 @@ export default function TenderCreateChoice() {
 
   return (
     <>
-    <div className="relative min-h-screen bg-white flex flex-col overflow-hidden">
+    <div className="relative min-h-screen bg-card flex flex-col overflow-hidden">
       <div className="absolute inset-0 z-0">
         <FlickeringGrid
           className="size-full"
@@ -223,12 +224,10 @@ export default function TenderCreateChoice() {
         <header className="pt-12 pb-8">
           <button
             onClick={() => setLocation('/dashboard')}
-            className="w-full cursor-pointer"
+            className="w-full flex justify-center cursor-pointer"
             data-testid="button-logo-bid"
           >
-            <h1 className="text-center text-4xl font-bold text-[#E25E45] tracking-tight hover:opacity-80 transition-opacity">
-              Bid
-            </h1>
+            <BidLogo size={48} className="hover:opacity-80 transition-opacity" />
           </button>
         </header>
 
@@ -238,20 +237,20 @@ export default function TenderCreateChoice() {
           </div>
 
           <div className="text-center max-w-md">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2 drop-shadow-lg">
+            <h2 className="font-display font-black text-3xl text-foreground mb-2 drop-shadow-lg tracking-[-0.04em]">
               {t('tenderFlow.welcome')} {firstName}!
             </h2>
-            <p className="text-lg text-gray-700 mb-2 drop-shadow-md">
+            <p className="text-lg text-muted-foreground mb-2 drop-shadow-md">
               {t('tenderFlow.letsCreateRfp')}
             </p>
-            <p className="text-sm text-gray-600 mb-10 drop-shadow-md">
+            <p className="text-sm text-muted-foreground mb-10 drop-shadow-md">
               {t('tenderFlow.postRfpDesc')}
             </p>
 
             <div className="space-y-3 max-w-sm mx-auto">
               <Button
                 onClick={() => setLocation("/tenders/new/ai")}
-                className="w-full h-12 bg-[#E25E45] hover:bg-[#d54d35] text-white text-base font-medium rounded-lg"
+                className="w-full h-12 bg-[#FE3C01] hover:bg-[#d54d35] text-white text-base font-medium rounded-lg"
                 data-testid="button-create-with-ai"
                 data-tour="ai-choice"
               >
@@ -262,7 +261,7 @@ export default function TenderCreateChoice() {
               <Button
                 variant="outline"
                 onClick={() => setLocation("/tenders/new/manual")}
-                className="w-full h-12 border-gray-300 text-gray-700 hover:bg-gray-50 text-base font-medium rounded-lg"
+                className="w-full h-12 border-border text-muted-foreground hover:bg-muted text-base font-medium rounded-lg"
                 data-testid="button-create-manually"
                 data-tour="manual-choice"
               >

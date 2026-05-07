@@ -110,7 +110,7 @@ function FilterSlider({
   return (
     <div className="flex items-center gap-3">
       <Icon className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-      <Label className="text-xs text-gray-500 w-16 flex-shrink-0">{label}</Label>
+      <Label className="text-xs text-muted-foreground w-16 flex-shrink-0">{label}</Label>
       <input
         type="range"
         min={min}
@@ -192,10 +192,10 @@ export default function ImageCropDialog({
         </div>
 
         {/* Controls */}
-        <div className="px-5 py-4 space-y-3 border-t border-gray-100">
+        <div className="px-5 py-4 space-y-3 border-t border-border">
           {/* Zoom */}
           <div className="flex items-center gap-3">
-            <Label className="text-xs text-gray-500 w-16 flex-shrink-0">Zoom</Label>
+            <Label className="text-xs text-muted-foreground w-16 flex-shrink-0">Zoom</Label>
             <input
               type="range"
               min={1}
@@ -213,7 +213,7 @@ export default function ImageCropDialog({
             <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Filters</span>
             <button
               onClick={resetFilters}
-              className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-gray-600 transition-colors"
+              className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-muted-foreground transition-colors"
             >
               <RotateCcw className="h-3 w-3" /> Reset
             </button>

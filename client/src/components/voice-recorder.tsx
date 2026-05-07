@@ -245,7 +245,7 @@ export default function VoiceRecorder({
                 "group w-16 h-16 rounded-xl flex items-center justify-center transition-colors",
                 isRecording
                   ? "bg-none"
-                  : "bg-none hover:bg-black/10 dark:hover:bg-white/10"
+                  : "bg-none hover:bg-black/10 dark:hover:bg-card/10"
               )}
               type="button"
               onClick={handleClick}
@@ -257,7 +257,7 @@ export default function VoiceRecorder({
                   style={{ animationDuration: "3s" }}
                 />
               ) : (
-                <Mic className="w-6 h-6 text-black/70 dark:text-white/70" />
+                <Mic className="w-6 h-6 text-black/70 dark:text-foreground/70" />
               )}
             </button>
 
@@ -265,8 +265,8 @@ export default function VoiceRecorder({
               className={cn(
                 "font-mono text-sm transition-opacity duration-300",
                 isRecording
-                  ? "text-black/70 dark:text-white/70"
-                  : "text-black/30 dark:text-white/30"
+                  ? "text-black/70 dark:text-foreground/70"
+                  : "text-black/30 dark:text-foreground/30"
               )}
             >
               {formatTime(recordingTime)}
@@ -294,7 +294,7 @@ export default function VoiceRecorder({
               ))}
             </div>
 
-            <p className="h-4 text-xs text-black/70 dark:text-white/70">
+            <p className="h-4 text-xs text-black/70 dark:text-foreground/70">
               {isRecording ? "Recording... Click to stop" : "Click to speak"}
             </p>
           </div>
@@ -346,7 +346,7 @@ export default function VoiceRecorder({
               size="sm"
               onClick={deleteRecording}
               disabled={isUploading}
-              className="text-red-600 hover:text-red-700"
+              className="text-red-600 hover:text-red-700 dark:text-red-300"
               data-testid="button-delete-recording"
             >
               <Trash2 className="h-4 w-4" />
@@ -355,7 +355,7 @@ export default function VoiceRecorder({
         </div>
       )}
 
-      <p className="text-xs text-neutral-500 text-center">
+      <p className="text-xs text-muted-foreground text-center">
         Maximum recording duration: {formatTime(maxDurationSeconds)}
       </p>
     </div>

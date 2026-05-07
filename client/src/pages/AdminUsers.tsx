@@ -60,7 +60,7 @@ export default function AdminUsers() {
     <AdminLayout>
       <div className="p-8 max-w-5xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-page-title">
+          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]" data-testid="text-page-title">
             {t('admin.userManagement')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -82,7 +82,7 @@ export default function AdminUsers() {
         </div>
 
         {/* User list */}
-        <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+        <Card className="border-border dark:border-border bg-white dark:bg-background">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Shield className="h-4 w-4 text-purple-600 dark:text-purple-400" />
@@ -96,7 +96,7 @@ export default function AdminUsers() {
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map(i => (
-                  <div key={i} className="h-14 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
+                  <div key={i} className="h-14 bg-gray-100 dark:bg-card rounded-lg animate-pulse" />
                 ))}
               </div>
             ) : !users || users.length === 0 ? (
@@ -110,12 +110,12 @@ export default function AdminUsers() {
                 {users.map((user) => (
                   <div key={user.id} className="flex items-center justify-between py-3 gap-4">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="h-9 w-9 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-semibold text-gray-600 dark:text-gray-300 flex-shrink-0">
+                      <div className="h-9 w-9 rounded-full bg-gray-100 dark:bg-card flex items-center justify-center text-sm font-semibold text-muted-foreground dark:text-muted-foreground flex-shrink-0">
                         {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user.name || user.username}</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-foreground truncate">{user.name || user.username}</p>
                           {user.isAdmin && (
                             <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-[10px] px-1.5 py-0">
                               <Crown className="h-2.5 w-2.5 mr-0.5" />

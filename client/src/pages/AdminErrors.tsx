@@ -31,14 +31,14 @@ export default function AdminErrors() {
     if (t.includes('warning')) {
       return "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300";
     }
-    return "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300";
+    return "bg-gray-100 dark:bg-card text-gray-800 dark:text-muted-foreground";
   };
 
   return (
     <AdminLayout>
       <div className="p-8 max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]">
             {t('adminErrors.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -49,11 +49,11 @@ export default function AdminErrors() {
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-24 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+              <div key={i} className="h-24 bg-gray-100 dark:bg-card rounded-xl animate-pulse" />
             ))}
           </div>
         ) : !errors || errors.length === 0 ? (
-          <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <Card className="border-border dark:border-border bg-white dark:bg-background">
             <CardContent className="py-16 text-center">
               <div className="h-14 w-14 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center mx-auto mb-4">
                 <Bug className="h-7 w-7 text-emerald-500" />
@@ -65,7 +65,7 @@ export default function AdminErrors() {
         ) : (
           <div className="space-y-3">
             {errors.map((error) => (
-              <Card key={error.id} className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+              <Card key={error.id} className="border-border dark:border-border bg-white dark:bg-background">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -81,7 +81,7 @@ export default function AdminErrors() {
                       </span>
                     </div>
                   </div>
-                  <CardDescription className="mt-1.5 text-sm text-gray-900 dark:text-gray-100 font-medium">
+                  <CardDescription className="mt-1.5 text-sm text-gray-900 dark:text-foreground font-medium">
                     {error.message}
                   </CardDescription>
                 </CardHeader>
@@ -93,7 +93,7 @@ export default function AdminErrors() {
                       </p>
                     )}
                     {error.stack && (
-                      <pre className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg overflow-auto max-h-32 text-[11px] text-gray-600 dark:text-gray-400 border border-gray-100 dark:border-gray-700">
+                      <pre className="bg-gray-50 dark:bg-card p-3 rounded-lg overflow-auto max-h-32 text-[11px] text-gray-600 dark:text-gray-400 border border-border dark:border-border">
                         {error.stack}
                       </pre>
                     )}

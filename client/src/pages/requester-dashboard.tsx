@@ -105,15 +105,15 @@ export default function RequesterDashboard() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-muted">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-neutral-900">{t('dashboard.myTenders')}</h1>
-            <p className="text-neutral-600 mt-1">{t('dashboard.myTendersDesc')}</p>
+            <h1 className="font-display font-black text-3xl text-foreground tracking-[-0.04em]">{t('dashboard.myTenders')}</h1>
+            <p className="text-muted-foreground mt-1">{t('dashboard.myTendersDesc')}</p>
           </div>
           <div className="flex gap-3">
             <Button
@@ -137,7 +137,7 @@ export default function RequesterDashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+          <Card className="bg-card p-6 rounded-xl shadow-sm border border-border">
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -146,14 +146,14 @@ export default function RequesterDashboard() {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">{t('dashboard.activeTendersLabel')}</p>
-                  <p className="text-2xl font-bold text-neutral-900">{activeTenders.length}</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('dashboard.activeTendersLabel')}</p>
+                  <p className="text-2xl font-bold text-foreground">{activeTenders.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+          <Card className="bg-card p-6 rounded-xl shadow-sm border border-border">
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -162,14 +162,14 @@ export default function RequesterDashboard() {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">{t('dashboard.totalOffers')}</p>
-                  <p className="text-2xl font-bold text-neutral-900">{totalOffers}</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('dashboard.totalOffers')}</p>
+                  <p className="text-2xl font-bold text-foreground">{totalOffers}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+          <Card className="bg-card p-6 rounded-xl shadow-sm border border-border">
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -178,8 +178,8 @@ export default function RequesterDashboard() {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">{t('dashboard.avgInvitations')}</p>
-                  <p className="text-2xl font-bold text-neutral-900">
+                  <p className="text-sm font-medium text-muted-foreground">{t('dashboard.avgInvitations')}</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {tenders?.length ? Math.round(tenders.reduce((sum: number, t: any) => sum + (t.invitedCount || 0), 0) / tenders.length) : 0}
                   </p>
                 </div>
@@ -187,7 +187,7 @@ export default function RequesterDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+          <Card className="bg-card p-6 rounded-xl shadow-sm border border-border">
             <CardContent className="p-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -196,8 +196,8 @@ export default function RequesterDashboard() {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">{t('dashboard.closingSoon')}</p>
-                  <p className="text-2xl font-bold text-neutral-900">{closingSoon}</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('dashboard.closingSoon')}</p>
+                  <p className="text-2xl font-bold text-foreground">{closingSoon}</p>
                 </div>
               </div>
             </CardContent>
@@ -273,11 +273,11 @@ export default function RequesterDashboard() {
         {/* Tenders Grid */}
         {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-neutral-600">{t('dashboard.loadingTenders')}</p>
+            <p className="text-muted-foreground">{t('dashboard.loadingTenders')}</p>
           </div>
         ) : tenders?.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-neutral-600 mb-4">{t('dashboard.noTendersCreated')}</p>
+            <p className="text-muted-foreground mb-4">{t('dashboard.noTendersCreated')}</p>
             <Button
               onClick={handleCreateTenderClick}
               className="bg-[#f33c20] hover:bg-[#d63519]"
@@ -319,18 +319,18 @@ export default function RequesterDashboard() {
               <div>
                 {activeCompany?.verificationStatus === 'under_review' ? (
                   <>
-                    <p className="text-sm font-medium text-amber-900 mb-1">{t('dashboard.verificationPending')}</p>
-                    <p className="text-sm text-amber-700">{t('dashboard.verificationUnderReviewDesc')}</p>
+                    <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mb-1">{t('dashboard.verificationPending')}</p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300">{t('dashboard.verificationUnderReviewDesc')}</p>
                   </>
                 ) : activeCompany?.verificationStatus === 'rejected' ? (
                   <>
-                    <p className="text-sm font-medium text-amber-900 mb-1">{t('dashboard.verificationRejected')}</p>
-                    <p className="text-sm text-amber-700">{t('dashboard.verificationRejectedDesc')}</p>
+                    <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mb-1">{t('dashboard.verificationRejected')}</p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300">{t('dashboard.verificationRejectedDesc')}</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-sm font-medium text-amber-900 mb-1">{t('dashboard.verificationRequired')}</p>
-                    <p className="text-sm text-amber-700">{t('dashboard.verificationNotVerifiedDesc')}</p>
+                    <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mb-1">{t('dashboard.verificationRequired')}</p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300">{t('dashboard.verificationNotVerifiedDesc')}</p>
                   </>
                 )}
               </div>

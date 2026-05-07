@@ -10,20 +10,34 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
-import { Eye, EyeOff } from "lucide-react";
+import { BidLogo } from "@/components/brand/BidLogo";
+import { Check, Eye, EyeOff, X } from "lucide-react";
 
 type RegisterForm = { email: string; password: string; confirmPassword: string; name: string };
 
+type PasswordChecks = {
+  min8: boolean;
+  min12: boolean;
+  mixedCase: boolean;
+  numberSymbol: boolean;
+};
+
+function checkPassword(pw: string): PasswordChecks {
+  return {
+    min8: pw.length >= 8,
+    min12: pw.length >= 12,
+    mixedCase: /[a-z]/.test(pw) && /[A-Z]/.test(pw),
+    numberSymbol: /\d/.test(pw) && /[^a-zA-Z0-9]/.test(pw),
+  };
+}
+
 function scorePassword(pw: string): { score: 0 | 1 | 2 | 3 | 4; label: string; barClass: string; textClass: string } {
   if (!pw) return { score: 0, label: "", barClass: "bg-neutral-200", textClass: "text-neutral-400" };
-  let s = 0;
-  if (pw.length >= 8) s++;
-  if (pw.length >= 12) s++;
-  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s++;
-  if (/\d/.test(pw) && /[^a-zA-Z0-9]/.test(pw)) s++;
+  const checks = checkPassword(pw);
+  const s = Number(checks.min8) + Number(checks.min12) + Number(checks.mixedCase) + Number(checks.numberSymbol);
   const labels = ["Too short", "Weak", "Fair", "Good", "Strong"];
-  const barClasses = ["bg-red-500", "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-emerald-500"];
-  const textClasses = ["text-red-600", "text-red-600", "text-orange-600", "text-yellow-700", "text-emerald-600"];
+  const barClasses = ["bg-red-500", "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-[var(--state-won)]"];
+  const textClasses = ["text-red-600", "text-red-600", "text-orange-600", "text-yellow-700 dark:text-yellow-300", "text-[var(--state-won)]"];
   return {
     score: s as 0 | 1 | 2 | 3 | 4,
     label: labels[s],
@@ -67,6 +81,13 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = useState(false);
   const passwordValue = form.watch("password");
   const strength = scorePassword(passwordValue || "");
+  const checks = checkPassword(passwordValue || "");
+  const requirements: { key: keyof PasswordChecks; label: string }[] = [
+    { key: "min8", label: t('auth.passwordReqMin8') },
+    { key: "min12", label: t('auth.passwordReqMin12') },
+    { key: "mixedCase", label: t('auth.passwordReqMixedCase') },
+    { key: "numberSymbol", label: t('auth.passwordReqNumberSymbol') },
+  ];
 
   useEffect(() => {
     if (user && user.otpVerified) {
@@ -95,12 +116,11 @@ export default function Register() {
       setLocation("/verify-email");
     } catch (error: any) {
       let description = t('auth.registerError');
-      try {
-        const raw = error?.message ?? '';
-        const jsonStr = raw.includes(': ') ? raw.slice(raw.indexOf(': ') + 2) : raw;
-        const parsed = JSON.parse(jsonStr);
-        if (parsed?.message) description = parsed.message;
-      } catch {}
+      if (error?.message === 'User already exists') {
+        description = t('auth.userAlreadyExists');
+      } else if (error?.message) {
+        description = error.message;
+      }
       toast({
         title: t('common.error'),
         description,
@@ -110,13 +130,13 @@ export default function Register() {
   };
 
   return (
-    <div className="relative min-h-screen bg-white flex flex-col overflow-hidden">
+    <div className="relative min-h-screen bg-card flex flex-col overflow-hidden">
       <div className="absolute inset-0 z-0">
         <FlickeringGrid
           className="size-full"
           squareSize={4}
           gridGap={6}
-          color="rgb(226, 94, 69)"
+          color="rgb(254, 60, 1)"
           maxOpacity={0.15}
           flickerChance={0.1}
         />
@@ -125,15 +145,15 @@ export default function Register() {
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-12">
         <header className="mb-10">
           <Link href="/">
-            <h1 className="text-center text-4xl font-bold text-[#E25E45] tracking-tight cursor-pointer hover:opacity-80 transition-opacity">Bid</h1>
+            <BidLogo size={48} className="cursor-pointer hover:opacity-80 transition-opacity" />
           </Link>
         </header>
 
         <div className="w-full max-w-md">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-neutral-200/60 shadow-sm p-8">
+          <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/60 shadow-sm p-8">
             <div className="mb-6 text-center">
-              <h2 className="text-xl font-bold text-neutral-900 mb-1">{t('authPanel.createAccountTitle')}</h2>
-              <p className="text-sm text-neutral-500">{t('authPanel.createAccountDesc')}</p>
+              <h2 className="text-xl font-bold text-foreground mb-1">{t('authPanel.createAccountTitle')}</h2>
+              <p className="text-sm text-muted-foreground">{t('authPanel.createAccountDesc')}</p>
             </div>
 
             <Form {...form}>
@@ -145,7 +165,7 @@ export default function Register() {
                     <FormItem>
                       <FormLabel>{t('auth.fullName')}</FormLabel>
                       <FormControl>
-                        <Input data-testid="input-name" placeholder={t('auth.fullNamePlaceholder')} className="bg-white" {...field} />
+                        <Input data-testid="input-name" placeholder={t('auth.fullNamePlaceholder')} className="bg-card" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -159,7 +179,7 @@ export default function Register() {
                     <FormItem>
                       <FormLabel>{t('auth.email')}</FormLabel>
                       <FormControl>
-                        <Input data-testid="input-email" type="email" placeholder={t('auth.emailPlaceholder')} className="bg-white" {...field} />
+                        <Input data-testid="input-email" type="email" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -178,13 +198,13 @@ export default function Register() {
                             data-testid="input-password"
                             type={showPassword ? "text" : "password"}
                             placeholder={t('auth.passwordCreatePlaceholder')}
-                            className="bg-white pr-10"
+                            className="bg-card pr-10"
                             {...field}
                           />
                           <button
                             type="button"
                             onClick={() => setShowPassword(s => !s)}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-1"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
                             aria-label={showPassword ? "Hide password" : "Show password"}
                             tabIndex={-1}
                           >
@@ -207,6 +227,30 @@ export default function Register() {
                           <p className={`text-xs ${strength.textClass}`}>{strength.label}</p>
                         </div>
                       )}
+                      <div className="mt-2 rounded-md border border-border bg-muted/60 p-3">
+                        <p className="mb-1.5 text-xs font-medium text-muted-foreground">{t('auth.passwordRequirementsTitle')}</p>
+                        <ul className="space-y-1">
+                          {requirements.map(({ key, label }) => {
+                            const passed = checks[key];
+                            return (
+                              <li
+                                key={key}
+                                data-testid={`pw-req-${key}`}
+                                className={`flex items-center gap-2 text-xs transition-colors ${
+                                  passed ? "text-[var(--state-won)]" : "text-muted-foreground"
+                                }`}
+                              >
+                                {passed ? (
+                                  <Check className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                ) : (
+                                  <X className="h-3.5 w-3.5 shrink-0 text-neutral-400" aria-hidden="true" />
+                                )}
+                                <span>{label}</span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -224,13 +268,13 @@ export default function Register() {
                             data-testid="input-confirm-password"
                             type={showConfirm ? "text" : "password"}
                             placeholder={t('authPanel.reenterPassword')}
-                            className="bg-white pr-10"
+                            className="bg-card pr-10"
                             {...field}
                           />
                           <button
                             type="button"
                             onClick={() => setShowConfirm(s => !s)}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-1"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
                             aria-label={showConfirm ? "Hide password" : "Show password"}
                             tabIndex={-1}
                           >
@@ -250,9 +294,9 @@ export default function Register() {
             </Form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-muted-foreground">
                 {t('auth.haveAccount')}{" "}
-                <Link href="/login" className="text-[#E25E45] hover:text-[#d54d35] font-medium">
+                <Link href="/login" className="text-[#FE3C01] hover:text-[#d54d35] font-medium">
                   {t('auth.signInLink')}
                 </Link>
               </p>

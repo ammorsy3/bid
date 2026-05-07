@@ -117,7 +117,7 @@ const CARD_COLORS: Record<string, {
 const DEFAULT_COLORS = {
   topBg: "bg-gradient-to-br from-gray-500 to-gray-600",
   iconBg: "bg-gray-400/30",
-  border: "border-gray-200 dark:border-gray-700",
+  border: "border-border dark:border-border",
   hoverBorder: "hover:border-gray-400",
 };
 
@@ -146,11 +146,11 @@ export function CardLibrarySidebar({ usedCardTypes, width = 288, onShowInsight, 
   return (
     <div
       style={{ width: `${width}px` }}
-      className="flex-shrink-0 bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 overflow-y-auto"
+      className="flex-shrink-0 bg-gray-50 dark:bg-background border-l border-border dark:border-border overflow-y-auto"
     >
       <div className="p-4 space-y-6">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{t('formBuilder.cardLibrary')}</h3>
+          <h3 className="font-display font-black text-sm text-gray-900 dark:text-foreground mb-1 tracking-[-0.02em]">{t('formBuilder.cardLibrary')}</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400">{t('formBuilder.cardLibrarySubtitle')}</p>
         </div>
 
@@ -277,7 +277,7 @@ function DraggableLibraryCard({
       {...attributes}
       className={`group flex flex-col rounded-xl border-2 overflow-hidden outline-none transition-all duration-200 ${
         isDragging
-          ? "opacity-50 shadow-2xl scale-105 z-50 border-[#E25E45]"
+          ? "opacity-50 shadow-2xl scale-105 z-50 border-[#FE3C01]"
           : isDisabled
           ? `opacity-55 cursor-not-allowed ${colors.border}`
           : `${colors.border} ${colors.hoverBorder} cursor-grab hover:shadow-lg hover:-translate-y-0.5`
@@ -294,7 +294,7 @@ function DraggableLibraryCard({
               <Star className="h-3 w-3 text-amber-300 fill-amber-300 flex-shrink-0 mt-0.5" />
             )}
             {isDisabled && (
-              <div className="flex items-center gap-1 bg-white/20 rounded-full px-1.5 py-0.5">
+              <div className="flex items-center gap-1 bg-card/20 rounded-full px-1.5 py-0.5">
                 <CheckCircle2 className="h-3 w-3 text-white" />
                 <span className="text-[10px] font-medium text-white leading-none">{addedLabel}</span>
               </div>
@@ -307,7 +307,7 @@ function DraggableLibraryCard({
       </div>
 
       {/* Card body */}
-      <div className="px-3 py-2.5 flex flex-col gap-2 flex-1 bg-white dark:bg-gray-800">
+      <div className="px-3 py-2.5 flex flex-col gap-2 flex-1 bg-white dark:bg-card">
         {/* Description — short one-liner from the library definition */}
         <p className="text-[11px] leading-relaxed text-gray-500 dark:text-gray-400 line-clamp-2">
           {card.description}
@@ -324,7 +324,7 @@ function DraggableLibraryCard({
               <button
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={handleMoreClick}
-                className="text-[10px] font-medium text-[#E25E45] hover:text-[#d54d35] hover:underline transition-colors leading-none"
+                className="text-[10px] font-medium text-[#FE3C01] hover:text-[#d54d35] hover:underline transition-colors leading-none"
               >
                 {t('formBuilder.seeTips')}
               </button>

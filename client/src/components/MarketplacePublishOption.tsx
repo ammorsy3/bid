@@ -105,18 +105,18 @@ export function MarketplacePublishOption({
   };
 
   return (
-    <div className="rounded-xl border border-gray-200 overflow-hidden">
+    <div className="rounded-xl border border-border overflow-hidden">
       {/* Toggle header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-lg bg-[#E8614D]/10 flex items-center justify-center flex-shrink-0">
-            <Store className="h-4 w-4 text-[#E8614D]" />
+          <div className="h-9 w-9 rounded-lg bg-[#FE3C01]/10 flex items-center justify-center flex-shrink-0">
+            <Store className="h-4 w-4 text-[#FE3C01]" />
           </div>
           <div>
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-sm font-medium text-foreground">
               {t('marketplace.publishToMarketplace') || 'Publish to Marketplace'}
             </span>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {t('marketplace.createFlowDesc') || 'Also submit to the public marketplace for admin review'}
             </p>
           </div>
@@ -129,16 +129,16 @@ export function MarketplacePublishOption({
 
       {/* Expanded fields when enabled */}
       {value.enabled && (
-        <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
+        <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
           {/* Binding warning */}
           <div className="p-3 bg-amber-50 rounded-lg border border-amber-200/60">
             <div className="flex items-start gap-2.5">
               <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-medium text-amber-900">
+                <p className="text-xs font-medium text-amber-900 dark:text-amber-200">
                   {t('marketplace.introBindingTitle') || 'This is a binding commitment'}
                 </p>
-                <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5 leading-relaxed">
                   {t('marketplace.introBindingDesc') || 'Marketplace tenders cannot be cancelled once published. You are required to evaluate proposals and award the tender to a participating vendor.'}
                 </p>
               </div>
@@ -147,8 +147,8 @@ export function MarketplacePublishOption({
 
           {/* Tender Type */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
-              <Globe className="h-3.5 w-3.5 text-blue-600" />
+            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <Globe className="h-3.5 w-3.5 text-[var(--bid-orange)]" />
               {t('marketplace.tenderType') || 'Tender Type'} <span className="text-red-500">*</span>
             </label>
             <Select value={value.tenderType} onValueChange={(v) => update({ tenderType: v })}>
@@ -165,7 +165,7 @@ export function MarketplacePublishOption({
 
           {/* Document Fee */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
+            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
               <DollarSign className="h-3.5 w-3.5 text-amber-600" />
               {t('marketplace.documentFee') || 'Document Fee'} <span className="text-xs font-normal text-gray-400">({t('marketplace.sar') || 'SAR'})</span>
             </label>
@@ -182,8 +182,8 @@ export function MarketplacePublishOption({
 
           {/* Inquiry Deadline */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-[#E8614D]" />
+            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-[#FE3C01]" />
               {t('marketplace.inquiryDeadlineLabel') || 'Questions Cutoff'}
             </label>
             <Popover>
@@ -219,26 +219,26 @@ export function MarketplacePublishOption({
 
           {/* PO Upload files */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
-              <FileCheck className="h-3.5 w-3.5 text-purple-600" />
+            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <FileCheck className="h-3.5 w-3.5 text-[var(--bid-orange)]" />
               {t('marketplace.formPoTitle') || 'Purchase Order'}
             </label>
-            <p className="text-[11px] text-gray-500 leading-relaxed">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
               {t('marketplace.formPoHelper') || 'A signed document from your company confirming payment to the awarded vendor. Only visible to you and the Bid team.'}
             </p>
 
             {value.poFiles.length > 0 && (
               <div className="space-y-1.5">
                 {value.poFiles.map((po, idx) => (
-                  <div key={`${po.fileUrl}-${idx}`} className="flex items-center justify-between gap-2 p-2 bg-gray-50 rounded-lg">
+                  <div key={`${po.fileUrl}-${idx}`} className="flex items-center justify-between gap-2 p-2 bg-muted rounded-lg">
                     <div className="flex items-center gap-2 min-w-0">
                       <FileText className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                      <span className="text-xs text-gray-700 truncate">{po.originalName}</span>
+                      <span className="text-xs text-muted-foreground truncate">{po.originalName}</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => removePoFile(idx)}
-                      className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                      className="text-gray-400 hover:text-muted-foreground flex-shrink-0"
                       aria-label={t('marketplace.remove') || 'Remove'}
                     >
                       <X className="h-3.5 w-3.5" />
@@ -278,14 +278,14 @@ export function MarketplacePublishOption({
           </div>
 
           {/* Confirmation checkbox */}
-          <label className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 cursor-pointer hover:border-[#E8614D]/30 transition-colors">
+          <label className="flex items-start gap-3 p-3 rounded-lg border border-border cursor-pointer hover:border-[#FE3C01]/30 transition-colors">
             <input
               type="checkbox"
               checked={value.confirmed}
               onChange={(e) => update({ confirmed: e.target.checked })}
-              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#E8614D] focus:ring-[#E8614D]"
+              className="mt-0.5 h-4 w-4 rounded border-border text-[#FE3C01] focus:ring-[#FE3C01]"
             />
-            <span className="text-xs text-gray-600 leading-relaxed">
+            <span className="text-xs text-muted-foreground leading-relaxed">
               {t('marketplace.formConfirmation') || 'I understand this tender is binding. Once published, it cannot be cancelled and I must award it to a vendor.'}
             </span>
           </label>

@@ -49,7 +49,9 @@ import {
   ReviewProposalsVisual,
   BookDemoVisual,
 } from "@/components/OnboardingTaskVisuals";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
+import { StatusBadge, type BidState } from "@/components/brand/StatusDot";
+import { tenderStatusToState, proposalStatusToState } from "@/components/brand/statusMap";
 import { SkeletonList } from "@/components/skeletons";
 
 interface VendorProfile {
@@ -201,8 +203,8 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
   return (
     <div className="space-y-3">
       <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-        <div className="w-8 h-8 rounded-lg bg-[#E8614D]/10 flex items-center justify-center">
-          <Link2 className="h-4 w-4 text-[#E8614D]" />
+        <div className="w-8 h-8 rounded-lg bg-[#FE3C01]/10 flex items-center justify-center">
+          <Link2 className="h-4 w-4 text-[#FE3C01]" />
         </div>
         <div className={isRtl ? 'text-right' : ''}>
           <p className="text-sm font-semibold">{t('dashboard.createTractionLink')}</p>
@@ -229,10 +231,10 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
             <div className={`flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 ${isRtl ? 'flex-row-reverse text-right' : ''}`}>
               <HelpCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
               <div>
-                <p className="text-xs text-amber-700 font-medium">"{slug}" {t('dashboard.slugTaken')}</p>
+                <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">"{slug}" {t('dashboard.slugTaken')}</p>
                 <p className="text-xs text-amber-600 mt-0.5">
-                  <button className="underline font-medium hover:text-amber-800" onClick={() => { setSlug(`${slug}-co`); setSlugTaken(false); }}>{slug}-co</button>,{' '}
-                  <button className="underline font-medium hover:text-amber-800" onClick={() => { setSlug(`${slug}-${Math.floor(Math.random() * 99) + 1}`); setSlugTaken(false); }}>{slug}-{Math.floor(Math.random() * 99) + 1}</button> {t('dashboard.slugTakenSuggestion')}
+                  <button className="underline font-medium hover:text-amber-800 dark:text-amber-300" onClick={() => { setSlug(`${slug}-co`); setSlugTaken(false); }}>{slug}-co</button>,{' '}
+                  <button className="underline font-medium hover:text-amber-800 dark:text-amber-300" onClick={() => { setSlug(`${slug}-${Math.floor(Math.random() * 99) + 1}`); setSlugTaken(false); }}>{slug}-{Math.floor(Math.random() * 99) + 1}</button> {t('dashboard.slugTakenSuggestion')}
                 </p>
               </div>
             </div>
@@ -242,7 +244,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
               size="sm"
               onClick={() => createSlugMutation.mutate(slug)}
               disabled={!slug.trim() || slug.length < 2 || createSlugMutation.isPending}
-              className="bg-[#E8614D] hover:bg-[#d4553f] text-white"
+              className="bg-[#FE3C01] hover:bg-[#E83501] text-white"
               data-testid="button-create-traction"
             >
               {createSlugMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('dashboard.createLink')}
@@ -255,7 +257,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
           variant="outline"
           size="sm"
           onClick={() => setIsEditing(true)}
-          className="border-[#E8614D]/30 text-[#E8614D] hover:bg-[#E8614D]/5"
+          className="border-[#FE3C01]/30 text-[#FE3C01] hover:bg-[#FE3C01]/5"
           data-testid="button-setup-traction"
         >
           <Plus className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
@@ -358,7 +360,7 @@ function SidebarLogoToggle() {
       {isCollapsed ? (
         <SidebarTrigger className="h-6 w-6" />
       ) : (
-        <img src={logoPath} alt="Bid" className="h-8 object-contain" />
+        <BidLogo size={28} />
       )}
     </div>
   );
@@ -413,9 +415,10 @@ export default function Dashboard() {
     autoStartDelay: 800,
   });
 
+  // Bid grid texture — low-opacity Stone on light, low-opacity Cream on Ink (dark mode).
   const dotColor = currentTheme === 'dark'
-    ? 'rgba(139, 92, 246, 0.15)'
-    : 'rgba(156, 163, 175, 0.3)';
+    ? 'rgba(244, 237, 225, 0.10)'
+    : 'rgba(138, 128, 120, 0.22)';
 
   if (!user) {
     setLocation("/login");
@@ -608,22 +611,18 @@ export default function Dashboard() {
     }
   };
 
-  // Get status badge styling
-  const getStatusBadge = (status: string, deadline?: string) => {
+  // Get status badge styling — maps to brand dot-states
+  const getStatusBadge = (status: string, deadline?: string): { state: BidState; label: string } => {
     if (status === 'closed' && deadline && deadline < new Date().toISOString().split('T')[0]) {
-      return { className: 'bg-red-100 text-red-800', label: (t('dashboard.closedLabel') || 'Closed') + ' · ' + (t('dashboard.deadlinePassed') || 'Deadline Passed') };
+      return { state: 'lost', label: (t('dashboard.closedLabel') || 'Closed') + ' · ' + (t('dashboard.deadlinePassed') || 'Deadline Passed') };
     }
+    const state = tenderStatusToState(status);
     switch (status) {
-      case 'published':
-        return { className: 'bg-green-100 text-green-800', label: 'Published' };
-      case 'draft':
-        return { className: 'bg-gray-100 text-gray-800', label: 'Draft' };
-      case 'closed':
-        return { className: 'bg-red-100 text-red-800', label: 'Closed' };
-      case 'cancelled':
-        return { className: 'bg-orange-100 text-orange-800', label: 'Cancelled' };
-      default:
-        return { className: 'bg-gray-100 text-gray-800', label: status };
+      case 'published': return { state, label: 'Published' };
+      case 'draft':     return { state, label: 'Draft' };
+      case 'closed':    return { state, label: 'Closed' };
+      case 'cancelled': return { state, label: 'Cancelled' };
+      default:          return { state, label: status };
     }
   };
 
@@ -739,9 +738,9 @@ export default function Dashboard() {
   return (
     <>
     <SidebarProvider>
-      <Sidebar collapsible="icon" side={isRtl ? "right" : "left"} className={isRtl ? "border-l border-gray-200 dark:border-gray-800" : "border-r border-gray-200 dark:border-gray-800"}>
+      <Sidebar collapsible="icon" side={isRtl ? "right" : "left"} className={isRtl ? "border-l border-border dark:border-border" : "border-r border-border dark:border-border"}>
         {/* Brand accent strip */}
-        <div className="h-0.5 bg-gradient-to-r from-[#E8614D] to-[#F19A8F] flex-shrink-0" />
+        <div className="h-0.5 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F] flex-shrink-0" />
         <SidebarHeader className="border-b px-4 py-4">
           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
             <SidebarLogoToggle />
@@ -805,7 +804,7 @@ export default function Dashboard() {
                 onClick={() => window.open(`/company/${activeCompany.slug}`, '_blank', 'noopener,noreferrer')}
                 title={t('settings.viewPublicProfile')}
                 aria-label={t('settings.viewPublicProfile')}
-                className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-[#E8614D] hover:bg-[#E8614D]/10 transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden"
+                className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-[#FE3C01] hover:bg-[#FE3C01]/10 transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden"
                 data-testid="button-view-public-profile-sidebar"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -827,7 +826,7 @@ export default function Dashboard() {
                       tooltip={t('dashboard.createTender')}
                       data-testid="sidebar-create-tender"
                       data-tour="create-tender"
-                      className="py-3 text-base rounded-lg bg-[#E8614D] text-white hover:bg-[#D44D3A] hover:text-white"
+                      className="py-3 text-base rounded-lg bg-[#FE3C01] text-white hover:bg-[#D44D3A] hover:text-white"
                     >
                       <Plus className="h-5 w-5 text-white" />
                       <span className="text-base font-medium group-data-[collapsible=icon]:hidden text-white">{t('dashboard.createTender')}</span>
@@ -860,10 +859,10 @@ export default function Dashboard() {
                       onClick={() => setActiveTab(item.value)}
                       tooltip={item.label}
                       data-testid={`sidebar-${item.value}`}
-                      className={`py-3 text-base rounded-lg ${activeTab === item.value ? "bg-[#E8614D]/15 text-[#E8614D] hover:bg-[#E8614D]/20 hover:text-[#E8614D]" : "hover:bg-muted"}`}
+                      className={`py-3 text-base rounded-lg ${activeTab === item.value ? "bg-[#FE3C01]/15 text-[#FE3C01] hover:bg-[#FE3C01]/20 hover:text-[#FE3C01]" : "hover:bg-muted"}`}
                     >
-                      <item.icon className={`h-5 w-5 ${activeTab === item.value ? "text-[#E8614D]" : "text-muted-foreground"}`} />
-                      <span className={`text-base font-medium ${activeTab === item.value ? "text-[#E8614D]" : ""}`}>{item.label}</span>
+                      <item.icon className={`h-5 w-5 ${activeTab === item.value ? "text-[#FE3C01]" : "text-muted-foreground"}`} />
+                      <span className={`text-base font-medium ${activeTab === item.value ? "text-[#FE3C01]" : ""}`}>{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -877,17 +876,17 @@ export default function Dashboard() {
               <div className="px-2 group-data-[collapsible=icon]:px-0">
                 <button
                   onClick={() => window.open('/marketplace', '_blank')}
-                  className="w-full rounded-xl border border-[#E8614D]/20 bg-gradient-to-br from-[#E8614D]/5 to-[#F19A8F]/10 px-3 py-3 hover:from-[#E8614D]/10 hover:to-[#F19A8F]/20 hover:border-[#E8614D]/30 transition-all group/mp cursor-pointer group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center"
+                  className="w-full rounded-xl border border-[#FE3C01]/20 bg-gradient-to-br from-[#FE3C01]/5 to-[#F19A8F]/10 px-3 py-3 hover:from-[#FE3C01]/10 hover:to-[#F19A8F]/20 hover:border-[#FE3C01]/30 transition-all group/mp cursor-pointer group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center"
                 >
                   <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:gap-0">
-                    <div className="h-8 w-8 rounded-lg bg-[#E8614D]/10 flex items-center justify-center flex-shrink-0 group-hover/mp:bg-[#E8614D]/15 transition-colors">
-                      <Globe className="h-4 w-4 text-[#E8614D]" />
+                    <div className="h-8 w-8 rounded-lg bg-[#FE3C01]/10 flex items-center justify-center flex-shrink-0 group-hover/mp:bg-[#FE3C01]/15 transition-colors">
+                      <Globe className="h-4 w-4 text-[#FE3C01]" />
                     </div>
                     <div className="flex-1 min-w-0 text-start group-data-[collapsible=icon]:hidden">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.marketplace')}</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-foreground">{t('dashboard.marketplace')}</p>
                       <p className="text-[11px] text-muted-foreground leading-tight">{t('dashboard.marketplaceHint')}</p>
                     </div>
-                    <ExternalLink className="h-3.5 w-3.5 text-[#E8614D]/50 group-hover/mp:text-[#E8614D] transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden" />
+                    <ExternalLink className="h-3.5 w-3.5 text-[#FE3C01]/50 group-hover/mp:text-[#FE3C01] transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden" />
                   </div>
                 </button>
               </div>
@@ -904,11 +903,11 @@ export default function Dashboard() {
                     className="w-full rounded-xl border border-purple-300/30 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 px-3 py-3 hover:from-purple-500/15 hover:to-indigo-500/20 hover:border-purple-400/40 transition-all group/admin cursor-pointer group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center"
                   >
                     <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:gap-0">
-                      <div className="h-8 w-8 rounded-lg bg-purple-500/15 flex items-center justify-center flex-shrink-0 group-hover/admin:bg-purple-500/25 transition-colors">
-                        <ShieldCheck className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                      <div className="h-8 w-8 rounded-lg bg-[var(--bid-orange)]/15 flex items-center justify-center flex-shrink-0 group-hover/admin:bg-[var(--bid-orange)]/25 transition-colors">
+                        <ShieldCheck className="h-4 w-4 text-[var(--bid-orange)] dark:text-purple-400" />
                       </div>
                       <div className="flex-1 min-w-0 text-start group-data-[collapsible=icon]:hidden">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('settings.adminPanelLabel')}</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-foreground">{t('settings.adminPanelLabel')}</p>
                         <p className="text-[11px] text-muted-foreground leading-tight">{t('settings.adminPanelDesc')}</p>
                       </div>
                       <ChevronRight className="h-3.5 w-3.5 text-purple-400/50 group-hover/admin:text-purple-500 transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden" />
@@ -937,9 +936,9 @@ export default function Dashboard() {
             </div>
           )}
           {activeCompany.verificationStatus === 'under_review' && (
-            <div className="mb-3 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
+            <div className="mb-3 rounded-lg bg-[var(--bid-orange)]/5 dark:bg-blue-950/40 border border-[var(--bid-orange)]/20 dark:border-blue-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
               <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 mb-0.5">{t('settings.verificationInProgress')}</p>
-              <p className="text-xs text-blue-700 dark:text-blue-400 leading-snug">{t('settings.verificationInProgressDesc')}</p>
+              <p className="text-xs text-[var(--bid-orange)] dark:text-blue-400 leading-snug">{t('settings.verificationInProgressDesc')}</p>
             </div>
           )}
           {activeCompany.verificationStatus === 'rejected' && (
@@ -978,7 +977,7 @@ export default function Dashboard() {
                   )}
                   {activeCompany.verificationStatus === 'verified' ? (
                     <div
-                      className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center border-2 border-white dark:border-gray-800"
+                      className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-[var(--bid-orange)] flex items-center justify-center border-2 border-white dark:border-border"
                       title={t('dashboard.verified')}
                     >
                       <Check className="h-3 w-3 text-white" />
@@ -1076,15 +1075,15 @@ export default function Dashboard() {
                             className={`w-full flex items-start gap-3 p-3 transition-colors text-left border-b last:border-b-0 ${
                               offer.isViewed 
                                 ? 'hover:bg-accent opacity-60' 
-                                : 'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 font-medium'
+                                : 'bg-[var(--bid-orange)]/5 dark:bg-blue-900/20 hover:bg-[var(--bid-orange)]/10 dark:hover:bg-blue-900/30 font-medium'
                             }`}
                           >
                             <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                               offer.isViewed 
-                                ? 'bg-blue-100 dark:bg-blue-900/30' 
+                                ? 'bg-[var(--bid-orange)]/10 dark:bg-blue-900/30' 
                                 : 'bg-blue-200 dark:bg-blue-800/50'
                             }`}>
-                              <FileText className={`h-4 w-4 ${offer.isViewed ? 'text-blue-600 dark:text-blue-400' : 'text-blue-700 dark:text-blue-300'}`} />
+                              <FileText className={`h-4 w-4 ${offer.isViewed ? 'text-[var(--bid-orange)] dark:text-blue-400' : 'text-[var(--bid-orange)] dark:text-blue-300'}`} />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className={`text-sm truncate ${offer.isViewed ? '' : 'font-semibold'}`}>{t('settings.newProposal')}</p>
@@ -1101,7 +1100,7 @@ export default function Dashboard() {
                       <div className="p-2 border-t">
                         <button 
                           onClick={() => setActiveTab('proposals')}
-                          className="w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:underline py-1"
+                          className="w-full text-center text-sm text-[var(--bid-orange)] dark:text-blue-400 hover:underline py-1"
                         >
                           {t('settings.viewAllNotifications')}
                         </button>
@@ -1301,18 +1300,19 @@ export default function Dashboard() {
                       setTenderSearchQuery("");
                       setLocation(`/tenders/${tender.id}`);
                     }}
-                    className="w-full text-left p-6 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                    className="w-full text-left p-6 hover:bg-muted dark:hover:bg-gray-800 transition-colors group"
                     data-testid={`search-tender-result-${tender.id}`}
                   >
                     <div className="flex items-start justify-between gap-4 mb-2">
-                      <h3 className="font-semibold text-gray-900 dark:text-white text-base group-hover:text-[#E25E45] transition-colors">
+                      <h3 className="font-semibold text-gray-900 dark:text-foreground text-base group-hover:text-[#FE3C01] transition-colors">
                         {tender.title}
                       </h3>
-                      <Badge 
-                        className={`flex-shrink-0 text-xs font-medium ${getStatusBadge(tender.status, tender.deadline).className}`}
-                      >
-                        {getStatusBadge(tender.status, tender.deadline).label}
-                      </Badge>
+                      {(() => {
+                        const sb = getStatusBadge(tender.status, tender.deadline);
+                        return (
+                          <StatusBadge state={sb.state} label={sb.label} className="flex-shrink-0" />
+                        );
+                      })()}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
                       {tender.description}
@@ -1345,7 +1345,7 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      <SidebarInset className="bg-gray-50 dark:bg-gray-900">
+      <SidebarInset className="bg-gray-50 dark:bg-background">
         {/* Main Content */}
         <main
           className="flex-1 overflow-auto p-6"
@@ -1367,14 +1367,14 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0, duration: 0.35, ease: "easeOut" }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm p-7"
+                  className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm p-7"
                 >
                   <div className={`flex items-center gap-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <div className="p-3 rounded-xl bg-[#E8614D] text-white flex-shrink-0">
+                    <div className="p-3 rounded-xl bg-[#FE3C01] text-white flex-shrink-0">
                       <FileText className="h-5 w-5" />
                     </div>
                     <div className={isRtl ? 'text-right' : ''}>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      <p className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.04em] tabular-nums">
                         {tenders.filter(tender => tender.status === 'published').length}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.activeRfps')}</p>
@@ -1386,14 +1386,14 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05, duration: 0.35, ease: "easeOut" }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm p-7"
+                  className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm p-7"
                 >
                   <div className={`flex items-center gap-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
                     <div className="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex-shrink-0">
                       <Inbox className="h-5 w-5" />
                     </div>
                     <div className={isRtl ? 'text-right' : ''}>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      <p className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.04em] tabular-nums">
                         {incomingOffers.filter(o => o.status === 'pending').length}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.pendingProposals')}</p>
@@ -1405,14 +1405,14 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1, duration: 0.35, ease: "easeOut" }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm p-7"
+                  className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm p-7"
                 >
                   <div className={`flex items-center gap-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
                     <div className="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex-shrink-0">
                       <Users className="h-5 w-5" />
                     </div>
                     <div className={isRtl ? 'text-right' : ''}>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      <p className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.04em] tabular-nums">
                         {vendors.length}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.vendorsInBase')}</p>
@@ -1428,38 +1428,38 @@ export default function Dashboard() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.12, duration: 0.35, ease: "easeOut" }}
-                className="border-2 border-[#E25E45]/20 rounded-2xl overflow-hidden"
+                className="border-2 border-[#FE3C01]/20 rounded-2xl overflow-hidden"
                 style={{
                   backgroundColor: '#FFF8F7',
                   backgroundImage: 'radial-gradient(circle, #e8c5be 1px, transparent 1px)',
                   backgroundSize: '18px 18px',
                 }}
               >
-                <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+                <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
                 <div className="p-5">
                   <div className={`flex items-center gap-3 mb-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <div className="h-10 w-10 rounded-xl bg-[#E25E45]/10 border border-[#E25E45]/20 flex items-center justify-center flex-shrink-0">
-                      <Handshake className="h-5 w-5 text-[#E25E45]" />
+                    <div className="h-10 w-10 rounded-xl bg-[#FE3C01]/10 border border-[#FE3C01]/20 flex items-center justify-center flex-shrink-0">
+                      <Handshake className="h-5 w-5 text-[#FE3C01]" />
                     </div>
                     <div className={isRtl ? 'text-right' : ''}>
-                      <h3 className="font-semibold text-gray-900">{t('dashboard.readyToNegotiateTitle')}</h3>
-                      <p className="text-sm text-gray-500">
+                      <h3 className="font-semibold text-foreground">{t('dashboard.readyToNegotiateTitle')}</h3>
+                      <p className="text-sm text-muted-foreground">
                         {t('dashboard.readyToNegotiateDesc').replace('{count}', String(tendersReadyToNegotiate.length))}
                       </p>
                     </div>
                   </div>
                   <div className="space-y-2">
                     {tendersReadyToNegotiate.slice(0, 3).map(tender => (
-                      <div key={tender.id} className={`bg-white rounded-xl border border-[#E25E45]/10 p-3 flex items-center justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div key={tender.id} className={`bg-card rounded-xl border border-[#FE3C01]/10 p-3 flex items-center justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
                         <div className={isRtl ? 'text-right' : ''}>
-                          <p className="font-medium text-sm text-gray-900">{tender.title}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="font-medium text-sm text-foreground">{tender.title}</p>
+                          <p className="text-xs text-muted-foreground">
                             {t('dashboard.proposalsCount').replace('{count}', String(tender.offersCount))}
                           </p>
                         </div>
                         <Button
                           size="sm"
-                          className="bg-[#E25E45] hover:bg-[#d54d35] text-white flex-shrink-0"
+                          className="bg-[#FE3C01] hover:bg-[#d54d35] text-white flex-shrink-0"
                           onClick={() => setLocation(`/tenders/${tender.id}`)}
                         >
                           {t('dashboard.negotiateNowBtn')} →
@@ -1468,7 +1468,7 @@ export default function Dashboard() {
                     ))}
                     {tendersReadyToNegotiate.length > 3 && (
                       <p
-                        className={`text-xs text-[#E25E45] cursor-pointer hover:underline ${isRtl ? 'text-right' : 'text-left'} px-1`}
+                        className={`text-xs text-[#FE3C01] cursor-pointer hover:underline ${isRtl ? 'text-right' : 'text-left'} px-1`}
                         onClick={() => setActiveTab('tenders')}
                       >
                         and {tendersReadyToNegotiate.length - 3} more →
@@ -1484,21 +1484,21 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.35, ease: "easeOut" }}
-              className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
+              className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm overflow-hidden"
             >
-              <div className="h-1 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]" />
+              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]" />
               <div className={`flex items-center justify-between p-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
                 <div className={`flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                  <div className="p-3 rounded-xl bg-[#E8614D]/10 flex-shrink-0">
-                    <Play className="h-5 w-5 text-[#E8614D]" />
+                  <div className="p-3 rounded-xl bg-[#FE3C01]/10 flex-shrink-0">
+                    <Play className="h-5 w-5 text-[#FE3C01]" />
                   </div>
                   <div className={isRtl ? 'text-right' : ''}>
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.bookDemoTitle')}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-foreground">{t('dashboard.bookDemoTitle')}</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.bookDemoDesc')}</p>
                   </div>
                 </div>
                 <Button
-                  className="bg-[#E8614D] hover:bg-[#D44D3A] text-white flex-shrink-0"
+                  className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white flex-shrink-0"
                   data-testid="button-book-demo"
                 >
                   {t('dashboard.bookDemo')}
@@ -1511,15 +1511,15 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.35, ease: "easeOut" }}
-              className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden"
+              className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-lg overflow-hidden"
               data-tour="onboarding-tasks"
             >
               {/* Brand top strip */}
-              <div className="h-1 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]" />
+              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]" />
 
               <div className="px-6 sm:px-8 pt-5 pb-6 sm:pt-6 sm:pb-8">
                 <div className={`mb-4 ${isRtl ? 'text-right' : ''}`}>
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('dashboard.getStartedTitle')}</h2>
+                      <h2 className="font-display font-black text-2xl text-gray-900 dark:text-foreground tracking-[-0.03em]">{t('dashboard.getStartedTitle')}</h2>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('dashboard.getStartedDesc')}</p>
                     </div>
 
@@ -1529,13 +1529,13 @@ export default function Dashboard() {
                         <span className="text-sm text-gray-600 dark:text-gray-400">
                           {Math.min(onboardingTasks?.completedCount ?? 0, 5)} {t('tenderFlow.ofLabel')} 5 {t('dashboard.tasksComplete')}
                         </span>
-                        <span className="text-sm font-bold text-[#E8614D]">
+                        <span className="text-sm font-bold text-[#FE3C01]">
                           {Math.round((Math.min(onboardingTasks?.completedCount ?? 0, 5) / 5) * 100)}%
                         </span>
                       </div>
                       <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                         <motion.div
-                          className="h-full rounded-full bg-gradient-to-r from-[#E8614D] to-[#F19A8F]"
+                          className="h-full rounded-full bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]"
                           initial={{ width: 0 }}
                           animate={{ width: `${Math.round((Math.min(onboardingTasks?.completedCount ?? 0, 5) / 5) * 100)}%` }}
                           transition={{ duration: 0.5, ease: "easeOut" }}
@@ -1547,13 +1547,13 @@ export default function Dashboard() {
                     <Accordion type="single" collapsible defaultValue="task-1" className="space-y-3">
 
                       {/* Task 1: Create Tender */}
-                      <AccordionItem value="task-1" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#E8614D] bg-[#E8614D]/5 dark:bg-[#E8614D]/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
+                      <AccordionItem value="task-1" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasTender ? 'bg-[#E8614D] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasTender ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasTender ? <Check className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasTender ? 'text-[#E8614D]' : 'text-gray-900 dark:text-white'}`}>{t('dashboard.task1Title')}</span>
+                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasTender ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task1Title')}</span>
                             {onboardingTasks?.hasTender && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-3 w-3" />{t('dashboard.completed')}
@@ -1564,9 +1564,9 @@ export default function Dashboard() {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-gray-600 dark:text-gray-300">{t('dashboard.task1Desc')}</p>
+                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task1Desc')}</p>
                               <Button
-                                className="bg-[#E8614D] hover:bg-[#D44D3A] text-white"
+                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
                                 onClick={handleCreateTender}
                                 data-testid="button-task-create-tender"
                               >
@@ -1582,13 +1582,13 @@ export default function Dashboard() {
 
                       {/* Task 2: Complete Company Profile (only for owners/admins) */}
                       {canManage && (
-                      <AccordionItem value="task-2" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'border-[#E8614D] bg-[#E8614D]/5 dark:bg-[#E8614D]/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
+                      <AccordionItem value="task-2" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'bg-[#E8614D] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasCompletedProfile ? <Check className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasCompletedProfile ? 'text-[#E8614D]' : 'text-gray-900 dark:text-white'}`}>{t('dashboard.task2Title')}</span>
+                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasCompletedProfile ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task2Title')}</span>
                             {onboardingTasks?.hasCompletedProfile && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-3 w-3" />{t('dashboard.completed')}
@@ -1599,9 +1599,9 @@ export default function Dashboard() {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-gray-600 dark:text-gray-300">{t('dashboard.task2Desc')}</p>
+                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task2Desc')}</p>
                               <Button
-                                className="bg-[#E8614D] hover:bg-[#D44D3A] text-white"
+                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setLocation('/company-onboarding')}
                                 data-testid="button-task-complete-profile"
                               >
@@ -1617,13 +1617,13 @@ export default function Dashboard() {
                       )}
 
                       {/* Task 3: Upload Profile Picture */}
-                      <AccordionItem value="task-3" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasProfilePicture ? 'border-[#E8614D] bg-[#E8614D]/5 dark:bg-[#E8614D]/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
+                      <AccordionItem value="task-3" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasProfilePicture ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasProfilePicture ? 'bg-[#E8614D] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasProfilePicture ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasProfilePicture ? <Check className="h-4 w-4" /> : <Image className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasProfilePicture ? 'text-[#E8614D]' : 'text-gray-900 dark:text-white'}`}>{t('dashboard.task3Title')}</span>
+                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasProfilePicture ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task3Title')}</span>
                             {onboardingTasks?.hasProfilePicture ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-3 w-3" />{t('dashboard.completed')}
@@ -1638,9 +1638,9 @@ export default function Dashboard() {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-gray-600 dark:text-gray-300">{t('dashboard.task3Desc')}</p>
+                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task3Desc')}</p>
                               <Button
-                                className="bg-[#E8614D] hover:bg-[#D44D3A] text-white"
+                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setLocation('/settings')}
                                 data-testid="button-task-upload-photo"
                               >
@@ -1655,13 +1655,13 @@ export default function Dashboard() {
                       </AccordionItem>
 
                       {/* Task 4: Invite Vendors */}
-                      <AccordionItem value="task-4" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'border-[#E8614D] bg-[#E8614D]/5 dark:bg-[#E8614D]/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
+                      <AccordionItem value="task-4" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'bg-[#E8614D] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasVendors ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasVendors ? 'text-[#E8614D]' : 'text-gray-900 dark:text-white'}`}>{t('dashboard.task4Title')}</span>
+                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasVendors ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4Title')}</span>
                             {onboardingTasks?.hasVendors && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-3 w-3" />{t('dashboard.completed')}
@@ -1672,9 +1672,9 @@ export default function Dashboard() {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-gray-600 dark:text-gray-300">{t('dashboard.task4Desc')}</p>
+                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task4Desc')}</p>
                               <Button
-                                className="bg-[#E8614D] hover:bg-[#D44D3A] text-white"
+                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setActiveTab('vendors')}
                                 data-testid="button-task-share-link"
                               >
@@ -1689,13 +1689,13 @@ export default function Dashboard() {
                       </AccordionItem>
 
                       {/* Task 5: Review Proposals */}
-                      <AccordionItem value="task-5" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#E8614D] bg-[#E8614D]/5 dark:bg-[#E8614D]/10' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
+                      <AccordionItem value="task-5" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'bg-[#E8614D] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasReviewedProposal ? <Check className="h-4 w-4" /> : <ClipboardList className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasReviewedProposal ? 'text-[#E8614D]' : 'text-gray-900 dark:text-white'}`}>{t('dashboard.task5Title')}</span>
+                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasReviewedProposal ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task5Title')}</span>
                             {onboardingTasks?.hasReviewedProposal && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-3 w-3" />{t('dashboard.completed')}
@@ -1706,9 +1706,9 @@ export default function Dashboard() {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-gray-600 dark:text-gray-300">{t('dashboard.task5Desc')}</p>
+                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task5Desc')}</p>
                               <Button
-                                className="bg-[#E8614D] hover:bg-[#D44D3A] text-white"
+                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setActiveTab('proposals')}
                                 data-testid="button-task-view-proposals"
                               >
@@ -1734,7 +1734,7 @@ export default function Dashboard() {
               {/* Header */}
               <div className={`flex justify-between items-start ${isRtl ? 'flex-row-reverse' : ''}`}>
                 <div className={isRtl ? 'text-right' : ''}>
-                  <h2 className="text-2xl font-bold" data-testid="text-tenders-title">{t('dashboard.tendersTitle')}</h2>
+                  <h2 className="font-display font-black text-3xl tracking-[-0.04em]" data-testid="text-tenders-title">{t('dashboard.tendersTitle')}</h2>
                   <p className="text-muted-foreground" data-testid="text-tenders-description">
                     {t('dashboard.tendersDesc')}
                   </p>
@@ -1743,7 +1743,7 @@ export default function Dashboard() {
                   onSuccess={handleCreateTender}
                   successDuration={600}
                   particleColor="bg-blue-400"
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90"
                   data-testid="button-create-tender-header"
                 >
                   <Plus className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
@@ -1807,16 +1807,16 @@ export default function Dashboard() {
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-16">
                     <FileText className="h-16 w-16 text-muted-foreground mb-4" />
-                    <h3 className="text-xl font-semibold mb-2" data-testid="text-no-tenders-title">
+                    <h3 className="font-display font-black text-2xl mb-2 tracking-[-0.03em]" data-testid="text-no-tenders-title">
                       {t('dashboard.noTenders')}
                     </h3>
                     <p className="text-muted-foreground text-center max-w-md mb-6" data-testid="text-no-tenders-description">
                       {t('dashboard.noTendersDesc')}
                     </p>
                     {!tenderSearchQuery && tenderFilter === 'all' && tenderTypeFilter === 'all' && tenderOffersFilter === 'all' && (
-                      <Button 
+                      <Button
                         onClick={handleCreateTender}
-                        className="bg-blue-600 hover:bg-blue-700"
+                        className="bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90 text-white"
                         data-testid="button-create-first-tender"
                       >
                         <Plus className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
@@ -1844,7 +1844,7 @@ export default function Dashboard() {
                         return (
                           <SpotlightCard 
                             key={tender.id} 
-                            className="bg-white border-neutral-200"
+                            className="bg-card border-border"
                             spotlightColor={getSpotlightColor(tender.status)}
                             data-testid={`card-tender-${tender.id}`}
                           >
@@ -1853,47 +1853,49 @@ export default function Dashboard() {
                                 <div className="flex-1">
                                   <div className="flex items-center gap-3 mb-2">
                                     <h3 
-                                      className="text-xl font-bold text-neutral-900 cursor-pointer hover:text-blue-600"
+                                      className="text-xl font-bold text-foreground cursor-pointer hover:text-[var(--bid-orange)]"
                                       onClick={() => setLocation(`/tenders/${tender.id}`)}
                                       data-testid={`text-tender-title-${tender.id}`}
                                     >
                                       {tender.title}
                                     </h3>
-                                    <Badge className={statusBadge.className} data-testid={`badge-status-${tender.id}`}>
-                                      {statusBadge.label}
-                                    </Badge>
+                                    <StatusBadge
+                                      state={statusBadge.state}
+                                      label={statusBadge.label}
+                                      data-testid={`badge-status-${tender.id}`}
+                                    />
                                     {isReadyToNegotiate && (
-                                      <span className="text-[9px] font-bold bg-[#E25E45] text-white px-2 py-0.5 rounded-full animate-pulse">
+                                      <span className="text-[9px] font-bold bg-[#FE3C01] text-white px-2 py-0.5 rounded-full animate-pulse">
                                         {t('dashboard.negotiateBadge')}
                                       </span>
                                     )}
                                   </div>
-                                  <p className="text-sm font-medium text-neutral-600 line-clamp-2" data-testid={`text-tender-description-${tender.id}`}>
+                                  <p className="text-sm font-medium text-muted-foreground line-clamp-2" data-testid={`text-tender-description-${tender.id}`}>
                                     {tender.description}
                                   </p>
                                 </div>
                               </div>
                               
                               <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
-                                <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <Calendar className="h-4 w-4" />
-                                  <span className={isDeadlineSoon ? 'text-red-600 font-semibold' : ''}>
+                                  <span className={`font-mono ${isDeadlineSoon ? 'text-[var(--state-lost)] font-semibold' : ''}`}>
                                     {formatDate(tender.deadline)}
                                   </span>
                                 </div>
-                                <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <Send className="h-4 w-4" />
                                   <span data-testid={`text-proposals-count-${tender.id}`}>
-                                    {tender.offersCount} {t('dashboard.offers')}
+                                    <span className="font-mono">{tender.offersCount}</span> {t('dashboard.offers')}
                                   </span>
                                 </div>
                                 {tender.submissionType && (
-                                <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <FileText className="h-4 w-4" />
                                   <span>{SUBMISSION_TYPE_LABELS_DASH[tender.submissionType] || tender.submissionType}</span>
                                 </div>
                                 )}
-                                <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <FileText className="h-4 w-4" />
                                   <span>{tender.budgetRange || tender.budget || t('dashboard.budget')}</span>
                                 </div>
@@ -1930,7 +1932,7 @@ export default function Dashboard() {
                                 <Button 
                                   variant="outline" 
                                   size="sm"
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  className="text-red-600 hover:text-red-700 dark:text-red-300 hover:bg-red-50"
                                   onClick={() => {
                                     if (confirm(t('dashboard.deleteConfirm'))) {
                                       deleteTender.mutate(tender.id);
@@ -1955,7 +1957,7 @@ export default function Dashboard() {
           {/* Proposals Tab */}
           <TabsContent value="proposals" className="space-y-6">
             <div className={`mb-4 ${isRtl ? 'text-right' : ''}`}>
-              <h2 className="text-2xl font-bold" data-testid="text-proposals-title">{t('dashboard.proposalsTitle')}</h2>
+              <h2 className="font-display font-black text-3xl tracking-[-0.04em]" data-testid="text-proposals-title">{t('dashboard.proposalsTitle')}</h2>
               <p className="text-muted-foreground" data-testid="text-proposals-description">
                 {t('dashboard.proposalsDesc')}
               </p>
@@ -1981,7 +1983,7 @@ export default function Dashboard() {
                   <Card>
                     <CardContent className="flex flex-col items-center justify-center py-12">
                       <Send className="h-12 w-12 text-muted-foreground mb-3" />
-                      <p className="text-muted-foreground">{t('dashboard.noProposals')}</p>
+                      <p className="font-display font-black text-2xl tracking-[-0.03em]">{t('dashboard.noProposals')}</p>
                       <p className="text-sm text-muted-foreground mt-1">
                         {t('dashboard.noProposalsDesc')}
                       </p>
@@ -1996,7 +1998,7 @@ export default function Dashboard() {
                           return (
                         <SpotlightCard
                           key={offer.id}
-                          className="bg-white border-neutral-200"
+                          className="bg-card border-border"
                           spotlightColor={offer.status === 'accepted' ? 'green' : offer.status === 'rejected' ? 'red' : offer.status === 'shortlisted' ? 'blue' : 'orange'}
                           data-testid={`card-my-offer-${offer.id}`}
                         >
@@ -2005,55 +2007,39 @@ export default function Dashboard() {
                               <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">
                                   <h3
-                                    className="text-xl font-bold text-neutral-900 cursor-pointer hover:text-blue-600"
+                                    className="text-xl font-bold text-foreground cursor-pointer hover:text-[var(--bid-orange)]"
                                     onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
                                   >
                                     {offer.tender.title}
                                   </h3>
-                                  <Badge
-                                    className={
-                                      offer.tender.status === 'published'
-                                        ? 'bg-green-100 text-green-800'
-                                        : offer.tender.status === 'closed'
-                                        ? 'bg-red-100 text-red-800'
-                                        : 'bg-gray-100 text-gray-800'
-                                    }
-                                  >
-                                    {offer.tender.status.charAt(0).toUpperCase() + offer.tender.status.slice(1)}
-                                  </Badge>
+                                  <StatusBadge
+                                    state={tenderStatusToState(offer.tender.status)}
+                                    label={offer.tender.status.charAt(0).toUpperCase() + offer.tender.status.slice(1)}
+                                  />
                                   {offer.status === 'accepted' && (
-                                    <Badge className="bg-green-100 text-green-800 text-xs">
-                                      <CheckCircle className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
-                                      {t('dashboard.accepted')}
-                                    </Badge>
+                                    <StatusBadge
+                                      state={proposalStatusToState(offer.status)}
+                                      label={t('dashboard.accepted')}
+                                    />
                                   )}
                                   {offer.status === 'rejected' && (
-                                    <Badge className="bg-gray-100 text-gray-600 text-xs">
-                                      <XCircle className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
-                                      {t('dashboard.rejected')}
-                                    </Badge>
+                                    <StatusBadge state="lost" label={t('dashboard.rejected')} />
                                   )}
                                   {offer.status === 'pending' && (
-                                    <Badge className="bg-yellow-100 text-yellow-800 text-xs">
-                                      <Clock className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
-                                      {t('dashboard.pending')}
-                                    </Badge>
+                                    <StatusBadge state="pending" label={t('dashboard.pending')} />
                                   )}
                                   {offer.status === 'shortlisted' && (
-                                    <Badge className="bg-blue-100 text-blue-800 text-xs">
-                                      <Bookmark className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
-                                      {t('dashboard.shortlisted')}
-                                    </Badge>
+                                    <StatusBadge state="decision" label={t('dashboard.shortlisted')} />
                                   )}
                                 </div>
-                                <p className="text-sm font-medium text-neutral-600 line-clamp-2">
+                                <p className="text-sm font-medium text-muted-foreground line-clamp-2">
                                   {offer.tender.description || t('dashboard.noDescription')}
                                 </p>
                               </div>
                             </div>
 
                             <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
-                              <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                              <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                 <Calendar className="h-4 w-4" />
                                 <span>
                                   {t('dashboard.submitted')} {new Date(offer.submittedAt).toLocaleDateString('en-US', {
@@ -2063,14 +2049,14 @@ export default function Dashboard() {
                                   })}
                                 </span>
                               </div>
-                              <div className={`flex items-center gap-2 font-medium ${isRtl ? 'flex-row-reverse' : ''} ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-neutral-700'}`}>
+                              <div className={`flex items-center gap-2 font-medium ${isRtl ? 'flex-row-reverse' : ''} ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>
                                 <Clock className="h-4 w-4" />
                                 <span>
                                   {isExpired ? t('dashboard.deadlinePassed') : `${daysRemaining} ${t('dashboard.daysLeft')}`}
                                 </span>
                               </div>
                               {offer.notes && (
-                                <div className={`flex items-center gap-2 text-neutral-700 font-medium col-span-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium col-span-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <FileText className="h-4 w-4" />
                                   <span className="italic line-clamp-1">"{offer.notes}"</span>
                                 </div>
@@ -2160,7 +2146,7 @@ export default function Dashboard() {
                       return (
                         <SpotlightCard
                           key={offer.id}
-                          className="bg-white border-neutral-200"
+                          className="bg-card border-border"
                           spotlightColor={offer.status === 'accepted' ? 'green' : offer.status === 'rejected' ? 'red' : 'blue'}
                           data-testid={`card-incoming-offer-${offer.id}`}
                         >
@@ -2168,34 +2154,34 @@ export default function Dashboard() {
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">
-                                  <h3 className="text-xl font-bold text-neutral-900">
+                                  <h3 className="text-xl font-bold text-foreground">
                                     {offer.profile?.displayName || offer.company.name}
                                   </h3>
                                   {offer.company.verificationStatus === 'verified' && (
                                     <Badge variant="secondary" className="text-xs">{t('dashboard.verified')}</Badge>
                                   )}
                                   {offer.status === 'accepted' && (
-                                    <Badge className="bg-green-100 text-green-800 text-xs">
+                                    <Badge className="bg-green-100 text-green-800 dark:text-green-300 text-xs">
                                       <CheckCircle className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
                                       {t('dashboard.accepted')}
                                     </Badge>
                                   )}
                                   {offer.status === 'rejected' && (
-                                    <Badge className="bg-gray-100 text-gray-600 text-xs">
+                                    <Badge className="bg-muted text-muted-foreground text-xs">
                                       <XCircle className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
                                       {t('dashboard.rejected')}
                                     </Badge>
                                   )}
                                   {offer.status === 'shortlisted' && (
-                                    <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                    <Badge className="bg-[var(--bid-orange)]/10 text-blue-800 dark:text-blue-300 text-xs">
                                       <Bookmark className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
                                       {t('dashboard.shortlisted')}
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="text-sm font-medium text-neutral-600">
+                                <p className="text-sm font-medium text-muted-foreground">
                                   {t('dashboard.forTender')} <span
-                                    className="cursor-pointer hover:text-blue-600 font-bold"
+                                    className="cursor-pointer hover:text-[var(--bid-orange)] font-bold"
                                     onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
                                   >
                                     {offer.tender.title}
@@ -2205,7 +2191,7 @@ export default function Dashboard() {
                             </div>
 
                             <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
-                              <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                              <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                 <Calendar className="h-4 w-4" />
                                 <span>
                                   {t('dashboard.received')} {new Date(offer.submittedAt).toLocaleDateString('en-US', {
@@ -2215,28 +2201,28 @@ export default function Dashboard() {
                                   })}
                                 </span>
                               </div>
-                              <div className={`flex items-center gap-2 font-medium ${isRtl ? 'flex-row-reverse' : ''} ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-neutral-700'}`}>
+                              <div className={`flex items-center gap-2 font-medium ${isRtl ? 'flex-row-reverse' : ''} ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>
                                 <Clock className="h-4 w-4" />
                                 <span>
                                   {isExpired ? t('dashboard.deadlinePassed') : `${daysRemaining} ${t('dashboard.daysLeft')}`}
                                 </span>
                               </div>
                               {offer.company.category && (
-                                <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <Building2 className="h-4 w-4" />
                                   <span>{offer.company.category}</span>
                                 </div>
                               )}
                               {offer.quotePrice && (
                                 <div className={`flex items-center gap-2 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                  <DollarSign className="h-4 w-4 text-emerald-600" />
-                                  <span className="text-emerald-700">SAR {offer.quotePrice.toLocaleString()}</span>
+                                  <DollarSign className="h-4 w-4 text-[var(--state-won)]" />
+                                  <span className="text-[var(--state-won)]">SAR {offer.quotePrice.toLocaleString()}</span>
                                 </div>
                               )}
                             </div>
 
                             {offer.notes && (
-                              <p className="text-sm mb-4 text-neutral-600 italic">"{offer.notes}"</p>
+                              <p className="text-sm mb-4 text-muted-foreground italic">"{offer.notes}"</p>
                             )}
 
                             <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -2297,7 +2283,7 @@ export default function Dashboard() {
                               )}
                               <Button
                                 size="sm"
-                                className="bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                                className="bg-[#FE3C01] hover:bg-[#d54d35] text-white"
                                 onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
                                 data-testid={`button-review-tender-${offer.id}`}
                               >
@@ -2319,7 +2305,7 @@ export default function Dashboard() {
           {canManage && (
             <TabsContent value="vendors" className="space-y-6">
               <div className={`mb-4 ${isRtl ? 'text-right' : ''}`}>
-                <h2 className="text-2xl font-bold" data-testid="text-vendors-title">{t('dashboard.vendorsBaseTitle')}</h2>
+                <h2 className="font-display font-black text-3xl tracking-[-0.04em]" data-testid="text-vendors-title">{t('dashboard.vendorsBaseTitle')}</h2>
                 <p className="text-muted-foreground" data-testid="text-vendors-description">
                   {t('dashboard.vendorsBaseDesc')}
                 </p>
@@ -2331,8 +2317,8 @@ export default function Dashboard() {
                   {activeCompany?.profile?.tractionSlug ? (
                     <div className="space-y-3">
                       <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                        <div className="w-8 h-8 rounded-lg bg-[#E8614D]/10 flex items-center justify-center">
-                          <Link2 className="h-4 w-4 text-[#E8614D]" />
+                        <div className="w-8 h-8 rounded-lg bg-[#FE3C01]/10 flex items-center justify-center">
+                          <Link2 className="h-4 w-4 text-[#FE3C01]" />
                         </div>
                         <div className={isRtl ? 'text-right' : ''}>
                           <p className="text-sm font-semibold">{t('dashboard.yourTractionLink')}</p>
@@ -2540,7 +2526,7 @@ export default function Dashboard() {
                     <Card>
                       <CardContent className="flex flex-col items-center justify-center py-16">
                         <Users className="h-16 w-16 text-muted-foreground mb-4" />
-                        <h3 className="text-xl font-semibold mb-2" data-testid="text-empty-vendors-title">
+                        <h3 className="font-display font-black text-2xl mb-2 tracking-[-0.03em]" data-testid="text-empty-vendors-title">
                           {t('dashboard.noVendors')}
                         </h3>
                         <p className="text-muted-foreground text-center max-w-md" data-testid="text-empty-vendors-description">
@@ -2551,7 +2537,7 @@ export default function Dashboard() {
                   ) : (
                     <div className="grid gap-4">
                       {filteredVendors.map((vendor) => (
-                        <SpotlightCard key={vendor.id} className="bg-white border-neutral-200" spotlightColor="blue" data-testid={`card-vendor-${vendor.id}`}>
+                        <SpotlightCard key={vendor.id} className="bg-card border-border" spotlightColor="blue" data-testid={`card-vendor-${vendor.id}`}>
                           <div className="p-6">
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex items-start gap-4">
@@ -2560,7 +2546,7 @@ export default function Dashboard() {
                                 </div>
                                 <div className="flex-1">
                                   <div className="flex items-center gap-3 mb-2">
-                                    <h3 className="text-xl font-bold text-neutral-900" data-testid={`text-vendor-name-${vendor.id}`}>
+                                    <h3 className="text-xl font-bold text-foreground" data-testid={`text-vendor-name-${vendor.id}`}>
                                       {vendor.company}
                                     </h3>
                                     {vendor.verificationStatus === 'verified' && (
@@ -2570,7 +2556,7 @@ export default function Dashboard() {
                                       </Badge>
                                     )}
                                   </div>
-                                  <p className="text-sm font-medium text-neutral-600" data-testid={`text-vendor-category-${vendor.id}`}>
+                                  <p className="text-sm font-medium text-muted-foreground" data-testid={`text-vendor-category-${vendor.id}`}>
                                     {vendor.category}
                                   </p>
                                 </div>
@@ -2584,14 +2570,14 @@ export default function Dashboard() {
                             </div>
 
                             {vendor.bio && (
-                              <p className="text-sm font-medium text-neutral-600 line-clamp-2 mb-4" data-testid={`text-vendor-bio-${vendor.id}`}>
+                              <p className="text-sm font-medium text-muted-foreground line-clamp-2 mb-4" data-testid={`text-vendor-bio-${vendor.id}`}>
                                 {vendor.bio}
                               </p>
                             )}
 
                             <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
                               {vendor.city && (
-                                <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                   <Building2 className="h-4 w-4" />
                                   <span>{vendor.city}</span>
                                 </div>
@@ -2651,7 +2637,7 @@ export default function Dashboard() {
                           return (
                             <SpotlightCard
                               key={request.id}
-                              className="bg-white border-neutral-200"
+                              className="bg-card border-border"
                               spotlightColor={request.vendor?.verificationStatus === 'verified' ? 'green' : request.vendor?.verificationStatus === 'under_review' ? 'orange' : 'purple'}
                               data-testid={`card-request-${request.id}`}
                             >
@@ -2662,7 +2648,7 @@ export default function Dashboard() {
                                       <img
                                         src={request.vendor.logoUrl}
                                         alt={request.vendor.company}
-                                        className="w-12 h-12 rounded-xl object-cover border border-gray-100 flex-shrink-0 bg-white"
+                                        className="w-12 h-12 rounded-xl object-cover border border-border flex-shrink-0 bg-card"
                                       />
                                     ) : (
                                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0 border border-primary/10">
@@ -2671,17 +2657,17 @@ export default function Dashboard() {
                                     )}
                                     <div className="flex-1 min-w-0">
                                       <div className={`flex items-center gap-3 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                        <h3 className="text-xl font-bold text-neutral-900 truncate" data-testid={`text-request-company-${request.id}`}>
+                                        <h3 className="text-xl font-bold text-foreground truncate" data-testid={`text-request-company-${request.id}`}>
                                           {request.vendor?.company || t('dashboard.unknownVendor')}
                                         </h3>
                                         <Badge
                                           variant="outline"
                                           className={
                                             request.vendor?.verificationStatus === 'verified'
-                                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0'
+                                              ? 'bg-[var(--state-won)]/5 text-[var(--state-won)] border-emerald-200 text-xs px-2 py-0'
                                               : request.vendor?.verificationStatus === 'under_review'
-                                              ? 'bg-amber-50 text-amber-700 border-amber-200 text-xs px-2 py-0'
-                                              : 'bg-gray-50 text-gray-500 border-gray-200 text-xs px-2 py-0'
+                                              ? 'bg-amber-50 text-amber-700 dark:text-amber-300 border-amber-200 text-xs px-2 py-0'
+                                              : 'bg-muted text-muted-foreground border-border text-xs px-2 py-0'
                                           }
                                           data-testid={`badge-request-status-${request.id}`}
                                         >
@@ -2697,33 +2683,33 @@ export default function Dashboard() {
                                 </div>
 
                                 {request.vendor?.bio && (
-                                  <p className="text-sm font-medium text-neutral-600 line-clamp-2 mb-4">
+                                  <p className="text-sm font-medium text-muted-foreground line-clamp-2 mb-4">
                                     {request.vendor.bio}
                                   </p>
                                 )}
 
                                 <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
                                   {request.vendor?.expertise && (
-                                    <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`} data-testid={`text-request-category-${request.id}`}>
+                                    <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`} data-testid={`text-request-category-${request.id}`}>
                                       <Briefcase className="h-4 w-4" />
                                       <span>{request.vendor.expertise}</span>
                                     </div>
                                   )}
                                   {request.vendor?.websiteUrl && (
-                                    <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                    <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                       <Globe className="h-4 w-4" />
                                       <a
                                         href={request.vendor.websiteUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="hover:underline hover:text-blue-600 truncate max-w-[160px]"
+                                        className="hover:underline hover:text-[var(--bid-orange)] truncate max-w-[160px]"
                                       >
                                         {request.vendor.websiteUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
                                       </a>
                                     </div>
                                   )}
                                   {timeAgo && (
-                                    <div className={`flex items-center gap-2 text-neutral-700 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                    <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
                                       <Calendar className="h-4 w-4" />
                                       <span>{timeAgo}</span>
                                     </div>
@@ -2748,7 +2734,7 @@ export default function Dashboard() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                    className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-300"
                                     onClick={() => rejectRequest.mutate(request.id)}
                                     disabled={rejectRequest.isPending}
                                     data-testid={`button-reject-${request.id}`}
@@ -2758,7 +2744,7 @@ export default function Dashboard() {
                                   </Button>
                                   <Button
                                     size="sm"
-                                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                                    className="bg-[var(--state-won)] hover:bg-[var(--state-won)]/90 text-white"
                                     onClick={() => approveRequest.mutate(request.id)}
                                     disabled={approveRequest.isPending}
                                     data-testid={`button-approve-${request.id}`}
@@ -2867,9 +2853,9 @@ export default function Dashboard() {
                 <h4 className="font-medium text-sm text-muted-foreground mb-3">{t('dashboard.submittedMaterials')}</h4>
                 
                 {selectedProposal.quotePrice && (
-                  <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg mb-2">
+                  <div className="flex items-center justify-between p-3 bg-[var(--state-won)]/5 rounded-lg mb-2">
                     <span className="text-sm text-muted-foreground">{t('dashboard.priceQuoteLabel')}</span>
-                    <span className="text-lg font-bold text-emerald-700">SAR {selectedProposal.quotePrice.toLocaleString()}</span>
+                    <span className="text-lg font-bold text-[var(--state-won)]">SAR {selectedProposal.quotePrice.toLocaleString()}</span>
                   </div>
                 )}
 
@@ -2946,7 +2932,7 @@ export default function Dashboard() {
                   {selectedProposal.status === 'pending' && (
                     <Button
                       variant="outline"
-                      className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
+                      className="flex-1 border-blue-300 text-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/5"
                       size="sm"
                       onClick={() => {
                         updateOfferStatus.mutate({ offerId: selectedProposal.id, status: 'shortlisted' });
@@ -2980,8 +2966,8 @@ export default function Dashboard() {
               )}
 
               {selectedProposal.status === 'shortlisted' && (
-                <div className="flex items-center justify-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border-t mt-4 pt-4">
-                  <Bookmark className="h-5 w-5 text-blue-600" />
+                <div className="flex items-center justify-center gap-2 p-3 bg-[var(--bid-orange)]/5 dark:bg-blue-950/20 rounded-lg border-t mt-4 pt-4">
+                  <Bookmark className="h-5 w-5 text-[var(--bid-orange)]" />
                   <span className="font-medium text-blue-800 dark:text-blue-200">{t('dashboard.shortlisted')}</span>
                 </div>
               )}
@@ -3016,7 +3002,7 @@ export default function Dashboard() {
               {/* Verification Status */}
               <div className="flex items-center gap-2">
                 {selectedVendor.verificationStatus === 'verified' ? (
-                  <Badge className="bg-green-100 text-green-800">
+                  <Badge className="bg-green-100 text-green-800 dark:text-green-300">
                     <CheckCircle className="h-3 w-3 mr-1" />
                     {t('dashboard.verifiedCompany')}
                   </Badge>
@@ -3095,8 +3081,8 @@ export default function Dashboard() {
                   className="w-12 h-12 rounded-lg object-cover"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-lg bg-[#E25E45]/10 flex items-center justify-center">
-                  <Building2 className="h-6 w-6 text-[#E25E45]" />
+                <div className="w-12 h-12 rounded-lg bg-[#FE3C01]/10 flex items-center justify-center">
+                  <Building2 className="h-6 w-6 text-[#FE3C01]" />
                 </div>
               )}
               <div>
@@ -3124,7 +3110,7 @@ export default function Dashboard() {
                 {t(`dashboard.${userRole}`)}
               </Badge>
               {activeCompany.onboardingState === 'completed' && (
-                <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+                <Badge className="bg-[var(--bid-orange)]/10 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
                   <CheckCircle className="h-3 w-3 mr-1" />
                   {t('dashboard.profileComplete')}
                 </Badge>
@@ -3167,17 +3153,17 @@ export default function Dashboard() {
             <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg border-t">
               {canManage && (
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-[#E25E45]">{tenders.length}</p>
+                  <p className="font-display font-black text-3xl text-[var(--bid-orange)] tracking-[-0.04em] tabular-nums">{tenders.length}</p>
                   <p className="text-xs text-muted-foreground">{t('dashboard.tenders')}</p>
                 </div>
               )}
               <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600">{incomingOffers.length + myOffers.length}</p>
+                <p className="font-display font-black text-3xl text-[var(--bid-ink)] dark:text-[var(--bid-cream)] tracking-[-0.04em] tabular-nums">{incomingOffers.length + myOffers.length}</p>
                 <p className="text-xs text-muted-foreground">{t('dashboard.proposals')}</p>
               </div>
               {canManage && (
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-purple-600">{vendors.length}</p>
+                  <p className="font-display font-black text-3xl text-[var(--bid-ink)] dark:text-[var(--bid-cream)] tracking-[-0.04em] tabular-nums">{vendors.length}</p>
                   <p className="text-xs text-muted-foreground">{t('dashboard.vendorsBase')}</p>
                 </div>
               )}
@@ -3270,7 +3256,7 @@ export default function Dashboard() {
             {activeCompany.verificationStatus !== 'under_review' && (
               <Button
                 onClick={() => { setShowUnverifiedDialog(false); setLocation('/settings?tab=company'); }}
-                className="flex-1 bg-[#E8614D] hover:bg-[#D44D3A]"
+                className="flex-1 bg-[#FE3C01] hover:bg-[#D44D3A]"
               >
                 {t('dashboard.uploadDocuments')}
               </Button>

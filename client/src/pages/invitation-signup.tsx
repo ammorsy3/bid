@@ -95,7 +95,7 @@ function PublicAudioPlayer({ src }: { src: string }) {
 
   if (error || !audioUrl) {
     return (
-      <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600">
+      <div className="flex items-center gap-2 p-3 bg-[var(--bid-orange)]/5 dark:bg-blue-900/20 rounded-lg text-[var(--bid-orange)]">
         <Mic className="h-5 w-5" />
         <span className="text-sm">{t('auth.voiceNoteLogin')}</span>
       </div>
@@ -129,14 +129,14 @@ function PublicAudioPlayer({ src }: { src: string }) {
           }}
         >
           <div 
-            className="absolute top-0 left-0 h-full bg-blue-500 rounded-full"
+            className="absolute top-0 left-0 h-full bg-[var(--bid-orange)] rounded-full"
             style={{ 
               width: `${progress}%`,
               transition: isPlaying ? 'width 0.1s linear' : 'none'
             }}
           />
           <div 
-            className="absolute top-1/2 -translate-y-1/2 h-4 w-4 bg-blue-600 rounded-full shadow-md border-2 border-white"
+            className="absolute top-1/2 -translate-y-1/2 h-4 w-4 bg-[var(--bid-orange)] rounded-full shadow-md border-2 border-white"
             style={{ 
               left: `calc(${progress}% - 8px)`,
               transition: isPlaying ? 'left 0.1s linear' : 'none'
@@ -183,7 +183,7 @@ export default function InvitationSignup() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -191,7 +191,7 @@ export default function InvitationSignup() {
 
   if (error || !tender) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-center text-red-600">{t('auth.invalidInvitation')}</CardTitle>
@@ -225,7 +225,7 @@ export default function InvitationSignup() {
   // If tender is not published, show a different view
   if (!isPublished) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
           <Card>
             <CardHeader className="pb-4">
@@ -250,7 +250,7 @@ export default function InvitationSignup() {
                     </Button>
                   </Link>
                   <Link href={`/register?redirect=/tenders/${id}`}>
-                    <Button className="min-w-40 bg-blue-500 hover:bg-blue-600" data-testid="button-create-account">
+                    <Button className="min-w-40 bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90 text-white" data-testid="button-create-account">
                       {t('auth.createBidAccount')}
                     </Button>
                   </Link>
@@ -264,7 +264,7 @@ export default function InvitationSignup() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-2xl space-y-6">
         {/* Tender Details Card */}
         <Card>
@@ -275,7 +275,7 @@ export default function InvitationSignup() {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Tender Info Box */}
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 space-y-4">
+            <div className="bg-gray-100 dark:bg-card rounded-lg p-4 space-y-4">
               <div>
                 <h3 className="font-bold text-lg mb-1" data-testid="text-tender-title">{tender.title}</h3>
                 <p className="text-muted-foreground text-sm" data-testid="text-tender-description">
@@ -285,7 +285,7 @@ export default function InvitationSignup() {
 
               {/* Voice Note & Video Link */}
               {(tender.voiceNoteUrl || tender.videoUrl) && (
-                <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+                <div className="space-y-3 pt-2 border-t border-border dark:border-border">
                   <p className="text-sm font-medium text-muted-foreground">{t('auth.additionalInfo')}</p>
                   {tender.voiceNoteUrl && (
                     <div className="space-y-1">
@@ -314,7 +314,7 @@ export default function InvitationSignup() {
                 </div>
               )}
 
-              <div className="grid grid-cols-3 gap-4 text-sm pt-2 border-t border-gray-200 dark:border-gray-700">
+              <div className="grid grid-cols-3 gap-4 text-sm pt-2 border-t border-border dark:border-border">
                 <div>
                   <span className="text-muted-foreground">{t('auth.budgetLabel')}</span>
                   <p className="font-medium" data-testid="text-budget">
@@ -362,7 +362,7 @@ export default function InvitationSignup() {
                 </p>
                 <Button
                   onClick={() => setLocation(`/tenders/${tender.id}`)}
-                  className="bg-blue-500 hover:bg-blue-600"
+                  className="bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90"
                   data-testid="button-access-tender"
                 >
                   {t('auth.accessTender')}
@@ -380,7 +380,7 @@ export default function InvitationSignup() {
                     </Button>
                   </Link>
                   <Link href={`/register?redirect=/tenders/${id}`}>
-                    <Button className="min-w-48 bg-blue-500 hover:bg-blue-600" data-testid="button-create-account">
+                    <Button className="min-w-48 bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90 text-white" data-testid="button-create-account">
                       {t('auth.createBidAccount')}
                     </Button>
                   </Link>

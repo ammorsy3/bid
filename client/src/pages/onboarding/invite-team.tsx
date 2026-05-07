@@ -199,12 +199,12 @@ export default function InviteTeam() {
       <Card>
         <CardContent className="pt-8 pb-8">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
-              <Users className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 bg-[var(--state-won)]/5 rounded-xl flex items-center justify-center">
+              <Users className="w-5 h-5 text-[var(--state-won)]" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">{t('onboardingPanel.inviteYourTeam')}</h2>
-              <p className="text-sm text-neutral-500">{t('onboardingPanel.inviteYourTeamDesc')}</p>
+              <h2 className="font-display font-black text-2xl text-foreground tracking-[-0.03em]">{t('onboardingPanel.inviteYourTeam')}</h2>
+              <p className="text-sm text-muted-foreground">{t('onboardingPanel.inviteYourTeamDesc')}</p>
             </div>
           </div>
 
@@ -274,12 +274,12 @@ export default function InviteTeam() {
             </Button>
           )}
 
-          <div className="bg-neutral-50 rounded-lg p-4 mb-6">
-            <h4 className="text-sm font-medium text-neutral-700 mb-2">{t('onboardingPanel.rolesExplained')}</h4>
-            <div className="space-y-1 text-xs text-neutral-500">
-              <p><span className="font-medium text-neutral-600">{t('onboardingPanel.roleAdminExplain')}</span> — {t('onboardingPanel.roleAdminExplainDesc')}</p>
-              <p><span className="font-medium text-neutral-600">{t('onboardingPanel.roleMemberExplain')}</span> — {t('onboardingPanel.roleMemberExplainDesc')}</p>
-              <p><span className="font-medium text-neutral-600">{t('onboardingPanel.roleViewerExplain')}</span> — {t('onboardingPanel.roleViewerExplainDesc')}</p>
+          <div className="bg-muted rounded-lg p-4 mb-6">
+            <h4 className="text-sm font-medium text-muted-foreground mb-2">{t('onboardingPanel.rolesExplained')}</h4>
+            <div className="space-y-1 text-xs text-muted-foreground">
+              <p><span className="font-medium text-muted-foreground">{t('onboardingPanel.roleAdminExplain')}</span> — {t('onboardingPanel.roleAdminExplainDesc')}</p>
+              <p><span className="font-medium text-muted-foreground">{t('onboardingPanel.roleMemberExplain')}</span> — {t('onboardingPanel.roleMemberExplainDesc')}</p>
+              <p><span className="font-medium text-muted-foreground">{t('onboardingPanel.roleViewerExplain')}</span> — {t('onboardingPanel.roleViewerExplainDesc')}</p>
             </div>
           </div>
 
@@ -298,7 +298,7 @@ export default function InviteTeam() {
                 type="button"
                 onClick={handleSkip}
                 disabled={loading}
-                className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors disabled:opacity-50"
+                className="text-sm text-neutral-400 hover:text-muted-foreground transition-colors disabled:opacity-50"
               >
                 Skip, I'll do this later
               </button>
@@ -306,7 +306,7 @@ export default function InviteTeam() {
                 onClick={handleSubmitWithInvites}
                 size="lg"
                 disabled={loading || hasInvalidRow}
-                className="bg-[#E25E45] hover:bg-[#d04a32]"
+                className="bg-[#FE3C01] hover:bg-[#E83501]"
               >
                 {loading ? (
                   <>

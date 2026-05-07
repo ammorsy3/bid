@@ -165,7 +165,20 @@
       "mcp__linear__linear_getIssues",
       "Bash(ps -o lstart= -p 814)",
       "Bash(gh pr create --base main --head ahmorsy07/bid-163-domain-based-workspace-discovery-request-to-join-flow --title 'BID-163: domain-based workspace discovery + request-to-join flow' --body ' *)",
-      "Bash(gh pr *)"
+      "Bash(gh pr *)",
+      "mcp__linear__list_issue_statuses",
+      "mcp__linear__save_issue",
+      "mcp__linear__get_project",
+      "mcp__linear__list_issues",
+      "mcp__linear__list_projects",
+      "mcp__linear__list_milestones",
+      "mcp__linear__get_issue",
+      "Bash(pdfinfo \"attached_assets/Bid-Brand-Identity-Hero-Logo-Fixed-final-v2_1778148336788.pdf\")",
+      "Bash(pdftotext -layout \"attached_assets/Bid-Brand-Identity-Hero-Logo-Fixed-final-v2_1778148336788.pdf\" -)",
+      "Bash(perl *)",
+      "Bash(python3 /tmp/audit_i18n.py)",
+      "mcp__linear__list_teams",
+      "mcp__linear__save_project"
     ]
   },
   "enableAllProjectMcpServers": true,

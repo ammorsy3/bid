@@ -1,0 +1,1483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440" />
+<title>Bid — Brand Identity · Unified Logomark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --orange:#FE3C01;
+    --orange-deep:#D62E00;
+    --orange-soft:#FFE4D7;
+    --cream:#F4EDE1;
+    --cream-deep:#E8DFCC;
+    --charcoal:#0B0907;
+    --ink:#0B0907;
+    --stone:#8A8078;
+    --stone-soft:#C9C1B6;
+    --white:#FFFFFF;
+    --line:rgba(11,9,7,.12);
+    --line-strong:rgba(11,9,7,.22);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--cream);color:var(--charcoal);font-family:'Space Grotesk',sans-serif;font-feature-settings:"ss01","ss02";-webkit-font-smoothing:antialiased}
+  body{overflow-x:hidden}
+  .mono{font-family:'JetBrains Mono',monospace;font-weight:500;letter-spacing:-.01em}
+  .serif{font-family:'Instrument Serif',serif;font-weight:400}
+  .u{text-transform:uppercase;letter-spacing:.14em}
+  a{color:inherit}
+
+  /* page shell */
+  .page{max-width:1440px;margin:0 auto;padding:0 64px}
+
+  /* top bar */
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:28px 0;border-bottom:1px solid var(--line)}
+  .topbar .left{display:flex;align-items:center;gap:14px}
+  .topbar .right{display:flex;gap:32px;font-size:11px}
+  .dot{width:10px;height:10px;background:var(--orange);border-radius:50%}
+
+  /* ===== THE CANONICAL WORDMARK ===== (synced from Bid Logomark Showcase master)
+     Construction: Inter 900, letter-spacing -0.055em, dotless ı (&#x131;), single round dot.
+     The dot is a perfect circle with diameter 0.255em, centered on the ı stem,
+     positioned ~18% of cap height above the stem top.
+     Always: dot color ≠ wordmark color. Solid fill, no stroke, no shadow. */
+  .bid, .hero h1, .wordmark-primary, .mark-wm, .gridmark, .hugeword,
+  .ui-mock .side .logo, .bcard .wm, .tshirt .wm, .tote .wm,
+  footer .big, .social .big, .sticker-merch, .appicon, .wm-mono{
+    font-family:'Inter',sans-serif;font-weight:900;letter-spacing:-.055em;
+    white-space:nowrap;
+    display:inline-block;position:relative;
+    line-height:1;
+    padding-top:.28em;
+  }
+  .bid{display:inline-block;position:relative;white-space:nowrap;color:var(--orange);line-height:.82}
+
+  .hero h1 .i,
+  .wordmark-primary .i,
+  .mark-wm .i,
+  .gridmark .i,
+  .hugeword .i,
+  .bcard .wm .i,
+  .tshirt .wm .i,
+  .tote .wm .i,
+  .sticker-merch .i,
+  .ui-mock .side .logo .i,
+  footer .big .i,
+  .social .big .i,
+  .wm-mono .i,
+  .bid .i{
+    position:relative;
+    display:inline-block;
+    font-style:normal;
+    color:inherit;
+    -webkit-text-fill-color:currentColor;
+  }
+  /* The single round dot — sits over the dotless ı stem.
+     Bottom anchored to .i baseline; bottom:.82em puts the dot center a thin
+     sliver above the stem top, matching the master spec exactly. */
+  .hero h1 .i:after,
+  .wordmark-primary .i:after,
+  .mark-wm .i:after,
+  .gridmark .i:after,
+  .hugeword .i:after,
+  .bcard .wm .i:after,
+  .tshirt .wm .i:after,
+  .tote .wm .i:after,
+  .sticker-merch .i:after,
+  .ui-mock .side .logo .i:after,
+  footer .big .i:after,
+  .social .big .i:after,
+  .wm-mono .i:after,
+  .bid .i:after{
+    content:'';
+    position:absolute;
+    left:calc(50% + .025em);
+    bottom:.82em;
+    transform:translate(-50%, 50%);
+    width:.255em;height:.255em;
+    border-radius:50%;
+    background:var(--dot,currentColor);
+  }
+
+  /* ===== COLORWAYS — dot is always the accent (≠ wordmark) =====
+     01 White bg  → Ink word  + Orange dot
+     02 Ink bg    → Cream word + Orange dot
+     03 Orange bg → Cream word + Ink dot
+     04 Cream bg  → Ink word  + Orange dot                              */
+
+  /* section base */
+  section{border-bottom:1px solid var(--line);padding:120px 0}
+  section.tight{padding:80px 0}
+  .section-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:64px;gap:40px}
+  .section-head .kicker{font-size:11px}
+  .section-head h2{font-size:56px;font-weight:500;letter-spacing:-.03em;line-height:1}
+  .section-head .num{font-size:11px;color:var(--stone)}
+
+  /* HERO */
+  .hero{padding:48px 0 64px;position:relative;min-height:780px;display:flex;flex-direction:column;justify-content:space-between}
+  .hero .meta-row{display:flex;justify-content:space-between;font-size:11px;padding-top:8px}
+  .hero h1{
+    font-family:'Inter',sans-serif;
+    font-size:clamp(180px,22vw,340px);
+    font-weight:900;
+    letter-spacing:-.055em;
+    line-height:1;
+    margin:40px 0 0;
+    color:#FE3C01;
+    --dot:#000000;
+    position:relative;
+    white-space:nowrap;
+  }
+  .hero .strap{
+    display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:48px;margin-top:64px;padding-top:32px;border-top:1px solid var(--line-strong);
+  }
+  .hero .strap h2{font-size:28px;font-weight:400;letter-spacing:-.02em;line-height:1.15;max-width:22ch}
+  .hero .strap h2 em{color:var(--orange);font-style:normal}
+  .hero .strap p{font-size:13px;line-height:1.55;color:var(--charcoal)}
+  .hero .strap .label{font-size:10px;color:var(--stone);margin-bottom:12px}
+
+  .sticker{
+    position:absolute;right:64px;top:110px;
+    width:180px;height:180px;border-radius:50%;
+    background:var(--orange);color:var(--white);
+    display:flex;align-items:center;justify-content:center;
+    text-align:center;font-size:11px;line-height:1.4;
+    transform:rotate(-8deg);
+    font-weight:600;
+    animation:spin 28s linear infinite;
+  }
+  .sticker span{display:block}
+  @keyframes spin{to{transform:rotate(352deg)}}
+  .sticker .circle-text{
+    position:absolute;inset:0;
+    animation:spin 22s linear infinite reverse;
+  }
+
+  /* INTRO */
+  .intro-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:80px;align-items:start}
+  .intro-grid .lead{font-size:40px;font-weight:400;letter-spacing:-.02em;line-height:1.1}
+  .intro-grid .lead em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--orange)}
+  .intro-grid .body{font-size:15px;line-height:1.6;max-width:52ch}
+  .intro-grid .body p + p{margin-top:18px}
+  .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line-strong);margin-top:64px;border-top:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong)}
+  .pillar{background:var(--cream);padding:32px 24px 28px}
+  .pillar .n{font-size:11px;color:var(--stone);margin-bottom:28px}
+  .pillar h3{font-size:22px;font-weight:500;letter-spacing:-.02em;margin-bottom:12px}
+  .pillar p{font-size:13px;line-height:1.55;color:var(--charcoal)}
+
+  /* LOGO */
+  .logo-main{
+    background:var(--ink);color:var(--cream);
+    border-radius:2px;padding:80px 60px;margin-bottom:24px;
+    display:flex;align-items:center;justify-content:center;
+    min-height:560px;position:relative;overflow:visible;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .logo-main .corner{position:absolute;font-size:10px;color:var(--stone);letter-spacing:.12em}
+  .logo-main .c-tl{top:20px;left:24px}
+  .logo-main .c-tr{top:20px;right:24px}
+  .logo-main .c-bl{bottom:20px;left:24px}
+  .logo-main .c-br{bottom:20px;right:24px}
+
+  /* Hero/cover wordmark inside .logo-main (Ink surface) → 02 colorway: Cream word + Orange dot */
+  .wordmark-primary{font-size:clamp(160px,18vw,260px);line-height:1;color:var(--cream);--dot:var(--orange);white-space:nowrap;display:inline-block;position:relative}
+
+  .logo-variants{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .lv{background:var(--white);border-radius:2px;padding:48px;min-height:280px;display:flex;flex-direction:column;justify-content:space-between;position:relative}
+  .lv.dark{background:var(--ink);color:var(--cream)}
+  .lv.orange{background:var(--orange);color:var(--white)}
+  .lv .label{font-size:10px;color:var(--stone);letter-spacing:.12em}
+  .lv.dark .label,.lv.orange .label{color:rgba(255,255,255,.55)}
+  .lv .display{display:flex;align-items:center;justify-content:center;flex:1}
+
+  /* small wordmarks — defaults; per-tile overrides set below */
+  .mark-wm{font-size:clamp(56px,6vw,88px);line-height:1;white-space:nowrap;display:inline-block;position:relative;color:var(--ink);--dot:var(--orange)}
+  .lv.dark .mark-wm{color:var(--cream);--dot:var(--orange)}      /* 02 · Ink bg */
+  .lv.orange .mark-wm{color:var(--cream);--dot:var(--ink)}        /* 03 · Orange bg */
+  /* construction grid wordmark — on White → 01: Ink + Orange dot */
+  .gridmark{color:var(--ink);--dot:var(--orange)}
+  /* poster (orange bg) → 03: Cream + Ink dot */
+  .hugeword{color:var(--cream);--dot:var(--ink)}
+  /* sticker merch (orange bg) → 03: Cream + Ink dot */
+  .sticker-merch{color:var(--cream);--dot:var(--ink)}
+  /* business card front (Ink bg) → 02: Cream + Orange dot */
+  .bcard.front .wm{color:var(--cream);--dot:var(--orange)}
+  /* business card back (Orange bg) → 03: Cream + Ink dot */
+  .bcard.back .wm{color:var(--cream);--dot:var(--ink)}
+  /* tote (cream bg) → 04: Ink + Orange dot */
+  .tote .wm{color:var(--ink);--dot:var(--orange)}
+  /* tshirt (ink bg) → 02: Cream + Orange dot */
+  .tshirt .wm{color:var(--cream);--dot:var(--orange)}
+  /* social cover (ink bg) → 02: Cream + Orange dot */
+  .social .big{color:var(--cream);--dot:var(--orange)}
+  /* footer (cream bg) → 04: Ink + Orange dot */
+  footer .big{color:var(--ink);--dot:var(--orange)}
+  /* product UI logo (cream bg) → 04: Ink + Orange dot */
+  .ui-mock .side .logo{color:var(--ink);--dot:var(--orange)}
+
+  /* LOGO CONSTRUCTION */
+  .construction{display:grid;grid-template-columns:1.4fr 1fr;gap:40px;align-items:stretch}
+  .construction .canvas{
+    background:var(--white);border-radius:2px;padding:48px;
+    position:relative;min-height:440px;display:flex;align-items:center;justify-content:center;
+    background-image:
+      linear-gradient(var(--line) 1px,transparent 1px),
+      linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:32px 32px;
+  }
+  .construction .canvas .gridmark{
+    position:relative;font-size:clamp(120px,14vw,200px);line-height:1;white-space:nowrap;display:inline-block;
+  }
+  .construction .canvas .measure{position:absolute;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange)}
+  .construction .canvas .m1{top:16px;left:16px}
+  .construction .canvas .m2{top:16px;right:16px}
+  .construction .canvas .m3{bottom:16px;left:16px}
+  .construction .canvas .m4{bottom:16px;right:16px}
+  .construction .canvas .guide{position:absolute;background:var(--orange);opacity:.5}
+  .construction .canvas .gh{left:0;right:0;height:1px}
+  .construction .canvas .gv{top:0;bottom:0;width:1px}
+
+  .construction .rules{background:var(--ink);color:var(--cream);padding:40px;border-radius:2px;display:flex;flex-direction:column;gap:20px}
+  .construction .rules h3{font-size:20px;font-weight:500;letter-spacing:-.02em;margin-bottom:4px}
+  .construction .rules .rule{display:grid;grid-template-columns:28px 1fr;gap:16px;padding:16px 0;border-top:1px solid rgba(255,255,255,.12)}
+  .construction .rules .rule:first-of-type{border-top:none}
+  .construction .rules .rule .k{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--orange)}
+  .construction .rules .rule .v{font-size:13px;line-height:1.5;color:var(--stone-soft)}
+
+  /* LOGO EXPLORATIONS */
+  .explorations{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .exp{background:var(--white);border-radius:2px;padding:40px;min-height:360px;display:flex;flex-direction:column;justify-content:space-between}
+  .exp .top{display:flex;justify-content:space-between;font-size:10px;color:var(--stone);letter-spacing:.12em}
+  .exp .display{flex:1;display:flex;align-items:center;justify-content:center;padding:24px 0}
+  .exp h4{font-size:16px;font-weight:500;margin-bottom:4px}
+  .exp p{font-size:12px;color:var(--stone);line-height:1.5}
+
+  /* don't do */
+  .dodont{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .dd{background:var(--white);border-radius:2px;padding:24px;min-height:220px;display:flex;flex-direction:column;justify-content:space-between}
+  .dd .box{flex:1;display:flex;align-items:center;justify-content:center;background:var(--cream-deep);border-radius:2px;margin-bottom:16px}
+  .dd .tag{display:flex;align-items:center;gap:8px;font-size:11px}
+  .dd .tag .x{width:16px;height:16px;border-radius:50%;background:#D62E00;color:white;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .dd .tag .check{width:16px;height:16px;border-radius:50%;background:#1A1613;color:white;display:inline-flex;align-items:center;justify-content:center;font-size:10px}
+  .dd.ok .box{background:var(--ink)}
+
+  /* COLOR */
+  .color-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-bottom:16px}
+  .swatch{border-radius:2px;padding:24px;min-height:260px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+  .swatch.primary{background:var(--orange);color:var(--white);min-height:440px;grid-row:span 2}
+  .swatch.cream{background:var(--cream-deep);color:var(--charcoal)}
+  .swatch.ink{background:var(--ink);color:var(--cream)}
+  .swatch.stone{background:var(--stone);color:var(--white)}
+  .swatch.white{background:var(--white);color:var(--charcoal);border:1px solid var(--line)}
+  .swatch .name{font-size:28px;font-weight:500;letter-spacing:-.02em}
+  .swatch.primary .name{font-size:56px;letter-spacing:-.03em}
+  .swatch .values{font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.6;opacity:.85}
+  .swatch .role{font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.7;margin-bottom:auto}
+
+  .color-ratios{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line-strong);margin-top:48px}
+  .color-ratios .r{background:var(--cream);padding:24px 20px;display:flex;flex-direction:column;gap:12px}
+  .color-ratios .r .bar{height:8px;border-radius:1px;background:var(--stone-soft);position:relative;overflow:hidden}
+  .color-ratios .r .bar span{position:absolute;inset:0;background:var(--orange)}
+  .color-ratios .r .label{font-size:11px;color:var(--stone)}
+  .color-ratios .r .val{font-family:'JetBrains Mono',monospace;font-size:13px}
+
+  /* TYPE */
+  .type-hero{background:var(--white);border-radius:2px;padding:64px;margin-bottom:24px;position:relative}
+  .type-hero .label{font-size:11px;color:var(--stone);margin-bottom:32px}
+  .type-hero .display{font-family:'Inter',sans-serif;font-size:220px;font-weight:900;letter-spacing:-.055em;line-height:1;color:var(--ink)}
+  .type-hero .meta{position:absolute;right:40px;bottom:40px;text-align:right;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--stone)}
+
+  .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
+  .type-card{background:var(--white);padding:48px;border-radius:2px;min-height:320px;display:flex;flex-direction:column;justify-content:space-between}
+  .type-card .big{font-size:96px;font-weight:500;letter-spacing:-.04em;line-height:1;color:var(--ink)}
+  .type-card .big.mono{font-family:'JetBrains Mono',monospace;font-weight:500;letter-spacing:-.02em}
+  .type-card .meta{display:flex;justify-content:space-between;font-size:11px;color:var(--stone);margin-top:32px;padding-top:16px;border-top:1px solid var(--line)}
+
+  .type-scale{background:var(--white);padding:48px;border-radius:2px;display:grid;grid-template-columns:120px 1fr 120px;row-gap:28px;align-items:baseline}
+  .type-scale .k{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--stone)}
+  .type-scale .s{font-weight:500;color:var(--ink);letter-spacing:-.02em;line-height:1}
+  .type-scale .m{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--stone);text-align:right}
+
+  /* VOICE */
+  .voice{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+  .voice .principles{display:flex;flex-direction:column;gap:24px}
+  .voice .p{background:var(--white);border-radius:2px;padding:32px}
+  .voice .p .k{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--orange);margin-bottom:16px}
+  .voice .p h4{font-size:24px;font-weight:500;letter-spacing:-.02em;margin-bottom:8px}
+  .voice .p p{font-size:14px;line-height:1.55;color:var(--charcoal)}
+  .voice .taglines{background:var(--ink);color:var(--cream);padding:48px;border-radius:2px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+  .voice .taglines .label{font-size:11px;color:var(--orange);letter-spacing:.12em;margin-bottom:24px}
+  .voice .taglines .line{font-size:36px;font-weight:400;letter-spacing:-.02em;line-height:1.1;padding:18px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+  .voice .taglines .line:last-child{border-bottom:none}
+  .voice .taglines .line em{font-family:'Instrument Serif',serif;font-style:italic;color:var(--orange);font-weight:400}
+
+  /* APPLICATIONS */
+  .apps-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:24px}
+  .apps-grid .col{display:flex;flex-direction:column;gap:24px}
+  .app{border-radius:2px;padding:40px;position:relative;overflow:hidden;min-height:320px;display:flex;flex-direction:column;justify-content:space-between}
+  .app .caption{font-size:10px;color:var(--stone);letter-spacing:.12em;display:flex;justify-content:space-between}
+
+  /* Business card */
+  .bcard-wrap{background:var(--cream-deep);display:flex;align-items:center;justify-content:center;gap:32px;padding:60px;min-height:480px}
+  .bcard{width:340px;height:200px;border-radius:3px;padding:22px;box-shadow:0 20px 40px -20px rgba(0,0,0,.25);position:relative}
+  .bcard.front{background:var(--ink);color:var(--cream);display:flex;flex-direction:column;justify-content:space-between}
+  .bcard.back{background:var(--orange);color:var(--white);display:flex;flex-direction:column;justify-content:space-between}
+  .bcard .wm{font-size:56px;line-height:1;display:inline-block;position:relative}
+  .bcard .person{font-size:12px;line-height:1.5}
+  .bcard .person b{font-weight:500}
+  .bcard .meta{font-size:9px;letter-spacing:.08em;text-transform:uppercase;opacity:.6}
+  .bcard.back .biglit{font-size:20px;font-weight:500;letter-spacing:-.02em;line-height:1.1}
+
+  /* app icon */
+  .icons-wrap{background:var(--white);padding:48px;display:flex;align-items:center;justify-content:center;gap:28px;min-height:320px}
+  .appicon{width:132px;height:132px;border-radius:28px;background:var(--orange);color:var(--cream);--dot:var(--ink);display:flex;align-items:center;justify-content:center;font-size:42px;line-height:1;box-shadow:0 14px 28px -10px rgba(254,60,1,.45);position:relative}
+  .appicon.sm{width:88px;height:88px;border-radius:18px;font-size:28px}
+  .appicon.xs{width:56px;height:56px;border-radius:12px;font-size:18px}
+  .appicon.dark{background:var(--ink);color:var(--cream);--dot:var(--orange)}
+
+  /* social banner */
+  .social{background:var(--ink);color:var(--cream);padding:48px;min-height:360px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+  .social .big{font-size:130px;line-height:1;display:inline-block;position:relative}
+  .social .big em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--orange)}
+  .social .meta{display:flex;justify-content:space-between;font-size:11px;color:var(--stone-soft)}
+  .social .ticker{
+    position:absolute;left:-20px;right:-20px;bottom:100px;
+    font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--orange);
+    white-space:nowrap;opacity:.55;
+    animation:slide 30s linear infinite;
+  }
+  @keyframes slide{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+  /* poster */
+  .poster{background:var(--orange);color:var(--white);padding:40px;min-height:640px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+  .poster .hugeword{font-size:220px;line-height:.8}
+  .poster .kicker{font-size:12px;font-family:'JetBrains Mono',monospace;letter-spacing:.1em}
+  .poster .footer{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;align-items:flex-end}
+  .poster .serifbit{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:48px;max-width:16ch;line-height:1}
+
+  /* merch */
+  .merch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px}
+  .merch{background:var(--white);border-radius:2px;padding:32px;min-height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px}
+  .merch .label{font-size:10px;color:var(--stone);letter-spacing:.12em}
+  .tshirt{
+    width:220px;height:220px;background:var(--ink);border-radius:8px;
+    display:flex;align-items:center;justify-content:center;color:var(--cream);
+    position:relative;
+  }
+  .tshirt:before,.tshirt:after{content:'';position:absolute;top:0;width:38px;height:60px;background:var(--ink);border-radius:10px}
+  .tshirt:before{left:-28px;transform:rotate(-20deg)}
+  .tshirt:after{right:-28px;transform:rotate(20deg)}
+  .tshirt .wm{font-size:60px;line-height:1;position:relative;z-index:1}
+  .sticker-merch{width:160px;height:160px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:48px;line-height:1;position:relative}
+  .tote{width:220px;height:240px;background:var(--cream-deep);position:relative;border-radius:2px;display:flex;align-items:center;justify-content:center}
+  .tote:before,.tote:after{content:'';position:absolute;top:-36px;width:10px;height:80px;border:3px solid var(--ink);border-bottom:none;border-radius:60px 60px 0 0;background:transparent}
+  .tote:before{left:38px}
+  .tote:after{right:38px}
+  .tote .wm{font-size:52px;line-height:1}
+
+  /* product UI mock */
+  .ui-mock{background:var(--white);border-radius:4px;overflow:hidden;border:1px solid var(--line);min-height:520px;display:flex;flex-direction:column}
+  .ui-mock .chrome{background:var(--cream-deep);padding:10px 14px;display:flex;gap:6px;align-items:center;border-bottom:1px solid var(--line)}
+  .ui-mock .chrome .c{width:10px;height:10px;border-radius:50%;background:var(--stone-soft)}
+  .ui-mock .chrome .url{margin-left:12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--stone);background:var(--cream);padding:4px 12px;border-radius:100px}
+  .ui-mock .ui{display:grid;grid-template-columns:220px 1fr;flex:1}
+  .ui-mock .side{background:var(--cream);padding:20px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:18px}
+  .ui-mock .side .logo{font-size:32px;line-height:1;display:inline-block;position:relative}
+  .ui-mock .side .nav{display:flex;flex-direction:column;gap:2px;margin-top:12px}
+  .ui-mock .side .navitem{font-size:13px;padding:8px 10px;border-radius:2px;color:var(--charcoal);display:flex;justify-content:space-between;align-items:center}
+  .ui-mock .side .navitem.active{background:var(--ink);color:var(--cream)}
+  .ui-mock .side .navitem .badge{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--orange);color:white;padding:1px 6px;border-radius:2px}
+  .ui-mock .main{padding:28px 32px;display:flex;flex-direction:column;gap:20px}
+  .ui-mock .main h5{font-size:28px;font-weight:500;letter-spacing:-.03em}
+  .ui-mock .main .sub{font-size:12px;color:var(--stone);font-family:'JetBrains Mono',monospace}
+  .ui-mock .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .ui-mock .stat{border:1px solid var(--line);padding:14px;border-radius:2px}
+  .ui-mock .stat .k{font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.1em}
+  .ui-mock .stat .v{font-size:24px;font-weight:500;letter-spacing:-.02em;margin-top:6px}
+  .ui-mock .stat .d{font-size:11px;color:var(--orange);font-family:'JetBrains Mono',monospace;margin-top:4px}
+  .ui-mock .table{border:1px solid var(--line);border-radius:2px;overflow:hidden}
+  .ui-mock .th,.ui-mock .tr{display:grid;grid-template-columns:70px 1.4fr 1fr 1fr 90px;gap:12px;padding:10px 14px;align-items:center;font-size:12px}
+  .ui-mock .th{background:var(--cream);font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.1em}
+  .ui-mock .tr{border-top:1px solid var(--line)}
+  .ui-mock .tr .id{font-family:'JetBrains Mono',monospace;color:var(--stone)}
+  .ui-mock .tr .pill{display:inline-block;padding:2px 8px;border-radius:2px;font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.08em}
+  .ui-mock .tr .pill.open{background:var(--orange);color:white}
+  .ui-mock .tr .pill.closed{background:var(--cream-deep);color:var(--stone)}
+  .ui-mock .tr .pill.awarded{background:var(--ink);color:var(--cream)}
+
+  /* FOOTER */
+  footer{padding:120px 0 64px}
+  footer .big{font-size:clamp(160px,18vw,260px);line-height:1;display:inline-block;position:relative}
+  footer .row{display:flex;justify-content:space-between;align-items:flex-end;margin-top:56px;padding-top:32px;border-top:1px solid var(--line)}
+  footer .row .col{font-size:12px;line-height:1.6;color:var(--stone)}
+  footer .row .col b{color:var(--charcoal);font-weight:500}
+
+  /* utils */
+  .hr{height:1px;background:var(--line);margin:80px 0}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--line-strong);border-radius:100px;font-size:11px}
+  .pill .d{width:6px;height:6px;border-radius:50%;background:var(--orange)}
+
+  /* ===== THE DOT SECTION ===== */
+  .dot-hero{background:var(--ink);color:var(--cream);padding:80px;border-radius:2px;position:relative;overflow:hidden;margin-bottom:48px}
+  .dot-hero .bg{position:absolute;inset:0;background-image:radial-gradient(circle at center, rgba(254,60,1,.18) 1.5px, transparent 2px);background-size:32px 32px;opacity:.6}
+  .dot-hero .inner{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+  .dot-hero .left h3{font-family:'Instrument Serif',serif;font-style:italic;font-size:88px;font-weight:400;letter-spacing:-.02em;line-height:1;margin-bottom:24px;color:var(--cream)}
+  .dot-hero .left h3 em{color:var(--orange);font-style:italic}
+  .dot-hero .left p{font-size:16px;line-height:1.55;color:var(--stone-soft);max-width:42ch}
+  .dot-hero .right{display:flex;align-items:center;justify-content:center;height:360px;position:relative}
+  .dot-hero .right .big-dot{width:260px;height:260px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 0 var(--orange);animation:pulse-dot 2.4s ease-out infinite}
+  @keyframes pulse-dot{0%{box-shadow:0 0 0 0 rgba(254,60,1,.6)}70%{box-shadow:0 0 0 100px rgba(254,60,1,0)}100%{box-shadow:0 0 0 0 rgba(254,60,1,0)}}
+
+  /* Dot states grid */
+  .dot-states{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+  .dot-state{background:var(--white);border:1px solid var(--line);border-radius:2px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;aspect-ratio:1}
+  .dot-state .d{width:56px;height:56px;border-radius:50%;flex-shrink:0}
+  .dot-state .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--stone);letter-spacing:.12em;text-transform:uppercase;text-align:center;margin-top:auto}
+  .dot-state .name{font-size:15px;font-weight:600;text-align:center;letter-spacing:-.01em}
+  .dot-state.idle .d{background:var(--stone-soft)}
+  .dot-state.live .d{background:var(--orange);animation:pulse-dot 2s ease-out infinite}
+  .dot-state.decision .d{background:var(--ink)}
+  .dot-state.win .d{background:#14B86C}
+  .dot-state.lose .d{background:#C23A2A}
+  .dot-state.pending .d{background:#F5A623;animation:blink 1.4s ease-in-out infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+  /* Anatomy */
+  .dot-anatomy{display:grid;grid-template-columns:1.4fr 1fr;gap:40px;align-items:stretch}
+  .dot-anatomy .stage{background:var(--white);border:1px solid var(--line);padding:80px;border-radius:2px;position:relative;display:flex;align-items:center;justify-content:center;min-height:420px}
+  .dot-anatomy .stage svg{width:100%;max-width:480px;height:auto}
+  .dot-anatomy .notes{display:flex;flex-direction:column;gap:16px}
+  .dot-anatomy .note{background:var(--white);border:1px solid var(--line);padding:24px;border-radius:2px}
+  .dot-anatomy .note .k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:8px}
+  .dot-anatomy .note .v{font-size:15px;line-height:1.5;color:var(--charcoal)}
+  .dot-anatomy .note .v b{color:var(--ink);font-weight:600}
+
+  /* Dot data viz */
+  .dot-data{background:var(--ink);color:var(--cream);padding:64px;border-radius:2px;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+  .dot-data .copy h4{font-family:'Instrument Serif',serif;font-style:italic;font-size:48px;font-weight:400;line-height:1;margin-bottom:20px}
+  .dot-data .copy h4 em{color:var(--orange);font-style:italic}
+  .dot-data .copy p{font-size:14px;line-height:1.6;color:var(--stone-soft);max-width:38ch}
+  .dot-data .viz{height:280px;position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:4px}
+  .dot-data .viz .col{flex:1;display:flex;flex-direction:column-reverse;gap:6px;align-items:center}
+  .dot-data .viz .d{width:10px;height:10px;border-radius:50%;background:var(--orange);opacity:.9}
+  .dot-data .viz .d.hi{background:var(--cream)}
+  .dot-data .viz .col .month{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--stone);margin-top:12px;letter-spacing:.1em}
+
+  /* Soundmark */
+  .soundmark{background:var(--white);border:1px solid var(--line);padding:64px;border-radius:2px;display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:center}
+  .soundmark .copy h4{font-family:'Instrument Serif',serif;font-style:italic;font-size:40px;font-weight:400;line-height:1.05;margin-bottom:16px}
+  .soundmark .copy h4 em{color:var(--orange);font-style:italic}
+  .soundmark .copy p{font-size:13px;line-height:1.6;color:var(--charcoal);max-width:36ch}
+  .soundmark .wave{display:flex;align-items:center;justify-content:space-between;gap:6px;height:180px}
+  .soundmark .wave .d{background:var(--orange);border-radius:100px;width:10px;animation:eq 1.6s ease-in-out infinite}
+  @keyframes eq{0%,100%{height:20%}50%{height:95%}}
+
+  /* Dot rhythm (end-of-sentence punctuation as motif) */
+  .dot-rhythm{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .dot-rhythm .card{background:var(--white);border:1px solid var(--line);padding:36px;border-radius:2px}
+  .dot-rhythm .card .phrase{font-family:'Inter',sans-serif;font-weight:800;font-size:34px;letter-spacing:-.02em;line-height:1.05;color:var(--ink)}
+  .dot-rhythm .card .phrase .pt{display:inline-block;width:.26em;height:.26em;border-radius:50%;background:var(--orange);margin-left:.05em;vertical-align:baseline;transform:translateY(.02em)}
+  .dot-rhythm .card .cap{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--stone);margin-top:20px}
+
+  /* ===== SYMBOL MARK ===== */
+  .symbol-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .sym{background:transparent;border-radius:2px;overflow:hidden}
+  .sym-stage{background:var(--cream-deep);aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;border-radius:2px}
+  .sym-stage svg{width:60%;height:auto}
+  .sym-label{padding:20px 0 0}
+  .sym-label .k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--orange);margin-bottom:8px}
+  .sym-label .v{font-size:13px;line-height:1.55;color:var(--charcoal)}
+  .sym-label .v b{color:var(--ink);font-weight:600}
+
+  .sym-construction{display:grid;grid-template-columns:1.2fr 1fr;gap:48px;align-items:start}
+  .sym-construction .stage{background:var(--white);border:1px solid var(--line);padding:40px;border-radius:2px;display:flex;align-items:center;justify-content:center;min-height:480px}
+  .sym-construction .notes{display:flex;flex-direction:column;gap:16px}
+  .sym-construction .note{background:var(--white);border:1px solid var(--line);padding:24px;border-radius:2px}
+  .sym-construction .note .k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:8px}
+  .sym-construction .note .v{font-size:14px;line-height:1.55;color:var(--charcoal)}
+  .sym-construction .note .v b{color:var(--ink);font-weight:600}
+
+  /* ===== MONOCHROME ===== */
+  .mono-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .mono-cell{aspect-ratio:1;border-radius:2px;padding:32px;position:relative;display:flex;align-items:center;justify-content:center}
+  .mono-cell .lbl{position:absolute;top:16px;left:16px;font-size:10px;letter-spacing:.12em}
+  .wm-mono{font-size:110px;line-height:1;white-space:nowrap;display:inline-block;position:relative;color:var(--ink);--dot:var(--ink)}
+  .wm-mono .i{position:relative;display:inline-block;font-style:normal;color:inherit;-webkit-text-fill-color:currentColor}
+  /* outline variant: word becomes stroked, dot becomes a ring */
+  .wm-outline{-webkit-text-stroke:2px var(--ink);color:transparent;-webkit-text-fill-color:transparent}
+  .wm-outline .i{-webkit-text-stroke:2px var(--ink);color:transparent;-webkit-text-fill-color:transparent}
+  .wm-outline .i:after{background:transparent;border:2px solid var(--ink);box-sizing:border-box}
+
+
+  /* ===== BID LOGOMARK MASTER OVERRIDE — synced from uploaded final file =====
+     Source: Bid Logomark Showcase · May 2026.
+     Inter 900, letter-spacing -0.055em, dotless ı, one perfect circular dot.
+     Dot diameter: .255em. X: centered over ı stem (+.025em optical compensation).
+     Y: bottom .82em from glyph box. Dot color always contrasts with wordmark. */
+  .brand-mini,
+  .hero h1,
+  .wordmark-primary,
+  .mark-wm,
+  .gridmark,
+  .hugeword,
+  .ui-mock .side .logo,
+  .bcard .wm,
+  .tshirt .wm,
+  .tote .wm,
+  footer .big,
+  .social .big,
+  .sticker-merch,
+  .appicon,
+  .wm-mono,
+  .bid{
+    font-family:'Inter',sans-serif !important;
+    font-weight:900 !important;
+    letter-spacing:-.055em !important;
+    white-space:nowrap;
+  }
+
+  .brand-mini{display:inline-block;position:relative;font-size:20px;line-height:1;color:var(--ink);--dot:var(--orange);margin-right:2px}
+
+  .hero h1 .i,
+  .wordmark-primary .i,
+  .mark-wm .i,
+  .gridmark .i,
+  .hugeword .i,
+  .bcard .wm .i,
+  .tshirt .wm .i,
+  .tote .wm .i,
+  .sticker-merch .i,
+  .ui-mock .side .logo .i,
+  footer .big .i,
+  .social .big .i,
+  .wm-mono .i,
+  .appicon .i,
+  .brand-mini .i,
+  .bid .i{
+    position:relative !important;
+    display:inline-block !important;
+    font-style:normal !important;
+    color:inherit !important;
+    -webkit-text-fill-color:currentColor;
+  }
+
+  .hero h1 .i:after,
+  .wordmark-primary .i:after,
+  .mark-wm .i:after,
+  .gridmark .i:after,
+  .hugeword .i:after,
+  .bcard .wm .i:after,
+  .tshirt .wm .i:after,
+  .tote .wm .i:after,
+  .sticker-merch .i:after,
+  .ui-mock .side .logo .i:after,
+  footer .big .i:after,
+  .social .big .i:after,
+  .wm-mono .i:after,
+  .appicon .i:after,
+  .brand-mini .i:after,
+  .bid .i:after{
+    content:'' !important;
+    position:absolute !important;
+    left:calc(50% + .025em) !important;
+    bottom:.82em !important;
+    transform:translate(-50%, 50%) !important;
+    width:.255em !important;
+    height:.255em !important;
+    border-radius:50% !important;
+    background:var(--dot,currentColor) !important;
+  }
+
+  /* Approved colorways from the final logomark file */
+  .logo-main .wordmark-primary,
+  .lv.dark .mark-wm,
+  .bcard.front .wm,
+  .tshirt .wm,
+  .social .big{color:var(--cream) !important;--dot:var(--orange) !important;}
+  .lv.orange .mark-wm,
+  .hugeword,
+  .sticker-merch,
+  .bcard.back .wm,
+  .appicon{color:var(--cream) !important;--dot:var(--ink) !important;}
+  .hero h1,
+  .lv:not(.dark):not(.orange) .mark-wm,
+  .gridmark,
+  .tote .wm,
+  footer .big,
+  .ui-mock .side .logo,
+  .brand-mini{color:#FE3C01 !important;--dot:#000000 !important;}
+  .appicon.dark{color:var(--cream) !important;--dot:var(--orange) !important;}
+
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="left">
+      <div class="dot"></div>
+      <span class="brand-mini">B<span class="i">&#x131;</span>d</span><span class="mono u" style="font-size:11px"><span style="color:var(--orange)">/</span>Brand Guidelines</span>
+    </div>
+    <div class="right mono u">
+      <span>V 1.0</span>
+      <span>APR 2026</span>
+      <span>INTERNAL</span>
+      <span style="color:var(--orange)">● LIVE</span>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero" data-screen-label="01 Cover">
+    <div class="meta-row mono u">
+      <span>Procurement‑Tech</span>
+      <span>Brand Identity System</span>
+      <span>Volume 01</span>
+    </div>
+
+    <h1>B<span class="i">&#x131;</span>d</h1>
+
+    <div class="sticker">
+      <span>SOURCING · SIMPLIFIED ·<br/>BID V1 · 2026 ·</span>
+    </div>
+
+    <div class="strap">
+      <div>
+        <div class="label mono u">The one‑liner</div>
+        <h2>The procurement platform that turns <em>every RFQ</em> into a competitive advantage.</h2>
+      </div>
+      <div>
+        <div class="label mono u">What this is</div>
+        <p>A working brand identity system for Bid — logo, color, type, voice, and applications. Built to be opinionated, quantitative, and quick to deploy across product, marketing, and ops.</p>
+      </div>
+      <div>
+        <div class="label mono u">How to use it</div>
+        <p>Start with the wordmark and the orange. Everything else supports those two. When in doubt: fewer words, more contrast, more confidence.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTRO -->
+  <section data-screen-label="02 Positioning">
+    <div class="section-head">
+      <div>
+        <div class="kicker mono u">01 — Positioning</div>
+        <h2>Not a tool.<br/>A <em style="font-family:'Instrument Serif',serif;font-style:italic;color:var(--orange);font-weight:400">discipline.</em></h2>
+      </div>
+      <div class="num mono u">01 / 08</div>
+    </div>
+
+    <div class="intro-grid">
+      <div class="lead">
+        Procurement teams move millions through spreadsheets and inboxes. <em>B<span class="i">&#x131;</span>d</em> gives them a single place to run every sourcing event — faster, cleaner, on the record.
+      </div>
+      <div class="body">
+        <p>Bid is built for the procurement lead who is tired of chasing suppliers in email threads and reconciling prices across three tabs. It replaces the patchwork with a structured, auditable workflow: publish an RFQ, collect bids, compare, negotiate, award.</p>
+        <p>The brand has to do two things at once — feel premium and credible enough for CFO sign‑off, and feel fast and modern enough for the analysts using it every day. That tension is the whole identity. Serious type, energetic color, no decoration.</p>
+      </div>
+    </div>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="n mono u">P · 01</div>
+        <h3>Decisive</h3>
+        <p>We reduce noise, not add to it. Every surface should narrow the decision, not widen it.</p>
+      </div>
+      <div class="pillar">
+        <div class="n mono u">P · 02</div>
+        <h3>On‑the‑record</h3>
+        <p>Transparent, auditable, quantitative. The numbers are the story. Nothing is hidden.</p>
+      </div>
+      <div class="pillar">
+        <div class="n mono u">P · 03</div>
+        <h3>Built to move</h3>
+        <p>Procurement cycles are slow enough. The brand is energetic, direct, and confident on the clock.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE DOT — the central concept -->
+  <section data-screen-label="02.5 The Dot">
+    <div class="section-head">
+      <div>
+        <div class="kicker mono u" style="color:var(--orange)">02.5 · The Dot</div>
+        <h2>The dot is the brand.</h2>
+      </div>
+      <div class="num mono u">P · 01–06</div>
+    </div>
+
+    <!-- Dot hero -->
+    <div class="dot-hero">
+      <div class="bg"></div>
+      <div class="inner">
+        <div class="left">
+          <h3>A bid is a <em>decision</em>.<br/>A decision is a <em>dot</em>.</h3>
+          <p>Every bid closes with a point of commitment. A yes. A number. A moment. The dot is that moment — made visible. It sits on the "i", ends every sentence, pulses when the bidding is live, and stamps the win when the gavel falls.</p>
+        </div>
+        <div class="right">
+          <div class="big-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Anatomy -->
+    <div class="section-head" style="margin-top:80px">
+      <div>
+        <div class="kicker mono u" style="color:var(--stone)">Anatomy</div>
+        <h2 style="font-size:40px">How the dot sits on the "i"</h2>
+      </div>
+    </div>
+    <div class="dot-anatomy">
+      <div class="stage" style="background:var(--white);padding:48px;background-image:linear-gradient(rgba(11,9,7,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(11,9,7,.06) 1px,transparent 1px);background-size:32px 32px">
+        <div style="position:relative;display:inline-block">
+          <div class="mark-wm" style="font-size:240px;color:var(--ink);--dot:var(--orange);line-height:1;display:inline-block">B<span class="i">&#x131;</span>d</div>
+          <div class="mono" style="position:absolute;top:18%;right:-160px;font-size:11px;color:var(--orange);white-space:nowrap">ø 0.255 em</div>
+          <div class="mono" style="position:absolute;top:30%;right:-160px;font-size:11px;color:var(--orange);white-space:nowrap">Y-gap ≈ 18% cap-h</div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="note">
+          <div class="k">Rule 01 · Position</div>
+          <div class="v">The dot is centered on the dotless ı stem (X-axis offset <b>0</b>). Y-gap from stem-top to dot-bottom is <b>≈18% of cap height</b> — a clear sliver of negative space, never touching the stem.</div>
+        </div>
+        <div class="note">
+          <div class="k">Rule 02 · Color</div>
+          <div class="v">The dot is <b>always different</b> from the wordmark color. Solid fill only — no stroke, no glow, no shadow, no gradient.</div>
+        </div>
+        <div class="note">
+          <div class="k">Rule 03 · Geometry</div>
+          <div class="v">A perfect circle, diameter <b>0.255 em</b> (≈1.5× the ı-stem stroke width). Never a square, slash, or oval. <b>0° rotation</b>, always.</div>
+        </div>
+        <div class="note">
+          <div class="k">Rule 04 · Construction</div>
+          <div class="v">Inter <b>900 (Black)</b>, letter-spacing <b>−0.055 em</b>, lowercase <b>dotless ı</b> (or strip the native tittle). B and d are unmodified — native font geometry only.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dot states -->
+    <div class="section-head" style="margin-top:80px">
+      <div>
+        <div class="kicker mono u" style="color:var(--stone)">Dot states · Motion + Color system</div>
+        <h2 style="font-size:40px">Six colors. One shape. Every context.</h2>
+      </div>
+    </div>
+    <div class="dot-states">
+      <div class="dot-state idle">
+        <div class="d"></div>
+        <div class="name">Idle</div>
+        <div class="lbl">Stone · —</div>
+      </div>
+      <div class="dot-state live">
+        <div class="d"></div>
+        <div class="name">Live</div>
+        <div class="lbl">Orange · pulse</div>
+      </div>
+      <div class="dot-state decision">
+        <div class="d"></div>
+        <div class="name">Decision</div>
+        <div class="lbl">Ink · stamped</div>
+      </div>
+      <div class="dot-state win">
+        <div class="d"></div>
+        <div class="name">Won</div>
+        <div class="lbl">Green · +</div>
+      </div>
+      <div class="dot-state lose">
+        <div class="d"></div>
+        <div class="name">Lost</div>
+        <div class="lbl">Red · −</div>
+      </div>
+      <div class="dot-state pending">
+        <div class="d"></div>
+        <div class="name">Pending</div>
+        <div class="lbl">Amber · blink</div>
+      </div>
+    </div>
+
+    <!-- Dot rhythm — punctuation motif -->
+    <div class="section-head" style="margin-top:80px">
+      <div>
+        <div class="kicker mono u" style="color:var(--stone)">Dot rhythm</div>
+        <h2 style="font-size:40px">Every sentence ends with one.</h2>
+      </div>
+    </div>
+    <div class="dot-rhythm">
+      <div class="card">
+        <div class="phrase">Place your bid<span class="pt"></span></div>
+        <div class="cap">Orange · decision prompt</div>
+      </div>
+      <div class="card">
+        <div class="phrase">Sourced in hours<span class="pt"></span></div>
+        <div class="cap">Orange · statement</div>
+      </div>
+      <div class="card">
+        <div class="phrase">Won<span class="pt" style="background:#14B86C"></span></div>
+        <div class="cap">Green · outcome</div>
+      </div>
+    </div>
+
+    <!-- Dot data viz -->
+    <div style="margin-top:80px">
+      <div class="dot-data">
+        <div class="copy">
+          <h4>Every bid is <em>a dot</em>.</h4>
+          <p>Our data visualizations are built from the same shape. A column of dots is a month of bids. Each row is a bidder. Each ink-filled dot is a win. No bars, no lines — just points of commitment, stacked.</p>
+        </div>
+        <div class="viz" id="dotViz"></div>
+      </div>
+    </div>
+
+    <!-- Soundmark -->
+    <div style="margin-top:32px">
+      <div class="soundmark">
+        <div class="copy">
+          <h4>The sound of a <em>closing bid</em>.</h4>
+          <p>Our audio mark is a single clean tap — 260ms, C5, one dot. Visualized as a bar-column wave of dots rising and falling.</p>
+        </div>
+        <div class="wave" id="soundWave"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOGO -->
+  <section data-screen-label="03 Logo">
+    <div class="section-head">
+      <div>
+        <div class="kicker mono u">02 — Logo</div>
+        <h2>The wordmark.</h2>
+      </div>
+      <div class="num mono u">02 / 08</div>
+    </div>
+
+    <div class="logo-main">
+      <span class="corner c-tl mono u">Primary Wordmark</span>
+      <span class="corner c-tr mono u">Bid / 001</span>
+      <span class="corner c-bl mono u">Inter · 900 Black</span>
+      <span class="corner c-br mono u">— full lockup —</span>
+      <div class="wordmark-primary">B<span class="i">&#x131;</span>d</div>
+    </div>
+
+    <div class="logo-variants">
+      <div class="lv" style="background:var(--white)">
+        <div class="label mono u">01 · Black on White</div>
+        <div class="display"><div class="mark-wm">B<span class="i">&#x131;</span>d</div></div>
+        <div class="label mono u">Word #0B0907 · Dot #FE3C01</div>
+      </div>
+      <div class="lv dark">
+        <div class="label mono u">02 · Cream on Ink</div>
+        <div class="display"><div class="mark-wm">B<span class="i">&#x131;</span>d</div></div>
+        <div class="label mono u">Word #F4EDE1 · Dot #FE3C01</div>
+      </div>
+      <div class="lv orange">
+        <div class="label mono u">03 · Cream on Orange</div>
+        <div class="display"><div class="mark-wm">B<span class="i">&#x131;</span>d</div></div>
+        <div class="label mono u">Word #F4EDE1 · Dot #0B0907</div>
+      </div>
+      <div class="lv" style="background:var(--cream)">
+        <div class="label mono u">04 · Black on Cream</div>
+        <div class="display"><div class="mark-wm">B<span class="i">&#x131;</span>d</div></div>
+        <div class="label mono u">Word #0B0907 · Dot #FE3C01</div>
+      </div>
+    </div>
+
+    <!-- Usage rules table for color pairings -->
+    <div style="background:var(--white);border-radius:2px;padding:48px;margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:48px">
+      <div>
+        <div class="kicker mono u" style="color:var(--orange);margin-bottom:16px">When to use 01 · Black on White</div>
+        <h3 style="font-size:24px;font-weight:500;letter-spacing:-.02em;line-height:1.2;margin-bottom:16px">Ink word + Orange dot</h3>
+        <p style="font-size:14px;line-height:1.6;color:var(--charcoal)">Default on White and Cream surfaces — homepage, product marketing, packaging, event signage, merchandise, investor materials, and anything "hero". When in doubt, this is the answer.</p>
+        <div class="mono u" style="font-size:11px;color:var(--stone);margin-top:24px">USE FOR · Marketing · Product · Merch · Decks</div>
+      </div>
+      <div>
+        <div class="kicker mono u" style="color:var(--stone);margin-bottom:16px">When to use 02 · Cream on Ink</div>
+        <h3 style="font-size:24px;font-weight:500;letter-spacing:-.02em;line-height:1.2;margin-bottom:16px">Cream word + Orange dot</h3>
+        <p style="font-size:14px;line-height:1.6;color:var(--charcoal)">For dark surfaces — dark mode UI, evening signage, video end-cards, photography composites with deep shadow, packaging exteriors. The orange dot is the only place the signal breaks through.</p>
+        <div class="mono u" style="font-size:11px;color:var(--stone);margin-top:24px">USE FOR · Dark UI · Video · Packaging</div>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- CONSTRUCTION -->
+    <div class="section-head">
+      <div>
+        <div class="kicker mono u">Construction</div>
+        <h2 style="font-size:40px">Clear space & geometry</h2>
+      </div>
+    </div>
+    <div class="construction">
+      <div class="canvas">
+        <span class="measure m1">X · CLEAR</span>
+        <span class="measure m2">X · CLEAR</span>
+        <span class="measure m3">X · CLEAR</span>
+        <span class="measure m4">X · CLEAR</span>
+        <div class="guide gh" style="top:25%"></div>
+        <div class="guide gh" style="bottom:25%"></div>
+        <div class="guide gv" style="left:15%"></div>
+        <div class="guide gv" style="right:15%"></div>
+        <div class="gridmark">B<span class="i">&#x131;</span>d</div>
+      </div>
+      <div class="rules">
+        <h3>Rules of the mark</h3>
+        <div class="rule"><div class="k">01</div><div class="v">Clear space equals the x‑height of the lowercase <b>d</b>. Nothing touches that margin.</div></div>
+        <div class="rule"><div class="k">02</div><div class="v">The wordmark is always solid — one color, one weight. Signal Orange on Cream/Paper, Cream on Ink, or White on Orange.</div></div>
+        <div class="rule"><div class="k">03</div><div class="v">Minimum digital size: 24px wide. Below that, use the <b>B</b> monogram favicon.</div></div>
+        <div class="rule"><div class="k">04</div><div class="v">The wordmark is always set in Inter Black (900) at −5.5% tracking. Do not re‑typeset.</div></div>
+        <div class="rule"><div class="k">05</div><div class="v">Never outline, gradient, or drop‑shadow the wordmark. It is always flat.</div></div>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- SYMBOL / SMALL-SCALE -->
+    <div class="section-head">
+      <div>
+        <div class="kicker mono u" style="color:var(--orange)">Small-scale &amp; favicons</div>
+        <h2 style="font-size:40px">The wordmark, all the way down.</h2>
+      </div>
+      <div class="num mono u">02.5 / 08</div>
+    </div>
+
+    <p style="font-size:16px;line-height:1.6;color:var(--charcoal);max-width:62ch;margin-bottom:48px">There is no separate symbol mark. The wordmark scales — same construction, same dotless ı, same single-circle dot, same −0.055 em tracking — from billboard to favicon. Below is the canonical wordmark on each of the four approved surfaces.</p>
+
+    <div class="symbol-grid">
+      <div class="sym">
+        <div class="sym-stage" style="background:var(--white)">
+          <div class="mark-wm" style="font-size:88px;color:var(--ink);--dot:var(--orange)">B<span class="i">&#x131;</span>d</div>
+        </div>
+        <div class="sym-label">
+          <div class="k mono u">01 · Black on White</div>
+          <div class="v">Ink wordmark with Orange dot. Default colorway on White surfaces.</div>
+        </div>
+      </div>
+      <div class="sym">
+        <div class="sym-stage" style="background:var(--ink)">
+          <div class="mark-wm" style="font-size:88px;color:var(--cream);--dot:var(--orange)">B<span class="i">&#x131;</span>d</div>
+        </div>
+        <div class="sym-label">
+          <div class="k mono u">02 · Cream on Ink</div>
+          <div class="v">Cream wordmark with Orange dot. For dark UI, dark mode, nighttime signage.</div>
+        </div>
+      </div>
+      <div class="sym">
+        <div class="sym-stage" style="background:var(--orange)">
+          <div class="mark-wm" style="font-size:88px;color:var(--cream);--dot:var(--ink)">B<span class="i">&#x131;</span>d</div>
+        </div>
+        <div class="sym-label">
+          <div class="k mono u">03 · Cream on Orange</div>
+          <div class="v">Cream wordmark with Ink dot on the signal surface — packaging, stickers, one-off signage.</div>
+        </div>
+      </div>
+      <div class="sym">
+        <div class="sym-stage" style="background:var(--cream)">
+          <div class="mark-wm" style="font-size:88px;color:var(--ink);--dot:var(--orange)">B<span class="i">&#x131;</span>d</div>
+        </div>
+        <div class="sym-label">
+          <div class="k mono u">04 · Black on Cream</div>
+          <div class="v">Ink wordmark with Orange dot. The everyday surface — documents, decks, environment.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Symbol construction -->
+    <div class="section-head" style="margin-top:80px">
+      <div>
+        <div class="kicker mono u">Symbol Construction</div>
+        <h2 style="font-size:40px">How the B and dot relate.</h2>
+      </div>
+    </div>
+    <div class="sym-construction">
+      <div class="stage" style="background:var(--white);background-image:linear-gradient(rgba(11,9,7,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(11,9,7,.06) 1px,transparent 1px);background-size:24px 24px">
+        <div class="mark-wm" style="font-size:200px;color:var(--ink);--dot:var(--orange);line-height:1">B<span class="i">&#x131;</span>d</div>
+      </div>
+      <div class="notes">
+        <div class="note">
+          <div class="k">Rule 01 · Typeface</div>
+          <div class="v">Inter <b>900 (Black)</b> at <b>−0.055 em</b> letter-spacing. B and d are native font geometry — unmodified.</div>
+        </div>
+        <div class="note">
+          <div class="k">Rule 02 · Dotless ı</div>
+          <div class="v">The middle letter is the <b>dotless ı glyph</b> (or the native i with the tittle stripped). Never the standard dotted i.</div>
+        </div>
+        <div class="note">
+          <div class="k">Rule 03 · Dot</div>
+          <div class="v">A single perfect circle, diameter <b>0.255 em</b>, centered on the ı stem (X-offset <b>0</b>), Y-gap <b>≈18% of cap height</b> above stem-top. <b>0° rotation</b>.</div>
+        </div>
+        <div class="note">
+          <div class="k">Rule 04 · Color pair</div>
+          <div class="v">Dot color is <b>always different</b> from the wordmark — never the same hue, never outside the four approved colorways.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- MONOCHROME -->
+    <div class="section-head">
+      <div>
+        <div class="kicker mono u">Print &amp; Engraving</div>
+        <h2 style="font-size:40px">Single-color reproductions.</h2>
+      </div>
+    </div>
+    <p style="font-size:14px;line-height:1.6;color:var(--charcoal);max-width:60ch;margin-bottom:32px">For embossing, engraving, foil, and one-color print where only one ink runs, use the outline variant. Otherwise reproduce one of the four approved colorways. The dot must always read as a separate, contrasting element — never the same color as the wordmark.</p>
+    <div class="mono-grid">
+      <div class="mono-cell" style="background:var(--white);color:var(--ink)">
+        <div class="lbl mono u">01 · Black on White</div>
+        <div class="wm-mono">B<span class="i">&#x131;</span>d</div>
+      </div>
+      <div class="mono-cell" style="background:var(--ink);color:var(--cream)">
+        <div class="lbl mono u">02 · Cream on Ink</div>
+        <div class="wm-mono" style="color:var(--cream);--dot:var(--orange)">B<span class="i">&#x131;</span>d</div>
+      </div>
+      <div class="mono-cell" style="background:var(--orange);color:var(--cream)">
+        <div class="lbl mono u">03 · Cream on Orange</div>
+        <div class="wm-mono" style="color:var(--cream);--dot:var(--ink)">B<span class="i">&#x131;</span>d</div>
+      </div>
+      <div class="mono-cell" style="background:var(--cream-deep);color:var(--ink)">
+        <div class="lbl mono u">Outline · single-ink only</div>
+        <div class="wm-mono wm-outline">B<span class="i">&#x131;</span>d</div>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- DO / DON'T -->
+    <div class="section-head">
+      <div>
+        <div class="kicker mono u">Do & Don't</div>
+        <h2 style="font-size:40px">How not to break the mark</h2>
+      </div>
+    </div>
+    <div class="dodont">
+      <div class="dd ok">
+        <div class="box"><div class="mark-wm" style="font-size:60px;color:var(--cream);--dot:var(--orange)">B<span class="i">&#x131;</span>d</div></div>
+        <div class="tag"><span class="check">✓</span>Use on Ink or Cream</div>
+      </div>
+      <div class="dd">
+        <div class="box" style="background:linear-gradient(135deg,#FE3C01,#7c1a00)"><div class="mark-wm" style="font-size:60px;color:#fff;--dot:#fff">B<span class="i">&#x131;</span>d</div></div>
+        <div class="tag"><span class="x">×</span>No gradients on the mark</div>
+      </div>
+      <div class="dd">
+        <div class="box" style="background:var(--cream-deep)"><div class="mark-wm" style="font-size:60px;color:var(--ink);--dot:var(--orange);transform:skewX(-12deg)">B<span class="i">&#x131;</span>d</div></div>
+        <div class="tag"><span class="x">×</span>Never distort or italicize</div>
+      </div>
+      <div class="dd">
+        <div class="box" style="background:var(--cream-deep)"><div class="mark-wm" style="font-size:60px;color:var(--ink);--dot:var(--orange);letter-spacing:.2em">B <span class="i">&#x131;</span> d</div></div>
+        <div class="tag"><span class="x">×</span>Don't respace the letters</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COLOR -->
+  <section data-screen-label="04 Color">
+    <div class="section-head">
+      <div>
+        <div class="kicker mono u">03 — Color</div>
+        <h2>Signal Orange<br/>does the work.</h2>
+      </div>
+      <div class="num mono u">03 / 08</div>
+    </div>
+
+    <div class="color-grid">
+      <div class="swatch primary">
+        <div class="role mono">Primary · Signal</div>
+        <div>
+          <div class="name">Signal<br/>Orange</div>
+          <div class="values mono" style="margin-top:16px">
+            HEX  #FE3C01<br/>
+            RGB  254 60 1<br/>
+            CMYK 0 88 99 0<br/>
+            PMS  Orange 021 C
+          </div>
+        </div>
+      </div>
+      <div class="swatch ink">
+        <div class="role mono">Foreground</div>
+        <div>
+          <div class="name">Ink</div>
+          <div class="values mono" style="margin-top:8px">#1A1613</div>
+        </div>
+      </div>
+      <div class="swatch cream">
+        <div class="role mono">Background</div>
+        <div>
+          <div class="name">Cream</div>
+          <div class="values mono" style="margin-top:8px">#F4EDE1</div>
+        </div>
+      </div>
+      <div class="swatch stone">
+        <div class="role mono">Support</div>
+        <div>
+          <div class="name">Stone</div>
+          <div class="values mono" style="margin-top:8px">#8A8078</div>
+        </div>
+      </div>
+      <div class="swatch white">
+        <div class="role mono">Canvas</div>
+        <div>
+          <div class="name">Paper</div>
+          <div class="values mono" style="margin-top:8px">#FFFFFF</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="color-ratios">
+      <div class="r">
+        <div class="label mono u">Ratio · Brand</div>
+        <div class="val">60 / 30 / 10</div>
+        <div class="bar"><span style="width:10%"></span></div>
+        <div class="label">Cream · Ink · Orange. Orange is never the background.</div>
+      </div>
+      <div class="r">
+        <div class="label mono u">Orange usage</div>
+        <div class="val">≤ 10%</div>
+        <div class="bar"><span style="width:10%"></span></div>
+        <div class="label">Reserved for signal, action, emphasis.</div>
+      </div>
+      <div class="r">
+        <div class="label mono u">Ink usage</div>
+        <div class="val">≤ 30%</div>
+        <div class="bar"><span style="width:30%"></span></div>
+        <div class="label">Type, structure, confident surfaces.</div>
+      </div>
+      <div class="r">
+        <div class="label mono u">Cream usage</div>
+        <div class="val">≥ 60%</div>
+        <div class="bar"><span style="width:60%;background:var(--stone)"></span></div>
+        <div class="label">The room the brand breathes in.</div>
+      </div>
+      <div class="r">
+        <div class="label mono u">Accessibility</div>
+        <div class="val">AA / AAA</div>
+        <div class="bar"><span style="width:100%;background:var(--ink)"></span></div>
+        <div class="label">Ink on Cream 12.8:1. Orange on Ink 5.2:1.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TYPE -->
+  <section data-screen-label="05 Typography">
+    <div class="section-head">
+      <div>
+        <div class="kicker mono u">04 — Typography</div>
+        <h2>One sans,<br/>one mono.</h2>
+      </div>
+      <div class="num mono u">04 / 08</div>
+    </div>
+
+    <div class="type-hero">
+      <div class="label mono u">Display · Inter Black</div>
+      <div class="display">Aa Bb Cc</div>
+      <div class="meta mono">
+        500 / 96–320px<br/>
+        tracking −5.5%
+      </div>
+    </div>
+
+    <div class="type-grid">
+      <div class="type-card">
+        <div>
+          <div class="label mono u" style="font-size:11px;color:var(--stone);margin-bottom:24px">Primary · Space Grotesk</div>
+          <div class="big">Sourcing,<br/>on the record.</div>
+        </div>
+        <div class="meta mono">
+          <span>Display + Body + UI</span>
+          <span>300 / 400 / 500 / 600 / 700</span>
+        </div>
+      </div>
+      <div class="type-card" style="background:var(--ink);color:var(--cream)">
+        <div>
+          <div class="label mono u" style="font-size:11px;color:var(--stone-soft);margin-bottom:24px">Technical · JetBrains Mono</div>
+          <div class="big mono" style="color:var(--orange)">RFQ‑0482<br/><span style="color:var(--cream)">/$2.4M</span></div>
+        </div>
+        <div class="meta mono" style="border-color:rgba(255,255,255,.1);color:var(--stone-soft)">
+          <span>Data · IDs · Code</span>
+          <span>400 / 500 / 700</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="type-scale">
+      <div class="k">D1 · Hero</div><div class="s" style="font-size:72px">Procurement, simplified.</div><div class="m">96 / 86%</div>
+      <div class="k">D2 · Section</div><div class="s" style="font-size:48px">Every bid on the record.</div><div class="m">56 / 95%</div>
+      <div class="k">H1 · Title</div><div class="s" style="font-size:32px">Open RFQs this week</div><div class="m">32 / 110%</div>
+      <div class="k">H2 · Sub</div><div class="s" style="font-size:22px">Supplier response times</div><div class="m">22 / 125%</div>
+      <div class="k">Body</div><div class="s" style="font-size:16px;font-weight:400">The right bid isn't the lowest — it's the one that clears compliance, ships on time, and leaves room to negotiate.</div><div class="m">16 / 150%</div>
+      <div class="k">Caption</div><div class="s mono" style="font-size:12px;font-weight:500;color:var(--stone)">RFQ‑0482 · awarded · 04.18.26</div><div class="m">12 / 160%</div>
+    </div>
+  </section>
+
+  <!-- VOICE -->
+  <section data-screen-label="06 Voice">
+    <div class="section-head">
+      <div>
+        <div class="kicker mono u">05 — Voice</div>
+        <h2>Say less,<br/>mean more.</h2>
+      </div>
+      <div class="num mono u">05 / 08</div>
+    </div>
+
+    <div class="voice">
+      <div class="principles">
+        <div class="p">
+          <div class="k">V · 01 — DIRECT</div>
+          <h4>Get to the number.</h4>
+          <p>Every sentence earns its place. If it isn't a fact, a decision, or a call to action, it shouldn't be on the page. Procurement people are tired of marketing.</p>
+        </div>
+        <div class="p">
+          <div class="k">V · 02 — QUANTITATIVE</div>
+          <h4>Show the math.</h4>
+          <p>Claims without numbers read as noise. "3.2× faster sourcing cycles" beats "blazing fast sourcing" every time. Round carefully, cite honestly.</p>
+        </div>
+        <div class="p">
+          <div class="k">V · 03 — CONFIDENT, NOT COCKY</div>
+          <h4>We know the room.</h4>
+          <p>This is a discipline, not a hype product. Language should sound like a senior buyer talking to their CFO — clear, warm, not selling.</p>
+        </div>
+      </div>
+      <div class="taglines">
+        <div class="label mono u">Taglines & lines we like</div>
+        <div class="line">Every bid, <em>on the record.</em></div>
+        <div class="line">Sourcing, <em>simplified.</em></div>
+        <div class="line">The spreadsheet <em>is retired.</em></div>
+        <div class="line">Know the <em>real price.</em></div>
+        <div class="line">Run procurement <em>in the open.</em></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="big">B<span class="i">&#x131;</span>d</div>
+    <div class="row">
+      <div class="col"><b>Bid Inc.</b><br/>Brand System · Volume 01<br/>April 2026</div>
+      <div class="col"><b>Ownership</b><br/>Design · Maya Osei<br/>Approval · Brand Council</div>
+      <div class="col"><b>Contact</b><br/><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="751707141b1135171c115b161a">[email&#160;protected]</a><br/>bid.co/brand</div>
+      <div class="col mono u" style="color:var(--orange)">● LIVE · V 1.0</div>
+    </div>
+  </footer>
+
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+<script>
+(function(){
+  const ACCENT_OPTIONS = [
+    { label:'Signal Orange', color:'#FE3C01' },
+    { label:'Ember',         color:'#E5331A' },
+    { label:'Sunset',         color:'#FF6A2C' },
+    { label:'Amber',         color:'#F5A623' },
+    { label:'Oxblood',       color:'#8A1A00' },
+    { label:'Acid Lime',     color:'#C6F54A' },
+  ];
+  const DEFAULTS = /*EDITMODE-BEGIN*/{
+    "accent": "#FE3C01",
+    "trackTighten": 0.04
+  }/*EDITMODE-END*/;
+
+  const state = Object.assign({}, DEFAULTS);
+  function apply(){
+    document.documentElement.style.setProperty('--orange', state.accent);
+    // tighten tracking on the wordmark globally via CSS var if we wire one later
+    document.querySelectorAll('.bid, .hero h1, .wordmark-primary, .mark-wm, .gridmark, .hugeword, .ui-mock .side .logo, .bcard.front .wm, .tshirt .wm, .tote .wm, footer .big, .social .big, .sticker-merch').forEach(el=>{
+      el.style.letterSpacing = (-state.trackTighten) + 'em';
+    });
+  }
+  apply();
+
+  let panel;
+  function buildPanel(){
+    if(panel) return panel;
+    panel = document.createElement('div');
+    panel.id = '__tweaks';
+    panel.innerHTML = `
+      <style>
+        #__tweaks{position:fixed;right:24px;bottom:24px;z-index:9999;background:#0B0907;color:#F4EDE1;border-radius:8px;padding:20px;width:280px;font-family:'Inter',sans-serif;box-shadow:0 20px 40px -10px rgba(0,0,0,.4);display:none}
+        #__tweaks.open{display:block}
+        #__tweaks h3{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#FE3C01;margin-bottom:16px;font-weight:700}
+        #__tweaks .group{margin-bottom:18px}
+        #__tweaks .lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8A8078;margin-bottom:10px;display:block}
+        #__tweaks .swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+        #__tweaks .sw{aspect-ratio:1;border-radius:50%;cursor:pointer;border:2px solid rgba(255,255,255,.15);transition:transform .15s}
+        #__tweaks .sw:hover{transform:scale(1.1)}
+        #__tweaks .sw.active{border-color:#F4EDE1;transform:scale(1.1)}
+        #__tweaks input[type=range]{width:100%;accent-color:#FE3C01}
+        #__tweaks .row{display:flex;justify-content:space-between;font-size:11px;font-family:'JetBrains Mono',monospace;color:#C9C1B6;margin-top:6px}
+      
+
+  /* ===== BID LOGOMARK MASTER OVERRIDE — synced from uploaded final file =====
+     Source: Bid Logomark Showcase · May 2026.
+     Inter 900, letter-spacing -0.055em, dotless ı, one perfect circular dot.
+     Dot diameter: .255em. X: centered over ı stem (+.025em optical compensation).
+     Y: bottom .82em from glyph box. Dot color always contrasts with wordmark. */
+  .brand-mini,
+  .hero h1,
+  .wordmark-primary,
+  .mark-wm,
+  .gridmark,
+  .hugeword,
+  .ui-mock .side .logo,
+  .bcard .wm,
+  .tshirt .wm,
+  .tote .wm,
+  footer .big,
+  .social .big,
+  .sticker-merch,
+  .appicon,
+  .wm-mono,
+  .bid{
+    font-family:'Inter',sans-serif !important;
+    font-weight:900 !important;
+    letter-spacing:-.055em !important;
+    white-space:nowrap;
+  }
+
+  .brand-mini{display:inline-block;position:relative;font-size:20px;line-height:1;color:var(--ink);--dot:var(--orange);margin-right:2px}
+
+  .hero h1 .i,
+  .wordmark-primary .i,
+  .mark-wm .i,
+  .gridmark .i,
+  .hugeword .i,
+  .bcard .wm .i,
+  .tshirt .wm .i,
+  .tote .wm .i,
+  .sticker-merch .i,
+  .ui-mock .side .logo .i,
+  footer .big .i,
+  .social .big .i,
+  .wm-mono .i,
+  .appicon .i,
+  .brand-mini .i,
+  .bid .i{
+    position:relative !important;
+    display:inline-block !important;
+    font-style:normal !important;
+    color:inherit !important;
+    -webkit-text-fill-color:currentColor;
+  }
+
+  .hero h1 .i:after,
+  .wordmark-primary .i:after,
+  .mark-wm .i:after,
+  .gridmark .i:after,
+  .hugeword .i:after,
+  .bcard .wm .i:after,
+  .tshirt .wm .i:after,
+  .tote .wm .i:after,
+  .sticker-merch .i:after,
+  .ui-mock .side .logo .i:after,
+  footer .big .i:after,
+  .social .big .i:after,
+  .wm-mono .i:after,
+  .appicon .i:after,
+  .brand-mini .i:after,
+  .bid .i:after{
+    content:'' !important;
+    position:absolute !important;
+    left:calc(50% + .025em) !important;
+    bottom:.82em !important;
+    transform:translate(-50%, 50%) !important;
+    width:.255em !important;
+    height:.255em !important;
+    border-radius:50% !important;
+    background:var(--dot,currentColor) !important;
+  }
+
+  /* Approved colorways from the final logomark file */
+  .logo-main .wordmark-primary,
+  .lv.dark .mark-wm,
+  .bcard.front .wm,
+  .tshirt .wm,
+  .social .big{color:var(--cream) !important;--dot:var(--orange) !important;}
+  .lv.orange .mark-wm,
+  .hugeword,
+  .sticker-merch,
+  .bcard.back .wm,
+  .appicon{color:var(--cream) !important;--dot:var(--ink) !important;}
+  .hero h1,
+  .lv:not(.dark):not(.orange) .mark-wm,
+  .gridmark,
+  .tote .wm,
+  footer .big,
+  .ui-mock .side .logo,
+  .brand-mini{color:#FE3C01 !important;--dot:#000000 !important;}
+  .appicon.dark{color:var(--cream) !important;--dot:var(--orange) !important;}
+
+</style>
+      <h3>● Tweaks / Wordmark</h3>
+      <div class="group">
+        <label class="lbl">Accent color</label>
+        <div class="swatches" id="__sw"></div>
+      </div>
+      <div class="group">
+        <label class="lbl">Wordmark tracking</label>
+        <input type="range" id="__tr" min="0.00" max="0.10" step="0.005" />
+        <div class="row"><span>loose</span><span id="__trv"></span><span>tight</span></div>
+      </div>
+    `;
+    document.body.appendChild(panel);
+    const swWrap = panel.querySelector('#__sw');
+    ACCENT_OPTIONS.forEach(o=>{
+      const b = document.createElement('div');
+      b.className = 'sw'; b.style.background = o.color; b.title = o.label;
+      b.dataset.color = o.color;
+      b.onclick = ()=>{ state.accent = o.color; apply(); updateActive(); persist(); };
+      swWrap.appendChild(b);
+    });
+    function updateActive(){
+      swWrap.querySelectorAll('.sw').forEach(e=>e.classList.toggle('active', e.dataset.color.toLowerCase()===state.accent.toLowerCase()));
+    }
+    const tr = panel.querySelector('#__tr'); tr.value = state.trackTighten;
+    const trv = panel.querySelector('#__trv'); trv.textContent = state.trackTighten.toFixed(3);
+    tr.oninput = ()=>{ state.trackTighten = parseFloat(tr.value); trv.textContent = state.trackTighten.toFixed(3); apply(); persist(); };
+    updateActive();
+    return panel;
+  }
+  function persist(){
+    try{ window.parent.postMessage({type:'__edit_mode_set_keys', edits:{accent:state.accent, trackTighten:state.trackTighten}}, '*'); }catch(e){}
+  }
+  window.addEventListener('message', (ev)=>{
+    if(!ev.data) return;
+    if(ev.data.type==='__activate_edit_mode'){ buildPanel().classList.add('open'); }
+    if(ev.data.type==='__deactivate_edit_mode'){ if(panel) panel.classList.remove('open'); }
+  });
+  try{ window.parent.postMessage({type:'__edit_mode_available'}, '*'); }catch(e){}
+})();
+
+/* Dot data viz + soundmark populate */
+(function(){
+  const viz = document.getElementById('dotViz');
+  if(viz){
+    const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const heights = [6,9,7,12,10,14,11,16,13,18,15,20];
+    const wins    = [1,2,1,3,2,4,3,5,4,6,5,7];
+    months.forEach((m,i)=>{
+      const col = document.createElement('div'); col.className='col';
+      const mo = document.createElement('div'); mo.className='month'; mo.textContent=m;
+      col.appendChild(mo);
+      for(let j=0;j<heights[i];j++){
+        const d=document.createElement('div'); d.className='d';
+        if(j<wins[i]) d.classList.add('hi');
+        col.appendChild(d);
+      }
+      viz.appendChild(col);
+    });
+  }
+  const wave = document.getElementById('soundWave');
+  if(wave){
+    for(let i=0;i<40;i++){
+      const d=document.createElement('div'); d.className='d';
+      d.style.animationDelay = (i*60)+'ms';
+      d.style.height = (20 + Math.abs(Math.sin(i*.4))*70)+'%';
+      wave.appendChild(d);
+    }
+  }
+})();
+</script>
+</html>

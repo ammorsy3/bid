@@ -82,10 +82,10 @@ export default function InvitationLinks() {
 
   if (tenderLoading) {
     return (
-      <div className="min-h-screen bg-neutral-50">
+      <div className="min-h-screen bg-muted">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-center text-neutral-600">{t('invitationLinks.loading')}</p>
+          <p className="text-center text-muted-foreground">{t('invitationLinks.loading')}</p>
         </div>
       </div>
     );
@@ -93,38 +93,38 @@ export default function InvitationLinks() {
 
   if (!tender) {
     return (
-      <div className="min-h-screen bg-neutral-50">
+      <div className="min-h-screen bg-muted">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-center text-neutral-600">{t('invitationLinks.notFound')}</p>
+          <p className="text-center text-muted-foreground">{t('invitationLinks.notFound')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-muted">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">{t('invitationLinks.pageTitle')}</h1>
-          <p className="text-neutral-600">{t('invitationLinks.pageDesc')}</p>
-          <p className="text-sm text-neutral-500 mt-1">{t('invitationLinks.tenderLabel', { title: tender.title })}</p>
+          <h1 className="font-display font-black text-3xl text-foreground mb-2 tracking-[-0.04em]">{t('invitationLinks.pageTitle')}</h1>
+          <p className="text-muted-foreground">{t('invitationLinks.pageDesc')}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t('invitationLinks.tenderLabel', { title: tender.title })}</p>
         </div>
 
         {tender.id ? (
           <div className="space-y-4">
-            <Card className="bg-white rounded-xl shadow-sm border border-neutral-200">
+            <Card className="bg-card rounded-xl shadow-sm border border-border">
               <CardContent className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
                     <Mail className="h-5 w-5 text-neutral-400" />
-                    <span className="font-medium text-neutral-900">
+                    <span className="font-medium text-foreground">
                       {t('invitationLinks.cardTitle')}
                     </span>
                   </div>
-                  <div className="bg-neutral-50 rounded-lg p-3 font-mono text-sm text-neutral-700 break-all">
+                  <div className="bg-muted rounded-lg p-3 font-mono text-sm text-muted-foreground break-all">
                     {`${window.location.origin}/invite/${tender.id}`}
                   </div>
                   <div className="flex gap-3">
@@ -167,9 +167,9 @@ export default function InvitationLinks() {
                       )}
                     </Button>
                   </div>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-medium text-blue-900 mb-2">{t('invitationLinks.messagePreviewTitle')}</h4>
-                    <div className="text-sm text-blue-800 whitespace-pre-line">
+                  <div className="bg-[var(--bid-orange)]/5 border border-[var(--bid-orange)]/20 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-2">{t('invitationLinks.messagePreviewTitle')}</h4>
+                    <div className="text-sm text-blue-800 dark:text-blue-300 whitespace-pre-line">
                       {t('invitationLinks.inviteSubject', { title: tender.title })}<br /><br />
                       {t('invitationLinks.inviteTenderDetails')}<br />
                       {t('invitationLinks.inviteBudget', { budget: tender.budget || t('invitationLinks.notSpecified') })}<br />
@@ -185,12 +185,12 @@ export default function InvitationLinks() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-neutral-600">{t('invitationLinks.noLinkAvailable')}</p>
+            <p className="text-muted-foreground">{t('invitationLinks.noLinkAvailable')}</p>
           </div>
         )}
 
         <div className="mt-8 text-center">
-          <p className="text-sm text-neutral-500 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             {t('invitationLinks.footerNote1')}
           </p>
           <p className="text-xs text-neutral-400">

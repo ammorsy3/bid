@@ -4,8 +4,7 @@ import { Menu, X, ArrowLeft, Moon, Sun, Search, Sparkles, Zap } from "lucide-rea
 import { useAuthStore } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { groupedDocs } from "@/lib/docs-manifest";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
-
+import { BidLogo } from "@/components/brand/BidLogo";
 function useDarkToggle() {
   const [dark, setDark] = useState(() =>
     typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
@@ -87,7 +86,7 @@ export function DocsLayout({
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
             <Link href="/" className="flex items-center gap-2.5 min-w-0">
-              <img src={logoPath} alt="BidCore" className="h-7 w-auto shrink-0" />
+              <BidLogo size={24} />
               <span
                 className="hidden sm:block text-[13px] font-medium pl-2.5 ml-1 truncate"
                 style={{ color: "var(--docs-fg-faint)", borderLeft: "1px solid var(--docs-border)" }}

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowRight, FileText, Star, Check, Loader2 } from "lucide-react";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -86,10 +86,10 @@ const TemplateIllustration = ({ isSelected, isHovered }: { isSelected: boolean; 
       />
 
       {/* Document icon in top-left */}
-      <rect x="92" y="56" width="20" height="24" rx="3" fill="#E8614D" opacity="0.2" />
+      <rect x="92" y="56" width="20" height="24" rx="3" fill="#FE3C01" opacity="0.2" />
       <path
         d="M97 62 L107 62 M97 67 L107 67 M97 72 L103 72"
-        stroke="#E8614D"
+        stroke="#FE3C01"
         strokeWidth="1.5"
         strokeLinecap="round"
       />
@@ -101,9 +101,9 @@ const TemplateIllustration = ({ isSelected, isHovered }: { isSelected: boolean; 
       <rect x="92" y="126" width="50" height="2" rx="1" fill="#D0D0D0" />
 
       {/* Checkbox icons */}
-      <rect x="158" y="88" width="12" height="12" rx="2" fill="none" stroke="#E8614D" strokeWidth="1.5" />
-      <path d="M161 94 L163 96 L167 92" stroke="#E8614D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <rect x="158" y="100" width="12" height="12" rx="2" fill="none" stroke="#E8614D" strokeWidth="1.5" />
+      <rect x="158" y="88" width="12" height="12" rx="2" fill="none" stroke="#FE3C01" strokeWidth="1.5" />
+      <path d="M161 94 L163 96 L167 92" stroke="#FE3C01" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <rect x="158" y="100" width="12" height="12" rx="2" fill="none" stroke="#FE3C01" strokeWidth="1.5" />
       <rect x="158" y="112" width="12" height="12" rx="2" fill="none" stroke="#F19A8F" strokeWidth="1.5" />
     </g>
 
@@ -115,7 +115,7 @@ const TemplateIllustration = ({ isSelected, isHovered }: { isSelected: boolean; 
       <circle cx="200" cy="50" r="18" fill="#FCEAE7" />
       <path
         d="M192 50 L197 55 L208 44"
-        stroke="#E8614D"
+        stroke="#FE3C01"
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -164,7 +164,7 @@ const ScratchIllustration = ({ isSelected, isHovered }: { isSelected: boolean; i
         <stop offset="100%" stopColor="#FAFAFA" />
       </linearGradient>
       <filter id="blockShadow" x="-50%" y="-50%" width="200%" height="200%">
-        <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#E8614D" floodOpacity="0.15" />
+        <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#FE3C01" floodOpacity="0.15" />
       </filter>
       <filter id="canvasShadow" x="-10%" y="-10%" width="120%" height="120%">
         <feDropShadow dx="0" dy="2" stdDeviation="4" floodOpacity="0.06" />
@@ -209,13 +209,13 @@ const ScratchIllustration = ({ isSelected, isHovered }: { isSelected: boolean; i
         height="35"
         rx="6"
         fill="#FCEAE7"
-        stroke="#E8614D"
+        stroke="#FE3C01"
         strokeWidth="1.5"
         strokeDasharray="4 2"
       />
-      <rect x="58" y="54" width="30" height="2" rx="1" fill="#E8614D" opacity="0.5" />
-      <rect x="58" y="60" width="38" height="2" rx="1" fill="#E8614D" opacity="0.5" />
-      <rect x="58" y="66" width="24" height="2" rx="1" fill="#E8614D" opacity="0.5" />
+      <rect x="58" y="54" width="30" height="2" rx="1" fill="#FE3C01" opacity="0.5" />
+      <rect x="58" y="60" width="38" height="2" rx="1" fill="#FE3C01" opacity="0.5" />
+      <rect x="58" y="66" width="24" height="2" rx="1" fill="#FE3C01" opacity="0.5" />
     </g>
 
     {/* Dotted connection line from Block 1 to canvas */}
@@ -242,9 +242,9 @@ const ScratchIllustration = ({ isSelected, isHovered }: { isSelected: boolean; i
         fill="#F9D5D0"
       />
       {/* Image icon */}
-      <rect x="210" y="47" width="25" height="20" rx="2" fill="none" stroke="#E8614D" strokeWidth="1.5" />
-      <circle cx="217" cy="53" r="3" fill="#E8614D" opacity="0.6" />
-      <path d="M212 63 L220 56 L228 63 L233 58" stroke="#E8614D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <rect x="210" y="47" width="25" height="20" rx="2" fill="none" stroke="#FE3C01" strokeWidth="1.5" />
+      <circle cx="217" cy="53" r="3" fill="#FE3C01" opacity="0.6" />
+      <path d="M212 63 L220 56 L228 63 L233 58" stroke="#FE3C01" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
     </g>
 
     {/* Block 3 - Button/input field (bottom-left) */}
@@ -307,8 +307,8 @@ const ScratchIllustration = ({ isSelected, isHovered }: { isSelected: boolean; i
         fill="#FCEAE7"
         opacity="0.8"
       />
-      <rect x="221" y="102" width="22" height="2" rx="1" fill="#E8614D" opacity="0.4" />
-      <rect x="221" y="108" width="16" height="2" rx="1" fill="#E8614D" opacity="0.4" />
+      <rect x="221" y="102" width="22" height="2" rx="1" fill="#FE3C01" opacity="0.4" />
+      <rect x="221" y="108" width="16" height="2" rx="1" fill="#FE3C01" opacity="0.4" />
     </g>
 
     {/* Cursor/Hand element */}
@@ -324,9 +324,9 @@ const ScratchIllustration = ({ isSelected, isHovered }: { isSelected: boolean; i
     >
       {/* Motion lines behind cursor */}
       <g style={{ transition: 'opacity 0.2s ease-out', opacity: isHovered ? 1 : 0 }}>
-        <path d="M145 68 Q140 72 142 78" stroke="#E8614D" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-        <path d="M148 62 Q142 67 145 74" stroke="#E8614D" strokeWidth="1" strokeLinecap="round" fill="none" />
-        <path d="M143 75 Q137 78 140 84" stroke="#E8614D" strokeWidth="1" strokeLinecap="round" fill="none" />
+        <path d="M145 68 Q140 72 142 78" stroke="#FE3C01" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+        <path d="M148 62 Q142 67 145 74" stroke="#FE3C01" strokeWidth="1" strokeLinecap="round" fill="none" />
+        <path d="M143 75 Q137 78 140 84" stroke="#FE3C01" strokeWidth="1" strokeLinecap="round" fill="none" />
       </g>
 
       {/* Cursor pointer hand */}
@@ -469,14 +469,14 @@ export default function TenderStartMethodStep() {
     startMethod === "scratch" ||
     (startMethod === "template" && selectedTemplate !== null);
 
-  // Dot grid pattern color based on theme
+  // Bid grid texture — low-opacity Stone on light, low-opacity Cream on Ink (dark mode).
   const dotColor = theme === 'dark'
-    ? 'rgba(139, 92, 246, 0.15)'
-    : 'rgba(156, 163, 175, 0.3)';
+    ? 'rgba(244, 237, 225, 0.10)'
+    : 'rgba(138, 128, 120, 0.22)';
 
   return (
     <div
-      className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-gray-900"
+      className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-background"
       style={{
         backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
         backgroundSize: '20px 20px',
@@ -485,12 +485,7 @@ export default function TenderStartMethodStep() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center mb-12">
-          <img
-            src={logoPath}
-            alt="Bid"
-            className="h-16 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate("/dashboard")}
-          />
+          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
         </div>
 
         <motion.div
@@ -500,7 +495,7 @@ export default function TenderStartMethodStep() {
         >
         {/* Headline Section - Centered */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
+          <h1 className="font-display font-black text-5xl text-gray-900 dark:text-foreground leading-[0.92] tracking-[-0.045em] mb-4">
             {t('tenderFlow.howToStart')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
@@ -520,10 +515,10 @@ export default function TenderStartMethodStep() {
             }}
             onMouseEnter={() => setHoveredCard("template")}
             onMouseLeave={() => setHoveredCard(null)}
-            className={`group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-gray-800 ${
+            className={`group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-card ${
               startMethod === "template"
-                ? "border-[#E8614D] shadow-2xl shadow-[#E8614D]/20 scale-[1.02]"
-                : "border-gray-200 dark:border-gray-700 shadow-lg hover:border-[#E8614D] hover:shadow-2xl hover:shadow-[#E8614D]/15 hover:scale-[1.03]"
+                ? "border-[#FE3C01] shadow-2xl shadow-[#FE3C01]/20 scale-[1.02]"
+                : "border-border dark:border-border shadow-lg hover:border-[#FE3C01] hover:shadow-2xl hover:shadow-[#FE3C01]/15 hover:scale-[1.03]"
             }`}
             data-testid="button-template"
           >
@@ -542,12 +537,12 @@ export default function TenderStartMethodStep() {
             {/* Title */}
             <h3 className={`text-2xl font-bold mb-3 transition-colors duration-300 ease-in-out ${
               startMethod === "template"
-                ? "text-[#E8614D]"
-                : "text-gray-900 dark:text-white group-hover:text-[#E8614D]"
+                ? "text-[#FE3C01]"
+                : "text-gray-900 dark:text-foreground group-hover:text-[#FE3C01]"
             }`}>
               {t('tenderFlow.startWithTemplate')}
             </h3>
-            <span className="text-xs font-semibold uppercase tracking-wide text-[#E8614D] mb-2">{t('tenderFlow.faster')}</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-[#FE3C01] mb-2">{t('tenderFlow.faster')}</span>
 
             {/* Subtitle */}
             <p className="text-gray-500 dark:text-gray-400 text-base mb-6 text-center max-w-[280px]">
@@ -557,8 +552,8 @@ export default function TenderStartMethodStep() {
             {/* Selection Indicator */}
             <div className={`mt-auto w-full py-3 rounded-lg font-medium transition-all duration-300 ease-in-out ${
               startMethod === "template"
-                ? "bg-[#E8614D] text-white"
-                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-[#E8614D]/10 group-hover:text-[#E8614D]"
+                ? "bg-[#FE3C01] text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-muted-foreground dark:text-muted-foreground group-hover:bg-[#FE3C01]/10 group-hover:text-[#FE3C01]"
             }`}>
               {startMethod === "template" ? (
                 <span className="flex items-center justify-center gap-2">
@@ -580,10 +575,10 @@ export default function TenderStartMethodStep() {
             }}
             onMouseEnter={() => setHoveredCard("scratch")}
             onMouseLeave={() => setHoveredCard(null)}
-            className={`group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-gray-800 ${
+            className={`group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-card ${
               startMethod === "scratch"
-                ? "border-[#E8614D] shadow-2xl shadow-[#E8614D]/20 scale-[1.02]"
-                : "border-gray-200 dark:border-gray-700 shadow-lg hover:border-[#E8614D] hover:shadow-2xl hover:shadow-[#E8614D]/15 hover:scale-[1.03]"
+                ? "border-[#FE3C01] shadow-2xl shadow-[#FE3C01]/20 scale-[1.02]"
+                : "border-border dark:border-border shadow-lg hover:border-[#FE3C01] hover:shadow-2xl hover:shadow-[#FE3C01]/15 hover:scale-[1.03]"
             }`}
             data-testid="button-scratch"
           >
@@ -602,12 +597,12 @@ export default function TenderStartMethodStep() {
             {/* Title */}
             <h3 className={`text-2xl font-bold mb-3 transition-colors duration-300 ease-in-out ${
               startMethod === "scratch"
-                ? "text-[#E8614D]"
-                : "text-gray-900 dark:text-white group-hover:text-[#E8614D]"
+                ? "text-[#FE3C01]"
+                : "text-gray-900 dark:text-foreground group-hover:text-[#FE3C01]"
             }`}>
               {t('tenderFlow.startFromScratch')}
             </h3>
-            <span className="text-xs font-semibold uppercase tracking-wide text-[#E8614D] mb-2">{t('tenderFlow.moreCustomization')}</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-[#FE3C01] mb-2">{t('tenderFlow.moreCustomization')}</span>
 
             {/* Subtitle */}
             <p className="text-gray-500 dark:text-gray-400 text-base mb-6 text-center max-w-[280px]">
@@ -617,8 +612,8 @@ export default function TenderStartMethodStep() {
             {/* Selection Indicator */}
             <div className={`mt-auto w-full py-3 rounded-lg font-medium transition-all duration-300 ease-in-out ${
               startMethod === "scratch"
-                ? "bg-[#E8614D] text-white"
-                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-[#E8614D]/10 group-hover:text-[#E8614D]"
+                ? "bg-[#FE3C01] text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-muted-foreground dark:text-muted-foreground group-hover:bg-[#FE3C01]/10 group-hover:text-[#FE3C01]"
             }`}>
               {startMethod === "scratch" ? (
                 <span className="flex items-center justify-center gap-2">
@@ -643,15 +638,15 @@ export default function TenderStartMethodStep() {
               className="overflow-hidden max-w-3xl mx-auto"
             >
           <Card className="border-0 shadow-xl overflow-hidden mb-0">
-            <div className="h-1 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]" />
+            <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]" />
             <div className="p-8">
-              <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              <label className="block text-lg font-semibold text-gray-900 dark:text-foreground mb-4">
                 {t('tenderFlow.chooseTemplate')}
               </label>
 
               {isLoadingTemplates ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-[#E8614D]" />
+                  <Loader2 className="h-8 w-8 animate-spin text-[#FE3C01]" />
                 </div>
               ) : (
                 <div role="radiogroup" aria-label={t('tenderFlow.chooseTemplate')} className="space-y-3">
@@ -665,16 +660,16 @@ export default function TenderStartMethodStep() {
                       onClick={() => setSelectedTemplate(template.id)}
                       className={`w-full flex items-start gap-4 p-5 rounded-xl border-2 transition-all duration-300 ease-in-out text-left ${
                         selectedTemplate === template.id
-                          ? "border-[#E8614D] bg-[#E8614D]/5 shadow-md"
-                          : "border-gray-200 dark:border-gray-600 hover:border-[#E8614D]/50 hover:shadow-md"
+                          ? "border-[#FE3C01] bg-[#FE3C01]/5 shadow-md"
+                          : "border-gray-200 dark:border-gray-600 hover:border-[#FE3C01]/50 hover:shadow-md"
                       }`}
                       data-testid={`template-${template.id}`}
                     >
                       <div
                         className={`p-3 rounded-xl flex-shrink-0 transition-all duration-300 ease-in-out ${
                           selectedTemplate === template.id
-                            ? "bg-[#E8614D] text-white"
-                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                            ? "bg-[#FE3C01] text-white"
+                            : "bg-gray-100 dark:bg-gray-700 text-muted-foreground dark:text-muted-foreground"
                         }`}
                       >
                         <FileText className="h-6 w-6" />
@@ -683,8 +678,8 @@ export default function TenderStartMethodStep() {
                         <div className="flex items-center gap-2">
                           <span className={`font-semibold text-lg ${
                             selectedTemplate === template.id
-                              ? "text-[#E8614D]"
-                              : "text-gray-900 dark:text-white"
+                              ? "text-[#FE3C01]"
+                              : "text-gray-900 dark:text-foreground"
                           }`}>
                             {template.name}
                           </span>
@@ -702,7 +697,7 @@ export default function TenderStartMethodStep() {
                       <div
                         className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ease-in-out ${
                           selectedTemplate === template.id
-                            ? "border-[#E8614D] bg-[#E8614D]"
+                            ? "border-[#FE3C01] bg-[#FE3C01]"
                             : "border-gray-300 dark:border-gray-500"
                         }`}
                       >
@@ -718,10 +713,10 @@ export default function TenderStartMethodStep() {
                     <>
                       <div className="relative py-3">
                         <div className="absolute inset-0 flex items-center">
-                          <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+                          <div className="w-full border-t border-border dark:border-border" />
                         </div>
                         <div className="relative flex justify-center">
-                          <span className="bg-white dark:bg-gray-800 px-4 text-sm text-gray-500 dark:text-gray-400">
+                          <span className="bg-white dark:bg-card px-4 text-sm text-gray-500 dark:text-gray-400">
                             {t('tenderFlow.yourSavedTemplates')}
                           </span>
                         </div>
@@ -736,16 +731,16 @@ export default function TenderStartMethodStep() {
                           onClick={() => setSelectedTemplate(template.id)}
                           className={`w-full flex items-start gap-4 p-5 rounded-xl border-2 transition-all duration-300 ease-in-out text-left ${
                             selectedTemplate === template.id
-                              ? "border-[#E8614D] bg-[#E8614D]/5 shadow-md"
-                              : "border-gray-200 dark:border-gray-600 hover:border-[#E8614D]/50 hover:shadow-md"
+                              ? "border-[#FE3C01] bg-[#FE3C01]/5 shadow-md"
+                              : "border-gray-200 dark:border-gray-600 hover:border-[#FE3C01]/50 hover:shadow-md"
                           }`}
                           data-testid={`template-${template.id}`}
                         >
                           <div
                             className={`p-3 rounded-xl flex-shrink-0 transition-all duration-300 ease-in-out ${
                               selectedTemplate === template.id
-                                ? "bg-[#E8614D] text-white"
-                                : "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                                ? "bg-[#FE3C01] text-white"
+                                : "bg-[var(--bid-orange)]/10 dark:bg-blue-900/30 text-[var(--bid-orange)] dark:text-blue-400"
                             }`}
                           >
                             <FileText className="h-6 w-6" />
@@ -754,12 +749,12 @@ export default function TenderStartMethodStep() {
                             <div className="flex items-center gap-2">
                               <span className={`font-semibold text-lg ${
                                 selectedTemplate === template.id
-                                  ? "text-[#E8614D]"
-                                  : "text-gray-900 dark:text-white"
+                                  ? "text-[#FE3C01]"
+                                  : "text-gray-900 dark:text-foreground"
                               }`}>
                                 {template.name}
                               </span>
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] dark:bg-blue-900/30 dark:text-blue-400">
                                 {template.cards.length} {t('tenderFlow.fields')}
                               </span>
                             </div>
@@ -770,7 +765,7 @@ export default function TenderStartMethodStep() {
                           <div
                             className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ease-in-out ${
                               selectedTemplate === template.id
-                                ? "border-[#E8614D] bg-[#E8614D]"
+                                ? "border-[#FE3C01] bg-[#FE3C01]"
                                 : "border-gray-300 dark:border-gray-500"
                             }`}
                           >
@@ -804,7 +799,7 @@ export default function TenderStartMethodStep() {
           <Button
             onClick={handleNext}
             disabled={!isFormValid}
-            className="min-w-[160px] h-12 text-base bg-[#E8614D] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="min-w-[160px] h-12 text-base bg-[#FE3C01] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="button-next"
           >
             {t('tenderFlow.continue')}

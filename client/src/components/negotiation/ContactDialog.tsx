@@ -41,7 +41,7 @@ export default function ContactDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Phone className="h-5 w-5 text-[#E25E45]" />
+            <Phone className="h-5 w-5 text-[#FE3C01]" />
             {t('tenderFlow.contactInfoTitle')}
           </DialogTitle>
         </DialogHeader>
@@ -53,59 +53,59 @@ export default function ContactDialog({
         ) : contact ? (
           <div className="space-y-4 mt-2">
             {/* Vendor header */}
-            <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+            <div className="flex items-center gap-3 pb-3 border-b border-border">
               {contact.logoUrl ? (
                 <img src={contact.logoUrl} alt="" className="h-10 w-10 rounded-lg object-cover ring-1 ring-gray-200" />
               ) : (
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#E25E45] to-[#FF8A6B] flex items-center justify-center">
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#FE3C01] to-[#FF8A6B] flex items-center justify-center">
                   <span className="text-white text-xs font-bold">{(contact.displayName || vendorName).slice(0, 2).toUpperCase()}</span>
                 </div>
               )}
               <div>
-                <p className="text-sm font-bold text-gray-900">{contact.displayName}</p>
-                <p className="text-xs text-gray-500">{contact.companyName}</p>
+                <p className="text-sm font-bold text-foreground">{contact.displayName}</p>
+                <p className="text-xs text-muted-foreground">{contact.companyName}</p>
               </div>
             </div>
 
             {/* Contact details */}
             <div className="space-y-3">
               {contact.email && (
-                <a href={`mailto:${contact.email}`} className="flex items-center gap-3 text-sm text-gray-700 hover:text-[#E25E45] transition-colors">
+                <a href={`mailto:${contact.email}`} className="flex items-center gap-3 text-sm text-muted-foreground hover:text-[#FE3C01] transition-colors">
                   <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   <span>{contact.email}</span>
                 </a>
               )}
 
               {contact.phoneNumber && (
-                <a href={`tel:${contact.phoneNumber}`} className="flex items-center gap-3 text-sm text-gray-700 hover:text-[#E25E45] transition-colors">
+                <a href={`tel:${contact.phoneNumber}`} className="flex items-center gap-3 text-sm text-muted-foreground hover:text-[#FE3C01] transition-colors">
                   <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   <span>{contact.phoneNumber}</span>
                 </a>
               )}
 
               {contact.city && (
-                <div className="flex items-center gap-3 text-sm text-gray-700">
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   <span>{contact.city}</span>
                 </div>
               )}
 
               {contact.socialLinks?.website && (
-                <a href={contact.socialLinks.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-700 hover:text-[#E25E45] transition-colors">
+                <a href={contact.socialLinks.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-[#FE3C01] transition-colors">
                   <Globe className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   <span>{contact.socialLinks.website}</span>
                 </a>
               )}
 
               {contact.socialLinks?.linkedin && (
-                <a href={contact.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-700 hover:text-[#E25E45] transition-colors">
+                <a href={contact.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-[#FE3C01] transition-colors">
                   <Linkedin className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   <span>LinkedIn</span>
                 </a>
               )}
 
               {contact.socialLinks?.twitter && (
-                <a href={contact.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-700 hover:text-[#E25E45] transition-colors">
+                <a href={contact.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-[#FE3C01] transition-colors">
                   <Twitter className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   <span>Twitter</span>
                 </a>

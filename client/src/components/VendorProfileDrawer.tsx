@@ -49,19 +49,19 @@ const getStatusConfig = (status: string) => {
       return {
         icon: <ShieldCheck className="h-3.5 w-3.5" />,
         label: 'Verified',
-        classes: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        classes: 'bg-[var(--state-won)]/5 text-[var(--state-won)] border-emerald-200',
       };
     case 'under_review':
       return {
         icon: <Clock className="h-3.5 w-3.5" />,
         label: 'Under Review',
-        classes: 'bg-amber-50 text-amber-700 border-amber-200',
+        classes: 'bg-amber-50 text-amber-700 dark:text-amber-300 border-amber-200',
       };
     default:
       return {
         icon: <XCircle className="h-3.5 w-3.5" />,
         label: 'Not Verified',
-        classes: 'bg-gray-50 text-gray-500 border-gray-200',
+        classes: 'bg-muted text-muted-foreground border-border',
       };
   }
 };
@@ -110,10 +110,10 @@ export default function VendorProfileDrawer({
                   <img
                     src={data.profile.logoUrl}
                     alt={displayName}
-                    className="w-16 h-16 rounded-xl object-cover border-4 border-white shadow-sm bg-white"
+                    className="w-16 h-16 rounded-xl object-cover border-4 border-white shadow-sm bg-card"
                   />
                 ) : (
-                  <div className="w-16 h-16 rounded-xl border-4 border-white shadow-sm bg-white flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-xl border-4 border-white shadow-sm bg-card flex items-center justify-center">
                     <span className="text-lg font-bold text-gray-400">{initials}</span>
                   </div>
                 )}
@@ -123,7 +123,7 @@ export default function VendorProfileDrawer({
             {/* Company Info */}
             <div className="pt-12 px-6 pb-5">
               <div className="flex items-start justify-between mb-1">
-                <h2 className="text-xl font-bold text-gray-900" data-testid="text-profile-name">
+                <h2 className="text-xl font-bold text-foreground" data-testid="text-profile-name">
                   {displayName}
                 </h2>
                 {statusConfig && (
@@ -145,7 +145,7 @@ export default function VendorProfileDrawer({
               )}
             </div>
 
-            <div className="border-t border-gray-100" />
+            <div className="border-t border-border" />
 
             {/* Content */}
             <div className="px-6 py-5 space-y-6 flex-1">
@@ -153,7 +153,7 @@ export default function VendorProfileDrawer({
               {data.profile?.bio && (
                 <div>
                   <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">About</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed" data-testid="text-profile-bio">
+                  <p className="text-sm text-muted-foreground leading-relaxed" data-testid="text-profile-bio">
                     {data.profile.bio}
                   </p>
                 </div>
@@ -165,14 +165,14 @@ export default function VendorProfileDrawer({
                   <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Documents</h3>
                   <button
                     onClick={() => window.open(data.profile!.profileFileUrl!, '_blank')}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors text-left"
+                    className="w-full flex items-center gap-3 p-3 rounded-lg border border-border hover:border-border hover:bg-muted transition-colors text-left"
                     data-testid="button-download-brochure"
                   >
-                    <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-[var(--bid-orange)]/5 flex items-center justify-center flex-shrink-0">
                       <FileText className="h-4 w-4 text-blue-500" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-700">Company Brochure</p>
+                      <p className="text-sm font-medium text-muted-foreground">Company Brochure</p>
                       <p className="text-xs text-gray-400">View document</p>
                     </div>
                     <ExternalLink className="h-4 w-4 text-gray-300" />
@@ -189,7 +189,7 @@ export default function VendorProfileDrawer({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-9 gap-2 text-gray-600"
+                        className="h-9 gap-2 text-muted-foreground"
                         onClick={() => window.open(data.profile!.websiteUrl!, '_blank')}
                         data-testid="link-website"
                       >
@@ -201,7 +201,7 @@ export default function VendorProfileDrawer({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-9 gap-2 text-gray-600"
+                        className="h-9 gap-2 text-muted-foreground"
                         onClick={() => window.open(data.profile!.linkedinUrl!, '_blank')}
                         data-testid="link-linkedin"
                       >
@@ -213,7 +213,7 @@ export default function VendorProfileDrawer({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-9 gap-2 text-gray-600"
+                        className="h-9 gap-2 text-muted-foreground"
                         onClick={() => window.open(data.profile!.xUrl!, '_blank')}
                         data-testid="link-x"
                       >
@@ -229,7 +229,7 @@ export default function VendorProfileDrawer({
               {!data.profile && (
                 <div className="flex items-center gap-3 p-4 rounded-lg bg-amber-50 border border-amber-100">
                   <Clock className="h-5 w-5 text-amber-400 flex-shrink-0" />
-                  <p className="text-sm text-amber-700">
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
                     This vendor hasn't completed their full profile yet.
                   </p>
                 </div>
@@ -238,10 +238,10 @@ export default function VendorProfileDrawer({
 
             {/* Approve / Decline Actions */}
             {showActions && (
-              <div className="border-t border-gray-100 px-6 py-4 flex items-center gap-3 bg-gray-50/50">
+              <div className="border-t border-border px-6 py-4 flex items-center gap-3 bg-muted/50">
                 <Button
                   variant="outline"
-                  className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-300"
                   onClick={() => onDecline?.(joinRequestId)}
                   disabled={isDeclining || isApproving}
                   data-testid="button-drawer-decline"
@@ -254,7 +254,7 @@ export default function VendorProfileDrawer({
                   Decline
                 </Button>
                 <Button
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="flex-1 bg-[var(--state-won)] hover:bg-[var(--state-won)]/90 text-white"
                   onClick={() => onApprove?.(joinRequestId)}
                   disabled={isApproving || isDeclining}
                   data-testid="button-drawer-approve"

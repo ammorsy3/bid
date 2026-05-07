@@ -257,17 +257,17 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 <Info className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-amber-900 mb-1">{t('createTender.notVerifiedYet')}</p>
-                <p className="text-sm text-amber-700">
+                <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mb-1">{t('createTender.notVerifiedYet')}</p>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
                   Creating tenders, submitting proposals, and other key actions require a verified company. Upload your Commercial Registration (CR) certificate to get verified — it only takes a moment.
                 </p>
               </div>
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium text-neutral-700">{t('createTender.toUnlockFeatures')}</p>
-              <ul className="text-sm text-neutral-600 space-y-1.5">
+              <p className="text-sm font-medium text-muted-foreground">{t('createTender.toUnlockFeatures')}</p>
+              <ul className="text-sm text-muted-foreground space-y-1.5">
                 <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#E25E45] flex-shrink-0" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#FE3C01] flex-shrink-0" />
                   Commercial Registration (CR) certificate — required
                 </li>
                 <li className="flex items-center gap-2">
@@ -282,7 +282,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               </Button>
               <Button
                 onClick={() => { handleClose(); navigate('/settings?tab=company'); }}
-                className="flex-1 bg-[#E25E45] hover:bg-[#d04a32]"
+                className="flex-1 bg-[#FE3C01] hover:bg-[#E83501]"
               >
                 Upload Documents
               </Button>
@@ -309,8 +309,8 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
           
           <div className="space-y-6">
             <div className="text-center">
-              <h3 className="text-lg font-medium text-neutral-900 mb-2">{createdTender.title}</h3>
-              <p className="text-neutral-600">{t('createTender.tenderLiveDesc')}</p>
+              <h3 className="text-lg font-medium text-foreground mb-2">{createdTender.title}</h3>
+              <p className="text-muted-foreground">{t('createTender.tenderLiveDesc')}</p>
             </div>
             
             <Card className="bg-primary-50 border-primary-200">
@@ -322,7 +322,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 <p className="text-sm text-primary-800 mb-4">
                   Share this link with qualified vendors to invite them to submit offers:
                 </p>
-                <div className="bg-white rounded-lg p-3 mb-4">
+                <div className="bg-card rounded-lg p-3 mb-4">
                   <code className="text-sm text-primary-900 break-all font-mono">{invitationLink}</code>
                 </div>
                 <div className="flex gap-2">
@@ -351,16 +351,16 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               </CardContent>
             </Card>
             
-            <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-              <h4 className="font-medium text-neutral-900 mb-2">{t('createTender.nextSteps')}</h4>
-              <ul className="text-sm text-neutral-600 space-y-1">
+            <div className="bg-muted border border-border rounded-lg p-4">
+              <h4 className="font-medium text-foreground mb-2">{t('createTender.nextSteps')}</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Share the invitation link with qualified vendors via email or messaging</li>
                 <li>• Vendors can register and submit offers using this link</li>
                 <li>• Monitor submissions from your dashboard</li>
               </ul>
             </div>
             
-            <div className="flex gap-3 pt-4 border-t border-neutral-200">
+            <div className="flex gap-3 pt-4 border-t border-border">
               <Button 
                 variant="outline" 
                 onClick={handleClose}
@@ -389,7 +389,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-semibold text-neutral-900 flex items-center gap-2">
+            <DialogTitle className="text-2xl font-semibold text-foreground flex items-center gap-2">
               <Sparkles className="h-6 w-6 text-primary-600" />
               Create New Tender
             </DialogTitle>
@@ -599,7 +599,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               type="button"
               variant="ghost"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="w-full justify-between text-neutral-600 hover:text-neutral-900"
+              className="w-full justify-between text-muted-foreground hover:text-foreground"
               data-testid="button-toggle-advanced"
             >
               <span className="flex items-center gap-2">
@@ -611,10 +611,10 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
 
             {/* Advanced Options Section */}
             {showAdvanced && (
-              <div className="space-y-6 p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
+              <div className="space-y-6 p-4 bg-muted border border-border rounded-lg">
                 <div>
-                  <h4 className="font-medium text-neutral-900 mb-3">{t('createTender.voiceNoteTitle')}</h4>
-                  <p className="text-sm text-neutral-600 mb-3">
+                  <h4 className="font-medium text-foreground mb-3">{t('createTender.voiceNoteTitle')}</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
                     Record a voice message to explain your project in detail (max 5 minutes)
                   </p>
                   <VoiceRecorder
@@ -644,7 +644,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                             {...field} 
                           />
                         </FormControl>
-                        <p className="text-xs text-neutral-500">{t('createTender.addVideoLink')}</p>
+                        <p className="text-xs text-muted-foreground">{t('createTender.addVideoLink')}</p>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -653,22 +653,22 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
               </div>
             )}
 
-            <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-              <h4 className="font-medium text-neutral-900 mb-2">{t('createTender.invitationSystem')}</h4>
-              <p className="text-sm text-neutral-600 mb-3">
+            <div className="bg-muted border border-border rounded-lg p-4">
+              <h4 className="font-medium text-foreground mb-2">{t('createTender.invitationSystem')}</h4>
+              <p className="text-sm text-muted-foreground mb-3">
                 After creating this tender, you'll receive a unique invitation link to share with qualified vendors.
               </p>
-              <div className="flex items-center space-x-2 text-xs text-neutral-500">
+              <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                 <span>•</span>
                 <span>{t('createTender.shareViaChannel')}</span>
               </div>
-              <div className="flex items-center space-x-2 text-xs text-neutral-500 mt-1">
+              <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
                 <span>•</span>
                 <span>{t('createTender.vendorsSubmitViaLink')}</span>
               </div>
             </div>
 
-            <div className="flex space-x-4 pt-4 border-t border-neutral-200">
+            <div className="flex space-x-4 pt-4 border-t border-border">
               <Button 
                 type="button" 
                 variant="outline" 

@@ -315,7 +315,7 @@ export default function TenderEdit() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -323,7 +323,7 @@ export default function TenderEdit() {
 
   if (!tender || !canEdit) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-background">
         <div className="max-w-3xl mx-auto px-4 py-8">
           <Card>
             <CardContent className="py-8 text-center">
@@ -341,7 +341,7 @@ export default function TenderEdit() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-background">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button
           variant="ghost"
@@ -354,7 +354,7 @@ export default function TenderEdit() {
         </Button>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('tenderFlow.editTenderTitle')}</h1>
+          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]">{t('tenderFlow.editTenderTitle')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {isPublished ? t('tenderFlow.tenderIsLive') : t('tenderFlow.tenderIsDraft')}
           </p>
@@ -365,10 +365,10 @@ export default function TenderEdit() {
 
             {/* ── 1. Basics ─────────────────────────────────────────────── */}
             <SectionCard
-              icon={<FileText className="h-4 w-4 text-[#E25E45]" />}
+              icon={<FileText className="h-4 w-4 text-[#FE3C01]" />}
               title={t('tenderFlow.editSectionBasicsTitle')}
               description={t('tenderFlow.editSectionBasicsDesc')}
-              color="bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]"
+              color="bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]"
             >
               <FormField
                 control={form.control}
@@ -438,7 +438,7 @@ export default function TenderEdit() {
 
             {/* ── 2. Timeline ───────────────────────────────────────────── */}
             <SectionCard
-              icon={<Calendar className="h-4 w-4 text-blue-600" />}
+              icon={<Calendar className="h-4 w-4 text-[var(--bid-orange)]" />}
               title={t('tenderFlow.editSectionTimelineTitle')}
               description={t('tenderFlow.editSectionTimelineDesc')}
               color="bg-gradient-to-r from-blue-500 to-blue-400"
@@ -523,8 +523,8 @@ export default function TenderEdit() {
                   onClick={() => setBudgetType("exact")}
                   className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
                     budgetType === "exact"
-                      ? "bg-[#E25E45] text-white border-[#E25E45]"
-                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                      ? "bg-[#FE3C01] text-white border-[#FE3C01]"
+                      : "bg-white dark:bg-card text-muted-foreground dark:text-muted-foreground border-border dark:border-border hover:border-border"
                   }`}
                 >
                   {t('tenderFlow.editBudgetExact')}
@@ -534,8 +534,8 @@ export default function TenderEdit() {
                   onClick={() => setBudgetType("range")}
                   className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
                     budgetType === "range"
-                      ? "bg-[#E25E45] text-white border-[#E25E45]"
-                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                      ? "bg-[#FE3C01] text-white border-[#FE3C01]"
+                      : "bg-white dark:bg-card text-muted-foreground dark:text-muted-foreground border-border dark:border-border hover:border-border"
                   }`}
                 >
                   {t('tenderFlow.editBudgetRange')}
@@ -551,7 +551,7 @@ export default function TenderEdit() {
                       <FormLabel>{t('tenderFlow.editBudgetAmountLabel')}</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">SAR</span>
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">SAR</span>
                           <Input className="pl-12" placeholder={t('tenderFlow.editBudgetAmountPlaceholder')} data-testid="input-budget" {...field} />
                         </div>
                       </FormControl>
@@ -605,9 +605,9 @@ export default function TenderEdit() {
                 name="showPriceToVendors"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-card rounded-lg">
                       <div className="flex items-center gap-2">
-                        {field.value ? <Eye className="h-4 w-4 text-gray-500" /> : <EyeOff className="h-4 w-4 text-gray-500" />}
+                        {field.value ? <Eye className="h-4 w-4 text-muted-foreground" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
                         <div>
                           <p className="text-sm font-medium">{t('tenderFlow.editShowBudgetLabel')}</p>
                           <p className="text-xs text-muted-foreground">
@@ -626,7 +626,7 @@ export default function TenderEdit() {
 
             {/* ── 4. Submission ─────────────────────────────────────────── */}
             <SectionCard
-              icon={<ClipboardList className="h-4 w-4 text-purple-600" />}
+              icon={<ClipboardList className="h-4 w-4 text-[var(--bid-orange)]" />}
               title={t('tenderFlow.editSubmissionsTitle')}
               description={t('tenderFlow.editSectionSubmHowDesc')}
               color="bg-gradient-to-r from-purple-500 to-purple-400"
@@ -803,7 +803,7 @@ export default function TenderEdit() {
               {deliverables.length > 0 && (
                 <div className="space-y-3">
                   {deliverables.map((d, index) => (
-                    <div key={d.id} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 space-y-2">
+                    <div key={d.id} className="p-3 bg-gray-50 dark:bg-card rounded-lg border border-border dark:border-border space-y-2">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-white bg-indigo-500 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">
                           {index + 1}
@@ -870,7 +870,7 @@ export default function TenderEdit() {
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-[#E25E45] hover:bg-[#d54d35] text-white"
+                  className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] text-white"
                   disabled={updateTenderMutation.isPending}
                   data-testid="button-save"
                 >

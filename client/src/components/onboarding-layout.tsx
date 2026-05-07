@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { FileText, BarChart3, Shield, Zap } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { BidLogo } from "@/components/brand/BidLogo";
 
 interface OnboardingLayoutProps {
   children: ReactNode;
@@ -17,13 +18,13 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
   ];
   return (
     <div className="min-h-screen flex">
-      {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-[440px] xl:w-[480px] bg-gradient-to-br from-[#E25E45] via-[#d04a32] to-[#b83a24] relative overflow-hidden flex-shrink-0">
+      {/* Left Panel - Branding (Ink surface · Colorway 02 Cream-on-Ink) */}
+      <div className="hidden lg:flex lg:w-[440px] xl:w-[480px] bg-[var(--bid-ink)] relative overflow-hidden flex-shrink-0">
         {/* Decorative shapes */}
         <div className="absolute inset-0">
-          <div className="absolute top-16 -left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 left-1/3 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
+          <div className="absolute top-16 -left-10 w-72 h-72 bg-card/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-0 w-80 h-80 bg-card/5 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/3 w-40 h-40 bg-card/5 rounded-full blur-2xl" />
           {/* Grid pattern */}
           <div className="absolute inset-0 opacity-[0.03]" style={{
             backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
@@ -32,16 +33,16 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
         </div>
 
         <div className="relative z-10 flex flex-col justify-between p-10 xl:p-12 w-full">
-          {/* Logo */}
+          {/* Logo (Cream-on-Ink colorway) */}
           <div>
             <div className="flex items-center gap-3 mb-16">
-              <img src="/bid-logo.png" alt="Bid" className="h-8 brightness-0 invert" />
+              <BidLogo variant="onInk" size={32} />
             </div>
 
-            <h1 className="text-3xl xl:text-4xl font-bold text-white leading-tight mb-4">
+            <h1 className="font-display font-black text-3xl xl:text-4xl text-[var(--bid-cream)] leading-[0.95] tracking-[-0.04em] mb-4">
               {t('onboardingPanel.setupWorkspace')}
             </h1>
-            <p className="text-white/70 text-base leading-relaxed">
+            <p className="text-[var(--bid-cream)]/70 text-base leading-relaxed">
               {t('onboardingPanel.setupWorkspaceDesc')}
             </p>
           </div>
@@ -49,7 +50,7 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
           {/* Features */}
           <div className="space-y-5 mt-12">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-card/10 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
                 <FileText className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -58,7 +59,7 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-card/10 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -67,7 +68,7 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-card/10 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
                 <Shield className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -88,12 +89,12 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
       </div>
 
       {/* Right Panel - Content */}
-      <div className="flex-1 flex flex-col min-h-screen bg-neutral-50">
+      <div className="flex-1 flex flex-col min-h-screen bg-muted">
         {/* Top bar with logo (mobile) + step indicator */}
         <div className="p-6 pb-0">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 mb-6">
-            <img src="/bid-logo.png" alt="Bid" className="h-7" />
+            <BidLogo size={28} />
           </div>
 
           {/* Step indicator — only show for steps 1-3 */}
@@ -102,11 +103,11 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
               {STEPS.map((s, i) => (
                 <div key={s.num} className="flex items-center gap-1">
                   <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold font-mono transition-colors ${
                       step > s.num
-                        ? 'bg-green-500 text-white'
+                        ? 'bg-[var(--state-won)] text-white'
                         : step === s.num
-                          ? 'bg-[#E25E45] text-white'
+                          ? 'bg-[var(--bid-orange)] text-white'
                           : 'bg-neutral-200 text-neutral-400'
                     }`}>
                       {step > s.num ? (
@@ -116,13 +117,13 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
                       ) : s.num}
                     </div>
                     <span className={`text-sm hidden sm:inline ${
-                      step === s.num ? 'font-medium text-neutral-900' : 'text-neutral-400'
+                      step === s.num ? 'font-medium text-foreground' : 'text-neutral-400'
                     }`}>
                       {t(`onboardingPanel.${s.labelKey}`)}
                     </span>
                   </div>
                   {i < STEPS.length - 1 && (
-                    <div className={`w-10 h-px mx-1 ${step > s.num ? 'bg-green-300' : 'bg-neutral-200'}`} />
+                    <div className={`w-10 h-px mx-1 ${step > s.num ? 'bg-[var(--state-won)]/40' : 'bg-neutral-200'}`} />
                   )}
                 </div>
               ))}

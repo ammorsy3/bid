@@ -108,7 +108,7 @@ interface ProposalComparisonProps {
 }
 
 const VENDOR_COLORS = [
-  'from-[#E25E45] to-[#FF8A6B]',
+  'from-[#FE3C01] to-[#FF8A6B]',
   'from-indigo-500 to-violet-500',
   'from-emerald-500 to-teal-500',
   'from-amber-500 to-orange-400',
@@ -145,11 +145,11 @@ export default function ProposalComparison({
     const offerActions = negotiationActions.filter(a => a.offerId === offerId);
     const types = new Set(offerActions.map(a => a.actionType));
     const badges: { label: string; color: string }[] = [];
-    if (types.has('resubmission_request')) badges.push({ label: t('tenderFlow.resubmissionRequested'), color: 'bg-amber-100 text-amber-700 border-amber-200' });
-    if (types.has('discount_request')) badges.push({ label: t('tenderFlow.discountRequested'), color: 'bg-purple-100 text-purple-700 border-purple-200' });
-    if (types.has('award')) badges.push({ label: t('tenderFlow.awardedBadge'), color: 'bg-emerald-100 text-emerald-700 border-emerald-200' });
-    if (types.has('rejection')) badges.push({ label: t('tenderFlow.rejectedBadge'), color: 'bg-red-100 text-red-700 border-red-200' });
-    if (types.has('free_message')) badges.push({ label: t('tenderFlow.messageSentBadge'), color: 'bg-blue-100 text-blue-700 border-blue-200' });
+    if (types.has('resubmission_request')) badges.push({ label: t('tenderFlow.resubmissionRequested'), color: 'bg-amber-100 text-amber-700 dark:text-amber-300 border-amber-200' });
+    if (types.has('discount_request')) badges.push({ label: t('tenderFlow.discountRequested'), color: 'bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] border-purple-200' });
+    if (types.has('award')) badges.push({ label: t('tenderFlow.awardedBadge'), color: 'bg-[var(--state-won)]/10 text-[var(--state-won)] border-emerald-200' });
+    if (types.has('rejection')) badges.push({ label: t('tenderFlow.rejectedBadge'), color: 'bg-red-100 text-red-700 dark:text-red-300 border-red-200' });
+    if (types.has('free_message')) badges.push({ label: t('tenderFlow.messageSentBadge'), color: 'bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] border-[var(--bid-orange)]/20' });
     return badges;
   };
 
@@ -158,10 +158,10 @@ export default function ProposalComparison({
 
   const ACTION_META: Record<string, { icon: any; color: string; label: () => string }> = {
     resubmission_request: { icon: RotateCcw, color: 'text-amber-600 bg-amber-50 border-amber-200', label: () => t('tenderFlow.resubmissionRequested') },
-    discount_request:     { icon: Percent,   color: 'text-purple-600 bg-purple-50 border-purple-200', label: () => t('tenderFlow.discountRequested') },
-    award:                { icon: Award,     color: 'text-emerald-600 bg-emerald-50 border-emerald-200', label: () => t('tenderFlow.awardedBadge') },
+    discount_request:     { icon: Percent,   color: 'text-[var(--bid-orange)] bg-[var(--bid-orange)]/5 border-purple-200', label: () => t('tenderFlow.discountRequested') },
+    award:                { icon: Award,     color: 'text-[var(--state-won)] bg-[var(--state-won)]/5 border-emerald-200', label: () => t('tenderFlow.awardedBadge') },
     rejection:            { icon: X,         color: 'text-red-600 bg-red-50 border-red-200', label: () => t('tenderFlow.rejectedBadge') },
-    free_message:         { icon: Mail,      color: 'text-blue-600 bg-blue-50 border-blue-200', label: () => t('tenderFlow.messageSentBadge') },
+    free_message:         { icon: Mail,      color: 'text-[var(--bid-orange)] bg-[var(--bid-orange)]/5 border-[var(--bid-orange)]/20', label: () => t('tenderFlow.messageSentBadge') },
   };
 
   const sortedNegotiationActions = [...negotiationActions].sort(
@@ -262,17 +262,17 @@ export default function ProposalComparison({
   if (!hasAnalyses && !isQuoteOnly) {
     const directAwardOffer = directAwardOfferId ? visibleOffers.find(o => o.id === directAwardOfferId) : null;
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
 
         {/* Card header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div className="flex items-center gap-2.5">
-            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#E25E45] text-white text-xs font-bold">
+            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#FE3C01] text-white text-xs font-bold">
               <Sparkles className="h-3 w-3" />
             </div>
             <div>
-              <span className="text-sm font-bold text-gray-900">{t('tenderFlow.proposalComparisonTitle')}</span>
+              <span className="text-sm font-bold text-foreground">{t('tenderFlow.proposalComparisonTitle')}</span>
               <span className="text-xs text-gray-400 ml-2">{t('tenderFlow.vendorsCount').replace('{count}', String(visibleOffers.length))}</span>
             </div>
           </div>
@@ -284,7 +284,7 @@ export default function ProposalComparison({
               <Button
                 onClick={() => analyzeMutation.mutate()}
                 disabled={analyzeMutation.isPending || offers.length < 2}
-                className="bg-[#E25E45] hover:bg-[#d54d35] text-white text-xs h-7"
+                className="bg-[#FE3C01] hover:bg-[#d54d35] text-white text-xs h-7"
                 size="sm"
               >
                 {analyzeMutation.isPending ? (
@@ -299,7 +299,7 @@ export default function ProposalComparison({
 
         {/* Banner */}
         {cannotAnalyze ? (
-          <div className="px-5 py-3 bg-amber-50 border-b border-amber-100 flex items-center gap-2 text-sm text-amber-800">
+          <div className="px-5 py-3 bg-amber-50 border-b border-amber-100 flex items-center gap-2 text-sm text-amber-800 dark:text-amber-300">
             <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" />
             <span>
               {isVideoOnlyFormat
@@ -308,7 +308,7 @@ export default function ProposalComparison({
             </span>
           </div>
         ) : (
-          <div className="px-5 py-3 bg-blue-50 border-b border-blue-100 flex items-center gap-2 text-sm text-blue-700">
+          <div className="px-5 py-3 bg-[var(--bid-orange)]/5 border-b border-blue-100 flex items-center gap-2 text-sm text-[var(--bid-orange)]">
             <Sparkles className="h-4 w-4 shrink-0 text-blue-500" />
             <span>{t('tenderFlow.proposalComparisonEmptyDesc').replace('{count}', String(offers.length))}</span>
           </div>
@@ -322,7 +322,7 @@ export default function ProposalComparison({
             const awarded = isOfferAwarded(offer.id);
 
             return (
-              <div key={offer.id} className={`flex items-center gap-4 px-5 py-4 ${awarded ? 'bg-emerald-50/40' : 'hover:bg-gray-50/50'}`}>
+              <div key={offer.id} className={`flex items-center gap-4 px-5 py-4 ${awarded ? 'bg-[var(--state-won)]/5/40' : 'hover:bg-muted/50'}`}>
                 {/* Avatar + name */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {offer.profile?.logoUrl ? (
@@ -333,7 +333,7 @@ export default function ProposalComparison({
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
+                    <p className="text-sm font-semibold text-foreground truncate">{name}</p>
                     {offer.company.category && (
                       <p className="text-xs text-gray-400 truncate">{offer.company.category}</p>
                     )}
@@ -347,7 +347,7 @@ export default function ProposalComparison({
                       href={offer.videoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 border border-blue-200 rounded-md px-2 py-1 hover:bg-blue-50"
+                      className="flex items-center gap-1 text-xs text-[var(--bid-orange)] hover:text-blue-800 dark:text-blue-300 border border-[var(--bid-orange)]/20 rounded-md px-2 py-1 hover:bg-[var(--bid-orange)]/5"
                     >
                       <FileText className="h-3 w-3" /> {t('tenderFlow.watchVideo')}
                     </a>
@@ -355,13 +355,13 @@ export default function ProposalComparison({
                   {(offer.combinedFileUrl || offer.technicalFileUrl) && (
                     <button
                       onClick={() => { const f = offer.combinedFileUrl || offer.technicalFileUrl; if (f) viewAuthenticatedFile(f); }}
-                      className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-800 border border-gray-200 rounded-md px-2 py-1 hover:bg-gray-50"
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md px-2 py-1 hover:bg-muted"
                     >
                       <FileText className="h-3 w-3" /> {t('tenderFlow.viewProposal')}
                     </button>
                   )}
                   {offer.quotePrice != null && (
-                    <span className="text-xs font-bold text-gray-800">{t('tenderFlow.sarCurrency')} {offer.quotePrice.toLocaleString()}</span>
+                    <span className="text-xs font-bold text-foreground">{t('tenderFlow.sarCurrency')} {offer.quotePrice.toLocaleString()}</span>
                   )}
                 </div>
 
@@ -379,14 +379,14 @@ export default function ProposalComparison({
                 {/* Award button (negotiation mode only) */}
                 {negotiationMode && (
                   awarded ? (
-                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full border border-emerald-200 flex items-center gap-1 flex-shrink-0">
+                    <span className="text-[10px] font-bold bg-[var(--state-won)]/10 text-[var(--state-won)] px-2 py-1 rounded-full border border-emerald-200 flex items-center gap-1 flex-shrink-0">
                       <Award className="h-3 w-3" /> {t('tenderFlow.awardedBadge')}
                     </span>
                   ) : (
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-7 text-xs gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-50 flex-shrink-0"
+                      className="h-7 text-xs gap-1 border-emerald-200 text-[var(--state-won)] hover:bg-[var(--state-won)]/5 flex-shrink-0"
                       onClick={() => { setDirectAwardOfferId(offer.id); setActiveDialog('award'); }}
                     >
                       <Award className="h-3 w-3" /> {t('tenderFlow.awardBtn')}
@@ -400,8 +400,8 @@ export default function ProposalComparison({
 
         {/* Negotiation history log */}
         {negotiationMode && negotiationActions.length > 0 && (
-          <div className="mx-5 mt-4 mb-4 border border-gray-100 rounded-xl overflow-hidden">
-            <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+          <div className="mx-5 mt-4 mb-4 border border-border rounded-xl overflow-hidden">
+            <div className="px-4 py-2.5 bg-muted border-b border-border flex items-center gap-2">
               <Clock className="h-3.5 w-3.5 text-gray-400" />
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('tenderFlow.negotiationHistory')}</span>
             </div>
@@ -413,13 +413,13 @@ export default function ProposalComparison({
                 const Icon = meta?.icon || Mail;
                 return (
                   <div key={action.id} className="px-4 py-3 flex items-start gap-3">
-                    <div className={`mt-0.5 h-6 w-6 rounded-full border flex items-center justify-center flex-shrink-0 ${meta?.color || 'text-gray-500 bg-gray-50 border-gray-200'}`}>
+                    <div className={`mt-0.5 h-6 w-6 rounded-full border flex items-center justify-center flex-shrink-0 ${meta?.color || 'text-muted-foreground bg-muted border-border'}`}>
                       <Icon className="h-3 w-3" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-semibold text-gray-800">{vendorName}</span>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${meta?.color || 'text-gray-500 bg-gray-50 border-gray-200'}`}>
+                        <span className="text-xs font-semibold text-foreground">{vendorName}</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${meta?.color || 'text-muted-foreground bg-muted border-border'}`}>
                           {meta?.label() || action.actionType}
                         </span>
                       </div>
@@ -469,8 +469,8 @@ export default function ProposalComparison({
   const SectionHeader = ({ label, icon: Icon }: { label: string; icon: any }) => (
     <tr>
       <td colSpan={visibleOffers.length + 1} className="px-0 pb-0 pt-0">
-        <div className="flex items-center gap-2.5 px-4 py-2.5 bg-gray-50 border-y border-gray-100">
-          <div className="h-3.5 w-0.5 rounded-full bg-[#E25E45]" />
+        <div className="flex items-center gap-2.5 px-4 py-2.5 bg-muted border-y border-border">
+          <div className="h-3.5 w-0.5 rounded-full bg-[#FE3C01]" />
           <Icon className="h-3 w-3 text-gray-400" />
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</span>
         </div>
@@ -483,23 +483,23 @@ export default function ProposalComparison({
   const COL_W = isScrollable ? "w-[200px] min-w-[200px] max-w-[200px]" : "";
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
       {/* Coral gradient top strip */}
-      <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+      <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
 
       {/* ── Card header ─────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#E25E45] text-white text-xs font-bold">
+          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#FE3C01] text-white text-xs font-bold">
             <Sparkles className="h-3 w-3" />
           </div>
           <div>
-            <span className="text-sm font-bold text-gray-900">{t('tenderFlow.proposalComparisonTitle')}</span>
+            <span className="text-sm font-bold text-foreground">{t('tenderFlow.proposalComparisonTitle')}</span>
             <span className="text-xs text-gray-400 ml-2">{t('tenderFlow.vendorsCount').replace('{count}', String(visibleOffers.length))}</span>
           </div>
         </div>
         {isQuoteOnly ? (
-          <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1">
+          <span className="text-xs text-gray-400 bg-muted border border-border rounded-lg px-3 py-1">
             {t('tenderFlow.priceComparisonLabel')}
           </span>
         ) : (
@@ -517,9 +517,9 @@ export default function ProposalComparison({
 
       {/* ── Savings banner ──────────────────────────────────────────────── */}
       {totals.length > 1 && highestPrice > lowestPrice && (
-        <div className="mx-5 mt-4 flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
-          <TrendingUp className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-          <span className="text-sm text-emerald-800">
+        <div className="mx-5 mt-4 flex items-center gap-3 bg-[var(--state-won)]/5 border border-emerald-200 rounded-xl px-4 py-2.5">
+          <TrendingUp className="h-4 w-4 text-[var(--state-won)] flex-shrink-0" />
+          <span className="text-sm text-emerald-800 dark:text-emerald-300">
             <span className="font-bold">{t('tenderFlow.sarCurrency')} {(highestPrice - lowestPrice).toLocaleString()}</span>
             {" "}{t('tenderFlow.potentialSavings')} · {Math.round(((highestPrice - lowestPrice) / highestPrice) * 100)}% {t('tenderFlow.spreadAcrossOffers')}
           </span>
@@ -533,9 +533,9 @@ export default function ProposalComparison({
           style={isScrollable ? { width: `${160 + visibleOffers.length * 200}px` } : undefined}
         >
           <thead>
-            <tr className="border-b border-gray-200">
+            <tr className="border-b border-border">
               {/* Empty label cell */}
-              <th className={`${LABEL_W} sticky left-0 z-20 bg-white border-r border-gray-100`} />
+              <th className={`${LABEL_W} sticky left-0 z-20 bg-card border-r border-border`} />
 
               {/* Vendor compact header cells */}
               {visibleOffers.map((offer, idx) => {
@@ -548,9 +548,9 @@ export default function ProposalComparison({
                 return (
                   <th
                     key={offer.id}
-                    className={`${COL_W} p-0 align-top border-r border-gray-100 last:border-r-0 ${isOfferAwarded(offer.id) ? 'border-t-2 border-t-emerald-500' : ''}`}
+                    className={`${COL_W} p-0 align-top border-r border-border last:border-r-0 ${isOfferAwarded(offer.id) ? 'border-t-2 border-t-emerald-500' : ''}`}
                   >
-                    <div className={`px-3 py-3 ${isOfferAwarded(offer.id) ? 'bg-emerald-50/60' : negotiationMode && checkedVendors.has(offer.id) ? 'bg-[#E25E45]/5 ring-2 ring-[#E25E45]/20 ring-inset' : isSelected ? 'bg-blue-50/60' : 'bg-white'}`}>
+                    <div className={`px-3 py-3 ${isOfferAwarded(offer.id) ? 'bg-[var(--state-won)]/5/60' : negotiationMode && checkedVendors.has(offer.id) ? 'bg-[#FE3C01]/5 ring-2 ring-[#FE3C01]/20 ring-inset' : isSelected ? 'bg-[var(--bid-orange)]/5/60' : 'bg-card'}`}>
                       {/* Avatar + name row */}
                       <div className="flex items-center gap-2 mb-2">
                         {negotiationMode && (
@@ -568,7 +568,7 @@ export default function ProposalComparison({
                           </div>
                         )}
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-gray-900 truncate leading-tight">{name}</p>
+                          <p className="text-xs font-bold text-foreground truncate leading-tight">{name}</p>
                           {offer.company.category && (
                             <p className="text-[10px] text-gray-400 truncate leading-tight">{offer.company.category}</p>
                           )}
@@ -589,7 +589,7 @@ export default function ProposalComparison({
                       {/* Price + badges on one line */}
                       <div className="flex items-center justify-between gap-1 mb-1.5">
                         {total != null ? (
-                          <span className={`text-xs font-bold ${isCheapest ? 'text-emerald-700' : 'text-gray-800'}`}>
+                          <span className={`text-xs font-bold ${isCheapest ? 'text-[var(--state-won)]' : 'text-foreground'}`}>
                             {t('tenderFlow.sarCurrency')} {total.toLocaleString()}
                           </span>
                         ) : (
@@ -597,12 +597,12 @@ export default function ProposalComparison({
                         )}
                         <div className="flex gap-0.5 flex-shrink-0">
                           {isCheapest && (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full border border-emerald-200">
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold bg-[var(--state-won)]/10 text-[var(--state-won)] px-1.5 py-0.5 rounded-full border border-emerald-200">
                               <Award className="h-2 w-2" /> {t('tenderFlow.bestLabel')}
                             </span>
                           )}
                           {isSelected && (
-                            <span className="text-[9px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full border border-blue-200">
+                            <span className="text-[9px] font-bold bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] px-1.5 py-0.5 rounded-full border border-[var(--bid-orange)]/20">
                               ✓ {t('tenderFlow.selectedLabel')}
                             </span>
                           )}
@@ -611,9 +611,9 @@ export default function ProposalComparison({
 
                       {/* Price bar */}
                       {total != null && highestPrice > 0 && (
-                        <div className="h-1 bg-gray-100 rounded-full overflow-hidden mb-2">
+                        <div className="h-1 bg-muted rounded-full overflow-hidden mb-2">
                           <div
-                            className={`h-full rounded-full transition-all ${isCheapest ? 'bg-emerald-500' : isSelected ? 'bg-blue-400' : 'bg-gray-300'}`}
+                            className={`h-full rounded-full transition-all ${isCheapest ? 'bg-[var(--state-won)]' : isSelected ? 'bg-blue-400' : 'bg-gray-300'}`}
                             style={{ width: `${(total / highestPrice) * 100}%` }}
                           />
                         </div>
@@ -625,7 +625,7 @@ export default function ProposalComparison({
                           href={offer.videoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mb-1.5 flex items-center justify-center gap-1 text-[10px] text-blue-600 hover:text-blue-800 border border-blue-200 rounded-md px-2 py-1 hover:bg-blue-50 w-full"
+                          className="mb-1.5 flex items-center justify-center gap-1 text-[10px] text-[var(--bid-orange)] hover:text-blue-800 dark:text-blue-300 border border-[var(--bid-orange)]/20 rounded-md px-2 py-1 hover:bg-[var(--bid-orange)]/5 w-full"
                         >
                           <FileText className="h-2.5 w-2.5" /> {t('tenderFlow.watchVideo')}
                         </a>
@@ -635,13 +635,13 @@ export default function ProposalComparison({
                       {!negotiationMode && (
                         <div className="flex items-center gap-1">
                           {isSelected ? (
-                            <div className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-md py-1 px-2">
+                            <div className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold text-[var(--bid-orange)] bg-[var(--bid-orange)]/5 border border-[var(--bid-orange)]/20 rounded-md py-1 px-2">
                               <CheckCircle className="h-2.5 w-2.5" /> {t('tenderFlow.selectedLabel')}
                             </div>
                           ) : (
                             <Button
                               size="sm"
-                              className="flex-1 h-6 text-[10px] bg-[#E25E45] hover:bg-[#d54d35] text-white px-2 font-medium"
+                              className="flex-1 h-6 text-[10px] bg-[#FE3C01] hover:bg-[#d54d35] text-white px-2 font-medium"
                               onClick={() => handleSelectVendor(offer)}
                               disabled={savingsMutation.isPending || total == null || isOfferAwarded(offer.id)}
                             >
@@ -650,7 +650,7 @@ export default function ProposalComparison({
                           )}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm" className="h-6 w-6 p-0 border-gray-200" disabled={isOfferAwarded(offer.id)}>
+                              <Button variant="outline" size="sm" className="h-6 w-6 p-0 border-border" disabled={isOfferAwarded(offer.id)}>
                                 <MoreHorizontal className="h-3 w-3" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -688,8 +688,8 @@ export default function ProposalComparison({
             <SectionHeader label={t('tenderFlow.financialSection')} icon={DollarSign} />
 
             {/* Total Price */}
-            <tr className="border-b border-gray-100 hover:bg-gray-50/40 transition-colors">
-              <td className={`${LABEL_W} sticky left-0 bg-white px-4 py-3 text-xs font-semibold text-gray-700 border-r border-gray-100`}>
+            <tr className="border-b border-border hover:bg-muted/40 transition-colors">
+              <td className={`${LABEL_W} sticky left-0 bg-card px-4 py-3 text-xs font-semibold text-muted-foreground border-r border-border`}>
                 {t('tenderFlow.totalPrice')}
               </td>
               {visibleOffers.map(offer => {
@@ -697,9 +697,9 @@ export default function ProposalComparison({
                 const isCheapest = cheapestId === offer.id;
                 const isMostExp = mostExpensiveId === offer.id && cheapestId !== mostExpensiveId;
                 return (
-                  <td key={offer.id} className={`${COL_W} px-4 py-3 text-center border-r border-gray-100 last:border-r-0 ${selectedVendor === offer.id ? 'bg-blue-50/30' : ''}`}>
+                  <td key={offer.id} className={`${COL_W} px-4 py-3 text-center border-r border-border last:border-r-0 ${selectedVendor === offer.id ? 'bg-[var(--bid-orange)]/5/30' : ''}`}>
                     {total != null ? (
-                      <span className={`text-sm font-bold ${isCheapest ? 'text-emerald-700' : isMostExp ? 'text-red-500' : 'text-gray-900'}`}>
+                      <span className={`text-sm font-bold ${isCheapest ? 'text-[var(--state-won)]' : isMostExp ? 'text-red-500' : 'text-foreground'}`}>
                         {t('tenderFlow.sarCurrency')} {total.toLocaleString()}
                       </span>
                     ) : <span className="text-gray-300 text-xs">—</span>}
@@ -709,26 +709,26 @@ export default function ProposalComparison({
             </tr>
 
             {/* VAT */}
-            <tr className="border-b border-gray-100 hover:bg-gray-50/40 transition-colors">
-              <td className={`${LABEL_W} sticky left-0 bg-white px-4 py-3 text-xs font-medium text-gray-500 border-r border-gray-100`}>{t('tenderFlow.vatLabel')}</td>
+            <tr className="border-b border-border hover:bg-muted/40 transition-colors">
+              <td className={`${LABEL_W} sticky left-0 bg-card px-4 py-3 text-xs font-medium text-muted-foreground border-r border-border`}>{t('tenderFlow.vatLabel')}</td>
               {visibleOffers.map(offer => {
                 const fin = getFinancial(offer.id);
                 return (
-                  <td key={offer.id} className={`${COL_W} px-4 py-3 text-center text-sm border-r border-gray-100 last:border-r-0 ${selectedVendor === offer.id ? 'bg-blue-50/30' : ''}`}>
-                    {fin?.vat != null ? <span className="font-medium text-gray-800">{fin.vat}%</span> : <span className="text-gray-300">—</span>}
+                  <td key={offer.id} className={`${COL_W} px-4 py-3 text-center text-sm border-r border-border last:border-r-0 ${selectedVendor === offer.id ? 'bg-[var(--bid-orange)]/5/30' : ''}`}>
+                    {fin?.vat != null ? <span className="font-medium text-foreground">{fin.vat}%</span> : <span className="text-gray-300">—</span>}
                   </td>
                 );
               })}
             </tr>
 
             {/* Payment Terms */}
-            <tr className="border-b border-gray-100 hover:bg-gray-50/40 transition-colors">
-              <td className={`${LABEL_W} sticky left-0 bg-white px-4 py-3 text-xs font-medium text-gray-500 border-r border-gray-100`}>{t('tenderFlow.paymentTerms')}</td>
+            <tr className="border-b border-border hover:bg-muted/40 transition-colors">
+              <td className={`${LABEL_W} sticky left-0 bg-card px-4 py-3 text-xs font-medium text-muted-foreground border-r border-border`}>{t('tenderFlow.paymentTerms')}</td>
               {visibleOffers.map(offer => {
                 const fin = getFinancial(offer.id);
                 return (
-                  <td key={offer.id} className={`${COL_W} px-4 py-3 text-center text-xs border-r border-gray-100 last:border-r-0 ${selectedVendor === offer.id ? 'bg-blue-50/30' : ''}`}>
-                    {fin?.paymentTerms ? <span className="text-gray-700">{fin.paymentTerms}</span> : <span className="text-gray-300">—</span>}
+                  <td key={offer.id} className={`${COL_W} px-4 py-3 text-center text-xs border-r border-border last:border-r-0 ${selectedVendor === offer.id ? 'bg-[var(--bid-orange)]/5/30' : ''}`}>
+                    {fin?.paymentTerms ? <span className="text-muted-foreground">{fin.paymentTerms}</span> : <span className="text-gray-300">—</span>}
                   </td>
                 );
               })}
@@ -739,8 +739,8 @@ export default function ProposalComparison({
               <>
                 <SectionHeader label={t('tenderFlow.deliverablesCoverage')} icon={Check} />
                 {Array.from(allDeliverables).map((deliverable, dIdx) => (
-                  <tr key={deliverable} className={`border-b border-gray-100 hover:bg-gray-50/40 transition-colors ${dIdx % 2 === 1 ? 'bg-gray-50/20' : ''}`}>
-                    <td className={`${LABEL_W} sticky left-0 ${dIdx % 2 === 1 ? 'bg-gray-50/80' : 'bg-white'} px-4 py-2.5 text-xs text-gray-600 border-r border-gray-100 leading-snug`}>
+                  <tr key={deliverable} className={`border-b border-border hover:bg-muted/40 transition-colors ${dIdx % 2 === 1 ? 'bg-muted/20' : ''}`}>
+                    <td className={`${LABEL_W} sticky left-0 ${dIdx % 2 === 1 ? 'bg-muted/80' : 'bg-card'} px-4 py-2.5 text-xs text-muted-foreground border-r border-border leading-snug`}>
                       {deliverable}
                     </td>
                     {visibleOffers.map(offer => {
@@ -750,14 +750,14 @@ export default function ProposalComparison({
                         deliverable.toLowerCase().includes(d.toLowerCase())
                       );
                       return (
-                        <td key={offer.id} className={`${COL_W} px-4 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${selectedVendor === offer.id ? 'bg-blue-50/30' : ''}`}>
+                        <td key={offer.id} className={`${COL_W} px-4 py-2.5 text-center border-r border-border last:border-r-0 ${selectedVendor === offer.id ? 'bg-[var(--bid-orange)]/5/30' : ''}`}>
                           <div className="flex justify-center">
                             {hasIt ? (
-                              <div className="h-5 w-5 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center">
-                                <Check className="h-3 w-3 text-emerald-600" />
+                              <div className="h-5 w-5 rounded-full bg-[var(--state-won)]/10 border border-emerald-200 flex items-center justify-center">
+                                <Check className="h-3 w-3 text-[var(--state-won)]" />
                               </div>
                             ) : (
-                              <div className="h-5 w-5 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
+                              <div className="h-5 w-5 rounded-full bg-muted border border-border flex items-center justify-center">
                                 <Minus className="h-3 w-3 text-gray-300" />
                               </div>
                             )}
@@ -775,8 +775,8 @@ export default function ProposalComparison({
               <>
                 <SectionHeader label={t('tenderFlow.requirementsCoverage')} icon={Sparkles} />
                 {Array.from(allCriteria).map((criterion, cIdx) => (
-                  <tr key={criterion} className={`border-b border-gray-100 hover:bg-gray-50/40 transition-colors ${cIdx % 2 === 1 ? 'bg-gray-50/20' : ''}`}>
-                    <td className={`${LABEL_W} sticky left-0 ${cIdx % 2 === 1 ? 'bg-gray-50/80' : 'bg-white'} px-4 py-2.5 text-xs text-gray-600 border-r border-gray-100 leading-snug`}>
+                  <tr key={criterion} className={`border-b border-border hover:bg-muted/40 transition-colors ${cIdx % 2 === 1 ? 'bg-muted/20' : ''}`}>
+                    <td className={`${LABEL_W} sticky left-0 ${cIdx % 2 === 1 ? 'bg-muted/80' : 'bg-card'} px-4 py-2.5 text-xs text-muted-foreground border-r border-border leading-snug`}>
                       {criterion}
                     </td>
                     {visibleOffers.map(offer => {
@@ -784,13 +784,13 @@ export default function ProposalComparison({
                       const ref = analysis?.criteriaMapping?.[criterion];
                       const found = ref && ref !== 'Not Found' && ref !== 'غير موجود';
                       return (
-                        <td key={offer.id} className={`${COL_W} px-4 py-2.5 text-center border-r border-gray-100 last:border-r-0 ${selectedVendor === offer.id ? 'bg-blue-50/30' : ''}`}>
+                        <td key={offer.id} className={`${COL_W} px-4 py-2.5 text-center border-r border-border last:border-r-0 ${selectedVendor === offer.id ? 'bg-[var(--bid-orange)]/5/30' : ''}`}>
                           {found ? (
                             <div className="flex flex-col items-center gap-0.5">
-                              <div className="h-5 w-5 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center">
-                                <Check className="h-3 w-3 text-emerald-600" />
+                              <div className="h-5 w-5 rounded-full bg-[var(--state-won)]/10 border border-emerald-200 flex items-center justify-center">
+                                <Check className="h-3 w-3 text-[var(--state-won)]" />
                               </div>
-                              <span className="text-[9px] font-mono text-emerald-600">{ref}</span>
+                              <span className="text-[9px] font-mono text-[var(--state-won)]">{ref}</span>
                             </div>
                           ) : ref === 'Not Found' ? (
                             <div className="h-5 w-5 rounded-full bg-red-100 border border-red-200 flex items-center justify-center mx-auto">
@@ -814,8 +814,8 @@ export default function ProposalComparison({
 
       {/* ── Negotiation Action Bar ──────────────────────────────────────── */}
       {negotiationMode && checkedVendors.size > 0 && (
-        <div className="mx-5 mt-3 mb-1 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 flex-wrap">
-          <span className="text-xs font-semibold text-gray-600 mr-1">
+        <div className="mx-5 mt-3 mb-1 flex items-center gap-2 bg-muted border border-border rounded-xl px-4 py-2.5 flex-wrap">
+          <span className="text-xs font-semibold text-muted-foreground mr-1">
             {t('tenderFlow.vendorsSelected').replace('{count}', String(checkedVendors.size))}
           </span>
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -835,7 +835,7 @@ export default function ProposalComparison({
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-7 text-xs gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                      className="h-7 text-xs gap-1 border-emerald-200 text-[var(--state-won)] hover:bg-[var(--state-won)]/5"
                       onClick={() => setActiveDialog('award')}
                       disabled={checkedVendors.size !== 1}
                     >
@@ -886,8 +886,8 @@ export default function ProposalComparison({
 
       {/* ── Negotiation history log ──────────────────────────────────────── */}
       {negotiationMode && negotiationActions.length > 0 && (
-        <div className="mx-5 mt-4 mb-1 border border-gray-100 rounded-xl overflow-hidden">
-          <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+        <div className="mx-5 mt-4 mb-1 border border-border rounded-xl overflow-hidden">
+          <div className="px-4 py-2.5 bg-muted border-b border-border flex items-center gap-2">
             <Clock className="h-3.5 w-3.5 text-gray-400" />
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('tenderFlow.negotiationHistory')}</span>
           </div>
@@ -899,13 +899,13 @@ export default function ProposalComparison({
               const Icon = meta?.icon || Mail;
               return (
                 <div key={action.id} className="px-4 py-3 flex items-start gap-3">
-                  <div className={`mt-0.5 h-6 w-6 rounded-full border flex items-center justify-center flex-shrink-0 ${meta?.color || 'text-gray-500 bg-gray-50 border-gray-200'}`}>
+                  <div className={`mt-0.5 h-6 w-6 rounded-full border flex items-center justify-center flex-shrink-0 ${meta?.color || 'text-muted-foreground bg-muted border-border'}`}>
                     <Icon className="h-3 w-3" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-semibold text-gray-800">{vendorName}</span>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${meta?.color || 'text-gray-500 bg-gray-50 border-gray-200'}`}>
+                      <span className="text-xs font-semibold text-foreground">{vendorName}</span>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${meta?.color || 'text-muted-foreground bg-muted border-border'}`}>
                         {meta?.label() || action.actionType}
                       </span>
                     </div>
@@ -1022,7 +1022,7 @@ export default function ProposalComparison({
 
       {/* ── Footer ──────────────────────────────────────────────────────── */}
       {(removedOffers.length > 0 || completedAnalyses[0]?.analyzedAt) && (
-        <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between gap-4 flex-wrap">
+        <div className="px-5 py-3 border-t border-border flex items-center justify-between gap-4 flex-wrap">
           {removedOffers.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs text-gray-400">{t('tenderFlow.removedLabel')}</span>

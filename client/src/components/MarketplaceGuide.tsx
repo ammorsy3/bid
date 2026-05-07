@@ -38,7 +38,7 @@ function CircleProgress({ percent, days, expired, size = 56 }: { percent: number
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percent / 100) * circumference;
-  const color = expired ? '#ef4444' : percent < 25 ? '#f59e0b' : '#E8614D';
+  const color = expired ? '#ef4444' : percent < 25 ? '#f59e0b' : '#FE3C01';
   return (
     <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
@@ -100,56 +100,56 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
       visual: (
         <div className="bg-[#FFF8F6] rounded-xl p-4 flex items-center justify-center">
           <div className="origin-top" style={{ transform: 'scale(0.78)', width: '520px' }}>
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
               {/* Main content area */}
               <div className="flex items-stretch">
                 {/* Left: Circle progress */}
-                <div className="flex flex-col items-center justify-center px-6 py-6 border-e border-gray-100 min-w-[130px]">
+                <div className="flex flex-col items-center justify-center px-6 py-6 border-e border-border min-w-[130px]">
                   <CircleProgress percent={percent} days={days} expired={expired} size={80} />
-                  <p className={`text-[10px] mt-2 ${expired ? 'text-red-500' : 'text-gray-500'}`}>
+                  <p className={`text-[10px] mt-2 ${expired ? 'text-red-500' : 'text-muted-foreground'}`}>
                     {expired ? t('marketplace.deadlinePassed') : `${days} ${t('marketplace.daysRemaining')}`}
                   </p>
                 </div>
                 {/* Right: Tender info */}
                 <div className="flex-1 min-w-0 px-5 py-4 flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
+                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                       <Calendar className="h-3 w-3" />
                       <span>{t('marketplace.publishDate')}:</span>
-                      <span className="font-medium text-gray-700">{formatDate(tender.createdAt)}</span>
+                      <span className="font-medium text-muted-foreground">{formatDate(tender.createdAt)}</span>
                     </div>
-                    <Badge className="bg-[#E8614D] text-white border-0 text-[9px] font-medium px-2 py-0.5 rounded">
+                    <Badge className="bg-[#FE3C01] text-white border-0 text-[9px] font-medium px-2 py-0.5 rounded">
                       {t('marketplace.openTender')}
                     </Badge>
                   </div>
-                  <h3 className="text-sm font-bold text-gray-900 leading-snug mb-1.5 line-clamp-2">
+                  <h3 className="text-sm font-bold text-foreground leading-snug mb-1.5 line-clamp-2">
                     {tender.title}
                   </h3>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
                     <Building className="h-3 w-3 text-gray-400 flex-shrink-0" />
                     <span className="font-medium">{companyName}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    {tender.category && <span className="text-[10px] text-[#E8614D] font-medium">{tender.category}</span>}
-                    <span className="text-[10px] text-gray-500 underline underline-offset-2">{t('marketplace.viewDetails')}</span>
+                    {tender.category && <span className="text-[10px] text-[#FE3C01] font-medium">{tender.category}</span>}
+                    <span className="text-[10px] text-muted-foreground underline underline-offset-2">{t('marketplace.viewDetails')}</span>
                   </div>
                 </div>
               </div>
               {/* Metadata row */}
-              <div className="grid grid-cols-4 gap-px bg-gray-100 border-t border-gray-100">
-                <div className="bg-white px-3 py-2.5 text-center">
+              <div className="grid grid-cols-4 gap-px bg-muted border-t border-border">
+                <div className="bg-card px-3 py-2.5 text-center">
                   <p className="text-[9px] text-gray-400 mb-0.5">{t('marketplace.refNumber')}</p>
-                  <p className="text-xs font-semibold text-gray-800 font-mono">BID-XXXX</p>
+                  <p className="text-xs font-semibold text-foreground font-mono">BID-XXXX</p>
                 </div>
-                <div className="bg-white px-3 py-2.5 text-center">
+                <div className="bg-card px-3 py-2.5 text-center">
                   <p className="text-[9px] text-gray-400 mb-0.5">{t('marketplace.inquiryDeadline')}</p>
                   <p className="text-xs font-semibold text-gray-400">—</p>
                 </div>
-                <div className="bg-white px-3 py-2.5 text-center">
+                <div className="bg-card px-3 py-2.5 text-center">
                   <p className="text-[9px] text-gray-400 mb-0.5">{t('marketplace.submissionDeadline')}</p>
-                  <p className="text-xs font-semibold text-gray-800">{formatDate(tender.deadline)}</p>
+                  <p className="text-xs font-semibold text-foreground">{formatDate(tender.deadline)}</p>
                 </div>
-                <div className="bg-white px-3 py-2.5 text-center">
+                <div className="bg-card px-3 py-2.5 text-center">
                   <p className="text-[9px] text-gray-400 mb-0.5">{t('marketplace.documentFee')}</p>
                   <p className="text-xs font-semibold text-gray-400">—</p>
                 </div>
@@ -167,16 +167,16 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
       visual: (
         <div className="grid grid-cols-3 gap-3 px-2">
           {[
-            { icon: Globe, name: t('marketplace.openTender') || 'Open Tender', desc: t('marketplace.guideTenderTypeOpen') || 'Anyone can apply. Best when you want the most options and competition.', color: 'border-blue-200 bg-blue-50', iconColor: 'text-blue-600', dotColor: 'bg-blue-500' },
+            { icon: Globe, name: t('marketplace.openTender') || 'Open Tender', desc: t('marketplace.guideTenderTypeOpen') || 'Anyone can apply. Best when you want the most options and competition.', color: 'border-[var(--bid-orange)]/20 bg-[var(--bid-orange)]/5', iconColor: 'text-[var(--bid-orange)]', dotColor: 'bg-[var(--bid-orange)]' },
             { icon: Handshake, name: t('marketplace.directPurchase') || 'Direct Purchase', desc: t('marketplace.guideTenderTypeDirect') || 'You already know roughly who you want. Smaller scope, quicker process.', color: 'border-amber-200 bg-amber-50', iconColor: 'text-amber-600', dotColor: 'bg-amber-500' },
-            { icon: Layers, name: t('marketplace.frameworkAgreement') || 'Framework Agreement', desc: t('marketplace.guideTenderTypeFramework') || 'An ongoing deal — you\'ll place multiple orders over time with the chosen supplier.', color: 'border-purple-200 bg-purple-50', iconColor: 'text-purple-600', dotColor: 'bg-purple-500' },
+            { icon: Layers, name: t('marketplace.frameworkAgreement') || 'Framework Agreement', desc: t('marketplace.guideTenderTypeFramework') || 'An ongoing deal — you\'ll place multiple orders over time with the chosen supplier.', color: 'border-purple-200 bg-[var(--bid-orange)]/5', iconColor: 'text-[var(--bid-orange)]', dotColor: 'bg-[var(--bid-orange)]' },
           ].map((type, i) => (
             <div key={i} className={`rounded-xl border-2 ${type.color} p-4 flex flex-col items-center text-center`}>
               <div className={`h-10 w-10 rounded-lg ${type.color} flex items-center justify-center mb-3`}>
                 <type.icon className={`h-5 w-5 ${type.iconColor}`} />
               </div>
-              <p className="text-sm font-semibold text-gray-900 mb-1">{type.name}</p>
-              <p className="text-[11px] text-gray-500 leading-relaxed">{type.desc}</p>
+              <p className="text-sm font-semibold text-foreground mb-1">{type.name}</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">{type.desc}</p>
             </div>
           ))}
         </div>
@@ -192,15 +192,15 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
           {/* Paid */}
           <div className="flex-1 rounded-xl border-2 border-amber-200 bg-amber-50/50 p-5 flex flex-col items-center text-center">
             <div className="relative mb-3">
-              <div className="h-14 w-14 rounded-xl bg-white border border-amber-200 flex items-center justify-center shadow-sm">
+              <div className="h-14 w-14 rounded-xl bg-card border border-amber-200 flex items-center justify-center shadow-sm">
                 <FileText className="h-7 w-7 text-amber-600" />
               </div>
               <div className="absolute -top-2 -right-2 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow">
                 {t('marketplace.sar') || 'SAR'}
               </div>
             </div>
-            <p className="text-sm font-semibold text-gray-900 mb-0.5">{t('marketplace.guideDocFeePaid') || 'Set a fee'}</p>
-            <p className="text-[11px] text-gray-500">{t('marketplace.guideDocFeePaidDesc') || 'The fee amount is shown on your listing — payment is handled outside the platform'}</p>
+            <p className="text-sm font-semibold text-foreground mb-0.5">{t('marketplace.guideDocFeePaid') || 'Set a fee'}</p>
+            <p className="text-[11px] text-muted-foreground">{t('marketplace.guideDocFeePaidDesc') || 'The fee amount is shown on your listing — payment is handled outside the platform'}</p>
           </div>
 
           {/* Divider */}
@@ -213,15 +213,15 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
           {/* Free */}
           <div className="flex-1 rounded-xl border-2 border-green-200 bg-green-50/50 p-5 flex flex-col items-center text-center">
             <div className="relative mb-3">
-              <div className="h-14 w-14 rounded-xl bg-white border border-green-200 flex items-center justify-center shadow-sm">
+              <div className="h-14 w-14 rounded-xl bg-card border border-green-200 flex items-center justify-center shadow-sm">
                 <FileText className="h-7 w-7 text-green-600" />
               </div>
               <div className="absolute -top-2 -right-2 bg-green-500 text-white flex items-center justify-center h-5 w-5 rounded-full shadow">
                 <CheckCircle className="h-3.5 w-3.5" />
               </div>
             </div>
-            <p className="text-sm font-semibold text-gray-900 mb-0.5">{t('marketplace.guideDocFeeFree') || 'Keep it free'}</p>
-            <p className="text-[11px] text-gray-500">{t('marketplace.guideDocFeeFreeDesc') || 'No fee shown — documents are open to all suppliers'}</p>
+            <p className="text-sm font-semibold text-foreground mb-0.5">{t('marketplace.guideDocFeeFree') || 'Keep it free'}</p>
+            <p className="text-[11px] text-muted-foreground">{t('marketplace.guideDocFeeFreeDesc') || 'No fee shown — documents are open to all suppliers'}</p>
           </div>
         </div>
       ),
@@ -237,13 +237,13 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
           <div className="grid grid-cols-[auto_1fr_auto_1fr_auto] items-center mx-2">
             {/* Now dot */}
             <div className="relative z-10 flex flex-col items-center">
-              <div className="h-4 w-4 rounded-full bg-[#E8614D] border-2 border-white shadow" />
+              <div className="h-4 w-4 rounded-full bg-[#FE3C01] border-2 border-white shadow" />
             </div>
             {/* Line: Now → Questions cutoff (active/coral) */}
-            <div className="h-0.5 bg-[#E8614D]/40" />
+            <div className="h-0.5 bg-[#FE3C01]/40" />
             {/* Questions cutoff dot */}
             <div className="relative z-10 flex flex-col items-center">
-              <div className="h-5 w-5 rounded-full border-2 border-dashed border-amber-400 bg-white flex items-center justify-center">
+              <div className="h-5 w-5 rounded-full border-2 border-dashed border-amber-400 bg-card flex items-center justify-center">
                 <div className="h-2 w-2 rounded-full bg-amber-400" />
               </div>
             </div>
@@ -258,7 +258,7 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
           {/* Labels row - same 3 column grid */}
           <div className="grid grid-cols-[auto_1fr_auto_1fr_auto] items-start mx-2 mt-2">
             <div className="flex flex-col items-center" style={{ minWidth: '16px' }}>
-              <span className="text-[10px] font-semibold text-[#E8614D]">{t('marketplace.guideTimelineNow') || 'Now'}</span>
+              <span className="text-[10px] font-semibold text-[#FE3C01]">{t('marketplace.guideTimelineNow') || 'Now'}</span>
             </div>
             <div />
             <div className="flex flex-col items-center text-center px-1">
@@ -267,19 +267,19 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
             </div>
             <div />
             <div className="flex flex-col items-center text-center" style={{ minWidth: '16px' }}>
-              <span className="text-[10px] font-semibold text-gray-700">{t('marketplace.guideTimelineSubmission') || 'Final deadline'}</span>
-              <span className="text-[9px] text-gray-500 font-medium">{format(new Date(tender.deadline), 'MMM d, yyyy', { locale: dateLocale })}</span>
+              <span className="text-[10px] font-semibold text-muted-foreground">{t('marketplace.guideTimelineSubmission') || 'Final deadline'}</span>
+              <span className="text-[9px] text-muted-foreground font-medium">{format(new Date(tender.deadline), 'MMM d, yyyy', { locale: dateLocale })}</span>
             </div>
           </div>
 
           {/* Legend */}
           <div className="mt-6 flex items-center justify-center gap-6 text-[11px]">
-            <div className="flex items-center gap-1.5 text-gray-500">
-              <div className="h-2.5 w-6 rounded-full bg-[#E8614D]/30 border border-[#E8614D]/50" />
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <div className="h-2.5 w-6 rounded-full bg-[#FE3C01]/30 border border-[#FE3C01]/50" />
               <span>{t('marketplace.guideTimelineQuestionsOpen') || 'Suppliers can ask questions'}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-gray-500">
-              <div className="h-2.5 w-6 rounded-full bg-gray-100 border border-gray-300" />
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <div className="h-2.5 w-6 rounded-full bg-muted border border-border" />
               <span>{t('marketplace.guideTimelineSubmissionsOnly') || 'Only proposals accepted'}</span>
             </div>
           </div>
@@ -296,53 +296,53 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
           <div className="flex items-start gap-5">
             {/* Document mockup */}
             <div className="relative w-[160px]">
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 space-y-2.5">
+              <div className="bg-card rounded-lg border border-border shadow-sm p-4 space-y-2.5">
                 {/* Header lines */}
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="h-5 w-5 rounded bg-gray-100" />
+                  <div className="h-5 w-5 rounded bg-muted" />
                   <div className="h-2.5 w-20 bg-gray-200 rounded-full" />
                 </div>
                 {/* Content lines */}
-                <div className="h-2 w-full bg-gray-100 rounded-full" />
-                <div className="h-2 w-4/5 bg-gray-100 rounded-full" />
-                <div className="h-2 w-full bg-gray-100 rounded-full" />
-                <div className="h-2 w-3/5 bg-gray-100 rounded-full" />
+                <div className="h-2 w-full bg-muted rounded-full" />
+                <div className="h-2 w-4/5 bg-muted rounded-full" />
+                <div className="h-2 w-full bg-muted rounded-full" />
+                <div className="h-2 w-3/5 bg-muted rounded-full" />
                 {/* Amount highlight */}
-                <div className="mt-3 p-2 bg-[#E8614D]/5 rounded border border-[#E8614D]/20">
-                  <div className="h-2 w-16 bg-[#E8614D]/30 rounded-full" />
+                <div className="mt-3 p-2 bg-[#FE3C01]/5 rounded border border-[#FE3C01]/20">
+                  <div className="h-2 w-16 bg-[#FE3C01]/30 rounded-full" />
                 </div>
                 {/* Signature area */}
-                <div className="mt-3 pt-3 border-t border-dashed border-gray-300">
+                <div className="mt-3 pt-3 border-t border-dashed border-border">
                   <div className="h-2 w-12 bg-gray-200 rounded-full mb-1" />
-                  <div className="h-1.5 w-20 bg-gray-100 rounded-full" />
+                  <div className="h-1.5 w-20 bg-muted rounded-full" />
                 </div>
               </div>
               {/* Stamp */}
-              <div className="absolute -bottom-2 -right-2 h-10 w-10 rounded-full bg-[#E8614D]/10 border-2 border-[#E8614D]/40 flex items-center justify-center">
-                <CheckCircle className="h-5 w-5 text-[#E8614D]" />
+              <div className="absolute -bottom-2 -right-2 h-10 w-10 rounded-full bg-[#FE3C01]/10 border-2 border-[#FE3C01]/40 flex items-center justify-center">
+                <CheckCircle className="h-5 w-5 text-[#FE3C01]" />
               </div>
             </div>
 
             {/* Info badges */}
             <div className="flex flex-col gap-3 pt-2">
-              <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
-                <Lock className="h-4 w-4 text-gray-500" />
+              <div className="flex items-center gap-2.5 px-3 py-2 bg-muted rounded-lg border border-border">
+                <Lock className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-xs font-medium text-gray-700">{t('marketplace.guidePoOnlyYou') || 'Private to you'}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t('marketplace.guidePoOnlyYou') || 'Private to you'}</p>
                   <p className="text-[10px] text-gray-400">{t('marketplace.guidePoOnlyYouDesc') || 'Only you and Bid admin can see it'}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2.5 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
-                <Lock className="h-4 w-4 text-gray-500" />
+              <div className="flex items-center gap-2.5 px-3 py-2 bg-muted rounded-lg border border-border">
+                <Lock className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-xs font-medium text-gray-700">{t('marketplace.guidePoNeverPublic') || 'Never shown publicly'}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t('marketplace.guidePoNeverPublic') || 'Never shown publicly'}</p>
                   <p className="text-[10px] text-gray-400">{t('marketplace.guidePoNeverPublicDesc') || 'Suppliers will never see this document'}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2.5 px-3 py-2 bg-[#E8614D]/5 rounded-lg border border-[#E8614D]/20">
-                <FileText className="h-4 w-4 text-[#E8614D]" />
+              <div className="flex items-center gap-2.5 px-3 py-2 bg-[#FE3C01]/5 rounded-lg border border-[#FE3C01]/20">
+                <FileText className="h-4 w-4 text-[#FE3C01]" />
                 <div>
-                  <p className="text-xs font-medium text-gray-700">{t('marketplace.guidePoSigned') || 'Signed & stamped'}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t('marketplace.guidePoSigned') || 'Signed & stamped'}</p>
                   <p className="text-[10px] text-gray-400">{t('marketplace.guidePoSignedDesc') || 'Proves your company will pay the winning supplier'}</p>
                 </div>
               </div>
@@ -361,9 +361,9 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
           {/* Flow diagram */}
           <div className="flex items-center justify-center gap-2 mb-5">
             {[
-              { icon: Store, label: t('marketplace.guideFlowPublish') || 'You publish', color: 'bg-blue-50 border-blue-200 text-blue-700' },
-              { icon: Users, label: t('marketplace.guideFlowBid') || 'Suppliers apply', color: 'bg-amber-50 border-amber-200 text-amber-700' },
-              { icon: CheckCircle, label: t('marketplace.guideFlowAward') || 'You pick a winner', color: 'bg-green-50 border-green-200 text-green-700' },
+              { icon: Store, label: t('marketplace.guideFlowPublish') || 'You publish', color: 'bg-[var(--bid-orange)]/5 border-[var(--bid-orange)]/20 text-[var(--bid-orange)]' },
+              { icon: Users, label: t('marketplace.guideFlowBid') || 'Suppliers apply', color: 'bg-amber-50 border-amber-200 text-amber-700 dark:text-amber-300' },
+              { icon: CheckCircle, label: t('marketplace.guideFlowAward') || 'You pick a winner', color: 'bg-green-50 border-green-200 text-green-700 dark:text-green-300' },
             ].map((step, i) => (
               <div key={i} className="flex items-center gap-2">
                 <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${step.color}`}>
@@ -380,7 +380,7 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
             <div className="flex items-start gap-2.5">
               <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs text-amber-700 leading-relaxed">
+                <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
                   {t('marketplace.guideBindingMerged') || 'Once published, this tender cannot be cancelled. You are expected to review proposals and award it to a vendor. Accounts that don\'t follow through may be permanently banned.'}
                 </p>
               </div>
@@ -410,7 +410,7 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
           >
             {/* Title */}
             <div className="px-6 pt-6 pb-3">
-              <h3 className="text-base font-semibold text-gray-900">{slide.title}</h3>
+              <h3 className="text-base font-semibold text-foreground">{slide.title}</h3>
             </div>
 
             {/* Visual area */}
@@ -420,7 +420,7 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
 
             {/* Caption */}
             <div className="px-6 pt-2 pb-1">
-              <p className="text-sm text-gray-500 leading-relaxed">{slide.caption}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{slide.caption}</p>
             </div>
           </motion.div>
         </AnimatePresence>
@@ -434,7 +434,7 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
             onClick={() => goTo(i)}
             className={`rounded-full transition-all duration-200 ${
               i === currentSlide
-                ? 'bg-[#E8614D] w-5 h-2'
+                ? 'bg-[#FE3C01] w-5 h-2'
                 : 'bg-gray-200 hover:bg-gray-300 w-2 h-2'
             }`}
           />
@@ -443,7 +443,7 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
 
       {/* Footer */}
       <div className={`flex items-center justify-between px-6 pb-5 pt-1 ${isRtl ? 'flex-row-reverse' : ''}`}>
-        <Button variant="ghost" size="sm" onClick={onCancel} className="text-gray-500">
+        <Button variant="ghost" size="sm" onClick={onCancel} className="text-muted-foreground">
           {t('marketplace.cancel') || 'Cancel'}
         </Button>
         <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -454,7 +454,7 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
             </Button>
           )}
           <Button
-            className={`bg-[#E25E45] hover:bg-[#d54d35] text-white ${isLastSlide ? 'px-5' : ''}`}
+            className={`bg-[#FE3C01] hover:bg-[#d54d35] text-white ${isLastSlide ? 'px-5' : ''}`}
             onClick={isLastSlide ? onContinue : next}
           >
             {isLastSlide ? (

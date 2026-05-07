@@ -20,20 +20,20 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
                 <div
                   className={`w-8 h-px ${
                     isCompleted
-                      ? "bg-green-500"
+                      ? "bg-[var(--state-won)]"
                       : isActive
-                      ? "bg-[#E8614D]"
+                      ? "bg-[var(--bid-orange)]"
                       : "bg-gray-300 dark:bg-gray-600"
                   }`}
                 />
               )}
               <div className="flex items-center gap-1.5">
                 <span
-                  className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] ${
+                  className={`w-6 h-6 rounded-full flex items-center justify-center font-display font-black text-[10px] tabular-nums ${
                     isCompleted
-                      ? "bg-green-500 text-white"
+                      ? "bg-[var(--state-won)] text-white"
                       : isActive
-                      ? "bg-[#E8614D] text-white"
+                      ? "bg-[var(--bid-orange)] text-white bid-dot-pulse"
                       : "bg-gray-200 dark:bg-gray-700 text-gray-400"
                   }`}
                 >
@@ -46,7 +46,7 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
                 <span
                   className={
                     isActive
-                      ? "font-semibold text-gray-900 dark:text-white"
+                      ? "font-semibold text-gray-900 dark:text-foreground"
                       : "text-gray-400 font-medium"
                   }
                 >
@@ -57,8 +57,8 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
           );
         })}
       </div>
-      <div className="md:hidden text-sm font-semibold text-gray-900 dark:text-white">
-        Step {currentStep} of {steps.length}
+      <div className="md:hidden text-sm font-semibold text-gray-900 dark:text-foreground">
+        Step <span className="font-mono">{currentStep}</span> of <span className="font-mono">{steps.length}</span>
       </div>
     </>
   );

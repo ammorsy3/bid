@@ -207,7 +207,7 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
               left: spotlight.left - SPOTLIGHT_PAD,
               width: spotlight.width + SPOTLIGHT_PAD * 2,
               height: spotlight.height + SPOTLIGHT_PAD * 2,
-              boxShadow: '0 0 0 3px #E8614D, 0 0 20px rgba(232, 97, 77, 0.35)',
+              boxShadow: '0 0 0 3px #FE3C01, 0 0 20px rgba(232, 97, 77, 0.35)',
               transition: 'top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease',
             }}
           />
@@ -225,13 +225,13 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 6 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="absolute bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+            className="absolute bg-white dark:bg-background rounded-2xl shadow-2xl border border-border dark:border-border overflow-hidden"
             style={{ width: CARD_W, top: cardPos.top, left: cardPos.left, transformOrigin: cardPos.transformOrigin }}
           >
             {/* Progress bar */}
-            <div className="relative h-1 bg-gray-100 dark:bg-gray-800">
+            <div className="relative h-1 bg-gray-100 dark:bg-card">
               <motion.div
-                className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]"
+                className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]"
                 initial={false}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.25, ease: 'easeOut' }}
@@ -240,19 +240,19 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
 
             <div className="p-5">
               <div className={`flex items-center justify-between mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                <p className="text-[11px] font-bold text-[#E8614D] uppercase tracking-widest">
+                <p className="text-[11px] font-bold text-[#FE3C01] uppercase tracking-widest">
                   {isRtl ? `خطوة ${currentStep + 1} من ${steps.length}` : `Step ${currentStep + 1} of ${steps.length}`}
                 </p>
                 <button
                   onClick={onDismiss}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#E8614D] hover:bg-[#D44D3A] transition-all px-3 py-1.5 rounded-lg shadow-sm"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#FE3C01] hover:bg-[#D44D3A] transition-all px-3 py-1.5 rounded-lg shadow-sm"
                 >
                   <X className="h-3.5 w-3.5" />
                   {isRtl ? 'تخطي' : 'Skip'}
                 </button>
               </div>
 
-              <h3 className={`font-bold text-gray-900 dark:text-white text-[15px] mb-2 leading-snug ${isRtl ? 'text-right' : ''}`}>
+              <h3 className={`font-bold text-gray-900 dark:text-foreground text-[15px] mb-2 leading-snug ${isRtl ? 'text-right' : ''}`}>
                 {step.title}
               </h3>
 
@@ -264,7 +264,7 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
                 {!isFirst && (
                   <button
                     onClick={onPrev}
-                    className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                    className="flex items-center gap-1 text-sm text-gray-400 hover:text-muted-foreground dark:hover:text-gray-200 transition-colors"
                   >
                     <ArrowLeft className="h-3.5 w-3.5" />
                     {isRtl ? 'رجوع' : 'Back'}
@@ -282,7 +282,7 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
                       style={{
                         width: i === currentStep ? 18 : 6,
                         height: 6,
-                        background: i === currentStep ? '#E8614D' : '#E5E7EB',
+                        background: i === currentStep ? '#FE3C01' : '#E5E7EB',
                       }}
                     />
                   ))}
@@ -292,7 +292,7 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
 
                 <button
                   onClick={isLast ? onDismiss : onNext}
-                  className="flex items-center gap-1.5 text-sm font-semibold text-white bg-[#E8614D] hover:bg-[#D44D3A] px-4 py-2 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 text-sm font-semibold text-white bg-[#FE3C01] hover:bg-[#D44D3A] px-4 py-2 rounded-lg transition-colors"
                 >
                   {isLast
                     ? (isRtl ? 'تم' : 'Done')
@@ -441,18 +441,18 @@ export function TourBanner({ tourId, userId, title, body, isRtl = false }: TourB
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.2 }}
-        className={`flex items-start gap-3 px-4 py-3 mb-5 rounded-xl border border-[#E8614D]/20 bg-[#FFF8F6] dark:bg-[#E8614D]/10 dark:border-[#E8614D]/25 ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+        className={`flex items-start gap-3 px-4 py-3 mb-5 rounded-xl border border-[#FE3C01]/20 bg-[#FFF8F6] dark:bg-[#FE3C01]/10 dark:border-[#FE3C01]/25 ${isRtl ? 'flex-row-reverse text-right' : ''}`}
       >
         <div className="flex-shrink-0 mt-0.5">
-          <Lightbulb className="h-4 w-4 text-[#E8614D]" />
+          <Lightbulb className="h-4 w-4 text-[#FE3C01]" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{title}</p>
+          <p className="text-sm font-semibold text-foreground dark:text-foreground">{title}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">{body}</p>
         </div>
         <button
           onClick={dismiss}
-          className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors mt-0.5"
+          className="flex-shrink-0 text-gray-400 hover:text-muted-foreground dark:hover:text-gray-200 transition-colors mt-0.5"
           aria-label="Dismiss hint"
         >
           <X className="h-4 w-4" />

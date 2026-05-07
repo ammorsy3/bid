@@ -111,7 +111,7 @@ export function SettingsNotifications() {
     return (
       <div className="space-y-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+          <h1 className="font-display font-black text-3xl flex items-center gap-2 tracking-[-0.04em]">
             <Bell className="h-6 w-6" />
             {t("notifications.pageTitle")}
           </h1>
@@ -124,7 +124,7 @@ export function SettingsNotifications() {
   return (
     <div className="space-y-6" dir={isRtl ? "rtl" : "ltr"}>
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+        <h1 className="font-display font-black text-3xl flex items-center gap-2 tracking-[-0.04em]">
           <Bell className="h-6 w-6" />
           {t("notifications.pageTitle")}
         </h1>
@@ -143,7 +143,7 @@ export function SettingsNotifications() {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-semibold">{t(`notifications.cat${cat.tKey}`)}</h3>
+                    <h3 className="font-display font-black text-base tracking-[-0.02em]">{t(`notifications.cat${cat.tKey}`)}</h3>
                     <p className="text-sm text-muted-foreground mt-1">{t(`notifications.cat${cat.tKey}Desc`)}</p>
                   </div>
                   {CHANNELS.map((ch) => {

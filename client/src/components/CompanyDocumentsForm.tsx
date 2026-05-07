@@ -124,20 +124,20 @@ export function CompanyDocumentsForm({
         return (
           <div
             key={slot.type}
-            className={`border rounded-xl p-4 bg-white transition-colors ${
-              isUploaded ? "border-green-200 bg-green-50/40" : "border-neutral-200"
+            className={`border rounded-xl p-4 bg-card transition-colors ${
+              isUploaded ? "border-green-200 bg-green-50/40" : "border-border"
             }`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-sm font-medium text-neutral-900">
+                  <span className="text-sm font-medium text-foreground">
                     {t(`onboardingPanel.${slot.labelKey}`)}
                   </span>
                   {showRequiredBadge && slot.required && !isUploaded && (
                     <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
                       isCompact
-                        ? "text-[#E25E45] bg-[#E25E45]/10"
+                        ? "text-[#FE3C01] bg-[#FE3C01]/10"
                         : "text-red-600 bg-red-50 border border-red-100"
                     }`}>
                       {t("onboardingPanel.requiredBadge")}

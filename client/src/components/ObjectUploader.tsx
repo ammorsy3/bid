@@ -189,8 +189,8 @@ export function ObjectUploader({
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden gap-0">
-          <DialogHeader className="px-6 pt-6 pb-4 border-b border-neutral-100">
-            <DialogTitle className="text-base font-semibold text-neutral-900">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
+            <DialogTitle className="text-base font-semibold text-foreground">
               Upload File
             </DialogTitle>
           </DialogHeader>
@@ -206,38 +206,38 @@ export function ObjectUploader({
                 className={cn(
                   "flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed py-10 px-6 cursor-pointer transition-all select-none",
                   isDragOver
-                    ? "border-[#E25E45] bg-[#E25E45]/5 scale-[0.99]"
-                    : "border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50/80",
+                    ? "border-[#FE3C01] bg-[#FE3C01]/5 scale-[0.99]"
+                    : "border-border hover:border-border hover:bg-muted/80",
                 )}
               >
                 <div
                   className={cn(
                     "w-14 h-14 rounded-2xl flex items-center justify-center transition-colors",
-                    isDragOver ? "bg-[#E25E45]/10" : "bg-neutral-100",
+                    isDragOver ? "bg-[#FE3C01]/10" : "bg-muted",
                   )}
                 >
                   <CloudUpload
                     className={cn(
                       "w-7 h-7 transition-colors",
-                      isDragOver ? "text-[#E25E45]" : "text-neutral-400",
+                      isDragOver ? "text-[#FE3C01]" : "text-neutral-400",
                     )}
                   />
                 </div>
 
                 <div className="text-center space-y-1">
-                  <p className="text-sm font-medium text-neutral-800">
+                  <p className="text-sm font-medium text-foreground">
                     Drop your file here
                   </p>
                   <p className="text-xs text-neutral-400">
                     or{" "}
-                    <span className="text-[#E25E45] font-medium underline underline-offset-2">
+                    <span className="text-[#FE3C01] font-medium underline underline-offset-2">
                       browse files
                     </span>
                   </p>
                 </div>
 
                 {(typeHint || maxFileSize) && (
-                  <p className="text-[11px] text-neutral-400 bg-neutral-100 rounded-full px-3 py-1">
+                  <p className="text-[11px] text-neutral-400 bg-muted rounded-full px-3 py-1">
                     {[typeHint, `Max ${fileSizeMB.toFixed(0)}MB`].filter(Boolean).join(" · ")}
                   </p>
                 )}
@@ -254,12 +254,12 @@ export function ObjectUploader({
             {/* ── File selected ── */}
             {state === "selected" && selectedFile && (
               <div className="space-y-4">
-                <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-                  <div className="w-10 h-10 bg-white rounded-xl border border-neutral-200 flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted p-4">
+                  <div className="w-10 h-10 bg-card rounded-xl border border-border flex items-center justify-center shrink-0">
                     <File className="w-5 h-5 text-neutral-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-neutral-900 truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {selectedFile.name}
                     </p>
                     <p className="text-xs text-neutral-400 mt-0.5">
@@ -273,7 +273,7 @@ export function ObjectUploader({
                       e.stopPropagation();
                       reset();
                     }}
-                    className="text-neutral-300 hover:text-neutral-500 transition-colors"
+                    className="text-neutral-300 hover:text-muted-foreground transition-colors"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -281,7 +281,7 @@ export function ObjectUploader({
 
                 <Button
                   onClick={handleUpload}
-                  className="w-full bg-[#E25E45] hover:bg-[#d04a32] h-10 rounded-xl font-medium"
+                  className="w-full bg-[#FE3C01] hover:bg-[#E83501] h-10 rounded-xl font-medium"
                 >
                   Upload File
                 </Button>
@@ -291,15 +291,15 @@ export function ObjectUploader({
             {/* ── Uploading ── */}
             {state === "uploading" && (
               <div className="space-y-4 py-1">
-                <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-                  <div className="w-10 h-10 bg-white rounded-xl border border-neutral-200 flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted p-4">
+                  <div className="w-10 h-10 bg-card rounded-xl border border-border flex items-center justify-center shrink-0">
                     <File className="w-5 h-5 text-neutral-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-neutral-900 truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {selectedFile?.name}
                     </p>
-                    <p className="text-xs text-neutral-500 mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {attemptNum > 1
                         ? `Retrying… (attempt ${attemptNum} of ${MAX_ATTEMPTS}) — ${progress}%`
                         : `Uploading… ${progress}%`}
@@ -317,7 +317,7 @@ export function ObjectUploader({
                   <CheckCircle2 className="w-7 h-7 text-green-500" />
                 </div>
                 <div className="text-center space-y-1">
-                  <p className="text-sm font-semibold text-neutral-900">Upload complete</p>
+                  <p className="text-sm font-semibold text-foreground">Upload complete</p>
                   <p className="text-xs text-neutral-400">{selectedFile?.name}</p>
                 </div>
               </div>

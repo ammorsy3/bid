@@ -153,7 +153,7 @@ export function AutocompleteInput({
   };
 
   const commonClasses =
-    "w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent disabled:opacity-50";
+    "w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent disabled:opacity-50";
 
   return (
     <div className="relative w-full">
@@ -213,7 +213,7 @@ export function AutocompleteInput({
       {/* Tab hint */}
       {ghostText && (
         <div className={`absolute ${isRtl ? "left-3" : "right-3"} top-1/2 -translate-y-1/2 pointer-events-none`}>
-          <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded border border-gray-300 dark:border-gray-600">
+          <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-card px-2 py-1 rounded border border-gray-300 dark:border-gray-600">
             {t('tenderFlow.tabToAccept')}
           </span>
         </div>

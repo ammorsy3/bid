@@ -30,14 +30,14 @@ export default function FreeMessageDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5 text-[#E25E45]" />
+            <Mail className="h-5 w-5 text-[#FE3C01]" />
             {t('tenderFlow.sendMessageTitle')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
-          <div className="text-xs text-gray-500">
-            {t('tenderFlow.sendingTo')}: <span className="font-medium text-gray-700">{vendorNames.join(", ")}</span>
+          <div className="text-xs text-muted-foreground">
+            {t('tenderFlow.sendingTo')}: <span className="font-medium text-muted-foreground">{vendorNames.join(", ")}</span>
           </div>
 
           <div>
@@ -66,7 +66,7 @@ export default function FreeMessageDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               {t('tenderFlow.cancelBtn')}
             </Button>
-            <Button onClick={handleSubmit} disabled={isPending || !message.trim()} className="bg-[#E25E45] hover:bg-[#d54d35] text-white">
+            <Button onClick={handleSubmit} disabled={isPending || !message.trim()} className="bg-[#FE3C01] hover:bg-[#d54d35] text-white">
               {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Mail className="h-4 w-4 mr-1" />}
               {t('tenderFlow.sendMessageBtn')}
             </Button>

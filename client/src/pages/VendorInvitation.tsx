@@ -214,7 +214,7 @@ export default function VendorInvitation() {
             </CardHeader>
             {isDeadlineSoon && (
               <CardContent className="border-t pt-4">
-                <p className="text-sm text-orange-900 font-medium">
+                <p className="text-sm text-orange-900 dark:text-orange-200 font-medium">
                   {t('vendorInvitation.urgent')}
                 </p>
               </CardContent>
@@ -225,7 +225,7 @@ export default function VendorInvitation() {
         {/* Email Verification Info */}
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="pt-6">
-            <p className="text-sm text-blue-900">
+            <p className="text-sm text-blue-900 dark:text-blue-200">
               {t('vendorInvitation.importantEmail', { email: data.vendorEmail })}
             </p>
           </CardContent>

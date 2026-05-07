@@ -135,21 +135,21 @@ export function DraggableCard({
       style={style}
       tabIndex={-1}
       onBlur={handleCardBlur}
-      className={`bg-white dark:bg-gray-800 border-2 rounded-xl transition-all duration-200 outline-none ${
+      className={`bg-white dark:bg-card border-2 rounded-xl transition-all duration-200 outline-none ${
         isDragging
-          ? "opacity-50 border-[#E25E45] shadow-lg"
+          ? "opacity-50 border-[#FE3C01] shadow-lg"
           : needsAction
           ? "border-red-400 dark:border-red-500 shadow-sm"
-          : "border-gray-200 dark:border-gray-700 shadow-sm hover:border-[#E25E45] hover:shadow-[0_0_0_4px_rgba(226,94,69,0.15)]"
+          : "border-border dark:border-border shadow-sm hover:border-[#FE3C01] hover:shadow-[0_0_0_4px_rgba(226,94,69,0.15)]"
       } ${isOverlay ? "shadow-2xl rotate-2" : ""}`}
     >
       {/* Card Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border dark:border-border">
         {/* Drag Handle */}
         <button
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+          className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted dark:hover:bg-gray-700 rounded transition-colors"
         >
           <GripVertical className="h-4 w-4 text-gray-400" />
         </button>
@@ -157,7 +157,7 @@ export function DraggableCard({
         {/* Icon */}
         {Icon && (
           <div className="p-1.5 rounded bg-gray-100 dark:bg-gray-700">
-            <Icon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+            <Icon className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
           </div>
         )}
 
@@ -171,12 +171,12 @@ export function DraggableCard({
                 onChange={(e) => setEditedLabel(e.target.value)}
                 onBlur={handleLabelSave}
                 onKeyDown={handleLabelKeyDown}
-                className="flex-1 px-2 py-1 text-sm font-medium bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-[#E25E45]"
+                className="flex-1 px-2 py-1 text-sm font-medium bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-[#FE3C01]"
                 autoFocus
               />
             ) : (
               <>
-                <span className="font-medium text-gray-900 dark:text-white">
+                <span className="font-medium text-gray-900 dark:text-foreground">
                   {displayLabel}
                 </span>
                 {card.isRequired && (
@@ -197,10 +197,10 @@ export function DraggableCard({
         {isCustomCard && !isEditingLabel && (
           <button
             onClick={() => setIsEditingLabel(true)}
-            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            className="p-1.5 hover:bg-muted dark:hover:bg-gray-700 rounded transition-colors"
             title={t('formBuilder.editQuestion')}
           >
-            <Pencil className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600" />
+            <Pencil className="h-3.5 w-3.5 text-gray-400 hover:text-muted-foreground" />
           </button>
         )}
 
@@ -218,7 +218,7 @@ export function DraggableCard({
 
       {/* Card Content */}
       {structureOnly ? (
-        <div className="px-4 py-3 bg-gray-50/60 dark:bg-gray-800/40 border-t border-gray-100 dark:border-gray-700/50">
+        <div className="px-4 py-3 bg-gray-50/60 dark:bg-card/40 border-t border-border dark:border-border/50">
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-0.5 rounded-full">
               {inputTypeLabel}
@@ -252,13 +252,13 @@ export function LibraryCard({
   isRequired,
 }: LibraryCardProps) {
   return (
-    <div className="flex items-center gap-3 px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-grab active:cursor-grabbing hover:border-[#E25E45] hover:shadow-sm transition-all">
+    <div className="flex items-center gap-3 px-3 py-2.5 bg-white dark:bg-card border border-border dark:border-border rounded-lg cursor-grab active:cursor-grabbing hover:border-[#FE3C01] hover:shadow-sm transition-all">
       <div className="p-1.5 rounded bg-gray-100 dark:bg-gray-700">
-        <Icon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+        <Icon className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+          <span className="text-sm font-medium text-gray-900 dark:text-foreground truncate">
             {label}
           </span>
           {isRequired && (

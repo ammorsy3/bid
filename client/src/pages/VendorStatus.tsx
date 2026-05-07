@@ -25,7 +25,7 @@ export default function VendorStatus() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-neutral-50 p-4 md:p-8">
+      <div className="min-h-screen bg-muted p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-neutral-200 rounded w-1/3" />
@@ -68,17 +68,17 @@ export default function VendorStatus() {
         };
       default:
         return {
-          icon: <AlertCircle className="h-12 w-12 text-neutral-500" />,
+          icon: <AlertCircle className="h-12 w-12 text-muted-foreground" />,
           badge: (
-            <Badge variant="outline" className="border-neutral-400 text-neutral-700 px-4 py-2 text-base">
+            <Badge variant="outline" className="border-neutral-400 text-muted-foreground px-4 py-2 text-base">
               <AlertCircle className="h-4 w-4 mr-2" />
               {t('vendorStatus.badgeNotVerified')}
             </Badge>
           ),
           title: t('vendorStatus.titleDefault'),
           description: t('vendorStatus.descDefault'),
-          bgColor: "bg-neutral-50",
-          borderColor: "border-neutral-200"
+          bgColor: "bg-muted",
+          borderColor: "border-border"
         };
     }
   };
@@ -89,11 +89,11 @@ export default function VendorStatus() {
     : t('vendorStatus.notAvailable');
 
   return (
-    <div className="min-h-screen bg-neutral-50 p-4 md:p-8">
+    <div className="min-h-screen bg-muted p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">{t('vendorStatus.accountStatusTitle')}</h1>
-          <p className="text-neutral-600">{t('vendorStatus.accountStatusDesc')}</p>
+          <h1 className="font-display font-black text-3xl text-foreground mb-2 tracking-[-0.04em]">{t('vendorStatus.accountStatusTitle')}</h1>
+          <p className="text-muted-foreground">{t('vendorStatus.accountStatusDesc')}</p>
         </div>
 
         <Card className={`mb-6 border-2 ${statusInfo.borderColor} ${statusInfo.bgColor}`}>
@@ -106,10 +106,10 @@ export default function VendorStatus() {
                 <div className="mb-3">
                   {statusInfo.badge}
                 </div>
-                <h2 className="text-2xl font-bold text-neutral-900 mb-2">
+                <h2 className="font-display font-black text-2xl text-foreground mb-2 tracking-[-0.03em]">
                   {statusInfo.title}
                 </h2>
-                <p className="text-neutral-700 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {statusInfo.description}
                 </p>
               </div>
@@ -123,7 +123,7 @@ export default function VendorStatus() {
               <CardTitle className="text-base">{t('vendorStatus.lastUpdatedTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-neutral-600" data-testid="text-last-updated">
+              <p className="text-sm text-muted-foreground" data-testid="text-last-updated">
                 {lastUpdated}
               </p>
             </CardContent>
@@ -135,7 +135,7 @@ export default function VendorStatus() {
                 <CardTitle className="text-base">{t('vendorStatus.reviewerNoteTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-neutral-700" data-testid="text-reviewer-note">
+                <p className="text-sm text-muted-foreground" data-testid="text-reviewer-note">
                   {qualification.reviewerNote}
                 </p>
               </CardContent>
@@ -170,17 +170,17 @@ export default function VendorStatus() {
         </Card>
 
         {user?.verificationStatus !== 'verified' && (
-          <Card className="mt-6 bg-blue-50 border-blue-200">
+          <Card className="mt-6 bg-[var(--bid-orange)]/5 border-[var(--bid-orange)]/20">
             <CardContent className="p-6">
               <div className="flex gap-4">
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <AlertCircle className="h-5 w-5 text-blue-600" />
+                  <div className="w-10 h-10 rounded-full bg-[var(--bid-orange)]/10 flex items-center justify-center">
+                    <AlertCircle className="h-5 w-5 text-[var(--bid-orange)]" />
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-blue-900 mb-1">{t('vendorStatus.whatsNextTitle')}</h3>
-                  <p className="text-sm text-blue-800">
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-1">{t('vendorStatus.whatsNextTitle')}</h3>
+                  <p className="text-sm text-blue-800 dark:text-blue-300">
                     {user?.verificationStatus === 'under_review'
                       ? t('vendorStatus.whatsNextUnderReview')
                       : t('vendorStatus.whatsNextDefault')}

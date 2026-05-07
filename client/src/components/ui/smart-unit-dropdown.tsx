@@ -382,7 +382,7 @@ export function SmartUnitDropdown({
             value={otherValue}
             onChange={handleOtherChange}
             placeholder={t('tenderFlow.enterCustomUnit')}
-            className={`w-full px-3 py-2 pr-8 text-sm border rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${
+            className={`w-full px-3 py-2 pr-8 text-sm border rounded-lg bg-white dark:bg-background text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
               error || isOverLimit ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
             }`}
             data-testid={dataTestId}
@@ -390,7 +390,7 @@ export function SmartUnitDropdown({
           <button
             type="button"
             onClick={handleClearOther}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-muted-foreground dark:hover:text-gray-300"
           >
             <X className="h-4 w-4" />
           </button>
@@ -402,7 +402,7 @@ export function SmartUnitDropdown({
           <button
             type="button"
             onClick={handleClearOther}
-            className="text-xs text-[#E25E45] hover:underline"
+            className="text-xs text-[#FE3C01] hover:underline"
           >
             {t('tenderFlow.backToSuggestions')}
           </button>
@@ -414,7 +414,7 @@ export function SmartUnitDropdown({
   const dropdownMenu = isOpen && createPortal(
     <div
       ref={dropdownRef}
-      className="fixed z-[9999] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-72 overflow-hidden"
+      className="fixed z-[9999] bg-white dark:bg-background border border-border dark:border-border rounded-lg shadow-lg max-h-72 overflow-hidden"
       style={{
         top: dropdownPosition.top,
         left: dropdownPosition.left,
@@ -422,11 +422,11 @@ export function SmartUnitDropdown({
       }}
     >
       {/* Add custom item - pinned at top */}
-      <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-2 border-b border-border dark:border-border">
         <button
           type="button"
           onClick={handleOtherSelect}
-          className="w-full px-3 py-2 text-sm text-left hover:bg-[#E25E45]/10 rounded-md flex items-center gap-2 text-[#E25E45] font-medium"
+          className="w-full px-3 py-2 text-sm text-left hover:bg-[#FE3C01]/10 rounded-md flex items-center gap-2 text-[#FE3C01] font-medium"
         >
           <span className="text-lg leading-none">+</span>
           {t('tenderFlow.addCustomUnit')}
@@ -434,7 +434,7 @@ export function SmartUnitDropdown({
       </div>
 
       {/* Search input */}
-      <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-2 border-b border-border dark:border-border">
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
@@ -443,7 +443,7 @@ export function SmartUnitDropdown({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={t('tenderFlow.searchUnits')}
-            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E25E45]"
+            className="w-full pl-8 pr-3 py-1.5 text-sm border border-border dark:border-border rounded-md bg-gray-50 dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#FE3C01]"
           />
         </div>
       </div>
@@ -453,8 +453,8 @@ export function SmartUnitDropdown({
         {/* Show ONLY suggested units if there are keyword matches */}
         {filteredPrioritizedUnits.length > 0 ? (
           <div>
-            <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 flex items-center gap-1">
-              <Star className="h-3 w-3 text-[#E25E45]" />
+            <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-card flex items-center gap-1">
+              <Star className="h-3 w-3 text-[#FE3C01]" />
               {t('tenderFlow.suggestedUnits')}
             </div>
             {filteredPrioritizedUnits.map((unit) => (
@@ -462,11 +462,11 @@ export function SmartUnitDropdown({
                 key={`suggested-${unit}`}
                 type="button"
                 onClick={() => handleSelect(unit)}
-                className={`w-full px-3 py-2 text-sm text-left hover:bg-[#E25E45]/10 flex items-center gap-2 ${
-                  value === unit ? 'bg-[#E25E45]/5 text-[#E25E45]' : 'text-gray-900 dark:text-white'
+                className={`w-full px-3 py-2 text-sm text-left hover:bg-[#FE3C01]/10 flex items-center gap-2 ${
+                  value === unit ? 'bg-[#FE3C01]/5 text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'
                 }`}
               >
-                <Star className="h-3 w-3 text-[#E25E45]" />
+                <Star className="h-3 w-3 text-[#FE3C01]" />
                 {labelFor(unit)}
               </button>
             ))}
@@ -484,7 +484,7 @@ export function SmartUnitDropdown({
 
             return (
               <div key={groupName}>
-                <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
+                <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-card">
                   {GROUP_NAME_KEYS[groupName] ?? groupName}
                 </div>
                 {groupUnits.map((unit) => (
@@ -492,8 +492,8 @@ export function SmartUnitDropdown({
                     key={unit}
                     type="button"
                     onClick={() => handleSelect(unit)}
-                    className={`w-full px-3 py-2 text-sm text-left hover:bg-[#E25E45]/10 ${
-                      value === unit ? 'bg-[#E25E45]/5 text-[#E25E45]' : 'text-gray-900 dark:text-white'
+                    className={`w-full px-3 py-2 text-sm text-left hover:bg-[#FE3C01]/10 ${
+                      value === unit ? 'bg-[#FE3C01]/5 text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'
                     }`}
                   >
                     {labelFor(unit)}
@@ -515,12 +515,12 @@ export function SmartUnitDropdown({
         ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-gray-900 text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${
+        className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-background text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
           error ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
         }`}
         data-testid={dataTestId}
       >
-        <span className={value ? "text-gray-900 dark:text-white" : "text-gray-400"}>
+        <span className={value ? "text-gray-900 dark:text-foreground" : "text-gray-400"}>
           {value ? labelFor(value) : t('tenderFlow.selectUnit')}
         </span>
         <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />

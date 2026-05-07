@@ -45,9 +45,10 @@ export function FormBuilderCanvas({
   const FIXED_TOP_PADDING = 60;
   const MIN_BOTTOM_PADDING = 100;
   
+  // Bid grid texture — low-opacity Stone on light, low-opacity Cream on Ink (dark mode).
   const dotColor = theme === 'dark'
-    ? 'rgba(139, 92, 246, 0.15)'
-    : 'rgba(156, 163, 175, 0.3)';
+    ? 'rgba(244, 237, 225, 0.10)'
+    : 'rgba(138, 128, 120, 0.22)';
 
   const handleZoomIn = useCallback(() => {
     setScale((s) => Math.min(s + 0.1, MAX_SCALE));
@@ -107,7 +108,7 @@ export function FormBuilderCanvas({
       className="flex-1 flex flex-col relative"
       style={{ overflow: 'hidden' }}
     >
-      <div className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-1 border border-gray-200 dark:border-gray-700">
+      <div className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-white dark:bg-card rounded-lg shadow-lg p-1 border border-border dark:border-border">
         <Button
           variant="ghost"
           size="icon"
@@ -170,7 +171,7 @@ export function FormBuilderCanvas({
         >
           <div className="w-full max-w-2xl px-6">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h2 className="font-display font-black text-2xl text-gray-900 dark:text-foreground tracking-[-0.03em]">
                 {t('formBuilder.rfpStructure')}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -181,7 +182,7 @@ export function FormBuilderCanvas({
             <div
               ref={setNodeRef}
               className={`space-y-4 min-h-[200px] transition-colors rounded-lg ${
-                isOver ? "bg-[#E25E45]/5" : ""
+                isOver ? "bg-[#FE3C01]/5" : ""
               }`}
             >
               <SortableContext
@@ -218,7 +219,7 @@ function DropZoneIndicator({ isEmpty, isOver }: DropZoneIndicatorProps) {
 
   if (!isEmpty && !isOver) {
     return (
-      <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center transition-colors hover:border-gray-300">
+      <div className="border-2 border-dashed border-border dark:border-border rounded-lg p-4 text-center transition-colors hover:border-border">
         <p className="text-sm text-gray-400 dark:text-gray-500">
           {t('formBuilder.dropMoreCards')}
         </p>
@@ -231,26 +232,26 @@ function DropZoneIndicator({ isEmpty, isOver }: DropZoneIndicatorProps) {
       <div
         className={`border-2 border-dashed rounded-lg p-12 text-center transition-all ${
           isOver
-            ? "border-[#E25E45] bg-[#E25E45]/5"
+            ? "border-[#FE3C01] bg-[#FE3C01]/5"
             : "border-gray-300 dark:border-gray-600"
         }`}
       >
         <div
           className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
             isOver
-              ? "bg-[#E25E45]/10"
-              : "bg-gray-100 dark:bg-gray-800"
+              ? "bg-[#FE3C01]/10"
+              : "bg-gray-100 dark:bg-card"
           }`}
         >
           <Plus
             className={`h-8 w-8 ${
-              isOver ? "text-[#E25E45]" : "text-gray-400"
+              isOver ? "text-[#FE3C01]" : "text-gray-400"
             }`}
           />
         </div>
         <p
           className={`text-lg font-medium ${
-            isOver ? "text-[#E25E45]" : "text-gray-500 dark:text-gray-400"
+            isOver ? "text-[#FE3C01]" : "text-gray-500 dark:text-gray-400"
           }`}
         >
           {isOver ? t('formBuilder.dropHere') : t('formBuilder.dragCardsHere')}

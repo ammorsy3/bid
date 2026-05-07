@@ -113,34 +113,34 @@ export default function OnboardingChoice() {
   return (
     <OnboardingLayout step={0}>
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-neutral-900 mb-2">
+        <h1 className="font-display font-black text-3xl text-foreground mb-2 tracking-[-0.04em]">
           Welcome, {user.name.split(' ')[0]}!
         </h1>
-        <p className="text-neutral-500 text-lg">
+        <p className="text-muted-foreground text-lg">
           How would you like to get started?
         </p>
       </div>
 
       {showSuggestions && (
         <div className="mb-6 space-y-3">
-          <div className="flex items-center gap-2 text-sm font-medium text-neutral-700">
-            <Users className="w-4 h-4 text-emerald-600" />
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <Users className="w-4 h-4 text-[var(--state-won)]" />
             We found teammates from <span className="font-semibold">{domainMatch?.domain}</span> already on Bid
           </div>
           {matches.map(w => {
             const isPending = w.alreadyRequested || acknowledgedRequests[w.id];
             return (
-              <Card key={w.id} className="border-emerald-200 bg-emerald-50/30">
+              <Card key={w.id} className="border-emerald-200 bg-[var(--state-won)]/5/30">
                 <CardContent className="pt-5 pb-5 px-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-neutral-900 truncate">{w.name}</h3>
-                      <p className="text-xs text-neutral-500 mt-0.5">
+                      <h3 className="text-base font-semibold text-foreground truncate">{w.name}</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {w.memberCount} {w.memberCount === 1 ? 'colleague' : 'colleagues'} from your domain
                       </p>
                     </div>
                     {isPending ? (
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-md whitespace-nowrap">
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-amber-700 dark:text-amber-300 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-md whitespace-nowrap">
                         <Clock className="w-3.5 h-3.5" />
                         Request pending
                       </div>
@@ -148,7 +148,7 @@ export default function OnboardingChoice() {
                       <Button
                         size="sm"
                         onClick={() => { setRequestingId(w.id); setRequestMessage(""); }}
-                        className="bg-emerald-600 hover:bg-emerald-700 whitespace-nowrap"
+                        className="bg-[var(--state-won)] hover:bg-[var(--state-won)]/90 whitespace-nowrap"
                         data-testid={`button-request-join-${w.slug}`}
                       >
                         Request to join
@@ -178,7 +178,7 @@ export default function OnboardingChoice() {
                           size="sm"
                           onClick={() => requestJoinMutation.mutate({ companyId: w.id, message: requestMessage })}
                           disabled={requestJoinMutation.isPending}
-                          className="bg-emerald-600 hover:bg-emerald-700"
+                          className="bg-[var(--state-won)] hover:bg-[var(--state-won)]/90"
                         >
                           {requestJoinMutation.isPending ? (
                             <>
@@ -202,22 +202,22 @@ export default function OnboardingChoice() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Create Company */}
         <Card
-          className="cursor-pointer group hover:border-[#E25E45]/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
+          className="cursor-pointer group hover:border-[#FE3C01]/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
           onClick={() => setLocation("/onboarding/company-basics")}
         >
           <CardContent className="pt-8 pb-8 px-6 text-center">
-            <div className="mx-auto w-14 h-14 bg-[#E25E45]/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-[#E25E45]/15 transition-colors">
-              <Building2 className="w-7 h-7 text-[#E25E45]" />
+            <div className="mx-auto w-14 h-14 bg-[#FE3C01]/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-[#FE3C01]/15 transition-colors">
+              <Building2 className="w-7 h-7 text-[#FE3C01]" />
             </div>
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               {showSuggestions ? 'Create my own workspace instead' : 'Create a new company'}
             </h3>
-            <p className="text-sm text-neutral-500 mb-5">
+            <p className="text-sm text-muted-foreground mb-5">
               {showSuggestions
                 ? "Start fresh — you can invite teammates later from settings."
                 : "Set up your company workspace, add your team, and start managing tenders."}
             </p>
-            <div className="flex items-center justify-center text-sm font-medium text-[#E25E45] group-hover:gap-2 transition-all">
+            <div className="flex items-center justify-center text-sm font-medium text-[#FE3C01] group-hover:gap-2 transition-all">
               <span>{t('onboarding.getStarted')}</span>
               <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
             </div>
@@ -227,13 +227,13 @@ export default function OnboardingChoice() {
         {/* I have an invitation code */}
         <Card className="border-2 border-transparent">
           <CardContent className="pt-8 pb-8 px-6 text-center">
-            <div className="mx-auto w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-5">
-              <KeyRound className="w-7 h-7 text-emerald-600" />
+            <div className="mx-auto w-14 h-14 bg-[var(--state-won)]/5 rounded-2xl flex items-center justify-center mb-5">
+              <KeyRound className="w-7 h-7 text-[var(--state-won)]" />
             </div>
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               I have an invitation code
             </h3>
-            <p className="text-sm text-neutral-500 mb-5">
+            <p className="text-sm text-muted-foreground mb-5">
               Paste the code from your invitation email to join your team's workspace.
             </p>
             {showInviteInput ? (
@@ -258,7 +258,7 @@ export default function OnboardingChoice() {
                     size="sm"
                     onClick={handleAcceptInvite}
                     disabled={!inviteToken.trim()}
-                    className="bg-emerald-600 hover:bg-emerald-700"
+                    className="bg-[var(--state-won)] hover:bg-[var(--state-won)]/90"
                     data-testid="button-accept-invite-token"
                   >
                     Continue
@@ -270,7 +270,7 @@ export default function OnboardingChoice() {
               <button
                 type="button"
                 onClick={() => setShowInviteInput(true)}
-                className="inline-flex items-center justify-center text-sm font-medium text-emerald-600 hover:text-emerald-700"
+                className="inline-flex items-center justify-center text-sm font-medium text-[var(--state-won)] hover:text-[var(--state-won)]"
                 data-testid="button-show-invite-input"
               >
                 <span>Enter code</span>

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Trash2 } from "lucide-react";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
@@ -120,12 +120,7 @@ export default function TenderBudgetStep() {
     <div className="py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <img
-            src={logoPath}
-            alt="Bid"
-            className="h-16 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate("/dashboard")}
-          />
+          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
           <Button
             onClick={handleBack}
             className="group relative overflow-hidden"
@@ -152,7 +147,7 @@ export default function TenderBudgetStep() {
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 6 / 7
               </div>
-              <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
+              <h1 className="font-display font-black text-5xl text-gray-900 dark:text-foreground leading-[0.92] tracking-[-0.045em]">
                 {t('tenderSteps.budgetStepTitle')}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
@@ -164,7 +159,7 @@ export default function TenderBudgetStep() {
           {/* Right Section - Budget Options */}
           <div>
             <Card className="border-0 shadow-xl overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
 
               <div className="p-8 space-y-6">
                 {/* Budget Type Selector */}
@@ -172,8 +167,8 @@ export default function TenderBudgetStep() {
                   <label
                     className={`flex items-center justify-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
                       budgetType === "fixed"
-                        ? "border-[#E25E45] bg-[#E25E45]/5"
-                        : "border-gray-200 dark:border-gray-700"
+                        ? "border-[#FE3C01] bg-[#FE3C01]/5"
+                        : "border-border dark:border-border"
                     }`}
                     data-testid="label-budget-fixed"
                   >
@@ -185,11 +180,11 @@ export default function TenderBudgetStep() {
                       onChange={(e) =>
                         setBudgetType(e.target.value as "fixed" | "milestone")
                       }
-                      className="h-5 w-5 text-[#E25E45] cursor-pointer"
+                      className="h-5 w-5 text-[#FE3C01] cursor-pointer"
                       data-testid="input-budget-fixed"
                     />
                     <div className="text-center">
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-gray-900 dark:text-foreground">
                         {t('tenderSteps.fixedPrice')}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -201,8 +196,8 @@ export default function TenderBudgetStep() {
                   <label
                     className={`flex items-center justify-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
                       budgetType === "milestone"
-                        ? "border-[#E25E45] bg-[#E25E45]/5"
-                        : "border-gray-200 dark:border-gray-700"
+                        ? "border-[#FE3C01] bg-[#FE3C01]/5"
+                        : "border-border dark:border-border"
                     }`}
                     data-testid="label-budget-milestone"
                   >
@@ -214,11 +209,11 @@ export default function TenderBudgetStep() {
                       onChange={(e) =>
                         setBudgetType(e.target.value as "fixed" | "milestone")
                       }
-                      className="h-5 w-5 text-[#E25E45] cursor-pointer"
+                      className="h-5 w-5 text-[#FE3C01] cursor-pointer"
                       data-testid="input-budget-milestone"
                     />
                     <div className="text-center">
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-gray-900 dark:text-foreground">
                         {t('tenderSteps.milestonesLabel')}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -230,9 +225,9 @@ export default function TenderBudgetStep() {
 
                 {/* Fixed Price Input */}
                 {budgetType === "fixed" && (
-                  <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <div className="space-y-4 border-t border-border dark:border-border pt-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-foreground mb-3">
                         {t('tenderSteps.estimatedBudgetQuestion')}
                       </label>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -247,8 +242,8 @@ export default function TenderBudgetStep() {
                         onClick={() => setPriceType("exact")}
                         className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                           priceType === "exact"
-                            ? "bg-[#E25E45] text-white"
-                            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                            ? "bg-[#FE3C01] text-white"
+                            : "bg-gray-100 dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700"
                         }`}
                         data-testid="button-exact-price"
                       >
@@ -259,8 +254,8 @@ export default function TenderBudgetStep() {
                         onClick={() => setPriceType("range")}
                         className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                           priceType === "range"
-                            ? "bg-[#E25E45] text-white"
-                            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                            ? "bg-[#FE3C01] text-white"
+                            : "bg-gray-100 dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700"
                         }`}
                         data-testid="button-range-price"
                       >
@@ -280,7 +275,7 @@ export default function TenderBudgetStep() {
                             placeholder="0.00"
                             value={fixedPrice}
                             onChange={(e) => setFixedPrice(e.target.value)}
-                            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                             data-testid="input-fixed-price"
                           />
                         </div>
@@ -304,7 +299,7 @@ export default function TenderBudgetStep() {
                                 placeholder="0.00"
                                 value={minPrice}
                                 onChange={(e) => setMinPrice(e.target.value)}
-                                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                                 data-testid="input-min-price"
                               />
                             </div>
@@ -322,7 +317,7 @@ export default function TenderBudgetStep() {
                                 placeholder="0.00"
                                 value={maxPrice}
                                 onChange={(e) => setMaxPrice(e.target.value)}
-                                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                                 data-testid="input-max-price"
                               />
                             </div>
@@ -344,9 +339,9 @@ export default function TenderBudgetStep() {
 
                 {/* Milestone Input */}
                 {budgetType === "milestone" && (
-                  <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <div className="space-y-4 border-t border-border dark:border-border pt-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-foreground mb-3">
                         {t('tenderSteps.createMilestones')}
                       </label>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -355,13 +350,13 @@ export default function TenderBudgetStep() {
                     </div>
 
                     {/* Add Milestone Form */}
-                    <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="space-y-3 p-4 bg-gray-50 dark:bg-card rounded-lg">
                       <input
                         type="text"
                         placeholder={t('tenderSteps.milestoneNamePlaceholder')}
                         value={milestoneName}
                         onChange={(e) => setMilestoneName(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                         data-testid="input-milestone-name"
                       />
                       <div className="flex gap-2">
@@ -374,13 +369,13 @@ export default function TenderBudgetStep() {
                             placeholder="0.00"
                             value={milestoneAmount}
                             onChange={(e) => setMilestoneAmount(e.target.value)}
-                            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                             data-testid="input-milestone-amount"
                           />
                         </div>
                         <Button
                           onClick={handleAddMilestone}
-                          className="bg-[#E25E45] hover:bg-[#d54d35]"
+                          className="bg-[#FE3C01] hover:bg-[#d54d35]"
                           data-testid="button-add-milestone"
                         >
                           {t('tenderSteps.addBtn')}
@@ -392,21 +387,21 @@ export default function TenderBudgetStep() {
                     {milestones.length > 0 && (
                       <div className="space-y-2">
                         <div className="flex justify-between items-center mb-2">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          <p className="text-sm font-medium text-gray-900 dark:text-foreground">
                             {t('tenderSteps.milestonesCount', { count: milestones.length })}
                           </p>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          <p className="text-sm font-medium text-gray-900 dark:text-foreground">
                             {t('tenderSteps.totalAmount', { amount: totalMilestoneAmount })}
                           </p>
                         </div>
                         {milestones.map((milestone) => (
                           <div
                             key={milestone.id}
-                            className="flex items-center justify-between gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                            className="flex items-center justify-between gap-3 p-3 bg-gray-50 dark:bg-card rounded-lg"
                             data-testid={`milestone-item-${milestone.id}`}
                           >
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              <p className="text-sm font-medium text-gray-900 dark:text-foreground">
                                 {milestone.name}
                               </p>
                               <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -428,7 +423,7 @@ export default function TenderBudgetStep() {
                 )}
 
                 {/* Navigation Buttons */}
-                <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex gap-3 pt-6 border-t border-border dark:border-border">
                   <Button
                     type="button"
                     variant="outline"
@@ -441,7 +436,7 @@ export default function TenderBudgetStep() {
                   <Button
                     onClick={handleNext}
                     disabled={!isFormValid}
-                    className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
+                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
                     data-testid="button-next"
                   >
                     {t('tenderSteps.next')}

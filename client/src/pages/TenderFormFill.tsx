@@ -10,7 +10,7 @@ import {
   Rocket,
   Star,
 } from "lucide-react";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useTheme } from "next-themes";
 import { FormCard, getCardDefinition, FIELD_INSIGHTS } from "@/lib/form-builder-types";
 import { CardInputRenderer } from "@/components/form-builder/CardInputRenderer";
@@ -56,10 +56,11 @@ export default function TenderFormFill() {
     'attachments': t('formBuilder.cardAttachmentsLabel'),
   };
 
+  // Bid grid texture — low-opacity Stone on light, low-opacity Cream on Ink (dark mode).
   const dotColor =
     theme === "dark"
-      ? "rgba(139, 92, 246, 0.15)"
-      : "rgba(156, 163, 175, 0.3)";
+      ? "rgba(244, 237, 225, 0.10)"
+      : "rgba(138, 128, 120, 0.22)";
 
   useEffect(() => {
     const savedState = localStorage.getItem(TENDER_STATE_KEY);
@@ -128,9 +129,9 @@ export default function TenderFormFill() {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-[#E8614D] border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#FE3C01] border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-gray-500 dark:text-gray-400">{t('tenderFlow.loadingForm')}</p>
         </div>
       </div>
@@ -139,7 +140,7 @@ export default function TenderFormFill() {
 
   return (
     <div
-      className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-gray-900"
+      className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-background"
       style={{
         backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
         backgroundSize: "20px 20px",
@@ -149,12 +150,7 @@ export default function TenderFormFill() {
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <div className="flex items-center justify-between mb-10">
-          <img
-            src={logoPath}
-            alt="Bid"
-            className="h-14 cursor-pointer hover:opacity-80 transition-opacity duration-300"
-            onClick={() => navigate("/dashboard")}
-          />
+          <BidLogo size={56} className="cursor-pointer hover:opacity-80 transition-opacity duration-300" onClick={() => navigate("/dashboard")} />
 
           <StepIndicator
             steps={[
@@ -187,7 +183,7 @@ export default function TenderFormFill() {
         >
         {/* ── Headline ───────────────────────────────────────────── */}
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white leading-tight mb-3">
+          <h1 className="font-display font-black text-4xl text-gray-900 dark:text-foreground leading-[0.95] tracking-[-0.04em] mb-3">
             {t('tenderFlow.fillRfpTitle')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-xl mx-auto">
@@ -207,12 +203,12 @@ export default function TenderFormFill() {
         )}
 
         {/* ── Progress bar ───────────────────────────────────────── */}
-        <div className="mb-8 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+        <div className="mb-8 bg-white dark:bg-card rounded-2xl border border-border dark:border-border shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">
               {completedRequired} {t('tenderFlow.ofLabel')} {totalRequired} {t('tenderFlow.requiredFieldsComplete')}
             </span>
-            <span className="text-sm font-bold text-[#E8614D]">{progressPercent}%</span>
+            <span className="text-sm font-bold text-[#FE3C01]">{progressPercent}%</span>
           </div>
           <div
             role="progressbar"
@@ -223,7 +219,7 @@ export default function TenderFormFill() {
             className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden"
           >
             <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-[#E8614D] to-[#F19A8F]"
+              className="h-full rounded-full bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]"
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.5, ease: "easeOut" }}
@@ -285,15 +281,15 @@ export default function TenderFormFill() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05, duration: 0.35, ease: "easeOut" }}
-                className={`bg-white dark:bg-gray-800 rounded-2xl border-2 shadow-lg transition-all duration-300 ease-in-out ${
+                className={`bg-white dark:bg-card rounded-2xl border-2 shadow-lg transition-all duration-300 ease-in-out ${
                   hasValue
-                    ? "border-[#E8614D] shadow-[#E8614D]/10"
-                    : "border-gray-200 dark:border-gray-700"
+                    ? "border-[#FE3C01] shadow-[#FE3C01]/10"
+                    : "border-border dark:border-border"
                 }`}
               >
                 {/* Gradient top strip — fills in when card has a value */}
                 <div
-                  className={`h-1 rounded-t-2xl bg-gradient-to-r from-[#E8614D] to-[#F19A8F] transition-opacity duration-300 ${
+                  className={`h-1 rounded-t-2xl bg-gradient-to-r from-[#FE3C01] to-[#F19A8F] transition-opacity duration-300 ${
                     hasValue ? "opacity-100" : "opacity-0"
                   }`}
                 />
@@ -306,8 +302,8 @@ export default function TenderFormFill() {
                       <div
                         className={`p-3 rounded-xl flex-shrink-0 transition-all duration-300 ease-in-out ${
                           hasValue
-                            ? "bg-[#E8614D] text-white"
-                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                            ? "bg-[#FE3C01] text-white"
+                            : "bg-gray-100 dark:bg-gray-700 text-muted-foreground dark:text-muted-foreground"
                         }`}
                       >
                         <Icon className="h-6 w-6" />
@@ -319,8 +315,8 @@ export default function TenderFormFill() {
                         <h3
                           className={`text-xl font-bold transition-colors duration-300 ${
                             hasValue
-                              ? "text-[#E8614D]"
-                              : "text-gray-900 dark:text-white"
+                              ? "text-[#FE3C01]"
+                              : "text-gray-900 dark:text-foreground"
                           }`}
                         >
                           {displayLabel}
@@ -377,7 +373,7 @@ export default function TenderFormFill() {
           <Button
             onClick={handleContinue}
             disabled={!isFormValid}
-            className="min-w-[160px] h-12 text-base bg-[#E8614D] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed text-white"
+            className="min-w-[160px] h-12 text-base bg-[#FE3C01] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed text-white"
             title={
               !isFormValid
                 ? `${t('tenderFlow.completeRequiredFields')} ${missingFields.join(", ")}`

@@ -14,8 +14,7 @@ import { format, add } from "date-fns";
 import { ar as arLocale } from "date-fns/locale";
 import { Calendar as CalendarIcon, ArrowLeft, Copy, Check, Mail, ExternalLink, Sparkles, Info, ChevronDown, ChevronUp, Video, Zap } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
-
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -63,7 +62,7 @@ function AnimatedCircle() {
             transform: rotate(0deg);
             box-shadow:
               0 6px 12px 0 #FF6B4A inset,
-              0 12px 18px 0 #E25E45 inset,
+              0 12px 18px 0 #FE3C01 inset,
               0 0 3px 1.2px rgba(255, 107, 74, 0.4),
               0 0 12px 3px rgba(226, 94, 69, 0.2);
           }
@@ -71,7 +70,7 @@ function AnimatedCircle() {
             transform: rotate(180deg);
             box-shadow:
               0 6px 12px 0 #FF8A6B inset,
-              0 12px 6px 0 #E25E45 inset,
+              0 12px 6px 0 #FE3C01 inset,
               0 0 3px 1.2px rgba(255, 107, 74, 0.4),
               0 0 12px 3px rgba(226, 94, 69, 0.2);
           }
@@ -79,7 +78,7 @@ function AnimatedCircle() {
             transform: rotate(360deg);
             box-shadow:
               0 6px 12px 0 #FF6B4A inset,
-              0 12px 18px 0 #E25E45 inset,
+              0 12px 18px 0 #FE3C01 inset,
               0 0 3px 1.2px rgba(255, 107, 74, 0.4),
               0 0 12px 3px rgba(226, 94, 69, 0.2);
           }
@@ -90,7 +89,7 @@ function AnimatedCircle() {
         }
       `}</style>
       <div className="absolute inset-0 rounded-full animate-orbit" />
-      <div className="absolute inset-2 rounded-full bg-gradient-to-br from-[#E25E45] to-[#d54d35] flex items-center justify-center">
+      <div className="absolute inset-2 rounded-full bg-gradient-to-br from-[#FE3C01] to-[#d54d35] flex items-center justify-center">
         <Sparkles className="w-12 h-12 text-white" />
       </div>
     </div>
@@ -260,7 +259,7 @@ export default function CreateTender() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <img src={logoPath} alt="Bid" className="h-16 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
+            <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
             <Button 
               onClick={() => navigate('/dashboard')}
               className="group relative overflow-hidden"
@@ -280,19 +279,19 @@ export default function CreateTender() {
                   <Check className="h-10 w-10 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t('createTender.tenderCreated')}</h2>
-                  <p className="text-xl font-semibold text-[#E25E45] mb-4">{createdTender.title}</p>
+                  <h2 className="font-display font-black text-3xl text-gray-900 dark:text-foreground mb-2 tracking-[-0.04em]">{t('createTender.tenderCreated')}</h2>
+                  <p className="text-xl font-semibold text-[#FE3C01] mb-4">{createdTender.title}</p>
                   <p className="text-gray-600 dark:text-gray-400">{t('createTender.tenderLiveDesc')}</p>
                 </div>
 
-                <Card className="mt-8 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+                <Card className="mt-8 bg-[var(--bid-orange)]/5 dark:bg-blue-950/30 border-[var(--bid-orange)]/20 dark:border-blue-800">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-4">
-                      <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <Mail className="h-5 w-5 text-[var(--bid-orange)] dark:text-blue-400" />
                       <h4 className="font-semibold text-blue-900 dark:text-blue-100">{t('createTender.shareInvitationLink')}</h4>
                     </div>
                     <p className="text-sm text-blue-800 dark:text-blue-200 mb-4">{t('createTender.shareInvitationLinkDesc')}</p>
-                    <div className="bg-white dark:bg-gray-900 rounded-lg p-3 mb-4 break-all">
+                    <div className="bg-white dark:bg-background rounded-lg p-3 mb-4 break-all">
                       <code className="text-xs text-blue-900 dark:text-blue-100 font-mono">{invitationLink}</code>
                     </div>
                     <div className="flex gap-2">
@@ -347,7 +346,7 @@ export default function CreateTender() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <img src={logoPath} alt="Bid" className="h-16 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
+            <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
             <Button 
               onClick={handleBackToEdit}
               className="group relative overflow-hidden"
@@ -361,11 +360,11 @@ export default function CreateTender() {
           </div>
 
           <Card className="border-0 shadow-2xl overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+            <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
             
             <CardHeader className="pb-4">
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#E25E45] to-[#d54d35] flex items-center justify-center">
+                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#FE3C01] to-[#d54d35] flex items-center justify-center">
                   <Check className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -378,51 +377,51 @@ export default function CreateTender() {
             <CardContent className="space-y-6">
               {/* Tender Brief */}
               <div className="space-y-4">
-                <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="p-4 bg-gray-50 dark:bg-card/50 rounded-lg border border-border dark:border-border">
                   <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">{t('tenderFlow.projectTitleLabel')}</h3>
-                  <p className="text-lg font-bold text-gray-900 dark:text-white" data-testid="review-title">{reviewData.title}</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-foreground" data-testid="review-title">{reviewData.title}</p>
                 </div>
 
-                <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="p-4 bg-gray-50 dark:bg-card/50 rounded-lg border border-border dark:border-border">
                   <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">{t('createTender.descriptionLabel')}</h3>
-                  <p className="text-gray-900 dark:text-white whitespace-pre-wrap" data-testid="review-description">{reviewData.description}</p>
+                  <p className="text-gray-900 dark:text-foreground whitespace-pre-wrap" data-testid="review-description">{reviewData.description}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="p-4 bg-gray-50 dark:bg-card/50 rounded-lg border border-border dark:border-border">
                     <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">{t('createTender.deadlineLabel')}</h3>
-                    <p className="text-gray-900 dark:text-white font-medium flex items-center gap-2" data-testid="review-deadline">
-                      <CalendarIcon className="h-4 w-4 text-[#E25E45]" />
+                    <p className="text-gray-900 dark:text-foreground font-medium flex items-center gap-2" data-testid="review-deadline">
+                      <CalendarIcon className="h-4 w-4 text-[#FE3C01]" />
                       {reviewData.deadline ? format(new Date(reviewData.deadline), "PPP 'at' HH:mm", { locale: dateLocale }) : "Not specified"}
                     </p>
                   </div>
 
-                  <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="p-4 bg-gray-50 dark:bg-card/50 rounded-lg border border-border dark:border-border">
                     <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">{t('tenderFlow.budgetRange')}</h3>
-                    <p className="text-gray-900 dark:text-white font-medium" data-testid="review-budget">
+                    <p className="text-gray-900 dark:text-foreground font-medium" data-testid="review-budget">
                       {reviewData.budget || "Not specified"}
                     </p>
                   </div>
 
-                  <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="p-4 bg-gray-50 dark:bg-card/50 rounded-lg border border-border dark:border-border">
                     <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">{t('tenderFlow.projectTimeline')}</h3>
-                    <p className="text-gray-900 dark:text-white font-medium" data-testid="review-timeline">
+                    <p className="text-gray-900 dark:text-foreground font-medium" data-testid="review-timeline">
                       {reviewData.projectTimeline}
                     </p>
                   </div>
 
                   {(reviewData.voiceNoteUrl || reviewData.videoUrl) && (
-                    <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="p-4 bg-gray-50 dark:bg-card/50 rounded-lg border border-border dark:border-border">
                       <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">{t('tenderFlow.attachmentsLabel')}</h3>
                       <div className="flex flex-wrap gap-2">
                         {reviewData.voiceNoteUrl && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E25E45]/10 text-[#E25E45]">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FE3C01]/10 text-[#FE3C01]">
                             <Sparkles className="h-3 w-3 mr-1" />
                             Voice Note
                           </span>
                         )}
                         {reviewData.videoUrl && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] dark:bg-blue-900/30 dark:text-blue-400">
                             <Video className="h-3 w-3 mr-1" />
                             Video Link
                           </span>
@@ -435,8 +434,8 @@ export default function CreateTender() {
 
               {/* Company Info */}
               {activeCompany && (
-                <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-                  <Info className="h-4 w-4 text-blue-600" />
+                <Alert className="bg-[var(--bid-orange)]/5 dark:bg-blue-950/30 border-[var(--bid-orange)]/20 dark:border-blue-800">
+                  <Info className="h-4 w-4 text-[var(--bid-orange)]" />
                   <AlertDescription className="text-blue-900 dark:text-blue-100">
                     This tender will be published on behalf of <strong>{activeCompany.name}</strong>
                   </AlertDescription>
@@ -444,7 +443,7 @@ export default function CreateTender() {
               )}
 
               {/* Actions */}
-              <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex gap-3 pt-6 border-t border-border dark:border-border">
                 <Button 
                   variant="outline" 
                   onClick={handleBackToEdit}
@@ -456,7 +455,7 @@ export default function CreateTender() {
                 </Button>
                 <Button 
                   onClick={handlePublishTender}
-                  className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
+                  className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
                   disabled={createTenderMutation.isPending}
                   data-testid="button-publish-tender"
                 >
@@ -491,12 +490,14 @@ export default function CreateTender() {
         />
         <div className="relative z-10 max-w-md">
           <div className="text-center space-y-8">
-            <img src={logoPath} alt="Bid" className="h-40 mx-auto cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
+            <div className="flex justify-center">
+              <BidLogo size={120} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
+            </div>
             
             <AnimatedCircle />
 
             <div className="space-y-3">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+              <h1 className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.04em]">
                 Welcome, {user?.name?.split(' ')[0]}!
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400">
@@ -511,7 +512,7 @@ export default function CreateTender() {
               <Button 
                 onClick={() => setShowForm(true)}
                 size="lg"
-                className="w-full bg-[#E25E45] hover:bg-[#d54d35] text-white font-semibold text-base py-6"
+                className="w-full bg-[#FE3C01] hover:bg-[#d54d35] text-white font-semibold text-base py-6"
                 data-testid="button-get-started-ai"
               >
                 <Sparkles className="h-5 w-5 mr-2" />
@@ -543,7 +544,7 @@ export default function CreateTender() {
       <div className="py-8 px-4">
         <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <img src={logoPath} alt="Bid" className="h-16 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
+          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
           <Button 
             onClick={() => setShowForm(false)}
             className="group relative overflow-hidden"
@@ -557,12 +558,12 @@ export default function CreateTender() {
         </div>
 
         <Card className="border-0 shadow-xl overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+          <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
           
           <CardHeader className="pb-4">
             <div className="space-y-2">
               <CardTitle className="text-2xl font-bold flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#E25E45] to-[#d54d35] flex items-center justify-center">
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#FE3C01] to-[#d54d35] flex items-center justify-center">
                   <Zap className="h-6 w-6 text-white" />
                 </div>
                 Create Your Tender
@@ -574,13 +575,13 @@ export default function CreateTender() {
 
           <CardContent className="space-y-8">
             {showDraftPrompt && hasDraft && (
-              <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-                <Info className="h-4 w-4 text-blue-600" />
+              <Alert className="bg-[var(--bid-orange)]/5 dark:bg-blue-950/30 border-[var(--bid-orange)]/20 dark:border-blue-800">
+                <Info className="h-4 w-4 text-[var(--bid-orange)]" />
                 <AlertDescription className="flex items-center justify-between">
                   <span className="text-blue-900 dark:text-blue-100">{t('createTender.unsavedDraft')}</span>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" onClick={() => setShowDraftPrompt(false)}>Discard</Button>
-                    <Button size="sm" onClick={handleLoadDraft} className="bg-[#E25E45] hover:bg-[#d54d35]">{t('createTender.loadDraft')}</Button>
+                    <Button size="sm" onClick={handleLoadDraft} className="bg-[#FE3C01] hover:bg-[#d54d35]">{t('createTender.loadDraft')}</Button>
                   </div>
                 </AlertDescription>
               </Alert>
@@ -599,10 +600,10 @@ export default function CreateTender() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 {/* Essential Fields */}
-                <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="space-y-6 p-6 bg-gray-50 dark:bg-card/50 rounded-lg border border-border dark:border-border">
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[#E25E45] text-white text-xs font-bold">1</span>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-foreground mb-4 flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[#FE3C01] text-white text-xs font-bold">1</span>
                       The Basics
                     </h3>
                     <FormField
@@ -651,9 +652,9 @@ export default function CreateTender() {
                 </div>
 
                 {/* Key Details */}
-                <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[#E25E45] text-white text-xs font-bold">2</span>
+                <div className="space-y-6 p-6 bg-gray-50 dark:bg-card/50 rounded-lg border border-border dark:border-border">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-foreground flex items-center gap-2">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[#FE3C01] text-white text-xs font-bold">2</span>
                     Key Details
                   </h3>
                   
@@ -772,10 +773,10 @@ export default function CreateTender() {
                 </Button>
 
                 {showAdvanced && (
-                  <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="space-y-6 p-6 bg-gray-50 dark:bg-card/50 rounded-lg border border-border dark:border-border">
                     <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-[#E25E45]" />
+                      <h4 className="font-semibold text-gray-900 dark:text-foreground mb-3 flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-[#FE3C01]" />
                         Voice Note
                       </h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{t('createTender.voiceNoteDesc')}</p>
@@ -787,14 +788,14 @@ export default function CreateTender() {
                       />
                     </div>
 
-                    <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <div className="border-t border-border dark:border-border pt-4">
                       <FormField
                         control={form.control}
                         name="videoUrl"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="font-semibold flex items-center gap-2">
-                              <Video className="h-4 w-4 text-[#E25E45]" />
+                              <Video className="h-4 w-4 text-[#FE3C01]" />
                               Video Link
                             </FormLabel>
                             <FormControl>
@@ -814,7 +815,7 @@ export default function CreateTender() {
                   </div>
                 )}
 
-                <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex gap-3 pt-6 border-t border-border dark:border-border">
                   <Button 
                     type="button"
                     variant="outline" 
@@ -826,7 +827,7 @@ export default function CreateTender() {
                   </Button>
                   <Button 
                     type="submit"
-                    className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
+                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
                     data-testid="button-submit"
                   >
                     <Check className="h-4 w-4 mr-2" />

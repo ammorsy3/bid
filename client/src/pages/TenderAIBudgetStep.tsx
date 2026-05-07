@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Sparkles, Edit3, Loader2, AlertCircle, Eye, EyeOff, Info } from "lucide-react";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
@@ -138,12 +138,7 @@ export default function TenderAIBudgetStep() {
     <div className="py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <img
-            src={logoPath}
-            alt="Bid"
-            className="h-16 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate("/dashboard")}
-          />
+          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
           <Button
             onClick={handleBack}
             className="group relative overflow-hidden"
@@ -169,7 +164,7 @@ export default function TenderAIBudgetStep() {
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 3 / 5
               </div>
-              <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
+              <h1 className="font-display font-black text-5xl text-gray-900 dark:text-foreground leading-[0.92] tracking-[-0.045em]">
                 {t('tenderFlow.step3Title')}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
@@ -180,7 +175,7 @@ export default function TenderAIBudgetStep() {
 
           <div>
             <Card className="border-0 shadow-xl overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
 
               <div className="p-8 space-y-6">
                 <div className="grid grid-cols-2 gap-4">
@@ -192,16 +187,16 @@ export default function TenderAIBudgetStep() {
                     }}
                     className={`flex flex-col items-center justify-center gap-3 p-6 border-2 rounded-lg cursor-pointer transition-all ${
                       budgetMode === "ai"
-                        ? "border-[#E25E45] bg-[#E25E45]/5"
-                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                        ? "border-[#FE3C01] bg-[#FE3C01]/5"
+                        : "border-border dark:border-border hover:border-border dark:hover:border-gray-600"
                     }`}
                     data-testid="button-ai-mode"
                   >
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#E25E45] to-[#FF8A6B] flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#FE3C01] to-[#FF8A6B] flex items-center justify-center">
                       <Sparkles className="h-6 w-6 text-white" />
                     </div>
                     <div className="text-center">
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-gray-900 dark:text-foreground">
                         {t('tenderFlow.aiEstimate')}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -219,16 +214,16 @@ export default function TenderAIBudgetStep() {
                     }}
                     className={`flex flex-col items-center justify-center gap-3 p-6 border-2 rounded-lg cursor-pointer transition-all ${
                       budgetMode === "manual"
-                        ? "border-[#E25E45] bg-[#E25E45]/5"
-                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                        ? "border-[#FE3C01] bg-[#FE3C01]/5"
+                        : "border-border dark:border-border hover:border-border dark:hover:border-gray-600"
                     }`}
                     data-testid="button-manual-mode"
                   >
-                    <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-card flex items-center justify-center">
                       <Edit3 className="h-6 w-6 text-gray-600 dark:text-gray-400" />
                     </div>
                     <div className="text-center">
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-gray-900 dark:text-foreground">
                         {t('tenderFlow.setManually')}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -239,7 +234,7 @@ export default function TenderAIBudgetStep() {
                 </div>
 
                 {budgetMode === "ai" && (
-                  <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-4 border-t border-border dark:border-border pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
                     {!aiEstimate && !isLoading && !error && (
                       <div className="text-center py-4">
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -247,7 +242,7 @@ export default function TenderAIBudgetStep() {
                         </p>
                         <Button
                           onClick={handleAIEstimate}
-                          className="bg-gradient-to-r from-[#E25E45] to-[#FF8A6B] hover:opacity-90"
+                          className="bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B] hover:opacity-90"
                           data-testid="button-get-estimate"
                         >
                           <Sparkles className="h-4 w-4 mr-2" />
@@ -258,7 +253,7 @@ export default function TenderAIBudgetStep() {
 
                     {isLoading && (
                       <div className="flex flex-col items-center justify-center py-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-[#E25E45]" />
+                        <Loader2 className="h-8 w-8 animate-spin text-[#FE3C01]" />
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
                           {t('tenderFlow.analyzingProject')}
                         </p>
@@ -277,7 +272,7 @@ export default function TenderAIBudgetStep() {
                               variant="ghost"
                               size="sm"
                               onClick={handleAIEstimate}
-                              className="mt-2 text-red-600 hover:text-red-700"
+                              className="mt-2 text-red-600 hover:text-red-700 dark:text-red-300"
                             >
                               {t('tenderFlow.tryAgain')}
                             </Button>
@@ -288,11 +283,11 @@ export default function TenderAIBudgetStep() {
 
                     {aiEstimate && (
                       <div className="space-y-4">
-                        <div className="bg-gradient-to-br from-[#E25E45]/5 to-[#FF8A6B]/5 border border-[#E25E45]/20 rounded-lg p-6">
+                        <div className="bg-gradient-to-br from-[#FE3C01]/5 to-[#FF8A6B]/5 border border-[#FE3C01]/20 rounded-lg p-6">
                           <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
                             {t('tenderFlow.suggestedBudget')}
                           </p>
-                          <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                          <p className="text-3xl font-bold text-gray-900 dark:text-foreground">
                             {formatSAR(aiEstimate.estimatedBudget)}
                           </p>
                           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -303,19 +298,19 @@ export default function TenderAIBudgetStep() {
 
                         {aiEstimate.breakdown.length > 0 && (
                           <div className="space-y-2">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            <p className="text-sm font-medium text-gray-900 dark:text-foreground">
                               {t('tenderFlow.estimatedBreakdown')}
                             </p>
                             <div className="space-y-2">
                               {aiEstimate.breakdown.map((item, index) => (
                                 <div
                                   key={index}
-                                  className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                                  className="flex justify-between items-center py-2 px-3 bg-gray-50 dark:bg-card rounded-lg"
                                 >
-                                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                                  <span className="text-sm text-muted-foreground dark:text-muted-foreground">
                                     {item.item}
                                   </span>
-                                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                  <span className="text-sm font-medium text-gray-900 dark:text-foreground">
                                     {formatSAR(item.amount)}
                                   </span>
                                 </div>
@@ -325,11 +320,11 @@ export default function TenderAIBudgetStep() {
                         )}
 
                         {aiEstimate.reasoning && (
-                          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                          <div className="bg-gray-50 dark:bg-card rounded-lg p-4">
                             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                               {t('tenderFlow.aiReasoning')}
                             </p>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                            <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                               {aiEstimate.reasoning}
                             </p>
                           </div>
@@ -340,9 +335,9 @@ export default function TenderAIBudgetStep() {
                 )}
 
                 {budgetMode !== null && (budgetMode === "manual" || aiEstimate) && (
-                  <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-4 border-t border-border dark:border-border pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="space-y-3">
-                      <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-foreground mb-3">
                         {budgetMode === "ai" ? t('tenderFlow.adjustBudget') : t('tenderFlow.enterBudget')}
                       </label>
 
@@ -353,8 +348,8 @@ export default function TenderAIBudgetStep() {
                             onClick={() => setPriceType("exact")}
                             className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                               priceType === "exact"
-                                ? "bg-[#E25E45] text-white"
-                                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                ? "bg-[#FE3C01] text-white"
+                                : "bg-gray-100 dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700"
                             }`}
                             data-testid="button-exact-price"
                           >
@@ -365,8 +360,8 @@ export default function TenderAIBudgetStep() {
                             onClick={() => setPriceType("range")}
                             className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                               priceType === "range"
-                                ? "bg-[#E25E45] text-white"
-                                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                ? "bg-[#FE3C01] text-white"
+                                : "bg-gray-100 dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700"
                             }`}
                             data-testid="button-range-price"
                           >
@@ -385,7 +380,7 @@ export default function TenderAIBudgetStep() {
                             placeholder="0"
                             value={budget}
                             onChange={(e) => setBudget(e.target.value)}
-                            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                             data-testid="input-budget"
                           />
                         </div>
@@ -407,7 +402,7 @@ export default function TenderAIBudgetStep() {
                                   placeholder="0"
                                   value={minPrice}
                                   onChange={(e) => setMinPrice(e.target.value)}
-                                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                                   data-testid="input-min-price"
                                 />
                               </div>
@@ -425,7 +420,7 @@ export default function TenderAIBudgetStep() {
                                   placeholder="0"
                                   value={maxPrice}
                                   onChange={(e) => setMaxPrice(e.target.value)}
-                                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                                   data-testid="input-max-price"
                                 />
                               </div>
@@ -441,15 +436,15 @@ export default function TenderAIBudgetStep() {
                     </div>
 
                     {(budgetMode === "ai" || priceType === "exact") && (
-                      <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
+                      <div className="space-y-3 border-t border-border dark:border-border pt-4">
                         <div className="flex items-center justify-between" dir={isRtl ? "rtl" : "ltr"}>
                           <div className="flex items-center gap-2">
                             {showPriceToVendors ? (
-                              <Eye className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                              <Eye className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                             ) : (
-                              <EyeOff className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                              <EyeOff className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                             )}
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            <span className="text-sm font-medium text-gray-900 dark:text-foreground">
                               {t('tenderFlow.showPriceToVendors')}
                             </span>
                           </div>
@@ -458,21 +453,21 @@ export default function TenderAIBudgetStep() {
                             dir="ltr"
                             onClick={() => setShowPriceToVendors(!showPriceToVendors)}
                             className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ms-3 ${
-                              showPriceToVendors ? "bg-[#E25E45]" : "bg-gray-300 dark:bg-gray-600"
+                              showPriceToVendors ? "bg-[#FE3C01]" : "bg-gray-300 dark:bg-gray-600"
                             }`}
                             data-testid="toggle-show-price"
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              className={`inline-block h-4 w-4 transform rounded-full bg-card transition-transform ${
                                 showPriceToVendors ? "translate-x-6" : "translate-x-1"
                               }`}
                             />
                           </button>
                         </div>
 
-                        <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div className="flex items-start gap-2 p-3 bg-[var(--bid-orange)]/5 dark:bg-blue-900/20 border border-[var(--bid-orange)]/20 dark:border-blue-800 rounded-lg">
                           <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                          <p className="text-xs text-blue-700 dark:text-blue-300">
+                          <p className="text-xs text-[var(--bid-orange)] dark:text-blue-300">
                             {showPriceToVendors
                               ? t('tenderFlow.priceVisibleInfo')
                               : t('tenderFlow.priceHiddenInfo')
@@ -485,7 +480,7 @@ export default function TenderAIBudgetStep() {
                   </div>
                 )}
 
-                <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex gap-3 pt-6 border-t border-border dark:border-border">
                   <Button
                     type="button"
                     variant="outline"
@@ -498,7 +493,7 @@ export default function TenderAIBudgetStep() {
                   <Button
                     onClick={handleNext}
                     disabled={!isFormValid}
-                    className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
+                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
                     data-testid="button-next"
                   >
                     {t('tenderFlow.next')}

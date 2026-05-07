@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ArrowLeft, ArrowRight, X, Plus, Mic, ChevronDown, CalendarIcon, Video } from "lucide-react";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
@@ -11,7 +11,6 @@ import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import VoiceRecorder from "@/components/voice-recorder";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { AutocompleteInput } from "@/components/ui/autocomplete-input";
 import { getSuggestions } from "@/lib/tender-suggestions";
 import { smartSuggestionEngine } from "@/lib/smart-suggestions";
@@ -49,7 +48,6 @@ export default function TenderProjectScopeStep() {
   const [inputMode, setInputMode] = useState<InputMode>("text");
   const [voiceNoteUrl, setVoiceNoteUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
-  const [videoRequired, setVideoRequired] = useState(false);
 
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -87,7 +85,6 @@ export default function TenderProjectScopeStep() {
       if (parsed.projectDescription) setProjectDescription(parsed.projectDescription);
       if (parsed.voiceNoteUrl) setVoiceNoteUrl(parsed.voiceNoteUrl);
       if (typeof parsed.videoUrl === "string") setVideoUrl(parsed.videoUrl);
-      if (typeof parsed.videoRequired === "boolean") setVideoRequired(parsed.videoRequired);
       if (parsed.startDate) setStartDate(new Date(parsed.startDate));
       if (parsed.endDate) setEndDate(new Date(parsed.endDate));
 
@@ -323,7 +320,6 @@ export default function TenderProjectScopeStep() {
         projectDescription: inputMode === "text" ? projectDescription.trim() : "",
         voiceNoteUrl: inputMode === "voice" ? voiceNoteUrl : "",
         videoUrl: videoUrl.trim() || "",
-        videoRequired,
       };
       localStorage.setItem("tenderDraft", JSON.stringify(updated));
       navigate("/tenders/new/ai-budget");
@@ -361,12 +357,7 @@ export default function TenderProjectScopeStep() {
     <div className="py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <img
-            src={logoPath}
-            alt="Bid"
-            className="h-16 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate("/dashboard")}
-          />
+          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
           <Button
             onClick={handleBack}
             className="group relative overflow-hidden"
@@ -392,7 +383,7 @@ export default function TenderProjectScopeStep() {
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 2 / 5
               </div>
-              <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
+              <h1 className="font-display font-black text-5xl text-gray-900 dark:text-foreground leading-[0.92] tracking-[-0.045em]">
                 {t('tenderFlow.step2Title')}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
@@ -403,18 +394,18 @@ export default function TenderProjectScopeStep() {
 
           <div>
             <Card className="border-0 shadow-xl overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
 
               <div className="p-8 space-y-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                    <label className="block text-sm font-medium text-gray-900 dark:text-foreground">
                       {t('tenderFlow.keyDeliverables')}
                     </label>
                     <Button
                       onClick={handleAddDeliverable}
                       size="sm"
-                      className="bg-[#E25E45] hover:bg-[#d54d35]"
+                      className="bg-[#FE3C01] hover:bg-[#d54d35]"
                       data-testid="button-add-deliverable"
                     >
                       <Plus className="h-4 w-4 mr-1" />
@@ -435,19 +426,19 @@ export default function TenderProjectScopeStep() {
                             className={`border rounded-lg overflow-hidden transition-all duration-300 ${
                               hasErrors
                                 ? 'border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-900/10'
-                                : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
+                                : 'border-border dark:border-border bg-gray-50 dark:bg-card'
                             }`}
                             data-testid={`deliverable-card-${index}`}
                           >
                             <div
-                              className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors duration-200"
+                              className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-muted dark:hover:bg-gray-700/50 transition-colors duration-200"
                               onClick={() => setExpandedDeliverableId(isExpanded ? null : deliverable.id)}
                             >
                               <div className="flex items-center gap-3 flex-1 min-w-0">
                                 <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                                   #{index + 1}
                                 </span>
-                                <span className="text-sm text-gray-900 dark:text-white truncate">
+                                <span className="text-sm text-gray-900 dark:text-foreground truncate">
                                   {deliverable.name || t('tenderFlow.newDeliverable')}
                                 </span>
                                 {deliverable.quantity > 0 && deliverable.unit && (
@@ -484,9 +475,9 @@ export default function TenderProjectScopeStep() {
                               }`}
                             >
                               <div className="overflow-hidden">
-                                <div className="px-4 pb-4 space-y-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <div className="px-4 pb-4 space-y-4 border-t border-border dark:border-border pt-4">
                                 <div className="space-y-1">
-                                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                  <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
                                     {t('tenderFlow.deliverableName')} <span className="text-red-500">*</span>
                                   </label>
                                   <input
@@ -494,7 +485,7 @@ export default function TenderProjectScopeStep() {
                                     value={deliverable.name}
                                     onChange={(e) => handleUpdateDeliverable(deliverable.id, 'name', e.target.value)}
                                     placeholder={t('tenderFlow.deliverableNamePlaceholder')}
-                                    className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${
+                                    className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-background text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
                                       errors.name ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
                                     }`}
                                     data-testid={`input-deliverable-name-${index}`}
@@ -512,7 +503,7 @@ export default function TenderProjectScopeStep() {
                                 </div>
 
                                 <div className="space-y-1">
-                                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                  <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
                                     {t('tenderFlow.description')} <span className="text-gray-400 font-normal">{t('tenderFlow.optional')}</span>
                                   </label>
                                   <textarea
@@ -520,7 +511,7 @@ export default function TenderProjectScopeStep() {
                                     onChange={(e) => handleUpdateDeliverable(deliverable.id, 'description', e.target.value)}
                                     placeholder={t('tenderFlow.describeDeliverable')}
                                     rows={2}
-                                    className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none ${
+                                    className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-background text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none ${
                                       errors.description ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
                                     }`}
                                     data-testid={`input-deliverable-description-${index}`}
@@ -539,7 +530,7 @@ export default function TenderProjectScopeStep() {
 
                                 <div className="grid grid-cols-2 gap-4">
                                   <div className="space-y-1">
-                                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
                                       {t('tenderFlow.unitOfMeasurement')} <span className="text-red-500">*</span>
                                     </label>
                                     <SmartUnitDropdown
@@ -557,7 +548,7 @@ export default function TenderProjectScopeStep() {
                                   </div>
 
                                   <div className="space-y-1">
-                                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
                                       {t('tenderFlow.quantity')} <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -567,7 +558,7 @@ export default function TenderProjectScopeStep() {
                                       value={deliverable.quantity}
                                       onChange={(e) => handleUpdateDeliverable(deliverable.id, 'quantity', parseInt(e.target.value) || 0)}
                                       placeholder={t('tenderFlow.quantityPlaceholder')}
-                                      className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${
+                                      className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-background text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
                                         errors.quantity ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
                                       }`}
                                       data-testid={`input-deliverable-quantity-${index}`}
@@ -586,7 +577,7 @@ export default function TenderProjectScopeStep() {
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+                    <div className="text-center py-8 bg-gray-50 dark:bg-card rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         {t('tenderFlow.noDeliverablesYet')}
                       </p>
@@ -599,13 +590,13 @@ export default function TenderProjectScopeStep() {
                 </div>
 
                 <div
-                  className={`space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6 transition-all duration-300 ease-out ${
+                  className={`space-y-3 border-t border-border dark:border-border pt-6 transition-all duration-300 ease-out ${
                     showTimeline
                       ? "opacity-100 max-h-[300px] translate-y-0"
                       : "opacity-0 max-h-0 overflow-hidden -translate-y-2 pt-0 border-t-0"
                   }`}
                 >
-                  <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-foreground">
                     {t('tenderFlow.projectTimeline')}
                   </label>
                   <div className="grid grid-cols-2 gap-3">
@@ -670,14 +661,14 @@ export default function TenderProjectScopeStep() {
                 </div>
 
                 <div
-                  className={`space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6 transition-all duration-300 ease-out ${
+                  className={`space-y-4 border-t border-border dark:border-border pt-6 transition-all duration-300 ease-out ${
                     showMilestones
                       ? "opacity-100 max-h-[1000px] translate-y-0"
                       : "opacity-0 max-h-0 overflow-hidden -translate-y-2 pt-0 border-t-0"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                    <label className="block text-sm font-medium text-gray-900 dark:text-foreground">
                       {t('tenderFlow.milestones')} <span className="text-gray-400 font-normal">{t('tenderFlow.optional')}</span>
                     </label>
                   </div>
@@ -693,14 +684,14 @@ export default function TenderProjectScopeStep() {
                           className={`group flex items-start gap-3 p-3 rounded-lg transition-all duration-200 ${
                             hasErrors
                               ? 'bg-red-50 dark:bg-red-900/20 ring-1 ring-red-200 dark:ring-red-800'
-                              : 'bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800'
+                              : 'bg-gray-50 dark:bg-card/50 hover:bg-gray-100 dark:hover:bg-gray-800'
                           }`}
                           data-testid={`milestone-row-${index}`}
                         >
                           <div className="flex-shrink-0 mt-2.5">
                             <div className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
                               milestone.name.trim()
-                                ? 'bg-[#E25E45]'
+                                ? 'bg-[#FE3C01]'
                                 : 'bg-gray-300 dark:bg-gray-600'
                             }`} />
                           </div>
@@ -711,10 +702,10 @@ export default function TenderProjectScopeStep() {
                               value={milestone.name}
                               onChange={(e) => handleUpdateMilestone(milestone.id, 'name', e.target.value)}
                               placeholder={t('tenderFlow.milestoneName')}
-                              className={`w-full bg-transparent border-0 border-b text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 transition-colors duration-200 pb-1 ${
+                              className={`w-full bg-transparent border-0 border-b text-sm font-medium text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-0 transition-colors duration-200 pb-1 ${
                                 errors.name
                                   ? 'border-red-300 dark:border-red-600 focus:border-red-500'
-                                  : 'border-transparent focus:border-[#E25E45]'
+                                  : 'border-transparent focus:border-[#FE3C01]'
                               }`}
                               data-testid={`input-milestone-name-${index}`}
                             />
@@ -754,8 +745,8 @@ export default function TenderProjectScopeStep() {
                                   className={cn(
                                     "flex items-center gap-1.5 px-2 py-1 text-xs rounded-md transition-all duration-200",
                                     milestone.dueDate
-                                      ? "bg-[#E25E45]/10 text-[#E25E45] hover:bg-[#E25E45]/20"
-                                      : "text-gray-400 hover:text-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700",
+                                      ? "bg-[#FE3C01]/10 text-[#FE3C01] hover:bg-[#FE3C01]/20"
+                                      : "text-gray-400 hover:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700",
                                     errors.dueDate && "ring-1 ring-red-300"
                                   )}
                                 >
@@ -797,11 +788,11 @@ export default function TenderProjectScopeStep() {
 
                     <button
                       onClick={handleAddMilestone}
-                      className="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 text-gray-400 hover:border-[#E25E45] hover:text-[#E25E45] transition-all duration-200 group"
+                      className="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-border dark:border-border text-gray-400 hover:border-[#FE3C01] hover:text-[#FE3C01] transition-all duration-200 group"
                       data-testid="button-add-milestone"
                     >
                       <div className="flex-shrink-0">
-                        <div className="w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-gray-600 group-hover:bg-[#E25E45] transition-colors duration-200" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-gray-600 group-hover:bg-[#FE3C01] transition-colors duration-200" />
                       </div>
                       <Plus className="h-4 w-4" />
                       <span className="text-sm">{t('tenderFlow.addMilestone')}</span>
@@ -814,14 +805,14 @@ export default function TenderProjectScopeStep() {
                 </div>
 
                 <div
-                  className={`space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6 transition-all duration-300 ease-out ${
+                  className={`space-y-3 border-t border-border dark:border-border pt-6 transition-all duration-300 ease-out ${
                     showDescription
                       ? "opacity-100 max-h-[800px] translate-y-0"
                       : "opacity-0 max-h-0 overflow-hidden -translate-y-2 pt-0 border-t-0"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                    <label className="block text-sm font-medium text-gray-900 dark:text-foreground">
                       {t('tenderFlow.projectDescription')}
                     </label>
 
@@ -830,8 +821,8 @@ export default function TenderProjectScopeStep() {
                         onClick={() => setInputMode("text")}
                         className={`px-3 py-1 text-xs rounded-md transition-colors ${
                           inputMode === "text"
-                            ? "bg-[#E25E45] text-white"
-                            : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                            ? "bg-[#FE3C01] text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-muted-foreground dark:text-muted-foreground"
                         }`}
                         data-testid="button-text-mode"
                       >
@@ -841,8 +832,8 @@ export default function TenderProjectScopeStep() {
                         onClick={() => setInputMode("voice")}
                         className={`px-3 py-1 text-xs rounded-md transition-colors flex items-center gap-1 ${
                           inputMode === "voice"
-                            ? "bg-[#E25E45] text-white"
-                            : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                            ? "bg-[#FE3C01] text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-muted-foreground dark:text-muted-foreground"
                         }`}
                         data-testid="button-voice-mode"
                       >
@@ -889,15 +880,15 @@ export default function TenderProjectScopeStep() {
                 </div>
 
                 <div
-                  className={`space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6 transition-all duration-300 ease-out ${
+                  className={`space-y-4 border-t border-border dark:border-border pt-6 transition-all duration-300 ease-out ${
                     showDescription
                       ? "opacity-100 max-h-[600px] translate-y-0"
                       : "opacity-0 max-h-0 overflow-hidden -translate-y-2 pt-0 border-t-0"
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <Video className="h-4 w-4 text-[#E25E45]" />
-                    <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                    <Video className="h-4 w-4 text-[#FE3C01]" />
+                    <label className="block text-sm font-medium text-gray-900 dark:text-foreground">
                       {t('tenderFlow.videoUrlLabel') || 'Video URL'} <span className="text-gray-400 font-normal">{t('tenderFlow.optional')}</span>
                     </label>
                   </div>
@@ -915,28 +906,9 @@ export default function TenderProjectScopeStep() {
                     </p>
                   </div>
 
-                  <div className="flex items-start justify-between gap-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                    <div className="flex-1 min-w-0">
-                      <label
-                        htmlFor="switch-video-required"
-                        className="block text-sm font-medium text-gray-900 dark:text-white cursor-pointer"
-                      >
-                        {t('tenderFlow.requireVideoLabel') || 'Require vendors to submit a video pitch'}
-                      </label>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {t('tenderFlow.requireVideoHint') || 'Vendors will be required to provide a video link when submitting their offer.'}
-                      </p>
-                    </div>
-                    <Switch
-                      id="switch-video-required"
-                      checked={videoRequired}
-                      onCheckedChange={setVideoRequired}
-                      data-testid="switch-video-required"
-                    />
-                  </div>
                 </div>
 
-                <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex gap-3 pt-6 border-t border-border dark:border-border">
                   <Button
                     type="button"
                     variant="outline"
@@ -949,7 +921,7 @@ export default function TenderProjectScopeStep() {
                   <Button
                     onClick={handleNext}
                     disabled={!isFormValid}
-                    className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
+                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
                     data-testid="button-next"
                   >
                     {t('tenderFlow.next')}

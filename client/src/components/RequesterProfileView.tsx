@@ -32,17 +32,17 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
             <img 
               src={profile.logoUrl} 
               alt={profile.companyName}
-              className="w-16 h-16 rounded-lg object-contain bg-white border border-neutral-200 p-1.5 flex-shrink-0"
+              className="w-16 h-16 rounded-lg object-contain bg-card border border-border p-1.5 flex-shrink-0"
               data-testid="img-requester-logo"
             />
           ) : (
-            <div className="w-16 h-16 rounded-lg bg-neutral-50 flex items-center justify-center border border-neutral-200 flex-shrink-0">
+            <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center border border-border flex-shrink-0">
               <Building2 className="h-8 w-8 text-neutral-400" />
             </div>
           )}
           
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-neutral-900 mb-1 truncate" data-testid="text-company-name">
+            <h3 className="text-lg font-semibold text-foreground mb-1 truncate" data-testid="text-company-name">
               {profile.companyName}
             </h3>
             
@@ -57,7 +57,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
               {profile.companySize && (
                 <Badge 
                   variant="outline" 
-                  className="text-xs bg-neutral-50 border-neutral-200 text-neutral-700"
+                  className="text-xs bg-muted border-border text-muted-foreground"
                   data-testid="tag-company-size"
                 >
                   <Users className="h-3 w-3 mr-1" />
@@ -67,7 +67,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
             </div>
             
             {profile.bio && (
-              <p className="text-sm text-neutral-600 line-clamp-2" data-testid="text-bio">
+              <p className="text-sm text-muted-foreground line-clamp-2" data-testid="text-bio">
                 {profile.bio}
               </p>
             )}
@@ -86,8 +86,8 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
           data-testid="requester-header"
         >
           <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-10 right-10 w-32 h-32 bg-white rounded-full blur-3xl" />
-            <div className="absolute bottom-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
+            <div className="absolute top-10 right-10 w-32 h-32 bg-card rounded-full blur-3xl" />
+            <div className="absolute bottom-10 left-10 w-40 h-40 bg-card rounded-full blur-3xl" />
           </div>
         </div>
       </div>
@@ -102,11 +102,11 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
               <img 
                 src={profile.logoUrl} 
                 alt={profile.companyName}
-                className="w-28 h-28 md:w-32 md:h-32 rounded-2xl object-contain bg-white border-4 border-white shadow-2xl p-3"
+                className="w-28 h-28 md:w-32 md:h-32 rounded-2xl object-contain bg-card border-4 border-white shadow-2xl p-3"
                 data-testid="img-requester-logo"
               />
             ) : (
-              <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-white border-4 border-white shadow-2xl flex items-center justify-center">
+              <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-card border-4 border-white shadow-2xl flex items-center justify-center">
                 <Building2 className="h-14 w-14 md:h-16 md:w-16 text-neutral-400" />
               </div>
             )}
@@ -114,7 +114,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
           
           {/* Name and Tags */}
           <div className="flex-1 md:mb-4">
-            <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-3" data-testid="text-company-name">
+            <h2 className="font-display font-black text-2xl md:text-3xl text-foreground mb-3 tracking-[-0.04em]" data-testid="text-company-name">
               {profile.companyName}
             </h2>
             <div className="flex items-center gap-2 flex-wrap">
@@ -128,7 +128,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
               {profile.companySize && (
                 <Badge 
                   variant="outline"
-                  className="bg-neutral-50 border-neutral-200 text-neutral-700 px-3 py-1"
+                  className="bg-muted border-border text-muted-foreground px-3 py-1"
                   data-testid="tag-company-size"
                 >
                   <Users className="h-4 w-4 mr-1.5" />
@@ -142,8 +142,8 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
         {/* About Section */}
         {profile.bio && (
           <div className="mb-8">
-            <h3 className="text-sm font-semibold text-neutral-900 mb-3 uppercase tracking-wide">About</h3>
-            <p className="text-neutral-700 leading-relaxed" data-testid="text-bio">
+            <h3 className="text-sm font-semibold text-foreground mb-3 uppercase tracking-wide">About</h3>
+            <p className="text-muted-foreground leading-relaxed" data-testid="text-bio">
               {profile.bio}
             </p>
           </div>
@@ -151,15 +151,15 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
 
         {/* Contact Information */}
         <div className="mb-8">
-          <h3 className="text-sm font-semibold text-neutral-900 mb-4 uppercase tracking-wide">Contact Information</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">Contact Information</h3>
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-sm">
               <div className="w-9 h-9 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
                 <User className="h-4 w-4 text-primary-600" />
               </div>
               <div>
-                <p className="text-xs text-neutral-500 font-medium">Contact Person</p>
-                <p className="text-neutral-900 font-medium">{profile.contactPerson}</p>
+                <p className="text-xs text-muted-foreground font-medium">Contact Person</p>
+                <p className="text-foreground font-medium">{profile.contactPerson}</p>
               </div>
             </div>
             
@@ -168,8 +168,8 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
                 <Mail className="h-4 w-4 text-primary-600" />
               </div>
               <div>
-                <p className="text-xs text-neutral-500 font-medium">Email</p>
-                <p className="text-neutral-900 font-medium">{profile.contactEmail}</p>
+                <p className="text-xs text-muted-foreground font-medium">Email</p>
+                <p className="text-foreground font-medium">{profile.contactEmail}</p>
               </div>
             </div>
             
@@ -179,8 +179,8 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
                   <Phone className="h-4 w-4 text-primary-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-neutral-500 font-medium">Phone</p>
-                  <p className="text-neutral-900 font-medium">{profile.contactPhone}</p>
+                  <p className="text-xs text-muted-foreground font-medium">Phone</p>
+                  <p className="text-foreground font-medium">{profile.contactPhone}</p>
                 </div>
               </div>
             )}
@@ -190,7 +190,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
         {/* Social Links - Icon based */}
         {(profile.linkedinUrl || profile.websiteUrl) && (
           <div>
-            <h3 className="text-sm font-semibold text-neutral-900 mb-3 uppercase tracking-wide">Connect</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3 uppercase tracking-wide">Connect</h3>
             <div className="flex gap-2 flex-wrap">
               {profile.linkedinUrl && (
                 <Button

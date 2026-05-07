@@ -195,7 +195,7 @@ export default function AdminVendors() {
     <AdminLayout>
       <div className="p-8 max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-page-title">
+          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]" data-testid="text-page-title">
             {t('admin.companyVerificationQueue')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -212,7 +212,7 @@ export default function AdminVendors() {
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 statusFilter === tab.value
                   ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  : 'bg-gray-100 dark:bg-card text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               {tab.label}
@@ -241,13 +241,13 @@ export default function AdminVendors() {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-48 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+              <div key={i} className="h-48 bg-gray-100 dark:bg-card rounded-xl animate-pulse" />
             ))}
           </div>
         ) : filteredCompanies.length === 0 ? (
-          <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <Card className="border-border dark:border-border bg-white dark:bg-background">
             <CardContent className="py-16 text-center">
-              <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
+              <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-card flex items-center justify-center mx-auto mb-4">
                 <Building2 className="h-7 w-7 text-gray-400" />
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="text-empty-state">
@@ -266,7 +266,7 @@ export default function AdminVendors() {
               const resubmission = isResubmission(company);
 
               return (
-                <Card key={company.id} className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900" data-testid={`card-company-${company.id}`}>
+                <Card key={company.id} className="border-border dark:border-border bg-white dark:bg-background" data-testid={`card-company-${company.id}`}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -330,7 +330,7 @@ export default function AdminVendors() {
                               <Badge
                                 key={doc.id}
                                 variant="outline"
-                                className="text-[11px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                                className="text-[11px] cursor-pointer hover:bg-muted dark:hover:bg-gray-800"
                                 onClick={() => viewAuthenticatedFile(doc.fileUrl)}
                               >
                                 <FileText className="h-3 w-3 mr-1" />
@@ -463,14 +463,14 @@ export default function AdminVendors() {
                     {selectedCompany.documents.map(doc => (
                       <div
                         key={doc.id}
-                        className="flex items-center justify-between gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
+                        className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border dark:border-border bg-gray-50 dark:bg-card/50"
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="h-9 w-9 rounded-lg bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center flex-shrink-0">
                             <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                            <p className="text-sm font-medium text-gray-900 dark:text-foreground truncate">
                               {DOC_TYPE_LABELS[doc.documentType] || doc.label || doc.documentType}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -482,7 +482,7 @@ export default function AdminVendors() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                            className="h-8 px-2 text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                             onClick={() => viewAuthenticatedFile(doc.fileUrl)}
                           >
                             <ExternalLink className="h-3.5 w-3.5 mr-1" />
@@ -491,7 +491,7 @@ export default function AdminVendors() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 text-gray-600 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="h-8 px-2 text-muted-foreground hover:text-muted-foreground hover:bg-muted dark:hover:bg-gray-700"
                             onClick={() => downloadAuthenticatedFile(doc.fileUrl, doc.originalName || undefined)}
                           >
                             <Download className="h-3.5 w-3.5 mr-1" />

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
@@ -51,12 +51,7 @@ export default function TenderVendorRequirementsStep() {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <img
-            src={logoPath}
-            alt="Bid"
-            className="h-16 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate("/dashboard")}
-          />
+          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
           <Button variant="outline" onClick={handleBack} data-testid="button-back">
             <ArrowLeft className={`h-4 w-4 ${isRtl ? 'ml-2 rotate-180' : 'mr-2'}`} />
             {t('tenderSteps.back')}
@@ -68,11 +63,11 @@ export default function TenderVendorRequirementsStep() {
           {/* Left: Title + explanation */}
           <div>
             <div className="space-y-4">
-              <div className="text-sm font-medium text-gray-500">6 / 7</div>
-              <h1 className="text-5xl font-bold text-gray-900 leading-tight">
+              <div className="text-sm font-medium text-muted-foreground">6 / 7</div>
+              <h1 className="font-display font-black text-5xl text-foreground leading-[0.92] tracking-[-0.045em]">
                 {t('tenderSteps.submissionRequirements')}
               </h1>
-              <p className="text-gray-600 text-lg">
+              <p className="text-muted-foreground text-lg">
                 {t('tenderSteps.vendorReqDesc')}
               </p>
 
@@ -81,13 +76,13 @@ export default function TenderVendorRequirementsStep() {
                   {mandatoryCount > 0 && (
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
                       <div className="w-2 h-2 rounded-full bg-red-500" />
-                      <span className="text-sm font-medium text-red-700">{t('tenderSteps.mandatoryCount', { count: mandatoryCount })}</span>
+                      <span className="text-sm font-medium text-red-700 dark:text-red-300">{t('tenderSteps.mandatoryCount', { count: mandatoryCount })}</span>
                     </div>
                   )}
                   {preferredCount > 0 && (
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full">
                       <div className="w-2 h-2 rounded-full bg-amber-500" />
-                      <span className="text-sm font-medium text-amber-700">{t('tenderSteps.preferredCount', { count: preferredCount })}</span>
+                      <span className="text-sm font-medium text-amber-700 dark:text-amber-300">{t('tenderSteps.preferredCount', { count: preferredCount })}</span>
                     </div>
                   )}
                 </div>
@@ -98,7 +93,7 @@ export default function TenderVendorRequirementsStep() {
           {/* Right: Card */}
           <div>
             <Card className="border-0 shadow-xl overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
 
               <div className="p-6 space-y-5">
 
@@ -109,19 +104,19 @@ export default function TenderVendorRequirementsStep() {
                 />
 
                 {/* Navigation */}
-                <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <div className="flex gap-3 pt-4 border-t border-border">
                   <Button
                     type="button"
                     variant="ghost"
                     onClick={handleSkip}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-muted-foreground"
                     data-testid="button-skip"
                   >
                     {t('tenderSteps.skip')}
                   </Button>
                   <Button
                     onClick={handleNext}
-                    className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
+                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
                     data-testid="button-next"
                   >
                     {selected.length > 0

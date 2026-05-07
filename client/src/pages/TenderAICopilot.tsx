@@ -45,7 +45,7 @@ import { ToastAction } from "@/components/ui/toast";
 import { AIAgentOrb, OrbState } from "@/components/ui/ai-agent-orb";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { cn } from "@/lib/utils";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useI18n } from "@/lib/i18n";
 import { MarketplacePublishOption, type MarketplaceOptions } from "@/components/MarketplacePublishOption";
 import { TenderBriefCards } from "@/components/TenderBriefCards";
@@ -193,17 +193,17 @@ const AttachmentsPanel: React.FC<{
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="bg-white dark:bg-card rounded-xl border border-border dark:border-border overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="w-full px-4 py-3 flex items-center justify-between text-left"
       >
         <div className="flex items-center gap-2">
-          <Paperclip className="h-4 w-4 text-gray-500" />
-          <span className="text-sm font-semibold text-gray-900 dark:text-white">{t('copilot.attachFiles')}</span>
+          <Paperclip className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-semibold text-gray-900 dark:text-foreground">{t('copilot.attachFiles')}</span>
           {(attachments.length > 0 || draft.voiceNoteUrl || draft.videoUrl) && (
-            <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
+            <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
               {attachments.length + (draft.voiceNoteUrl ? 1 : 0) + (draft.videoUrl ? 1 : 0)}
             </span>
           )}
@@ -211,9 +211,9 @@ const AttachmentsPanel: React.FC<{
         {open ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
       </button>
       {open && (
-        <div className="px-4 pb-4 space-y-3 border-t border-gray-100 dark:border-gray-700">
+        <div className="px-4 pb-4 space-y-3 border-t border-border dark:border-border">
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">{t('copilot.videoExplainerUrl')}</label>
+            <label className="text-xs text-muted-foreground mb-1 block">{t('copilot.videoExplainerUrl')}</label>
             <div className="flex gap-2">
               <Input
                 type="url"
@@ -227,7 +227,7 @@ const AttachmentsPanel: React.FC<{
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">{t('copilot.supportingDocs')}</label>
+            <label className="text-xs text-muted-foreground mb-1 block">{t('copilot.supportingDocs')}</label>
             <input
               ref={fileInputRef}
               type="file"
@@ -251,7 +251,7 @@ const AttachmentsPanel: React.FC<{
             {attachments.length > 0 && (
               <ul className="mt-2 space-y-1">
                 {attachments.map((a) => (
-                  <li key={a.id} className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
+                  <li key={a.id} className="flex items-center gap-2 text-xs text-muted-foreground dark:text-muted-foreground">
                     <Paperclip className="h-3 w-3 text-gray-400 shrink-0" />
                     <span className="truncate flex-1">{a.name}</span>
                     <button
@@ -329,8 +329,8 @@ interface ActivityLogItem {
 
 // Activity type icons and colors
 const activityTypeConfig = {
-  thinking: { icon: Target, color: "text-purple-500", bg: "bg-purple-500/10" },
-  extracting: { icon: Zap, color: "text-blue-500", bg: "bg-blue-500/10" },
+  thinking: { icon: Target, color: "text-purple-500", bg: "bg-[var(--bid-orange)]/10" },
+  extracting: { icon: Zap, color: "text-blue-500", bg: "bg-[var(--bid-orange)]/10" },
   generating: { icon: FileText, color: "text-orange-500", bg: "bg-orange-500/10" },
   updating: { icon: CheckCircle2, color: "text-green-500", bg: "bg-green-500/10" },
   complete: { icon: CheckCircle2, color: "text-green-500", bg: "bg-green-500/10" },
@@ -363,8 +363,8 @@ const InlineActivity: React.FC<{
           aria-label={isExpanded ? t('copilot.a11yCollapseActivity') : t('copilot.a11yExpandActivity')}
           className={cn(
             "w-full flex items-start gap-3 px-4 py-3 rounded-xl text-left transition-all",
-            "bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50",
-            "hover:bg-gray-50/80 dark:hover:bg-gray-700/80 shadow-sm"
+            "bg-white/80 dark:bg-card/80 backdrop-blur-sm border border-border/50 dark:border-border/50",
+            "hover:bg-muted/80 dark:hover:bg-gray-700/80 shadow-sm"
           )}
         >
           <div className={cn("p-1.5 rounded-lg shrink-0", config.bg)}>
@@ -382,7 +382,7 @@ const InlineActivity: React.FC<{
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
+              <span className="text-sm font-medium text-gray-900 dark:text-foreground">
                 {latestActivity?.title}
               </span>
               {isWorking && (
@@ -417,7 +417,7 @@ const InlineActivity: React.FC<{
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-2 ml-4 pl-4 border-l-2 border-gray-200/50 dark:border-gray-700/50 space-y-2 max-h-72 overflow-y-auto"
+              className="mt-2 ml-4 pl-4 border-l-2 border-border/50 dark:border-border/50 space-y-2 max-h-72 overflow-y-auto"
             >
               {activities.slice(1).map((activity) => {
                 const actConfig = activityTypeConfig[activity.type];
@@ -431,7 +431,7 @@ const InlineActivity: React.FC<{
                   >
                     <ActIcon className={cn("w-3 h-3 mt-0.5 shrink-0", actConfig.color)} />
                     <div className="min-w-0">
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">
                         {activity.title}
                       </span>
                       {activity.detail && (
@@ -453,8 +453,8 @@ const InlineActivity: React.FC<{
 
 // Quick action templates — labels/prompts pulled via t() inside the component.
 const quickActionDefs: Array<{ key: string; icon: any; color: string }> = [
-  { key: "qaMarketing", icon: Building2, color: "bg-blue-500/10 text-blue-600 hover:bg-blue-500/20" },
-  { key: "qaIt", icon: Package, color: "bg-purple-500/10 text-purple-600 hover:bg-purple-500/20" },
+  { key: "qaMarketing", icon: Building2, color: "bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/20" },
+  { key: "qaIt", icon: Package, color: "bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/20" },
   { key: "qaHr", icon: Users, color: "bg-green-500/10 text-green-600 hover:bg-green-500/20" },
   { key: "qaCreative", icon: Lightbulb, color: "bg-orange-500/10 text-orange-600 hover:bg-orange-500/20" },
 ];
@@ -1068,7 +1068,7 @@ export default function TenderAICopilot() {
 
   return (
     <>
-    <div className="h-screen flex flex-col bg-white dark:bg-gray-950 relative overflow-hidden">
+    <div className="h-screen flex flex-col bg-background relative overflow-hidden">
       {/* Off-screen live region announces orb/status changes for screen readers */}
       <div
         role="status"
@@ -1091,18 +1091,13 @@ export default function TenderAICopilot() {
       </div>
 
       {/* Header */}
-      <header className="h-14 border-b border-gray-200/50 dark:border-gray-800/50 px-4 flex items-center justify-between shrink-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl relative z-50">
+      <header className="h-14 border-b border-border/50 px-4 flex items-center justify-between shrink-0 bg-background/80 backdrop-blur-xl relative z-50">
         <div className="flex items-center gap-3">
-          <img
-            src={logoPath}
-            alt="Bid"
-            className="h-8 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate("/dashboard")}
-          />
+          <BidLogo size={32} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
           <div className="h-5 w-px bg-gray-200 dark:bg-gray-700" />
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm font-medium text-gray-900 dark:text-white">
+            <div className="w-2 h-2 rounded-full bg-[var(--state-live)] bid-dot-pulse" />
+            <span className="text-sm font-medium text-gray-900 dark:text-foreground">
               {t('copilot.aiAgent')}
             </span>
             <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 border border-violet-200">
@@ -1117,7 +1112,7 @@ export default function TenderAICopilot() {
               variant="ghost"
               size="sm"
               onClick={handleReset}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-muted-foreground hover:text-muted-foreground"
             >
               <RotateCcw className="h-4 w-4 mr-1" />
               {t('copilot.startOver')}
@@ -1128,7 +1123,7 @@ export default function TenderAICopilot() {
               variant="ghost"
               size="icon"
               onClick={() => setShowPreview(!showPreview)}
-              className="text-gray-500"
+              className="text-muted-foreground"
               data-tour="preview-toggle"
             >
               {showPreview ? (
@@ -1142,7 +1137,7 @@ export default function TenderAICopilot() {
             variant="ghost"
             size="icon"
             onClick={() => navigate("/tenders/new")}
-            className="text-gray-500"
+            className="text-muted-foreground"
           >
             <X className="h-5 w-5" />
           </Button>
@@ -1150,9 +1145,9 @@ export default function TenderAICopilot() {
       </header>
 
       {/* Progress Bar */}
-      <div className="h-1 bg-gray-100/80 dark:bg-gray-800/80 relative z-10">
+      <div className="h-1 bg-gray-100/80 dark:bg-card/80 relative z-10">
         <motion.div
-          className="h-full bg-gradient-to-r from-[#E25E45] to-[#fb923c]"
+          className="h-full bg-gradient-to-r from-[#FE3C01] to-[#fb923c]"
           initial={{ width: 0 }}
           animate={{ width: `${progressPercentage}%` }}
           transition={{ duration: 0.5, ease: "easeOut" }}
@@ -1190,7 +1185,7 @@ export default function TenderAICopilot() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    <h2 className="font-display font-black text-3xl text-gray-900 dark:text-foreground mb-2 tracking-[-0.04em]">
                       {t('copilot.welcomeTitle', { name: firstName })}
                     </h2>
                     <p className="text-gray-500 dark:text-gray-400 max-w-md">
@@ -1211,7 +1206,7 @@ export default function TenderAICopilot() {
                         key={action.key}
                         onClick={() => handleQuickAction(t(`copilot.${action.key}Prompt`))}
                         className={cn(
-                          "flex items-center gap-3 p-4 rounded-xl border border-gray-200/80 dark:border-gray-700/80 transition-all hover:scale-[1.02] hover:shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm",
+                          "flex items-center gap-3 p-4 rounded-xl border border-border/80 dark:border-border/80 transition-all hover:scale-[1.02] hover:shadow-lg bg-white/80 dark:bg-card/80 backdrop-blur-sm",
                           action.color
                         )}
                         whileHover={{ y: -2 }}
@@ -1267,10 +1262,10 @@ export default function TenderAICopilot() {
                           key={step.id}
                           className={cn(
                             "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all backdrop-blur-sm",
-                            isActive && "bg-[#E25E45]/15 text-[#E25E45] border border-[#E25E45]/30",
+                            isActive && "bg-[#FE3C01]/15 text-[#FE3C01] border border-[#FE3C01]/30",
                             isCompleted && "bg-green-500/10 text-green-600 border border-green-500/20",
-                            isPending && "bg-white/60 text-gray-400 dark:bg-gray-800/60 border border-gray-200/50 dark:border-gray-700/50",
-                            !isLoading && !isCompleted && "bg-white/60 text-gray-400 dark:bg-gray-800/60 border border-gray-200/50 dark:border-gray-700/50"
+                            isPending && "bg-white/60 text-gray-400 dark:bg-card/60 border border-border/50 dark:border-border/50",
+                            !isLoading && !isCompleted && "bg-white/60 text-gray-400 dark:bg-card/60 border border-border/50 dark:border-border/50"
                           )}
                           animate={isActive ? { scale: [1, 1.05, 1] } : {}}
                           transition={{ duration: 1.5, repeat: isActive ? Infinity : 0 }}
@@ -1312,7 +1307,7 @@ export default function TenderAICopilot() {
                       transition={{ delay: idx * 0.05 }}
                     >
                       {message.role === "assistant" && (
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#E25E45] to-[#ff8066] flex items-center justify-center shrink-0 shadow-lg">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FE3C01] to-[#ff8066] flex items-center justify-center shrink-0 shadow-lg">
                           <Sparkles className="h-4 w-4 text-white" />
                         </div>
                       )}
@@ -1320,14 +1315,14 @@ export default function TenderAICopilot() {
                         className={cn(
                           "max-w-[85%] relative",
                           message.role === "user"
-                            ? "bg-[#E25E45] text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg"
-                            : "bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl rounded-tl-md px-4 py-3 shadow-md border border-gray-100 dark:border-gray-700"
+                            ? "bg-[#FE3C01] text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg"
+                            : "bg-white/95 dark:bg-card/95 backdrop-blur-sm rounded-2xl rounded-tl-md px-4 py-3 shadow-md border border-border dark:border-border"
                         )}
                       >
                         <p
                           className={cn(
                             "text-[15px] leading-relaxed whitespace-pre-wrap",
-                            message.role === "assistant" && "text-gray-900 dark:text-white"
+                            message.role === "assistant" && "text-gray-900 dark:text-foreground"
                           )}
                           aria-live={message.isStreaming ? "polite" : undefined}
                           aria-busy={message.isStreaming || undefined}
@@ -1336,7 +1331,7 @@ export default function TenderAICopilot() {
                           {message.isStreaming && (
                             <motion.span
                               aria-hidden="true"
-                              className="inline-block w-0.5 h-4 bg-[#E25E45] ml-0.5"
+                              className="inline-block w-0.5 h-4 bg-[#FE3C01] ml-0.5"
                               animate={{ opacity: [1, 0, 1] }}
                               transition={{ duration: 0.8, repeat: Infinity }}
                             />
@@ -1355,7 +1350,7 @@ export default function TenderAICopilot() {
                               <motion.button
                                 key={sidx}
                                 onClick={() => handleSuggestionClick(suggestion)}
-                                className="px-4 py-2 text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-full text-gray-700 dark:text-gray-300 transition-all hover:border-[#E25E45] hover:text-[#E25E45] flex items-center gap-2"
+                                className="px-4 py-2 text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-full text-muted-foreground dark:text-muted-foreground transition-all hover:border-[#FE3C01] hover:text-[#FE3C01] flex items-center gap-2"
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                               >
@@ -1385,15 +1380,15 @@ export default function TenderAICopilot() {
           </ScrollArea>
 
           {/* Input Area */}
-          <div className="border-t border-gray-200/50 dark:border-gray-800/50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl p-4">
+          <div className="border-t border-border/50 bg-background/80 backdrop-blur-xl p-4">
             <div className="max-w-3xl mx-auto">
               {persistFailed && (
-                <div className="mb-3 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center justify-between gap-2">
+                <div className="mb-3 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between gap-2">
                   <span>{t('copilot.persistFailedNotice') || "Some messages may not have been saved — refresh to verify your chat history is up to date."}</span>
                   <button
                     type="button"
                     onClick={() => setPersistFailed(false)}
-                    className="text-amber-700 hover:text-amber-900 shrink-0"
+                    className="text-amber-700 dark:text-amber-300 hover:text-amber-900 shrink-0"
                     aria-label={t('common.dismiss') || 'Dismiss'}
                   >
                     <X className="h-3 w-3" />
@@ -1420,14 +1415,14 @@ export default function TenderAICopilot() {
                         : t('copilot.placeholderActive')
                     }
                     disabled={isLoading}
-                    className="pr-24 h-12 text-[15px] border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 focus-visible:ring-[#E25E45] shadow-sm"
+                    className="pr-24 h-12 text-[15px] border-border dark:border-border rounded-xl bg-white dark:bg-card focus-visible:ring-[#FE3C01] shadow-sm"
                   />
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                     <Button
                       type="submit"
                       size="sm"
                       disabled={isLoading || !input.trim()}
-                      className="h-8 w-8 p-0 bg-[#E25E45] hover:bg-[#d54d35] rounded-lg"
+                      className="h-8 w-8 p-0 bg-[#FE3C01] hover:bg-[#d54d35] rounded-lg"
                     >
                       <Send className="h-4 w-4" />
                     </Button>
@@ -1452,7 +1447,7 @@ export default function TenderAICopilot() {
                     </div>
                     {Array.isArray(tenderDraft.vendorRequirements) && tenderDraft.vendorRequirements.length > 0 && (
                       <div
-                        className="text-xs text-gray-500 flex items-center gap-1.5"
+                        className="text-xs text-muted-foreground flex items-center gap-1.5"
                         data-testid="copilot-vendor-reqs-detected"
                       >
                         <Shield className="h-3.5 w-3.5" />
@@ -1477,7 +1472,7 @@ export default function TenderAICopilot() {
                         type="button"
                         variant="outline"
                         onClick={handleEditInBuilder}
-                        className="h-12 px-4 rounded-xl gap-2 border-gray-300"
+                        className="h-12 px-4 rounded-xl gap-2 border-border"
                       >
                         <Pencil className="h-4 w-4" />
                         {t('copilot.editFullBuilder')}
@@ -1505,7 +1500,7 @@ export default function TenderAICopilot() {
                       <button
                         key={chipKey}
                         onClick={() => sendMessage(label)}
-                        className="px-3 py-1.5 text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400 transition-colors"
+                        className="px-3 py-1.5 text-xs bg-gray-100 dark:bg-card hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400 transition-colors"
                       >
                         {label}
                       </button>
@@ -1525,7 +1520,7 @@ export default function TenderAICopilot() {
               animate={{ width: 480, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="border-l border-gray-200/50 dark:border-gray-800/50 bg-gray-50 dark:bg-gray-900 overflow-hidden"
+              className="border-l border-border/50 dark:border-border/50 bg-gray-50 dark:bg-background overflow-hidden"
             >
               <div className="w-[480px] h-full overflow-y-auto">
                 {hasPreviewContent ? (
@@ -1547,14 +1542,14 @@ export default function TenderAICopilot() {
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4"
+                      className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-card flex items-center justify-center mb-4"
                     >
                       <FileText className="h-8 w-8 text-gray-400" />
                     </motion.div>
-                    <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-foreground mb-1">
                       {t('copilot.noPreviewYet')}
                     </h4>
-                    <p className="text-xs text-gray-500 max-w-[200px]">
+                    <p className="text-xs text-muted-foreground max-w-[200px]">
                       {t('copilot.noPreviewDesc')}
                     </p>
                   </div>

@@ -526,7 +526,7 @@ export default function TenderEditPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -534,7 +534,7 @@ export default function TenderEditPage() {
 
   if (!tender) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-background p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-8 text-center">
             <p className="text-muted-foreground">{t('tenderFlow.tenderNotFoundTitle')}</p>
@@ -549,7 +549,7 @@ export default function TenderEditPage() {
   const isEditRtl = editTenderLanguage === 'ar';
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900" dir={isEditRtl ? "rtl" : "ltr"}>
+    <div className="min-h-screen bg-gray-50 dark:bg-background" dir={isEditRtl ? "rtl" : "ltr"}>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button variant="ghost" onClick={() => navigate(`/tenders/${tenderId}`)} className="mb-6 -ml-2">
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -557,7 +557,7 @@ export default function TenderEditPage() {
         </Button>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('tenderFlow.editTenderTitle')}</h1>
+          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]">{t('tenderFlow.editTenderTitle')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {isPublished ? t('tenderFlow.tenderIsLive') : t('tenderFlow.tenderIsDraft')}
           </p>
@@ -571,10 +571,10 @@ export default function TenderEditPage() {
 
             {/* 1. Basics */}
             <SectionCard
-              icon={<FileText className="h-4 w-4 text-[#E25E45]" />}
+              icon={<FileText className="h-4 w-4 text-[#FE3C01]" />}
               title={t('tenderFlow.editSectionBasicsTitle')}
               description={t('tenderFlow.editSectionBasicsDesc')}
-              color="bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]"
+              color="bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]"
             >
               <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem>
@@ -604,7 +604,7 @@ export default function TenderEditPage() {
 
             {/* 2. Timeline */}
             <SectionCard
-              icon={<Calendar className="h-4 w-4 text-blue-600" />}
+              icon={<Calendar className="h-4 w-4 text-[var(--bid-orange)]" />}
               title={t('tenderFlow.editSectionTimelineTitle')}
               description={t('tenderFlow.editSectionTimelineDesc')}
               color="bg-gradient-to-r from-blue-500 to-blue-400"
@@ -651,8 +651,8 @@ export default function TenderEditPage() {
                 );
               }} />
 
-              <div className="border-t border-gray-100 pt-4">
-                <p className="text-sm font-medium text-gray-700 mb-1">{t('tenderFlow.editProjectDurationTitle')}</p>
+              <div className="border-t border-border pt-4">
+                <p className="text-sm font-medium text-muted-foreground mb-1">{t('tenderFlow.editProjectDurationTitle')}</p>
                 <p className="text-xs text-muted-foreground mb-3">{t('tenderFlow.editProjectDurationDesc')}</p>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="startDate" render={({ field }) => (
@@ -717,8 +717,8 @@ export default function TenderEditPage() {
                   const computed = computeDurationFromDates(startDateVal, endDateVal);
                   return computed ? (
                     <div className="mt-3 flex items-center gap-2 text-sm">
-                      <span className="text-gray-500">{t('tenderFlow.editComputedDuration')}</span>
-                      <span className="font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{DURATION_LABELS[computed]}</span>
+                      <span className="text-muted-foreground">{t('tenderFlow.editComputedDuration')}</span>
+                      <span className="font-semibold text-[var(--bid-orange)] bg-[var(--bid-orange)]/5 px-2 py-0.5 rounded">{DURATION_LABELS[computed]}</span>
                     </div>
                   ) : null;
                 })()}
@@ -740,8 +740,8 @@ export default function TenderEditPage() {
                     onClick={() => setBudgetType(type as "exact" | "range")}
                     className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
                       budgetType === type
-                        ? "bg-[#E25E45] text-white border-[#E25E45]"
-                        : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                        ? "bg-[#FE3C01] text-white border-[#FE3C01]"
+                        : "bg-white dark:bg-card text-muted-foreground dark:text-muted-foreground border-border dark:border-border hover:border-border"
                     }`}
                   >
                     {type === "exact" ? t('tenderFlow.editBudgetExact') : t('tenderFlow.editBudgetRange')}
@@ -755,7 +755,7 @@ export default function TenderEditPage() {
                     <FormLabel>{t('tenderFlow.editBudgetAmountLabel')}</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">SAR</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">SAR</span>
                         <Input className="pl-12" placeholder={t('tenderFlow.editBudgetAmountPlaceholder')} {...field} />
                       </div>
                     </FormControl>
@@ -787,9 +787,9 @@ export default function TenderEditPage() {
 
               <FormField control={form.control} name="showPriceToVendors" render={({ field }) => (
                 <FormItem>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-card rounded-lg">
                     <div className="flex items-center gap-2">
-                      {field.value ? <Eye className="h-4 w-4 text-gray-500" /> : <EyeOff className="h-4 w-4 text-gray-500" />}
+                      {field.value ? <Eye className="h-4 w-4 text-muted-foreground" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
                       <div>
                         <p className="text-sm font-medium">{t('tenderFlow.editShowBudgetLabel')}</p>
                         <p className="text-xs text-muted-foreground">{field.value ? t('tenderFlow.editBudgetVisible') : t('tenderFlow.editBudgetHidden')}</p>
@@ -803,7 +803,7 @@ export default function TenderEditPage() {
 
             {/* 4. Submission */}
             <SectionCard
-              icon={<ClipboardList className="h-4 w-4 text-purple-600" />}
+              icon={<ClipboardList className="h-4 w-4 text-[var(--bid-orange)]" />}
               title={t('tenderFlow.editSubmissionsTitle')}
               description={t('tenderFlow.editSectionSubmHowDesc')}
               color="bg-gradient-to-r from-purple-500 to-purple-400"
@@ -957,7 +957,7 @@ export default function TenderEditPage() {
                   </div>
                 </div>
                 <div>
-                  <p className={`text-sm font-medium ${totalWeight === 100 ? "text-green-700" : totalWeight > 100 ? "text-red-700" : "text-amber-700"}`}>
+                  <p className={`text-sm font-medium ${totalWeight === 100 ? "text-green-700 dark:text-green-300" : totalWeight > 100 ? "text-red-700" : "text-amber-700"}`}>
                     {totalWeight === 100 ? t('tenderFlow.editWeightPerfect') : totalWeight > 100 ? t('tenderFlow.editWeightOver', { n: totalWeight - 100 }) : t('tenderFlow.editWeightRemaining', { n: 100 - totalWeight })}
                   </p>
                 </div>
@@ -970,26 +970,26 @@ export default function TenderEditPage() {
                   const currentWeight = categoryWeights.find(cw => cw.categoryId === category.id)?.weight || 0;
                   const hasSelections = selectedRequirements.some(r => r.categoryId === category.id);
                   return (
-                    <div key={category.id} className={`border rounded-lg overflow-hidden transition-all ${hasSelections ? "border-[#E25E45]/50 bg-[#E25E45]/5" : "border-gray-200"}`}>
+                    <div key={category.id} className={`border rounded-lg overflow-hidden transition-all ${hasSelections ? "border-[#FE3C01]/50 bg-[#FE3C01]/5" : "border-border"}`}>
                       <button type="button" onClick={() => setExpandedEvalCategories(prev => prev.includes(category.id) ? prev.filter(id => id !== category.id) : [...prev, category.id])}
-                        className="w-full flex items-center justify-between p-3 hover:bg-gray-50">
+                        className="w-full flex items-center justify-between p-3 hover:bg-muted">
                         <div className="flex items-center gap-2">
-                          <div className={`p-1.5 rounded ${hasSelections ? "bg-[#E25E45]/10 text-[#E25E45]" : "bg-gray-100 text-gray-500"}`}>{category.icon}</div>
-                          <span className="font-medium text-sm text-gray-900">{evalCategoryNames[category.id] ?? category.name}</span>
+                          <div className={`p-1.5 rounded ${hasSelections ? "bg-[#FE3C01]/10 text-[#FE3C01]" : "bg-muted text-muted-foreground"}`}>{category.icon}</div>
+                          <span className="font-medium text-sm text-foreground">{evalCategoryNames[category.id] ?? category.name}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500">{currentWeight}%</span>
+                          <span className="text-xs text-muted-foreground">{currentWeight}%</span>
                           <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                         </div>
                       </button>
                       <div className={`grid transition-all duration-200 ${isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
                         <div className="overflow-hidden">
-                          <div className="border-t border-gray-200 p-3 space-y-3 bg-white">
+                          <div className="border-t border-border p-3 space-y-3 bg-card">
                             <div className="space-y-1">
-                              <label className="text-xs text-gray-500">{t('tenderFlow.editWeightLabel', { n: currentWeight })}</label>
+                              <label className="text-xs text-muted-foreground">{t('tenderFlow.editWeightLabel', { n: currentWeight })}</label>
                               <input type="range" min="0" max="100" step="5" value={currentWeight}
                                 onChange={(e) => handleWeightChange(category.id, parseInt(e.target.value))}
-                                className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]" />
+                                className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#FE3C01]" />
                             </div>
                             {category.requirements.map((req) => {
                               const currentValue = getRequirementValue(category.id, req.id);
@@ -997,12 +997,12 @@ export default function TenderEditPage() {
                                 <div key={req.id} className="flex items-start gap-2">
                                   {req.type === "checkbox" && (
                                     <button type="button" onClick={() => handleRequirementChange(category.id, req.id, !currentValue)}
-                                      className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${currentValue ? "border-[#E25E45] bg-[#E25E45]" : "border-gray-300"}`}>
+                                      className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${currentValue ? "border-[#FE3C01] bg-[#FE3C01]" : "border-border"}`}>
                                       {currentValue && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
                                     </button>
                                   )}
                                   <div className="flex-1">
-                                    <label className="text-sm text-gray-900">{evalReqLabels[req.id] ?? req.label}</label>
+                                    <label className="text-sm text-foreground">{evalReqLabels[req.id] ?? req.label}</label>
                                     {req.type === "select" && req.options && (
                                       <Select value={(currentValue as string) || "none"} onValueChange={(v) => handleRequirementChange(category.id, req.id, v === "none" ? "" : v)}>
                                         <SelectTrigger className="mt-1 w-full text-sm"><SelectValue placeholder={t('tenderFlow.editNotRequired')} /></SelectTrigger>
@@ -1025,20 +1025,20 @@ export default function TenderEditPage() {
               </div>
 
               {/* Custom criteria */}
-              <div className="space-y-3 pt-2 border-t border-gray-200">
-                <p className="text-sm font-medium text-gray-700">{t('tenderFlow.editCustomCriteriaTitle')} <span className="text-gray-400 font-normal text-xs">{t('tenderFlow.editCustomCriteriaOptional')}</span></p>
+              <div className="space-y-3 pt-2 border-t border-border">
+                <p className="text-sm font-medium text-muted-foreground">{t('tenderFlow.editCustomCriteriaTitle')} <span className="text-gray-400 font-normal text-xs">{t('tenderFlow.editCustomCriteriaOptional')}</span></p>
                 {customCriteria.length > 0 && (
                   <div className="space-y-2">
                     {customCriteria.map(c => (
-                      <div key={c.id} className="px-3 py-2 bg-[#E25E45]/5 border border-[#E25E45]/20 rounded-lg space-y-2">
+                      <div key={c.id} className="px-3 py-2 bg-[#FE3C01]/5 border border-[#FE3C01]/20 rounded-lg space-y-2">
                         <div className="flex items-center gap-2">
-                          <span className="flex-1 text-sm text-gray-900">{c.text}</span>
-                          <span className="text-xs font-medium text-[#E25E45]">{c.weight}%</span>
+                          <span className="flex-1 text-sm text-foreground">{c.text}</span>
+                          <span className="text-xs font-medium text-[#FE3C01]">{c.weight}%</span>
                           <button type="button" onClick={() => removeCustomCriterion(c.id)} className="text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
                         </div>
                         <input type="range" min="0" max="50" step="5" value={c.weight}
                           onChange={(e) => updateCustomCriterionWeight(c.id, parseInt(e.target.value))}
-                          className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]" />
+                          className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#FE3C01]" />
                       </div>
                     ))}
                   </div>
@@ -1048,16 +1048,16 @@ export default function TenderEditPage() {
                     <input type="text" value={newCriterionText} onChange={(e) => setNewCriterionText(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomCriterion())}
                       placeholder={t('tenderFlow.editCustomCriteriaPlaceholder')}
-                      className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E25E45]" />
-                    <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#E25E45] hover:bg-[#d54d35]"><Plus className="h-4 w-4" /></Button>
+                      className="flex-1 px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE3C01]" />
+                    <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#FE3C01] hover:bg-[#d54d35]"><Plus className="h-4 w-4" /></Button>
                   </div>
                   {newCriterionText.trim() && (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">{t('tenderFlow.editWeightLabelShort')}</span>
+                      <span className="text-xs text-muted-foreground">{t('tenderFlow.editWeightLabelShort')}</span>
                       <input type="range" min="0" max="50" step="5" value={newCriterionWeight}
                         onChange={(e) => setNewCriterionWeight(parseInt(e.target.value))}
-                        className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#E25E45]" />
-                      <span className="text-xs font-medium text-[#E25E45] w-8">{newCriterionWeight}%</span>
+                        className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#FE3C01]" />
+                      <span className="text-xs font-medium text-[#FE3C01] w-8">{newCriterionWeight}%</span>
                     </div>
                   )}
                 </div>
@@ -1066,7 +1066,7 @@ export default function TenderEditPage() {
 
             {/* 7. Vendor Requirements */}
             <SectionCard
-              icon={<Shield className="h-4 w-4 text-blue-600" />}
+              icon={<Shield className="h-4 w-4 text-[var(--bid-orange)]" />}
               title={t('tenderFlow.editSubmissionsTitle')}
               description={t('tenderFlow.editSectionEligDesc')}
               color="bg-gradient-to-r from-blue-500 to-indigo-400"
@@ -1089,7 +1089,7 @@ export default function TenderEditPage() {
               {milestones.length > 0 && (
                 <div className="space-y-2">
                   {milestones.map((m, index) => (
-                    <div key={m.id} className="group flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    <div key={m.id} className="group flex items-start gap-3 p-3 bg-gray-50 dark:bg-card/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                       <div className="flex-shrink-0 mt-2.5">
                         <div className={`w-2.5 h-2.5 rounded-full ${m.name.trim() ? "bg-violet-500" : "bg-gray-300"}`} />
                       </div>
@@ -1099,7 +1099,7 @@ export default function TenderEditPage() {
                           value={m.name}
                           onChange={(e) => updateMilestone(m.id, "name", e.target.value)}
                           placeholder={t('tenderFlow.milestoneName')}
-                          className="w-full bg-transparent border-0 border-b border-transparent focus:border-violet-400 text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 pb-1"
+                          className="w-full bg-transparent border-0 border-b border-transparent focus:border-violet-400 text-sm font-medium text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-0 pb-1"
                         />
                         <input
                           type="text"
@@ -1114,7 +1114,7 @@ export default function TenderEditPage() {
                           <PopoverTrigger asChild>
                             <button type="button" className={cn(
                               "flex items-center gap-1.5 px-2 py-1 text-xs rounded-md transition-colors",
-                              m.dueDate ? "bg-violet-100 text-violet-700 hover:bg-violet-200" : "text-gray-400 hover:text-gray-600 hover:bg-gray-200"
+                              m.dueDate ? "bg-violet-100 text-violet-700 dark:text-violet-300 hover:bg-violet-200" : "text-gray-400 hover:text-muted-foreground hover:bg-gray-200"
                             )}>
                               <CalendarIcon className="h-3.5 w-3.5" />
                               {m.dueDate ? format(m.dueDate, "MMM d", { locale: dateLocale }) : t('tenderFlow.date')}
@@ -1137,7 +1137,7 @@ export default function TenderEditPage() {
                                 }}
                               />
                             ) : (
-                              <div className="p-4 text-center text-sm text-gray-500 w-48">
+                              <div className="p-4 text-center text-sm text-muted-foreground w-48">
                                 <CalendarIcon className="h-6 w-6 mx-auto mb-2 text-gray-300" />
                                 {t('tenderFlow.editMilestoneSetDates')}
                               </div>
@@ -1159,7 +1159,7 @@ export default function TenderEditPage() {
               <button
                 type="button"
                 onClick={addMilestone}
-                className="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 text-gray-400 hover:border-violet-400 hover:text-violet-500 transition-all group"
+                className="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-border dark:border-border text-gray-400 hover:border-violet-400 hover:text-violet-500 transition-all group"
               >
                 <div className="w-2.5 h-2.5 rounded-full bg-gray-300 group-hover:bg-violet-400 transition-colors" />
                 <Plus className="h-4 w-4" />
@@ -1177,7 +1177,7 @@ export default function TenderEditPage() {
               {deliverables.length > 0 && (
                 <div className="space-y-3">
                   {deliverables.map((d, index) => (
-                    <div key={d.id} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 space-y-2">
+                    <div key={d.id} className="p-3 bg-gray-50 dark:bg-card rounded-lg border border-border dark:border-border space-y-2">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-white bg-indigo-500 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{index + 1}</span>
                         <Input placeholder={t('tenderFlow.editDeliverableNamePlaceholder')} value={d.name} onChange={(e) => updateDeliverable(d.id, "name", e.target.value)} className="flex-1" />
@@ -1215,7 +1215,7 @@ export default function TenderEditPage() {
                   {attachments.map((a) => (
                     <div
                       key={a.id}
-                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-card rounded-lg border border-border dark:border-border"
                     >
                       <FileText className="h-4 w-4 text-sky-600 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
@@ -1223,7 +1223,7 @@ export default function TenderEditPage() {
                           href={a.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm font-medium text-gray-900 dark:text-white hover:text-sky-600 truncate block"
+                          className="text-sm font-medium text-gray-900 dark:text-foreground hover:text-sky-600 truncate block"
                         >
                           {a.name}
                         </a>
@@ -1323,7 +1323,7 @@ export default function TenderEditPage() {
             {/* Actions */}
             <div className="flex flex-col gap-3 pt-2">
               {(selectedRequirements.length > 0 || customCriteria.length > 0) && totalWeight !== 100 && (
-                <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:text-red-300">
                   <span className="mt-0.5 flex-shrink-0">⚠</span>
                   <span>
                     {t('tenderFlow.editWeightWarning')}{" "}
@@ -1339,7 +1339,7 @@ export default function TenderEditPage() {
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-[#E25E45] hover:bg-[#d54d35] text-white disabled:opacity-50"
+                  className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] text-white disabled:opacity-50"
                   disabled={updateTenderMutation.isPending || ((selectedRequirements.length > 0 || customCriteria.length > 0) && totalWeight !== 100)}
                 >
                   {updateTenderMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('tenderFlow.editSaving')}</> : <><Save className="h-4 w-4 mr-2" />{t('tenderFlow.editSaveChanges')}</>}

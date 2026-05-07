@@ -142,7 +142,7 @@ export default function VendorsBase() {
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2" data-testid="text-page-title">{t('vendorsBase.pageTitle')}</h1>
+        <h1 className="font-display font-black text-4xl mb-2 tracking-[-0.04em]" data-testid="text-page-title">{t('vendorsBase.pageTitle')}</h1>
         <p className="text-muted-foreground" data-testid="text-page-description">
           {t('vendorsBase.pageDesc')}
         </p>
@@ -201,12 +201,12 @@ export default function VendorsBase() {
           ) : (
             <div className="grid gap-4">
               {vendors.map((vendor) => (
-                <SpotlightCard key={vendor.id} className="bg-white border-neutral-200" spotlightColor="blue" data-testid={`card-vendor-${vendor.id}`}>
+                <SpotlightCard key={vendor.id} className="bg-card border-border" spotlightColor="blue" data-testid={`card-vendor-${vendor.id}`}>
                   <div className="px-5 py-4">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-1">
-                          <h3 className="text-lg font-bold text-neutral-900 truncate" data-testid={`text-vendor-name-${vendor.id}`}>
+                          <h3 className="text-lg font-bold text-foreground truncate" data-testid={`text-vendor-name-${vendor.id}`}>
                             {vendor.company}
                           </h3>
                           {vendor.verificationStatus === 'verified' && (
@@ -223,7 +223,7 @@ export default function VendorsBase() {
                             {vendor.joinMethod === 'invitation' ? t('vendorsBase.badgeInvited') : t('vendorsBase.badgeApplied')}
                           </Badge>
                         </div>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-600">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                           <span className="font-medium" data-testid={`text-vendor-category-${vendor.id}`}>
                             {vendor.category}
                           </span>
@@ -269,7 +269,7 @@ export default function VendorsBase() {
           {pendingRequests.length > 0 && (
             <div>
               <div className="mb-4" data-testid="text-pending-title">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-lg font-semibold text-foreground">
                   {t('vendorsBase.pendingRequestsTitle', { count: pendingRequests.length })}
                 </h2>
                 <p className="text-sm text-muted-foreground">
@@ -284,7 +284,7 @@ export default function VendorsBase() {
                   return (
                     <SpotlightCard
                       key={request.id}
-                      className="bg-white border-neutral-200"
+                      className="bg-card border-border"
                       spotlightColor={request.vendor?.verificationStatus === 'verified' ? 'green' : request.vendor?.verificationStatus === 'under_review' ? 'orange' : 'purple'}
                       data-testid={`card-request-${request.id}`}
                     >
@@ -295,7 +295,7 @@ export default function VendorsBase() {
                               <img
                                 src={request.vendor.logoUrl}
                                 alt={request.vendor.company}
-                                className="w-12 h-12 rounded-xl object-cover border border-gray-100 flex-shrink-0 bg-white"
+                                className="w-12 h-12 rounded-xl object-cover border border-border flex-shrink-0 bg-card"
                               />
                             ) : (
                               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0 border border-primary/10">
@@ -304,17 +304,17 @@ export default function VendorsBase() {
                             )}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-3 mb-2">
-                                <h3 className="text-xl font-bold text-neutral-900 truncate" data-testid={`text-request-company-${request.id}`}>
+                                <h3 className="text-xl font-bold text-foreground truncate" data-testid={`text-request-company-${request.id}`}>
                                   {request.vendor?.company || t('vendorsBase.unknownVendor')}
                                 </h3>
                                 <Badge
                                   variant="outline"
                                   className={
                                     request.vendor?.verificationStatus === 'verified'
-                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0'
+                                      ? 'bg-[var(--state-won)]/5 text-[var(--state-won)] border-emerald-200 text-xs px-2 py-0'
                                       : request.vendor?.verificationStatus === 'under_review'
-                                      ? 'bg-amber-50 text-amber-700 border-amber-200 text-xs px-2 py-0'
-                                      : 'bg-gray-50 text-gray-500 border-gray-200 text-xs px-2 py-0'
+                                      ? 'bg-amber-50 text-amber-700 dark:text-amber-300 border-amber-200 text-xs px-2 py-0'
+                                      : 'bg-muted text-muted-foreground border-border text-xs px-2 py-0'
                                   }
                                   data-testid={`badge-request-status-${request.id}`}
                                 >
@@ -330,33 +330,33 @@ export default function VendorsBase() {
                         </div>
 
                         {request.vendor?.bio && (
-                          <p className="text-sm font-medium text-neutral-600 line-clamp-2 mb-4">
+                          <p className="text-sm font-medium text-muted-foreground line-clamp-2 mb-4">
                             {request.vendor.bio}
                           </p>
                         )}
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
                           {request.vendor?.expertise && (
-                            <div className="flex items-center gap-2 text-neutral-700 font-medium" data-testid={`text-request-category-${request.id}`}>
+                            <div className="flex items-center gap-2 text-muted-foreground font-medium" data-testid={`text-request-category-${request.id}`}>
                               <Briefcase className="h-4 w-4" />
                               <span>{request.vendor.expertise}</span>
                             </div>
                           )}
                           {request.vendor?.websiteUrl && (
-                            <div className="flex items-center gap-2 text-neutral-700 font-medium">
+                            <div className="flex items-center gap-2 text-muted-foreground font-medium">
                               <Globe className="h-4 w-4" />
                               <a
                                 href={request.vendor.websiteUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="hover:underline hover:text-blue-600 truncate max-w-[160px]"
+                                className="hover:underline hover:text-[var(--bid-orange)] truncate max-w-[160px]"
                               >
                                 {request.vendor.websiteUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
                               </a>
                             </div>
                           )}
                           {timeAgo && (
-                            <div className="flex items-center gap-2 text-neutral-700 font-medium">
+                            <div className="flex items-center gap-2 text-muted-foreground font-medium">
                               <CalendarDays className="h-4 w-4" />
                               <span>{timeAgo}</span>
                             </div>
@@ -381,7 +381,7 @@ export default function VendorsBase() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-300"
                             onClick={() => rejectRequest.mutate(request.id)}
                             disabled={rejectRequest.isPending}
                             data-testid={`button-reject-inline-${request.id}`}
@@ -391,7 +391,7 @@ export default function VendorsBase() {
                           </Button>
                           <Button
                             size="sm"
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                            className="bg-[var(--state-won)] hover:bg-[var(--state-won)]/90 text-white"
                             onClick={() => approveRequest.mutate(request.id)}
                             disabled={approveRequest.isPending}
                             data-testid={`button-review-${request.id}`}
@@ -442,10 +442,10 @@ export default function VendorsBase() {
                           <img
                             src={request.vendor.logoUrl}
                             alt={request.vendor.company}
-                            className="w-9 h-9 rounded-lg object-cover border border-gray-100 flex-shrink-0"
+                            className="w-9 h-9 rounded-lg object-cover border border-border flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                          <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                             <span className="text-xs font-semibold text-gray-400">{historyInitials}</span>
                           </div>
                         )}

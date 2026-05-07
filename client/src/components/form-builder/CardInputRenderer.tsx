@@ -41,7 +41,7 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
           value={card.value || ""}
           onChange={(e) => updateValue(e.target.value)}
           disabled={readOnly}
-          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${readOnly ? "cursor-default opacity-60" : ""}`}
+          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${readOnly ? "cursor-default opacity-60" : ""}`}
         />
       );
 
@@ -80,7 +80,7 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
           value={card.value || ""}
           onChange={(e) => updateValue(e.target.value)}
           disabled={readOnly}
-          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${readOnly ? "cursor-default opacity-60" : ""}`}
+          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${readOnly ? "cursor-default opacity-60" : ""}`}
         />
       );
 
@@ -95,7 +95,7 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
           value={card.value || ""}
           onChange={(e) => updateValue(e.target.value)}
           disabled={readOnly}
-          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent ${readOnly ? "cursor-default opacity-60" : ""}`}
+          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${readOnly ? "cursor-default opacity-60" : ""}`}
         />
       );
 
@@ -107,7 +107,7 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
           onChange={(e) => updateValue(e.target.value)}
           disabled={readOnly}
           rows={3}
-          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none ${readOnly ? "cursor-default opacity-60" : ""}`}
+          className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none ${readOnly ? "cursor-default opacity-60" : ""}`}
         />
       );
 
@@ -127,7 +127,7 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
 
     default:
       return (
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-muted-foreground">
           Unknown card type: {card.type}
         </div>
       );
@@ -217,15 +217,15 @@ function SupplierResponseInput({
             readOnly ? "cursor-default" : "cursor-pointer"
           } ${
             isSelected
-              ? "border-[#E25E45] bg-[#E25E45]/5"
+              ? "border-[#FE3C01] bg-[#FE3C01]/5"
               : "border-gray-200 dark:border-gray-600"
-          } ${!readOnly && !isSelected ? "hover:border-gray-300" : ""}`}
+          } ${!readOnly && !isSelected ? "hover:border-border" : ""}`}
         >
           <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${option.color} flex items-center justify-center flex-shrink-0`}>
             <Icon className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1">
-            <div className={`font-medium ${isSelected ? "text-[#E25E45]" : "text-gray-900 dark:text-white"}`}>
+            <div className={`font-medium ${isSelected ? "text-[#FE3C01]" : "text-gray-900 dark:text-foreground"}`}>
               {option.label}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -234,10 +234,10 @@ function SupplierResponseInput({
           </div>
           <div
             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-              isSelected ? "border-[#E25E45] bg-[#E25E45]" : "border-gray-300 dark:border-gray-500"
+              isSelected ? "border-[#FE3C01] bg-[#FE3C01]" : "border-gray-300 dark:border-gray-500"
             }`}
           >
-            {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+            {isSelected && <div className="w-2 h-2 rounded-full bg-card" />}
           </div>
         </div>
       );
@@ -251,8 +251,8 @@ function SupplierResponseInput({
       </div>
 
       {/* How vendors ask questions */}
-      <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
-        <p className="text-sm font-medium text-gray-900 dark:text-white">
+      <div className="space-y-3 border-t border-border dark:border-border pt-4">
+        <p className="text-sm font-medium text-gray-900 dark:text-foreground">
           {t('tenderFlow.howAskQuestions')}
         </p>
         <div className="grid gap-3">
@@ -273,7 +273,7 @@ function SupplierResponseInput({
         {val.inquiryType === "email_whatsapp" && !readOnly && (
           <div className="space-y-3 pt-1">
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground mb-1.5">
                 {t('tenderFlow.whatsappNumber')}
               </label>
               <input
@@ -281,11 +281,11 @@ function SupplierResponseInput({
                 placeholder="+966 50 123 4567"
                 value={val.whatsappContact}
                 onChange={(e) => update({ whatsappContact: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground mb-1.5">
                 {t('tenderFlow.emailAddress')}
               </label>
               <input
@@ -293,7 +293,7 @@ function SupplierResponseInput({
                 placeholder="contact@company.com"
                 value={val.emailContact}
                 onChange={(e) => update({ emailContact: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
               />
             </div>
           </div>
@@ -384,8 +384,8 @@ function BudgetInput({
             onClick={() => onChange({ ...budgetValue, type: budgetType })}
             className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
               budgetValue.type === budgetType
-                ? "bg-[#E25E45] text-white"
-                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                ? "bg-[#FE3C01] text-white"
+                : "bg-gray-100 dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >
             {budgetType === "exact" ? t('tenderFlow.exactBudget') : t('tenderFlow.budgetRange')}
@@ -402,7 +402,7 @@ function BudgetInput({
             placeholder="0"
             value={budgetValue.amount}
             onChange={(e) => onChange({ ...budgetValue, amount: e.target.value })}
-            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
           />
         </div>
       )}
@@ -417,7 +417,7 @@ function BudgetInput({
               placeholder="0"
               value={budgetValue.min}
               onChange={(e) => onChange({ ...budgetValue, min: e.target.value })}
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -427,27 +427,27 @@ function BudgetInput({
               placeholder="0"
               value={budgetValue.max}
               onChange={(e) => onChange({ ...budgetValue, max: e.target.value })}
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
             />
           </div>
         </div>
       )}
 
       {/* Show budget to vendors toggle */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between pt-3 border-t border-border dark:border-border">
         <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('formBuilder.showBudgetToVendors')}</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-foreground">{t('formBuilder.showBudgetToVendors')}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400">{t('formBuilder.vendorsSeeBudgetRfp')}</p>
         </div>
         <button
           type="button"
           onClick={() => onChange({ ...budgetValue, showToVendors: !budgetValue.showToVendors })}
           className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-            budgetValue.showToVendors ? "bg-[#E25E45]" : "bg-gray-300 dark:bg-gray-600"
+            budgetValue.showToVendors ? "bg-[#FE3C01]" : "bg-gray-300 dark:bg-gray-600"
           }`}
         >
           <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+            className={`inline-block h-4 w-4 transform rounded-full bg-card shadow transition-transform ${
               budgetValue.showToVendors ? "translate-x-4" : "translate-x-0.5"
             }`}
           />
@@ -515,10 +515,10 @@ function DeliverablesInput({
           {items.map((item) => (
             <div key={item.id} className="rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
               <div className="flex items-center gap-3 px-3 py-2 bg-gray-50 dark:bg-gray-700">
-                <span className="flex-1 text-sm font-medium text-gray-900 dark:text-white">{item.name}</span>
+                <span className="flex-1 text-sm font-medium text-gray-900 dark:text-foreground">{item.name}</span>
                 <button
                   onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                  className="text-xs text-[#E25E45] hover:underline flex-shrink-0"
+                  className="text-xs text-[#FE3C01] hover:underline flex-shrink-0"
                 >
                   {expandedId === item.id
                     ? t('formBuilder.closeButton')
@@ -531,13 +531,13 @@ function DeliverablesInput({
                 </button>
               </div>
               {expandedId === item.id && (
-                <div className="px-3 py-2 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-600">
+                <div className="px-3 py-2 bg-white dark:bg-card border-t border-gray-200 dark:border-gray-600">
                   <textarea
                     placeholder={t('formBuilder.addDescriptionPlaceholder')}
                     value={item.description}
                     onChange={(e) => handleUpdateDesc(item.id, e.target.value)}
                     rows={2}
-                    className="w-full text-sm px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#E25E45] resize-none"
+                    className="w-full text-sm px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#FE3C01] resize-none"
                   />
                 </div>
               )}
@@ -552,16 +552,16 @@ function DeliverablesInput({
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
         />
         <textarea
           placeholder={t('tenderFlow.describeDeliverable')}
           value={newDesc}
           onChange={(e) => setNewDesc(e.target.value)}
           rows={2}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none text-sm"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none text-sm"
         />
-        <Button onClick={handleAdd} className="w-full bg-[#E25E45] hover:bg-[#d54d35]">
+        <Button onClick={handleAdd} className="w-full bg-[#FE3C01] hover:bg-[#d54d35]">
           <Plus className="h-4 w-4 mr-2" />
           {t('tenderFlow.addDeliverable')}
         </Button>
@@ -620,11 +620,11 @@ function MilestonesInput({
         <div className="space-y-2">
           {items.map((item, index) => (
             <div key={item.id} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E25E45] flex items-center justify-center text-white text-xs font-bold mt-0.5">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#FE3C01] flex items-center justify-center text-white text-xs font-bold mt-0.5">
                 {index + 1}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{item.name}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-foreground">{item.name}</p>
                 {item.dueDate && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     {t('formBuilder.dueLabel')} {new Date(item.dueDate).toLocaleDateString()}
@@ -641,13 +641,13 @@ function MilestonesInput({
           ))}
         </div>
       )}
-      <div className="space-y-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
+      <div className="space-y-2 p-3 bg-gray-50 dark:bg-card rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
         <input
           type="text"
           placeholder={t('tenderFlow.milestoneName')}
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent text-sm"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent text-sm"
         />
         <DatePickerInput
           value={newDate}
@@ -659,9 +659,9 @@ function MilestonesInput({
           value={newDesc}
           onChange={(e) => setNewDesc(e.target.value)}
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none text-sm"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none text-sm"
         />
-        <Button onClick={handleAdd} className="w-full bg-[#E25E45] hover:bg-[#d54d35]">
+        <Button onClick={handleAdd} className="w-full bg-[#FE3C01] hover:bg-[#d54d35]">
           <Plus className="h-4 w-4 mr-2" />
           {t('tenderFlow.addMilestone')}
         </Button>
@@ -697,7 +697,7 @@ function ProjectDescriptionInput({
   if (readOnly) {
     return (
       <div className="space-y-2">
-        {val.text && <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{val.text}</p>}
+        {val.text && <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{val.text}</p>}
         {val.voiceNoteUrl && (
           <div className="flex items-center gap-2 text-xs text-pink-600 bg-pink-50 px-3 py-1.5 rounded-lg w-fit">
             <Mic className="h-3.5 w-3.5" /> {t('formBuilder.voiceNoteAttached')}
@@ -718,13 +718,13 @@ function ProjectDescriptionInput({
   return (
     <div className="space-y-4">
       {/* Tab switcher */}
-      <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg w-fit">
+      <div className="flex gap-1 p-1 bg-gray-100 dark:bg-card rounded-lg w-fit">
         <button
           type="button"
           onClick={() => setTab("text")}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-all ${
             tab === "text"
-              ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+              ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-foreground shadow-sm"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700"
           }`}
         >
@@ -736,7 +736,7 @@ function ProjectDescriptionInput({
           onClick={() => setTab("voice")}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-all ${
             tab === "voice"
-              ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+              ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-foreground shadow-sm"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700"
           }`}
         >
@@ -757,7 +757,7 @@ function ProjectDescriptionInput({
             onChange={(e) => update({ text: e.target.value })}
             maxLength={5000}
             rows={7}
-            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent resize-none"
+            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none"
           />
           <div className="flex justify-between items-center text-xs">
             <p className={wordCount > 0 && wordCount < 50 ? "text-amber-600 font-medium" : wordCount >= 50 ? "text-green-600 font-medium" : "text-gray-400"}>
@@ -774,7 +774,7 @@ function ProjectDescriptionInput({
       {tab === "voice" && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <Sparkles className="h-4 w-4 text-[#E25E45]" />
+            <Sparkles className="h-4 w-4 text-[#FE3C01]" />
             {t('formBuilder.recordMessageDesc')}
           </div>
           <VoiceRecorder
@@ -787,9 +787,9 @@ function ProjectDescriptionInput({
       )}
 
       {/* Video URL — always visible below tabs */}
-      <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
-        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-          <Video className="h-4 w-4 text-[#E25E45]" />
+      <div className="border-t border-border dark:border-border pt-4 space-y-2">
+        <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground dark:text-muted-foreground">
+          <Video className="h-4 w-4 text-[#FE3C01]" />
           {t('formBuilder.videoLink')} <span className="font-normal text-gray-400">{t('tenderFlow.optional')}</span>
         </label>
         <input
@@ -797,7 +797,7 @@ function ProjectDescriptionInput({
           placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
           value={val.videoUrl}
           onChange={(e) => update({ videoUrl: e.target.value })}
-          className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent text-sm"
+          className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent text-sm"
         />
         <p className="text-xs text-gray-400">{t('formBuilder.videoLinkHelper')}</p>
       </div>
@@ -969,7 +969,7 @@ function EvaluationCriteriaInput({
           </div>
         </div>
         <div>
-          <p className="font-semibold text-sm text-gray-900 dark:text-white">
+          <p className="font-semibold text-sm text-gray-900 dark:text-foreground">
             {totalWeight === 100 ? t('tenderFlow.perfectBalance') : t('tenderFlow.weightDistribution')}
           </p>
           <p className={`text-xs mt-0.5 ${totalWeight === 100 ? "text-green-600" : totalWeight > 100 ? "text-red-500" : "text-amber-600"}`}>
@@ -991,33 +991,33 @@ function EvaluationCriteriaInput({
         const CategoryIcon = category.id === "experience" ? Briefcase : category.id === "financial" ? Scale : Clock;
 
         return (
-          <div key={category.id} className={`border rounded-lg overflow-hidden transition-all ${hasSelections ? "border-[#E25E45]/50 bg-[#E25E45]/5" : "border-gray-200 dark:border-gray-600"}`}>
+          <div key={category.id} className={`border rounded-lg overflow-hidden transition-all ${hasSelections ? "border-[#FE3C01]/50 bg-[#FE3C01]/5" : "border-gray-200 dark:border-gray-600"}`}>
             <button
               type="button"
               onClick={() => toggleCategory(category.id)}
-              className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+              className="w-full flex items-center justify-between p-3 hover:bg-muted dark:hover:bg-gray-700/50"
             >
               <div className="flex items-center gap-2">
-                <div className={`p-1.5 rounded ${hasSelections ? "bg-[#E25E45]/10 text-[#E25E45]" : "bg-gray-100 dark:bg-gray-700 text-gray-500"}`}>
+                <div className={`p-1.5 rounded ${hasSelections ? "bg-[#FE3C01]/10 text-[#FE3C01]" : "bg-gray-100 dark:bg-gray-700 text-muted-foreground"}`}>
                   <CategoryIcon className="h-4 w-4" />
                 </div>
-                <span className="font-medium text-sm text-gray-900 dark:text-white">{language === 'ar' ? (CRITERIA_TRANSLATIONS_AR[category.id]?.name || category.name) : category.name}</span>
+                <span className="font-medium text-sm text-gray-900 dark:text-foreground">{language === 'ar' ? (CRITERIA_TRANSLATIONS_AR[category.id]?.name || category.name) : category.name}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">{currentWeight}%</span>
+                <span className="text-xs text-muted-foreground">{currentWeight}%</span>
                 <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
               </div>
             </button>
 
             <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
               <div className="overflow-hidden">
-                <div className="border-t border-gray-200 dark:border-gray-600 p-3 space-y-3 bg-white dark:bg-gray-800">
+                <div className="border-t border-gray-200 dark:border-gray-600 p-3 space-y-3 bg-white dark:bg-card">
                   <div className="space-y-1">
-                    <label className="text-xs text-gray-500">{t('tenderFlow.weight')} {currentWeight}%</label>
+                    <label className="text-xs text-muted-foreground">{t('tenderFlow.weight')} {currentWeight}%</label>
                     <input
                       type="range" min="0" max="100" step="5" value={currentWeight}
                       onChange={(e) => handleWeightChange(category.id, parseInt(e.target.value))}
-                      className="w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#E25E45]"
+                      className="w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#FE3C01]"
                     />
                   </div>
 
@@ -1029,13 +1029,13 @@ function EvaluationCriteriaInput({
                           <button
                             type="button"
                             onClick={() => handleReqChange(category.id, req.id, !currentValue)}
-                            className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${currentValue ? "border-[#E25E45] bg-[#E25E45]" : "border-gray-300 dark:border-gray-500"}`}
+                            className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${currentValue ? "border-[#FE3C01] bg-[#FE3C01]" : "border-gray-300 dark:border-gray-500"}`}
                           >
                             {currentValue && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
                           </button>
                         )}
                         <div className="flex-1">
-                          <label className="text-sm text-gray-900 dark:text-white">{language === 'ar' ? (CRITERIA_TRANSLATIONS_AR[req.id]?.label || req.label) : req.label}</label>
+                          <label className="text-sm text-gray-900 dark:text-foreground">{language === 'ar' ? (CRITERIA_TRANSLATIONS_AR[req.id]?.label || req.label) : req.label}</label>
                           {req.type === "select" && req.options && (
                             <Select
                               value={(currentValue as string) || "none"}
@@ -1064,8 +1064,8 @@ function EvaluationCriteriaInput({
       })}
 
       {/* Custom criteria */}
-      <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-700">
-        <label className="block text-sm font-medium text-gray-900 dark:text-white">
+      <div className="space-y-3 pt-2 border-t border-border dark:border-border">
+        <label className="block text-sm font-medium text-gray-900 dark:text-foreground">
           {t('tenderFlow.customCriteria')} <span className="text-gray-400 font-normal">{t('tenderFlow.optional')}</span>
         </label>
 
@@ -1073,14 +1073,14 @@ function EvaluationCriteriaInput({
           <div className="space-y-2">
             {customCriteria.map((item) => (
               <div key={item.id} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <span className="flex-1 text-sm text-gray-900 dark:text-white">{item.text}</span>
+                <span className="flex-1 text-sm text-gray-900 dark:text-foreground">{item.text}</span>
                 <input
                   type="number" min="0" max="100"
                   value={item.weight}
                   onChange={(e) => updateCustomWeight(item.id, parseInt(e.target.value) || 0)}
-                  className="w-14 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+                  className="w-14 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-card text-sm"
                 />
-                <span className="text-xs text-gray-500">%</span>
+                <span className="text-xs text-muted-foreground">%</span>
                 <button onClick={() => removeCustomCriterion(item.id)} className="text-gray-400 hover:text-red-500">
                   <X className="h-4 w-4" />
                 </button>
@@ -1096,18 +1096,18 @@ function EvaluationCriteriaInput({
             value={newCriterionText}
             onChange={(e) => setNewCriterionText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addCustomCriterion()}
-            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
           />
           <div className="flex items-center gap-1">
             <input
               type="number" min="0" max="100"
               value={newCriterionWeight}
               onChange={(e) => setNewCriterionWeight(parseInt(e.target.value) || 0)}
-              className="w-14 px-2 py-2 text-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm"
+              className="w-14 px-2 py-2 text-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-sm"
             />
-            <span className="text-xs text-gray-500">%</span>
+            <span className="text-xs text-muted-foreground">%</span>
           </div>
-          <Button onClick={addCustomCriterion} size="sm" className="bg-[#E25E45] hover:bg-[#d54d35]">
+          <Button onClick={addCustomCriterion} size="sm" className="bg-[#FE3C01] hover:bg-[#d54d35]">
             <Plus className="h-4 w-4" />
           </Button>
         </div>
@@ -1143,7 +1143,7 @@ function getFileIcon(type: string) {
   if (type.includes('sheet') || type.includes('excel') || type.includes('xls')) return <FileSpreadsheet className="h-4 w-4 text-green-500" />;
   if (type.includes('image')) return <FileImage className="h-4 w-4 text-blue-500" />;
   if (type.includes('word') || type.includes('doc')) return <FileText className="h-4 w-4 text-blue-600" />;
-  return <Paperclip className="h-4 w-4 text-gray-500" />;
+  return <Paperclip className="h-4 w-4 text-muted-foreground" />;
 }
 
 function formatFileSize(bytes: number): string {
@@ -1235,9 +1235,9 @@ function AttachmentsInput({
     return (
       <div className="space-y-2">
         {files.map((file) => (
-          <div key={file.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
+          <div key={file.id} className="flex items-center gap-3 p-3 bg-muted rounded-lg border border-border">
             {getFileIcon(file.type)}
-            <span className="text-sm font-medium text-gray-700 truncate flex-1">{file.name}</span>
+            <span className="text-sm font-medium text-muted-foreground truncate flex-1">{file.name}</span>
             <span className="text-xs text-gray-400 flex-shrink-0">{formatFileSize(file.size)}</span>
           </div>
         ))}
@@ -1250,7 +1250,7 @@ function AttachmentsInput({
       <div
         className={cn(
           "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-          dragOver ? "border-[#E25E45] bg-[#E25E45]/5" : "border-gray-300 hover:border-gray-400",
+          dragOver ? "border-[#FE3C01] bg-[#FE3C01]/5" : "border-border hover:border-gray-400",
           uploading && "opacity-50 pointer-events-none"
         )}
         onClick={() => fileInputRef.current?.click()}
@@ -1268,13 +1268,13 @@ function AttachmentsInput({
         />
         {uploading ? (
           <div className="flex flex-col items-center gap-2">
-            <Loader2 className="h-6 w-6 text-[#E25E45] animate-spin" />
-            <p className="text-sm text-gray-500">{t('formBuilder.uploading')}</p>
+            <Loader2 className="h-6 w-6 text-[#FE3C01] animate-spin" />
+            <p className="text-sm text-muted-foreground">{t('formBuilder.uploading')}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
             <Upload className="h-6 w-6 text-gray-400" />
-            <p className="text-sm text-gray-500">{t('formBuilder.dragDropFiles')}</p>
+            <p className="text-sm text-muted-foreground">{t('formBuilder.dragDropFiles')}</p>
             <p className="text-xs text-gray-400">{t('formBuilder.acceptedFileTypes')}</p>
           </div>
         )}
@@ -1283,9 +1283,9 @@ function AttachmentsInput({
       {files.length > 0 && (
         <div className="space-y-2">
           {files.map((file) => (
-            <div key={file.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 group">
+            <div key={file.id} className="flex items-center gap-3 p-3 bg-muted rounded-lg border border-border group">
               {getFileIcon(file.type)}
-              <span className="text-sm font-medium text-gray-700 truncate flex-1">{file.name}</span>
+              <span className="text-sm font-medium text-muted-foreground truncate flex-1">{file.name}</span>
               <span className="text-xs text-gray-400 flex-shrink-0">{formatFileSize(file.size)}</span>
               <button
                 type="button"
@@ -1348,7 +1348,7 @@ function CustomSelectInput({
               <label
                 className={`flex-1 flex items-center gap-3 px-3 py-2 rounded-lg border cursor-pointer transition-all ${
                   value === opt
-                    ? "border-[#E25E45] bg-[#E25E45]/5"
+                    ? "border-[#FE3C01] bg-[#FE3C01]/5"
                     : "border-gray-200 dark:border-gray-600"
                 }`}
               >
@@ -1357,9 +1357,9 @@ function CustomSelectInput({
                   name={`select-${opt}`}
                   checked={value === opt}
                   onChange={() => onChange(opt)}
-                  className="text-[#E25E45]"
+                  className="text-[#FE3C01]"
                 />
-                <span className="text-sm text-gray-900 dark:text-white">{opt}</span>
+                <span className="text-sm text-gray-900 dark:text-foreground">{opt}</span>
               </label>
               <button
                 onClick={() => handleRemoveOption(opt)}
@@ -1378,9 +1378,9 @@ function CustomSelectInput({
           value={newOption}
           onChange={(e) => setNewOption(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAddOption()}
-          className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+          className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
         />
-        <Button onClick={handleAddOption} size="sm" className="bg-[#E25E45] hover:bg-[#d54d35]">
+        <Button onClick={handleAddOption} size="sm" className="bg-[#FE3C01] hover:bg-[#d54d35]">
           <Plus className="h-4 w-4" />
         </Button>
       </div>

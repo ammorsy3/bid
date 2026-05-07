@@ -44,7 +44,7 @@ export const AILoader: React.FC<AILoaderProps> = ({ size = 120 }) => {
             width: 4 + (i % 3) * 2,
             height: 4 + (i % 3) * 2,
             background: i % 2 === 0 
-              ? "radial-gradient(circle, #fb923c 0%, #E25E45 100%)" 
+              ? "radial-gradient(circle, #fb923c 0%, #FE3C01 100%)" 
               : "radial-gradient(circle, #fdba74 0%, #f97316 100%)",
             boxShadow: "0 0 6px 2px rgba(251, 146, 60, 0.4)",
             animationDelay: `${i * 0.5}s`,
@@ -99,7 +99,7 @@ export const AILoader: React.FC<AILoaderProps> = ({ size = 120 }) => {
             transform: rotate(90deg);
             box-shadow:
               0 6px 12px 0 #fb923c inset,
-              0 12px 18px 0 #E25E45 inset,
+              0 12px 18px 0 #FE3C01 inset,
               0 36px 36px 0 #9a3412 inset,
               0 0 3px 1.2px rgba(251, 146, 60, 0.3),
               0 0 6px 1.8px rgba(226, 94, 69, 0.2),
@@ -110,7 +110,7 @@ export const AILoader: React.FC<AILoaderProps> = ({ size = 120 }) => {
             box-shadow:
               0 6px 12px 0 #fdba74 inset,
               0 12px 6px 0 #ea580c inset,
-              0 24px 36px 0 #E25E45 inset,
+              0 24px 36px 0 #FE3C01 inset,
               0 0 3px 1.2px rgba(251, 146, 60, 0.3),
               0 0 6px 1.8px rgba(226, 94, 69, 0.2),
               0 0 20px 4px rgba(251, 146, 60, 0.15);
@@ -119,7 +119,7 @@ export const AILoader: React.FC<AILoaderProps> = ({ size = 120 }) => {
             transform: rotate(450deg);
             box-shadow:
               0 6px 12px 0 #f97316 inset,
-              0 12px 18px 0 #E25E45 inset,
+              0 12px 18px 0 #FE3C01 inset,
               0 36px 36px 0 #9a3412 inset,
               0 0 3px 1.2px rgba(251, 146, 60, 0.3),
               0 0 6px 1.8px rgba(226, 94, 69, 0.2),

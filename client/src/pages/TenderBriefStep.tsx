@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown, Shield, Copy, Languages, Paperclip, Upload, X } from "lucide-react";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
 import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -335,15 +335,10 @@ export default function TenderBriefStep() {
   const hasContactInfo = !!(draft.emailContact || draft.whatsappContact);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
+    <div className="min-h-screen bg-muted">
+      <header className="bg-card border-b sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <img
-            src={logoPath}
-            alt="Bid"
-            className="h-10 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => navigate("/dashboard")}
-          />
+          <BidLogo size={40} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
           <Button
             variant="outline"
             size="sm"
@@ -357,12 +352,12 @@ export default function TenderBriefStep() {
         </div>
       </header>
 
-      <div className="bg-white border-b">
+      <div className="bg-card border-b">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex items-start justify-between gap-4 mb-2">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-3 flex-wrap">
-                <Badge className="bg-amber-100 text-amber-800 text-sm px-3 py-1">
+                <Badge className="bg-amber-100 text-amber-800 dark:text-amber-300 text-sm px-3 py-1">
                   {t('tenderFlow.reviewDraft')}
                 </Badge>
                 {draft.skills?.[0] && (
@@ -371,53 +366,53 @@ export default function TenderBriefStep() {
                   </Badge>
                 )}
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2" data-testid="brief-title">
+              <h1 className="font-display font-black text-3xl text-foreground mb-2 tracking-[-0.04em]" data-testid="brief-title">
                 {draft.title || "Untitled RFP"}
               </h1>
               {activeCompany && (
-                <p className="text-sm text-gray-500">
-                  {t('tenderFlow.publishingAs')} <span className="font-medium text-gray-700">{activeCompany.name}</span>
+                <p className="text-sm text-muted-foreground">
+                  {t('tenderFlow.publishingAs')} <span className="font-medium text-muted-foreground">{activeCompany.name}</span>
                 </p>
               )}
             </div>
           </div>
 
           <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-gray-500 mb-1">
+            <div className="bg-muted rounded-xl p-4">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Calendar className="h-4 w-4" />
                 <span className="text-xs font-medium uppercase tracking-wider">{t('tenderFlow.submissionDeadline')}</span>
               </div>
-              <p className="font-semibold text-sm text-gray-900" data-testid="brief-deadline">
+              <p className="font-semibold text-sm text-foreground" data-testid="brief-deadline">
                 {draft.deadline ? formatDate(draft.deadline) : t('tenderFlow.notSet')}
               </p>
             </div>
 
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-gray-500 mb-1">
+            <div className="bg-muted rounded-xl p-4">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <DollarSign className="h-4 w-4" />
                 <span className="text-xs font-medium uppercase tracking-wider">{t('tenderFlow.budgetColumn')}</span>
               </div>
-              <p className="font-semibold text-sm text-gray-900" data-testid="brief-budget">
+              <p className="font-semibold text-sm text-foreground" data-testid="brief-budget">
                 {getBudgetDisplay()}
               </p>
               {draft.showPriceToVendors === false && (
-                <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                   <EyeOff className="h-3 w-3" /> {t('tenderFlow.hiddenFromVendors')}
                 </p>
               )}
             </div>
 
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-gray-500 mb-1">
+            <div className="bg-muted rounded-xl p-4">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Clock className="h-4 w-4" />
                 <span className="text-xs font-medium uppercase tracking-wider">{t('tenderFlow.projectDuration')}</span>
               </div>
-              <p className="font-semibold text-sm text-gray-900" data-testid="brief-duration">
+              <p className="font-semibold text-sm text-foreground" data-testid="brief-duration">
                 {getDurationDisplay()}
               </p>
               {(draft.startDate || draft.endDate) && (
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {draft.startDate && formatDate(draft.startDate)}
                   {draft.startDate && draft.endDate && ' → '}
                   {draft.endDate && formatDate(draft.endDate)}
@@ -435,15 +430,15 @@ export default function TenderBriefStep() {
 
             {hasDescription && (
               <Card className="overflow-hidden">
-                <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+                <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-[#E25E45]" />
+                    <FileText className="h-5 w-5 text-[#FE3C01]" />
                     {t('tenderFlow.projectDescriptionTitle')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 whitespace-pre-wrap leading-relaxed" data-testid="brief-description">
+                  <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed" data-testid="brief-description">
                     {draft.description || draft.projectDescription}
                   </p>
                 </CardContent>
@@ -455,12 +450,12 @@ export default function TenderBriefStep() {
                 <div className="h-1 bg-gradient-to-r from-blue-500 to-blue-400" />
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-blue-600" />
+                    <Target className="h-5 w-5 text-[var(--bid-orange)]" />
                     {t('tenderFlow.projectObjectiveTitle')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 whitespace-pre-wrap leading-relaxed" data-testid="brief-objective">
+                  <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed" data-testid="brief-objective">
                     {draft.projectObjective}
                   </p>
                 </CardContent>
@@ -472,7 +467,7 @@ export default function TenderBriefStep() {
                 <div className="h-1 bg-gradient-to-r from-emerald-500 to-emerald-400" />
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Package className="h-5 w-5 text-emerald-600" />
+                    <Package className="h-5 w-5 text-[var(--state-won)]" />
                     {t('tenderFlow.keyDeliverablesTitle')}
                   </CardTitle>
                 </CardHeader>
@@ -481,24 +476,24 @@ export default function TenderBriefStep() {
                     {draft.keyDeliverables.map((deliverable: any, index: number) => {
                       if (typeof deliverable === 'string') {
                         return (
-                          <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                            <span className="flex-shrink-0 h-6 w-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">{index + 1}</span>
-                            <span className="text-gray-800 pt-0.5">{deliverable}</span>
+                          <div key={index} className="flex items-start gap-3 p-3 bg-muted rounded-lg">
+                            <span className="flex-shrink-0 h-6 w-6 rounded-full bg-[var(--state-won)]/10 text-[var(--state-won)] flex items-center justify-center text-xs font-bold">{index + 1}</span>
+                            <span className="text-foreground pt-0.5">{deliverable}</span>
                           </div>
                         );
                       }
                       const isExpanded = expandedDeliverables[index];
                       const hasDetails = deliverable.description || (deliverable.quantity && deliverable.unit);
                       return (
-                        <div key={deliverable.id || index} className="bg-gray-50 rounded-lg overflow-hidden">
+                        <div key={deliverable.id || index} className="bg-muted rounded-lg overflow-hidden">
                           <button
                             type="button"
                             onClick={() => hasDetails && toggleDeliverable(index)}
-                            className={`w-full p-4 flex items-center justify-between gap-4 text-left ${hasDetails ? 'cursor-pointer hover:bg-gray-100' : ''} transition-colors`}
+                            className={`w-full p-4 flex items-center justify-between gap-4 text-left ${hasDetails ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <span className="flex-shrink-0 h-6 w-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">{index + 1}</span>
-                              <p className="font-medium text-gray-900">{deliverable.name}</p>
+                              <span className="flex-shrink-0 h-6 w-6 rounded-full bg-[var(--state-won)]/10 text-[var(--state-won)] flex items-center justify-center text-xs font-bold">{index + 1}</span>
+                              <p className="font-medium text-foreground">{deliverable.name}</p>
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0">
                               {deliverable.quantity && deliverable.unit && (
@@ -515,7 +510,7 @@ export default function TenderBriefStep() {
                             <div className="overflow-hidden">
                               {deliverable.description && (
                                 <div className="px-4 pb-4 pt-0 ml-12">
-                                  <p className="text-sm text-gray-600 leading-relaxed">{deliverable.description}</p>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">{deliverable.description}</p>
                                 </div>
                               )}
                             </div>
@@ -540,22 +535,22 @@ export default function TenderBriefStep() {
                 <CardContent>
                   <div className="space-y-3" data-testid="brief-milestones">
                     {draft.milestones.map((milestone: any, index: number) => (
-                      <div key={milestone.id || index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-bold">
+                      <div key={milestone.id || index} className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-violet-100 text-violet-700 dark:text-violet-300 flex items-center justify-center text-sm font-bold">
                           {index + 1}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900">{milestone.name}</p>
+                          <p className="font-medium text-foreground">{milestone.name}</p>
                           {milestone.description && (
-                            <p className="text-sm text-gray-500 mt-0.5">{milestone.description}</p>
+                            <p className="text-sm text-muted-foreground mt-0.5">{milestone.description}</p>
                           )}
                         </div>
                         <div className="flex-shrink-0 text-right space-y-0.5">
                           {milestone.dueDate && (
-                            <p className="text-sm font-medium text-gray-700">{formatDate(milestone.dueDate)}</p>
+                            <p className="text-sm font-medium text-muted-foreground">{formatDate(milestone.dueDate)}</p>
                           )}
                           {milestone.amount && (
-                            <p className="text-sm font-semibold text-emerald-700">SAR {Number(milestone.amount).toLocaleString()}</p>
+                            <p className="text-sm font-semibold text-[var(--state-won)]">SAR {Number(milestone.amount).toLocaleString()}</p>
                           )}
                         </div>
                       </div>
@@ -581,22 +576,22 @@ export default function TenderBriefStep() {
                         if (typeof criteria === 'string') {
                           const isOpen = expandedCriteria[`arr-${index}`];
                           return (
-                            <div key={index} className="bg-gray-50 rounded-lg overflow-hidden">
+                            <div key={index} className="bg-muted rounded-lg overflow-hidden">
                               <button
                                 type="button"
                                 onClick={() => toggleCriteria(`arr-${index}`)}
-                                className="w-full p-3 flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-gray-100 transition-colors"
+                                className="w-full p-3 flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-muted transition-colors"
                               >
                                 <div className="flex items-center gap-3">
-                                  <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">{index + 1}</span>
-                                  <span className="text-sm font-medium text-gray-900">{CRITERIA_LABELS[criteria] || criteria}</span>
+                                  <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs font-bold">{index + 1}</span>
+                                  <span className="text-sm font-medium text-foreground">{CRITERIA_LABELS[criteria] || criteria}</span>
                                 </div>
                                 <ChevronRight className={`h-4 w-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
                               </button>
                               <div className={`grid transition-all duration-200 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                                 <div className="overflow-hidden">
                                   <div className="px-4 pb-3 ml-12">
-                                    <p className="text-sm text-gray-500">{t('tenderFlow.criterionEvalDesc')}</p>
+                                    <p className="text-sm text-muted-foreground">{t('tenderFlow.criterionEvalDesc')}</p>
                                   </div>
                                 </div>
                               </div>
@@ -606,15 +601,15 @@ export default function TenderBriefStep() {
                         if (typeof criteria === 'object' && criteria.name) {
                           const isOpen = expandedCriteria[`arr-${index}`];
                           return (
-                            <div key={index} className="bg-gray-50 rounded-lg overflow-hidden">
+                            <div key={index} className="bg-muted rounded-lg overflow-hidden">
                               <button
                                 type="button"
                                 onClick={() => toggleCriteria(`arr-${index}`)}
-                                className="w-full p-3 flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-gray-100 transition-colors"
+                                className="w-full p-3 flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-muted transition-colors"
                               >
                                 <div className="flex items-center gap-3">
-                                  <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">{index + 1}</span>
-                                  <span className="text-sm font-medium text-gray-900">{criteria.name}</span>
+                                  <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs font-bold">{index + 1}</span>
+                                  <span className="text-sm font-medium text-foreground">{criteria.name}</span>
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   {criteria.weight && <Badge variant="outline" className="font-semibold">{criteria.weight}%</Badge>}
@@ -625,7 +620,7 @@ export default function TenderBriefStep() {
                                 <div className="overflow-hidden">
                                   {criteria.description && (
                                     <div className="px-4 pb-3 ml-12">
-                                      <p className="text-sm text-gray-600 leading-relaxed">{criteria.description}</p>
+                                      <p className="text-sm text-muted-foreground leading-relaxed">{criteria.description}</p>
                                     </div>
                                   )}
                                 </div>
@@ -648,13 +643,13 @@ export default function TenderBriefStep() {
                             const hasContent = relatedReqs.length > 0;
                             const isOpen = expandedCriteria[w.categoryId];
                             return (
-                              <div key={w.categoryId} className="bg-gray-50 rounded-lg overflow-hidden">
+                              <div key={w.categoryId} className="bg-muted rounded-lg overflow-hidden">
                                 <button
                                   type="button"
                                   onClick={() => hasContent && toggleCriteria(w.categoryId)}
-                                  className={`w-full p-3 flex items-center justify-between gap-3 text-left ${hasContent ? 'cursor-pointer hover:bg-gray-100' : ''} transition-colors`}
+                                  className={`w-full p-3 flex items-center justify-between gap-3 text-left ${hasContent ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
                                 >
-                                  <span className="text-sm font-medium text-gray-900">{cat}</span>
+                                  <span className="text-sm font-medium text-foreground">{cat}</span>
                                   <div className="flex items-center gap-2 flex-shrink-0">
                                     <Badge variant="outline" className="font-semibold">{w.weight}%</Badge>
                                     {hasContent && (
@@ -667,7 +662,7 @@ export default function TenderBriefStep() {
                                     {relatedReqs.length > 0 && (
                                       <div className="px-4 pb-3 flex flex-wrap gap-2">
                                         {relatedReqs.map((req: any, i: number) => (
-                                          <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                                          <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 dark:text-amber-300 border border-amber-200">
                                             {EVAL_REQUIREMENT_LABELS[req.requirementId] || req.requirementId}
                                             {req.value && typeof req.value !== 'boolean' ? `: ${req.value}` : ''}
                                           </Badge>
@@ -691,10 +686,10 @@ export default function TenderBriefStep() {
                         if (ungroupedReqs.length === 0) return null;
                         return (
                           <div className="space-y-2">
-                            <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">{t('tenderFlow.additionalRequirements')}</p>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">{t('tenderFlow.additionalRequirements')}</p>
                             <div className="flex flex-wrap gap-2">
                               {ungroupedReqs.map((req: any, i: number) => (
-                                <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                                <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm font-medium bg-amber-50 text-amber-800 dark:text-amber-300 border border-amber-200">
                                   {EVAL_REQUIREMENT_LABELS[req.requirementId] || req.requirementId}
                                   {req.value && typeof req.value !== 'boolean' ? `: ${req.value}` : ''}
                                 </Badge>
@@ -705,15 +700,15 @@ export default function TenderBriefStep() {
                       })()}
                       {draft.evaluationCriteria.customCriteria?.length > 0 && (
                         <div className="space-y-2">
-                          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">{t('tenderFlow.customCriteriaTitle')}</p>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">{t('tenderFlow.customCriteriaTitle')}</p>
                           {draft.evaluationCriteria.customCriteria.map((c: any) => (
-                            <div key={c.id} className="bg-gray-50 rounded-lg overflow-hidden">
+                            <div key={c.id} className="bg-muted rounded-lg overflow-hidden">
                               <button
                                 type="button"
                                 onClick={() => toggleCriteria(`custom-${c.id}`)}
-                                className="w-full p-3 flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-gray-100 transition-colors"
+                                className="w-full p-3 flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-muted transition-colors"
                               >
-                                <span className="text-sm text-gray-900">{c.text}</span>
+                                <span className="text-sm text-foreground">{c.text}</span>
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   <Badge variant="outline" className="font-semibold">{c.weight}%</Badge>
                                   <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${expandedCriteria[`custom-${c.id}`] ? 'rotate-90' : ''}`} />
@@ -722,7 +717,7 @@ export default function TenderBriefStep() {
                               <div className={`grid transition-all duration-200 ease-in-out ${expandedCriteria[`custom-${c.id}`] ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                                 <div className="overflow-hidden">
                                   <div className="px-4 pb-3">
-                                    <p className="text-sm text-gray-500">{t('tenderFlow.customCriterionWeightedAt')} {c.weight}% {t('tenderFlow.ofTotalEvaluation')}</p>
+                                    <p className="text-sm text-muted-foreground">{t('tenderFlow.customCriterionWeightedAt')} {c.weight}% {t('tenderFlow.ofTotalEvaluation')}</p>
                                   </div>
                                 </div>
                               </div>
@@ -737,10 +732,10 @@ export default function TenderBriefStep() {
             )}
 
             <Card className="overflow-hidden" data-testid="brief-vendor-requirements">
-              <div className="h-1 bg-gradient-to-r from-[#E25E45] to-orange-400" />
+              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-orange-400" />
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-[#E25E45]" />
+                  <Shield className="h-5 w-5 text-[#FE3C01]" />
                   {t('tenderFlow.vendorRequirementsTitle')}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
@@ -772,8 +767,8 @@ export default function TenderBriefStep() {
                   existingUrl={draft.voiceNoteUrl || undefined}
                 />
                 {draft.voiceNoteUrl && (
-                  <div className="pt-2 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 mb-2">
+                  <div className="pt-2 border-t border-border">
+                    <p className="text-xs text-muted-foreground mb-2">
                       {t('tenderFlow.savedVoiceNote') || 'Saved voice note'}
                     </p>
                     <audio controls className="w-full" data-testid="brief-voice-note">
@@ -794,7 +789,7 @@ export default function TenderBriefStep() {
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="video-url-input" className="text-sm font-medium text-gray-800">
+                  <Label htmlFor="video-url-input" className="text-sm font-medium text-foreground">
                     {t('tenderFlow.videoUrlLabel') || 'Video URL'}
                   </Label>
                   <Input
@@ -805,17 +800,17 @@ export default function TenderBriefStep() {
                     onChange={(e) => updateDraft({ videoUrl: e.target.value })}
                     data-testid="input-video-url"
                   />
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     {t('tenderFlow.videoUrlHint') || 'Optional: link to a video introducing the project'}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between gap-4 pt-2 border-t border-gray-100">
+                <div className="flex items-center justify-between gap-4 pt-2 border-t border-border">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-foreground">
                       {t('tenderFlow.requireVideoLabel') || 'Require video pitch'}
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {t('tenderFlow.requireVideoHint') || 'Vendors must include a video URL with their proposal'}
                     </p>
                   </div>
@@ -838,7 +833,7 @@ export default function TenderBriefStep() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3" data-testid="brief-attachments">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     {t('tenderFlow.supportingDocsDesc') || 'Upload any documents that help vendors understand the scope (specs, drawings, references).'}
                   </p>
                   <input
@@ -878,13 +873,13 @@ export default function TenderBriefStep() {
                       {attachments.map((a) => (
                         <li
                           key={a.id}
-                          className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                          className="flex items-center gap-3 p-3 bg-muted rounded-lg border border-border"
                           data-testid={`attachment-${a.id}`}
                         >
                           <FileText className="h-4 w-4 text-gray-400 shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-800 truncate">{a.name}</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-sm font-medium text-foreground truncate">{a.name}</p>
+                            <p className="text-xs text-muted-foreground">
                               {(a.size / 1024).toFixed(1)} KB
                             </p>
                           </div>
@@ -908,17 +903,17 @@ export default function TenderBriefStep() {
 
           <div className="space-y-6">
             <Card className="overflow-hidden sticky top-20">
-              <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
               <CardContent className="p-5 space-y-5">
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">{t('tenderFlow.quickSummary')}</h3>
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t('tenderFlow.quickSummary')}</h3>
                   <div className="space-y-4">
                     {draft.projectSize && (
                       <div className="flex items-start gap-3">
                         <BarChart className="h-4 w-4 text-gray-400 mt-0.5" />
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.projectSizeLabel')}</p>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.projectSizeLabel')}</p>
+                          <p className="text-sm font-medium text-foreground">
                             {PROJECT_SIZE_LABELS[draft.projectSize] || draft.projectSize}
                           </p>
                         </div>
@@ -929,8 +924,8 @@ export default function TenderBriefStep() {
                       <div className="flex items-start gap-3">
                         <DollarSign className="h-4 w-4 text-gray-400 mt-0.5" />
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.budgetTypeLabel')}</p>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.budgetTypeLabel')}</p>
+                          <p className="text-sm font-medium text-foreground">
                             {draft.budgetType === 'milestone' ? t('tenderFlow.milestoneBased') : t('tenderFlow.fixedPrice')}
                           </p>
                         </div>
@@ -941,8 +936,8 @@ export default function TenderBriefStep() {
                       <div className="flex items-start gap-3">
                         <DollarSign className="h-4 w-4 text-gray-400 mt-0.5" />
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.pricingModelLabel')}</p>
-                          <p className="text-sm font-medium text-gray-900">{formatLabel(draft.pricingModel)}</p>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.pricingModelLabel')}</p>
+                          <p className="text-sm font-medium text-foreground">{formatLabel(draft.pricingModel)}</p>
                         </div>
                       </div>
                     )}
@@ -955,8 +950,8 @@ export default function TenderBriefStep() {
                           <EyeOff className="h-4 w-4 text-gray-400 mt-0.5" />
                         )}
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.priceVisibilityLabel')}</p>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.priceVisibilityLabel')}</p>
+                          <p className="text-sm font-medium text-foreground">
                             {draft.showPriceToVendors ? t('tenderFlow.visibleToVendors') : t('tenderFlow.hiddenSizeOnly')}
                           </p>
                         </div>
@@ -967,8 +962,8 @@ export default function TenderBriefStep() {
                       <div className="flex items-start gap-3">
                         <Send className="h-4 w-4 text-gray-400 mt-0.5" />
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.submissionFormatLabel')}</p>
-                          <p className="text-sm font-medium text-gray-900" data-testid="brief-submission-type">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.submissionFormatLabel')}</p>
+                          <p className="text-sm font-medium text-foreground" data-testid="brief-submission-type">
                             {formatLabel(draft.submissionType, SUBMISSION_TYPE_LABELS)}
                           </p>
                         </div>
@@ -979,8 +974,8 @@ export default function TenderBriefStep() {
                       <div className="flex items-start gap-3">
                         <Video className="h-4 w-4 text-pink-500 mt-0.5" />
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.videoPitchTitle')}</p>
-                          <p className="text-sm font-medium text-gray-900">{t('tenderFlow.requiredBadge')}</p>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.videoPitchTitle')}</p>
+                          <p className="text-sm font-medium text-foreground">{t('tenderFlow.requiredBadge')}</p>
                         </div>
                       </div>
                     )}
@@ -989,8 +984,8 @@ export default function TenderBriefStep() {
                       <div className="flex items-start gap-3">
                         <MessageSquare className="h-4 w-4 text-gray-400 mt-0.5" />
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">{t('tenderFlow.vendorQuestionsLabel')}</p>
-                          <p className="text-sm font-medium text-gray-900" data-testid="brief-inquiry-type">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.vendorQuestionsLabel')}</p>
+                          <p className="text-sm font-medium text-foreground" data-testid="brief-inquiry-type">
                             {formatLabel(draft.inquiryType, INQUIRY_TYPE_LABELS)}
                           </p>
                         </div>
@@ -1000,11 +995,11 @@ export default function TenderBriefStep() {
                 </div>
 
                 {hasSkills && (
-                  <div className="pt-4 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{t('tenderFlow.requiredSkillsLabel')}</p>
+                  <div className="pt-4 border-t border-border">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">{t('tenderFlow.requiredSkillsLabel')}</p>
                     <div className="flex flex-wrap gap-1.5" data-testid="brief-skills">
                       {draft.skills.map((skill: string, index: number) => (
-                        <Badge key={index} className="bg-[#E25E45]/10 text-[#E25E45] hover:bg-[#E25E45]/15 text-xs px-2 py-0.5">
+                        <Badge key={index} className="bg-[#FE3C01]/10 text-[#FE3C01] hover:bg-[#FE3C01]/15 text-xs px-2 py-0.5">
                           {skill}
                         </Badge>
                       ))}
@@ -1013,19 +1008,19 @@ export default function TenderBriefStep() {
                 )}
 
                 {draft.aiEstimate && (
-                  <div className="pt-4 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{t('tenderFlow.aiBudgetInsight')}</p>
-                    <div className="bg-blue-50 rounded-lg p-3 space-y-1.5">
-                      <p className="text-sm font-medium text-blue-900">
+                  <div className="pt-4 border-t border-border">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">{t('tenderFlow.aiBudgetInsight')}</p>
+                    <div className="bg-[var(--bid-orange)]/5 rounded-lg p-3 space-y-1.5">
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-200">
                         Est. SAR {Number(draft.aiEstimate.estimatedBudget).toLocaleString()}
                       </p>
                       {draft.aiEstimate.budgetRange && (
-                        <p className="text-xs text-blue-700">
+                        <p className="text-xs text-[var(--bid-orange)]">
                           Range: SAR {Number(draft.aiEstimate.budgetRange.min).toLocaleString()} – {Number(draft.aiEstimate.budgetRange.max).toLocaleString()}
                         </p>
                       )}
                       {draft.aiEstimate.reasoning && (
-                        <p className="text-xs text-blue-600 leading-relaxed mt-1">
+                        <p className="text-xs text-[var(--bid-orange)] leading-relaxed mt-1">
                           {draft.aiEstimate.reasoning}
                         </p>
                       )}
@@ -1034,19 +1029,19 @@ export default function TenderBriefStep() {
                 )}
 
                 {hasContactInfo && (
-                  <div className="pt-4 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{t('tenderFlow.contactForInquiries')}</p>
+                  <div className="pt-4 border-t border-border">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">{t('tenderFlow.contactForInquiries')}</p>
                     <div className="space-y-2">
                       {draft.emailContact && (
                         <div className="flex items-center gap-2 text-sm" data-testid="brief-email">
-                          <Mail className="h-3.5 w-3.5 text-[#E25E45]" />
-                          <span className="text-gray-700">{draft.emailContact}</span>
+                          <Mail className="h-3.5 w-3.5 text-[#FE3C01]" />
+                          <span className="text-muted-foreground">{draft.emailContact}</span>
                         </div>
                       )}
                       {draft.whatsappContact && (
                         <div className="flex items-center gap-2 text-sm" data-testid="brief-whatsapp">
                           <Phone className="h-3.5 w-3.5 text-green-600" />
-                          <span className="text-gray-700">{draft.whatsappContact}</span>
+                          <span className="text-muted-foreground">{draft.whatsappContact}</span>
                         </div>
                       )}
                     </div>
@@ -1054,11 +1049,11 @@ export default function TenderBriefStep() {
                 )}
 
                 {/* ── RFP Language & Translation Settings ─── */}
-                <div className="pt-4 border-t border-gray-100 space-y-4 mb-4">
+                <div className="pt-4 border-t border-border space-y-4 mb-4">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <Languages className="h-4 w-4 text-[#E25E45]" />
-                      <span className="text-sm font-semibold text-gray-900">
+                      <Languages className="h-4 w-4 text-[#FE3C01]" />
+                      <span className="text-sm font-semibold text-foreground">
                         {t('tenderFlow.rfpLanguageLabel')} <span className="text-red-500">*</span>
                       </span>
                     </div>
@@ -1068,8 +1063,8 @@ export default function TenderBriefStep() {
                         onClick={() => setRfpLanguage('en')}
                         className={`flex-1 py-2.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${
                           rfpLanguage === 'en'
-                            ? 'border-[#E25E45] bg-[#E25E45]/10 text-[#E25E45]'
-                            : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                            ? 'border-[#FE3C01] bg-[#FE3C01]/10 text-[#FE3C01]'
+                            : 'border-border text-muted-foreground hover:border-border'
                         }`}
                       >
                         English
@@ -1079,8 +1074,8 @@ export default function TenderBriefStep() {
                         onClick={() => setRfpLanguage('ar')}
                         className={`flex-1 py-2.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${
                           rfpLanguage === 'ar'
-                            ? 'border-[#E25E45] bg-[#E25E45]/10 text-[#E25E45]'
-                            : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                            ? 'border-[#FE3C01] bg-[#FE3C01]/10 text-[#FE3C01]'
+                            : 'border-border text-muted-foreground hover:border-border'
                         }`}
                       >
                         العربية
@@ -1090,14 +1085,14 @@ export default function TenderBriefStep() {
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-md bg-blue-50">
-                        <Languages className="h-3.5 w-3.5 text-blue-600" />
+                      <div className="p-1.5 rounded-md bg-[var(--bid-orange)]/5">
+                        <Languages className="h-3.5 w-3.5 text-[var(--bid-orange)]" />
                       </div>
                       <div>
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="text-sm font-medium text-foreground">
                           {t('tenderFlow.allowTranslationLabel')}
                         </span>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {t('tenderFlow.allowTranslationDesc')}
                         </p>
                       </div>
@@ -1109,7 +1104,7 @@ export default function TenderBriefStep() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-100 space-y-3">
+                <div className="pt-4 border-t border-border space-y-3">
                   <MarketplacePublishOption
                     value={marketplaceOptions}
                     onChange={setMarketplaceOptions}
@@ -1122,7 +1117,7 @@ export default function TenderBriefStep() {
                   <Button
                     onClick={handlePublish}
                     disabled={submitTender.isPending || (marketplaceOptions.enabled && !marketplaceOptions.confirmed)}
-                    className="w-full bg-[#E25E45] hover:bg-[#d54d35] h-12 text-base font-semibold shadow-lg shadow-[#E25E45]/20"
+                    className="w-full bg-[#FE3C01] hover:bg-[#d54d35] h-12 text-base font-semibold shadow-lg shadow-[#FE3C01]/20"
                     data-testid="button-publish-tender"
                   >
                     {submitTender.isPending ? (
@@ -1154,7 +1149,7 @@ export default function TenderBriefStep() {
         </div>
       </main>
 
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t shadow-lg px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50">
         <div className="max-w-5xl mx-auto flex gap-3">
           <Button
             variant="outline"
@@ -1167,7 +1162,7 @@ export default function TenderBriefStep() {
           <Button
             onClick={handlePublish}
             disabled={submitTender.isPending}
-            className="flex-1 bg-[#E25E45] hover:bg-[#d54d35] h-11 font-semibold"
+            className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] h-11 font-semibold"
           >
             {submitTender.isPending ? (
               <>

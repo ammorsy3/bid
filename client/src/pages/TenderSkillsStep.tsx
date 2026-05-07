@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, X, Search } from "lucide-react";
-import logoPath from "@assets/Screenshot_2025-12-11_at_10.30.18_AM-removebg-preview_1765438254196.png";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
 import { useState, useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
@@ -322,12 +322,7 @@ export default function TenderSkillsStep() {
     <div className="py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-            <img
-              src={logoPath}
-              alt="Bid"
-              className="h-16 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => navigate("/dashboard")}
-            />
+            <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
             <Button
               onClick={handleBack}
               className="group relative overflow-hidden"
@@ -354,7 +349,7 @@ export default function TenderSkillsStep() {
                 <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   4 / 6
                 </div>
-                <h1 className="text-5xl font-bold text-gray-900 dark:text-white leading-tight">
+                <h1 className="font-display font-black text-5xl text-gray-900 dark:text-foreground leading-[0.92] tracking-[-0.045em]">
                   {t('tenderSteps.skillsStepTitle')}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 text-lg">
@@ -366,25 +361,25 @@ export default function TenderSkillsStep() {
           {/* Right Section - Skills Selector */}
           <div>
               <Card className="border-0 shadow-xl overflow-hidden">
-                <div className="h-1 bg-gradient-to-r from-[#E25E45] to-[#FF8A6B]" />
+                <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
 
                 <div className="p-8 space-y-6">
                   {/* Selected Skills */}
                   {selectedSkills.length > 0 && (
                     <div className="space-y-3">
-                      <label className="text-sm font-medium text-gray-900 dark:text-white">
+                      <label className="text-sm font-medium text-gray-900 dark:text-foreground">
                         {t('tenderSteps.selectedSkills', { count: selectedSkills.length })}
                       </label>
                       <div className="flex flex-wrap gap-2">
                         {selectedSkills.map((skill) => (
                           <div
                             key={skill}
-                            className="flex items-center gap-2 px-3 py-1 bg-[#E25E45]/10 border border-[#E25E45] rounded-full text-sm text-gray-900 dark:text-white"
+                            className="flex items-center gap-2 px-3 py-1 bg-[#FE3C01]/10 border border-[#FE3C01] rounded-full text-sm text-gray-900 dark:text-foreground"
                           >
                             <span>{skill}</span>
                             <button
                               onClick={() => handleRemoveSkill(skill)}
-                              className="hover:text-[#E25E45]"
+                              className="hover:text-[#FE3C01]"
                               data-testid={`button-remove-${skill}`}
                             >
                               <X className="h-4 w-4" />
@@ -398,12 +393,12 @@ export default function TenderSkillsStep() {
                   {/* Search Bar */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-foreground">
                         {t('tenderSteps.searchSkillsLabel')}
                       </label>
                       <button
                         onClick={() => setShowCustomInput(!showCustomInput)}
-                        className="text-xs font-medium text-[#E25E45] hover:underline"
+                        className="text-xs font-medium text-[#FE3C01] hover:underline"
                         data-testid="button-toggle-custom-input"
                       >
                         {showCustomInput ? t('tenderSteps.cancelBtn') : t('tenderSteps.addCustomSkillToggle')}
@@ -416,7 +411,7 @@ export default function TenderSkillsStep() {
                         placeholder={t('tenderSteps.searchSkillsPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                         data-testid="input-skill-search"
                       />
                     </div>
@@ -427,7 +422,7 @@ export default function TenderSkillsStep() {
 
                   {/* Suggested Skills or Search Results */}
                   <div className="space-y-3">
-                    <h3 className="font-medium text-gray-900 dark:text-white">
+                    <h3 className="font-medium text-gray-900 dark:text-foreground">
                       {searchTerm
                         ? t('tenderSteps.searchResults')
                         : (jobTitle ? t('tenderSteps.popularSkillsFor', { title: jobTitle }) : t('tenderSteps.popularSkillsForDefault'))}
@@ -442,7 +437,7 @@ export default function TenderSkillsStep() {
                               key={skill}
                               onClick={() => handleAddSkill(skill)}
                               disabled={selectedSkills.includes(skill)}
-                              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:border-[#E25E45] hover:text-[#E25E45] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-muted-foreground dark:text-muted-foreground hover:border-[#FE3C01] hover:text-[#FE3C01] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                               data-testid={`button-add-${skill}`}
                             >
                               {skill} <span className="ml-1">+</span>
@@ -458,8 +453,8 @@ export default function TenderSkillsStep() {
 
                   {/* Custom Skill Input */}
                   {showCustomInput && (
-                    <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
-                      <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                    <div className="space-y-3 border-t border-border dark:border-border pt-6">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-foreground">
                         {t('tenderSteps.enterCustomSkill')}
                       </label>
                       <div className="flex gap-2">
@@ -473,13 +468,13 @@ export default function TenderSkillsStep() {
                               handleAddCustomSkill();
                             }
                           }}
-                          className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E25E45] focus:border-transparent"
+                          className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                           data-testid="input-custom-skill"
                           autoFocus
                         />
                         <Button
                           onClick={handleAddCustomSkill}
-                          className="bg-[#E25E45] hover:bg-[#d54d35]"
+                          className="bg-[#FE3C01] hover:bg-[#d54d35]"
                           data-testid="button-add-custom"
                         >
                           {t('tenderSteps.addBtn')}
@@ -489,7 +484,7 @@ export default function TenderSkillsStep() {
                   )}
 
                   {/* Navigation Buttons */}
-                  <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex gap-3 pt-6 border-t border-border dark:border-border">
                     <Button
                       type="button"
                       variant="outline"
@@ -502,7 +497,7 @@ export default function TenderSkillsStep() {
                     <Button
                       onClick={handleNext}
                       disabled={!isFormValid}
-                      className="flex-1 bg-[#E25E45] hover:bg-[#d54d35]"
+                      className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
                       data-testid="button-next"
                     >
                       {t('tenderSteps.next')}

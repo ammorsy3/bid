@@ -643,7 +643,7 @@ export default function CompanyProfileEditor() {
 
   if (isLoading || !data) {
     return (
-      <div className="min-h-screen bg-gray-50" data-testid="loader-page">
+      <div className="min-h-screen bg-muted" data-testid="loader-page">
         {/* Header image area */}
         <Skeleton className="h-48 w-full rounded-none" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
@@ -657,7 +657,7 @@ export default function CompanyProfileEditor() {
           </div>
           {/* Form sections */}
           {[0, 1, 2].map((i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+            <div key={i} className="bg-card rounded-xl border border-border p-6 space-y-4">
               <Skeleton className="h-5 w-40" />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -779,13 +779,13 @@ export default function CompanyProfileEditor() {
         saving={uploadLogoMutation.isPending || uploadHeaderMutation.isPending}
       />
 
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      <div className="min-h-screen bg-gray-50 dark:bg-background flex">
         {/* ═══════════ LEFT SUB-NAV ═══════════ */}
-        <aside className="w-72 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-800 flex flex-col flex-shrink-0">
+        <aside className="w-72 bg-white dark:bg-card border-r border-border dark:border-border flex flex-col flex-shrink-0">
           {/* Brand accent strip (matches app sidebar) */}
-          <div className="h-0.5 bg-gradient-to-r from-[#E8614D] to-[#F19A8F]" />
+          <div className="h-0.5 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]" />
 
-          <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+          <div className="p-4 border-b border-border dark:border-border">
             <button
               onClick={handleBack}
               className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors mb-3"
@@ -798,14 +798,14 @@ export default function CompanyProfileEditor() {
           </div>
 
           {/* Completeness */}
-          <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+          <div className="p-4 border-b border-border dark:border-border">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('companyProfileEditor.profileStrength')}</span>
-              <span className="text-xs font-bold text-[#E8614D]">{completenessPercent}%</span>
+              <span className="text-xs font-bold text-[#FE3C01]">{completenessPercent}%</span>
             </div>
             <div className="h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#E8614D] to-[#F19A8F] transition-all duration-700 ease-out"
+                className="h-full bg-gradient-to-r from-[#FE3C01] to-[#F19A8F] transition-all duration-700 ease-out"
                 style={{ width: `${completenessPercent}%` }}
               />
             </div>
@@ -827,16 +827,16 @@ export default function CompanyProfileEditor() {
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-left mb-0.5",
                     active
-                      ? "bg-[#E8614D]/10 text-[#E8614D]"
-                      : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                      ? "bg-[#FE3C01]/10 text-[#FE3C01]"
+                      : "hover:bg-muted dark:hover:bg-gray-700 text-muted-foreground dark:text-muted-foreground"
                   )}
                 >
-                  <Icon className={cn("h-4 w-4 flex-shrink-0", active ? "text-[#E8614D]" : "text-gray-400")} />
+                  <Icon className={cn("h-4 w-4 flex-shrink-0", active ? "text-[#FE3C01]" : "text-gray-400")} />
                   <span className="text-sm font-medium flex-1 truncate">{s.label}</span>
                   <span
                     className={cn(
                       "h-1.5 w-1.5 rounded-full flex-shrink-0",
-                      status === 'complete' ? "bg-emerald-500"
+                      status === 'complete' ? "bg-[var(--state-won)]"
                         : status === 'partial' ? "bg-amber-400"
                           : "bg-gray-300 dark:bg-gray-600"
                     )}
@@ -851,11 +851,11 @@ export default function CompanyProfileEditor() {
         {/* ═══════════ MAIN ═══════════ */}
         <main className="flex-1 flex flex-col min-w-0">
           {/* Sticky header */}
-          <div className="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-800">
+          <div className="sticky top-0 z-10 bg-white/90 dark:bg-background/90 backdrop-blur border-b border-border dark:border-border">
             <div className="max-w-3xl mx-auto px-8 py-5 flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">{t('companyProfileEditor.profileEdit')}</p>
-                <h1 className="text-2xl font-bold text-foreground mt-0.5">{currentSectionMeta.label}</h1>
+                <h1 className="font-display font-black text-2xl text-foreground mt-0.5 tracking-[-0.03em]">{currentSectionMeta.label}</h1>
                 <p className="text-sm text-muted-foreground mt-1">{currentSectionMeta.description}</p>
               </div>
               <div className="flex items-center gap-3 flex-shrink-0">
@@ -886,7 +886,7 @@ export default function CompanyProfileEditor() {
                     <CardContent>
                       <div className="flex items-center gap-4">
                         {currentLogoUrl ? (
-                          <img src={currentLogoUrl} alt="Logo" className="w-20 h-20 rounded-xl object-cover border border-gray-200 dark:border-gray-700" />
+                          <img src={currentLogoUrl} alt="Logo" className="w-20 h-20 rounded-xl object-cover border border-border dark:border-border" />
                         ) : (
                           <div className="w-20 h-20 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-lg font-bold text-gray-400">
                             {initials}
@@ -975,9 +975,9 @@ export default function CompanyProfileEditor() {
                       {AVAILABILITY_OPTIONS.map((opt) => {
                         const active = editState.availabilityStatus === opt.value;
                         const activeClasses =
-                          opt.color === 'emerald' ? 'bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-950 dark:border-emerald-700 dark:text-emerald-300'
+                          opt.color === 'emerald' ? 'bg-[var(--state-won)]/5 border-emerald-300 text-[var(--state-won)] dark:bg-emerald-950 dark:border-emerald-700 dark:text-emerald-300'
                           : opt.color === 'amber' ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950 dark:border-amber-700 dark:text-amber-300'
-                          : 'bg-gray-100 border-gray-400 text-gray-800 dark:bg-gray-700 dark:border-gray-500 dark:text-gray-200';
+                          : 'bg-gray-100 border-gray-400 text-gray-800 dark:bg-gray-700 dark:border-gray-500 dark:text-muted-foreground';
                         return (
                           <button
                             key={opt.value}
@@ -985,7 +985,7 @@ export default function CompanyProfileEditor() {
                             onClick={() => setEditState(s => ({ ...s, availabilityStatus: active ? null : opt.value }))}
                             className={cn(
                               "text-sm font-semibold rounded-lg px-3 py-3 border-2 transition-colors",
-                              active ? activeClasses : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300'
+                              active ? activeClasses : 'bg-white dark:bg-card border-border dark:border-border text-gray-500 dark:text-gray-400 hover:border-border'
                             )}
                           >
                             {opt.label}
@@ -1139,8 +1139,8 @@ export default function CompanyProfileEditor() {
                               className={cn(
                                 "text-sm font-medium rounded-full px-4 py-1.5 border transition-colors",
                                 active
-                                  ? 'bg-[#E8614D] text-white border-[#E8614D]'
-                                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                                  ? 'bg-[#FE3C01] text-white border-[#FE3C01]'
+                                  : 'bg-white dark:bg-card text-muted-foreground dark:text-muted-foreground border-border dark:border-border hover:border-border'
                               )}
                             >
                               {t(`companyProfileEditor.${langItem.labelKey}`)}
@@ -1206,7 +1206,7 @@ export default function CompanyProfileEditor() {
                       {editState.portfolio.length > 0 && (
                         <div className="space-y-2">
                           {editState.portfolio.map((item, i) => (
-                            <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                            <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-card rounded-lg border border-border dark:border-border">
                               <img src={item.imageUrl} alt={item.title} className="w-14 h-14 rounded-md object-cover flex-shrink-0" />
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold truncate">{item.title}</p>
@@ -1221,7 +1221,7 @@ export default function CompanyProfileEditor() {
                       )}
 
                       {editState.portfolio.length < 8 && (
-                        <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                        <div className="space-y-3 p-4 bg-gray-50 dark:bg-card rounded-lg border border-dashed border-border dark:border-border">
                           <Input
                             value={portfolioTitle}
                             onChange={(e) => setPortfolioTitle(e.target.value)}
@@ -1282,7 +1282,7 @@ export default function CompanyProfileEditor() {
                           {editState.certifications.map((cert, i) => {
                             const status = getExpiryStatus(cert.expiryDate);
                             return (
-                              <div key={i} className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 space-y-2">
+                              <div key={i} className="p-3 bg-white dark:bg-card rounded-lg border border-border dark:border-border space-y-2">
                                 <div className="flex items-start gap-2">
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold truncate">{cert.name}</p>
@@ -1294,7 +1294,7 @@ export default function CompanyProfileEditor() {
                                 </div>
                                 <div className="flex items-center gap-2 flex-wrap">
                                   {cert.documentUrl ? (
-                                    <a href={cert.documentUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-full px-2.5 py-1 hover:bg-emerald-100 transition-colors">
+                                    <a href={cert.documentUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--state-won)] dark:text-emerald-400 bg-[var(--state-won)]/5 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-full px-2.5 py-1 hover:bg-[var(--state-won)]/10 transition-colors">
                                       <ShieldCheck className="h-3 w-3" /> {t('companyProfileEditor.documentOnFile')}
                                     </a>
                                   ) : (
@@ -1333,7 +1333,7 @@ export default function CompanyProfileEditor() {
                       )}
 
                       {editState.certifications.length < 15 && (
-                        <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                        <div className="space-y-3 p-4 bg-gray-50 dark:bg-card rounded-lg border border-dashed border-border dark:border-border">
                           <Input
                             value={newCert.name}
                             onChange={(e) => setNewCert(c => ({ ...c, name: e.target.value }))}
@@ -1381,7 +1381,7 @@ export default function CompanyProfileEditor() {
                           {editState.insurancePolicies.map((pol, i) => {
                             const status = getExpiryStatus(pol.expiryDate);
                             return (
-                              <div key={i} className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 space-y-2">
+                              <div key={i} className="p-3 bg-white dark:bg-card rounded-lg border border-border dark:border-border space-y-2">
                                 <div className="flex items-start gap-2">
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold truncate">{INSURANCE_TYPE_LABELS[pol.type]}</p>
@@ -1396,7 +1396,7 @@ export default function CompanyProfileEditor() {
                                 </div>
                                 <div className="flex items-center gap-2 flex-wrap">
                                   {pol.documentUrl ? (
-                                    <a href={pol.documentUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-full px-2.5 py-1 hover:bg-emerald-100 transition-colors">
+                                    <a href={pol.documentUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--state-won)] dark:text-emerald-400 bg-[var(--state-won)]/5 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-full px-2.5 py-1 hover:bg-[var(--state-won)]/10 transition-colors">
                                       <ShieldCheck className="h-3 w-3" /> {t('companyProfileEditor.documentOnFile')}
                                     </a>
                                   ) : (
@@ -1435,7 +1435,7 @@ export default function CompanyProfileEditor() {
                       )}
 
                       {editState.insurancePolicies.length < 5 && (
-                        <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                        <div className="space-y-3 p-4 bg-gray-50 dark:bg-card rounded-lg border border-dashed border-border dark:border-border">
                           <Select value={newInsurance.type} onValueChange={(v) => setNewInsurance(p => ({ ...p, type: v as InsuranceType }))}>
                             <SelectTrigger>
                               <SelectValue />
@@ -1510,7 +1510,7 @@ export default function CompanyProfileEditor() {
                     </CardHeader>
                     <CardContent>
                       {currentHeaderUrl ? (
-                        <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 group">
+                        <div className="relative rounded-lg overflow-hidden border border-border dark:border-border group">
                           <img src={currentHeaderUrl} alt="Header" className="w-full h-40 object-cover" />
                           <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
@@ -1519,7 +1519,7 @@ export default function CompanyProfileEditor() {
                               size="sm"
                               onClick={() => handleEditExisting('header')}
                               disabled={uploadHeaderMutation.isPending}
-                              className="bg-white/10 border-white/40 text-white hover:bg-white/20 hover:text-white"
+                              className="bg-card/10 border-white/40 text-white hover:bg-card/20 hover:text-white"
                             >
                               <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
                               {t('companyProfileEditor.editCrop')}
@@ -1535,7 +1535,7 @@ export default function CompanyProfileEditor() {
                                   e.target.value = '';
                                 }}
                               />
-                              <Button type="button" variant="outline" size="sm" asChild className="bg-white/10 border-white/40 text-white hover:bg-white/20 hover:text-white">
+                              <Button type="button" variant="outline" size="sm" asChild className="bg-card/10 border-white/40 text-white hover:bg-card/20 hover:text-white">
                                 <span className="cursor-pointer">
                                   <Upload className="h-3.5 w-3.5 mr-1.5" />
                                   {uploadHeaderMutation.isPending ? t('companyProfileEditor.uploading') : t('companyProfileEditor.replace')}
@@ -1556,7 +1556,7 @@ export default function CompanyProfileEditor() {
                               e.target.value = '';
                             }}
                           />
-                          <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 rounded-lg bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                          <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 rounded-lg bg-gray-50 dark:bg-card border border-dashed border-border dark:border-border hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                             <Upload className="h-6 w-6 text-muted-foreground" />
                             <span className="text-sm text-muted-foreground">
                               {uploadHeaderMutation.isPending ? t('companyProfileEditor.uploading') : t('companyProfileEditor.uploadHeaderImage')}
@@ -1585,7 +1585,7 @@ export default function CompanyProfileEditor() {
                         <p className="text-xs text-red-500 mt-2">{t('companyProfileEditor.mustBeYtOrVimeo')}</p>
                       )}
                       {parseVideoEmbed(editState.introVideoUrl) && (
-                        <p className="text-xs text-emerald-600 mt-2">
+                        <p className="text-xs text-[var(--state-won)] mt-2">
                           ✓ {t('companyProfileEditor.videoDetected', { provider: parseVideoEmbed(editState.introVideoUrl)?.provider === 'youtube' ? 'YouTube' : 'Vimeo' })}
                         </p>
                       )}
@@ -1602,10 +1602,10 @@ export default function CompanyProfileEditor() {
                     </CardHeader>
                     <CardContent>
                       {currentBrochureUrl && (
-                        <div className="flex items-center gap-2 mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center gap-2 mb-3 p-3 bg-gray-50 dark:bg-card rounded-lg border border-border dark:border-border">
                           <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           <span className="text-sm text-muted-foreground truncate flex-1">{t('companyProfileEditor.brochureUploaded')}</span>
-                          <a href={currentBrochureUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-[#E8614D] hover:underline flex-shrink-0">{t('companyProfileEditor.view')}</a>
+                          <a href={currentBrochureUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-[#FE3C01] hover:underline flex-shrink-0">{t('companyProfileEditor.view')}</a>
                         </div>
                       )}
                       <label className="cursor-pointer block">
@@ -1628,7 +1628,7 @@ export default function CompanyProfileEditor() {
                             e.target.value = '';
                           }}
                         />
-                        <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-50 dark:bg-card border border-dashed border-border dark:border-border hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                           <Upload className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">
                             {uploadBrochureMutation.isPending ? t('companyProfileEditor.uploading') : (currentBrochureUrl ? t('companyProfileEditor.replaceBrochure') : t('companyProfileEditor.uploadBrochure'))}
@@ -1748,7 +1748,7 @@ function SaveStatus({ status, savedAgoLabel, t }: { status: 'saved' | 'dirty' | 
     );
   }
   return (
-    <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+    <div className="flex items-center gap-1.5 text-xs text-[var(--state-won)] dark:text-emerald-400">
       <CheckCircle2 className="h-3.5 w-3.5" />
       {savedAgoLabel ? t('companyProfileEditor.savedAgo', { when: savedAgoLabel }) : t('companyProfileEditor.allChangesSaved')}
     </div>

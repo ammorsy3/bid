@@ -143,7 +143,7 @@ const AttachmentsPanel: React.FC<{
     return { url: objectPath };
   };
 
-  const MAX_BYTES = 10 * 1024 * 1024;
+  const MAX_BYTES = 50 * 1024 * 1024;
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;

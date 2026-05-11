@@ -244,7 +244,7 @@ export default function VendorPreQualification() {
                         <div className="space-y-2">
                           <ObjectUploader
                             maxNumberOfFiles={1}
-                            maxFileSize={10485760}
+                            maxFileSize={52428800}
                             allowedFileTypes={['.pdf', '.jpg', '.jpeg', '.png']}
                             onGetUploadParameters={handleGetUploadURL}
                             onComplete={(result) => handleFileUpload(result, 'vatCertificateUrl', 'vat')}
@@ -293,7 +293,7 @@ export default function VendorPreQualification() {
                         <div className="space-y-2">
                           <ObjectUploader
                             maxNumberOfFiles={1}
-                            maxFileSize={10485760}
+                            maxFileSize={52428800}
                             allowedFileTypes={['.pdf', '.jpg', '.jpeg', '.png']}
                             onGetUploadParameters={handleGetUploadURL}
                             onComplete={(result) => handleFileUpload(result, 'gosiCertificateUrl', 'gosi')}
@@ -328,7 +328,7 @@ export default function VendorPreQualification() {
                         <div className="space-y-2">
                           <ObjectUploader
                             maxNumberOfFiles={1}
-                            maxFileSize={10485760}
+                            maxFileSize={52428800}
                             allowedFileTypes={['.pdf', '.jpg', '.jpeg', '.png']}
                             onGetUploadParameters={handleGetUploadURL}
                             onComplete={(result) => handleFileUpload(result, 'nationalAddressCertificateUrl', 'nationalAddress')}
@@ -395,7 +395,7 @@ export default function VendorPreQualification() {
                           <div className="space-y-2">
                             <ObjectUploader
                               maxNumberOfFiles={1}
-                              maxFileSize={5242880}
+                              maxFileSize={10485760}
                               allowedFileTypes={['.jpg', '.jpeg', '.png']}
                               onGetUploadParameters={handleGetUploadURL}
                               onComplete={(result) => handleFileUpload(result, 'logoUrl', 'logo')}
@@ -430,7 +430,7 @@ export default function VendorPreQualification() {
                           <div className="space-y-2">
                             <ObjectUploader
                               maxNumberOfFiles={1}
-                              maxFileSize={5242880}
+                              maxFileSize={10485760}
                               allowedFileTypes={['.jpg', '.jpeg', '.png']}
                               onGetUploadParameters={handleGetUploadURL}
                               onComplete={(result) => handleFileUpload(result, 'headerUrl', 'header')}
@@ -522,7 +522,7 @@ export default function VendorPreQualification() {
                         <div className="space-y-2">
                           <ObjectUploader
                             maxNumberOfFiles={1}
-                            maxFileSize={10485760}
+                            maxFileSize={52428800}
                             allowedFileTypes={['.pdf']}
                             onGetUploadParameters={handleGetUploadURL}
                             onComplete={(result) => handleFileUpload(result, 'profileFileUrl', 'companyProfile')}

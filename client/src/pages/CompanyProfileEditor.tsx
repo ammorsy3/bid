@@ -509,8 +509,8 @@ export default function CompanyProfileEditor() {
   });
 
   // ── File validation ──
-  const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-  const MAX_BROCHURE_BYTES = 10 * 1024 * 1024;
+  const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+  const MAX_BROCHURE_BYTES = 50 * 1024 * 1024;
 
   const validateImage = (file: File): boolean => {
     if (!file.type.startsWith('image/')) {

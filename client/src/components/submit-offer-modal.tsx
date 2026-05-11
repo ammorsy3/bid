@@ -145,13 +145,13 @@ const modalStrings: Record<string, Record<string, string>> = {
     separateFilesDesc: "Upload technical & financial separately",
     combinedLabel: "Combined Proposal (Technical + Financial) *",
     uploadCombined: "Upload your combined proposal",
-    combinedHint: "One file containing both technical and financial sections \u2022 PDF, DOC, DOCX \u2022 Max 10MB",
+    combinedHint: "One file containing both technical and financial sections \u2022 PDF, DOC, DOCX \u2022 Max 50MB",
     technicalLabel: "Technical Proposal *",
     uploadTechnical: "Upload technical proposal",
-    technicalHint: "PDF, DOC, DOCX \u2022 Max 10MB",
+    technicalHint: "PDF, DOC, DOCX \u2022 Max 50MB",
     financialLabel: "Financial Proposal *",
     uploadFinancial: "Upload financial proposal",
-    financialHint: "PDF, DOC, DOCX, XLS, XLSX \u2022 Max 10MB",
+    financialHint: "PDF, DOC, DOCX, XLS, XLSX \u2022 Max 50MB",
     additionalNotes: "Additional Notes",
     notesPlaceholder: "Any additional information, clarifications, or value propositions...",
     submissionSummary: "Submission Summary",
@@ -215,13 +215,13 @@ const modalStrings: Record<string, Record<string, string>> = {
     separateFilesDesc: "رفع العرض الفني والمالي بشكل منفصل",
     combinedLabel: "العرض المدمج (فني + مالي) *",
     uploadCombined: "ارفع العرض المدمج",
-    combinedHint: "ملف واحد يحتوي على القسمين الفني والمالي \u2022 PDF, DOC, DOCX \u2022 حد أقصى 10 ميغابايت",
+    combinedHint: "ملف واحد يحتوي على القسمين الفني والمالي \u2022 PDF, DOC, DOCX \u2022 حد أقصى 50 ميغابايت",
     technicalLabel: "العرض الفني *",
     uploadTechnical: "ارفع العرض الفني",
-    technicalHint: "PDF, DOC, DOCX \u2022 حد أقصى 10 ميغابايت",
+    technicalHint: "PDF, DOC, DOCX \u2022 حد أقصى 50 ميغابايت",
     financialLabel: "العرض المالي *",
     uploadFinancial: "ارفع العرض المالي",
-    financialHint: "PDF, DOC, DOCX, XLS, XLSX \u2022 حد أقصى 10 ميغابايت",
+    financialHint: "PDF, DOC, DOCX, XLS, XLSX \u2022 حد أقصى 50 ميغابايت",
     additionalNotes: "ملاحظات إضافية",
     notesPlaceholder: "أي معلومات إضافية أو توضيحات أو مقترحات قيمة...",
     submissionSummary: "ملخص التقديم",
@@ -800,7 +800,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                           <div className="space-y-2">
                             <ObjectUploader
                               maxNumberOfFiles={1}
-                              maxFileSize={10485760}
+                              maxFileSize={52428800}
                               allowedFileTypes={['.pdf', '.doc', '.docx']}
                               onGetUploadParameters={handleGetUploadURL}
                               onComplete={handleCombinedUploadComplete}
@@ -841,7 +841,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                             <div className="space-y-2">
                               <ObjectUploader
                                 maxNumberOfFiles={1}
-                                maxFileSize={10485760}
+                                maxFileSize={52428800}
                                 allowedFileTypes={['.pdf', '.doc', '.docx']}
                                 onGetUploadParameters={handleGetUploadURL}
                                 onComplete={handleTechnicalUploadComplete}
@@ -879,7 +879,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                             <div className="space-y-2">
                               <ObjectUploader
                                 maxNumberOfFiles={1}
-                                maxFileSize={10485760}
+                                maxFileSize={52428800}
                                 allowedFileTypes={['.pdf', '.doc', '.docx', '.xls', '.xlsx']}
                                 onGetUploadParameters={handleGetUploadURL}
                                 onComplete={handleFinancialUploadComplete}

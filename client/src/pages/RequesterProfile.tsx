@@ -311,7 +311,7 @@ export default function RequesterProfile() {
                           onGetUploadParameters={handleGetUploadURL}
                           onComplete={handleLogoUpload}
                           allowedFileTypes={['image/*']}
-                          maxFileSize={5 * 1024 * 1024}
+                          maxFileSize={10 * 1024 * 1024}
                         >
                           {uploadedLogo || t('requesterProfile.uploadLogo')}
                         </ObjectUploader>

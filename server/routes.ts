@@ -60,7 +60,7 @@ import {
 // Configure multer for file uploads (memory storage)
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -929,9 +929,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid file type. Only jpg, jpeg, png, gif, webp are allowed." });
       }
 
-      // Validate file size (5MB max)
-      if (file.size > 5 * 1024 * 1024) {
-        return res.status(400).json({ message: "File too large. Maximum size is 5MB." });
+      // Validate file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
       }
 
       const objectStorage = new ObjectStorageService();
@@ -1075,8 +1075,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid file type. Only jpg, jpeg, png, gif, webp are allowed." });
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        return res.status(400).json({ message: "File too large. Maximum size is 5MB." });
+      if (file.size > 10 * 1024 * 1024) {
+        return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
       }
       
       const objectStorage = new ObjectStorageService();
@@ -1130,9 +1130,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid file type. Only jpg, jpeg, png, gif, webp are allowed." });
       }
 
-      // Validate file size (5MB max)
-      if (file.size > 5 * 1024 * 1024) {
-        return res.status(400).json({ message: "File too large. Maximum size is 5MB." });
+      // Validate file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
       }
       
       const objectStorage = new ObjectStorageService();
@@ -1187,8 +1187,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid file type. Only PDF, JPG, and PNG are allowed." });
       }
 
-      if (file.size > 10 * 1024 * 1024) {
-        return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
+      if (file.size > 50 * 1024 * 1024) {
+        return res.status(400).json({ message: "File too large. Maximum size is 50MB." });
       }
 
       const objectStorage = new ObjectStorageService();
@@ -1228,8 +1228,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid file type. Only PDF, JPG, and PNG are allowed." });
       }
 
-      if (file.size > 10 * 1024 * 1024) {
-        return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
+      if (file.size > 50 * 1024 * 1024) {
+        return res.status(400).json({ message: "File too large. Maximum size is 50MB." });
       }
 
       const objectStorage = new ObjectStorageService();
@@ -1276,8 +1276,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid file type. Only JPG, PNG, and WebP are allowed." });
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        return res.status(400).json({ message: "File too large. Maximum size is 5MB." });
+      if (file.size > 10 * 1024 * 1024) {
+        return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
       }
 
       const objectStorage = new ObjectStorageService();
@@ -5281,7 +5281,7 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  const MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50MB
   const ALLOWED_MIME_TYPES = [
     'application/pdf',
     'application/msword',

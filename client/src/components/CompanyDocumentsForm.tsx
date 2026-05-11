@@ -154,7 +154,7 @@ export function CompanyDocumentsForm({
               </div>
               <ObjectUploader
                 maxNumberOfFiles={1}
-                maxFileSize={10485760}
+                maxFileSize={52428800}
                 allowedFileTypes={[".pdf", ".jpg", ".jpeg", ".png"]}
                 onGetUploadParameters={handleGetUploadURL}
                 onComplete={handleUploadComplete(slot.type)}

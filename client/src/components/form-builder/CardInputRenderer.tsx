@@ -1136,7 +1136,7 @@ const ALLOWED_TYPES = [
   'image/jpg',
 ];
 const ALLOWED_EXTENSIONS = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg';
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 function getFileIcon(type: string) {
   if (type.includes('pdf')) return <FileText className="h-4 w-4 text-red-500" />;

@@ -169,7 +169,7 @@ export default function CompanyProfile() {
                         <div className="flex-1 space-y-1.5">
                           <ObjectUploader
                             maxNumberOfFiles={1}
-                            maxFileSize={5242880}
+                            maxFileSize={10485760}
                             allowedFileTypes={['.jpg', '.jpeg', '.png']}
                             onGetUploadParameters={handleGetUploadURL}
                             onComplete={handleLogoUpload}
@@ -181,7 +181,7 @@ export default function CompanyProfile() {
                               <span>{logoPreviewUrl ? "Change Logo" : "Upload Logo"}</span>
                             </div>
                           </ObjectUploader>
-                          <p className="text-xs text-neutral-400">JPG or PNG, max 5MB</p>
+                          <p className="text-xs text-neutral-400">JPG or PNG, max 10MB</p>
                         </div>
                       </div>
                     </FormControl>

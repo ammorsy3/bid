@@ -25,7 +25,7 @@ interface ObjectUploaderProps {
 type UploadState = "idle" | "selected" | "uploading" | "success" | "error";
 
 export function ObjectUploader({
-  maxFileSize = 10485760,
+  maxFileSize = 52428800,
   allowedFileTypes,
   onGetUploadParameters,
   onComplete,

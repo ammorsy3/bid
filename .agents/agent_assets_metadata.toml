@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "yDZaL-7_lnLEKxfIA3Sht"
+uri = "file://client/public/bid-logo.png"
+type = "image"
+title = "Bid Logo (PNG)"
+
+[[outputs]]
+id = "UFBEWCuO5VDEX0Hd2zbd4"
+uri = "file://attached_assets/logo.svg"
+type = "image"
+title = "Bid Logo (SVG)"

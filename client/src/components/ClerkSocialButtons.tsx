@@ -1,5 +1,6 @@
-import { useSignIn } from "@clerk/clerk-react";
+import { useSignIn, useAuth, useClerk } from "@clerk/clerk-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { SiGoogle, SiLinkedin, SiSlack } from "react-icons/si";
 
@@ -12,6 +13,9 @@ interface ClerkSocialButtonsProps {
 
 export function ClerkSocialButtons({ redirectPath = "/auth/clerk-callback" }: ClerkSocialButtonsProps) {
   const { signIn, isLoaded } = useSignIn();
+  const { isSignedIn } = useAuth();
+  const { signOut } = useClerk();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [busy, setBusy] = useState<Provider | null>(null);
 
@@ -21,6 +25,15 @@ export function ClerkSocialButtons({ redirectPath = "/auth/clerk-callback" }: Cl
   const handleOAuth = async (strategy: Provider) => {
     if (!isLoaded || !signIn) return;
     setBusy(strategy);
+
+    // If a Clerk session already exists (e.g. user logged out of our app
+    // but Clerk's cookie is still valid), don't start a new OAuth flow —
+    // go straight to the callback to exchange the existing session.
+    if (isSignedIn) {
+      setLocation(redirectPath);
+      return;
+    }
+
     try {
       await signIn.authenticateWithRedirect({
         strategy,
@@ -28,6 +41,21 @@ export function ClerkSocialButtons({ redirectPath = "/auth/clerk-callback" }: Cl
         redirectUrlComplete: redirectPath,
       });
     } catch (err: any) {
+      const code = err?.errors?.[0]?.code;
+      // "You're already signed in" — clear Clerk session and retry once
+      if (code === "session_exists" || /already signed in/i.test(err?.message || "")) {
+        try {
+          await signOut();
+          await signIn.authenticateWithRedirect({
+            strategy,
+            redirectUrl: redirectPath,
+            redirectUrlComplete: redirectPath,
+          });
+          return;
+        } catch (retryErr) {
+          console.error("[Clerk] Retry after signOut failed:", retryErr);
+        }
+      }
       console.error("[Clerk] OAuth error:", err);
       toast({
         title: "Sign-in failed",

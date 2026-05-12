@@ -64,7 +64,26 @@ function ClerkCallbackInner() {
         }
         const data = await res.json();
 
-        // Use the store action so persist + side-effects flow through one path
+        // 1. Set the API token (used for Authorization headers)
+        localStorage.setItem("token", data.token);
+
+        // 2. Manually pre-write the zustand persist storage BEFORE navigating.
+        //    This guarantees that when /dashboard loads after the hard nav,
+        //    the auth store hydrates from localStorage with `user` already set,
+        //    so Dashboard's `if (!user) setLocation("/login")` guard never fires.
+        const persistPayload = {
+          state: {
+            token: data.token,
+            user: data.user,
+            activeCompany: data.activeCompany || null,
+            companies: data.companies || [],
+          },
+          version: 0,
+        };
+        localStorage.setItem("auth-storage", JSON.stringify(persistPayload));
+
+        // 3. Also update the in-memory store (no-op for the soon-to-be-discarded
+        //    page, but keeps things consistent if something subscribes before nav).
         useAuthStore.getState().loginWithClerk({
           user: data.user,
           token: data.token,
@@ -74,15 +93,14 @@ function ClerkCallbackInner() {
 
         toast({ title: "Signed in", description: `Welcome, ${data.user.name}!` });
 
-        // Hard navigation guarantees Dashboard mounts AFTER the store is fully
-        // hydrated from persist storage — avoids a race where Dashboard's
-        // `if (!user) setLocation("/login")` guard fires before state propagates.
+        // 4. Hard navigation — full reload picks up the pre-written persist state.
         const dest = data.activeCompany ? "/dashboard" : "/onboarding";
         window.location.assign(dest);
       } catch (err: any) {
         console.error("[Clerk] Exchange failed:", err);
         // Clear any stale auth state so /login doesn't auto-redirect to dashboard
         localStorage.removeItem("token");
+        localStorage.removeItem("auth-storage");
         useAuthStore.setState({
           user: null,
           token: null,

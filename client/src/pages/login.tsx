@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { BidLogo } from "@/components/brand/BidLogo";
+import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
 
 type LoginForm = { email: string; password: string };
 type ForgotForm = { email: string };
@@ -261,6 +262,8 @@ export default function Login() {
                   </NeonButton>
                 </form>
               </Form>
+
+              <ClerkSocialButtons mode="signin" />
 
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">

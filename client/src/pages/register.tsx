@@ -12,6 +12,7 @@ import { useI18n } from "@/lib/i18n";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { Check, Eye, EyeOff, X } from "lucide-react";
+import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
 
 type RegisterForm = { email: string; password: string; confirmPassword: string; name: string };
 
@@ -292,6 +293,8 @@ export default function Register() {
                 </NeonButton>
               </form>
             </Form>
+
+            <ClerkSocialButtons mode="signup" />
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">

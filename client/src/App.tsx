@@ -49,6 +49,7 @@ import AdminAwards from "@/pages/AdminAwards";
 import AdminUsers from "@/pages/AdminUsers";
 import AdminAuditLogs from "@/pages/AdminAuditLogs";
 import AdminErrors from "@/pages/AdminErrors";
+import ClerkCallback from "@/pages/ClerkCallback";
 
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
 
@@ -70,6 +71,8 @@ export default function App() {
               <Route path="/invite/:id" component={TenderInviteLink} />
               <Route path="/login" component={Login} />
               <Route path="/signup" component={Register} />
+              <Route path="/auth/clerk-callback" component={ClerkCallback} />
+              <Route path="/sso-callback" component={ClerkCallback} />
               <Route path="/:rest*">{() => { window.location.href = '/'; return null; }}</Route>
             </Switch>
             <Toaster />
@@ -87,6 +90,8 @@ export default function App() {
             <Route path="/" component={Landing} />
             <Route path="/login" component={Login} />
             <Route path="/signup" component={Register} />
+            <Route path="/auth/clerk-callback" component={ClerkCallback} />
+            <Route path="/sso-callback" component={ClerkCallback} />
             <Route path="/reset-password" component={ResetPassword} />
             <Route path="/company-onboarding" component={CompanyOnboarding} />
             <Route path="/verify-email" component={VerifyEmail} />

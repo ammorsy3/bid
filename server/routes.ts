@@ -245,6 +245,188 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AUTH ROUTES
   // ==========================================================================
 
+  // Exchange a verified Clerk session token for our platform JWT.
+  // Used by social sign-in (Google, LinkedIn, etc.) via Clerk.
+  // Finds-or-creates a user in our DB based on the Clerk-verified email.
+  app.post("/api/auth/clerk-exchange", async (req, res) => {
+    try {
+      if (!process.env.CLERK_SECRET_KEY) {
+        return res.status(500).json({ message: "Clerk is not configured on the server" });
+      }
+      const { token: clerkToken } = req.body || {};
+      if (!clerkToken || typeof clerkToken !== 'string') {
+        return res.status(400).json({ message: "Missing Clerk session token" });
+      }
+
+      const { createClerkClient, verifyToken } = await import('@clerk/backend');
+      let claims: any;
+      try {
+        claims = await verifyToken(clerkToken, { secretKey: process.env.CLERK_SECRET_KEY });
+      } catch (verifyErr) {
+        console.error('[Clerk] Token verification failed:', verifyErr);
+        return res.status(401).json({ message: "Invalid Clerk session" });
+      }
+
+      const clerkUserId: string | undefined = claims?.sub;
+      if (!clerkUserId) {
+        return res.status(401).json({ message: "Invalid Clerk session payload" });
+      }
+
+      const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+      const clerkUser = await clerkClient.users.getUser(clerkUserId);
+
+      const primaryEmailObj = clerkUser.emailAddresses.find(
+        (e: any) => e.id === clerkUser.primaryEmailAddressId
+      ) || clerkUser.emailAddresses[0];
+      const primaryEmail = primaryEmailObj?.emailAddress;
+
+      if (!primaryEmail) {
+        return res.status(400).json({ message: "No email associated with Clerk account" });
+      }
+
+      // Require Clerk to have verified the email before linking to an account.
+      // Prevents takeover of existing local accounts via an unverified social email.
+      const verificationStatus = (primaryEmailObj as any)?.verification?.status;
+      if (verificationStatus !== 'verified') {
+        return res.status(403).json({
+          message: "Please verify your email with your social provider before signing in.",
+        });
+      }
+
+      const emailLower = primaryEmail.toLowerCase().trim();
+      const fullName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ').trim()
+        || clerkUser.username
+        || emailLower.split('@')[0];
+
+      let user = await storage.getUserByEmail(emailLower);
+      let isNewUser = false;
+      let autoJoinedCompany: any = null;
+
+      if (!user) {
+        isNewUser = true;
+        const randomPw = crypto.randomBytes(32).toString('hex');
+        const hashedPassword = await bcrypt.hash(randomPw, 10);
+        const username = emailLower.split('@')[0].replace(/[^a-z0-9]/g, '') + '_' + Math.random().toString(36).slice(2, 7);
+
+        user = await storage.createUser({
+          username,
+          email: emailLower,
+          password: hashedPassword,
+          name: fullName,
+          isAdmin: false,
+          emailVerified: true,
+          otpVerified: true,
+          profilePictureUrl: clerkUser.imageUrl || null,
+        } as any);
+
+        const FREE_EMAIL_DOMAINS = new Set([
+          'gmail.com','yahoo.com','hotmail.com','outlook.com','live.com',
+          'icloud.com','me.com','aol.com','protonmail.com','mail.com',
+          'yandex.com','zoho.com','gmx.com','msn.com','hotmail.co.uk',
+          'yahoo.co.uk','yahoo.co.in','rediffmail.com'
+        ]);
+        const emailDomain = emailLower.split('@')[1];
+        if (!FREE_EMAIL_DOMAINS.has(emailDomain)) {
+          try {
+            const matchedCompany = await storage.getCompanyByEmailDomain(emailDomain);
+            if (matchedCompany) {
+              await storage.addUserToCompany({
+                userId: user.id,
+                companyId: matchedCompany.id,
+                roleInCompany: 'member',
+                invitedBy: null,
+              });
+              autoJoinedCompany = matchedCompany;
+              await storage.logProductEvent({
+                eventType: 'user_auto_joined',
+                companyId: matchedCompany.id,
+                userId: user.id,
+                metadata: { emailDomain, companyName: matchedCompany.name, source: 'clerk' }
+              }).catch(() => {});
+            }
+          } catch (autoJoinError) {
+            console.error(`[Clerk] Auto-join failed for domain ${emailDomain}:`, autoJoinError);
+          }
+        }
+      } else {
+        if (!user.otpVerified || !user.emailVerified) {
+          await storage.updateUser(user.id, {
+            otpVerified: true,
+            emailVerified: true,
+          } as any);
+          user = { ...user, otpVerified: true, emailVerified: true };
+        }
+      }
+
+      const userCompanies = await storage.getUserCompanies(user.id);
+      const sortedCompanies = userCompanies.sort((a, b) => {
+        const roleOrder: Record<string, number> = { owner: 4, admin: 3, member: 2, viewer: 1 };
+        return (roleOrder[b.roleInCompany] || 0) - (roleOrder[a.roleInCompany] || 0);
+      });
+      const defaultCompany = sortedCompanies[0];
+
+      const token = generateToken({
+        userId: user.id,
+        activeCompanyId: defaultCompany?.companyId || null,
+        roleInCompany: defaultCompany?.roleInCompany || null,
+        isAdmin: user.isAdmin,
+      });
+
+      res.json({
+        token,
+        isNewUser,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          name: user.name,
+          isAdmin: user.isAdmin,
+          profilePictureUrl: user.profilePictureUrl,
+          jobTitle: user.jobTitle,
+          timezone: user.timezone,
+          linkedinUrl: user.linkedinUrl,
+          phoneNumber: user.phoneNumber,
+          language: user.language || 'en',
+          emailVerified: true,
+          otpVerified: true,
+        },
+        activeCompany: defaultCompany ? {
+          id: defaultCompany.company.id,
+          name: defaultCompany.company.name,
+          slug: defaultCompany.company.slug,
+          legalName: defaultCompany.company.legalName,
+          crNumber: defaultCompany.company.crNumber,
+          vatNumber: defaultCompany.company.vatNumber,
+          city: defaultCompany.company.city,
+          category: defaultCompany.company.category,
+          verificationStatus: defaultCompany.company.verificationStatus,
+          onboardingState: defaultCompany.company.onboardingState,
+          rejectionReason: defaultCompany.company.rejectionReason || null,
+          role: defaultCompany.roleInCompany,
+          profile: defaultCompany.profile || null,
+        } : null,
+        companies: userCompanies.map(uc => ({
+          id: uc.company.id,
+          name: uc.company.name,
+          slug: uc.company.slug,
+          legalName: uc.company.legalName,
+          crNumber: uc.company.crNumber,
+          vatNumber: uc.company.vatNumber,
+          city: uc.company.city,
+          category: uc.company.category,
+          verificationStatus: uc.company.verificationStatus,
+          onboardingState: uc.company.onboardingState,
+          rejectionReason: uc.company.rejectionReason || null,
+          role: uc.roleInCompany,
+          profile: uc.profile || null,
+        })),
+      });
+    } catch (error) {
+      console.error('[Clerk] Exchange error:', error);
+      res.status(500).json({ message: "Failed to sign in with Clerk" });
+    }
+  });
+
   // Register user (creates user account only, no company)
   app.post("/api/auth/register", async (req, res) => {
     try {

@@ -272,6 +272,11 @@ export default function Login() {
                     {t('auth.signUp')}
                   </Link>
                 </p>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  <Link href="/terms" className="hover:text-foreground" data-testid="link-terms">Terms of Service</Link>
+                  <span className="mx-2">·</span>
+                  <Link href="/privacy" className="hover:text-foreground" data-testid="link-privacy">Privacy Policy</Link>
+                </p>
               </div>
             </div>
           )}

@@ -50,6 +50,8 @@ import AdminUsers from "@/pages/AdminUsers";
 import AdminAuditLogs from "@/pages/AdminAuditLogs";
 import AdminErrors from "@/pages/AdminErrors";
 import ClerkCallback from "@/pages/ClerkCallback";
+import Terms from "@/pages/Terms";
+import Privacy from "@/pages/Privacy";
 
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
 
@@ -73,6 +75,8 @@ export default function App() {
               <Route path="/signup" component={Register} />
               <Route path="/auth/clerk-callback" component={ClerkCallback} />
               <Route path="/sso-callback" component={ClerkCallback} />
+              <Route path="/terms" component={Terms} />
+              <Route path="/privacy" component={Privacy} />
               <Route path="/:rest*">{() => { window.location.href = '/'; return null; }}</Route>
             </Switch>
             <Toaster />
@@ -134,6 +138,8 @@ export default function App() {
             <Route path="/settings" component={Settings} />
             <Route path="/docs" component={DocsPage} />
             <Route path="/docs/:slug" component={DocsPage} />
+            <Route path="/terms" component={Terms} />
+            <Route path="/privacy" component={Privacy} />
           </Switch>
           <Toaster />
         </Router>

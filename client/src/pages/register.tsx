@@ -80,6 +80,7 @@ export default function Register() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
   const passwordValue = form.watch("password");
   const strength = scorePassword(passwordValue || "");
   const checks = checkPassword(passwordValue || "");
@@ -89,6 +90,11 @@ export default function Register() {
     { key: "mixedCase", label: t('auth.passwordReqMixedCase') },
     { key: "numberSymbol", label: t('auth.passwordReqNumberSymbol') },
   ];
+  const allMet = requirements.every(({ key }) => checks[key]);
+  // Only show the requirements list when the user is actively interacting
+  // with the password field AND hasn't satisfied all rules yet. Once the
+  // password is strong enough, collapse it to keep the form compact.
+  const showRequirements = passwordFocused && !!passwordValue && !allMet;
 
   useEffect(() => {
     if (user && user.otpVerified) {
@@ -201,6 +207,8 @@ export default function Register() {
                             placeholder={t('auth.passwordCreatePlaceholder')}
                             className="bg-card pr-10"
                             {...field}
+                            onFocus={() => setPasswordFocused(true)}
+                            onBlur={(e) => { field.onBlur(); setPasswordFocused(false); }}
                           />
                           <button
                             type="button"
@@ -228,30 +236,29 @@ export default function Register() {
                           <p className={`text-xs ${strength.textClass}`}>{strength.label}</p>
                         </div>
                       )}
-                      <div className="mt-2 rounded-md border border-border bg-muted/60 p-3">
-                        <p className="mb-1.5 text-xs font-medium text-muted-foreground">{t('auth.passwordRequirementsTitle')}</p>
-                        <ul className="space-y-1">
+                      {showRequirements && (
+                        <ul className="mt-2 space-y-1" data-testid="password-requirements">
                           {requirements.map(({ key, label }) => {
                             const passed = checks[key];
                             return (
                               <li
                                 key={key}
                                 data-testid={`pw-req-${key}`}
-                                className={`flex items-center gap-2 text-xs transition-colors ${
+                                className={`flex items-center gap-1.5 text-xs transition-colors ${
                                   passed ? "text-[var(--state-won)]" : "text-muted-foreground"
                                 }`}
                               >
                                 {passed ? (
-                                  <Check className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                  <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
                                 ) : (
-                                  <X className="h-3.5 w-3.5 shrink-0 text-neutral-400" aria-hidden="true" />
+                                  <X className="h-3 w-3 shrink-0 text-neutral-400" aria-hidden="true" />
                                 )}
                                 <span>{label}</span>
                               </li>
                             );
                           })}
                         </ul>
-                      </div>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}

@@ -36,3 +36,9 @@ id = "zMAW_cKnI6Qjs6D_Otf8t"
 uri = "file://attached_assets/exports/bid-logo-on-dark.png"
 type = "image"
 title = "Bid Logo — Dark (PNG, 1200px)"
+
+[[outputs]]
+id = "cgyIq0J1vmYbzMbsxlF5E"
+uri = "file://attached_assets/exports/bid-logo-square.png"
+type = "image"
+title = "Bid Logo — Square (1200×1200, transparent) for Google OAuth"

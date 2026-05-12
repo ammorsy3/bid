@@ -12,3 +12,27 @@ id = "UFBEWCuO5VDEX0Hd2zbd4"
 uri = "file://attached_assets/logo.svg"
 type = "image"
 title = "Bid Logo (SVG)"
+
+[[outputs]]
+id = "cDVx314y2T8Z_hynHfN1X"
+uri = "file://attached_assets/exports/bid-logo.svg"
+type = "image"
+title = "Bid Logo — Light (SVG)"
+
+[[outputs]]
+id = "sIJ6_RMA0Y5QYW2NLL_6S"
+uri = "file://attached_assets/exports/bid-logo.png"
+type = "image"
+title = "Bid Logo — Light (PNG, 1200px, transparent)"
+
+[[outputs]]
+id = "6IXmfntMDnF_MDvJQTslg"
+uri = "file://attached_assets/exports/bid-logo-on-dark.svg"
+type = "image"
+title = "Bid Logo — Dark (SVG)"
+
+[[outputs]]
+id = "zMAW_cKnI6Qjs6D_Otf8t"
+uri = "file://attached_assets/exports/bid-logo-on-dark.png"
+type = "image"
+title = "Bid Logo — Dark (PNG, 1200px)"

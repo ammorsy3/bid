@@ -26,19 +26,39 @@ export function ClerkSocialButtons({ redirectPath = "/auth/clerk-callback" }: Cl
     if (!isLoaded || !signIn) return;
     setBusy(strategy);
 
+    const startOAuth = () =>
+      signIn.authenticateWithRedirect({
+        strategy,
+        redirectUrl: redirectPath,
+        redirectUrlComplete: redirectPath,
+      });
+
     try {
       // Always sign out of any existing Clerk session first, so the user
       // gets a fresh provider account picker (and can choose a different
       // Google/LinkedIn/Slack account than the one previously used).
       if (isSignedIn) {
         await signOut();
+        // signOut() resolves before the session cookie is fully cleared on
+        // the Clerk side. Give it a brief moment so the next OAuth call
+        // doesn't immediately fail with "session_exists".
+        await new Promise((r) => setTimeout(r, 400));
       }
 
-      await signIn.authenticateWithRedirect({
-        strategy,
-        redirectUrl: redirectPath,
-        redirectUrlComplete: redirectPath,
-      });
+      try {
+        await startOAuth();
+      } catch (err: any) {
+        const code = err?.errors?.[0]?.code;
+        // Race fallback: if Clerk still thinks we're signed in, force another
+        // signOut, wait a bit longer, and retry once.
+        if (code === "session_exists" || /already signed in/i.test(err?.message || "")) {
+          await signOut();
+          await new Promise((r) => setTimeout(r, 800));
+          await startOAuth();
+        } else {
+          throw err;
+        }
+      }
     } catch (err: any) {
       console.error("[Clerk] OAuth error:", err);
       toast({

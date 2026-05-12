@@ -1,9 +1,9 @@
 import { useSignIn } from "@clerk/clerk-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { SiGoogle, SiLinkedin } from "react-icons/si";
+import { SiGoogle, SiLinkedin, SiSlack } from "react-icons/si";
 
-type Provider = "oauth_google" | "oauth_linkedin_oidc";
+type Provider = "oauth_google" | "oauth_linkedin_oidc" | "oauth_slack";
 
 interface ClerkSocialButtonsProps {
   mode?: "signin" | "signup";
@@ -69,6 +69,17 @@ export function ClerkSocialButtons({ redirectPath = "/auth/clerk-callback" }: Cl
       >
         <SiLinkedin className="h-4 w-4 text-[#0A66C2]" />
         {busy === "oauth_linkedin_oidc" ? "Connecting…" : "Continue with LinkedIn"}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => handleOAuth("oauth_slack")}
+        disabled={!isLoaded || busy !== null}
+        data-testid="button-clerk-slack"
+        className="w-full inline-flex items-center justify-center gap-3 h-11 rounded-lg border border-border bg-card hover:bg-muted text-sm font-medium text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <SiSlack className="h-4 w-4 text-[#4A154B]" />
+        {busy === "oauth_slack" ? "Connecting…" : "Continue with Slack"}
       </button>
     </div>
   );

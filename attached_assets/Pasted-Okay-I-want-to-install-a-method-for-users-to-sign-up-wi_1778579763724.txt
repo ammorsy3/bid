@@ -1,0 +1,228 @@
+Okay, I want to install a method for users to sign up with Google,  
+  sign up with LinkedIn, and stuff like that. How we are going to do   
+  this is I'm using clerk.com, and I will paste you their guide on how 
+   to install it for JavaScript. Specifically, I want you to take it   
+  and do the stuff in the terminal and all of the stuff. I will paste  
+  you the guide they show me right now.                                
+                                                                       
+  Create a new JavaScript app                                          
+  To install Clerk's JavaScript SDK, you need to use a bundler, like   
+  Vite or Webpack.                                                     
+                                                                       
+  For this tutorial, run the following commands to create a JavaScript 
+   app using Vite. From the prompts, choose the Vanilla framework, and 
+   then choose the JavaScript variant.                                 
+                                                                       
+  npm                                                                  
+  pnpm                                                                 
+  yarn                                                                 
+  bun                                                                  
+  terminal                                                             
+  npm create vite@latest clerk-javascript                              
+  cd clerk-javascript                                                  
+  npm install                                                          
+  2                                                                    
+  Install @clerk/clerk-js                                              
+  The Clerk JavaScript SDK gives you access to a set of classes and    
+  methods to make user authentication easier.                          
+                                                                       
+  Run the following command to install the SDK:                        
+                                                                       
+  npm                                                                  
+  pnpm                                                                 
+  yarn                                                                 
+  bun                                                                  
+  terminal                                                             
+  npm install @clerk/clerk-js                                          
+  3                                                                    
+  Set your Clerk API keys                                              
+  Add your Clerk Publishable Key to your .env. Retrieve this key       
+  anytime from the API keys page.                                      
+                                                                       
+  .env                                                                 
+  VITE_CLERK_PUBLISHABLE_KEY=pk_test_aG9wZWZ1bC1jb3VnYXItMTkuY2xlcmsuY 
+  WNjb3VudHMuZGV2JA                                                    
+  In your main.js file, import the Publishable Key using Vite's        
+  import.meta.env object.                                              
+                                                                       
+  src/main.js                                                          
+  const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;   
+  4                                                                    
+  Initialize Clerk                                                     
+  To initialize Clerk, import the Clerk class and instantiate it with  
+  your Clerk Publishable Key. Then, call the load() method as shown:   
+                                                                       
+  Note                                                                 
+                                                                       
+  Calling the load() method initializes ClerkJS. For more information  
+  on the load() method and what options you can pass to it, see the    
+  reference doc.                                                       
+                                                                       
+  src/main.js                                                          
+  import { Clerk } from "@clerk/clerk-js";                             
+                                                                       
+  const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;   
+                                                                       
+  if (!publishableKey) {                                               
+    throw new Error("Add your VITE_CLERK_PUBLISHABLE_KEY to the .env   
+  file");                                                              
+  }                                                                    
+                                                                       
+  const clerkDomain = atob(publishableKey.split("_")[2]).slice(0, -1); 
+                                                                       
+  await new Promise((resolve, reject) => {                             
+    const script = document.createElement("script");                   
+    script.src =                                                       
+  `https://${clerkDomain}/npm/@clerk/ui@1/dist/ui.browser.js`;         
+    script.async = true;                                               
+    script.crossOrigin = "anonymous";                                  
+    script.onload = resolve;                                           
+    script.onerror = () => reject(new Error("Failed to load @clerk/ui  
+  bundle"));                                                           
+    document.head.appendChild(script);                                 
+  });                                                                  
+                                                                       
+  const clerk = new Clerk(publishableKey);                             
+  await clerk.load({                                                   
+    ui: { ClerkUI: window.__internal_ClerkUICtor },                    
+  });                                                                  
+  5                                                                    
+  Add Clerk components to your app                                     
+  Clerk's prebuilt components are the easiest way to add               
+  authentication and user management to your application. They come    
+  styled out-of-the-box and are customizable to fit your application's 
+   design.                                                             
+                                                                       
+  To get started, add the following components to your app:            
+                                                                       
+  <SignIn />: Renders a user interface for signing in.                 
+  <UserButton />: Shows the signed-in user's avatar. Selecting it      
+  opens a dropdown menu with account management options.               
+  Your main.js file and index.html files should look something like    
+  these:                                                               
+                                                                       
+  src/main.js                                                          
+  import { Clerk } from '@clerk/clerk-js'                              
+                                                                       
+  const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY    
+                                                                       
+  if (!publishableKey) {                                               
+    throw new Error('Add your VITE_CLERK_PUBLISHABLE_KEY to the .env   
+  file')                                                               
+  }                                                                    
+                                                                       
+  const clerkDomain = atob(publishableKey.split('_')[2]).slice(0, -1)  
+                                                                       
+  await new Promise((resolve, reject) => {                             
+    const script = document.createElement('script')                    
+    script.src =                                                       
+  `https://${clerkDomain}/npm/@clerk/ui@1/dist/ui.browser.js`          
+    script.async = true                                                
+    script.crossOrigin = 'anonymous'                                   
+    script.onload = resolve                                            
+    script.onerror = () => reject(new Error('Failed to load @clerk/ui  
+  bundle'))                                                            
+    document.head.appendChild(script)                                  
+  })                                                                   
+                                                                       
+  const clerk = new Clerk(publishableKey)                              
+  await clerk.load({                                                   
+    ui: { ClerkUI: window.__internal_ClerkUICtor },                    
+  })                                                                   
+                                                                       
+  if (clerk.isSignedIn) {                                              
+    document.getElementById('app').innerHTML = `                       
+      <div id="user-button"></div>                                     
+    `                                                                  
+    const userButtonDiv = document.getElementById('user-button')       
+    clerk.mountUserButton(userButtonDiv)                               
+  } else {                                                             
+    document.getElementById('app').innerHTML = `                       
+      <div id="sign-in"></div>                                         
+    `                                                                  
+    const signInDiv = document.getElementById('sign-in')               
+    clerk.mountSignIn(signInDiv)                                       
+  }                                                                    
+  Expand code                                                          
+  index.html                                                           
+  <!doctype html>                                                      
+  <html lang="en">                                                     
+    <head>                                                             
+      <meta charset="UTF-8" />                                         
+      <link rel="icon" type="image/svg+xml" href="/vite.svg" />        
+      <meta name="viewport" content="width=device-width,               
+  initial-scale=1.0" />                                                
+      <title>Vite App</title>                                          
+    </head>                                                            
+    <body>                                                             
+      <div id="app"></div>                                             
+      <script type="module" src="/src/main.js"></script>               
+    </body>                                                            
+  -1)                                          
+                                               
+  await new Promise((resolve, reject) => {     
+    const script =                             
+  document.createElement('script')             
+    script.src = `https://${clerkDomain}/npm/@ 
+  clerk/ui@1/dist/ui.browser.js`               
+    script.async = true                        
+    script.crossOrigin = 'anonymous'           
+    script.onload = resolve                    
+    script.onerror = () => reject(new          
+  Error('Failed to load @clerk/ui bundle'))    
+    document.head.appendChild(script)          
+  })                                           
+                                               
+  const clerk = new Clerk(publishableKey)      
+  await clerk.load({                           
+    ui: { ClerkUI:                             
+  window.__internal_ClerkUICtor },             
+  })                                           
+                                               
+  if (clerk.isSignedIn) {                      
+    document.getElementById('app').innerHTML = 
+   `                                           
+      <div id="user-button"></div>             
+    `                                          
+    const userButtonDiv =                      
+  document.getElementById('user-button')       
+    clerk.mountUserButton(userButtonDiv)       
+  } else {                                     
+    document.getElementById('app').innerHTML = 
+   `                                           
+      <div id="sign-in"></div>                 
+    `                                          
+    const signInDiv =                          
+  document.getElementById('sign-in')           
+    clerk.mountSignIn(signInDiv)               
+    document.getElementById('app').innerHTML = `                                                                    
+      <div id="sign-in"></div>                                                                                      
+    `                                                                                                               
+    const signInDiv = document.getElementById('sign-in')                                                            
+    clerk.mountSignIn(signInDiv)                                                                                    
+  }                                                                                                                 
+  Expand code                                                                                                       
+  index.html                                                                                                        
+  <!doctype html>                                                                                                   
+  <html lang="en">                                                                                                  
+    <head>                                                                                                          
+      <meta charset="UTF-8" />                                                                                      
+      <link rel="icon" type="image/svg+xml" href="/vite.svg" />                                                     
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />                                      
+      <title>Vite App</title>                                                                                       
+    </head>                                                                                                         
+    <body>                                                                                                          
+      <div id="app"></div>                                                                                          
+      <script type="module" src="/src/main.js"></script>                                                            
+    </body>                                                                                                         
+  </html>                                                                                                           
+  Expand code                                                                                                       
+  Run your project                                                                                                  
+  Run your project with the following command:                                                                      
+                                                                                                                    
+  npm                                                                                                               
+  pnpm                                                                                                              
+  yarn                                                                                                              
+  bun                                                                                                               
+  terminal                                                                                                          
+  npm run dev   

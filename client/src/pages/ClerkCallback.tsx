@@ -64,22 +64,21 @@ function ClerkCallbackInner() {
         }
         const data = await res.json();
 
-        localStorage.setItem("token", data.token);
-        useAuthStore.setState({
+        // Use the store action so persist + side-effects flow through one path
+        useAuthStore.getState().loginWithClerk({
           user: data.user,
           token: data.token,
           activeCompany: data.activeCompany || null,
           companies: data.companies || [],
-          isLoading: false,
         });
 
         toast({ title: "Signed in", description: `Welcome, ${data.user.name}!` });
 
-        if (data.activeCompany) {
-          setLocation("/dashboard");
-        } else {
-          setLocation("/onboarding");
-        }
+        // Hard navigation guarantees Dashboard mounts AFTER the store is fully
+        // hydrated from persist storage — avoids a race where Dashboard's
+        // `if (!user) setLocation("/login")` guard fires before state propagates.
+        const dest = data.activeCompany ? "/dashboard" : "/onboarding";
+        window.location.assign(dest);
       } catch (err: any) {
         console.error("[Clerk] Exchange failed:", err);
         // Clear any stale auth state so /login doesn't auto-redirect to dashboard

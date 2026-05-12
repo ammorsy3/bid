@@ -69,6 +69,7 @@ interface AuthState {
   // Actions
   login: (email: string, password: string, trustedBrowserToken?: string) => Promise<void>;
   register: (userData: any) => Promise<void>;
+  loginWithClerk: (data: { user: User; token: string; activeCompany: Company | null; companies: Company[] }) => void;
   logout: () => void;
   checkAuth: () => Promise<void>;
   switchCompany: (companyId: string) => Promise<void>;
@@ -149,6 +150,18 @@ export const useAuthStore = create<AuthState>()(
           set({ isLoading: false });
           throw error;
         }
+      },
+
+      loginWithClerk: (data: { user: User; token: string; activeCompany: Company | null; companies: Company[] }) => {
+        localStorage.setItem('token', data.token);
+        set({
+          user: data.user,
+          token: data.token,
+          activeCompany: data.activeCompany || null,
+          companies: data.companies || [],
+          isLoading: false,
+        });
+        syncLanguageFromUser(data.user, data.token);
       },
 
       logout: () => {

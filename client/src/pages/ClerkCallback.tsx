@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { useAuth, useClerk } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/clerk-react";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { BidLogo } from "@/components/brand/BidLogo";
@@ -11,24 +11,11 @@ const HAS_CLERK = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 function ClerkCallbackInner() {
   const [, setLocation] = useLocation();
   const { isLoaded, isSignedIn, getToken } = useAuth();
-  const { handleRedirectCallback } = useClerk();
   const { toast } = useToast();
   const exchangedRef = useRef(false);
   const [status, setStatus] = useState("Completing sign-in…");
 
-  // Process Clerk's OAuth redirect on mount
-  useEffect(() => {
-    if (!isLoaded) return;
-    handleRedirectCallback({
-      redirectUrl: "/auth/clerk-callback",
-      afterSignInUrl: "/auth/clerk-callback",
-      afterSignUpUrl: "/auth/clerk-callback",
-    }).catch((err: any) => {
-      console.warn("[Clerk] handleRedirectCallback:", err);
-    });
-  }, [isLoaded, handleRedirectCallback]);
-
-  // Fallback: if Clerk loads but never reports a signed-in user, bail out
+  // Fallback: if Clerk loads but never becomes signed-in within 10s, bail out
   useEffect(() => {
     if (!isLoaded) return;
     const t = setTimeout(() => {
@@ -40,13 +27,15 @@ function ClerkCallbackInner() {
         });
         setLocation("/login");
       }
-    }, 8000);
+    }, 10000);
     return () => clearTimeout(t);
   }, [isLoaded, isSignedIn, setLocation, toast]);
 
+  // Once Clerk reports the user is signed in, exchange the token with our backend
   useEffect(() => {
     if (!isLoaded || !isSignedIn || exchangedRef.current) return;
     exchangedRef.current = true;
+
     (async () => {
       try {
         setStatus("Linking your account…");
@@ -64,13 +53,11 @@ function ClerkCallbackInner() {
         }
         const data = await res.json();
 
-        // 1. Set the API token (used for Authorization headers)
+        // 1. Set the raw API token
         localStorage.setItem("token", data.token);
 
-        // 2. Manually pre-write the zustand persist storage BEFORE navigating.
-        //    This guarantees that when /dashboard loads after the hard nav,
-        //    the auth store hydrates from localStorage with `user` already set,
-        //    so Dashboard's `if (!user) setLocation("/login")` guard never fires.
+        // 2. Pre-write zustand persist storage so Dashboard guard doesn't
+        //    fire before the store re-hydrates from localStorage
         const persistPayload = {
           state: {
             token: data.token,
@@ -82,8 +69,7 @@ function ClerkCallbackInner() {
         };
         localStorage.setItem("auth-storage", JSON.stringify(persistPayload));
 
-        // 3. Also update the in-memory store (no-op for the soon-to-be-discarded
-        //    page, but keeps things consistent if something subscribes before nav).
+        // 3. Sync in-memory store
         useAuthStore.getState().loginWithClerk({
           user: data.user,
           token: data.token,
@@ -93,12 +79,11 @@ function ClerkCallbackInner() {
 
         toast({ title: "Signed in", description: `Welcome, ${data.user.name}!` });
 
-        // 4. Hard navigation — full reload picks up the pre-written persist state.
+        // 4. Hard navigate — full page reload picks up the pre-written state
         const dest = data.activeCompany ? "/dashboard" : "/onboarding";
         window.location.assign(dest);
       } catch (err: any) {
         console.error("[Clerk] Exchange failed:", err);
-        // Clear any stale auth state so /login doesn't auto-redirect to dashboard
         localStorage.removeItem("token");
         localStorage.removeItem("auth-storage");
         useAuthStore.setState({
@@ -132,7 +117,6 @@ function ClerkCallbackInner() {
 export default function ClerkCallback() {
   const [, setLocation] = useLocation();
 
-  // Guard: if Clerk isn't configured, don't try to use Clerk hooks (would throw)
   useEffect(() => {
     if (!HAS_CLERK) setLocation("/login");
   }, [setLocation]);

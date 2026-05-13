@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useClerk } from "@clerk/clerk-react";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { BidLogo } from "@/components/brand/BidLogo";
@@ -11,9 +11,25 @@ const HAS_CLERK = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 function ClerkCallbackInner() {
   const [, setLocation] = useLocation();
   const { isLoaded, isSignedIn, getToken } = useAuth();
+  const { handleRedirectCallback } = useClerk();
   const { toast } = useToast();
   const exchangedRef = useRef(false);
   const [status, setStatus] = useState("Completing sign-in…");
+
+  // Process Clerk's OAuth redirect params so isSignedIn becomes true.
+  // Pass the current absolute URL for both after-URLs so Clerk stays on this
+  // page and doesn't redirect to the Account Portal or dashboard settings.
+  useEffect(() => {
+    if (!isLoaded) return;
+    const here = window.location.href;
+    handleRedirectCallback({
+      afterSignInUrl: here,
+      afterSignUpUrl: here,
+    }).catch((err: any) => {
+      // Ignore "no redirect params" errors — harmless when Clerk auto-processes
+      console.warn("[Clerk] handleRedirectCallback:", err?.message ?? err);
+    });
+  }, [isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fallback: if Clerk loads but never becomes signed-in within 10s, bail out
   useEffect(() => {

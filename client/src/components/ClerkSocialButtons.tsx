@@ -26,11 +26,12 @@ export function ClerkSocialButtons({ redirectPath = "/auth/clerk-callback" }: Cl
     if (!isLoaded || !signIn) return;
     setBusy(strategy);
 
+    const callbackUrl = window.location.origin + redirectPath;
     const startOAuth = () =>
       signIn.authenticateWithRedirect({
         strategy,
-        redirectUrl: redirectPath,
-        redirectUrlComplete: redirectPath,
+        redirectUrl: callbackUrl,
+        redirectUrlComplete: callbackUrl,
       });
 
     try {

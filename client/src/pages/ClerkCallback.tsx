@@ -5,8 +5,7 @@ import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { Loader2 } from "lucide-react";
-
-const HAS_CLERK = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+import { HAS_CLERK } from "@/lib/clerkConfig";
 
 function ClerkCallbackInner() {
   const [, setLocation] = useLocation();

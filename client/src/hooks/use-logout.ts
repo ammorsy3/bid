@@ -1,8 +1,7 @@
 import { useClerk } from "@clerk/clerk-react";
 import { useAuthStore } from "@/lib/auth";
 import { useLocation } from "wouter";
-
-const HAS_CLERK = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+import { HAS_CLERK } from "@/lib/clerkConfig";
 
 export function useLogout() {
   const { logout } = useAuthStore();

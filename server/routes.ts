@@ -250,7 +250,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Finds-or-creates a user in our DB based on the Clerk-verified email.
   app.post("/api/auth/clerk-exchange", async (req, res) => {
     try {
-      if (!process.env.CLERK_SECRET_KEY) {
+      // Auto-pick secret key: production uses CLERK_SECRET_KEY_PROD (sk_live_),
+      // dev uses CLERK_SECRET_KEY (sk_test_). Both can coexist in Replit Secrets.
+      const clerkSecretKey = process.env.NODE_ENV === 'production'
+        ? (process.env.CLERK_SECRET_KEY_PROD || process.env.CLERK_SECRET_KEY)
+        : process.env.CLERK_SECRET_KEY;
+
+      if (!clerkSecretKey) {
         return res.status(500).json({ message: "Clerk is not configured on the server" });
       }
       const { token: clerkToken } = req.body || {};
@@ -261,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { createClerkClient, verifyToken } = await import('@clerk/backend');
       let claims: any;
       try {
-        claims = await verifyToken(clerkToken, { secretKey: process.env.CLERK_SECRET_KEY });
+        claims = await verifyToken(clerkToken, { secretKey: clerkSecretKey });
       } catch (verifyErr) {
         console.error('[Clerk] Token verification failed:', verifyErr);
         return res.status(401).json({ message: "Invalid Clerk session" });
@@ -272,7 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid Clerk session payload" });
       }
 
-      const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+      const clerkClient = createClerkClient({ secretKey: clerkSecretKey });
       const clerkUser = await clerkClient.users.getUser(clerkUserId);
 
       const primaryEmailObj = clerkUser.emailAddresses.find(

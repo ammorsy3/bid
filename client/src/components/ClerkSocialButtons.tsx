@@ -17,7 +17,9 @@ export function ClerkSocialButtons({ redirectPath = "/auth/clerk-callback" }: Cl
   const { toast } = useToast();
   const [busy, setBusy] = useState<Provider | null>(null);
 
-  const hasClerk = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+  const hasClerk = !!(import.meta.env.PROD
+    ? import.meta.env.VITE_CLERK_PUBLISHABLE_KEY_PROD
+    : import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
   if (!hasClerk) return null;
 
   const handleOAuth = async (strategy: Provider) => {

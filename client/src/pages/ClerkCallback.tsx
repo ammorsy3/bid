@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useSignIn, useSignUp } from "@clerk/clerk-react";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { BidLogo } from "@/components/brand/BidLogo";
@@ -9,26 +9,47 @@ import { HAS_CLERK } from "@/lib/clerkConfig";
 
 function ClerkCallbackInner() {
   const [, setLocation] = useLocation();
-  const { isLoaded, isSignedIn, getToken } = useAuth();
+  const { isLoaded: authLoaded, isSignedIn, getToken } = useAuth();
+  const { isLoaded: signInLoaded, signIn } = useSignIn();
+  const { isLoaded: signUpLoaded, signUp } = useSignUp();
   const { toast } = useToast();
   const exchangedRef = useRef(false);
   const [status, setStatus] = useState("Completing sign-in…");
 
-  // Fallback: if Clerk loads but never becomes signed-in within 10s, bail out
+  const isLoaded = authLoaded && signInLoaded && signUpLoaded;
+
+  // Fallback timeout — if nothing resolves in 12s, show a helpful error
   useEffect(() => {
     if (!isLoaded) return;
     const t = setTimeout(() => {
       if (!isSignedIn && !exchangedRef.current) {
+        // Check if this looks like a "no account" case from signIn flow
+        const noAccount =
+          signIn?.status === "needs_identifier" ||
+          (signIn?.firstFactorVerification?.status === "unverified" &&
+            signIn?.firstFactorVerification?.error?.code === "external_account_not_found");
+
         toast({
           title: "Sign-in did not complete",
-          description: "Please try again.",
+          description: noAccount
+            ? "No account found with that email. Please sign up first."
+            : "Please try again.",
           variant: "destructive",
         });
-        setLocation("/login");
+        setLocation(noAccount ? "/signup" : "/login");
       }
-    }, 10000);
+    }, 12000);
     return () => clearTimeout(t);
-  }, [isLoaded, isSignedIn, setLocation, toast]);
+  }, [isLoaded, isSignedIn, signIn, setLocation, toast]);
+
+  // Handle pending sign-up (new user via OAuth signUp flow)
+  useEffect(() => {
+    if (!isLoaded || exchangedRef.current) return;
+    if (signUp?.status === "missing_requirements" || signUp?.status === "complete") {
+      // Sign-up is in progress or complete — wait for isSignedIn to flip
+      setStatus("Creating your account…");
+    }
+  }, [isLoaded, signUp?.status, exchangedRef]);
 
   // Once Clerk reports the user is signed in, exchange the token with our backend
   useEffect(() => {

@@ -208,6 +208,47 @@ Do not add `logout` from `useAuthStore` directly to component destructuring.
 
 ---
 
+### Bug 5: Brief "Rendered fewer hooks than expected" error flash on logout
+
+**Symptom:** Clicking sign-out briefly shows a red Vite error overlay
+("Rendered fewer hooks than expected. This may be caused by an accidental early
+return statement.") for half a second, then the page navigates away normally.
+
+**Cause:** The `useLogout` hook was async. The sequence was:
+1. `logout()` clears auth state → React re-renders the current component
+2. `await signOut()` triggers more Clerk re-renders on the same component
+3. Between steps 1 and 2 the component re-rendered with a different number of
+   hooks (because auth-gated conditional rendering changed), violating React's
+   rules of hooks
+4. Navigation finally happened, unmounting the component
+
+**Fix:** Make the logout function synchronous. Navigate away **immediately**
+after clearing state (so the component unmounts), then fire Clerk's `signOut`
+in the background. The component is already gone before Clerk's async work
+causes any re-renders.
+
+```ts
+// client/src/hooks/use-logout.ts
+return (redirectTo = "/login") => {
+  logout();                          // 1. clear app state
+
+  // 2. Navigate immediately — component unmounts, no more re-renders
+  if (redirectTo.startsWith("http")) {
+    window.location.href = redirectTo;
+  } else {
+    setLocation(redirectTo);
+  }
+
+  // 3. Clerk signOut fires in the background (fire-and-forget)
+  if (HAS_CLERK) signOut().catch(() => {});
+};
+```
+
+**Key rule:** Never `await signOut()` before navigating away. Always navigate
+first, sign out second.
+
+---
+
 ## What NOT to Do — Summary
 
 | Don't | Do instead |
@@ -218,6 +259,7 @@ Do not add `logout` from `useAuthStore` directly to component destructuring.
 | Call `handleRedirectCallback` | Don't — Clerk auto-processes in v5 |
 | Call `signOut()` without a wait before OAuth | `await signOut(); await sleep(500);` |
 | Call `logout()` from `useAuthStore` in components | Use `useLogout()` hook instead |
+| `await signOut()` before navigating away | Navigate first, fire signOut in background |
 | Change Clerk dashboard Component paths from Account Portal | Leave them at defaults |
 | Mix `pk_test_` with `sk_live_` or vice versa | Always use matching key pairs |
 

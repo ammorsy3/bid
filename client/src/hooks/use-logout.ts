@@ -9,19 +9,22 @@ export function useLogout() {
   const { signOut } = useClerk();
   const [, setLocation] = useLocation();
 
-  return async (redirectTo = "/login") => {
+  return (redirectTo = "/login") => {
+    // 1. Clear app state immediately
     logout();
-    if (HAS_CLERK) {
-      try {
-        await signOut();
-      } catch {
-        // ignore — app session is already cleared
-      }
-    }
+
+    // 2. Navigate away immediately — this unmounts the current component
+    //    before any async re-renders can cause hook count mismatches
     if (redirectTo.startsWith("http")) {
       window.location.href = redirectTo;
     } else {
       setLocation(redirectTo);
+    }
+
+    // 3. Sign out of Clerk in the background (fire-and-forget)
+    //    The user is already gone from this page so no re-render issues
+    if (HAS_CLERK) {
+      signOut().catch(() => {});
     }
   };
 }

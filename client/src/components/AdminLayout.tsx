@@ -4,6 +4,7 @@ import {
   Shield, LogOut, ArrowLeft, Store, Bug
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
+import { useLogout } from "@/hooks/use-logout";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
@@ -15,7 +16,8 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [location, setLocation] = useLocation();
-  const { logout, user } = useAuthStore();
+  const { user } = useAuthStore();
+  const doLogout = useLogout();
   const { t, isRtl } = useI18n();
 
   // Guard: redirect non-admins
@@ -99,10 +101,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     },
   ];
 
-  const handleLogout = () => {
-    logout();
-    window.location.href = "/login";
-  };
+  const handleLogout = () => doLogout("/login");
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950">

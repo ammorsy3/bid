@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/lib/auth";
+import { useLogout } from "@/hooks/use-logout";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
@@ -367,7 +368,7 @@ function SidebarLogoToggle() {
 }
 
 export default function Dashboard() {
-  const { user, activeCompany, companies, logout, switchCompany } = useAuthStore();
+  const { user, activeCompany, companies, switchCompany } = useAuthStore();
   const [, setLocation] = useLocation();
   const { t, isRtl, language, setLanguage } = useI18n();
     const [searchQuery, setSearchQuery] = useState("");
@@ -723,9 +724,9 @@ export default function Dashboard() {
     }
   });
 
+  const doLogout = useLogout();
   const handleLogout = () => {
-    logout();
-    setLocation("/");
+    doLogout("/");
   };
 
   const sidebarItems = [

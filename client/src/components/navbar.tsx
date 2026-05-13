@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/lib/auth";
+import { useLogout } from "@/hooks/use-logout";
 import { Link, useLocation } from "wouter";
 import { Bell, User } from "lucide-react";
 import {
@@ -12,13 +13,12 @@ import { useI18n } from "@/lib/i18n";
 import { BidLogo } from "@/components/brand/BidLogo";
 
 export default function Navbar() {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const [location] = useLocation();
   const { t } = useI18n();
+  const doLogout = useLogout();
 
-  const handleLogout = () => {
-    logout();
-  };
+  const handleLogout = () => doLogout("/login");
 
   return (
     <header className="bg-card shadow-sm border-b border-border">

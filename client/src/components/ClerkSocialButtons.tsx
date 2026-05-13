@@ -1,4 +1,4 @@
-import { useSignIn, useAuth } from "@clerk/clerk-react";
+import { useSignIn, useAuth, useClerk } from "@clerk/clerk-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { SiGoogle, SiLinkedin, SiSlack } from "react-icons/si";
@@ -13,6 +13,7 @@ interface ClerkSocialButtonsProps {
 export function ClerkSocialButtons({ redirectPath = "/auth/clerk-callback" }: ClerkSocialButtonsProps) {
   const { signIn, isLoaded } = useSignIn();
   const { isSignedIn } = useAuth();
+  const { signOut } = useClerk();
   const { toast } = useToast();
   const [busy, setBusy] = useState<Provider | null>(null);
 
@@ -24,13 +25,14 @@ export function ClerkSocialButtons({ redirectPath = "/auth/clerk-callback" }: Cl
     setBusy(strategy);
 
     try {
-      // If the user already has an active Clerk session (e.g. from a previous
-      // sign-in), skip the full OAuth round-trip and go directly to the
-      // callback page — the existing session will be exchanged there.
-      // This prevents the signOut() → "transfer" state → Account Portal loop.
+      // If a Clerk session exists, sign out first so the user gets a fresh
+      // OAuth flow and can pick a different account. Without this, Clerk
+      // would silently reuse the existing account.
       if (isSignedIn) {
-        window.location.assign(window.location.origin + redirectPath);
-        return;
+        await signOut();
+        // Brief pause — Clerk needs a moment to clear the session cookie
+        // before starting a new OAuth flow, or it may silently reuse the old one.
+        await new Promise((r) => setTimeout(r, 500));
       }
 
       const callbackUrl = window.location.origin + redirectPath;

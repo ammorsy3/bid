@@ -1,6 +1,5 @@
-import { useSignIn, useAuth, useClerk } from "@clerk/clerk-react";
+import { useSignIn, useAuth } from "@clerk/clerk-react";
 import { useState } from "react";
-import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { SiGoogle, SiLinkedin, SiSlack } from "react-icons/si";
 
@@ -14,8 +13,6 @@ interface ClerkSocialButtonsProps {
 export function ClerkSocialButtons({ redirectPath = "/auth/clerk-callback" }: ClerkSocialButtonsProps) {
   const { signIn, isLoaded } = useSignIn();
   const { isSignedIn } = useAuth();
-  const { signOut } = useClerk();
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [busy, setBusy] = useState<Provider | null>(null);
 
@@ -26,40 +23,22 @@ export function ClerkSocialButtons({ redirectPath = "/auth/clerk-callback" }: Cl
     if (!isLoaded || !signIn) return;
     setBusy(strategy);
 
-    const callbackUrl = window.location.origin + redirectPath;
-    const startOAuth = () =>
-      signIn.authenticateWithRedirect({
+    try {
+      // If the user already has an active Clerk session (e.g. from a previous
+      // sign-in), skip the full OAuth round-trip and go directly to the
+      // callback page — the existing session will be exchanged there.
+      // This prevents the signOut() → "transfer" state → Account Portal loop.
+      if (isSignedIn) {
+        window.location.assign(window.location.origin + redirectPath);
+        return;
+      }
+
+      const callbackUrl = window.location.origin + redirectPath;
+      await signIn.authenticateWithRedirect({
         strategy,
         redirectUrl: callbackUrl,
         redirectUrlComplete: callbackUrl,
       });
-
-    try {
-      // Always sign out of any existing Clerk session first, so the user
-      // gets a fresh provider account picker (and can choose a different
-      // Google/LinkedIn/Slack account than the one previously used).
-      if (isSignedIn) {
-        await signOut();
-        // signOut() resolves before the session cookie is fully cleared on
-        // the Clerk side. Give it a brief moment so the next OAuth call
-        // doesn't immediately fail with "session_exists".
-        await new Promise((r) => setTimeout(r, 400));
-      }
-
-      try {
-        await startOAuth();
-      } catch (err: any) {
-        const code = err?.errors?.[0]?.code;
-        // Race fallback: if Clerk still thinks we're signed in, force another
-        // signOut, wait a bit longer, and retry once.
-        if (code === "session_exists" || /already signed in/i.test(err?.message || "")) {
-          await signOut();
-          await new Promise((r) => setTimeout(r, 800));
-          await startOAuth();
-        } else {
-          throw err;
-        }
-      }
     } catch (err: any) {
       console.error("[Clerk] OAuth error:", err);
       toast({

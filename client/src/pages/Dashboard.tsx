@@ -43,11 +43,12 @@ import { useToast } from "@/hooks/use-toast";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import VendorProfileDrawer from "@/components/VendorProfileDrawer";
 import {
-  CreateTenderVisual,
+  GetVerifiedVisual,
   CompanyProfileVisual,
-  ProfilePictureVisual,
-  InviteVendorsVisual,
-  ReviewProposalsVisual,
+  VendorsBaseVisual,
+  CreateTenderVisual,
+  SubmitProposalVisual,
+  TendersMarketplaceVisual,
   BookDemoVisual,
 } from "@/components/OnboardingTaskVisuals";
 import { BidLogo } from "@/components/brand/BidLogo";
@@ -445,6 +446,14 @@ export default function Dashboard() {
     }
   }
 
+  async function handleExploreMarketplace() {
+    try {
+      await apiRequest('POST', '/api/onboarding-tasks/marketplace-explored');
+      queryClient.invalidateQueries({ queryKey: ['/api/onboarding-tasks'] });
+    } catch {}
+    setLocation('/marketplace');
+  }
+
   // Fetch vendors in base
   const { data: vendors = [], isLoading: loadingVendors } = useQuery<VendorProfile[]>({
     queryKey: ['/api/vendors-base', searchQuery],
@@ -514,12 +523,12 @@ export default function Dashboard() {
 
   // Fetch onboarding tasks status
   interface OnboardingTasks {
-    hasTender: boolean;
+    isVerified: boolean;
     hasCompletedProfile: boolean;
-    hasProfilePicture: boolean;
     hasVendors: boolean;
+    hasTender: boolean;
     hasReviewedProposal: boolean;
-    hasVisitedSettings: boolean;
+    hasExploredMarketplace: boolean;
     completedCount: number;
   }
   
@@ -1526,36 +1535,47 @@ export default function Dashboard() {
 
                     {/* Animated progress bar */}
                     <div className="mb-6">
-                      <div className={`flex items-center justify-between mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          {Math.min(onboardingTasks?.completedCount ?? 0, 5)} {t('tenderFlow.ofLabel')} 5 {t('dashboard.tasksComplete')}
-                        </span>
-                        <span className="text-sm font-bold text-[#FE3C01]">
-                          {Math.round((Math.min(onboardingTasks?.completedCount ?? 0, 5) / 5) * 100)}%
-                        </span>
-                      </div>
-                      <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <motion.div
-                          className="h-full rounded-full bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.round((Math.min(onboardingTasks?.completedCount ?? 0, 5) / 5) * 100)}%` }}
-                          transition={{ duration: 0.5, ease: "easeOut" }}
-                        />
-                      </div>
+                      {(() => {
+                        const adminFlags = canManage ? [isCompanyVerified, onboardingTasks?.hasCompletedProfile, onboardingTasks?.hasVendors] : [];
+                        const memberFlags = [onboardingTasks?.hasTender, onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace];
+                        const allFlags = [...adminFlags, ...memberFlags];
+                        const localCount = allFlags.filter(Boolean).length;
+                        const total = allFlags.length;
+                        const pct = total > 0 ? Math.round((localCount / total) * 100) : 0;
+                        return (
+                          <>
+                            <div className={`flex items-center justify-between mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                                {localCount} {t('tenderFlow.ofLabel')} {total} {t('dashboard.tasksComplete')}
+                              </span>
+                              <span className="text-sm font-bold text-[#FE3C01]">{pct}%</span>
+                            </div>
+                            <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                              <motion.div
+                                className="h-full rounded-full bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${pct}%` }}
+                                transition={{ duration: 0.5, ease: "easeOut" }}
+                              />
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
 
                     {/* Tasks */}
-                    <Accordion type="single" collapsible defaultValue="task-1" className="space-y-3">
+                    <Accordion type="single" collapsible defaultValue={canManage ? "task-1" : "task-4"} className="space-y-3">
 
-                      {/* Task 1: Create Tender */}
-                      <AccordionItem value="task-1" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
+                      {/* Task 1: Get Verified (admins/owners only) */}
+                      {canManage && (
+                      <AccordionItem value="task-1" className={`border-2 rounded-xl px-4 transition-all duration-300 ${isCompanyVerified ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasTender ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
-                              {onboardingTasks?.hasTender ? <Check className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isCompanyVerified ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                              {isCompanyVerified ? <Check className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasTender ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task1Title')}</span>
-                            {onboardingTasks?.hasTender && (
+                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${isCompanyVerified ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task1Title')}</span>
+                            {isCompanyVerified && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-3 w-3" />{t('dashboard.completed')}
                               </span>
@@ -1568,18 +1588,19 @@ export default function Dashboard() {
                               <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task1Desc')}</p>
                               <Button
                                 className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
-                                onClick={handleCreateTender}
-                                data-testid="button-task-create-tender"
+                                onClick={() => setLocation('/settings?tab=company&highlight=verification')}
+                                data-testid="button-task-get-verified"
                               >
                                 {t('dashboard.task1Action')}
                               </Button>
                             </div>
                             <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
-                              <CreateTenderVisual />
+                              <GetVerifiedVisual />
                             </div>
                           </div>
                         </AccordionContent>
                       </AccordionItem>
+                      )}
 
                       {/* Task 2: Complete Company Profile (only for owners/admins) */}
                       {canManage && (
@@ -1617,21 +1638,18 @@ export default function Dashboard() {
                       </AccordionItem>
                       )}
 
-                      {/* Task 3: Upload Profile Picture */}
-                      <AccordionItem value="task-3" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasProfilePicture ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
+                      {/* Task 3: Set Your Vendors Base (admins/owners only) */}
+                      {canManage && (
+                      <AccordionItem value="task-3" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasProfilePicture ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
-                              {onboardingTasks?.hasProfilePicture ? <Check className="h-4 w-4" /> : <Image className="h-4 w-4" />}
+                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                              {onboardingTasks?.hasVendors ? <Check className="h-4 w-4" /> : <Users className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasProfilePicture ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task3Title')}</span>
-                            {onboardingTasks?.hasProfilePicture ? (
+                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasVendors ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task3Title')}</span>
+                            {onboardingTasks?.hasVendors && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-3 w-3" />{t('dashboard.completed')}
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400 flex-shrink-0">
-                                {t('dashboard.optional')}
                               </span>
                             )}
                           </div>
@@ -1642,28 +1660,29 @@ export default function Dashboard() {
                               <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task3Desc')}</p>
                               <Button
                                 className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
-                                onClick={() => setLocation('/settings')}
-                                data-testid="button-task-upload-photo"
+                                onClick={() => setActiveTab('vendors')}
+                                data-testid="button-task-set-vendors"
                               >
                                 {t('dashboard.task3Action')}
                               </Button>
                             </div>
                             <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
-                              <ProfilePictureVisual />
+                              <VendorsBaseVisual />
                             </div>
                           </div>
                         </AccordionContent>
                       </AccordionItem>
+                      )}
 
-                      {/* Task 4: Invite Vendors */}
-                      <AccordionItem value="task-4" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
+                      {/* Task 4: Create your First RFP */}
+                      <AccordionItem value="task-4" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
-                              {onboardingTasks?.hasVendors ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
+                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasTender ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                              {onboardingTasks?.hasTender ? <Check className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasVendors ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4Title')}</span>
-                            {onboardingTasks?.hasVendors && (
+                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasTender ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4Title')}</span>
+                            {onboardingTasks?.hasTender && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-3 w-3" />{t('dashboard.completed')}
                               </span>
@@ -1676,25 +1695,25 @@ export default function Dashboard() {
                               <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task4Desc')}</p>
                               <Button
                                 className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
-                                onClick={() => setActiveTab('vendors')}
-                                data-testid="button-task-share-link"
+                                onClick={handleCreateTender}
+                                data-testid="button-task-create-rfp"
                               >
                                 {t('dashboard.task4Action')}
                               </Button>
                             </div>
                             <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
-                              <InviteVendorsVisual />
+                              <CreateTenderVisual />
                             </div>
                           </div>
                         </AccordionContent>
                       </AccordionItem>
 
-                      {/* Task 5: Review Proposals */}
+                      {/* Task 5: Submit your First Proposal */}
                       <AccordionItem value="task-5" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
-                              {onboardingTasks?.hasReviewedProposal ? <Check className="h-4 w-4" /> : <ClipboardList className="h-4 w-4" />}
+                              {onboardingTasks?.hasReviewedProposal ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />}
                             </div>
                             <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasReviewedProposal ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task5Title')}</span>
                             {onboardingTasks?.hasReviewedProposal && (
@@ -1711,13 +1730,47 @@ export default function Dashboard() {
                               <Button
                                 className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setActiveTab('proposals')}
-                                data-testid="button-task-view-proposals"
+                                data-testid="button-task-submit-proposal"
                               >
                                 {t('dashboard.task5Action')}
                               </Button>
                             </div>
                             <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
-                              <ReviewProposalsVisual />
+                              <SubmitProposalVisual />
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      {/* Task 6: Explore Tenders Marketplace */}
+                      <AccordionItem value="task-6" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                          <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                              {onboardingTasks?.hasExploredMarketplace ? <Check className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
+                            </div>
+                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasExploredMarketplace ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task6Title')}</span>
+                            {onboardingTasks?.hasExploredMarketplace && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-3 w-3" />{t('dashboard.completed')}
+                              </span>
+                            )}
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-4">
+                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task6Desc')}</p>
+                              <Button
+                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
+                                onClick={handleExploreMarketplace}
+                                data-testid="button-task-explore-marketplace"
+                              >
+                                {t('dashboard.task6Action')}
+                              </Button>
+                            </div>
+                            <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
+                              <TendersMarketplaceVisual />
                             </div>
                           </div>
                         </AccordionContent>

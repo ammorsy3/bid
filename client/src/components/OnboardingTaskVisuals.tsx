@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Building2, Calendar, Camera, Check, Link2, Play, Plus, Sparkles, Trophy, User } from "lucide-react";
+import { Building2, Calendar, Camera, Check, Link2, Play, Plus, Search, Send, ShieldCheck, Sparkles, Trophy, User, Globe } from "lucide-react";
 
 const CORAL = "#FE3C01";
 
@@ -203,6 +203,156 @@ export function BookDemoVisual() {
         <Play className="h-2.5 w-2.5 text-white fill-white" />
       </motion.div>
     </motion.div>
+  );
+}
+
+/* ─── Task 1: Get Verified ───────────────────────────────────── */
+export function GetVerifiedVisual() {
+  return (
+    <Frame>
+      <div className="flex items-center gap-3">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="relative"
+        >
+          <div className="h-16 w-16 rounded-xl bg-card shadow-md border border-border flex items-center justify-center">
+            <ShieldCheck className="h-7 w-7 text-[#FE3C01]/50" />
+          </div>
+          <motion.div
+            initial={{ scale: 0, y: 4 }}
+            animate={{ scale: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3, ease: "backOut" }}
+            className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-[#FE3C01] flex items-center justify-center border-2 border-white shadow"
+          >
+            <Check className="h-3 w-3 text-white" />
+          </motion.div>
+        </motion.div>
+        <div className="space-y-1.5">
+          <div className="h-1.5 w-16 rounded-full bg-gray-800" />
+          <div className="h-1.5 w-12 rounded-full bg-gray-300" />
+          <motion.div
+            initial={{ opacity: 0, x: -6 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.35, delay: 0.35 }}
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-100 border border-green-200"
+          >
+            <Check className="h-2 w-2 text-green-600" />
+            <span className="text-[7px] font-semibold text-green-700 dark:text-green-300">Verified</span>
+          </motion.div>
+        </div>
+      </div>
+    </Frame>
+  );
+}
+
+/* ─── Task 3: Vendors Base ───────────────────────────────────── */
+export function VendorsBaseVisual() {
+  const vendors = [
+    { color: "bg-[#FE3C01]", delay: 0 },
+    { color: "bg-blue-400", delay: 0.1 },
+    { color: "bg-amber-400", delay: 0.2 },
+  ];
+  return (
+    <Frame>
+      <div className="space-y-1.5 w-[145px]">
+        {vendors.map((v, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: v.delay }}
+            className="flex items-center gap-2 bg-card rounded-lg border border-border px-2.5 py-1.5 shadow-sm"
+          >
+            <div className={`h-5 w-5 rounded-md ${v.color} flex items-center justify-center flex-shrink-0`}>
+              <Building2 className="h-3 w-3 text-white" />
+            </div>
+            <div className="flex-1 space-y-0.5">
+              <div className="h-1 w-14 rounded-full bg-gray-300" />
+              <div className="h-1 w-10 rounded-full bg-gray-200" />
+            </div>
+            <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
+          </motion.div>
+        ))}
+      </div>
+    </Frame>
+  );
+}
+
+/* ─── Task 5: Submit Proposal ────────────────────────────────── */
+export function SubmitProposalVisual() {
+  return (
+    <Frame>
+      <div className="relative">
+        <motion.div
+          initial={{ rotate: -2, y: 4 }}
+          animate={{ rotate: 0, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="w-[145px] bg-card rounded-lg shadow-md border border-border p-3 space-y-2"
+        >
+          <div className="flex items-center justify-between">
+            <div className="h-1.5 w-14 rounded-full bg-gray-800" />
+            <div className="px-1.5 py-0.5 rounded text-[7px] font-bold text-white bg-blue-500">Proposal</div>
+          </div>
+          <Shimmer className="h-1.5 w-full" />
+          <Shimmer className="h-1.5 w-4/5" delay={0.15} />
+          <Shimmer className="h-1.5 w-3/5" delay={0.3} />
+          <div className="pt-1.5 flex items-center justify-end">
+            <div className="h-4 px-2 rounded text-[7px] font-semibold text-white bg-[#FE3C01] flex items-center gap-1">
+              <Send className="h-2 w-2" />
+              Submit
+            </div>
+          </div>
+        </motion.div>
+        <motion.div
+          initial={{ scale: 0, rotate: -20 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ duration: 0.4, delay: 0.35, ease: "backOut" }}
+          className="absolute top-2 right-2"
+        >
+          <Sparkles className="h-4 w-4 text-[#FE3C01]" />
+        </motion.div>
+      </div>
+    </Frame>
+  );
+}
+
+/* ─── Task 6: Tenders Marketplace ────────────────────────────── */
+export function TendersMarketplaceVisual() {
+  const items = [
+    { tag: "IT", color: "bg-blue-500", bar: "w-[85%]" },
+    { tag: "HR", color: "bg-purple-400", bar: "w-[62%]" },
+    { tag: "FIN", color: "bg-green-500", bar: "w-[45%]" },
+  ];
+  return (
+    <Frame>
+      <div className="w-[158px] space-y-1.5">
+        <div className="flex items-center gap-1.5 bg-card rounded-md border border-border px-2 py-1 mb-1">
+          <Search className="h-2.5 w-2.5 text-gray-400 flex-shrink-0" />
+          <div className="h-1 flex-1 rounded-full bg-gray-200" />
+        </div>
+        {items.map((t, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: i * 0.09 }}
+            className="flex items-center gap-2 bg-card rounded-md border border-border px-2 py-1.5"
+          >
+            <div className={`h-4 w-4 rounded ${t.color} flex items-center justify-center flex-shrink-0`}>
+              <span className="text-[5px] font-bold text-white leading-none">{t.tag}</span>
+            </div>
+            <div className="flex-1">
+              <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
+                <div className={`h-full rounded-full bg-gray-300 ${t.bar}`} />
+              </div>
+            </div>
+            <Globe className="h-2.5 w-2.5 text-[#FE3C01]/60 flex-shrink-0" />
+          </motion.div>
+        ))}
+      </div>
+    </Frame>
   );
 }
 

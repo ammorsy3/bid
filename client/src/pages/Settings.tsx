@@ -488,6 +488,10 @@ export default function Settings() {
     const tab = params.get('tab');
     return (tab === 'company' ? 'company' : 'account') as SettingsTab;
   });
+  const [highlightVerification, setHighlightVerification] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('highlight') === 'verification';
+  });
   const [docUploadedTypes, setDocUploadedTypes] = useState<Set<string>>(new Set());
 
   const { overlay: tourOverlay, tourDismissed, retake: retakeTour } = usePageTour({
@@ -512,6 +516,20 @@ export default function Settings() {
   const [companyBio, setCompanyBio] = useState(activeCompany?.profile?.bio || '');
   const [companyLogo, setCompanyLogo] = useState<File | null>(null);
   const [companyLogoPreview, setCompanyLogoPreview] = useState<string | null>(null);
+
+  // Scroll to and highlight verification section if requested via URL param
+  useEffect(() => {
+    if (!highlightVerification || activeTab !== 'company') return;
+    const timer = setTimeout(() => {
+      const el = document.getElementById('verification');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      const dismissTimer = setTimeout(() => setHighlightVerification(false), 3500);
+      return () => clearTimeout(dismissTimer);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [highlightVerification, activeTab]);
 
   // Resolve logo URL — protected /objects/... paths need auth headers
   useEffect(() => {
@@ -1733,7 +1751,14 @@ export default function Settings() {
               </div>
 
               {/* Verification Documents */}
-              <div id="verification">
+              <div
+                id="verification"
+                className={`rounded-xl transition-all duration-700 ${
+                  highlightVerification
+                    ? 'ring-2 ring-[#FE3C01] ring-offset-4 shadow-[0_0_0_4px_rgba(254,60,1,0.12)]'
+                    : 'ring-0 ring-offset-0'
+                }`}
+              >
                 <Card>
                   <CardHeader className="pb-4">
                     <div className="flex items-center gap-3">

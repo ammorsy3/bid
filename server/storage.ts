@@ -234,14 +234,15 @@ export interface IStorage {
   // ONBOARDING OPERATIONS
   // ============================================================================
   getOnboardingTasksStatus(userId: string, companyId: string): Promise<{
-    hasTender: boolean;
+    isVerified: boolean;
     hasCompletedProfile: boolean;
-    hasProfilePicture: boolean;
     hasVendors: boolean;
+    hasTender: boolean;
     hasReviewedProposal: boolean;
-    hasVisitedSettings: boolean;
+    hasExploredMarketplace: boolean;
     completedCount: number;
   }>;
+  hasUserExploredMarketplace(userId: string): Promise<boolean>;
 
   // ============================================================================
   // ADMIN OPERATIONS
@@ -1456,6 +1457,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         ilike(users.email, `%@${safe}`),
         isNull(companies.deletedAt),
+        isNull(userCompanies.deletedAt),
       ))
       .groupBy(companies.id, companies.name, companies.slug)
       .orderBy(desc(count(userCompanies.id)))
@@ -1562,29 +1564,28 @@ export class DatabaseStorage implements IStorage {
   // ============================================================================
 
   async getOnboardingTasksStatus(userId: string, companyId: string): Promise<{
-    hasTender: boolean;
+    isVerified: boolean;
     hasCompletedProfile: boolean;
-    hasProfilePicture: boolean;
     hasVendors: boolean;
+    hasTender: boolean;
     hasReviewedProposal: boolean;
-    hasVisitedSettings: boolean;
+    hasExploredMarketplace: boolean;
     completedCount: number;
   }> {
-    // Task 1: Check if company has any tenders
-    const companyTenders = await db.select().from(tenders).where(eq(tenders.companyId, companyId)).limit(1);
-    const hasTender = companyTenders.length > 0;
+    // Task 1: Check if company is verified
+    const company = await this.getCompany(companyId);
+    const isVerified = company?.verificationStatus === 'verified';
 
     // Task 2: Check if company profile is completed
-    const company = await this.getCompany(companyId);
     const hasCompletedProfile = company?.onboardingState === 'completed';
 
-    // Task 3: Check if user has a profile picture
-    const user = await this.getUser(userId);
-    const hasProfilePicture = !!user?.profilePictureUrl;
-
-    // Task 4: Check if company has vendors in their base
+    // Task 3: Check if company has vendors in their base
     const vendorsList = await db.select().from(vendorsBase).where(eq(vendorsBase.requesterCompanyId, companyId)).limit(1);
     const hasVendors = vendorsList.length > 0;
+
+    // Task 4: Check if company has any tenders/RFPs
+    const companyTenders = await db.select().from(tenders).where(eq(tenders.companyId, companyId)).limit(1);
+    const hasTender = companyTenders.length > 0;
 
     // Task 5: Check if company has reviewed any proposals (accepted or rejected an offer)
     const reviewedOffers = await db
@@ -1598,26 +1599,39 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     const hasReviewedProposal = reviewedOffers.length > 0;
 
-    // Task 6: Check if user has visited settings
-    const hasVisitedSettings = await this.hasUserVisitedSettings(userId);
+    // Task 6: Check if user has explored the marketplace
+    const hasExploredMarketplace = await this.hasUserExploredMarketplace(userId);
 
     const completedCount = [
-      hasTender,
+      isVerified,
       hasCompletedProfile,
-      hasProfilePicture,
       hasVendors,
+      hasTender,
       hasReviewedProposal,
+      hasExploredMarketplace,
     ].filter(Boolean).length;
 
     return {
-      hasTender,
+      isVerified,
       hasCompletedProfile,
-      hasProfilePicture,
       hasVendors,
+      hasTender,
       hasReviewedProposal,
-      hasVisitedSettings,
-      completedCount
+      hasExploredMarketplace,
+      completedCount,
     };
+  }
+
+  async hasUserExploredMarketplace(userId: string): Promise<boolean> {
+    const results = await db
+      .select()
+      .from(productEvents)
+      .where(and(
+        eq(productEvents.eventType, 'marketplace_explored'),
+        eq(productEvents.userId, userId)
+      ))
+      .limit(1);
+    return results.length > 0;
   }
 
   // ============================================================================

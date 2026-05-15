@@ -306,7 +306,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let user = await storage.getUserByEmail(emailLower);
       let isNewUser = false;
-      let autoJoinedCompany: any = null;
 
       if (!user) {
         isNewUser = true;
@@ -325,35 +324,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profilePictureUrl: clerkUser.imageUrl || null,
         } as any);
 
-        const FREE_EMAIL_DOMAINS = new Set([
-          'gmail.com','yahoo.com','hotmail.com','outlook.com','live.com',
-          'icloud.com','me.com','aol.com','protonmail.com','mail.com',
-          'yandex.com','zoho.com','gmx.com','msn.com','hotmail.co.uk',
-          'yahoo.co.uk','yahoo.co.in','rediffmail.com'
-        ]);
-        const emailDomain = emailLower.split('@')[1];
-        if (!FREE_EMAIL_DOMAINS.has(emailDomain)) {
-          try {
-            const matchedCompany = await storage.getCompanyByEmailDomain(emailDomain);
-            if (matchedCompany) {
-              await storage.addUserToCompany({
-                userId: user.id,
-                companyId: matchedCompany.id,
-                roleInCompany: 'member',
-                invitedBy: null,
-              });
-              autoJoinedCompany = matchedCompany;
-              await storage.logProductEvent({
-                eventType: 'user_auto_joined',
-                companyId: matchedCompany.id,
-                userId: user.id,
-                metadata: { emailDomain, companyName: matchedCompany.name, source: 'clerk' }
-              }).catch(() => {});
-            }
-          } catch (autoJoinError) {
-            console.error(`[Clerk] Auto-join failed for domain ${emailDomain}:`, autoJoinError);
-          }
-        }
+        // No auto-join: new social sign-up users go through the onboarding
+        // domain-match flow where they can request to join or create their org.
       } else {
         if (!user.otpVerified || !user.emailVerified) {
           await storage.updateUser(user.id, {
@@ -454,46 +426,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isAdmin: false
       });
 
-      // Domain-based auto-join: check if another company already has members with the same domain
-      const FREE_EMAIL_DOMAINS = new Set([
-        'gmail.com','yahoo.com','hotmail.com','outlook.com','live.com',
-        'icloud.com','me.com','aol.com','protonmail.com','mail.com',
-        'yandex.com','zoho.com','gmx.com','msn.com','hotmail.co.uk',
-        'yahoo.co.uk','yahoo.co.in','rediffmail.com'
-      ]);
-      const emailDomain = userData.email.split('@')[1].toLowerCase();
-      let autoJoinedCompany = null;
-
-      if (!FREE_EMAIL_DOMAINS.has(emailDomain)) {
-        try {
-          const matchedCompany = await storage.getCompanyByEmailDomain(emailDomain);
-          if (matchedCompany) {
-            await storage.addUserToCompany({
-              userId: user.id,
-              companyId: matchedCompany.id,
-              roleInCompany: 'member',
-              invitedBy: null,
-            });
-            autoJoinedCompany = matchedCompany;
-            console.log(`Auto-join: user ${user.id} (${userData.email}) joined company ${matchedCompany.id} (${matchedCompany.name}) via domain ${emailDomain}`);
-            await storage.logProductEvent({
-              eventType: 'user_auto_joined',
-              companyId: matchedCompany.id,
-              userId: user.id,
-              metadata: { emailDomain, companyName: matchedCompany.name }
-            }).catch(() => {});
-          } else {
-            console.log(`Auto-join: no company found for domain ${emailDomain}`);
-          }
-        } catch (autoJoinError) {
-          console.error(`Auto-join failed for domain ${emailDomain}:`, autoJoinError);
-        }
-      }
-
+      // No auto-join on registration: users go through the onboarding
+      // domain-match flow where they can choose to request to join or create their org.
       const token = generateToken({
         userId: user.id,
-        activeCompanyId: autoJoinedCompany?.id ?? null,
-        roleInCompany: autoJoinedCompany ? 'member' : null,
+        activeCompanyId: null,
+        roleInCompany: null,
         isAdmin: false
       });
 
@@ -513,34 +451,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           emailVerified: user.emailVerified,
           otpVerified: user.otpVerified,
         },
-        companies: autoJoinedCompany ? [{
-          id: autoJoinedCompany.id,
-          name: autoJoinedCompany.name,
-          slug: autoJoinedCompany.slug,
-          legalName: autoJoinedCompany.legalName,
-          crNumber: autoJoinedCompany.crNumber,
-          vatNumber: autoJoinedCompany.vatNumber,
-          city: autoJoinedCompany.city,
-          category: autoJoinedCompany.category,
-          verificationStatus: autoJoinedCompany.verificationStatus,
-          onboardingState: autoJoinedCompany.onboardingState,
-          role: 'member',
-          profile: null
-        }] : [],
-        autoJoinedCompany: autoJoinedCompany ? {
-          id: autoJoinedCompany.id,
-          name: autoJoinedCompany.name,
-          slug: autoJoinedCompany.slug,
-          legalName: autoJoinedCompany.legalName,
-          crNumber: autoJoinedCompany.crNumber,
-          vatNumber: autoJoinedCompany.vatNumber,
-          city: autoJoinedCompany.city,
-          category: autoJoinedCompany.category,
-          verificationStatus: autoJoinedCompany.verificationStatus,
-          onboardingState: autoJoinedCompany.onboardingState,
-          role: 'member',
-          profile: null
-        } : null,
+        companies: [],
+        autoJoinedCompany: null,
       });
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -1498,6 +1410,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(tasks);
     } catch (error) {
       console.error('Get onboarding tasks error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Log marketplace exploration event
+  app.post("/api/onboarding-tasks/marketplace-explored", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const alreadyExplored = await storage.hasUserExploredMarketplace(req.auth!.userId);
+      if (!alreadyExplored) {
+        await storage.logProductEvent({
+          eventType: 'marketplace_explored',
+          userId: req.auth!.userId,
+          companyId: req.auth!.activeCompanyId || undefined,
+          metadata: { timestamp: new Date().toISOString() }
+        });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Log marketplace exploration error:', error);
       res.status(500).json({ message: "Server error" });
     }
   });

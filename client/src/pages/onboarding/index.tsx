@@ -2,14 +2,13 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Building2, UserPlus, ArrowRight, Users, KeyRound, CheckCircle2, Loader2, Clock } from "lucide-react";
+import { Building2, ArrowRight, Users, Loader2, Clock } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 interface DomainMatchWorkspace {
@@ -34,8 +33,6 @@ export default function OnboardingChoice() {
 
   const [requestingId, setRequestingId] = useState<string | null>(null);
   const [requestMessage, setRequestMessage] = useState<string>("");
-  const [inviteToken, setInviteToken] = useState<string>("");
-  const [showInviteInput, setShowInviteInput] = useState(false);
   const [acknowledgedRequests, setAcknowledgedRequests] = useState<Record<string, true>>({});
 
   useEffect(() => {
@@ -98,12 +95,6 @@ export default function OnboardingChoice() {
       });
     },
   });
-
-  const handleAcceptInvite = () => {
-    const token = inviteToken.trim();
-    if (!token) return;
-    setLocation(`/team-invite/${encodeURIComponent(token)}`);
-  };
 
   if (!user) return null;
 
@@ -199,87 +190,28 @@ export default function OnboardingChoice() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Create Company */}
-        <Card
-          className="cursor-pointer group hover:border-[#FE3C01]/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
-          onClick={() => setLocation("/onboarding/company-basics")}
-        >
-          <CardContent className="pt-8 pb-8 px-6 text-center">
-            <div className="mx-auto w-14 h-14 bg-[#FE3C01]/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-[#FE3C01]/15 transition-colors">
-              <Building2 className="w-7 h-7 text-[#FE3C01]" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              {showSuggestions ? 'Create my own workspace instead' : 'Create a new company'}
-            </h3>
-            <p className="text-sm text-muted-foreground mb-5">
-              {showSuggestions
-                ? "Start fresh — you can invite teammates later from settings."
-                : "Set up your company workspace, add your team, and start managing tenders."}
-            </p>
-            <div className="flex items-center justify-center text-sm font-medium text-[#FE3C01] group-hover:gap-2 transition-all">
-              <span>{t('onboarding.getStarted')}</span>
-              <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* I have an invitation code */}
-        <Card className="border-2 border-transparent">
-          <CardContent className="pt-8 pb-8 px-6 text-center">
-            <div className="mx-auto w-14 h-14 bg-[var(--state-won)]/5 rounded-2xl flex items-center justify-center mb-5">
-              <KeyRound className="w-7 h-7 text-[var(--state-won)]" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              I have an invitation code
-            </h3>
-            <p className="text-sm text-muted-foreground mb-5">
-              Paste the code from your invitation email to join your team's workspace.
-            </p>
-            {showInviteInput ? (
-              <div className="space-y-2 text-left">
-                <Input
-                  value={inviteToken}
-                  onChange={(e) => setInviteToken(e.target.value)}
-                  placeholder="Paste your invitation code"
-                  className="font-mono text-sm"
-                  data-testid="input-invite-token"
-                  onKeyDown={(e) => e.key === 'Enter' && handleAcceptInvite()}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => { setShowInviteInput(false); setInviteToken(""); }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleAcceptInvite}
-                    disabled={!inviteToken.trim()}
-                    className="bg-[var(--state-won)] hover:bg-[var(--state-won)]/90"
-                    data-testid="button-accept-invite-token"
-                  >
-                    Continue
-                    <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowInviteInput(true)}
-                className="inline-flex items-center justify-center text-sm font-medium text-[var(--state-won)] hover:text-[var(--state-won)]"
-                data-testid="button-show-invite-input"
-              >
-                <span>Enter code</span>
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </button>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <Card
+        className="cursor-pointer group hover:border-[#FE3C01]/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
+        onClick={() => setLocation("/onboarding/company-basics")}
+      >
+        <CardContent className="pt-8 pb-8 px-6 text-center">
+          <div className="mx-auto w-14 h-14 bg-[#FE3C01]/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-[#FE3C01]/15 transition-colors">
+            <Building2 className="w-7 h-7 text-[#FE3C01]" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            {showSuggestions ? 'Create my own workspace instead' : 'Create new organization'}
+          </h3>
+          <p className="text-sm text-muted-foreground mb-5">
+            {showSuggestions
+              ? "Start fresh — you can invite teammates later from settings."
+              : "Set up your company workspace, add your team, and start managing tenders."}
+          </p>
+          <div className="flex items-center justify-center text-sm font-medium text-[#FE3C01] group-hover:gap-2 transition-all">
+            <span>{t('onboarding.getStarted')}</span>
+            <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </CardContent>
+      </Card>
     </OnboardingLayout>
   );
 }

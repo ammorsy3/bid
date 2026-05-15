@@ -26,6 +26,7 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase, BookmarkPlus, Bookmark } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -447,11 +448,15 @@ export default function Dashboard() {
   }
 
   async function handleExploreMarketplace() {
+    // Optimistically mark the task complete so the checkmark shows immediately
+    queryClient.setQueryData(['/api/onboarding-tasks'], (old: any) =>
+      old ? { ...old, hasExploredMarketplace: true } : old
+    );
     try {
       await apiRequest('POST', '/api/onboarding-tasks/marketplace-explored');
       queryClient.invalidateQueries({ queryKey: ['/api/onboarding-tasks'] });
     } catch {}
-    setLocation('/marketplace');
+    window.open('/marketplace', '_blank');
   }
 
   // Fetch vendors in base
@@ -467,6 +472,26 @@ export default function Dashboard() {
     enabled: canManage,
     refetchOnMount: 'always',
     staleTime: 0,
+  });
+
+  const [vendorToRemove, setVendorToRemove] = useState<{ id: string; companyId: string; name: string } | null>(null);
+
+  const removeVendorMutation = useMutation({
+    mutationFn: async ({ id }: { id: string; name: string }) => {
+      await apiRequest('DELETE', `/api/vendors-base/${id}`);
+    },
+    onSuccess: (_data, { id, name }) => {
+      queryClient.setQueryData(
+        ['/api/vendors-base', searchQuery],
+        (old: VendorProfile[] | undefined) => (old ?? []).filter(v => v.id !== id)
+      );
+      queryClient.invalidateQueries({ queryKey: ['/api/onboarding-tasks'] });
+      setVendorToRemove(null);
+      toast({ title: t('dashboard.removeVendorTitle'), description: `${name} ${t('dashboard.removedFromBase')}` });
+    },
+    onError: () => {
+      toast({ title: t('dashboard.removeVendorTitle'), description: t('dashboard.removeVendorError'), variant: 'destructive' });
+    },
   });
 
   // Fetch pending join requests
@@ -1356,9 +1381,14 @@ export default function Dashboard() {
       </Dialog>
 
       <SidebarInset className="bg-gray-50 dark:bg-background">
+        {/* Mobile top bar — only way to reach navigation on phones */}
+        <header className="md:hidden sticky top-0 z-30 flex items-center gap-3 h-14 px-4 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+          <SidebarTrigger className="h-9 w-9 -ms-1.5" aria-label="Open menu" />
+          <BidLogo size={24} />
+        </header>
         {/* Main Content */}
         <main
-          className="flex-1 overflow-auto p-6"
+          className="flex-1 overflow-auto p-4 sm:p-6"
           style={{
             backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
             backgroundSize: '20px 20px',
@@ -1377,7 +1407,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0, duration: 0.35, ease: "easeOut" }}
-                  className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm p-7"
+                  className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm p-5 sm:p-7"
                 >
                   <div className={`flex items-center gap-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
                     <div className="p-3 rounded-xl bg-[#FE3C01] text-white flex-shrink-0">
@@ -1396,7 +1426,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05, duration: 0.35, ease: "easeOut" }}
-                  className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm p-7"
+                  className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm p-5 sm:p-7"
                 >
                   <div className={`flex items-center gap-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
                     <div className="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex-shrink-0">
@@ -1415,7 +1445,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1, duration: 0.35, ease: "easeOut" }}
-                  className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm p-7"
+                  className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm p-5 sm:p-7"
                 >
                   <div className={`flex items-center gap-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
                     <div className="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex-shrink-0">
@@ -1828,7 +1858,7 @@ export default function Dashboard() {
                       </TabsList>
                     </Tabs>
                     <Select value={tenderTypeFilter} onValueChange={setTenderTypeFilter}>
-                      <SelectTrigger className="w-[180px] h-9" data-testid="filter-tender-type">
+                      <SelectTrigger className="w-full sm:w-[180px] h-9" data-testid="filter-tender-type">
                         <SelectValue placeholder={t('dashboard.allTypes')} />
                       </SelectTrigger>
                       <SelectContent>
@@ -1839,7 +1869,7 @@ export default function Dashboard() {
                       </SelectContent>
                     </Select>
                     <Select value={tenderOffersFilter} onValueChange={setTenderOffersFilter}>
-                      <SelectTrigger className="w-[180px] h-9" data-testid="filter-tender-offers">
+                      <SelectTrigger className="w-full sm:w-[180px] h-9" data-testid="filter-tender-offers">
                         <SelectValue placeholder={t('dashboard.offersReceived')} />
                       </SelectTrigger>
                       <SelectContent>
@@ -2457,7 +2487,7 @@ export default function Dashboard() {
                       <Filter className="h-4 w-4" />
                     </div>
                     <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                      <SelectTrigger className="w-[160px] h-9" data-testid="filter-category">
+                      <SelectTrigger className="w-full sm:w-[160px] h-9" data-testid="filter-category">
                         <SelectValue placeholder={t('dashboard.allCategories')} />
                       </SelectTrigger>
                       <SelectContent>
@@ -2468,7 +2498,7 @@ export default function Dashboard() {
                       </SelectContent>
                     </Select>
                     <Select value={cityFilter} onValueChange={setCityFilter}>
-                      <SelectTrigger className="w-[160px] h-9" data-testid="filter-city">
+                      <SelectTrigger className="w-full sm:w-[160px] h-9" data-testid="filter-city">
                         <SelectValue placeholder={t('dashboard.allCities')} />
                       </SelectTrigger>
                       <SelectContent>
@@ -2479,7 +2509,7 @@ export default function Dashboard() {
                       </SelectContent>
                     </Select>
                     <Select value={verificationFilter} onValueChange={setVerificationFilter}>
-                      <SelectTrigger className="w-[160px] h-9" data-testid="filter-verification">
+                      <SelectTrigger className="w-full sm:w-[160px] h-9" data-testid="filter-verification">
                         <SelectValue placeholder={t('dashboard.allStatuses')} />
                       </SelectTrigger>
                       <SelectContent>
@@ -2652,6 +2682,16 @@ export default function Dashboard() {
                               >
                                 <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                                 {t('dashboard.view')}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:border-destructive"
+                                onClick={() => setVendorToRemove({ id: vendor.id, companyId: vendor.companyId, name: vendor.company })}
+                                data-testid={`button-remove-vendor-${vendor.id}`}
+                              >
+                                <Trash2 className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                {t('dashboard.remove')}
                               </Button>
                             </div>
                           </div>
@@ -2841,6 +2881,27 @@ export default function Dashboard() {
           )}
           </Tabs>
         </main>
+
+      {/* Remove Vendor Confirmation */}
+      <AlertDialog open={!!vendorToRemove} onOpenChange={(open) => !open && setVendorToRemove(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('dashboard.removeVendorTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('dashboard.removeVendorDesc', { name: vendorToRemove?.name ?? '' })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('dashboard.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              onClick={() => vendorToRemove && removeVendorMutation.mutate({ id: vendorToRemove.id, name: vendorToRemove.name })}
+            >
+              {removeVendorMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('dashboard.remove')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Proposal Details Modal */}
       <Dialog open={!!selectedProposal} onOpenChange={() => setSelectedProposal(null)}>

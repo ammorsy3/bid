@@ -1223,7 +1223,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getVendorsInBase(requesterCompanyId: string, searchQuery?: string): Promise<(VendorBase & { vendorCompany: Company; profile?: CompanyProfile })[]> {
-    let query = db
+    const whereClause = searchQuery
+      ? and(
+          eq(vendorsBase.requesterCompanyId, requesterCompanyId),
+          isNull(companies.deletedAt),
+          or(
+            ilike(companies.name, `%${searchQuery}%`),
+            ilike(companyProfiles.displayName, `%${searchQuery}%`)
+          )
+        )
+      : and(
+          eq(vendorsBase.requesterCompanyId, requesterCompanyId),
+          isNull(companies.deletedAt)
+        );
+
+    const results = await db
       .select({
         vendorBase: vendorsBase,
         vendorCompany: companies,
@@ -1232,22 +1246,8 @@ export class DatabaseStorage implements IStorage {
       .from(vendorsBase)
       .innerJoin(companies, eq(vendorsBase.vendorCompanyId, companies.id))
       .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
-      .where(and(
-        eq(vendorsBase.requesterCompanyId, requesterCompanyId),
-        isNull(companies.deletedAt)
-      ))
-      .$dynamic();
-
-    if (searchQuery) {
-      query = query.where(
-        or(
-          ilike(companies.name, `%${searchQuery}%`),
-          ilike(companyProfiles.displayName, `%${searchQuery}%`)
-        )
-      );
-    }
-
-    const results = await query.orderBy(desc(vendorsBase.addedAt));
+      .where(whereClause)
+      .orderBy(desc(vendorsBase.addedAt));
 
     return results.map(r => ({
       ...r.vendorBase,
@@ -1267,13 +1267,15 @@ export class DatabaseStorage implements IStorage {
     return !!result;
   }
 
-  async removeVendorFromBase(requesterCompanyId: string, vendorCompanyId: string): Promise<void> {
-    await db.delete(vendorsBase).where(
+  async removeVendorFromBase(requesterCompanyId: string, rowId: string): Promise<void> {
+    console.log('[removeVendorFromBase] rowId:', rowId, 'requesterCompanyId:', requesterCompanyId);
+    const result = await db.delete(vendorsBase).where(
       and(
-        eq(vendorsBase.requesterCompanyId, requesterCompanyId),
-        eq(vendorsBase.vendorCompanyId, vendorCompanyId)
+        eq(vendorsBase.id, rowId),
+        eq(vendorsBase.requesterCompanyId, requesterCompanyId)
       )
-    );
+    ).returning();
+    console.log('[removeVendorFromBase] rows deleted:', result.length, result);
   }
 
   // ============================================================================
@@ -1286,7 +1288,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getJoinRequestsByRequester(requesterCompanyId: string, status?: string): Promise<(JoinRequest & { vendorCompany: Company; profile?: CompanyProfile })[]> {
-    let query = db
+    const whereClause = status
+      ? and(
+          eq(joinRequests.requesterCompanyId, requesterCompanyId),
+          eq(joinRequests.status, status)
+        )
+      : eq(joinRequests.requesterCompanyId, requesterCompanyId);
+
+    const results = await db
       .select({
         joinRequest: joinRequests,
         vendorCompany: companies,
@@ -1295,14 +1304,8 @@ export class DatabaseStorage implements IStorage {
       .from(joinRequests)
       .innerJoin(companies, eq(joinRequests.vendorCompanyId, companies.id))
       .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
-      .where(eq(joinRequests.requesterCompanyId, requesterCompanyId))
-      .$dynamic();
-
-    if (status) {
-      query = query.where(eq(joinRequests.status, status));
-    }
-
-    const results = await query.orderBy(desc(joinRequests.createdAt));
+      .where(whereClause)
+      .orderBy(desc(joinRequests.createdAt));
 
     return results.map(r => ({
       ...r.joinRequest,

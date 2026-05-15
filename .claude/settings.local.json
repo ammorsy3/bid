@@ -178,7 +178,11 @@
       "Bash(perl *)",
       "Bash(python3 /tmp/audit_i18n.py)",
       "mcp__linear__list_teams",
-      "mcp__linear__save_project"
+      "mcp__linear__save_project",
+      "Bash(ps -o lstart= -p 10155)",
+      "Bash(ps -p 10155 -o pid=)",
+      "Bash(sed -n '1500,1530p' /home/runner/workspace/client/src/pages/TenderAICopilot.tsx)",
+      "Bash(sed -n '395,412p' /home/runner/workspace/client/src/pages/TractionLinkEditor.tsx)"
     ]
   },
   "enableAllProjectMcpServers": true,

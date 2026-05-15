@@ -399,10 +399,10 @@ export default function TractionLinkEditor() {
       </div>
 
       {/* ══════════════════════ MAIN: EDITOR + PREVIEW ══════════════════════ */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
 
         {/* ── LEFT: Editor Panel ── */}
-        <ScrollArea className="w-[340px] flex-shrink-0 border-r border-border bg-muted">
+        <ScrollArea className="w-full md:w-[340px] flex-shrink-0 border-r border-border bg-muted">
           <div className="p-5 space-y-7">
 
             {/* ─── Logo ─── */}

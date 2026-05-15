@@ -91,7 +91,7 @@ export function FieldInsightPanel({ cardType, cursorPos, onClose }: FieldInsight
               mass: 0.7,
             }}
             style={{ top: panelStyle.top, left: panelStyle.left }}
-            className="fixed z-50 w-[340px] bg-white dark:bg-background border border-border dark:border-border rounded-2xl shadow-2xl"
+            className="fixed z-50 w-[340px] max-w-[calc(100vw-1.5rem)] md:max-w-none bg-white dark:bg-background border border-border dark:border-border rounded-2xl shadow-2xl"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3">

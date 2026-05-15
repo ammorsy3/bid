@@ -4593,6 +4593,21 @@ Respond with ONLY a JSON object. Example:
     }
   );
 
+  // Remove vendor from base
+  app.delete("/api/vendors-base/:rowId",
+    authenticateToken,
+    requireCompanyContext,
+    async (req: AuthRequest, res) => {
+      try {
+        await storage.removeVendorFromBase(req.auth!.activeCompanyId!, req.params.rowId);
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Remove vendor from base error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
   // ==========================================================================
   // TENDER SAVINGS ROUTES
   // ==========================================================================
@@ -5235,13 +5250,20 @@ Respond with ONLY a JSON object. Example:
           });
         }
 
-        if (existingRequest && existingRequest.createdAt) {
-          const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-          if (new Date(existingRequest.createdAt) > dayAgo) {
-            return res.status(409).json({
-              code: "REQUEST_ALREADY_PENDING",
-              message: "You already submitted a join request to this company within the last 24 hours"
-            });
+        // Anti-spam cooldown applies only after a rejection — measured from
+        // the decision time. An approved request that was later removed from
+        // the base must not block a fresh application (alreadyInBase above
+        // already handles the still-in-base case).
+        if (existingRequest && existingRequest.status === 'rejected') {
+          const decidedAt = existingRequest.decidedAt ?? existingRequest.createdAt;
+          if (decidedAt) {
+            const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            if (new Date(decidedAt) > dayAgo) {
+              return res.status(409).json({
+                code: "REQUEST_RECENTLY_REJECTED",
+                message: "Your previous request was declined. You can re-apply 24 hours after the decision."
+              });
+            }
           }
         }
 

@@ -1471,7 +1471,7 @@ export default function Dashboard() {
                       <FileText className="h-5 w-5" />
                     </div>
                     <div className={isRtl ? 'text-right' : ''}>
-                      <p className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.04em] tabular-nums">
+                      <p className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.03em] leading-[1.1] tabular-nums">
                         {tenders.filter(tender => tender.status === 'published').length}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.activeRfps')}</p>
@@ -1490,7 +1490,7 @@ export default function Dashboard() {
                       <Inbox className="h-5 w-5" />
                     </div>
                     <div className={isRtl ? 'text-right' : ''}>
-                      <p className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.04em] tabular-nums">
+                      <p className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.03em] leading-[1.1] tabular-nums">
                         {incomingOffers.filter(o => o.status === 'pending').length}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.pendingProposals')}</p>
@@ -1509,7 +1509,7 @@ export default function Dashboard() {
                       <Users className="h-5 w-5" />
                     </div>
                     <div className={isRtl ? 'text-right' : ''}>
-                      <p className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.04em] tabular-nums">
+                      <p className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.03em] leading-[1.1] tabular-nums">
                         {vendors.length}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.vendorsInBase')}</p>
@@ -1616,7 +1616,7 @@ export default function Dashboard() {
 
               <div className="px-6 sm:px-8 pt-5 pb-6 sm:pt-6 sm:pb-8">
                 <div className={`mb-4 ${isRtl ? 'text-right' : ''}`}>
-                      <h2 className="font-display font-black text-2xl text-gray-900 dark:text-foreground tracking-[-0.03em]">{t('dashboard.getStartedTitle')}</h2>
+                      <h2 className="font-display font-black text-2xl text-gray-900 dark:text-foreground tracking-[-0.03em] leading-[1.15]">{t('dashboard.getStartedTitle')}</h2>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('dashboard.getStartedDesc')}</p>
                     </div>
 

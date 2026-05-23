@@ -89,7 +89,7 @@ const Landing = () => {
         {/* ===== TOPBAR ===== */}
         <div className="topbar">
           <a href="/" style={{ textDecoration: "none" }}>
-            <BidLogo variant="onCream" size={28} />
+            <BidLogo variant="orange" size={28} />
           </a>
           <nav>
             <a href="#features" onClick={scrollTo("features")}>Features</a>
@@ -663,7 +663,7 @@ const Landing = () => {
         <div className="page">
           <div className="footer-row">
             <div className="brand">
-              <BidLogo variant="onCream" size={32} style={{ marginBottom: 16, display: "block" }} />
+              <BidLogo variant="orange" size={32} style={{ marginBottom: 16, display: "block" }} />
               <p>Sourcing, Redefined. The platform where buyers brief, invite, and award pre-verified vendors.</p>
             </div>
             <div>

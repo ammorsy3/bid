@@ -54,7 +54,7 @@ export function BidLogo({
   const dotStyle: CSSProperties = {
     width: "0.255em",
     height: "0.255em",
-    bottom: "0.82em",
+    bottom: "0.95em",
     left: "calc(50% + 0.025em)",
     transform: "translate(-50%, 50%)",
     background: variant === "outline" ? "transparent" : dot,

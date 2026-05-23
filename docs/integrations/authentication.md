@@ -4,7 +4,7 @@ Every external integration (webhook, MCP, direct API) authenticates with an **AP
 
 ## Creating a key
 
-1. Log into your BidCore dashboard as a company admin.
+1. Log into your Bid dashboard as a company admin.
 2. Navigate to **Settings → Integrations**.
 3. Click **Create API key**.
 4. Give it a human-readable name (e.g. `n8n procurement flow`, `Claude Desktop`).

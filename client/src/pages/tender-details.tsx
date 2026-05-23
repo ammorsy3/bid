@@ -840,7 +840,7 @@ export default function TenderDetails() {
           </Button>
 
           <div>
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-3 flex-wrap">
                   <StatusBadge
@@ -864,26 +864,26 @@ export default function TenderDetails() {
               </div>
 
               {isOwner && (
-                <div className="flex items-center gap-2 flex-shrink-0 pt-1">
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap sm:flex-shrink-0 sm:pt-1">
                   {tender.status === 'draft' && (
-                    <Button className="bg-[#FE3C01] hover:bg-[#d54d35] text-white shadow-sm"
+                    <Button className="bg-[#FE3C01] hover:bg-[#d54d35] text-white shadow-sm flex-1 sm:flex-none"
                       onClick={() => setShowPublishDialog(true)} disabled={updateStatus.isPending} data-testid="button-publish">
                       {t('tenderFlow.publishBtn')}
                     </Button>
                   )}
                   {(tender.status === 'draft' || tender.status === 'published') && (
-                    <Button variant="outline" className="bg-card/80" onClick={() => setLocation(`/tenders/${tender.id}/edit`)} data-testid="button-edit">
+                    <Button variant="outline" className="bg-card/80 flex-1 sm:flex-none" onClick={() => setLocation(`/tenders/${tender.id}/edit`)} data-testid="button-edit">
                       <Edit className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> {t('tenderFlow.editBtn')}
                     </Button>
                   )}
                   {tender.status === 'published' && (
-                    <Button variant="outline" className="bg-card/80" onClick={() => updateStatus.mutate('closed')}
+                    <Button variant="outline" className="bg-card/80 flex-1 sm:flex-none" onClick={() => updateStatus.mutate('closed')}
                       disabled={updateStatus.isPending} data-testid="button-close">
                       {t('tenderFlow.closeBtn')}
                     </Button>
                   )}
                   {tender.status === 'published' && !tender.isMarketplace && (
-                    <Button variant="outline" className="bg-card/80 border-[#FE3C01]/30 text-[#FE3C01] hover:bg-[#FE3C01]/10"
+                    <Button variant="outline" className="bg-card/80 border-[#FE3C01]/30 text-[#FE3C01] hover:bg-[#FE3C01]/10 flex-1 sm:flex-none"
                       onClick={() => setShowMarketplaceDialog(true)}
                       disabled={marketplaceSubmit.isPending} data-testid="button-marketplace">
                       {marketplaceSubmit.isPending ? <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> : <Store className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />}
@@ -902,7 +902,7 @@ export default function TenderDetails() {
                       {t('marketplace.liveOnMarketplace') || 'Live on Marketplace'}
                     </Badge>
                   )}
-                  <Button variant="outline" className="text-red-600 hover:text-red-700 dark:text-red-300 hover:bg-red-50 bg-card/80"
+                  <Button variant="outline" className="text-red-600 hover:text-red-700 dark:text-red-300 hover:bg-red-50 bg-card/80 flex-shrink-0"
                     onClick={() => { if (confirm(t('tenderFlow.deleteConfirm'))) { deleteTender.mutate(); } }}
                     disabled={deleteTender.isPending} data-testid="button-delete">
                     <Trash2 className="h-4 w-4" />
@@ -930,6 +930,18 @@ export default function TenderDetails() {
             {durationDisplay && (
               <div className="flex items-center gap-1.5 text-xs text-gray-400">
                 <Clock className="h-3 w-3" /><span>{durationDisplay}</span>
+              </div>
+            )}
+            {tender.targetAudienceTypes && tender.targetAudienceTypes.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {tender.targetAudienceTypes.map((type: string) => (
+                  <span
+                    key={type}
+                    className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border border-border text-muted-foreground bg-muted"
+                  >
+                    {type === 'company' ? 'Companies' : type === 'team' ? 'Teams' : 'Individuals'}
+                  </span>
+                ))}
               </div>
             )}
             {isOwner && (

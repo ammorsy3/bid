@@ -30,7 +30,7 @@ Add this to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "bidcore-copilot": {
+    "bid-copilot": {
       "command": "npx",
       "args": [
         "-y",
@@ -44,7 +44,7 @@ Add this to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 }
 ```
 
-Restart Claude Desktop. You should see `bidcore-copilot` in the tool list.
+Restart Claude Desktop. You should see `bid-copilot` in the tool list.
 
 ## Cursor
 
@@ -53,7 +53,7 @@ Cursor supports remote MCP directly. Add to `~/.cursor/mcp.json`:
 ```json
 {
   "mcpServers": {
-    "bidcore-copilot": {
+    "bid-copilot": {
       "url": "https://<your-host>/mcp",
       "headers": {
         "X-Api-Key": "bidc_live_<your-key>"
@@ -77,7 +77,7 @@ When you wrap the MCP server in an AI Agent (n8n's AI Agent node, LangChain's `c
 Drop this into the Agent's system prompt:
 
 ```text
-You are a bridge between a human user and BidCore's procurement Copilot. The Copilot is an expert RFP consultant — it produces the actual tender draft. Your job is to transport messages between the two without interpretation.
+You are a bridge between a human user and Bid's procurement Copilot. The Copilot is an expert RFP consultant — it produces the actual tender draft. Your job is to transport messages between the two without interpretation.
 
 ON THE FIRST USER MESSAGE in a conversation:
 1. Call copilot_create_session (pass a short descriptive name).

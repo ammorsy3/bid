@@ -192,9 +192,9 @@ export default function OnboardingChoice() {
 
       <Card
         className="cursor-pointer group hover:border-[#FE3C01]/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
-        onClick={() => setLocation("/onboarding/company-basics")}
+        onClick={() => setLocation("/onboarding/account-type")}
       >
-        <CardContent className="pt-8 pb-8 px-6 text-center">
+        <CardContent className="pt-8 pb-8 px-4 sm:px-6 text-center">
           <div className="mx-auto w-14 h-14 bg-[#FE3C01]/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-[#FE3C01]/15 transition-colors">
             <Building2 className="w-7 h-7 text-[#FE3C01]" />
           </div>

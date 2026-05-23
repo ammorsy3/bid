@@ -230,11 +230,11 @@ export default function TenderEvaluationCriteriaStep() {
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
+        <div className="flex items-center justify-between mb-8 max-sm:mb-5">
+          <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity max-sm:w-10 max-sm:h-10" onClick={() => navigate("/dashboard")} />
           <Button
             onClick={handleBack}
-            className="group relative overflow-hidden"
+            className="group relative overflow-hidden max-sm:hidden"
             data-testid="button-back"
           >
             <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
@@ -246,18 +246,18 @@ export default function TenderEvaluationCriteriaStep() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-sm:gap-5">
 
           {/* Left: Titles + descriptions */}
-          <div className="space-y-10">
+          <div className="space-y-10 max-sm:space-y-6">
 
             {/* Evaluation section label */}
-            <div className="space-y-3">
+            <div className="space-y-3 max-sm:space-y-2">
               <div className="text-sm font-medium text-muted-foreground">{t('tenderFlow.step5Label')}</div>
-              <h1 className="font-display font-black text-5xl text-foreground leading-[0.92] tracking-[-0.045em]">
+              <h1 className="font-display font-black text-5xl max-sm:text-3xl text-foreground leading-[0.92] tracking-[-0.045em]">
                 {t('tenderFlow.evaluationCriteria')}
               </h1>
-              <p className="text-muted-foreground text-lg">
+              <p className="text-muted-foreground text-lg max-sm:text-base">
                 {t('tenderFlow.step5Desc')}
               </p>
             </div>
@@ -267,7 +267,7 @@ export default function TenderEvaluationCriteriaStep() {
 
             {/* Submission requirements label */}
             <div className="space-y-3">
-              <h2 className="font-display font-black text-3xl text-foreground leading-[0.95] tracking-[-0.04em]">
+              <h2 className="font-display font-black text-3xl max-sm:text-2xl text-foreground leading-[0.95] tracking-[-0.04em]">
                 {t('tenderFlow.submissionRequirements')}
               </h2>
               <p className="text-muted-foreground">

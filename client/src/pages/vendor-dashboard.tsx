@@ -65,13 +65,13 @@ export default function VendorDashboard() {
           {verificationStatus === 'not_verified' && (
             <Alert className="bg-warning-50 border-warning-200 mb-6">
               <AlertCircle className="h-4 w-4 text-warning-600" />
-              <AlertDescription className="flex items-center justify-between">
+              <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-warning-800">
                   {t('dashboard.completePreQual')}
                 </span>
                 <Button
                   onClick={() => navigate('/vendor-prequalification')}
-                  className="bg-primary-600 hover:bg-primary-700"
+                  className="bg-primary-600 hover:bg-primary-700 w-full sm:w-auto flex-shrink-0"
                   data-testid="button-start-prequalification"
                 >
                   {t('dashboard.startPreQual')}
@@ -83,13 +83,14 @@ export default function VendorDashboard() {
           {verificationStatus === 'under_review' && (
             <Alert className="bg-primary-50 border-primary-200 mb-6">
               <Clock className="h-4 w-4 text-primary-600" />
-              <AlertDescription className="flex items-center justify-between">
+              <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-primary-800">
                   {t('dashboard.underReviewAlert')}
                 </span>
                 <Button
                   variant="outline"
                   onClick={() => navigate('/vendor-prequalification')}
+                  className="w-full sm:w-auto flex-shrink-0"
                   data-testid="button-update-prequalification"
                 >
                   {t('dashboard.updateProfile')}

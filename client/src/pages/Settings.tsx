@@ -24,6 +24,7 @@ import { SETTINGS_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import type { UploadResult } from "@/components/ObjectUploader";
 import { SettingsNotifications } from "@/pages/SettingsNotifications";
+import { displayRoleName } from "@/lib/roles";
 
 const TIMEZONES = [
   { value: "Asia/Riyadh", label: "Riyadh (GMT+3)" },
@@ -171,7 +172,7 @@ function MemberActivityDialog({
   );
 }
 
-function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { companyId: string; canManage: boolean; currentUserId: string; isRtl: boolean }) {
+function TeamMembersSection({ companyId, canManage, currentUserId, isRtl, workspaceKind = 'company' }: { companyId: string; canManage: boolean; currentUserId: string; isRtl: boolean; workspaceKind?: 'company' | 'team' | 'individual' }) {
   const { toast } = useToast();
   const { t } = useI18n();
   const [activityFor, setActivityFor] = useState<TeamMember | null>(null);
@@ -264,7 +265,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl }: { co
                   </div>
                   <Badge className={`${roleColors[member.role] || roleColors.member} flex-shrink-0`}>
                     {member.role === 'owner' && <Crown className="h-3 w-3 mr-1" />}
-                    {t(`dashboard.role${member.role.charAt(0).toUpperCase()}${member.role.slice(1)}`) || member.role}
+                    {displayRoleName(member.role, workspaceKind)}
                   </Badge>
                   {canManage && (() => {
                     const canModify = member.userId !== currentUserId && member.role !== 'owner';
@@ -621,6 +622,8 @@ export default function Settings() {
   }, [firstName, lastName, jobTitle, timezone, linkedinUrl, phoneNumber]);
 
   const canManageCompany = activeCompany && ['owner', 'admin'].includes(activeCompany.role || '');
+  const workspaceKind = (activeCompany?.accountType ?? 'company') as 'company' | 'team' | 'individual';
+  const isIndividual = workspaceKind === 'individual';
 
   const autoSaveCompanyTimeout = useRef<NodeJS.Timeout | null>(null);
   
@@ -976,9 +979,9 @@ export default function Settings() {
 
   return (
     <>
-    <div className={`min-h-screen bg-gray-50 dark:bg-background flex ${isRtl ? 'flex-row-reverse' : ''}`}>
-      {/* Sidebar - Left for LTR, Right for RTL */}
-      <div className={`w-64 bg-white dark:bg-card flex flex-col ${isRtl ? 'border-l' : 'border-r'}`}>
+    <div className={`min-h-screen bg-gray-50 dark:bg-background flex flex-col ${isRtl ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
+      {/* Sidebar - horizontal scroll tab bar on mobile, vertical panel on desktop */}
+      <div className={`w-full bg-white dark:bg-card flex flex-col md:w-64 ${isRtl ? 'border-b md:border-b-0 md:border-l' : 'border-b md:border-b-0 md:border-r'}`}>
         <div className="p-4 border-b">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-sm text-muted-foreground">{t('settings.accountSettings')}</h2>
@@ -1001,8 +1004,45 @@ export default function Settings() {
             </Button>
           </div>
         </div>
-        
-        <nav className="flex-1 p-2">
+
+        {/* Mobile: horizontal scrollable tab bar */}
+        <nav className="no-scrollbar flex md:hidden flex-row overflow-x-auto gap-1 px-2 py-2">
+          {sidebarItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                activeTab === item.id
+                  ? 'bg-[#FE3C01]/10 text-[#FE3C01]'
+                  : 'text-muted-foreground hover:bg-muted'
+              }`}
+              data-testid={`sidebar-${item.id}`}
+              data-tour={item.id === 'account' ? 'settings-account-tab' : item.id === 'company' ? 'settings-company-tab' : undefined}
+            >
+              {item.isUser ? (
+                <div className="h-5 w-5 rounded-full bg-[#C96B7E] flex items-center justify-center text-white text-[10px] font-medium flex-shrink-0">
+                  {getInitials(user.name || user.username)}
+                </div>
+              ) : item.icon ? (
+                <item.icon className="h-4 w-4 flex-shrink-0" />
+              ) : (
+                <Building2 className="h-4 w-4 flex-shrink-0" />
+              )}
+              {item.label}
+            </button>
+          ))}
+          <button
+            onClick={() => setLocation("/settings/integrations")}
+            className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap text-muted-foreground hover:bg-muted transition-colors"
+            data-testid="sidebar-integrations"
+          >
+            <Plug className="h-4 w-4 flex-shrink-0" />
+            {t('settings.intNavLabel')}
+          </button>
+        </nav>
+
+        {/* Desktop: vertical sidebar nav */}
+        <nav className="hidden md:flex flex-1 flex-col p-2">
           {sidebarItems.map((item) => (
             <button
               key={item.id}
@@ -1051,11 +1091,11 @@ export default function Settings() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <div className="max-w-3xl p-8">
+        <div className="max-w-3xl p-4 md:p-8">
           {activeTab === "account" && (
             <div className="space-y-8">
               <div>
-                <h1 className="font-display font-black text-3xl tracking-[-0.04em]">{t('settings.accountSettings')}</h1>
+                <h1 className="font-display font-black text-2xl md:text-3xl tracking-[-0.04em]">{t('settings.accountSettings')}</h1>
                 <p className="text-muted-foreground mt-1">{t('settings.personalInfo')}</p>
               </div>
 
@@ -1338,7 +1378,7 @@ export default function Settings() {
           {activeTab === "company" && (
             <div className="space-y-8">
               <div>
-                <h1 className="font-display font-black text-3xl tracking-[-0.04em]">{t('settings.teamSettings')}</h1>
+                <h1 className="font-display font-black text-2xl md:text-3xl tracking-[-0.04em]">{t('settings.teamSettings')}</h1>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-muted-foreground">{activeCompany.name}</p>
                   {activeCompany.verificationStatus === 'verified' ? (
@@ -1456,18 +1496,20 @@ export default function Settings() {
                 </CardContent>
               </Card>
 
-              {/* Team Members */}
-              <div data-tour="settings-team-section">
-                <TeamMembersSection companyId={activeCompany.id} canManage={!!canManageCompany} currentUserId={user.id} isRtl={isRtl} />
-              </div>
+              {/* Team Members — hidden for individual accounts */}
+              {!isIndividual && (
+                <div data-tour="settings-team-section">
+                  <TeamMembersSection companyId={activeCompany.id} canManage={!!canManageCompany} currentUserId={user.id} isRtl={isRtl} workspaceKind={workspaceKind} />
+                </div>
+              )}
 
-              {/* Pending join requests (admins only) */}
-              {canManageCompany && (
+              {/* Pending join requests (admins only, not for individual) */}
+              {canManageCompany && !isIndividual && (
                 <MembershipRequestsSection companyId={activeCompany.id} />
               )}
 
-              {/* Invite Team Members (owners/admins only) */}
-              {canManageCompany && (
+              {/* Invite Team Members (owners/admins only, not for individual) */}
+              {canManageCompany && !isIndividual && (
               <div className="space-y-4">
                 <h2 className="font-display font-black text-xl tracking-[-0.02em] flex items-center gap-2">
                   <UserPlus className="h-5 w-5" />

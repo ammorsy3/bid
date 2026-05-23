@@ -94,7 +94,7 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
         <div className="p-6 pb-0">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 mb-6">
-            <BidLogo size={28} />
+            <BidLogo variant="orange" size={28} />
           </div>
 
           {/* Step indicator — only show for steps 1-3 */}
@@ -132,7 +132,7 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
         </div>
 
         {/* Main content */}
-        <div className="flex-1 flex items-center justify-center p-6">
+        <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
           <div className="w-full max-w-xl">
             {children}
           </div>

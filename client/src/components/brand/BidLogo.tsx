@@ -9,7 +9,7 @@ import type { CSSProperties, HTMLAttributes } from "react";
  *  - Minimum digital size 24px wide; below that switch to <BidMonogram />
  */
 
-type BidLogoVariant = "default" | "onInk" | "onOrange" | "onCream" | "outline";
+type BidLogoVariant = "default" | "onInk" | "onOrange" | "onCream" | "orange" | "outline";
 
 const COLORWAY: Record<BidLogoVariant, { word: string; dot: string }> = {
   // 01 · BLACK ON WHITE — default on White and Cream surfaces.
@@ -22,6 +22,8 @@ const COLORWAY: Record<BidLogoVariant, { word: string; dot: string }> = {
   onOrange: { word: "var(--bid-cream)", dot: "var(--bid-ink)" },
   // 04 · BLACK ON CREAM — everyday surface
   onCream: { word: "var(--bid-ink)", dot: "var(--bid-orange)" },
+  // 05 · ORANGE ON CREAM / CREAM ON INK — adapts automatically via CSS vars
+  orange: { word: "var(--bid-logo-orange-word)", dot: "var(--bid-logo-orange-dot)" },
   // OUTLINE — single-ink reproduction (engraving, foil)
   outline: { word: "currentColor", dot: "currentColor" },
 };
@@ -52,9 +54,9 @@ export function BidLogo({
   const dotStyle: CSSProperties = {
     width: "0.255em",
     height: "0.255em",
-    top: "0.06em",
-    left: "50%",
-    transform: "translateX(-50%)",
+    bottom: "0.82em",
+    left: "calc(50% + 0.025em)",
+    transform: "translate(-50%, 50%)",
     background: variant === "outline" ? "transparent" : dot,
     border: variant === "outline" ? "0.045em solid currentColor" : "none",
   };

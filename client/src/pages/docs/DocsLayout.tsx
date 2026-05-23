@@ -86,7 +86,7 @@ export function DocsLayout({
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
             <Link href="/" className="flex items-center gap-2.5 min-w-0">
-              <BidLogo size={24} />
+              <BidLogo variant="orange" size={24} />
               <span
                 className="hidden sm:block text-[13px] font-medium pl-2.5 ml-1 truncate"
                 style={{ color: "var(--docs-fg-faint)", borderLeft: "1px solid var(--docs-border)" }}

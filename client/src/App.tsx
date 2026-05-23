@@ -12,10 +12,15 @@ import ResetPassword from "@/pages/reset-password";
 import CompanyOnboarding from "@/pages/CompanyOnboarding";
 import VerifyEmail from "@/pages/verify-email";
 import OnboardingChoice from "@/pages/onboarding/index";
+import AccountTypeChoice from "@/pages/onboarding/account-type";
 import CompanyBasics from "@/pages/onboarding/company-basics";
 import CompanyProfile from "@/pages/onboarding/company-profile";
 import InviteTeam from "@/pages/onboarding/invite-team";
 import CompanyDocuments from "@/pages/onboarding/company-documents";
+import IndividualBasics from "@/pages/onboarding/individual-basics";
+import IndividualVerify from "@/pages/onboarding/individual-verify";
+import TeamBasics from "@/pages/onboarding/team-basics";
+import TeamInviteOnboarding from "@/pages/onboarding/team-invite";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminVendors from "@/pages/AdminVendors";
 import TenderDetails from "@/pages/tender-details";
@@ -52,6 +57,8 @@ import AdminErrors from "@/pages/AdminErrors";
 import ClerkCallback from "@/pages/ClerkCallback";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
+import GettingStarted from "@/pages/GettingStarted";
+import FAQ from "@/pages/FAQ";
 
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
 
@@ -100,10 +107,15 @@ export default function App() {
             <Route path="/company-onboarding" component={CompanyOnboarding} />
             <Route path="/verify-email" component={VerifyEmail} />
             <Route path="/onboarding" component={OnboardingChoice} />
+            <Route path="/onboarding/account-type" component={AccountTypeChoice} />
             <Route path="/onboarding/company-basics" component={CompanyBasics} />
             <Route path="/onboarding/company-profile" component={CompanyProfile} />
             <Route path="/onboarding/invite-team" component={InviteTeam} />
             <Route path="/onboarding/company-documents" component={CompanyDocuments} />
+            <Route path="/onboarding/individual-basics" component={IndividualBasics} />
+            <Route path="/onboarding/individual-verify" component={IndividualVerify} />
+            <Route path="/onboarding/team-basics" component={TeamBasics} />
+            <Route path="/onboarding/team-invite" component={TeamInviteOnboarding} />
             <Route path="/dashboard" component={Dashboard} />
             <Route path="/admin/dashboard" component={AdminDashboard} />
             <Route path="/admin/vendors" component={AdminVendors} />
@@ -138,6 +150,8 @@ export default function App() {
             <Route path="/settings" component={Settings} />
             <Route path="/docs" component={DocsPage} />
             <Route path="/docs/:slug" component={DocsPage} />
+            <Route path="/getting-started" component={GettingStarted} />
+            <Route path="/faq" component={FAQ} />
             <Route path="/terms" component={Terms} />
             <Route path="/privacy" component={Privacy} />
           </Switch>

@@ -514,7 +514,7 @@ export default function TractionLink() {
       {/* ══════════════════════ BRANDED HEADER ══════════════════════ */}
       <header className="relative overflow-hidden" style={headerBgStyle}>
         {/* Nav bar */}
-        <nav className="relative z-10 flex items-center justify-between px-6 py-4 max-w-[860px] mx-auto w-full">
+        <nav className="relative z-10 flex items-center justify-between px-4 sm:px-6 py-4 max-w-[860px] mx-auto w-full">
           <span className="text-sm font-medium" style={{ color: colors.muted }}>
             {t('tractionPage.poweredBy')}{' '}
             <strong style={{ color: dark ? '#ffffff' : pc }}>Bid</strong>
@@ -583,7 +583,7 @@ export default function TractionLink() {
           <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6 items-start">
 
             {/* ── LEFT: Company Profile Card ── */}
-            <div className="bg-card rounded-2xl border border-border overflow-hidden">
+            <div className="bg-card rounded-2xl border border-border overflow-hidden order-2 md:order-1">
 
               {/* Card header: identity */}
               <div className="flex items-start gap-4 p-6 border-b border-gray-50">
@@ -685,7 +685,7 @@ export default function TractionLink() {
             </div>
 
             {/* ── RIGHT: Action Card (sticky on desktop) ── */}
-            <div className="md:sticky md:top-6">
+            <div className="md:sticky md:top-6 order-1 md:order-2">
               <div className="bg-card rounded-2xl border border-border p-6">
                 <div className="mb-5">
                   <h3 className="text-base font-bold text-foreground">{t('tractionPage.joinNetwork')}</h3>
@@ -700,7 +700,7 @@ export default function TractionLink() {
       </main>
 
       {/* ══════════════════════ FOOTER ══════════════════════ */}
-      <footer className="bg-muted border-t border-border py-5 px-6">
+      <footer className="bg-muted border-t border-border py-5 px-4 sm:px-6">
         <div className="max-w-[860px] mx-auto flex items-center justify-between">
           <span className="text-xs text-gray-300">
             {t('tractionPage.poweredBy')}{' '}

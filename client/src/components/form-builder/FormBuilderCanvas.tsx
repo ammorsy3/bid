@@ -129,12 +129,12 @@ export function FormBuilderCanvas({
         >
           <ZoomIn className="h-4 w-4" />
         </Button>
-        <div className="w-px h-6 bg-gray-200 dark:bg-gray-700" />
+        <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 max-sm:hidden" />
         <Button
           variant="ghost"
           size="icon"
           onClick={onToggleSidebar}
-          className="h-8 w-8"
+          className="h-8 w-8 max-sm:hidden"
           title={sidebarVisible ? t('formBuilder.hideLibrary') : t('formBuilder.showLibrary')}
           aria-label={sidebarVisible ? t('formBuilder.hideLibrary') : t('formBuilder.showLibrary')}
         >

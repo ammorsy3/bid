@@ -314,7 +314,7 @@ export default function InvitationSignup() {
                 </div>
               )}
 
-              <div className="grid grid-cols-3 gap-4 text-sm pt-2 border-t border-border dark:border-border">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm pt-2 border-t border-border dark:border-border">
                 <div>
                   <span className="text-muted-foreground">{t('auth.budgetLabel')}</span>
                   <p className="font-medium" data-testid="text-budget">
@@ -373,14 +373,14 @@ export default function InvitationSignup() {
                 <p className="text-center text-muted-foreground text-sm">
                   {t('auth.signInOrCreate')}
                 </p>
-                <div className="flex gap-4 justify-center">
-                  <Link href={`/login?redirect=/tenders/${id}`}>
-                    <Button variant="outline" className="min-w-32" data-testid="button-login">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-center">
+                  <Link href={`/login?redirect=/tenders/${id}`} className="w-full sm:w-auto">
+                    <Button variant="outline" className="w-full sm:min-w-32" data-testid="button-login">
                       {t('auth.login')}
                     </Button>
                   </Link>
-                  <Link href={`/register?redirect=/tenders/${id}`}>
-                    <Button className="min-w-48 bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90 text-white" data-testid="button-create-account">
+                  <Link href={`/register?redirect=/tenders/${id}`} className="w-full sm:w-auto">
+                    <Button className="w-full sm:min-w-48 bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90 text-white" data-testid="button-create-account">
                       {t('auth.createBidAccount')}
                     </Button>
                   </Link>

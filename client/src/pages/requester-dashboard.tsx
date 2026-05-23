@@ -110,16 +110,16 @@ export default function RequesterDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-8">
           <div>
             <h1 className="font-display font-black text-3xl text-foreground tracking-[-0.04em]">{t('dashboard.myTenders')}</h1>
             <p className="text-muted-foreground mt-1">{t('dashboard.myTendersDesc')}</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 sm:flex-shrink-0">
             <Button
               onClick={() => navigate('/requester-profile')}
               variant="outline"
-              className="px-4 py-3 rounded-lg font-semibold"
+              className="flex-1 sm:flex-none px-4 py-3 rounded-lg font-semibold"
               data-testid="button-manage-profile"
             >
               <User className="h-4 w-4 mr-2" />
@@ -127,7 +127,7 @@ export default function RequesterDashboard() {
             </Button>
             <Button
               onClick={handleCreateTenderClick}
-              className="bg-[#f33c20] hover:bg-[#d63519] text-white px-6 py-3 rounded-lg font-semibold"
+              className="flex-1 sm:flex-none bg-[#f33c20] hover:bg-[#d63519] text-white px-6 py-3 rounded-lg font-semibold"
               data-testid="button-create-tender"
             >
               {t('dashboard.createTender')}
@@ -208,7 +208,7 @@ export default function RequesterDashboard() {
         {tractionLink && (
           <Card className="mb-8 border-2 border-[#f33c20]/20 bg-gradient-to-br from-white to-[#f33c20]/5">
             <CardHeader>
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <CardTitle className="text-2xl flex items-center gap-2" data-testid="text-invite-title">
                     <UserPlus className="h-6 w-6 text-[#f33c20]" />
@@ -221,6 +221,7 @@ export default function RequesterDashboard() {
                 <Button
                   onClick={() => navigate('/vendors-base')}
                   variant="outline"
+                  className="w-full sm:w-auto flex-shrink-0"
                   data-testid="button-vendors-base"
                 >
                   <Users className="h-4 w-4 mr-2" />

@@ -781,7 +781,7 @@ export default function CompanyProfileEditor() {
 
       <div className="min-h-screen bg-gray-50 dark:bg-background flex">
         {/* ═══════════ LEFT SUB-NAV ═══════════ */}
-        <aside className="w-72 bg-white dark:bg-card border-r border-border dark:border-border flex flex-col flex-shrink-0">
+        <aside className="hidden md:flex md:w-72 bg-white dark:bg-card border-r border-border dark:border-border flex-col flex-shrink-0">
           {/* Brand accent strip (matches app sidebar) */}
           <div className="h-0.5 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]" />
 
@@ -852,25 +852,62 @@ export default function CompanyProfileEditor() {
         <main className="flex-1 flex flex-col min-w-0">
           {/* Sticky header */}
           <div className="sticky top-0 z-10 bg-white/90 dark:bg-background/90 backdrop-blur border-b border-border dark:border-border">
-            <div className="max-w-3xl mx-auto px-8 py-5 flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">{t('companyProfileEditor.profileEdit')}</p>
-                <h1 className="font-display font-black text-2xl text-foreground mt-0.5 tracking-[-0.03em]">{currentSectionMeta.label}</h1>
-                <p className="text-sm text-muted-foreground mt-1">{currentSectionMeta.description}</p>
+            <div className="max-w-3xl mx-auto px-4 py-3 sm:px-8 sm:py-5 flex items-center justify-between gap-4">
+              <div className="min-w-0 flex items-center gap-2">
+                <button
+                  onClick={handleBack}
+                  className="flex md:hidden items-center justify-center h-8 w-8 rounded-full hover:bg-muted transition-colors flex-shrink-0"
+                  aria-label={t('companyProfileEditor.backToSettings')}
+                >
+                  <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+                </button>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">
+                    {activeCompany?.accountType === 'individual'
+                      ? t('companyProfileEditor.profileEditIndividual')
+                      : activeCompany?.accountType === 'team'
+                        ? t('companyProfileEditor.profileEditTeam')
+                        : t('companyProfileEditor.profileEdit')}
+                  </p>
+                  <h1 className="font-display font-black text-xl sm:text-2xl text-foreground mt-0.5 tracking-[-0.03em]">{currentSectionMeta.label}</h1>
+                  <p className="hidden sm:block text-sm text-muted-foreground mt-1">{currentSectionMeta.description}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                 <SaveStatus status={saveStatus} savedAgoLabel={savedAgoLabel} t={t} />
                 <Button variant="outline" size="sm" onClick={openPreview} className="h-9">
-                  <Eye className="h-3.5 w-3.5 mr-1.5" />
-                  {t('companyProfileEditor.preview')}
+                  <Eye className="h-3.5 w-3.5 sm:mr-1.5" />
+                  <span className="hidden sm:inline">{t('companyProfileEditor.preview')}</span>
                 </Button>
               </div>
             </div>
+            {/* Mobile section nav */}
+            <nav className="no-scrollbar flex md:hidden overflow-x-auto gap-1 px-3 py-2 border-t border-border">
+              {SECTIONS.map((s) => {
+                const Icon = s.icon;
+                const active = activeSection === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => changeSection(s.id)}
+                    className={cn(
+                      "flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap",
+                      active
+                        ? "bg-[#FE3C01]/10 text-[#FE3C01]"
+                        : "text-muted-foreground hover:bg-muted"
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                    {s.label}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
           {/* Section content */}
-          <div className="flex-1 overflow-auto">
-            <div className="max-w-3xl mx-auto px-8 py-8 pb-20 space-y-6">
+          <div className="flex-1">
+            <div className="max-w-3xl mx-auto px-4 py-6 pb-20 sm:px-8 sm:py-8 space-y-6">
 
               {/* ═════ BASICS ═════ */}
               {activeSection === 'basics' && (

@@ -8,7 +8,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[var(--bid-cream)] px-4">
       <div className="mb-8">
-        <BidLogo size={40} />
+        <BidLogo variant="orange" size={40} />
       </div>
       <Card className="w-full max-w-md">
         <CardContent className="pt-6">

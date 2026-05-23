@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marketplace — Bid</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#FE3C01',
+            'brand-dark': '#E83501',
+          },
+          fontFamily: {
+            display: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    * { font-family: 'Inter', system-ui, sans-serif; }
+    .font-display { font-family: 'Inter', system-ui, sans-serif; }
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-hover:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      border-color: #e5e7eb;
+    }
+    .card-hover:hover .tender-title { color: #FE3C01; }
+    .circle-track { stroke: #f3f4f6; }
+    .circle-fill { stroke: #FE3C01; transition: stroke-dashoffset 0.5s; }
+    .circle-fill-warn { stroke: #f59e0b; }
+    select, input {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+  </style>
+</head>
+<body class="bg-[#F3F4F6] min-h-screen">
+
+  <!-- ─── HEADER ─── -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-14">
+        <!-- Logo + Nav -->
+        <div class="flex items-center gap-8">
+          <a href="#" class="flex items-center gap-2">
+            <!-- BidLogo SVG (orange) -->
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="32" height="32" rx="8" fill="#FE3C01"/>
+              <path d="M8 24V8h8a6 6 0 0 1 0 12H8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="22" cy="20" r="3" fill="white"/>
+            </svg>
+            <span class="font-black text-[#FE3C01] text-lg tracking-tight">bid</span>
+          </a>
+          <nav class="hidden sm:flex items-center gap-6 text-sm font-medium">
+            <a href="#" class="text-[#FE3C01] font-semibold">Marketplace</a>
+          </nav>
+        </div>
+        <!-- CTA Buttons -->
+        <div class="flex items-center gap-3">
+          <a href="#" class="text-sm text-gray-500 hover:text-gray-900 font-medium px-3 py-2 rounded">Log in</a>
+          <a href="#" class="bg-[#FE3C01] hover:bg-[#E83501] text-white text-sm font-semibold px-5 py-2 rounded transition-colors">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── HERO ─── -->
+  <section class="relative h-[280px] sm:h-[320px] overflow-hidden">
+    <!-- Gradient background (placeholder for image) -->
+    <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700"></div>
+    <!-- Texture overlay -->
+    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 20% 50%, #FE3C01 0%, transparent 50%), radial-gradient(circle at 80% 20%, #FE3C01 0%, transparent 40%)"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/50"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+      <h1 class="font-display font-black text-4xl sm:text-5xl text-white leading-[0.92] tracking-[-0.04em]">
+        Marketplace
+      </h1>
+    </div>
+  </section>
+
+  <!-- ─── HOW IT WORKS ─── -->
+  <section class="bg-white py-14 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-display font-black text-2xl sm:text-3xl text-gray-900 text-center mb-3 tracking-[-0.03em]">
+        How It Works
+      </h2>
+      <p class="text-gray-500 text-center max-w-2xl mx-auto mb-10 text-sm sm:text-base">
+        Connect buyers and suppliers through a transparent, competitive tender process. Discover opportunities and grow your business.
+      </p>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Buyers card -->
+        <div class="rounded-2xl border border-gray-200 bg-gray-50 p-7 flex flex-col items-center text-center">
+          <div class="h-14 w-14 rounded-2xl bg-[#FE3C01]/10 flex items-center justify-center mb-5">
+            <svg class="h-7 w-7 text-[#FE3C01]" fill="none" stroke="#FE3C01" stroke-width="1.8" viewBox="0 0 24 24">
+              <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-1">Buyers</h3>
+          <p class="text-sm text-gray-500 mb-5">Post tenders, invite qualified suppliers, and manage the entire procurement process in one place.</p>
+          <a href="#" class="inline-flex items-center gap-2 bg-[#FE3C01] hover:bg-[#E83501] text-white font-semibold px-6 py-2.5 rounded-lg transition-colors text-sm">
+            Start Buying
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+
+        <!-- Suppliers card -->
+        <div class="rounded-2xl border border-gray-200 bg-gray-50 p-7 flex flex-col items-center text-center">
+          <div class="h-14 w-14 rounded-2xl bg-[#FE3C01]/10 flex items-center justify-center mb-5">
+            <svg class="h-7 w-7 text-[#FE3C01]" fill="none" stroke="#FE3C01" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-1">Suppliers</h3>
+          <p class="text-sm text-gray-500 mb-5">Browse open opportunities, submit competitive bids, and win contracts from leading organizations.</p>
+          <a href="#" class="inline-flex items-center gap-2 border border-[#FE3C01] text-[#FE3C01] hover:bg-red-50 font-semibold px-6 py-2.5 rounded-lg transition-colors text-sm">
+            Start Selling
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── TENDER LIST ─── -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
+
+    <h2 class="font-display font-black text-2xl sm:text-3xl text-gray-900 text-center mb-8 tracking-[-0.03em]">
+      Latest Opportunities
+    </h2>
+
+    <!-- Desktop Filter Bar -->
+    <div class="hidden sm:flex items-center justify-between mb-6 gap-4 flex-wrap">
+      <div class="flex items-center gap-3 flex-wrap">
+        <!-- Category dropdown (static) -->
+        <button class="flex items-center gap-2 border border-gray-200 rounded-lg px-4 py-2.5 text-sm bg-white hover:border-gray-400 transition-colors text-gray-600">
+          Category
+          <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <!-- Tender Type -->
+        <div class="relative">
+          <select class="h-10 text-sm bg-white border border-gray-200 rounded-lg px-3 pr-8 text-gray-600 w-[170px] cursor-pointer">
+            <option>All Types</option>
+            <option>Open Tender</option>
+            <option>Direct Purchase</option>
+            <option>Framework Agreement</option>
+          </select>
+          <svg class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+        <!-- City -->
+        <div class="relative">
+          <select class="h-10 text-sm bg-white border border-gray-200 rounded-lg px-3 pr-8 text-gray-600 w-[160px] cursor-pointer">
+            <option>All Cities</option>
+            <option>Riyadh</option>
+            <option>Jeddah</option>
+            <option>Dammam</option>
+          </select>
+          <svg class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Sort -->
+        <div class="relative">
+          <select class="h-10 text-sm bg-white border border-gray-200 rounded-lg px-3 pr-8 text-gray-600 w-[160px] cursor-pointer">
+            <option>Newest First</option>
+            <option>Deadline (Soonest)</option>
+            <option>Budget (Highest)</option>
+          </select>
+          <svg class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+        <!-- Search -->
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search tenders…" class="w-64 h-10 text-sm bg-white border border-gray-200 rounded-lg pl-10 pr-4 text-gray-900 focus:outline-none focus:border-[#FE3C01]" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Tender Cards -->
+    <div class="space-y-4">
+
+      <!-- Card 1 — 72 days remaining -->
+      <a href="#" class="block bg-white rounded-xl border border-gray-200 card-hover transition-all cursor-pointer overflow-hidden no-underline group">
+        <div class="flex flex-col sm:flex-row sm:items-stretch">
+          <!-- Countdown -->
+          <div class="flex flex-row items-center gap-4 px-4 py-3 border-b border-gray-100 sm:flex-col sm:items-center sm:justify-center sm:px-8 sm:py-8 sm:border-b-0 sm:border-r sm:min-w-[160px]">
+            <div class="sm:hidden flex-shrink-0">
+              <!-- small circle 56px -->
+              <svg width="56" height="56" class="-rotate-90">
+                <circle cx="28" cy="28" r="24" fill="none" stroke="#f3f4f6" stroke-width="3.5"/>
+                <circle cx="28" cy="28" r="24" fill="none" stroke="#FE3C01" stroke-width="3.5" stroke-linecap="round"
+                  stroke-dasharray="150.8" stroke-dashoffset="42"/>
+              </svg>
+            </div>
+            <div class="hidden sm:block">
+              <!-- large circle 110px -->
+              <div class="relative" style="width:110px;height:110px;">
+                <svg width="110" height="110" class="-rotate-90">
+                  <circle cx="55" cy="55" r="52.5" fill="none" stroke="#f3f4f6" stroke-width="5"/>
+                  <circle cx="55" cy="55" r="52.5" fill="none" stroke="#FE3C01" stroke-width="5" stroke-linecap="round"
+                    stroke-dasharray="329.87" stroke-dashoffset="92.4"/>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-3xl font-bold leading-none text-[#FE3C01]">72</span>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs text-gray-500 sm:mt-3">72 days remaining</p>
+          </div>
+
+          <!-- Info -->
+          <div class="flex-1 min-w-0 px-4 py-4 sm:px-6 sm:py-6 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2 text-xs text-gray-400">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <span class="font-medium">Publish Date:</span>
+                <span class="font-medium text-gray-500">10/05/2026</span>
+              </div>
+              <span class="bg-[#FE3C01] text-white text-[11px] font-medium px-2.5 py-0.5 rounded flex-shrink-0 ml-2">Open Tender</span>
+            </div>
+            <h3 class="tender-title text-base sm:text-lg font-bold text-gray-900 transition-colors leading-snug mb-2 line-clamp-2">
+              Supply and Installation of Solar Energy Systems for Commercial Buildings
+            </h3>
+            <div class="flex items-center gap-2 text-sm text-gray-500 mb-3 flex-wrap">
+              <svg class="h-4 w-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+              <span class="font-medium truncate max-w-[140px] sm:max-w-none">Saudi Aramco Energy Solutions</span>
+              <span class="text-gray-300">·</span>
+              <span class="flex items-center gap-1">
+                <svg class="h-3 w-3 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                Riyadh
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-[#FE3C01] font-medium">Energy & Utilities</span>
+              <span class="text-xs text-gray-400 underline underline-offset-2 group-hover:text-[#FE3C01] transition-colors">View Details</span>
+            </div>
+          </div>
+        </div>
+        <!-- Metadata row -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-gray-100 border-t border-gray-100">
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Ref. Number</p>
+            <p class="text-sm font-semibold text-gray-900 font-mono">TND-2026-0041</p>
+          </div>
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Inquiry Deadline</p>
+            <p class="text-sm font-semibold text-gray-900">25/07/2026</p>
+          </div>
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Submission Deadline</p>
+            <p class="text-sm font-semibold text-gray-900">02/08/2026</p>
+          </div>
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Document Fee</p>
+            <p class="text-sm font-semibold text-green-600">Free</p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 2 — 18 days remaining (warning) -->
+      <a href="#" class="block bg-white rounded-xl border border-gray-200 card-hover transition-all cursor-pointer overflow-hidden no-underline group">
+        <div class="flex flex-col sm:flex-row sm:items-stretch">
+          <div class="flex flex-row items-center gap-4 px-4 py-3 border-b border-gray-100 sm:flex-col sm:items-center sm:justify-center sm:px-8 sm:py-8 sm:border-b-0 sm:border-r sm:min-w-[160px]">
+            <div class="sm:hidden flex-shrink-0">
+              <svg width="56" height="56" class="-rotate-90">
+                <circle cx="28" cy="28" r="24" fill="none" stroke="#f3f4f6" stroke-width="3.5"/>
+                <circle cx="28" cy="28" r="24" fill="none" stroke="#f59e0b" stroke-width="3.5" stroke-linecap="round"
+                  stroke-dasharray="150.8" stroke-dashoffset="123.1"/>
+              </svg>
+            </div>
+            <div class="hidden sm:block">
+              <div class="relative" style="width:110px;height:110px;">
+                <svg width="110" height="110" class="-rotate-90">
+                  <circle cx="55" cy="55" r="52.5" fill="none" stroke="#f3f4f6" stroke-width="5"/>
+                  <circle cx="55" cy="55" r="52.5" fill="none" stroke="#f59e0b" stroke-width="5" stroke-linecap="round"
+                    stroke-dasharray="329.87" stroke-dashoffset="270.5"/>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-3xl font-bold leading-none text-amber-500">18</span>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs text-gray-500 sm:mt-3">18 days remaining</p>
+          </div>
+
+          <div class="flex-1 min-w-0 px-4 py-4 sm:px-6 sm:py-6 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2 text-xs text-gray-400">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <span class="font-medium">Publish Date:</span>
+                <span class="font-medium text-gray-500">01/05/2026</span>
+              </div>
+              <span class="bg-[#FE3C01] text-white text-[11px] font-medium px-2.5 py-0.5 rounded flex-shrink-0 ml-2">Direct Purchase</span>
+            </div>
+            <h3 class="tender-title text-base sm:text-lg font-bold text-gray-900 transition-colors leading-snug mb-2 line-clamp-2">
+              IT Infrastructure Upgrade and Cloud Migration Services
+            </h3>
+            <div class="flex items-center gap-2 text-sm text-gray-500 mb-3 flex-wrap">
+              <svg class="h-4 w-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+              <span class="font-medium truncate max-w-[140px] sm:max-w-none">NEOM Technology Group</span>
+              <span class="text-gray-300">·</span>
+              <span class="flex items-center gap-1">
+                <svg class="h-3 w-3 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                Tabuk
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-[#FE3C01] font-medium">Information Technology</span>
+              <span class="text-xs text-gray-400 underline underline-offset-2 group-hover:text-[#FE3C01] transition-colors">View Details</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-gray-100 border-t border-gray-100">
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Ref. Number</p>
+            <p class="text-sm font-semibold text-gray-900 font-mono">TND-2026-0038</p>
+          </div>
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Inquiry Deadline</p>
+            <p class="text-sm font-semibold text-gray-900">—</p>
+          </div>
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Submission Deadline</p>
+            <p class="text-sm font-semibold text-amber-500">09/06/2026</p>
+          </div>
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Document Fee</p>
+            <p class="text-sm font-semibold text-gray-900">1,500 <span class="text-xs">SAR</span></p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 3 — 55 days remaining -->
+      <a href="#" class="block bg-white rounded-xl border border-gray-200 card-hover transition-all cursor-pointer overflow-hidden no-underline group">
+        <div class="flex flex-col sm:flex-row sm:items-stretch">
+          <div class="flex flex-row items-center gap-4 px-4 py-3 border-b border-gray-100 sm:flex-col sm:items-center sm:justify-center sm:px-8 sm:py-8 sm:border-b-0 sm:border-r sm:min-w-[160px]">
+            <div class="sm:hidden flex-shrink-0">
+              <svg width="56" height="56" class="-rotate-90">
+                <circle cx="28" cy="28" r="24" fill="none" stroke="#f3f4f6" stroke-width="3.5"/>
+                <circle cx="28" cy="28" r="24" fill="none" stroke="#FE3C01" stroke-width="3.5" stroke-linecap="round"
+                  stroke-dasharray="150.8" stroke-dashoffset="67.8"/>
+              </svg>
+            </div>
+            <div class="hidden sm:block">
+              <div class="relative" style="width:110px;height:110px;">
+                <svg width="110" height="110" class="-rotate-90">
+                  <circle cx="55" cy="55" r="52.5" fill="none" stroke="#f3f4f6" stroke-width="5"/>
+                  <circle cx="55" cy="55" r="52.5" fill="none" stroke="#FE3C01" stroke-width="5" stroke-linecap="round"
+                    stroke-dasharray="329.87" stroke-dashoffset="148.4"/>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-3xl font-bold leading-none text-[#FE3C01]">55</span>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs text-gray-500 sm:mt-3">55 days remaining</p>
+          </div>
+
+          <div class="flex-1 min-w-0 px-4 py-4 sm:px-6 sm:py-6 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2 text-xs text-gray-400">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <span class="font-medium">Publish Date:</span>
+                <span class="font-medium text-gray-500">15/05/2026</span>
+              </div>
+              <span class="bg-[#FE3C01] text-white text-[11px] font-medium px-2.5 py-0.5 rounded flex-shrink-0 ml-2">Framework Agreement</span>
+            </div>
+            <h3 class="tender-title text-base sm:text-lg font-bold text-gray-900 transition-colors leading-snug mb-2 line-clamp-2">
+              Annual Maintenance Contract for HVAC Systems — Government Facilities
+            </h3>
+            <div class="flex items-center gap-2 text-sm text-gray-500 mb-3 flex-wrap">
+              <svg class="h-4 w-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+              <span class="font-medium truncate max-w-[140px] sm:max-w-none">Ministry of Municipal & Rural Affairs</span>
+              <span class="text-gray-300">·</span>
+              <span class="flex items-center gap-1">
+                <svg class="h-3 w-3 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                Jeddah
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-[#FE3C01] font-medium">Facilities Management</span>
+              <span class="text-xs text-gray-400 underline underline-offset-2 group-hover:text-[#FE3C01] transition-colors">View Details</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-gray-100 border-t border-gray-100">
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Ref. Number</p>
+            <p class="text-sm font-semibold text-gray-900 font-mono">TND-2026-0052</p>
+          </div>
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Inquiry Deadline</p>
+            <p class="text-sm font-semibold text-gray-900">10/07/2026</p>
+          </div>
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Submission Deadline</p>
+            <p class="text-sm font-semibold text-gray-900">16/07/2026</p>
+          </div>
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Document Fee</p>
+            <p class="text-sm font-semibold text-green-600">Free</p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 4 — expired -->
+      <a href="#" class="block bg-white rounded-xl border border-gray-200 card-hover transition-all cursor-pointer overflow-hidden no-underline group opacity-75">
+        <div class="flex flex-col sm:flex-row sm:items-stretch">
+          <div class="flex flex-row items-center gap-4 px-4 py-3 border-b border-gray-100 sm:flex-col sm:items-center sm:justify-center sm:px-8 sm:py-8 sm:border-b-0 sm:border-r sm:min-w-[160px]">
+            <div class="sm:hidden flex-shrink-0">
+              <svg width="56" height="56" class="-rotate-90">
+                <circle cx="28" cy="28" r="24" fill="none" stroke="#f3f4f6" stroke-width="3.5"/>
+                <circle cx="28" cy="28" r="24" fill="none" stroke="#9ca3af" stroke-width="3.5" stroke-linecap="round"
+                  stroke-dasharray="150.8" stroke-dashoffset="150.8"/>
+              </svg>
+            </div>
+            <div class="hidden sm:block">
+              <div class="relative" style="width:110px;height:110px;">
+                <svg width="110" height="110" class="-rotate-90">
+                  <circle cx="55" cy="55" r="52.5" fill="none" stroke="#f3f4f6" stroke-width="5"/>
+                  <circle cx="55" cy="55" r="52.5" fill="none" stroke="#9ca3af" stroke-width="5" stroke-linecap="round"
+                    stroke-dasharray="329.87" stroke-dashoffset="329.87"/>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-3xl font-bold leading-none text-gray-400">0</span>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs text-red-500 sm:mt-3">Deadline Passed</p>
+          </div>
+
+          <div class="flex-1 min-w-0 px-4 py-4 sm:px-6 sm:py-6 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2 text-xs text-gray-400">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <span class="font-medium">Publish Date:</span>
+                <span class="font-medium text-gray-500">01/03/2026</span>
+              </div>
+              <span class="bg-[#FE3C01] text-white text-[11px] font-medium px-2.5 py-0.5 rounded flex-shrink-0 ml-2">Open Tender</span>
+            </div>
+            <h3 class="tender-title text-base sm:text-lg font-bold text-gray-900 transition-colors leading-snug mb-2 line-clamp-2">
+              Landscaping and Outdoor Area Development for Residential Complex
+            </h3>
+            <div class="flex items-center gap-2 text-sm text-gray-500 mb-3 flex-wrap">
+              <svg class="h-4 w-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+              <span class="font-medium truncate max-w-[140px] sm:max-w-none">Dar Al Arkan Development</span>
+              <span class="text-gray-300">·</span>
+              <span class="flex items-center gap-1">
+                <svg class="h-3 w-3 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                Dammam
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-[#FE3C01] font-medium">Landscaping & Horticulture</span>
+              <span class="text-xs text-gray-400 underline underline-offset-2 group-hover:text-[#FE3C01] transition-colors">View Details</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-gray-100 border-t border-gray-100">
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Ref. Number</p>
+            <p class="text-sm font-semibold text-gray-900 font-mono">TND-2026-0019</p>
+          </div>
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Inquiry Deadline</p>
+            <p class="text-sm font-semibold text-gray-900">—</p>
+          </div>
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Submission Deadline</p>
+            <p class="text-sm font-semibold text-red-500">15/05/2026</p>
+          </div>
+          <div class="bg-white px-5 py-4 text-center">
+            <p class="text-[11px] text-gray-400 mb-1">Document Fee</p>
+            <p class="text-sm font-semibold text-gray-900">500 <span class="text-xs">SAR</span></p>
+          </div>
+        </div>
+      </a>
+
+    </div><!-- /cards -->
+
+    <!-- ─── PAGINATION ─── -->
+    <div class="flex items-center justify-center mt-10 gap-2">
+      <button disabled class="h-9 w-9 flex items-center justify-center border border-gray-200 rounded-lg bg-white text-gray-400 cursor-not-allowed">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <button class="h-9 w-9 flex items-center justify-center text-sm font-medium rounded-lg bg-[#FE3C01] text-white">1</button>
+      <button class="h-9 w-9 flex items-center justify-center text-sm text-gray-500 rounded-lg hover:bg-gray-100">2</button>
+      <button class="h-9 w-9 flex items-center justify-center text-sm text-gray-500 rounded-lg hover:bg-gray-100">3</button>
+      <button class="h-9 w-9 flex items-center justify-center text-sm text-gray-500 rounded-lg hover:bg-gray-100">4</button>
+      <button class="h-9 w-9 flex items-center justify-center border border-gray-200 rounded-lg bg-white text-gray-600 hover:border-gray-400">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+
+  </main>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="bg-white border-t border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <svg width="20" height="20" viewBox="0 0 32 32" fill="none" class="opacity-40">
+            <rect width="32" height="32" rx="8" fill="#FE3C01"/>
+            <path d="M8 24V8h8a6 6 0 0 1 0 12H8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="22" cy="20" r="3" fill="white"/>
+          </svg>
+          <span class="text-sm text-gray-400">© 2026 Bid. All rights reserved.</span>
+        </div>
+        <div class="flex items-center gap-6 text-sm text-gray-400">
+          <a href="#" class="hover:text-gray-600 transition-colors">Home</a>
+          <a href="#" class="hover:text-gray-600 transition-colors">Marketplace</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

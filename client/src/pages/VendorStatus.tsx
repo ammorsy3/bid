@@ -97,7 +97,7 @@ export default function VendorStatus() {
         </div>
 
         <Card className={`mb-6 border-2 ${statusInfo.borderColor} ${statusInfo.bgColor}`}>
-          <CardContent className="p-8">
+          <CardContent className="p-5 md:p-8">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
               <div className="flex-shrink-0">
                 {statusInfo.icon}

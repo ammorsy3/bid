@@ -247,13 +247,13 @@ export default function VerifyEmail() {
     <div className="min-h-screen flex items-center justify-center bg-muted p-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
-          <BidLogo size={40} />
+          <BidLogo variant="orange" size={40} />
         </div>
         <div className="text-center mb-8">
           <div className="mx-auto w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mb-6">
             <Mail className="w-8 h-8 text-primary-600" />
           </div>
-          <h1 className="font-display font-black text-3xl text-foreground mb-2 tracking-[-0.04em]">{t('onboardingPanel.checkYourEmail')}</h1>
+          <h1 className="font-display font-black text-2xl sm:text-3xl text-foreground mb-2 tracking-[-0.04em]">{t('onboardingPanel.checkYourEmail')}</h1>
           <p className="text-muted-foreground">
             {t('onboardingPanel.sentCodeTo')}{" "}
             <span className="font-medium text-muted-foreground">{user.email}</span>
@@ -285,7 +285,7 @@ export default function VerifyEmail() {
                   value={digit}
                   onChange={(e) => handleInput(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 text-center text-xl font-bold rounded-xl border-2 focus:border-primary-500 focus:ring-primary-500"
+                  className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-xl border-2 focus:border-primary-500 focus:ring-primary-500"
                   disabled={loading}
                   autoFocus={index === 0}
                 />

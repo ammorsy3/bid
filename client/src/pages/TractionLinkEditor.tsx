@@ -338,7 +338,7 @@ export default function TractionLinkEditor() {
   ];
 
   return (
-    <div className="h-screen flex flex-col bg-card overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen md:h-screen flex flex-col bg-card md:overflow-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
 
       {/* ══════════════════════ TOP BAR ══════════════════════ */}
       <div className="h-14 border-b border-border flex items-center justify-between px-4 flex-shrink-0 bg-card z-20">
@@ -399,7 +399,7 @@ export default function TractionLinkEditor() {
       </div>
 
       {/* ══════════════════════ MAIN: EDITOR + PREVIEW ══════════════════════ */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex flex-col md:flex-row md:flex-1 md:overflow-hidden">
 
         {/* ── LEFT: Editor Panel ── */}
         <ScrollArea className="w-full md:w-[340px] flex-shrink-0 border-r border-border bg-muted">
@@ -449,7 +449,7 @@ export default function TractionLinkEditor() {
                 <Paintbrush className="h-4 w-4 text-gray-400" />
                 <h3 className="text-sm font-semibold text-foreground">{t('tractionPage.editorBackground')}</h3>
               </div>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {bgStyles.map((bg) => (
                   <button
                     key={bg.id}
@@ -788,7 +788,7 @@ function BidTraction_open(e){
         </ScrollArea>
 
         {/* ── RIGHT: Live Preview ── */}
-        <div className="flex-1 bg-[#e8e8e8] flex items-start justify-center p-6 overflow-auto">
+        <div className="min-h-[400px] md:flex-1 bg-[#e8e8e8] flex items-start justify-center p-6 md:overflow-auto">
           <div
             className={`bg-card rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${
               previewMode === 'mobile' ? 'w-[390px]' : 'w-full max-w-[1024px]'

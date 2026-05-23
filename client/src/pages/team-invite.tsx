@@ -152,7 +152,7 @@ export default function TeamInvite() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-muted p-4">
       <div className="mb-8">
-        <BidLogo size={40} />
+        <BidLogo variant="orange" size={40} />
       </div>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">

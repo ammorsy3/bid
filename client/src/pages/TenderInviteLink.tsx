@@ -234,7 +234,7 @@ function MobileAtAGlance({
   getBudgetDisplay: () => string;
   durationDisplay: string;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const { t } = useI18n();
   const localSubmissionTypeLabels: Record<string, string> = {
     quote_only: t('tenderFlow.inviteSubmissionQuoteOnly'),
@@ -464,7 +464,7 @@ export default function TenderInviteLink() {
   if (!tenderId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
-        <div className="max-w-md w-full bg-card rounded-2xl border border-border p-8 text-center">
+        <div className="max-w-md w-full bg-card rounded-2xl border border-border p-5 sm:p-8 text-center">
           <h2 className="text-xl font-bold text-red-600 mb-2">{t('tenderFlow.invalidLink')}</h2>
           <p className="text-sm text-muted-foreground mb-4">{t('tenderFlow.noTenderId')}</p>
           <Button onClick={() => navigate("/")} className="w-full">{t('tenderFlow.goToHome')}</Button>
@@ -482,7 +482,7 @@ export default function TenderInviteLink() {
             <div className="flex items-center gap-3">
               <Skeleton className="h-4 w-16" />
               <div className="h-5 w-px bg-gray-200 hidden sm:block" />
-              <BidLogo size={36} className="opacity-80" />
+              <BidLogo variant="orange" size={36} className="opacity-80" />
             </div>
             <div className="flex items-center gap-3">
               <Skeleton className="h-8 w-20 rounded-lg hidden sm:block" />
@@ -554,7 +554,7 @@ export default function TenderInviteLink() {
   if (error || !tender) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
-        <div className="max-w-md w-full bg-card rounded-2xl border border-border p-8 text-center">
+        <div className="max-w-md w-full bg-card rounded-2xl border border-border p-5 sm:p-8 text-center">
           <h2 className="text-xl font-bold text-red-600 mb-2">{t('tenderFlow.tenderNotFound')}</h2>
           <p className="text-sm text-muted-foreground mb-4">{(error as any)?.message || t('tenderFlow.tenderNotFoundDesc')}</p>
           <Button onClick={() => navigate("/")} className="w-full">{t('tenderFlow.goToHome')}</Button>
@@ -815,13 +815,13 @@ export default function TenderInviteLink() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => window.history.length > 1 ? window.history.back() : navigate("/marketplace")}
-              className="flex items-center gap-1.5 text-sm text-[#FE3C01] hover:text-[#E83501] transition-colors"
+              className="max-lg:hidden flex items-center gap-1.5 text-sm text-[#FE3C01] hover:text-[#E83501] transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">{t('common.back')}</span>
             </button>
-            <div className="h-5 w-px bg-gray-200 hidden sm:block" />
-            <BidLogo size={36} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/")} />
+            <div className="h-5 w-px bg-gray-200 hidden lg:block" />
+            <BidLogo variant="orange" size={36} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/")} />
           </div>
           <div className="flex items-center gap-3">
             {/* Language toggle for vendors (only if allowed) */}
@@ -909,9 +909,9 @@ export default function TenderInviteLink() {
           <h1 className="font-display font-black text-2xl sm:text-3xl text-foreground leading-[0.95] mb-2 tracking-[-0.04em]" data-testid="text-tender-title">
             {tx('title', tender.title)}
           </h1>
-          <div className="flex items-center gap-3 text-gray-400 text-sm mb-5">
+          <div className="flex items-center gap-3 max-sm:flex-wrap max-sm:gap-y-1 text-gray-400 text-sm mb-5">
             {tender.createdAt && <span>{t('tenderFlow.publishedOn')} <span className="font-mono">{formatDate(tender.createdAt)}</span></span>}
-            <span>·</span>
+            <span className="max-sm:hidden">·</span>
             <span className="font-mono text-xs">RFP-{tenderId?.slice(0, 8).toUpperCase()}</span>
           </div>
 
@@ -941,23 +941,25 @@ export default function TenderInviteLink() {
 
               {/* Table of Contents */}
               <div className="bg-card rounded-xl border border-border shadow-sm mb-6 overflow-hidden">
-                <div className="flex">
+                <div className="flex max-sm:overflow-x-auto max-sm:bg-muted max-sm:[scrollbar-width:none] max-sm:[&::-webkit-scrollbar]:hidden">
                   {sections.map((section, idx) => {
                     const Icon = section.icon;
                     const isActive = activeSection === section.id;
+                    const isLast = idx === sections.length - 1;
                     return (
                       <button
                         key={section.id}
                         onClick={() => scrollToSection(section.id)}
-                        className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-3 text-sm font-medium transition-all ${
+                        className={`flex-1 max-sm:flex-col max-sm:min-w-0 inline-flex items-center justify-center gap-1.5 max-sm:gap-0.5 px-3 max-sm:px-1.5 py-3 max-sm:py-2.5 text-sm font-medium transition-all ${
                           isActive
                             ? 'bg-[#FE3C01] text-white'
-                            : 'bg-muted border-r border-border text-muted-foreground hover:bg-card hover:shadow-sm hover:text-foreground'
-                        } ${idx === sections.length - 1 ? '' : isActive ? '' : ''}`}
+                            : `bg-muted text-muted-foreground hover:bg-card hover:shadow-sm hover:text-foreground ${isLast ? '' : 'border-r border-border'}`
+                        }`}
                       >
-                        <span className={`text-xs font-mono ${isActive ? 'text-white/70' : 'text-gray-300'}`}>{idx + 1}</span>
-                        <Icon className="h-3.5 w-3.5" />
+                        <span className={`text-xs font-mono hidden sm:inline ${isActive ? 'text-white/70' : 'text-gray-300'}`}>{idx + 1}</span>
+                        <Icon className="h-3.5 w-3.5 flex-shrink-0" />
                         <span className="hidden sm:inline">{section.label}</span>
+                        <span className="sm:hidden text-[9px] text-center leading-tight whitespace-normal max-w-[60px]">{section.label}</span>
                       </button>
                     );
                   })}
@@ -1871,7 +1873,7 @@ export default function TenderInviteLink() {
       <div className="lg:hidden h-24" />
 
       {/* Mobile bottom CTA */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t px-4 pt-2 pb-4 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t px-4 pt-2 pb-4 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}>
         <div className="flex items-center justify-center gap-1.5 mb-2">
           <Calendar className={`h-3 w-3 ${isDeadlinePassed ? 'text-red-500' : isDeadlineToday ? 'text-orange-500' : 'text-gray-400'}`} />
           <span className={`text-xs font-medium ${isDeadlinePassed ? 'text-red-600' : isDeadlineToday ? 'text-orange-600' : 'text-muted-foreground'}`}>
@@ -1935,9 +1937,11 @@ function SectionObserver({ id, onVisible, children }: { id: string; onVisible: (
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const isMobile = window.innerWidth < 1024;
+    const rootMargin = isMobile ? '-10% 0px -40% 0px' : '-15% 0px -65% 0px';
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) onVisible(); },
-      { rootMargin: '-15% 0px -65% 0px', threshold: 0 }
+      { rootMargin, threshold: 0 }
     );
     observer.observe(el);
     return () => observer.disconnect();

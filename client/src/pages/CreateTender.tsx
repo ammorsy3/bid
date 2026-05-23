@@ -259,7 +259,7 @@ export default function CreateTender() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
+            <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
             <Button 
               onClick={() => navigate('/dashboard')}
               className="group relative overflow-hidden"
@@ -346,7 +346,7 @@ export default function CreateTender() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
+            <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
             <Button 
               onClick={handleBackToEdit}
               className="group relative overflow-hidden"
@@ -491,13 +491,13 @@ export default function CreateTender() {
         <div className="relative z-10 max-w-md">
           <div className="text-center space-y-8">
             <div className="flex justify-center">
-              <BidLogo size={120} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
+              <BidLogo variant="orange" size={120} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
             </div>
             
             <AnimatedCircle />
 
             <div className="space-y-3">
-              <h1 className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.04em]">
+              <h1 className="font-display font-black text-2xl sm:text-4xl text-gray-900 dark:text-foreground tracking-[-0.04em]">
                 Welcome, {user?.name?.split(' ')[0]}!
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400">
@@ -544,7 +544,7 @@ export default function CreateTender() {
       <div className="py-8 px-4">
         <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
+          <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')} />
           <Button 
             onClick={() => setShowForm(false)}
             className="group relative overflow-hidden"

@@ -56,17 +56,23 @@ export const users = pgTable("users", {
 // Companies - Central entity for all business operations
 export const companies = pgTable("companies", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  
+
   // Basic Info
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(), // For URLs and lookups
-  
+
+  // Account Type — discriminator for workspace kind
+  // 'company' (default) | 'team' | 'individual'
+  accountType: text("account_type").notNull().default("company"),
+
   // Legal & Compliance (Private - for admin review)
   // Nullable so users can sign up with just name+category and provide
   // verification info later via PATCH /api/companies/:id/verify-info.
   legalName: text("legal_name"),
   crNumber: text("cr_number").unique(),
   vatNumber: text("vat_number").unique(),
+  // National ID — required for individual accounts and team admins (10-digit)
+  nationalIdNumber: text("national_id_number").unique(),
   city: text("city"),
   category: text("category"),
   certifications: jsonb("certifications").$type<string[]>().default([]),
@@ -76,16 +82,19 @@ export const companies = pgTable("companies", {
     nationalAddressCertificate?: string;
     [key: string]: string | undefined;
   }>(),
-  
+
   // Status & State
   verificationStatus: text("verification_status").notNull().default("not_verified"), // 'not_verified', 'under_review', 'verified', 'rejected'
   verifiedAt: timestamp("verified_at"),
   onboardingState: text("onboarding_state").notNull().default("draft"), // 'draft', 'completed'
   rejectionReason: text("rejection_reason"),
-  
+
+  // Owner — sole user for individual accounts, creator admin for teams
+  ownerUserId: varchar("owner_user_id").references(() => users.id),
+
   // Soft Delete
   deletedAt: timestamp("deleted_at"),
-  
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -187,7 +196,7 @@ export const companyProfiles = pgTable("company_profiles", {
 export const companyDocuments = pgTable("company_documents", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   companyId: varchar("company_id").notNull().references(() => companies.id),
-  documentType: text("document_type").notNull(), // 'cr_certificate' | 'vat_certificate' | 'gosi_certificate' | 'national_address_certificate' | 'other'
+  documentType: text("document_type").notNull(), // 'cr_certificate' | 'vat_certificate' | 'gosi_certificate' | 'national_address_certificate' | 'national_id_card' | 'other'
   fileUrl: text("file_url").notNull(),            // /objects/uploads/{uuid} path
   originalName: text("original_name"),            // display file name
   label: text("label"),                           // custom label for 'other' type
@@ -311,6 +320,10 @@ export const tenders = pgTable("tenders", {
   // Cached RFP requirements extracted by AI — English and Arabic versions
   rfpRequirements: jsonb("rfp_requirements").$type<string[]>(),
   rfpRequirementsAr: jsonb("rfp_requirements_ar").$type<string[]>(),
+
+  // Audience Targeting — which account types can respond to this RFP
+  // Values: 'company' | 'team' | 'individual' (multi-select)
+  targetAudienceTypes: text("target_audience_types").array().default(sql`'{company}'::text[]`),
 
   // Invitation & Access
   invitationToken: varchar("invitation_token").notNull().unique(),
@@ -1072,6 +1085,10 @@ export const tenderTemplatesRelations = relations(tenderTemplates, ({ one }) => 
 // VALIDATION SCHEMAS
 // ============================================================================
 
+// Account type discriminator
+export const ACCOUNT_TYPES = ["company", "team", "individual"] as const;
+export type AccountType = typeof ACCOUNT_TYPES[number];
+
 // Fixed category options
 export const VENDOR_CATEGORIES = [
   "Construction & Infrastructure",
@@ -1124,15 +1141,18 @@ export const createCompanySchema = insertCompanySchema.omit({
   onboardingState: true,
   rejectionReason: true,
   verifiedAt: true,
+  ownerUserId: true,
 }).extend({
   name: z.string().min(2, "Company name is required"),
+  accountType: z.enum(ACCOUNT_TYPES).optional().default("company"),
   legalName: z.string().min(2).optional(),
   crNumber: z.string().regex(/^\d{10}$/, "CR number must be exactly 10 digits").optional(),
   vatNumber: z.string().optional(),
+  nationalIdNumber: z.string().regex(/^\d{10}$/, "National ID must be exactly 10 digits").optional(),
   city: z.string().optional(),
   category: z.enum(VENDOR_CATEGORIES, {
     errorMap: () => ({ message: "Please select a valid category" })
-  }),
+  }).optional(),
 });
 
 // Submitted when a workspace completes verification.

@@ -230,7 +230,7 @@ export default function InviteTeam() {
                       onValueChange={(value) => updateInvitation(index, 'role', value)}
                       disabled={loading}
                     >
-                      <SelectTrigger className="w-32">
+                      <SelectTrigger className="w-24 sm:w-32">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>

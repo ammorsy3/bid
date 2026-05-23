@@ -47,6 +47,7 @@ interface Company {
   id: string;
   name: string;
   slug: string;
+  accountType: 'company' | 'team' | 'individual';
   verificationStatus: string;
   onboardingState: string;
   rejectionReason: string | null;

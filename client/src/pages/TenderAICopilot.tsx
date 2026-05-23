@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useLocation, useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -38,6 +39,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { usePageTour } from "@/lib/tour";
 import { AI_COPILOT_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
@@ -485,6 +487,7 @@ export default function TenderAICopilot() {
     autoStart: !!user,
     autoStartDelay: 1500,
   });
+  const isMobile = useIsMobile();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -924,6 +927,21 @@ export default function TenderAICopilot() {
     }
   };
 
+  // If the user arrived from the landing page "Create with AI" flow, grab their
+  // brief and fire it as the first message automatically.
+  const autoSentRef = useRef(false);
+  const sendMessageRef = useRef(sendMessage);
+  sendMessageRef.current = sendMessage;
+  useEffect(() => {
+    if (autoSentRef.current || sessionParam) return;
+    const draft = sessionStorage.getItem("bid_brief_draft");
+    if (!draft) return;
+    sessionStorage.removeItem("bid_brief_draft");
+    autoSentRef.current = true;
+    sendMessageRef.current(draft);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionParam]);
+
   const handleSuggestionClick = (suggestion: string) => {
     sendMessage(suggestion);
   };
@@ -1068,7 +1086,7 @@ export default function TenderAICopilot() {
 
   return (
     <>
-    <div className="h-screen flex flex-col bg-background relative overflow-hidden">
+    <div className="min-h-screen md:h-screen flex flex-col bg-background relative md:overflow-hidden">
       {/* Off-screen live region announces orb/status changes for screen readers */}
       <div
         role="status"
@@ -1093,7 +1111,7 @@ export default function TenderAICopilot() {
       {/* Header */}
       <header className="h-14 border-b border-border/50 px-4 flex items-center justify-between shrink-0 bg-background/80 backdrop-blur-xl relative z-50">
         <div className="flex items-center gap-3">
-          <BidLogo size={32} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
+          <BidLogo variant="orange" size={32} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
           <div className="h-5 w-px bg-gray-200 dark:bg-gray-700" />
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-[var(--state-live)] bid-dot-pulse" />
@@ -1155,7 +1173,7 @@ export default function TenderAICopilot() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden relative z-10">
+      <div className="flex flex-col md:flex-row md:flex-1 md:overflow-hidden relative z-10">
         {/* Left Panel - Chat & Orb */}
         <div className="flex-1 flex flex-col bg-transparent">
           <ScrollArea className="flex-1">
@@ -1520,7 +1538,7 @@ export default function TenderAICopilot() {
               animate={{ width: 480, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="border-l border-border/50 dark:border-border/50 bg-gray-50 dark:bg-background overflow-hidden"
+              className="hidden md:block border-l border-border/50 dark:border-border/50 bg-gray-50 dark:bg-background overflow-hidden"
             >
               <div className="w-[480px] h-full overflow-y-auto">
                 {hasPreviewContent ? (
@@ -1560,6 +1578,37 @@ export default function TenderAICopilot() {
         </AnimatePresence>
       </div>
     </div>
+    {/* Mobile preview Sheet — shown instead of the side panel on small screens */}
+    <Sheet open={isMobile && showPreview && (hasPreviewContent || messages.length > 0)} onOpenChange={(open) => !open && setShowPreview(false)}>
+      <SheetContent side="bottom" className="md:hidden h-[85vh] overflow-y-auto rounded-t-2xl px-4 pb-8">
+        <SheetHeader className="mb-4">
+          <SheetTitle className="text-left text-sm font-semibold">{t('copilot.previewTitle') || 'Tender Preview'}</SheetTitle>
+        </SheetHeader>
+        {hasPreviewContent ? (
+          <div className="space-y-4">
+            <TenderBriefCards
+              tender={mappedPreview}
+              companyName={companyData.name}
+              companyCity={companyData.city}
+            />
+            <AttachmentsPanel
+              draft={tenderDraft}
+              onChange={(patch) => setTenderDraft((prev) => mergeDraft(prev, patch))}
+            />
+            <MissingFieldsAlert mapped={mappedPreview} />
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-card flex items-center justify-center mb-4">
+              <FileText className="h-8 w-8 text-gray-400" />
+            </div>
+            <h4 className="text-sm font-medium text-foreground mb-1">{t('copilot.noPreviewYet')}</h4>
+            <p className="text-xs text-muted-foreground max-w-[200px]">{t('copilot.noPreviewDesc')}</p>
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
+
     <AlertDialog open={confirmReset} onOpenChange={setConfirmReset}>
       <AlertDialogContent>
         <AlertDialogHeader>

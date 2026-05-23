@@ -1,14 +1,14 @@
 # Getting started
 
-Build an integration with BidCore in under 15 minutes.
+Build an integration with Bid in under 15 minutes.
 
 ## What you'll have at the end
 
-A working pipeline where a user sends a message to your tool of choice (n8n, Make.com, a custom chatbot, Claude Desktop, Cursor) and, after a short back-and-forth with the Copilot agent, receives a real tender URL — without ever opening the BidCore app.
+A working pipeline where a user sends a message to your tool of choice (n8n, Make.com, a custom chatbot, Claude Desktop, Cursor) and, after a short back-and-forth with the Copilot agent, receives a real tender URL — without ever opening the Bid app.
 
 ## 1. Create an account and verify your company
 
-1. Sign up at [bidcore.app/signup](https://bidcore.app/signup).
+1. Sign up at [bidapp.sa/signup](https://bidapp.sa/signup).
 2. Complete company onboarding (legal name, CR, VAT).
 3. Upload verification documents. You can't publish tenders until your company is `verified`, and the same gate applies to tenders created via the API.
 

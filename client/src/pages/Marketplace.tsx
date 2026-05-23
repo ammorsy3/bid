@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Search, FileText, MapPin, ChevronLeft, ChevronRight, Loader2, ChevronDown, Building2, Users, ArrowRight, Calendar } from "lucide-react";
+import { Search, FileText, MapPin, ChevronLeft, ChevronRight, Loader2, ChevronDown, Building2, Users, ArrowRight, Calendar, SlidersHorizontal, X } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useI18n } from "@/lib/i18n";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VENDOR_CATEGORIES } from "@shared/schema";
@@ -31,6 +32,7 @@ interface MarketplaceTender {
   tenderType: string | null;
   inquiryDeadline: string | null;
   scope: string | null;
+  targetAudienceTypes: string[] | null;
   company: {
     id: string;
     name: string;
@@ -95,7 +97,10 @@ export default function Marketplace() {
   const [page, setPage] = useState(1);
   const perPage = 9;
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const activeFilterCount = [category, city, tenderType, sort !== "newest" ? sort : ""].filter(Boolean).length;
 
   const closeDropdown = useCallback(() => setShowCategoryDropdown(false), []);
 
@@ -144,7 +149,7 @@ export default function Marketplace() {
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-8">
               <Link href={marketplaceHome} className="flex items-center gap-2">
-                <BidLogo size={28} />
+                <BidLogo variant="orange" size={28} />
               </Link>
               <nav className="hidden sm:flex items-center gap-6 text-sm font-medium">
                 <Link href={marketplaceHome}>
@@ -248,7 +253,158 @@ export default function Marketplace() {
           {t('marketplace.latestOpportunities')}
         </h2>
 
-        <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+        {/* Mobile filter bar — search + filter button */}
+        <div className="flex sm:hidden items-center gap-2 mb-4">
+          <div className="relative flex-1">
+            <Search className={`absolute top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 ${isRtl ? 'right-3' : 'left-3'}`} />
+            <Input
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder={t('marketplace.searchPlaceholder')}
+              className={`w-full h-10 text-sm bg-card border-border rounded-lg ${isRtl ? 'pr-10' : 'pl-10'}`}
+            />
+          </div>
+          <button
+            onClick={() => setMobileFilterOpen(true)}
+            className="relative flex items-center gap-2 h-10 px-3 border border-border rounded-lg bg-card text-sm font-medium flex-shrink-0 hover:border-gray-400 transition-colors"
+          >
+            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+            <span>{t('marketplace.category') === 'Category' ? 'Filters' : 'تصفية'}</span>
+            {activeFilterCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-[#FE3C01] text-white text-[10px] font-bold flex items-center justify-center">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Mobile active filter chips */}
+        {activeFilterCount > 0 && (
+          <div className="flex sm:hidden items-center gap-2 mb-4 flex-wrap">
+            {category && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FE3C01]/10 text-[#FE3C01] text-xs font-medium">
+                {category}
+                <button onClick={() => { setCategory(""); setPage(1); }}><X className="h-3 w-3" /></button>
+              </span>
+            )}
+            {tenderType && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FE3C01]/10 text-[#FE3C01] text-xs font-medium">
+                {tenderType.replace(/_/g, ' ')}
+                <button onClick={() => { setTenderType(""); setPage(1); }}><X className="h-3 w-3" /></button>
+              </span>
+            )}
+            {city && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FE3C01]/10 text-[#FE3C01] text-xs font-medium">
+                {city}
+                <button onClick={() => { setCity(""); setPage(1); }}><X className="h-3 w-3" /></button>
+              </span>
+            )}
+            {sort !== "newest" && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FE3C01]/10 text-[#FE3C01] text-xs font-medium">
+                {sort === "deadline_asc" ? t('marketplace.sortDeadline') : t('marketplace.sortBudget')}
+                <button onClick={() => { setSort("newest"); setPage(1); }}><X className="h-3 w-3" /></button>
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Mobile filter sheet */}
+        <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
+          <SheetContent side="bottom" className="rounded-t-2xl px-5 pt-5 pb-8 max-h-[85vh] overflow-y-auto">
+            <SheetHeader className="mb-5">
+              <div className="flex items-center justify-between">
+                <SheetTitle className="text-lg font-bold">
+                  {t('marketplace.category') === 'Category' ? 'Filters' : 'تصفية'}
+                </SheetTitle>
+                {activeFilterCount > 0 && (
+                  <button
+                    onClick={() => { setCategory(""); setTenderType(""); setCity(""); setSort("newest"); setPage(1); }}
+                    className="text-xs text-[#FE3C01] font-medium"
+                  >
+                    {t('marketplace.category') === 'Category' ? 'Clear all' : 'مسح الكل'}
+                  </button>
+                )}
+              </div>
+            </SheetHeader>
+
+            <div className="space-y-5">
+              <div>
+                <p className="text-sm font-semibold mb-2 text-foreground">{t('marketplace.category')}</p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => { setCategory(""); setPage(1); }}
+                    className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${!category ? 'bg-[#FE3C01] text-white border-[#FE3C01]' : 'border-border text-muted-foreground bg-card'}`}
+                  >
+                    {t('marketplace.allCategories')}
+                  </button>
+                  {VENDOR_CATEGORIES.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => { setCategory(cat); setPage(1); }}
+                      className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${category === cat ? 'bg-[#FE3C01] text-white border-[#FE3C01]' : 'border-border text-muted-foreground bg-card'}`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold mb-2 text-foreground">{t('marketplace.allTypes')}</p>
+                <Select value={tenderType || "all"} onValueChange={(v) => { setTenderType(v === "all" ? "" : v); setPage(1); }}>
+                  <SelectTrigger className="w-full h-10 text-sm bg-card border-border">
+                    <SelectValue placeholder={t('marketplace.allTypes')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('marketplace.allTypes')}</SelectItem>
+                    <SelectItem value="open_tender">{t('marketplace.openTender')}</SelectItem>
+                    <SelectItem value="direct_purchase">{t('marketplace.directPurchase')}</SelectItem>
+                    <SelectItem value="framework_agreement">{t('marketplace.frameworkAgreement')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold mb-2 text-foreground">{t('marketplace.city')}</p>
+                <Select value={city || "all"} onValueChange={(v) => { setCity(v === "all" ? "" : v); setPage(1); }}>
+                  <SelectTrigger className="w-full h-10 text-sm bg-card border-border">
+                    <SelectValue placeholder={t('marketplace.allCities')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('marketplace.allCities')}</SelectItem>
+                    {SAUDI_CITIES.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold mb-2 text-foreground">{t('marketplace.sortBy')}</p>
+                <Select value={sort} onValueChange={(v) => { setSort(v); setPage(1); }}>
+                  <SelectTrigger className="w-full h-10 text-sm bg-card border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">{t('marketplace.sortNewest')}</SelectItem>
+                    <SelectItem value="deadline_asc">{t('marketplace.sortDeadline')}</SelectItem>
+                    <SelectItem value="budget_desc">{t('marketplace.sortBudget')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                onClick={() => setMobileFilterOpen(false)}
+                className="w-full bg-[#FE3C01] hover:bg-[#E83501] text-white h-11 rounded-xl font-semibold"
+              >
+                {t('marketplace.category') === 'Category' ? 'Show Results' : 'عرض النتائج'}
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Desktop filter bar — hidden on mobile */}
+        <div className="hidden sm:flex items-center justify-between mb-6 gap-4 flex-wrap">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="relative" ref={dropdownRef}>
               <button
@@ -390,42 +546,49 @@ export default function Marketplace() {
                   onClick={(e) => { e.preventDefault(); setLocation(user ? `/invite/${tender.invitationToken}` : '/login'); }}
                 >
                   {/* Main content area */}
-                  <div className="flex items-stretch">
-                    {/* Left: Circle progress */}
-                    <div className="flex flex-col items-center justify-center px-8 py-8 border-e border-border min-w-[160px]">
-                      <CircleProgress percent={percent} days={days} expired={expired} size={110} />
-                      <p className={`text-xs mt-3 ${expired ? 'text-red-500' : 'text-muted-foreground'}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-stretch">
+                    {/* Countdown — top strip on mobile, left column on desktop */}
+                    <div className="flex flex-row items-center gap-4 px-4 py-3 border-b border-border sm:flex-col sm:items-center sm:justify-center sm:px-8 sm:py-8 sm:border-b-0 sm:border-e sm:min-w-[160px]">
+                      {/* Small circle for mobile */}
+                      <div className="sm:hidden flex-shrink-0">
+                        <CircleProgress percent={percent} days={days} expired={expired} size={56} />
+                      </div>
+                      {/* Large circle for desktop */}
+                      <div className="hidden sm:block">
+                        <CircleProgress percent={percent} days={days} expired={expired} size={110} />
+                      </div>
+                      <p className={`text-xs sm:mt-3 ${expired ? 'text-red-500' : 'text-muted-foreground'}`}>
                         {expired ? t('marketplace.deadlinePassed') : `${days} ${t('marketplace.daysRemaining')}`}
                       </p>
                     </div>
 
-                    {/* Right: Tender info */}
-                    <div className="flex-1 min-w-0 px-6 py-6 flex flex-col justify-between">
+                    {/* Tender info */}
+                    <div className="flex-1 min-w-0 px-4 py-4 sm:px-6 sm:py-6 flex flex-col justify-between">
                       {/* Top row: publish date + badge */}
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Calendar className="h-3.5 w-3.5" />
-                          <span>{t('marketplace.publishDate')}:</span>
+                          <span className="hidden xs:inline">{t('marketplace.publishDate')}:</span>
                           <span className="font-medium text-muted-foreground">{formatDate(tender.createdAt)}</span>
                         </div>
-                        <Badge className="bg-[#FE3C01] text-white border-0 text-[11px] font-medium px-2.5 py-0.5 rounded">
+                        <Badge className="bg-[#FE3C01] text-white border-0 text-[11px] font-medium px-2.5 py-0.5 rounded flex-shrink-0 ml-2">
                           {tenderTypeLabel}
                         </Badge>
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-lg font-bold text-foreground group-hover:text-[#FE3C01] transition-colors leading-snug mb-2 line-clamp-2">
+                      <h3 className="text-base sm:text-lg font-bold text-foreground group-hover:text-[#FE3C01] transition-colors leading-snug mb-2 line-clamp-2">
                         {tender.title}
                       </h3>
 
                       {/* Company info */}
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 flex-wrap">
                         {tender.profile?.logoUrl && tender.profile.logoUrl.includes('/company-logos/') ? (
                           <img src={tender.profile.logoUrl} alt="" className="h-5 w-5 rounded-full object-cover border border-border flex-shrink-0" />
                         ) : (
                           <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
                         )}
-                        <span className="font-medium">{tender.profile?.displayName || tender.company.name}</span>
+                        <span className="font-medium truncate max-w-[140px] sm:max-w-none">{tender.profile?.displayName || tender.company.name}</span>
                         {tender.company.city && (
                           <>
                             <span className="text-gray-300">·</span>
@@ -436,6 +599,20 @@ export default function Marketplace() {
                           </>
                         )}
                       </div>
+
+                      {/* Audience badges */}
+                      {tender.targetAudienceTypes && tender.targetAudienceTypes.length > 0 && (
+                        <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                          {tender.targetAudienceTypes.map((type) => (
+                            <span
+                              key={type}
+                              className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border border-border text-muted-foreground bg-muted"
+                            >
+                              {type === 'company' ? 'Companies' : type === 'team' ? 'Teams' : 'Individuals'}
+                            </span>
+                          ))}
+                        </div>
+                      )}
 
                       {/* Category + details link */}
                       <div className="flex items-center justify-between">
@@ -522,7 +699,7 @@ export default function Marketplace() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <BidLogo size={20} className="opacity-60" />
+              <BidLogo variant="orange" size={20} className="opacity-60" />
               <span className="text-sm text-gray-400">
                 {t('marketplace.copyright')}
               </span>

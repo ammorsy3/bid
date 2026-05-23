@@ -338,7 +338,7 @@ export default function TenderBriefStep() {
     <div className="min-h-screen bg-muted">
       <header className="bg-card border-b sticky top-0 z-50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <BidLogo size={40} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
+          <BidLogo variant="orange" size={40} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
           <Button
             variant="outline"
             size="sm"
@@ -377,7 +377,7 @@ export default function TenderBriefStep() {
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="bg-muted rounded-xl p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Calendar className="h-4 w-4" />

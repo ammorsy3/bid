@@ -115,6 +115,7 @@ interface TenderWithCounts {
   createdAt: string;
   offersCount: number;
   submissionType: string | null;
+  targetAudienceTypes: string[] | null;
 }
 
 interface MyOffer {
@@ -363,9 +364,72 @@ function SidebarLogoToggle() {
       {isCollapsed ? (
         <SidebarTrigger className="h-6 w-6" />
       ) : (
-        <BidLogo size={28} />
+        <BidLogo variant="orange" size={28} />
       )}
     </div>
+  );
+}
+
+type SidebarNavItem = {
+  value: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  show: boolean;
+  href?: string;
+};
+
+function SidebarNavButton({
+  item,
+  activeTab,
+  setActiveTab,
+}: {
+  item: SidebarNavItem;
+  activeTab: string;
+  setActiveTab: (value: string) => void;
+}) {
+  const { isMobile, setOpenMobile } = useSidebar();
+  const isActive = activeTab === item.value;
+  return (
+    <SidebarMenuButton
+      isActive={isActive}
+      onClick={() => {
+        if (item.href) { window.open(item.href, '_blank'); return; }
+        setActiveTab(item.value);
+        if (isMobile) setOpenMobile(false);
+      }}
+      tooltip={item.label}
+      data-testid={`sidebar-${item.value}`}
+      className={`py-3 text-base rounded-lg ${isActive ? "bg-[#FE3C01]/15 text-[#FE3C01] hover:bg-[#FE3C01]/20 hover:text-[#FE3C01]" : "hover:bg-muted"}`}
+    >
+      <item.icon className={`h-5 w-5 ${isActive ? "text-[#FE3C01]" : "text-muted-foreground"}`} />
+      <span className={`text-base font-medium ${isActive ? "text-[#FE3C01]" : ""}`}>{item.label}</span>
+    </SidebarMenuButton>
+  );
+}
+
+function SidebarSearchButton({
+  label,
+  onOpen,
+}: {
+  label: string;
+  onOpen: () => void;
+}) {
+  const { isMobile, setOpenMobile } = useSidebar();
+  return (
+    <SidebarMenuButton
+      onClick={() => {
+        onOpen();
+        // Mobile-only: close the drawer so the search modal isn't behind it.
+        // On desktop isMobile is false, so behavior is unchanged.
+        if (isMobile) setOpenMobile(false);
+      }}
+      tooltip={label}
+      data-testid="sidebar-search-tenders"
+      className="py-3 text-base rounded-lg hover:bg-muted"
+    >
+      <Search className="h-5 w-5 text-muted-foreground" />
+      <span className="text-base font-medium group-data-[collapsible=icon]:hidden">{label}</span>
+    </SidebarMenuButton>
   );
 }
 
@@ -438,6 +502,8 @@ export default function Dashboard() {
   const canManage = ['owner', 'admin'].includes(userRole);
   const isOwner = userRole === 'owner';
   const isCompanyVerified = activeCompany.verificationStatus === 'verified';
+  const workspaceKind = (activeCompany.accountType ?? 'company') as 'company' | 'team' | 'individual';
+  const isBuyerAccount = workspaceKind === 'company';
 
   function handleCreateTender() {
     if (!isCompanyVerified) {
@@ -613,8 +679,8 @@ export default function Dashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
       toast({
-        title: "Tender deleted",
-        description: "The tender has been removed",
+        title: "RFP deleted",
+        description: "The RFP has been removed",
       });
     },
     onError: (error: Error) => {
@@ -765,9 +831,10 @@ export default function Dashboard() {
 
   const sidebarItems = [
     { value: "overview", label: t('dashboard.overview'), icon: LayoutDashboard, show: true },
-    { value: "tenders", label: t('dashboard.tenders'), icon: FileText, show: canManage },
+    { value: "tenders", label: t('dashboard.tenders'), icon: FileText, show: canManage && isBuyerAccount },
     { value: "proposals", label: t('dashboard.proposals'), icon: Inbox, show: true },
-    { value: "vendors", label: t('dashboard.vendorsBase'), icon: Users, show: canManage },
+    { value: "vendors", label: t('dashboard.vendorsBase'), icon: Users, show: canManage && isBuyerAccount },
+    { value: "profile-link", label: t('dashboard.profileLink'), icon: Link2, show: !isBuyerAccount, href: activeCompany.profile?.tractionSlug ? `/traction/${activeCompany.profile.tractionSlug}` : undefined },
   ];
 
   return (
@@ -851,7 +918,7 @@ export default function Dashboard() {
         
         <SidebarContent>
           {/* Action Items - Create & Search */}
-          {canManage && (
+          {canManage && isBuyerAccount && (
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-2">
@@ -868,15 +935,10 @@ export default function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      onClick={() => setShowSearchModal(true)}
-                      tooltip={t('dashboard.searchTenders')}
-                      data-testid="sidebar-search-tenders"
-                      className="py-3 text-base rounded-lg hover:bg-muted"
-                    >
-                      <Search className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden">{t('dashboard.searchTenders')}</span>
-                    </SidebarMenuButton>
+                    <SidebarSearchButton
+                      label={t('dashboard.searchTenders')}
+                      onOpen={() => setShowSearchModal(true)}
+                    />
                   </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
@@ -889,16 +951,11 @@ export default function Dashboard() {
               <SidebarMenu className="space-y-2">
                 {sidebarItems.filter(item => item.show).map((item) => (
                   <SidebarMenuItem key={item.value}>
-                    <SidebarMenuButton 
-                      isActive={activeTab === item.value}
-                      onClick={() => setActiveTab(item.value)}
-                      tooltip={item.label}
-                      data-testid={`sidebar-${item.value}`}
-                      className={`py-3 text-base rounded-lg ${activeTab === item.value ? "bg-[#FE3C01]/15 text-[#FE3C01] hover:bg-[#FE3C01]/20 hover:text-[#FE3C01]" : "hover:bg-muted"}`}
-                    >
-                      <item.icon className={`h-5 w-5 ${activeTab === item.value ? "text-[#FE3C01]" : "text-muted-foreground"}`} />
-                      <span className={`text-base font-medium ${activeTab === item.value ? "text-[#FE3C01]" : ""}`}>{item.label}</span>
-                    </SidebarMenuButton>
+                    <SidebarNavButton
+                      item={item}
+                      activeTab={activeTab}
+                      setActiveTab={setActiveTab}
+                    />
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -1156,13 +1213,13 @@ export default function Dashboard() {
                     </button>
                   </PopoverTrigger>
                   <PopoverContent side="right" align="start" className="w-48 p-1">
-                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
+                    <button onClick={() => setLocation('/getting-started')} className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
                       {t('settings.gettingStarted')}
                     </button>
-                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
+                    <button onClick={() => setLocation('/faq')} className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
                       {t('settings.faqs')}
                     </button>
-                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
+                    <button onClick={() => window.location.href = 'mailto:info@bid.sa'} className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
                       {t('settings.contactSupport')}
                     </button>
                   </PopoverContent>
@@ -1384,7 +1441,7 @@ export default function Dashboard() {
         {/* Mobile top bar — only way to reach navigation on phones */}
         <header className="md:hidden sticky top-0 z-30 flex items-center gap-3 h-14 px-4 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
           <SidebarTrigger className="h-9 w-9 -ms-1.5" aria-label="Open menu" />
-          <BidLogo size={24} />
+          <BidLogo variant="orange" size={24} />
         </header>
         {/* Main Content */}
         <main
@@ -1953,6 +2010,11 @@ export default function Dashboard() {
                                         {t('dashboard.negotiateBadge')}
                                       </span>
                                     )}
+                                    {tender.targetAudienceTypes && tender.targetAudienceTypes.length > 0 && tender.targetAudienceTypes.map((type: string) => (
+                                      <span key={type} className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border border-border text-muted-foreground bg-muted">
+                                        {type === 'company' ? 'Companies' : type === 'team' ? 'Teams' : 'Individuals'}
+                                      </span>
+                                    ))}
                                   </div>
                                   <p className="text-sm font-medium text-muted-foreground line-clamp-2" data-testid={`text-tender-description-${tender.id}`}>
                                     {tender.description}

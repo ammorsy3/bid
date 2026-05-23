@@ -137,11 +137,11 @@ export default function TenderAIBudgetStep() {
   return (
     <div className="py-8 px-4">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
+        <div className="flex items-center justify-between mb-8 max-sm:mb-5">
+          <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity max-sm:w-10 max-sm:h-10" onClick={() => navigate("/dashboard")} />
           <Button
             onClick={handleBack}
-            className="group relative overflow-hidden"
+            className="group relative overflow-hidden max-sm:hidden"
             data-testid="button-back"
           >
             <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
@@ -158,16 +158,16 @@ export default function TenderAIBudgetStep() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-sm:gap-5">
           <div>
-            <div className="space-y-4">
+            <div className="space-y-4 max-sm:space-y-2">
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 3 / 5
               </div>
-              <h1 className="font-display font-black text-5xl text-gray-900 dark:text-foreground leading-[0.92] tracking-[-0.045em]">
+              <h1 className="font-display font-black text-5xl max-sm:text-3xl text-gray-900 dark:text-foreground leading-[0.92] tracking-[-0.045em]">
                 {t('tenderFlow.step3Title')}
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-lg max-sm:text-base">
                 {t('tenderFlow.step3Desc')}
               </p>
             </div>
@@ -177,7 +177,7 @@ export default function TenderAIBudgetStep() {
             <Card className="border-0 shadow-xl overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
 
-              <div className="p-8 space-y-6">
+              <div className="p-8 max-sm:p-5 space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     type="button"
@@ -388,13 +388,13 @@ export default function TenderAIBudgetStep() {
 
                       {budgetMode === "manual" && priceType === "range" && (
                         <div className="space-y-3">
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="flex flex-col gap-4">
                             <div>
                               <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
                                 {t('tenderFlow.minimum')}
                               </label>
                               <div className="flex items-center gap-2">
-                                <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                <span className="text-gray-600 dark:text-gray-400 font-medium flex-shrink-0">
                                   SAR
                                 </span>
                                 <input
@@ -402,7 +402,7 @@ export default function TenderAIBudgetStep() {
                                   placeholder="0"
                                   value={minPrice}
                                   onChange={(e) => setMinPrice(e.target.value)}
-                                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+                                  className="flex-1 min-w-0 px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                                   data-testid="input-min-price"
                                 />
                               </div>
@@ -412,7 +412,7 @@ export default function TenderAIBudgetStep() {
                                 {t('tenderFlow.maximum')}
                               </label>
                               <div className="flex items-center gap-2">
-                                <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                <span className="text-gray-600 dark:text-gray-400 font-medium flex-shrink-0">
                                   SAR
                                 </span>
                                 <input
@@ -420,7 +420,7 @@ export default function TenderAIBudgetStep() {
                                   placeholder="0"
                                   value={maxPrice}
                                   onChange={(e) => setMaxPrice(e.target.value)}
-                                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+                                  className="flex-1 min-w-0 px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                                   data-testid="input-max-price"
                                 />
                               </div>

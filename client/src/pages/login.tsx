@@ -138,13 +138,13 @@ export default function Login() {
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-12">
         <header className="mb-10">
           <Link href="/">
-            <BidLogo size={48} className="cursor-pointer hover:opacity-80 transition-opacity" />
+            <BidLogo variant="orange" size={48} className="cursor-pointer hover:opacity-80 transition-opacity" />
           </Link>
         </header>
 
         <div className="w-full max-w-md">
           {forgotMode ? (
-            <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/60 shadow-sm p-8">
+            <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/60 shadow-sm p-5 sm:p-8">
               <div className="mb-6 text-center">
                 <h2 className="text-xl font-bold text-foreground mb-1">{t('auth.forgotPasswordTitle')}</h2>
                 <p className="text-sm text-muted-foreground">{t('auth.forgotPasswordDesc')}</p>
@@ -200,7 +200,7 @@ export default function Login() {
               )}
             </div>
           ) : (
-            <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/60 shadow-sm p-8">
+            <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/60 shadow-sm p-5 sm:p-8">
               <div className="mb-6 text-center">
                 <h2 className="text-xl font-bold text-foreground mb-1">{t('authPanel.signInTitle')}</h2>
                 <p className="text-sm text-muted-foreground">{t('authPanel.signInDesc')}</p>

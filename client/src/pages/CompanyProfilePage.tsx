@@ -89,6 +89,7 @@ interface CompanyProfileData {
     legalName: string;
     category: string | null;
     city: string | null;
+    accountType: 'company' | 'team' | 'individual';
     verificationStatus: string;
     certifications: string[];
     crNumber: string;
@@ -157,11 +158,11 @@ function VerificationBadge({ status }: { status: string }) {
 function ProfileSkeleton() {
   return (
     <div className="min-h-screen bg-muted">
-      <nav className="sticky top-0 z-20 bg-card border-b border-border px-6 py-3 flex items-center gap-3">
+      <nav className="sticky top-0 z-20 bg-card border-b border-border px-4 sm:px-6 py-3 flex items-center gap-3">
         <Skeleton className="h-5 w-24" />
       </nav>
       <Skeleton className="w-full h-52 md:h-64" />
-      <div className="max-w-[900px] mx-auto px-6 py-8">
+      <div className="max-w-[900px] mx-auto px-4 sm:px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-6">
           <div className="space-y-6">
             <Skeleton className="h-32 w-full rounded-2xl" />
@@ -244,7 +245,7 @@ export default function CompanyProfilePage() {
   return (
     <div className="min-h-screen bg-muted">
       {/* ══════════════════════ TOP NAV ══════════════════════ */}
-      <nav className="sticky top-0 z-20 bg-card border-b border-border px-6 py-3 flex items-center justify-between">
+      <nav className="sticky top-0 z-20 bg-card border-b border-border px-4 sm:px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
             onClick={() => window.history.length > 1 ? window.history.back() : window.close()}
@@ -254,7 +255,13 @@ export default function CompanyProfilePage() {
             <span className="hidden sm:inline">{t('companyProfile.navBack')}</span>
           </button>
           <div className="h-5 w-px bg-gray-200" />
-          <span className="text-sm font-semibold text-foreground">{t('companyProfile.navTitle')}</span>
+          <span className="text-sm font-semibold text-foreground">
+            {company.accountType === 'individual'
+              ? t('companyProfile.navTitleIndividual')
+              : company.accountType === 'team'
+                ? t('companyProfile.navTitleTeam')
+                : t('companyProfile.navTitle')}
+          </span>
         </div>
       </nav>
 
@@ -263,7 +270,7 @@ export default function CompanyProfilePage() {
         <div className="w-full relative">
           <img src={profile.headerUrl} alt="" className="w-full h-auto block" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 max-w-[900px] mx-auto px-6 pb-5">
+          <div className="absolute bottom-0 left-0 right-0 max-w-[900px] mx-auto px-4 sm:px-6 pb-5">
             <div className="flex items-end gap-4">
               {profile?.logoUrl ? (
                 <img src={profile.logoUrl} alt={displayName} className="w-16 h-16 rounded-2xl object-cover border-2 border-white/80 shadow-lg flex-shrink-0 bg-card" />
@@ -291,7 +298,7 @@ export default function CompanyProfilePage() {
       ) : (
         <div className="h-52 md:h-64 w-full relative" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 max-w-[900px] mx-auto px-6 pb-5">
+          <div className="absolute bottom-0 left-0 right-0 max-w-[900px] mx-auto px-4 sm:px-6 pb-5">
             <div className="flex items-end gap-4">
               {profile?.logoUrl ? (
                 <img src={profile.logoUrl} alt={displayName} className="w-16 h-16 rounded-2xl object-cover border-2 border-white/80 shadow-lg flex-shrink-0 bg-card" />
@@ -320,7 +327,7 @@ export default function CompanyProfilePage() {
 
       {/* ══════════════════════ AVAILABILITY BADGE ══════════════════════ */}
       {availabilityStatus && (
-        <div className="max-w-[900px] mx-auto px-6 pt-6">
+        <div className="max-w-[900px] mx-auto px-4 sm:px-6 pt-6">
           <div className={`rounded-2xl px-5 py-3 flex items-center gap-3 border ${
             availabilityStatus === 'accepting'
               ? 'bg-[var(--state-won)]/5/60 border-emerald-200'
@@ -362,7 +369,7 @@ export default function CompanyProfilePage() {
 
       {/* ══════════════════════ FACTS STRIP ══════════════════════ */}
       {hasFactsStrip && (
-        <div className="max-w-[900px] mx-auto px-6 pt-6">
+        <div className="max-w-[900px] mx-auto px-4 sm:px-6 pt-6">
           <div className="bg-card rounded-2xl border border-border px-5 py-4 flex flex-wrap gap-x-8 gap-y-3">
             {yearFounded && (
               <div>
@@ -399,7 +406,7 @@ export default function CompanyProfilePage() {
 
       {/* ══════════════════════ TRACK RECORD ══════════════════════ */}
       {visibleStats.length > 0 && (
-        <div className="max-w-[900px] mx-auto px-6 pt-6">
+        <div className="max-w-[900px] mx-auto px-4 sm:px-6 pt-6">
           <div className="bg-card rounded-2xl border border-border px-6 py-5">
             <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-4">
               {t('companyProfile.sectionTrackRecord')}
@@ -419,11 +426,11 @@ export default function CompanyProfilePage() {
       )}
 
       {/* ══════════════════════ MAIN CONTENT ══════════════════════ */}
-      <div className="max-w-[900px] mx-auto px-6 py-8">
+      <div className="max-w-[900px] mx-auto px-4 sm:px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-6 items-start">
 
           {/* ── LEFT COLUMN ── */}
-          <div className="space-y-6">
+          <div className="space-y-6 order-2 md:order-1">
 
             {/* Verified Credentials */}
             {company.verifiedDocuments && company.verifiedDocuments.length > 0 && (
@@ -659,7 +666,9 @@ export default function CompanyProfilePage() {
             {hasPortfolio && (
               <div className="bg-card rounded-2xl border border-border p-6">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-4">
-                  {t('companyProfile.sectionPortfolio')}
+                  {company.accountType === 'individual' || company.accountType === 'team'
+                    ? t('companyProfile.sectionPreviousWorks')
+                    : t('companyProfile.sectionPortfolio')}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {profile!.portfolio.map((item, i) => (
@@ -702,7 +711,7 @@ export default function CompanyProfilePage() {
           </div>
 
           {/* ── RIGHT SIDEBAR ── */}
-          <div className="md:sticky md:top-20 space-y-4">
+          <div className="md:sticky md:top-20 space-y-4 order-1 md:order-2">
 
             {/* Quick Info Card */}
             <div className="bg-card rounded-2xl border border-border p-5">
@@ -808,7 +817,7 @@ export default function CompanyProfilePage() {
       </div>
 
       {/* ══════════════════════ FOOTER ══════════════════════ */}
-      <div className="border-t border-border py-6 px-6">
+      <div className="border-t border-border py-6 px-4 sm:px-6">
         <div className="max-w-[900px] mx-auto flex items-center justify-between">
           <span className="text-xs text-gray-300">
             Powered by <strong className="text-gray-400">Bid</strong>

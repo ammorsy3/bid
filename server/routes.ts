@@ -16,7 +16,9 @@ import {
   createTenderTemplateSchema,
   createMembershipRequestSchema,
   decideMembershipRequestSchema,
-  VENDOR_CATEGORIES
+  VENDOR_CATEGORIES,
+  ACCOUNT_TYPES,
+  type AccountType,
 } from "@shared/schema";
 import { getEmailDomain, isPublicEmailDomain } from "./publicEmailDomains";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -202,6 +204,51 @@ const requireCompanyRole = (minRole: 'owner' | 'admin' | 'member' | 'viewer') =>
 
     next();
   };
+};
+
+// Middleware: Require the active workspace to be one of the given account types.
+// Apply to buyer-side routes that only company accounts may use.
+const requireAccountType = (...types: AccountType[]) => {
+  return async (req: AuthRequest, res: Response, next: Function) => {
+    if (!req.auth?.activeCompanyId) {
+      return res.status(400).json({ message: 'No active company.', requiresCompany: true });
+    }
+    const company = await storage.getCompany(req.auth.activeCompanyId);
+    if (!company) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+    if (!types.includes(company.accountType as AccountType)) {
+      return res.status(403).json({
+        message: `This action is only available to ${types.join(' or ')} accounts.`,
+        accountTypeRequired: types,
+      });
+    }
+    next();
+  };
+};
+
+// Middleware: Attach auth context if a valid JWT is present, otherwise continue
+// unauthenticated. Used for public endpoints that can tailor their response
+// when the caller is logged in (e.g. marketplace audience filtering).
+const optionalAuth = async (req: AuthRequest, res: Response, next: Function) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return next();
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as JWTPayload;
+    const user = await storage.getUser(payload.userId);
+    if (user) {
+      req.auth = {
+        userId: payload.userId,
+        activeCompanyId: payload.activeCompanyId,
+        roleInCompany: payload.roleInCompany,
+        isAdmin: user.isAdmin,
+      };
+    }
+  } catch {
+    // Invalid token — proceed unauthenticated
+  }
+  next();
 };
 
 // ============================================================================
@@ -392,6 +439,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           vatNumber: uc.company.vatNumber,
           city: uc.company.city,
           category: uc.company.category,
+          accountType: uc.company.accountType,
           verificationStatus: uc.company.verificationStatus,
           onboardingState: uc.company.onboardingState,
           rejectionReason: uc.company.rejectionReason || null,
@@ -792,6 +840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           vatNumber: defaultCompany.company.vatNumber,
           city: defaultCompany.company.city,
           category: defaultCompany.company.category,
+          accountType: defaultCompany.company.accountType,
           verificationStatus: defaultCompany.company.verificationStatus,
           onboardingState: defaultCompany.company.onboardingState,
           rejectionReason: defaultCompany.company.rejectionReason || null,
@@ -807,6 +856,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           vatNumber: uc.company.vatNumber,
           city: uc.company.city,
           category: uc.company.category,
+          accountType: uc.company.accountType,
           verificationStatus: uc.company.verificationStatus,
           onboardingState: uc.company.onboardingState,
           rejectionReason: uc.company.rejectionReason || null,
@@ -936,6 +986,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           vatNumber: uc.company.vatNumber,
           city: uc.company.city,
           category: uc.company.category,
+          accountType: uc.company.accountType,
           verificationStatus: uc.company.verificationStatus,
           onboardingState: uc.company.onboardingState,
           rejectionReason: uc.company.rejectionReason || null,
@@ -1747,7 +1798,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...companyData,
         slug,
         verificationStatus: initialVerificationStatus,
-        onboardingState: 'draft'
+        onboardingState: 'draft',
+        ...(companyData.accountType !== 'company' && { ownerUserId: req.auth!.userId }),
       });
 
       // Build social links from profile data
@@ -1949,6 +2001,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         res.status(500).json({ message: error?.message || "Failed to update verification info" });
+      }
+    }
+  );
+
+  // Submit National ID verification info for individual / team accounts.
+  // Mirror of PATCH /api/companies/:companyId/verify-info (the CR path).
+  app.patch("/api/companies/:companyId/verify-national-id",
+    authenticateToken,
+    requireCompanyContext,
+    requireCompanyRole('admin'),
+    async (req: AuthRequest, res) => {
+      try {
+        const { companyId } = req.params;
+        if (companyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: 'Cannot update a different company' });
+        }
+
+        const company = await storage.getCompany(companyId);
+        if (!company) return res.status(404).json({ message: 'Company not found' });
+        if (company.accountType === 'company') {
+          return res.status(400).json({
+            message: 'Company accounts use CR verification. Use /verify-info instead.',
+          });
+        }
+
+        const { z } = await import('zod');
+        const schema = z.object({
+          nationalIdNumber: z.string().regex(/^\d{10}$/, 'National ID must be exactly 10 digits'),
+        });
+        const data = schema.parse(req.body);
+
+        // Uniqueness check (excluding this company)
+        const existing = await storage.getCompanyByNationalId(data.nationalIdNumber);
+        if (existing && existing.id !== companyId) {
+          return res.status(409).json({
+            code: 'NATIONAL_ID_TAKEN',
+            message: 'This National ID is already registered to another account on Bid.',
+          });
+        }
+
+        const updated = await storage.updateCompany(companyId, {
+          nationalIdNumber: data.nationalIdNumber,
+          verificationStatus: 'under_review',
+        });
+
+        res.json({
+          company: {
+            id: updated.id,
+            nationalIdNumber: updated.nationalIdNumber,
+            verificationStatus: updated.verificationStatus,
+          },
+        });
+      } catch (error: any) {
+        console.error('Verify national ID error:', error);
+        if (error?.name === 'ZodError') {
+          const firstIssue = error.errors?.[0];
+          return res.status(400).json({
+            message: firstIssue ? `${firstIssue.path.join('.')}: ${firstIssue.message}` : 'Invalid data',
+            errors: error.errors,
+          });
+        }
+        if (error?.code === '23505' && error?.constraint?.includes('national_id_number')) {
+          return res.status(409).json({
+            code: 'NATIONAL_ID_TAKEN',
+            message: 'This National ID is already registered to another account.',
+          });
+        }
+        res.status(500).json({ message: error?.message || 'Server error' });
       }
     }
   );
@@ -2375,6 +2495,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           legalName: company.legalName,
           category: company.category,
           city: company.city,
+          accountType: company.accountType,
           verificationStatus: company.verificationStatus,
           certifications: company.certifications || [],
           crNumber: company.crNumber,
@@ -2753,6 +2874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/tenders",
     authenticateToken,
     requireCompanyContext,
+    requireAccountType('company'),
     requireCompanyRole('admin'),
     requireVerifiedCompany,
     async (req: AuthRequest, res) => {
@@ -2779,6 +2901,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const evalWeightError = validateEvalWeights(req.body.evaluationCriteria);
         if (evalWeightError) {
           return res.status(400).json({ message: evalWeightError });
+        }
+
+        const audienceTypes: unknown[] = req.body.targetAudienceTypes ?? ['company'];
+        if (
+          !Array.isArray(audienceTypes) ||
+          audienceTypes.length === 0 ||
+          !audienceTypes.every(t => ACCOUNT_TYPES.includes(t as AccountType))
+        ) {
+          return res.status(400).json({
+            message: "targetAudienceTypes must be a non-empty array containing only 'company', 'team', or 'individual'",
+          });
         }
 
         const result = await launchTenderFromPayload(req.body, {
@@ -4552,6 +4685,7 @@ Respond with ONLY a JSON object. Example:
   app.get("/api/vendors-base",
     authenticateToken,
     requireCompanyContext,
+    requireAccountType('company'),
     async (req: AuthRequest, res) => {
       try {
         const searchQuery = req.query.search as string | undefined;
@@ -4597,6 +4731,7 @@ Respond with ONLY a JSON object. Example:
   app.delete("/api/vendors-base/:rowId",
     authenticateToken,
     requireCompanyContext,
+    requireAccountType('company'),
     async (req: AuthRequest, res) => {
       try {
         await storage.removeVendorFromBase(req.auth!.activeCompanyId!, req.params.rowId);
@@ -6180,9 +6315,17 @@ Respond with ONLY a JSON object. Example:
   // MARKETPLACE ROUTES (PUBLIC)
   // ==========================================================================
 
-  app.get("/api/marketplace/tenders", async (req, res) => {
+  app.get("/api/marketplace/tenders", optionalAuth, async (req: AuthRequest, res) => {
     try {
       const { search, category, city, tenderType, sort, page, limit } = req.query;
+
+      // If caller has an active workspace, filter tenders to those targeting their account type.
+      let callerAccountType: string | undefined;
+      if (req.auth?.activeCompanyId) {
+        const activeCompany = await storage.getCompany(req.auth.activeCompanyId);
+        callerAccountType = activeCompany?.accountType ?? undefined;
+      }
+
       const result = await storage.getMarketplaceTenders({
         search: search as string,
         category: category as string,
@@ -6191,6 +6334,7 @@ Respond with ONLY a JSON object. Example:
         sort: sort as string,
         page: page ? parseInt(page as string) : 1,
         limit: limit ? parseInt(limit as string) : 6,
+        callerAccountType,
       });
       res.json(result);
     } catch (error) {
@@ -6509,6 +6653,21 @@ Respond with ONLY a JSON object. Example:
       res.status(500).json({ message: "Server error" });
     }
   });
+
+  // ── Dev-only: reset onboarding state ──────────────────────────────────────
+  // Soft-removes all workspace memberships for the calling user so they can
+  // re-enter the onboarding fork. Never available in production.
+  if (process.env.NODE_ENV !== 'production') {
+    app.post("/api/dev/reset-onboarding", authenticateToken, async (req: AuthRequest, res) => {
+      try {
+        await storage.resetUserWorkspaceMemberships(req.auth!.userId);
+        res.json({ ok: true });
+      } catch (error) {
+        console.error("Dev reset-onboarding error:", error);
+        res.status(500).json({ message: "Server error" });
+      }
+    });
+  }
 
   // Global server-side error logging middleware
   app.use(async (err: any, req: any, res: any, next: any) => {

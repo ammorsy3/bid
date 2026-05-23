@@ -149,8 +149,8 @@ export default function TenderFormFill() {
       <div className="max-w-3xl mx-auto">
 
         {/* ── Header ─────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between mb-10">
-          <BidLogo size={56} className="cursor-pointer hover:opacity-80 transition-opacity duration-300" onClick={() => navigate("/dashboard")} />
+        <div className="flex items-center justify-between mb-6 sm:mb-10">
+          <BidLogo variant="orange" size={40} className="cursor-pointer hover:opacity-80 transition-opacity duration-300 sm:w-14 sm:h-14" onClick={() => navigate("/dashboard")} />
 
           <StepIndicator
             steps={[
@@ -165,9 +165,9 @@ export default function TenderFormFill() {
           <Button
             onClick={handleBack}
             variant="outline"
-            className="group relative overflow-hidden min-w-[120px] h-10"
+            className="group relative overflow-hidden min-w-[80px] sm:min-w-[120px] h-9 sm:h-10"
           >
-            <span className="translate-x-1 transition-opacity duration-300 group-hover:opacity-0">
+            <span className="translate-x-1 transition-opacity duration-300 group-hover:opacity-0 text-sm sm:text-base">
               {t('tenderFlow.back')}
             </span>
             <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-300 group-hover:w-full rounded-md">
@@ -183,7 +183,7 @@ export default function TenderFormFill() {
         >
         {/* ── Headline ───────────────────────────────────────────── */}
         <div className="text-center mb-10">
-          <h1 className="font-display font-black text-4xl text-gray-900 dark:text-foreground leading-[0.95] tracking-[-0.04em] mb-3">
+          <h1 className="font-display font-black text-2xl sm:text-4xl text-gray-900 dark:text-foreground leading-[0.95] tracking-[-0.04em] mb-3">
             {t('tenderFlow.fillRfpTitle')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-xl mx-auto">
@@ -294,7 +294,7 @@ export default function TenderFormFill() {
                   }`}
                 />
 
-                <div className="p-8">
+                <div className="p-4 sm:p-8">
                   {/* Card header */}
                   <div className="flex items-start gap-4 mb-5">
                     {/* Icon — turns brand-colored when complete */}
@@ -360,12 +360,12 @@ export default function TenderFormFill() {
         </div>
 
         {/* ── Bottom navigation ──────────────────────────────────── */}
-        <div className="flex justify-center gap-4 pb-12">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 pb-12">
           <Button
             type="button"
             variant="outline"
             onClick={handleBack}
-            className="min-w-[160px] h-12 text-base"
+            className="w-full sm:min-w-[160px] sm:w-auto h-12 text-base"
           >
             <ArrowLeft className="h-5 w-5 mr-2" />
             {t('tenderFlow.backToStructure')}
@@ -373,7 +373,7 @@ export default function TenderFormFill() {
           <Button
             onClick={handleContinue}
             disabled={!isFormValid}
-            className="min-w-[160px] h-12 text-base bg-[#FE3C01] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed text-white"
+            className="w-full sm:min-w-[160px] sm:w-auto h-12 text-base bg-[#FE3C01] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed text-white"
             title={
               !isFormValid
                 ? `${t('tenderFlow.completeRequiredFields')} ${missingFields.join(", ")}`

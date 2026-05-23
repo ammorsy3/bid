@@ -50,24 +50,24 @@ export default function TenderVendorRequirementsStep() {
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
-          <Button variant="outline" onClick={handleBack} data-testid="button-back">
+        <div className="flex items-center justify-between mb-8 max-sm:mb-5">
+          <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity max-sm:w-10 max-sm:h-10" onClick={() => navigate("/dashboard")} />
+          <Button variant="outline" onClick={handleBack} data-testid="button-back" className="max-sm:hidden">
             <ArrowLeft className={`h-4 w-4 ${isRtl ? 'ml-2 rotate-180' : 'mr-2'}`} />
             {t('tenderSteps.back')}
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-sm:gap-5">
 
           {/* Left: Title + explanation */}
           <div>
-            <div className="space-y-4">
+            <div className="space-y-4 max-sm:space-y-2">
               <div className="text-sm font-medium text-muted-foreground">6 / 7</div>
-              <h1 className="font-display font-black text-5xl text-foreground leading-[0.92] tracking-[-0.045em]">
+              <h1 className="font-display font-black text-5xl max-sm:text-3xl text-foreground leading-[0.92] tracking-[-0.045em]">
                 {t('tenderSteps.submissionRequirements')}
               </h1>
-              <p className="text-muted-foreground text-lg">
+              <p className="text-muted-foreground text-lg max-sm:text-base">
                 {t('tenderSteps.vendorReqDesc')}
               </p>
 

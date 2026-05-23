@@ -6,6 +6,8 @@ import { useI18n } from "@/lib/i18n";
 interface CardLibrarySidebarProps {
   usedCardTypes: string[];
   width?: number;
+  fullWidth?: boolean;
+  onAddCard?: (card: CardDefinition) => void;
   onShowInsight?: (type: CardType, pos?: { x: number; y: number }) => void;
   onHideInsight?: () => void;
 }
@@ -121,7 +123,7 @@ const DEFAULT_COLORS = {
   hoverBorder: "hover:border-gray-400",
 };
 
-export function CardLibrarySidebar({ usedCardTypes, width = 288, onShowInsight, onHideInsight }: CardLibrarySidebarProps) {
+export function CardLibrarySidebar({ usedCardTypes, width = 288, fullWidth, onAddCard, onShowInsight, onHideInsight }: CardLibrarySidebarProps) {
   const { t } = useI18n();
 
   const translatedCardInfo: Record<string, { label: string; description: string }> = {
@@ -145,8 +147,8 @@ export function CardLibrarySidebar({ usedCardTypes, width = 288, onShowInsight, 
 
   return (
     <div
-      style={{ width: `${width}px` }}
-      className="flex-shrink-0 bg-gray-50 dark:bg-background border-l border-border dark:border-border overflow-y-auto"
+      style={fullWidth ? undefined : { width: `${width}px` }}
+      className={`${fullWidth ? 'w-full h-full' : 'flex-shrink-0'} bg-gray-50 dark:bg-background border-l border-border dark:border-border overflow-y-auto`}
     >
       <div className="p-4 space-y-6">
         <div>
@@ -169,8 +171,10 @@ export function CardLibrarySidebar({ usedCardTypes, width = 288, onShowInsight, 
                 isRequired
                 onShowInsight={onShowInsight}
                 onHideInsight={onHideInsight}
+                onAddCard={onAddCard}
                 addedLabel={t('formBuilder.added')}
                 dragToAddLabel={t('formBuilder.dragToAdd')}
+                tapToAddLabel={t('formBuilder.tapToAdd')}
               />
             ))}
           </div>
@@ -189,8 +193,10 @@ export function CardLibrarySidebar({ usedCardTypes, width = 288, onShowInsight, 
                 isUsed={usedCardTypes.includes(card.type)}
                 onShowInsight={onShowInsight}
                 onHideInsight={onHideInsight}
+                onAddCard={onAddCard}
                 addedLabel={t('formBuilder.added')}
                 dragToAddLabel={t('formBuilder.dragToAdd')}
+                tapToAddLabel={t('formBuilder.tapToAdd')}
               />
             ))}
           </div>
@@ -213,8 +219,10 @@ export function CardLibrarySidebar({ usedCardTypes, width = 288, onShowInsight, 
                 allowMultiple
                 onShowInsight={onShowInsight}
                 onHideInsight={onHideInsight}
+                onAddCard={onAddCard}
                 addedLabel={t('formBuilder.added')}
                 dragToAddLabel={t('formBuilder.dragToAdd')}
+                tapToAddLabel={t('formBuilder.tapToAdd')}
               />
             ))}
           </div>
@@ -231,8 +239,10 @@ interface DraggableLibraryCardProps {
   allowMultiple?: boolean;
   onShowInsight?: (type: CardType, pos?: { x: number; y: number }) => void;
   onHideInsight?: () => void;
+  onAddCard?: (card: CardDefinition) => void;
   addedLabel?: string;
   dragToAddLabel?: string;
+  tapToAddLabel?: string;
 }
 
 function DraggableLibraryCard({
@@ -241,8 +251,10 @@ function DraggableLibraryCard({
   isRequired,
   allowMultiple,
   onShowInsight,
+  onAddCard,
   addedLabel = "Added",
   dragToAddLabel = "Drag to add",
+  tapToAddLabel = "Add",
 }: DraggableLibraryCardProps) {
   const { t } = useI18n();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -313,9 +325,9 @@ function DraggableLibraryCard({
           {card.description}
         </p>
 
-        {/* Bottom row: drag hint + see tips */}
+        {/* Bottom row: drag hint + see tips (desktop) */}
         {!isDisabled && (
-          <div className="flex items-center justify-between pt-0.5">
+          <div className="hidden sm:flex items-center justify-between pt-0.5">
             <div className="flex items-center gap-1">
               <GripVertical className="h-3 w-3 text-gray-300 dark:text-gray-600" />
               <span className="text-[10px] text-gray-300 dark:text-gray-600">{dragToAddLabel}</span>
@@ -330,6 +342,16 @@ function DraggableLibraryCard({
               </button>
             )}
           </div>
+        )}
+        {/* Mobile tap-to-add button */}
+        {!isDisabled && (
+          <button
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onAddCard?.(card); }}
+            className="sm:hidden w-full mt-1 py-1.5 text-xs font-semibold text-[#FE3C01] bg-[#FE3C01]/10 rounded-lg active:bg-[#FE3C01]/20 transition-colors"
+          >
+            + {tapToAddLabel}
+          </button>
         )}
       </div>
     </div>

@@ -54,11 +54,11 @@ export default function ResetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-muted p-6">
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center mb-8">
-          <BidLogo size={40} />
+          <BidLogo variant="orange" size={40} />
         </div>
 
         {done ? (
-          <div className="bg-card rounded-2xl border border-border shadow-sm p-8 text-center space-y-4">
+          <div className="bg-card rounded-2xl border border-border shadow-sm p-6 sm:p-8 text-center space-y-4">
             <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto">
               <CheckCircle className="h-7 w-7 text-green-500" />
             </div>
@@ -68,7 +68,7 @@ export default function ResetPassword() {
             </NeonButton>
           </div>
         ) : invalid ? (
-          <div className="bg-card rounded-2xl border border-border shadow-sm p-8 text-center space-y-4">
+          <div className="bg-card rounded-2xl border border-border shadow-sm p-6 sm:p-8 text-center space-y-4">
             <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto">
               <XCircle className="h-7 w-7 text-red-400" />
             </div>
@@ -78,7 +78,7 @@ export default function ResetPassword() {
             </NeonButton>
           </div>
         ) : (
-          <div className="bg-card rounded-2xl border border-border shadow-sm p-8">
+          <div className="bg-card rounded-2xl border border-border shadow-sm p-6 sm:p-8">
             <div className="mb-6">
               <h2 className="font-display font-black text-2xl text-foreground mb-1 tracking-[-0.03em]">{t("auth.forgotPasswordTitle")}</h2>
               <p className="text-sm text-muted-foreground">{t("auth.newPassword")}</p>

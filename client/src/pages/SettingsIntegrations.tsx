@@ -140,7 +140,7 @@ export default function SettingsIntegrations() {
   });
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
+    <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10 space-y-10">
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <Button

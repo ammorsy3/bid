@@ -356,11 +356,11 @@ export default function TenderProjectScopeStep() {
   return (
     <div className="py-8 px-4">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
+        <div className="flex items-center justify-between mb-8 max-sm:mb-5">
+          <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity max-sm:w-10 max-sm:h-10" onClick={() => navigate("/dashboard")} />
           <Button
             onClick={handleBack}
-            className="group relative overflow-hidden"
+            className="group relative overflow-hidden max-sm:hidden"
             data-testid="button-back"
           >
             <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
@@ -377,16 +377,16 @@ export default function TenderProjectScopeStep() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-sm:gap-5">
           <div>
-            <div className="space-y-4">
+            <div className="space-y-4 max-sm:space-y-2">
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 2 / 5
               </div>
-              <h1 className="font-display font-black text-5xl text-gray-900 dark:text-foreground leading-[0.92] tracking-[-0.045em]">
+              <h1 className="font-display font-black text-5xl max-sm:text-3xl text-gray-900 dark:text-foreground leading-[0.92] tracking-[-0.045em]">
                 {t('tenderFlow.step2Title')}
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-lg max-sm:text-base">
                 {t('tenderFlow.step2Desc')}
               </p>
             </div>
@@ -396,7 +396,7 @@ export default function TenderProjectScopeStep() {
             <Card className="border-0 shadow-xl overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
 
-              <div className="p-8 space-y-6">
+              <div className="p-8 max-sm:p-5 space-y-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <label className="block text-sm font-medium text-gray-900 dark:text-foreground">

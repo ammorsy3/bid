@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide scrollbar while keeping scroll functional */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Official Saudi Riyal currency symbol (SAMA) */
 .saudi-riyal-symbol {
   display: inline-flex;
@@ -36,6 +45,10 @@
   --bid-stone:  #8A8078;
   --bid-paper:  #FFFFFF;
   --bid-orange: #FE3C01;
+
+  /* "orange" logo variant — light: orange word + ink dot */
+  --bid-logo-orange-word: var(--bid-orange);
+  --bid-logo-orange-dot:  var(--bid-ink);
 
   /* Dot states (raw) */
   --state-idle:     #8A8078; /* Stone — static */
@@ -112,6 +125,10 @@
 }
 
 .dark {
+  /* "orange" logo variant — dark: cream word + orange dot */
+  --bid-logo-orange-word: var(--bid-cream);
+  --bid-logo-orange-dot:  var(--bid-orange);
+
   /* Colorway 02 — Cream wordmark on Ink surface */
   --background: hsl(26, 16%, 9%);
   --foreground: hsl(38, 47%, 92%);

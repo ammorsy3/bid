@@ -84,7 +84,7 @@ Returns `{ tenderId, tenderUrl, invitationToken }` or a validation error if the 
 
 ## Signing (optional)
 
-If the env var `WEBHOOK_HMAC_SECRET_<companyId>` is set on our server, every response includes an `X-BidCore-Signature: sha256=<hex>` header computed over the raw response body. Use it to verify the response came from us (useful if your receiver is reachable from the open internet).
+If the env var `WEBHOOK_HMAC_SECRET_<companyId>` is set on our server, every response includes an `X-Bid-Signature: sha256=<hex>` header computed over the raw response body. Use it to verify the response came from us (useful if your receiver is reachable from the open internet).
 
 ## Error codes
 

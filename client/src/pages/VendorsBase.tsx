@@ -142,7 +142,7 @@ export default function VendorsBase() {
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
       <div className="mb-8">
-        <h1 className="font-display font-black text-4xl mb-2 tracking-[-0.04em]" data-testid="text-page-title">{t('vendorsBase.pageTitle')}</h1>
+        <h1 className="font-display font-black text-2xl sm:text-4xl mb-2 tracking-[-0.04em]" data-testid="text-page-title">{t('vendorsBase.pageTitle')}</h1>
         <p className="text-muted-foreground" data-testid="text-page-description">
           {t('vendorsBase.pageDesc')}
         </p>
@@ -203,7 +203,7 @@ export default function VendorsBase() {
               {vendors.map((vendor) => (
                 <SpotlightCard key={vendor.id} className="bg-card border-border" spotlightColor="blue" data-testid={`card-vendor-${vendor.id}`}>
                   <div className="px-5 py-4">
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-1">
                           <h3 className="text-lg font-bold text-foreground truncate" data-testid={`text-vendor-name-${vendor.id}`}>

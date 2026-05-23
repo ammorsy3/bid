@@ -103,10 +103,10 @@ export default function TenderCreateChoice() {
             flickerChance={0.1}
           />
         </div>
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-16">
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 py-16">
           <header className="absolute top-0 left-0 right-0 pt-12 pb-8">
             <button onClick={() => setLocation('/dashboard')} className="w-full flex justify-center cursor-pointer">
-              <BidLogo size={48} className="hover:opacity-80 transition-opacity" />
+              <BidLogo variant="orange" size={48} className="hover:opacity-80 transition-opacity" />
             </button>
           </header>
 
@@ -227,17 +227,17 @@ export default function TenderCreateChoice() {
             className="w-full flex justify-center cursor-pointer"
             data-testid="button-logo-bid"
           >
-            <BidLogo size={48} className="hover:opacity-80 transition-opacity" />
+            <BidLogo variant="orange" size={48} className="hover:opacity-80 transition-opacity" />
           </button>
         </header>
 
-        <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
+        <main className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-16">
           <div className="mb-8">
             <AILoader size={100} />
           </div>
 
           <div className="text-center max-w-md">
-            <h2 className="font-display font-black text-3xl text-foreground mb-2 drop-shadow-lg tracking-[-0.04em]">
+            <h2 className="font-display font-black text-2xl sm:text-3xl text-foreground mb-2 drop-shadow-lg tracking-[-0.04em]">
               {t('tenderFlow.welcome')} {firstName}!
             </h2>
             <p className="text-lg text-muted-foreground mb-2 drop-shadow-md">

@@ -125,7 +125,7 @@ function ClerkCallbackInner() {
 
   return (
     <div className="min-h-screen bg-card flex flex-col items-center justify-center px-4">
-      <BidLogo size={48} className="mb-6" />
+      <BidLogo variant="orange" size={48} className="mb-6" />
       <div className="flex items-center gap-3 text-muted-foreground">
         <Loader2 className="h-5 w-5 animate-spin" />
         <span className="text-sm">{status}</span>

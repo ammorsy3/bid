@@ -108,6 +108,7 @@ export interface IStorage {
   getCompany(id: string): Promise<Company | undefined>;
   getCompanyBySlug(slug: string): Promise<Company | undefined>;
   getCompanyByCrNumber(crNumber: string): Promise<Company | undefined>;
+  getCompanyByNationalId(nationalId: string): Promise<Company | undefined>;
   updateCompany(id: string, updates: Partial<InsertCompany>): Promise<Company>;
   getCompaniesWithPendingVerification(): Promise<(Company & { profile?: CompanyProfile; documents?: CompanyDocument[]; owner?: { id: string; name: string; email: string } })[]>;
   verifyCompany(companyId: string, adminId: string, notes?: string): Promise<void>;
@@ -129,6 +130,7 @@ export interface IStorage {
   getCompanyMembers(companyId: string): Promise<(UserCompany & { user: User })[]>;
   updateUserRole(userId: string, companyId: string, role: string): Promise<UserCompany>;
   removeUserFromCompany(userId: string, companyId: string): Promise<void>;
+  resetUserWorkspaceMemberships(userId: string): Promise<void>;
   getUserRoleInCompany(userId: string, companyId: string): Promise<string | null>;
   logMemberActivity(entry: InsertMemberActivityLog): Promise<void>;
   getMemberActivity(companyId: string, actorUserId: string, opts: { limit: number; before?: Date }): Promise<MemberActivityLog[]>;
@@ -452,6 +454,14 @@ export class DatabaseStorage implements IStorage {
     return company || undefined;
   }
 
+  async getCompanyByNationalId(nationalId: string): Promise<Company | undefined> {
+    const [company] = await db
+      .select()
+      .from(companies)
+      .where(and(eq(companies.nationalIdNumber, nationalId), isNull(companies.deletedAt)));
+    return company || undefined;
+  }
+
   async updateCompany(id: string, updates: Partial<InsertCompany>): Promise<Company> {
     const [company] = await db
       .update(companies)
@@ -501,7 +511,9 @@ export class DatabaseStorage implements IStorage {
       };
     }));
 
-    return enriched;
+    // documents jsonb column on Company conflicts with the enriched CompanyDocument[] array;
+    // cast here since both shapes are intentionally present on the return type.
+    return enriched as (Company & { profile?: CompanyProfile; documents?: CompanyDocument[]; owner?: { id: string; name: string; email: string } })[];
   }
 
   async searchUsers(query: string): Promise<{ id: string; name: string; email: string; username: string; isAdmin: boolean; createdAt: Date }[]> {
@@ -745,6 +757,13 @@ export class DatabaseStorage implements IStorage {
         eq(userCompanies.userId, userId),
         eq(userCompanies.companyId, companyId)
       ));
+  }
+
+  async resetUserWorkspaceMemberships(userId: string): Promise<void> {
+    await db
+      .update(userCompanies)
+      .set({ deletedAt: new Date() })
+      .where(and(eq(userCompanies.userId, userId), isNull(userCompanies.deletedAt)));
   }
 
   async logMemberActivity(entry: InsertMemberActivityLog): Promise<void> {
@@ -2174,6 +2193,7 @@ export class DatabaseStorage implements IStorage {
     sort?: string;
     page?: number;
     limit?: number;
+    callerAccountType?: string;
   }): Promise<{ tenders: (Tender & { company: Company; profile?: CompanyProfile })[]; total: number }> {
     const page = options.page || 1;
     const limit = options.limit || 6;
@@ -2205,6 +2225,9 @@ export class DatabaseStorage implements IStorage {
     }
     if (options.tenderType) {
       conditions.push(eq(tenders.tenderType, options.tenderType));
+    }
+    if (options.callerAccountType) {
+      conditions.push(sql`${options.callerAccountType} = ANY(${tenders.targetAudienceTypes})`);
     }
 
     const whereClause = and(...conditions);

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useLocation } from "wouter";
 import { useAuthStore } from "@/lib/auth";
@@ -21,7 +21,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, LayoutList, PlusSquare } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { CardLibrarySidebar } from "@/components/form-builder/CardLibrarySidebar";
 import { FormBuilderCanvas } from "@/components/form-builder/FormBuilderCanvas";
@@ -73,6 +73,7 @@ export default function TenderFormBuilder() {
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [insightCardType, setInsightCardType] = useState<CardType | null>(null);
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
+  const [mobileTab, setMobileTab] = useState<'canvas' | 'library'>('canvas');
 
   // Sidebar resize state — default 50%, min 40%, max 60% of viewport
   const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -184,6 +185,12 @@ export default function TenderFormBuilder() {
     setCards((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
+  const handleAddCard = useCallback((cardDef: CardDefinition) => {
+    if (!cardDef.isCustom && usedCardTypes.includes(cardDef.type)) return;
+    setCards((prev) => [...prev, createFormCard(cardDef)]);
+    setMobileTab('canvas');
+  }, [usedCardTypes]);
+
   const handleUpdateCard = useCallback(
     (id: string, updates: Partial<FormCard>) => {
       setCards((prev) =>
@@ -237,12 +244,28 @@ export default function TenderFormBuilder() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
-        {/* Header */}
-        <header className="flex-shrink-0 bg-white dark:bg-background border-b border-border dark:border-border px-6 py-4">
+      <div className="h-[100dvh] flex flex-col bg-gray-50 dark:bg-gray-950">
+
+        {/* ── Mobile Header ── */}
+        <header className="sm:hidden flex-shrink-0 bg-white dark:bg-background border-b border-border px-4 py-3">
           <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <BidLogo variant="orange" size={32} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
+              <span className="text-sm font-semibold text-gray-900 dark:text-foreground leading-tight">
+                {t('tenderFlow.formBuilderTitle')}
+              </span>
+            </div>
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+              1 / 3
+            </span>
+          </div>
+        </header>
+
+        {/* ── Desktop Header ── */}
+        <header className="hidden sm:flex flex-shrink-0 bg-white dark:bg-background border-b border-border dark:border-border px-6 py-4">
+          <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-4">
-              <BidLogo size={40} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
+              <BidLogo variant="orange" size={40} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
               <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
               <div>
                 <h1 className="text-lg font-semibold text-gray-900 dark:text-foreground">
@@ -276,9 +299,9 @@ export default function TenderFormBuilder() {
           </div>
         </header>
 
-        {/* Onboarding hint */}
+        {/* Onboarding hint — desktop only */}
         {user && (
-          <div className="flex-shrink-0 px-6 pt-3">
+          <div className="hidden sm:block flex-shrink-0 px-6 pt-3">
             <TourBanner
               tourId="hint-form-builder"
               userId={user.id}
@@ -289,8 +312,84 @@ export default function TenderFormBuilder() {
           </div>
         )}
 
-        {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
+        {/* ── Mobile Layout: tabbed canvas / library ── */}
+        <div className="sm:hidden flex flex-col flex-1 overflow-hidden">
+          {/* Tab switcher */}
+          <div className="flex flex-shrink-0 border-b border-border bg-white dark:bg-background">
+            <button
+              onClick={() => setMobileTab('canvas')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
+                mobileTab === 'canvas'
+                  ? 'text-[#FE3C01] border-b-2 border-[#FE3C01]'
+                  : 'text-muted-foreground border-b-2 border-transparent'
+              }`}
+            >
+              <LayoutList className="h-4 w-4" />
+              {t('tenderFlow.stepStructure')}
+            </button>
+            <button
+              onClick={() => setMobileTab('library')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
+                mobileTab === 'library'
+                  ? 'text-[#FE3C01] border-b-2 border-[#FE3C01]'
+                  : 'text-muted-foreground border-b-2 border-transparent'
+              }`}
+            >
+              <PlusSquare className="h-4 w-4" />
+              {t('formBuilder.cardLibrary')}
+            </button>
+          </div>
+
+          {/* Tab content */}
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {mobileTab === 'canvas' ? (
+              <FormBuilderCanvas
+                cards={cards}
+                onRemoveCard={handleRemoveCard}
+                onUpdateCard={handleUpdateCard}
+                sidebarVisible={false}
+                onToggleSidebar={() => setMobileTab('library')}
+                structureOnly={true}
+              />
+            ) : (
+              <CardLibrarySidebar
+                usedCardTypes={usedCardTypes}
+                fullWidth
+                onAddCard={handleAddCard}
+                onShowInsight={(type, pos) => {
+                  setInsightCardType(type);
+                  setCursorPos(pos ?? null);
+                }}
+                onHideInsight={() => {
+                  setInsightCardType(null);
+                  setCursorPos(null);
+                }}
+              />
+            )}
+          </div>
+
+          {/* Mobile bottom action bar */}
+          <div
+            className="flex-shrink-0 flex gap-3 px-4 pt-3 pb-3 bg-white dark:bg-background border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.06)]"
+            style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0.75rem))' }}
+          >
+            <Button variant="outline" onClick={handleBack} className="flex-1 h-11">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {t('tenderFlow.back')}
+            </Button>
+            <Button
+              onClick={handleContinue}
+              disabled={!canContinue}
+              className="flex-1 h-11 bg-[#FE3C01] hover:bg-[#d54d35] text-white"
+            >
+              {t('tenderFlow.continueToDetails')}
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+
+        {/* ── Desktop Layout: canvas + sidebar ── */}
+        <div className="hidden sm:flex flex-1 overflow-hidden">
           <FormBuilderCanvas
             cards={cards}
             onRemoveCard={handleRemoveCard}

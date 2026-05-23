@@ -476,7 +476,7 @@ export default function TenderStartMethodStep() {
 
   return (
     <div
-      className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-background"
+      className="min-h-[100dvh] py-8 px-4 bg-gray-50 dark:bg-background"
       style={{
         backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
         backgroundSize: '20px 20px',
@@ -484,8 +484,8 @@ export default function TenderStartMethodStep() {
     >
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="flex items-center mb-12">
-          <BidLogo size={64} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
+        <div className="flex items-center mb-12 max-sm:mb-6">
+          <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity max-sm:w-10 max-sm:h-10" onClick={() => navigate("/dashboard")} />
         </div>
 
         <motion.div
@@ -494,8 +494,8 @@ export default function TenderStartMethodStep() {
           transition={{ duration: 0.35, ease: "easeOut" }}
         >
         {/* Headline Section - Centered */}
-        <div className="text-center mb-12">
-          <h1 className="font-display font-black text-5xl text-gray-900 dark:text-foreground leading-[0.92] tracking-[-0.045em] mb-4">
+        <div className="text-center mb-12 max-sm:mb-7">
+          <h1 className="font-display font-black text-5xl max-sm:text-3xl text-gray-900 dark:text-foreground leading-[0.92] tracking-[-0.045em] mb-4">
             {t('tenderFlow.howToStart')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
@@ -504,7 +504,7 @@ export default function TenderStartMethodStep() {
         </div>
 
         {/* Large Cards Section - Side by Side */}
-        <div className="flex flex-col sm:flex-row justify-center gap-6 sm:gap-8 mb-12">
+        <div className="flex flex-col sm:flex-row justify-center gap-6 sm:gap-8 mb-12 max-sm:mb-5">
           {/* Template Card */}
           <button
             type="button"
@@ -515,7 +515,7 @@ export default function TenderStartMethodStep() {
             }}
             onMouseEnter={() => setHoveredCard("template")}
             onMouseLeave={() => setHoveredCard(null)}
-            className={`group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-card ${
+            className={`group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 max-sm:p-5 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-card ${
               startMethod === "template"
                 ? "border-[#FE3C01] shadow-2xl shadow-[#FE3C01]/20 scale-[1.02]"
                 : "border-border dark:border-border shadow-lg hover:border-[#FE3C01] hover:shadow-2xl hover:shadow-[#FE3C01]/15 hover:scale-[1.03]"
@@ -523,7 +523,7 @@ export default function TenderStartMethodStep() {
             data-testid="button-template"
           >
             {/* Illustration Area */}
-            <div className={`w-full h-[180px] sm:h-[220px] rounded-xl flex items-center justify-center mb-6 transition-all duration-300 ease-in-out overflow-hidden ${
+            <div className={`w-full h-[150px] sm:h-[220px] rounded-xl flex items-center justify-center mb-6 max-sm:mb-4 transition-all duration-300 ease-in-out overflow-hidden ${
               startMethod === "template"
                 ? "bg-[#F7F7F7]"
                 : "bg-[#F7F7F7] group-hover:bg-[#FEF7F6]"
@@ -575,7 +575,7 @@ export default function TenderStartMethodStep() {
             }}
             onMouseEnter={() => setHoveredCard("scratch")}
             onMouseLeave={() => setHoveredCard(null)}
-            className={`group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-card ${
+            className={`group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 max-sm:p-5 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-card ${
               startMethod === "scratch"
                 ? "border-[#FE3C01] shadow-2xl shadow-[#FE3C01]/20 scale-[1.02]"
                 : "border-border dark:border-border shadow-lg hover:border-[#FE3C01] hover:shadow-2xl hover:shadow-[#FE3C01]/15 hover:scale-[1.03]"
@@ -583,7 +583,7 @@ export default function TenderStartMethodStep() {
             data-testid="button-scratch"
           >
             {/* Illustration Area */}
-            <div className={`w-full h-[180px] sm:h-[220px] rounded-xl flex items-center justify-center mb-6 transition-all duration-300 ease-in-out overflow-hidden ${
+            <div className={`w-full h-[150px] sm:h-[220px] rounded-xl flex items-center justify-center mb-6 max-sm:mb-4 transition-all duration-300 ease-in-out overflow-hidden ${
               startMethod === "scratch"
                 ? "bg-[#F7F7F7]"
                 : "bg-[#F7F7F7] group-hover:bg-[#FEF7F6]"
@@ -639,7 +639,7 @@ export default function TenderStartMethodStep() {
             >
           <Card className="border-0 shadow-xl overflow-hidden mb-0">
             <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]" />
-            <div className="p-8">
+            <div className="p-8 max-sm:p-5">
               <label className="block text-lg font-semibold text-gray-900 dark:text-foreground mb-4">
                 {t('tenderFlow.chooseTemplate')}
               </label>
@@ -658,7 +658,7 @@ export default function TenderStartMethodStep() {
                       role="radio"
                       aria-checked={selectedTemplate === template.id}
                       onClick={() => setSelectedTemplate(template.id)}
-                      className={`w-full flex items-start gap-4 p-5 rounded-xl border-2 transition-all duration-300 ease-in-out text-left ${
+                      className={`w-full flex items-start gap-4 p-5 max-sm:p-4 rounded-xl border-2 transition-all duration-300 ease-in-out text-left ${
                         selectedTemplate === template.id
                           ? "border-[#FE3C01] bg-[#FE3C01]/5 shadow-md"
                           : "border-gray-200 dark:border-gray-600 hover:border-[#FE3C01]/50 hover:shadow-md"
@@ -675,8 +675,8 @@ export default function TenderStartMethodStep() {
                         <FileText className="h-6 w-6" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-semibold text-lg ${
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <span className={`font-semibold text-base ${
                             selectedTemplate === template.id
                               ? "text-[#FE3C01]"
                               : "text-gray-900 dark:text-foreground"
@@ -684,8 +684,8 @@ export default function TenderStartMethodStep() {
                             {template.name}
                           </span>
                           {template.recommended && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                              <Star className="h-3.5 w-3.5" />
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                              <Star className="h-3 w-3" />
                               {t('tenderFlow.recommended')}
                             </span>
                           )}
@@ -746,15 +746,15 @@ export default function TenderStartMethodStep() {
                             <FileText className="h-6 w-6" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className={`font-semibold text-lg ${
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                              <span className={`font-semibold text-base ${
                                 selectedTemplate === template.id
                                   ? "text-[#FE3C01]"
                                   : "text-gray-900 dark:text-foreground"
                               }`}>
                                 {template.name}
                               </span>
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] dark:bg-blue-900/30 dark:text-blue-400">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] dark:bg-blue-900/30 dark:text-blue-400">
                                 {template.cards.length} {t('tenderFlow.fields')}
                               </span>
                             </div>
@@ -786,12 +786,12 @@ export default function TenderStartMethodStep() {
         </AnimatePresence>
 
         {/* Navigation Buttons - Fixed at Bottom */}
-        <div className="flex justify-center gap-4 mt-12">
+        <div className="flex justify-center gap-4 mt-12 max-sm:mt-5">
           <Button
             type="button"
             variant="outline"
             onClick={handleBack}
-            className="min-w-[160px] h-12 text-base"
+            className="min-w-[160px] max-sm:min-w-0 max-sm:flex-1 h-12 text-base"
             data-testid="button-cancel"
           >
             {t('tenderFlow.back')}
@@ -799,7 +799,7 @@ export default function TenderStartMethodStep() {
           <Button
             onClick={handleNext}
             disabled={!isFormValid}
-            className="min-w-[160px] h-12 text-base bg-[#FE3C01] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="min-w-[160px] max-sm:min-w-0 max-sm:flex-1 h-12 text-base bg-[#FE3C01] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="button-next"
           >
             {t('tenderFlow.continue')}

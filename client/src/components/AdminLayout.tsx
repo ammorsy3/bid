@@ -120,7 +120,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             {t('admin.backToDashboard')}
           </Link>
           <div className="mb-2">
-            <BidLogo size={24} />
+            <BidLogo variant="orange" size={24} />
           </div>
           <h1 className="font-display font-black text-xl text-gray-900 dark:text-foreground tracking-[-0.03em]">
             {t('admin.adminPanel')}

@@ -5,9 +5,9 @@ export default function Terms() {
   return (
     <div className="min-h-screen bg-card">
       <header className="border-b border-border">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link href="/" data-testid="link-home">
-            <BidLogo size={28} />
+            <BidLogo variant="orange" size={28} />
           </Link>
           <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-login">
             Sign in
@@ -15,7 +15,7 @@ export default function Terms() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-12 prose prose-sm dark:prose-invert">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12 prose prose-sm dark:prose-invert">
         <h1 className="text-3xl font-bold mb-2">Terms of Service</h1>
         <p className="text-sm text-muted-foreground mb-8">Last updated: November 2025</p>
 

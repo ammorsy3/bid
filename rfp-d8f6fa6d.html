@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RFP-D8F6FA6D · Cloud Infrastructure Security Audit — Bid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --orange: #FE3C01;
+  --orange-hover: #d54d35;
+  --orange-light: rgba(254,60,1,0.08);
+  --cream: #F4EDE1;
+  --ink: #1A1613;
+  --stone: #8A8078;
+  /* hsl(26,16%,9%) — warm near-black matching --foreground */
+  --foreground: hsl(26,16%,9%);
+  /* hsl(28,7%,42%) — warm muted text */
+  --muted-fg: hsl(28,7%,42%);
+  /* hsl(28,12%,88%) — warm beige border */
+  --border: hsl(28,12%,88%);
+  --card: #ffffff;
+  /* hsl(38,47%,96%) — warm cream page/muted bg */
+  --muted: hsl(38,47%,96%);
+  --state-won: #1FA56A;
+  --radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  color: var(--foreground);
+  background: hsl(38,47%,96%);
+}
+
+/* ── Layout ── */
+body { min-height: 100vh; background: hsl(38,47%,96%); }
+
+.hero {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  background-image: radial-gradient(circle, rgba(138,128,120,0.3) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.hero-inner { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+
+.content-wrap { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+.two-col { display: grid; grid-template-columns: 1fr 288px; gap: 24px; }
+@media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } .sidebar { display: none; } }
+
+/* ── Typography ── */
+.font-display { font-family: 'Inter', sans-serif; font-weight: 900; letter-spacing: -0.04em; }
+.mono { font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  border: none; cursor: pointer; white-space: nowrap; transition: background 0.15s;
+  text-decoration: none;
+}
+.btn-ghost { background: transparent; color: var(--muted-fg); }
+.btn-ghost:hover { background: rgba(0,0,0,0.05); color: var(--foreground); }
+.btn-outline { background: rgba(255,255,255,0.85); color: var(--foreground); border: 1px solid var(--border); }
+.btn-outline:hover { background: hsl(38,47%,97%); }
+.btn-orange { background: var(--orange); color: #fff; }
+.btn-orange:hover { background: var(--orange-hover); }
+.btn-orange-outline { background: rgba(255,255,255,0.85); color: var(--orange); border: 1px solid rgba(254,60,1,0.3); }
+.btn-orange-outline:hover { background: var(--orange-light); }
+.btn-red-ghost { background: rgba(255,255,255,0.85); color: #dc2626; border: 1px solid var(--border); }
+.btn-red-ghost:hover { background: #fef2f2; }
+.btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 7px; }
+.btn-full { width: 100%; justify-content: center; padding: 11px; border-radius: 12px; font-size: 14px; }
+
+/* ── Status Badge ── */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  border: 1.5px solid transparent;
+}
+.badge-active { background: rgba(22,163,74,0.08); color: #15803d; border-color: rgba(22,163,74,0.25); }
+.badge-active .dot { background: #16a34a; }
+.badge-pending { background: rgba(245,158,11,0.08); color: #b45309; border-color: rgba(245,158,11,0.25); }
+.badge-pending .dot { background: #f59e0b; }
+.badge-lost { background: rgba(239,68,68,0.08); color: #b91c1c; border-color: rgba(239,68,68,0.25); }
+.badge-lost .dot { background: #ef4444; }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Cards ── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+.card-muted { background: var(--muted); border: 1px solid var(--border); border-radius: 12px; }
+
+/* ── TOC pills ── */
+.toc-bar {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 6px; margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.toc-bar-inner { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.toc-btn {
+  display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+  padding: 8px 12px; border-radius: 10px; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 500; transition: all 0.15s; background: transparent;
+  color: var(--muted-fg); white-space: nowrap;
+}
+.toc-btn:hover { background: var(--muted); color: var(--foreground); }
+.toc-btn.active { background: var(--orange); color: #fff; }
+.toc-btn .num { font-size: 10px; font-family: monospace; opacity: 0.5; }
+.toc-btn.active .num { color: rgba(255,255,255,0.65); opacity: 1; }
+
+/* ── Document ── */
+.doc-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; }
+.doc-section { padding: 32px; scroll-margin-top: 80px; }
+.doc-sep { height: 1px; margin: 0 32px; background: linear-gradient(to right, transparent, hsl(28,12%,88%) 30%, hsl(28,12%,88%) 70%, transparent); }
+
+/* ── Section header ── */
+.section-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 24px; }
+.section-num {
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  background: rgba(254,60,1,0.1); border: 1px solid rgba(254,60,1,0.2);
+  display: flex; align-items: center; justify-content: center; margin-top: 2px;
+}
+.section-num span { font-size: 11px; font-weight: 700; color: var(--orange); font-family: monospace; }
+.section-title-wrap { flex: 1; }
+.section-title { font-size: 20px; font-weight: 900; letter-spacing: -0.02em; color: var(--foreground); line-height: 1.2; }
+.section-underline { margin-top: 6px; height: 1px; background: linear-gradient(to right, rgba(254,60,1,0.25), hsl(28,12%,88%), transparent); }
+
+/* ── Label above content ── */
+.field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: hsl(28,9%,68%); margin-bottom: 12px; }
+
+/* ── Body text ── */
+.body-text { color: var(--muted-fg); line-height: 1.7; font-size: 15px; white-space: pre-wrap; }
+
+/* ── Icon + label row ── */
+.icon-label { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.icon-label .field-label { margin-bottom: 0; }
+
+/* ── Deliverable card ── */
+.deliverable {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 16px; background: var(--muted); border: 1px solid var(--border); border-radius: 14px;
+}
+.deliverable-num {
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  background: var(--orange); color: #fff; font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── Skill tags ── */
+.skill-tag {
+  display: inline-flex; align-items: center;
+  padding: 6px 12px; border-radius: 8px;
+  background: #eff6ff; color: #4338ca; border: 1px solid #e0e7ff;
+  font-size: 13px; font-weight: 500;
+}
+
+/* ── Submission type block ── */
+.submission-block {
+  border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px;
+}
+.submission-block .accent-bar { height: 2px; background: linear-gradient(to right, #FE3C01, #FF8A6B); }
+.submission-inner { display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--muted); }
+.submission-icon-wrap {
+  padding: 8px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* ── Eval criteria ── */
+.eval-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-radius: 12px;
+  background: #fffbeb; border: 1px solid #fef3c7;
+}
+.eval-icon-wrap { width: 32px; height: 32px; border-radius: 50%; background: #fef3c7; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.badge-weight { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; border: 1px solid #fcd34d; color: #b45309; }
+
+/* ── Score bar ── */
+.score-bar-wrap { display: flex; border-radius: 99px; overflow: hidden; height: 12px; gap: 2px; margin-bottom: 12px; }
+.score-seg { border-radius: 0; }
+.score-seg:first-child { border-radius: 999px 0 0 999px; }
+.score-seg:last-child { border-radius: 0 999px 999px 0; }
+.score-seg:only-child { border-radius: 999px; }
+
+/* ── Vendor req cards ── */
+.req-mandatory { display: flex; align-items: center; gap: 12px; padding: 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; }
+.req-preferred { display: flex; align-items: center; gap: 12px; padding: 14px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; }
+.req-badge-red { font-size: 11px; font-weight: 600; color: #dc2626; background: #fee2e2; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+.req-badge-amber { font-size: 11px; font-weight: 600; color: #d97706; background: #fef3c7; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+
+/* ── Q&A ── */
+.qa-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.qa-question { padding: 12px 16px; background: hsl(38,47%,97%); }
+.qa-answer { padding: 12px 16px; background: var(--card); border-top: 1px solid var(--border); }
+.qa-awaiting { padding: 10px 16px; background: rgba(245,158,11,0.05); border-top: 1px solid var(--border); }
+
+/* ── Proposals section ── */
+.proposal-card {
+  border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  background: var(--card); transition: box-shadow 0.15s;
+}
+.proposal-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.proposal-inner { padding: 20px; }
+.vendor-avatar {
+  width: 48px; height: 48px; border-radius: 12px; object-fit: cover;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; color: #fff; font-size: 15px; flex-shrink: 0;
+}
+.file-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 500;
+}
+.chip-blue { background: var(--orange-light); color: var(--orange); border: 1px solid #dbeafe; }
+.chip-green { background: rgba(22,163,74,0.06); color: #15803d; border: 1px solid #d1fae5; }
+.verified-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 600; color: #15803d;
+  background: rgba(22,163,74,0.06); border: 1px solid #bbf7d0;
+  padding: 2px 8px; border-radius: 99px;
+}
+.proposal-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.ai-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 7px; font-size: 12px; font-weight: 600; border: 1px solid rgba(254,60,1,0.2); color: var(--orange); background: transparent; cursor: pointer; }
+.ai-btn:hover { background: var(--orange-light); }
+
+/* ── Negotiate banner ── */
+.negotiate-banner {
+  background: #FFF8F7;
+  background-image: radial-gradient(circle, #e8c5be 1px, transparent 1px);
+  background-size: 18px 18px;
+  border: 1px solid rgba(254,60,1,0.2); border-radius: 20px;
+  padding: 24px; display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-top: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* ── Sidebar ── */
+.sidebar-sticky { position: sticky; top: 80px; display: flex; flex-direction: column; gap: 16px; }
+.sidebar-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; }
+.sidebar-header { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.sidebar-header-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: hsl(28,9%,68%); }
+.glance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; }
+.glance-tile { padding: 12px; border-radius: 12px; background: var(--muted); border: 1px solid var(--border); }
+.glance-tile.deadline-ok { background: var(--muted); }
+.glance-tile-label { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.glance-tile-label span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: hsl(28,9%,68%); }
+.glance-tile p { font-size: 12px; font-weight: 700; color: var(--foreground); line-height: 1.3; }
+.days-chip { display: inline-block; margin-top: 4px; padding: 2px 6px; border-radius: 99px; font-size: 9px; font-weight: 700; background: hsl(38,20%,86%); color: var(--muted-fg); }
+.glance-full { grid-column: 1 / -1; }
+
+/* ── Invite box ── */
+.invite-box { padding: 16px; }
+.invite-code { background: var(--muted); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 12px; }
+.invite-code code { font-size: 11px; color: var(--muted-fg); word-break: break-all; font-family: monospace; }
+.invite-btns { display: flex; gap: 8px; }
+
+/* ── CTA box ── */
+.cta-accent { height: 4px; background: linear-gradient(to right, #FE3C01, #FF8A6B); }
+.cta-inner { padding: 20px; }
+.cta-label { font-size: 11px; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+.cta-title { font-size: 14px; font-weight: 700; color: var(--foreground); margin-bottom: 2px; }
+.cta-sub { font-size: 12px; color: hsl(28,9%,68%); margin-bottom: 16px; }
+
+/* ── Hero meta strip ── */
+.hero-meta { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(229,231,235,0.7); }
+.meta-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: hsl(28,9%,68%); }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 48px 24px; border: 2px dashed var(--border); border-radius: 14px; }
+.empty-icon { width: 56px; height: 56px; border-radius: 16px; background: var(--muted); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+
+/* ── Misc ── */
+.gap-8 { gap: 8px; }
+.gap-6 { gap: 6px; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.flex-wrap { flex-wrap: wrap; }
+.space-y-8 > * + * { margin-top: 8px; }
+.space-y-12 > * + * { margin-top: 12px; }
+.space-y-16 > * + * { margin-top: 16px; }
+.space-y-20 > * + * { margin-top: 20px; }
+.mb-6 { margin-bottom: 6px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.mb-24 { margin-bottom: 24px; }
+.mb-32 { margin-bottom: 32px; }
+.mt-6 { margin-top: 6px; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.text-sm { font-size: 13px; }
+.text-xs { font-size: 11px; }
+.text-muted { color: var(--muted-fg); }
+.text-orange { color: var(--orange); }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.flex-1 { flex: 1; }
+.min-w-0 { min-width: 0; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.leading-tight { line-height: 1.3; }
+
+/* SVG icons */
+svg.icon { width: 14px; height: 14px; display: inline-block; vertical-align: middle; flex-shrink: 0; }
+svg.icon-sm { width: 12px; height: 12px; flex-shrink: 0; }
+svg.icon-lg { width: 20px; height: 20px; flex-shrink: 0; }
+svg.icon-xl { width: 24px; height: 24px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     HERO HEADER
+════════════════════════════════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-inner">
+
+    <!-- Back button -->
+    <button class="btn btn-ghost" style="margin-bottom:24px;margin-left:-8px;" onclick="history.back()">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to Dashboard
+    </button>
+
+    <!-- Title row -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:0;">
+        <!-- Status badge -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+          <span class="status-badge badge-active">
+            <span class="dot"></span>
+            Open
+          </span>
+        </div>
+        <!-- RFP label -->
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:hsl(28,9%,68%);margin-bottom:8px;">
+          Request for Proposal · <span class="mono">RFP-D8F6FA6D</span>
+        </p>
+        <!-- Title -->
+        <h1 class="font-display" style="font-size:36px;color:var(--foreground);line-height:0.95;margin-bottom:12px;">
+          Cloud Infrastructure Security Audit & Penetration Testing
+        </h1>
+        <!-- Published date -->
+        <div style="display:flex;align-items:center;gap:12px;color:hsl(28,9%,68%);font-size:13px;">
+          <span>Published on <span class="mono">May 12, 2026</span></span>
+        </div>
+      </div>
+
+      <!-- Owner action buttons -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:4px;flex-shrink:0;">
+        <button class="btn btn-orange-outline" onclick="alert('Edit tender')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+        <button class="btn btn-outline" onclick="alert('Close tender')">
+          Close
+        </button>
+        <button class="btn btn-orange-outline" onclick="alert('Publish to Marketplace')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Publish to Marketplace
+        </button>
+        <button class="btn btn-red-ghost" onclick="alert('Delete tender')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Hero meta strip -->
+    <div class="hero-meta">
+      <div class="meta-item">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        <span>IT &amp; Cybersecurity</span>
+      </div>
+      <div class="meta-item">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>Deadline on <span class="mono">July 15, 2026</span></span>
+      </div>
+      <div class="meta-item">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>
+        <span>SAR 40,000 – 65,000</span>
+      </div>
+      <div class="meta-item">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>1 to 3 months</span>
+      </div>
+      <div class="meta-item" style="border:1px solid var(--border);padding:3px 10px;border-radius:99px;font-size:10px;font-weight:600;color:var(--muted-fg);">
+        Companies
+      </div>
+      <div class="meta-item" style="margin-left:auto;font-weight:700;color:var(--orange);">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>3 Proposals Received</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     CONTENT AREA
+════════════════════════════════════════════════════════════ -->
+<div class="content-wrap">
+  <div class="two-col">
+
+    <!-- ── MAIN COLUMN ── -->
+    <div>
+
+      <!-- TOC pill bar -->
+      <div class="toc-bar">
+        <div class="toc-bar-inner">
+          <button class="toc-btn active" onclick="scrollToSection('description',this)">
+            <span class="num">01</span>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span class="hidden sm:inline">Project Scope</span>
+          </button>
+          <button class="toc-btn" onclick="scrollToSection('submission',this)">
+            <span class="num">02</span>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span class="hidden sm:inline">Submission</span>
+          </button>
+          <button class="toc-btn" onclick="scrollToSection('requirements',this)">
+            <span class="num">03</span>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span class="hidden sm:inline">Vendor Requirements</span>
+          </button>
+          <button class="toc-btn" onclick="scrollToSection('evaluation',this)">
+            <span class="num">04</span>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span class="hidden sm:inline">Evaluation</span>
+          </button>
+          <button class="toc-btn" onclick="scrollToSection('inquiry',this)">
+            <span class="num">05</span>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span class="hidden sm:inline">Q&amp;A</span>
+          </button>
+          <button class="toc-btn" onclick="scrollToSection('proposals',this)">
+            <span class="num">06</span>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span class="hidden sm:inline">Proposals</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Document Card -->
+      <div class="doc-card">
+
+        <!-- § 1 Project Scope ──────────────────────────── -->
+        <div class="doc-section" id="section-description">
+          <div class="section-header">
+            <div class="section-num"><span>1</span></div>
+            <div class="section-title-wrap">
+              <h2 class="section-title">Project Scope</h2>
+              <div class="section-underline"></div>
+            </div>
+          </div>
+
+          <p class="field-label">Description</p>
+          <p class="body-text mb-24">We are seeking a qualified cybersecurity firm to conduct a comprehensive security audit and penetration testing of our cloud infrastructure hosted on AWS. The engagement includes an assessment of our EC2 instances, S3 bucket configurations, IAM policies, VPC architecture, and all public-facing endpoints.
+
+The vendor must deliver a full technical report detailing vulnerabilities discovered, severity classification (CVSS scoring), proof-of-concept for critical findings, and a prioritised remediation roadmap. A follow-up re-test after remediation is required within 30 days of the initial report.</p>
+
+          <!-- Objective -->
+          <div class="mb-24">
+            <div class="icon-label mb-8">
+              <svg class="icon" style="color:var(--orange)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+              <span class="field-label">Project Objective</span>
+            </div>
+            <div style="padding-left:16px;border-left:2px solid rgba(254,60,1,0.3);padding-top:2px;padding-bottom:2px;">
+              <p class="body-text">Identify and remediate security vulnerabilities in our AWS cloud infrastructure before the Q3 2026 compliance audit, ensuring we meet ISO 27001 and SAMA CSF requirements.</p>
+            </div>
+          </div>
+
+          <!-- Deliverables -->
+          <div class="mb-24">
+            <div class="icon-label mb-6">
+              <svg class="icon" style="color:var(--orange)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              <span class="field-label">Deliverables</span>
+            </div>
+            <p style="font-size:12px;color:hsl(28,9%,68%);margin-bottom:16px;">Address each item clearly in your technical proposal.</p>
+            <div class="space-y-8">
+              <div class="deliverable">
+                <div class="deliverable-num">1</div>
+                <span style="color:var(--foreground);padding-top:2px;line-height:1.5;">Executive summary and full penetration testing report with CVSS-scored findings</span>
+              </div>
+              <div class="deliverable">
+                <div class="deliverable-num">2</div>
+                <span style="color:var(--foreground);padding-top:2px;line-height:1.5;">Detailed risk register with remediation guidance and estimated effort per finding</span>
+              </div>
+              <div class="deliverable">
+                <div class="deliverable-num">3</div>
+                <span style="color:var(--foreground);padding-top:2px;line-height:1.5;">Re-test report confirming remediation of critical and high findings (within 30 days)</span>
+              </div>
+              <div class="deliverable">
+                <div class="deliverable-num">4</div>
+                <span style="color:var(--foreground);padding-top:2px;line-height:1.5;">30-minute debrief call with technical leadership presenting key findings</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skills -->
+          <div>
+            <div class="icon-label mb-12">
+              <svg class="icon" style="color:var(--orange)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              <span class="field-label">Required Skills</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              <span class="skill-tag">Cloud Security (AWS)</span>
+              <span class="skill-tag">Penetration Testing</span>
+              <span class="skill-tag">CVSS / CVE Analysis</span>
+              <span class="skill-tag">IAM Policy Review</span>
+              <span class="skill-tag">ISO 27001</span>
+              <span class="skill-tag">SAMA CSF</span>
+            </div>
+          </div>
+        </div>
+        <!-- end § 1 -->
+
+        <div class="doc-sep"></div>
+
+        <!-- § 2 Submission Requirements ──────────────────── -->
+        <div class="doc-section" id="section-submission">
+          <div class="section-header">
+            <div class="section-num"><span>2</span></div>
+            <div class="section-title-wrap">
+              <h2 class="section-title">Submission Requirements</h2>
+              <div class="section-underline"></div>
+            </div>
+          </div>
+
+          <div class="submission-block">
+            <div class="accent-bar"></div>
+            <div class="submission-inner">
+              <div class="submission-icon-wrap">
+                <svg class="icon" style="color:var(--muted-fg)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div>
+                <p style="font-weight:600;font-size:14px;color:var(--foreground);">Full Proposal (Technical + Financial)</p>
+                <p style="font-size:12px;color:var(--muted-fg);margin-top:4px;">Upload a separate technical document outlining your methodology and approach, plus a financial document detailing your pricing breakdown.</p>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:hsl(28,9%,68%);">
+            <svg class="icon-sm" style="color:hsl(28,9%,68%)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Submission deadline: <span style="font-weight:600;color:var(--foreground);">July 15, 2026</span>
+          </div>
+        </div>
+        <!-- end § 2 -->
+
+        <div class="doc-sep"></div>
+
+        <!-- § 3 Vendor Requirements ───────────────────────── -->
+        <div class="doc-section" id="section-requirements">
+          <h2 style="font-size:19px;font-weight:900;letter-spacing:-0.02em;color:var(--foreground);margin-bottom:4px;display:flex;align-items:center;gap:8px;">
+            <svg class="icon-lg" style="color:var(--orange);flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Vendor Requirements
+          </h2>
+          <p style="font-size:13px;color:hsl(28,9%,68%);margin-bottom:20px;">What vendors must (or should) prove to qualify for this RFP.</p>
+
+          <!-- Mandatory -->
+          <div class="mb-20">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0;"></span>
+              <span style="font-size:11px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:0.07em;">Mandatory</span>
+            </div>
+            <div class="space-y-8">
+              <div class="req-mandatory">
+                <svg class="icon" style="color:#ef4444;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span style="font-size:13px;color:var(--foreground);flex:1;">Must hold a valid CREST, OSCP, or equivalent penetration testing certification</span>
+                <span class="req-badge-red">Required</span>
+              </div>
+              <div class="req-mandatory">
+                <svg class="icon" style="color:#ef4444;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span style="font-size:13px;color:var(--foreground);flex:1;">Minimum 3 years of experience conducting cloud security assessments for enterprise clients</span>
+                <span class="req-badge-red">Required</span>
+              </div>
+              <div class="req-mandatory">
+                <svg class="icon" style="color:#ef4444;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span style="font-size:13px;color:var(--foreground);flex:1;">Must sign a Non-Disclosure Agreement (NDA) prior to engagement</span>
+                <span class="req-badge-red">Required</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preferred -->
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;flex-shrink:0;"></span>
+              <span style="font-size:11px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:0.07em;">Preferred</span>
+            </div>
+            <div class="space-y-8">
+              <div class="req-preferred">
+                <svg class="icon" style="color:#f59e0b;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span style="font-size:13px;color:var(--foreground);flex:1;">Prior experience with SAMA Cyber Security Framework compliance assessments</span>
+                <span class="req-badge-amber">Preferred</span>
+              </div>
+              <div class="req-preferred">
+                <svg class="icon" style="color:#f59e0b;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span style="font-size:13px;color:var(--foreground);flex:1;">AWS Partner Network member or AWS Security competency holder</span>
+                <span class="req-badge-amber">Preferred</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end § 3 -->
+
+        <div class="doc-sep"></div>
+
+        <!-- § 4 Evaluation Criteria ──────────────────────── -->
+        <div class="doc-section" id="section-evaluation">
+          <div class="section-header">
+            <div class="section-num"><span>4</span></div>
+            <div class="section-title-wrap">
+              <h2 class="section-title">Evaluation Criteria</h2>
+              <div class="section-underline"></div>
+            </div>
+          </div>
+          <p style="font-size:13px;color:hsl(28,9%,68%);margin-bottom:24px;">Proposals will be scored against the following weighted categories.</p>
+
+          <!-- Score distribution bar -->
+          <div class="mb-24">
+            <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:hsl(28,9%,68%);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Score Distribution
+            </p>
+            <div class="score-bar-wrap">
+              <div class="score-seg" style="width:40%;background:var(--orange);"></div>
+              <div class="score-seg" style="width:35%;background:#16a34a;"></div>
+              <div class="score-seg" style="width:25%;background:#6366f1;"></div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:4px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="width:10px;height:10px;border-radius:50%;background:var(--orange);flex-shrink:0;"></span>
+                <span style="font-size:13px;color:var(--muted-fg);">Technical Capability <span style="font-weight:700;color:var(--orange);">40%</span></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="width:10px;height:10px;border-radius:50%;background:#16a34a;flex-shrink:0;"></span>
+                <span style="font-size:13px;color:var(--muted-fg);">Relevant Experience <span style="font-weight:700;color:#16a34a;">35%</span></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="width:10px;height:10px;border-radius:50%;background:#6366f1;flex-shrink:0;"></span>
+                <span style="font-size:13px;color:var(--muted-fg);">Financial Evaluation <span style="font-weight:700;color:#6366f1;">25%</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expandable category cards -->
+          <div class="space-y-12">
+            <!-- Technical -->
+            <div style="border:1px solid #fef3c7;border-radius:12px;overflow:hidden;">
+              <button onclick="toggleEval(this)" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fffbeb;border:none;cursor:pointer;text-align:left;">
+                <svg class="icon" id="chevron-tech" style="color:#d97706;transition:transform .2s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                <div style="flex:1;min-width:0;">
+                  <p style="font-weight:600;font-size:14px;color:var(--foreground);">Technical Capability</p>
+                  <p style="font-size:12px;color:hsl(28,9%,68%);margin-top:2px;">Technical approach, methodology, and delivery capability</p>
+                </div>
+                <span class="badge-weight">40%</span>
+              </button>
+              <div id="eval-tech" style="display:none;padding:16px;border-top:1px solid #fef3c7;background:#fff;">
+                <div class="space-y-8">
+                  <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:hsl(38,47%,97%);border-radius:10px;">
+                    <svg class="icon" style="color:#f59e0b;margin-top:2px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <div>
+                      <p style="font-size:13px;font-weight:600;color:var(--foreground);">Detailed Methodology Required</p>
+                      <p style="font-size:12px;color:hsl(28,9%,68%);margin-top:2px;">The company must submit a detailed project methodology explaining their approach and execution plan.</p>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:hsl(38,47%,97%);border-radius:10px;">
+                    <svg class="icon" style="color:#f59e0b;margin-top:2px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <div>
+                      <p style="font-size:13px;font-weight:600;color:var(--foreground);">Industry Certifications Required</p>
+                      <p style="font-size:12px;color:hsl(28,9%,68%);margin-top:2px;">CREST, OSCP, or equivalent certifications for the penetration testing team.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Experience -->
+            <div style="border:1px solid #fef3c7;border-radius:12px;overflow:hidden;">
+              <button onclick="toggleEval(this)" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fffbeb;border:none;cursor:pointer;text-align:left;">
+                <svg class="icon" style="color:#d97706;transition:transform .2s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                <div style="flex:1;min-width:0;">
+                  <p style="font-weight:600;font-size:14px;color:var(--foreground);">Relevant Experience</p>
+                  <p style="font-size:12px;color:hsl(28,9%,68%);margin-top:2px;">Track record in similar projects and industry expertise</p>
+                </div>
+                <span class="badge-weight">35%</span>
+              </button>
+              <div style="display:none;padding:16px;border-top:1px solid #fef3c7;background:#fff;">
+                <div class="space-y-8">
+                  <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:hsl(38,47%,97%);border-radius:10px;">
+                    <svg class="icon" style="color:#f59e0b;margin-top:2px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <div>
+                      <p style="font-size:13px;font-weight:600;color:var(--foreground);">Minimum Years in Market</p>
+                      <p style="font-size:12px;color:hsl(28,9%,68%);margin-top:2px;">The company must have been operating in cybersecurity for at least this many years.</p>
+                      <p style="font-size:12px;font-weight:700;color:#d97706;margin-top:4px;">3+ years required</p>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:hsl(38,47%,97%);border-radius:10px;">
+                    <svg class="icon" style="color:#f59e0b;margin-top:2px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <div>
+                      <p style="font-size:13px;font-weight:600;color:var(--foreground);">Similar Projects Completed</p>
+                      <p style="font-size:12px;color:hsl(28,9%,68%);margin-top:2px;">The company must have successfully delivered comparable cloud security assessments.</p>
+                      <p style="font-size:12px;font-weight:700;color:#d97706;margin-top:4px;">At least 5 projects required</p>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:hsl(38,47%,97%);border-radius:10px;">
+                    <svg class="icon" style="color:#f59e0b;margin-top:2px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <div>
+                      <p style="font-size:13px;font-weight:600;color:var(--foreground);">Client References Required</p>
+                      <p style="font-size:12px;color:hsl(28,9%,68%);margin-top:2px;">The company must provide verifiable references from previous clients for similar cloud security work.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Financial -->
+            <div style="border:1px solid #fef3c7;border-radius:12px;overflow:hidden;">
+              <button onclick="toggleEval(this)" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fffbeb;border:none;cursor:pointer;text-align:left;">
+                <svg class="icon" style="color:#d97706;transition:transform .2s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                <div style="flex:1;min-width:0;">
+                  <p style="font-weight:600;font-size:14px;color:var(--foreground);">Financial Evaluation</p>
+                  <p style="font-size:12px;color:hsl(28,9%,68%);margin-top:2px;">Financial stability and pricing competitiveness</p>
+                </div>
+                <span class="badge-weight">25%</span>
+              </button>
+              <div style="display:none;padding:16px;border-top:1px solid #fef3c7;background:#fff;">
+                <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:hsl(38,47%,97%);border-radius:10px;">
+                  <svg class="icon" style="color:#f59e0b;margin-top:2px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  <div>
+                    <p style="font-size:13px;font-weight:600;color:var(--foreground);">Transparent Cost Breakdown</p>
+                    <p style="font-size:12px;color:hsl(28,9%,68%);margin-top:2px;">Itemised pricing for each phase of the engagement including re-test scope.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end § 4 -->
+
+        <div class="doc-sep"></div>
+
+        <!-- § 5 Q&A ──────────────────────────────────────── -->
+        <div class="doc-section" id="section-inquiry">
+          <div class="section-header">
+            <div class="section-num"><span>5</span></div>
+            <div class="section-title-wrap">
+              <h2 class="section-title">Questions &amp; Clarifications</h2>
+              <div class="section-underline"></div>
+            </div>
+          </div>
+          <p style="font-size:13px;color:hsl(28,9%,68%);margin-bottom:24px;">All questions are anonymous. Answers are visible to all invited vendors.</p>
+
+          <!-- Anonymous info box -->
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:16px;background:#f0fdf4;border-radius:12px;margin-bottom:20px;">
+            <div style="padding:8px;background:#dcfce7;border-radius:8px;flex-shrink:0;">
+              <svg class="icon" style="color:#16a34a" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <p style="font-size:13px;color:hsl(28,7%,42%);">Questions submitted via the Bid platform are anonymous — the requester sees the question but not who asked it. All published answers are shared with every invited vendor.</p>
+          </div>
+
+          <p style="font-size:13px;font-weight:500;color:var(--muted-fg);margin-bottom:12px;">2 questions from vendors</p>
+
+          <!-- Q1 — answered -->
+          <div class="qa-card mb-12">
+            <div class="qa-question">
+              <div style="display:flex;align-items:flex-start;gap:8px;">
+                <svg class="icon" style="color:hsl(28,9%,68%);margin-top:3px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div>
+                  <p style="font-size:14px;color:var(--foreground);">Will the scope include the company's internal GitLab CI/CD pipelines, or is this limited to the production AWS environment only?</p>
+                  <p style="font-size:11px;color:hsl(28,9%,68%);margin-top:4px;">Asked May 18</p>
+                </div>
+              </div>
+            </div>
+            <div class="qa-answer">
+              <div style="display:flex;align-items:flex-start;gap:8px;">
+                <svg class="icon" style="color:#16a34a;margin-top:3px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <div>
+                  <p style="font-size:11px;font-weight:600;color:#15803d;margin-bottom:4px;">Your Answer</p>
+                  <p style="font-size:13px;color:var(--muted-fg);">The scope is limited to the production AWS environment. The CI/CD pipelines are out of scope for this engagement but may be considered for a follow-on assessment.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Q2 — awaiting answer -->
+          <div class="qa-card">
+            <div class="qa-question">
+              <div style="display:flex;align-items:flex-start;gap:8px;">
+                <svg class="icon" style="color:hsl(28,9%,68%);margin-top:3px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div>
+                  <p style="font-size:14px;color:var(--foreground);">Is the re-test included in the quoted price, or should it be priced separately in our financial proposal?</p>
+                  <p style="font-size:11px;color:hsl(28,9%,68%);margin-top:4px;">Asked May 21</p>
+                </div>
+              </div>
+            </div>
+            <div class="qa-awaiting">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <svg class="icon-sm" style="color:#f59e0b" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <p style="font-size:11px;color:#d97706;">Awaiting your answer</p>
+              </div>
+            </div>
+            <!-- answer textarea (functional) -->
+            <div style="padding:12px 16px;background:#fff;border-top:1px solid var(--border);">
+              <textarea rows="2" placeholder="Type your answer…" style="width:100%;resize:none;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:10px;font-family:inherit;color:var(--foreground);background:var(--card);" id="q2-answer"></textarea>
+              <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+                <button class="btn btn-sm" style="background:#16a34a;color:#fff;" onclick="submitAnswer()">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  Answer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end § 5 -->
+
+      </div>
+      <!-- end doc card -->
+
+      <!-- ─── Proposals Section (owner only) ──────────────── -->
+      <div class="card mt-24" id="section-proposals">
+        <div style="padding:32px 32px 0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:12px;font-family:monospace;color:hsl(28,12%,75%);background:var(--muted);padding:4px 8px;border-radius:6px;border:1px solid var(--border);">6.0</span>
+              <h2 style="font-size:20px;font-weight:900;letter-spacing:-0.02em;color:var(--foreground);">Proposals</h2>
+              <span style="display:inline-flex;align-items:center;justify-content:center;height:24px;min-width:24px;padding:0 8px;border-radius:99px;background:#0f0f0f;color:#fff;font-size:12px;font-weight:700;">3</span>
+            </div>
+          </div>
+        </div>
+        <div style="padding:0 32px 32px;">
+          <div class="space-y-12">
+
+            <!-- Proposal 1 -->
+            <div class="proposal-card">
+              <div style="height:2px;background:linear-gradient(to right,#FE3C01,#FF8A6B);"></div>
+              <div class="proposal-inner">
+                <div style="display:flex;align-items:flex-start;gap:16px;">
+                  <div class="vendor-avatar" style="background:linear-gradient(135deg,#FE3C01,#FF8A6B);">TC</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                      <div>
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+                          <h4 style="font-size:15px;font-weight:700;color:var(--foreground);">TechGuard Advisory</h4>
+                          <span class="verified-pill">
+                            <svg class="icon-sm" style="color:#16a34a" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            Verified
+                          </span>
+                        </div>
+                        <p style="font-size:12px;color:hsl(28,9%,68%);"><span style="font-weight:500;color:var(--muted-fg);">IT &amp; Cybersecurity · </span>Submitted on May 19, 2026</p>
+                      </div>
+                      <div style="flex-shrink:0;text-align:right;">
+                        <p style="font-size:20px;font-weight:700;color:var(--foreground);">SAR 52,000</p>
+                        <p style="font-size:11px;color:hsl(28,9%,68%);margin-top:2px;">Quoted Price</p>
+                      </div>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
+                      <span class="file-chip chip-blue">
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Technical
+                      </span>
+                      <span class="file-chip chip-green">
+                        <svg class="icon-sm" style="color:#16a34a" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>
+                        Financial
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="proposal-actions">
+                  <button class="btn btn-outline btn-sm">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    View Profile
+                  </button>
+                  <button class="btn btn-outline btn-sm">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Technical
+                  </button>
+                  <button class="btn btn-outline btn-sm">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>
+                    Financial
+                  </button>
+                  <button class="ai-btn" style="margin-left:auto;">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg>
+                    Summarize with AI
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Proposal 2 -->
+            <div class="proposal-card">
+              <div style="height:2px;background:linear-gradient(to right,#6366f1,#a855f7);"></div>
+              <div class="proposal-inner">
+                <div style="display:flex;align-items:flex-start;gap:16px;">
+                  <div class="vendor-avatar" style="background:linear-gradient(135deg,#6366f1,#a855f7);">SC</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                      <div>
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+                          <h4 style="font-size:15px;font-weight:700;color:var(--foreground);">SecureCloud Arabia</h4>
+                          <span class="verified-pill">
+                            <svg class="icon-sm" style="color:#16a34a" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            Verified
+                          </span>
+                        </div>
+                        <p style="font-size:12px;color:hsl(28,9%,68%);"><span style="font-weight:500;color:var(--muted-fg);">Cybersecurity &amp; Risk · </span>Submitted on May 21, 2026</p>
+                      </div>
+                      <div style="flex-shrink:0;text-align:right;">
+                        <p style="font-size:20px;font-weight:700;color:var(--foreground);">SAR 48,500</p>
+                        <p style="font-size:11px;color:hsl(28,9%,68%);margin-top:2px;">Quoted Price</p>
+                      </div>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
+                      <span class="file-chip chip-blue">
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Technical
+                      </span>
+                      <span class="file-chip chip-green">
+                        <svg class="icon-sm" style="color:#16a34a" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>
+                        Financial
+                      </span>
+                      <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:4px 8px;border-radius:6px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">
+                        <svg class="icon-sm" style="color:#16a34a" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg>
+                        AI Analyzed
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="proposal-actions">
+                  <button class="btn btn-outline btn-sm">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    View Profile
+                  </button>
+                  <button class="btn btn-outline btn-sm">Technical</button>
+                  <button class="btn btn-outline btn-sm">Financial</button>
+                  <button class="ai-btn" style="margin-left:auto;border-color:rgba(254,60,1,0.2);">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg>
+                    View AI Summary
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Proposal 3 -->
+            <div class="proposal-card">
+              <div style="height:2px;background:linear-gradient(to right,#10b981,#14b8a6);"></div>
+              <div class="proposal-inner">
+                <div style="display:flex;align-items:flex-start;gap:16px;">
+                  <div class="vendor-avatar" style="background:linear-gradient(135deg,#10b981,#14b8a6);">CX</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                      <div>
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+                          <h4 style="font-size:15px;font-weight:700;color:var(--foreground);">CipherX Security</h4>
+                        </div>
+                        <p style="font-size:12px;color:hsl(28,9%,68%);"><span style="font-weight:500;color:var(--muted-fg);">IT Security · </span>Submitted on May 22, 2026</p>
+                      </div>
+                      <div style="flex-shrink:0;text-align:right;">
+                        <p style="font-size:20px;font-weight:700;color:var(--foreground);">SAR 61,000</p>
+                        <p style="font-size:11px;color:hsl(28,9%,68%);margin-top:2px;">Quoted Price</p>
+                      </div>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
+                      <span class="file-chip chip-blue">
+                        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Technical
+                      </span>
+                      <span class="file-chip chip-green">Financial</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="proposal-actions">
+                  <button class="btn btn-outline btn-sm">View Profile</button>
+                  <button class="btn btn-outline btn-sm">Technical</button>
+                  <button class="btn btn-outline btn-sm">Financial</button>
+                  <button class="ai-btn" style="margin-left:auto;">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg>
+                    Summarize with AI
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <!-- end proposals -->
+
+    </div>
+    <!-- end main column -->
+
+    <!-- ── SIDEBAR ────────────────────────────────────────── -->
+    <div class="sidebar">
+      <div class="sidebar-sticky">
+
+        <!-- At a Glance -->
+        <div class="sidebar-card">
+          <div class="sidebar-header">
+            <p class="sidebar-header-label">At a Glance</p>
+          </div>
+          <div class="glance-grid">
+            <!-- Deadline -->
+            <div class="glance-tile deadline-ok">
+              <div class="glance-tile-label">
+                <svg style="width:14px;height:14px;color:var(--orange)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Deadline</span>
+              </div>
+              <p>Jul 15, 2026</p>
+              <span class="days-chip">52 days left</span>
+            </div>
+            <!-- Budget -->
+            <div class="glance-tile">
+              <div class="glance-tile-label">
+                <svg style="width:14px;height:14px;color:#10b981" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>
+                <span>Budget</span>
+              </div>
+              <p>SAR 40K – 65K</p>
+            </div>
+            <!-- Category -->
+            <div class="glance-tile">
+              <div class="glance-tile-label">
+                <svg style="width:14px;height:14px;color:#6366f1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                <span>Category</span>
+              </div>
+              <p>IT &amp; Cybersecurity</p>
+            </div>
+            <!-- Format -->
+            <div class="glance-tile">
+              <div class="glance-tile-label">
+                <svg style="width:14px;height:14px;color:#a855f7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span>Format</span>
+              </div>
+              <p>Tech + Financial</p>
+            </div>
+            <!-- Proposals (full width) -->
+            <div class="glance-tile glance-full">
+              <div class="glance-tile-label">
+                <svg style="width:14px;height:14px;color:var(--orange)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Proposals</span>
+              </div>
+              <p style="font-size:18px;font-weight:700;">3</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invitation Link -->
+        <div class="sidebar-card">
+          <div class="sidebar-header" style="background:hsl(38,47%,97%);">
+            <p class="sidebar-header-label">Invitation Link</p>
+          </div>
+          <div class="invite-box">
+            <div class="invite-code">
+              <code id="invite-url">https://app.bid.sa/invite/d8f6fa6d-bfeb-486b-a145-7e241ee136b0</code>
+            </div>
+            <div class="invite-btns">
+              <button class="btn btn-orange btn-sm" style="flex:1;" onclick="copyLink()" id="copy-btn">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy Link
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="alert('Open link')">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- end sidebar -->
+
+  </div>
+</div>
+
+<script>
+function scrollToSection(id, btn) {
+  const el = document.getElementById('section-' + id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelectorAll('.toc-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function toggleEval(btn) {
+  const chevron = btn.querySelector('svg');
+  const panel = btn.nextElementSibling;
+  const isOpen = panel.style.display === 'block';
+  panel.style.display = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+function copyLink() {
+  const url = document.getElementById('invite-url').textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied`;
+    setTimeout(() => {
+      btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Link`;
+    }, 2000);
+  });
+}
+
+function submitAnswer() {
+  const val = document.getElementById('q2-answer').value.trim();
+  if (!val) return;
+  const qaCard = document.getElementById('q2-answer').closest('.qa-card');
+  const form = document.getElementById('q2-answer').closest('div');
+  const awaiting = qaCard.querySelector('.qa-awaiting');
+  awaiting.remove();
+  form.innerHTML = `<div style="display:flex;align-items:flex-start;gap:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" style="margin-top:3px;flex-shrink:0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><p style="font-size:11px;font-weight:600;color:#15803d;margin-bottom:4px;">Your Answer</p><p style="font-size:13px;color:var(--muted-fg);">${val}</p></div></div>`;
+}
+
+// Highlight active TOC on scroll
+window.addEventListener('scroll', () => {
+  const sections = ['description','submission','requirements','evaluation','inquiry','proposals'];
+  for (let i = sections.length - 1; i >= 0; i--) {
+    const el = document.getElementById('section-' + sections[i]);
+    if (el && el.getBoundingClientRect().top <= 120) {
+      document.querySelectorAll('.toc-btn').forEach((b, idx) => {
+        b.classList.toggle('active', idx === i);
+      });
+      break;
+    }
+  }
+});
+</script>
+</body>
+</html>

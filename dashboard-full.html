@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1280">
+  <title>Bid · Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --orange: #FE3C01;
+      --orange-soft: #FFE4D7;
+      --peach: #FCE9DC;
+      --cream: #F4EDE1;
+      --cream-2: #FAF5EC;
+      --ink: #0B0907;
+      --stone: #8A8078;
+      --stone-soft: #C9C1B6;
+      --white: #FFFFFF;
+      --line: rgba(11,9,7,.08);
+      --line-strong: rgba(11,9,7,.16);
+      --green: #22C55E;
+      --green-bg: #F0FDF4;
+      --green-text: #15803D;
+      --amber: #F59E0B;
+      --amber-bg: #FFFBEB;
+      --red: #EF4444;
+      --blue: #3B82F6;
+      --sidebar-w: 256px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: #f9fafb;
+      color: var(--ink);
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: 'Inter', sans-serif; cursor: pointer; border: none; background: none; }
+    input, select { font-family: 'Inter', sans-serif; }
+
+    /* ── Layout ─────────────────────────────────────────────────── */
+    .layout { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── Sidebar ─────────────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--white);
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar-accent { height: 3px; background: linear-gradient(90deg, #FE3C01, #F19A8F); flex-shrink: 0; }
+    .sidebar-header {
+      padding: 18px 16px 16px;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .logo-mark {
+      width: 30px; height: 30px;
+      background: var(--ink);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .logo-mark svg { width: 18px; height: 18px; }
+    .logo-dot {
+      width: 6px; height: 6px;
+      background: var(--orange);
+      border-radius: 50%;
+      position: absolute;
+      bottom: 4px; right: 4px;
+    }
+    .logo-text { font-size: 15px; font-weight: 700; letter-spacing: -.02em; }
+    .company-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .company-role { font-size: 11px; color: var(--stone); }
+
+    .sidebar-section { padding: 12px 10px 4px; }
+    .sidebar-section-label {
+      font-size: 10px; font-weight: 600; color: var(--stone-soft);
+      text-transform: uppercase; letter-spacing: .06em;
+      padding: 0 6px; margin-bottom: 4px;
+    }
+
+    .sidebar-btn {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 9px 12px; border-radius: 10px;
+      font-size: 13.5px; font-weight: 500; color: var(--ink);
+      transition: background .15s, color .15s;
+      margin-bottom: 2px;
+    }
+    .sidebar-btn:hover { background: #F5F0EA; }
+    .sidebar-btn.active {
+      background: rgba(254,60,1,.10);
+      color: var(--orange);
+    }
+    .sidebar-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .sidebar-btn.active svg { color: var(--orange); }
+    .sidebar-btn .badge {
+      margin-left: auto;
+      background: var(--orange);
+      color: #fff;
+      font-size: 10px; font-weight: 700;
+      border-radius: 100px;
+      padding: 1px 6px;
+    }
+
+    .sidebar-create {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 10px 14px; border-radius: 10px;
+      background: var(--orange); color: #fff;
+      font-size: 13.5px; font-weight: 600;
+      transition: background .15s;
+      margin-bottom: 6px;
+    }
+    .sidebar-create:hover { background: #D44D3A; }
+    .sidebar-create svg { width: 16px; height: 16px; }
+
+    .sidebar-marketplace {
+      margin: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(254,60,1,.2);
+      background: linear-gradient(135deg, rgba(254,60,1,.05), rgba(241,154,143,.10));
+      padding: 12px;
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .sidebar-marketplace:hover { background: linear-gradient(135deg, rgba(254,60,1,.10), rgba(241,154,143,.18)); }
+    .sidebar-marketplace-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: rgba(254,60,1,.10);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sidebar-marketplace-icon svg { width: 16px; height: 16px; color: var(--orange); }
+    .sidebar-marketplace-text p { font-size: 12.5px; font-weight: 600; }
+    .sidebar-marketplace-text span { font-size: 11px; color: var(--stone); }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 12px 16px;
+      border-top: 1px solid var(--line);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #C96B7E;
+      color: #fff; font-size: 13px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .avatar-verified {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--orange); border: 2px solid #fff;
+      display: flex; align-items: center; justify-content: center;
+      position: absolute; bottom: -2px; right: -2px;
+    }
+    .avatar-wrap { position: relative; flex-shrink: 0; }
+    .user-name { font-size: 13px; font-weight: 500; }
+    .user-email { font-size: 11px; color: var(--stone); }
+
+    /* ── Main ─────────────────────────────────────────────────────── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      background: #f9fafb;
+      background-image: radial-gradient(circle, rgba(138,128,120,.22) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .main-inner { padding: 28px 32px; max-width: 1100px; }
+
+    /* ── Tab panels ──────────────────────────────────────────────── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Cards ───────────────────────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    }
+    .card-accent { height: 4px; background: linear-gradient(90deg, #FE3C01, #F19A8F); }
+    .card-body { padding: 20px 24px; }
+    .card-header { padding: 16px 24px; border-bottom: 1px solid var(--line); }
+
+    /* ── SpotlightCard ──────────────────────────────────────────── */
+    .spotlight-card {
+      position: relative; isolation: isolate;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .spotlight-card .sc-glow {
+      pointer-events: none; position: absolute; width: 128px; height: 128px; z-index: 0;
+      border-radius: 50%;
+    }
+    .spotlight-card .sc-glow-tl { top: -64px; left: -64px; filter: blur(15px); }
+    .spotlight-card .sc-glow-bl { bottom: -64px; left: -64px; filter: blur(20px); }
+    .spotlight-card .sc-stripe {
+      pointer-events: none; position: absolute;
+      top: 0; left: 0; width: 2px; height: 100%; z-index: 0;
+    }
+    .spotlight-card .sc-follow {
+      pointer-events: none; position: absolute; inset: 0;
+      opacity: 0; transition: opacity .3s ease; z-index: 0;
+    }
+    .spotlight-card .sc-content { position: relative; z-index: 10; }
+
+    /* ── Stat cards ──────────────────────────────────────────────── */
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 32px; }
+    .stat-card {
+      background: var(--white);
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      padding: 20px 28px;
+      display: flex; align-items: center; gap: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    }
+    .stat-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-icon svg { width: 20px; height: 20px; }
+    .stat-icon.orange { background: var(--orange); color: #fff; }
+    .stat-icon.gray { background: #F3F4F6; color: var(--stone); }
+    .stat-num { font-size: 40px; font-weight: 900; letter-spacing: -.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .stat-label { font-size: 13px; color: var(--stone); margin-top: 3px; }
+
+    /* ── Section heading ──────────────────────────────────────────── */
+    .section-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .section-title { font-size: 26px; font-weight: 900; letter-spacing: -.04em; }
+    .section-desc { font-size: 13.5px; color: var(--stone); margin-top: 2px; }
+
+    /* ── Buttons ─────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 16px; border-radius: 9px;
+      font-size: 13px; font-weight: 600;
+      transition: background .15s, opacity .15s;
+      cursor: pointer; border: none;
+    }
+    .btn svg { width: 15px; height: 15px; }
+    .btn-primary { background: var(--orange); color: #fff; }
+    .btn-primary:hover { background: #D44D3A; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-outline {
+      background: transparent; color: var(--ink);
+      border: 1.5px solid var(--line-strong);
+    }
+    .btn-outline:hover { background: #F5F0EA; }
+    .btn-ghost { background: transparent; color: var(--stone); }
+    .btn-ghost:hover { background: #F5F0EA; color: var(--ink); }
+
+    /* ── Status badges — exact brand colors from StatusDot.tsx ── */
+    .badge-wrap { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 100px; font-size: 11.5px; font-weight: 500; }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    /* live / published → orange */
+    .badge-published { background: rgba(254,60,1,.10); color: #FE3C01; }
+    .badge-published .badge-dot { background: #FE3C01; animation: bid-pulse 1.5s ease-in-out infinite; }
+    /* pending / draft → amber */
+    .badge-draft { background: rgba(240,168,0,.14); color: #92600A; }
+    .badge-draft .badge-dot { background: #F0A800; animation: bid-blink 1.2s ease-in-out infinite; }
+    /* lost / closed → red */
+    .badge-closed { background: rgba(215,50,31,.10); color: #D7321F; }
+    .badge-closed .badge-dot { background: #D7321F; }
+    /* pending (proposal status) */
+    .badge-pending { background: rgba(240,168,0,.14); color: #92600A; }
+    .badge-pending .badge-dot { background: #F0A800; animation: bid-blink 1.2s ease-in-out infinite; }
+    /* won / accepted → green */
+    .badge-accepted { background: rgba(31,165,106,.12); color: #1FA56A; }
+    .badge-accepted .badge-dot { background: #1FA56A; }
+    /* lost / rejected → red */
+    .badge-rejected { background: rgba(215,50,31,.10); color: #D7321F; }
+    .badge-rejected .badge-dot { background: #D7321F; }
+    /* decision / shortlisted → ink */
+    .badge-shortlisted { background: rgba(26,22,19,.08); color: #1A1613; }
+    .badge-shortlisted .badge-dot { background: #1A1613; }
+    /* secondary chip (verified / not-verified) */
+    .badge-secondary { background: #f3f4f6; color: #374151; border: 1px solid rgba(0,0,0,.06); }
+    .badge-not-verified { background: rgba(240,168,0,.14); color: #92600A; }
+
+    /* ── Search / filter bar ─────────────────────────────────────── */
+    .filter-bar {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--white); border: 1.5px solid var(--line);
+      border-radius: 12px; padding: 12px 16px; margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .search-wrap { position: relative; flex: 1; min-width: 200px; }
+    .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--stone-soft); }
+    .search-wrap input {
+      width: 100%; padding: 7px 10px 7px 32px;
+      border: 1.5px solid var(--line);
+      border-radius: 8px; font-size: 13px; color: var(--ink);
+      outline: none; background: #FAFAFA;
+      transition: border-color .15s;
+    }
+    .search-wrap input:focus { border-color: var(--orange); }
+    .filter-tabs { display: flex; gap: 2px; background: #F3F0EB; padding: 3px; border-radius: 8px; }
+    .filter-tab {
+      padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;
+      color: var(--stone); cursor: pointer; transition: all .15s;
+    }
+    .filter-tab.active { background: var(--white); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .select-wrap select {
+      padding: 7px 28px 7px 10px; border: 1.5px solid var(--line);
+      border-radius: 8px; font-size: 12.5px;
+      color: var(--ink); background: #FAFAFA url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238A8078' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;
+      -webkit-appearance: none; appearance: none; outline: none; cursor: pointer;
+    }
+
+    /* ── RFP cards (SpotlightCard-style) ───────────────────────── */
+    .rfp-list { display: flex; flex-direction: column; gap: 16px; }
+    .rfp-card { /* extends .spotlight-card */ }
+    .rfp-card-body { padding: 24px; }
+    .rfp-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .rfp-title { font-size: 18px; font-weight: 700; cursor: pointer; transition: color .15s; }
+    .rfp-title:hover { color: var(--orange); }
+    .rfp-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .rfp-meta { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; font-size: 12.5px; color: var(--stone); font-weight: 500; margin-bottom: 16px; }
+    .rfp-meta span { display: flex; align-items: center; gap: 6px; }
+    .rfp-meta svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .rfp-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .rfp-desc { font-size: 13.5px; color: var(--stone); line-height: 1.6; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* ── Proposal cards (SpotlightCard-style) ───────────────────── */
+    .proposal-card { /* extends .spotlight-card */ }
+    .proposal-card-body { padding: 24px; }
+    .proposal-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .proposal-title { font-size: 18px; font-weight: 700; cursor: pointer; transition: color .15s; }
+    .proposal-title:hover { color: var(--orange); }
+    .proposal-subtitle { font-size: 13px; color: var(--stone); margin-top: 4px; font-weight: 500; }
+    .proposal-subtitle strong { cursor: pointer; font-weight: 700; }
+    .proposal-subtitle strong:hover { color: var(--orange); }
+    .proposal-meta { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; font-size: 12.5px; color: var(--stone); font-weight: 500; margin-bottom: 16px; }
+    .proposal-meta span { display: flex; align-items: center; gap: 6px; }
+    .proposal-meta svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .proposal-notes { font-size: 13px; color: var(--stone); font-style: italic; margin-bottom: 16px; }
+    .proposal-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ── Sub-tabs ─────────────────────────────────────────────────── */
+    .sub-tabs { display: flex; gap: 2px; background: #F3F0EB; padding: 3px; border-radius: 10px; margin-bottom: 20px; width: fit-content; }
+    .sub-tab {
+      padding: 7px 18px; border-radius: 8px;
+      font-size: 13px; font-weight: 500; color: var(--stone);
+      cursor: pointer; transition: all .15s;
+    }
+    .sub-tab.active { background: var(--white); color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,.1); font-weight: 600; }
+
+    /* ── Vendor list (vertical, SpotlightCard-style) ─────────────── */
+    .vendors-list { display: flex; flex-direction: column; gap: 16px; }
+    .vendor-card { /* extends .spotlight-card */ }
+    .vendor-card-body { padding: 24px; }
+    .vendor-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+    .vendor-card-left { display: flex; align-items: flex-start; gap: 16px; }
+    .vendor-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: rgba(254,60,1,.08);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .vendor-avatar svg { width: 24px; height: 24px; color: var(--orange); }
+    .vendor-name { font-size: 18px; font-weight: 700; }
+    .vendor-cat { font-size: 13px; color: var(--stone); margin-top: 3px; font-weight: 500; }
+    .vendor-bio { font-size: 13.5px; color: var(--stone); line-height: 1.6; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .vendor-city { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--stone); font-weight: 500; margin-bottom: 16px; }
+    .vendor-city svg { width: 14px; height: 14px; }
+    .vendor-actions { display: flex; gap: 6px; }
+    .join-badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px; border-radius: 100px; font-size: 11.5px; font-weight: 500;
+    }
+    .join-badge.invited { background: var(--ink); color: #fff; }
+    .join-badge.via-proposal { border: 1.5px solid var(--line-strong); background: transparent; color: var(--ink); }
+    .join-badge.via-link { border: 1.5px solid var(--line-strong); background: transparent; color: var(--ink); }
+
+    /* ── Onboarding tasks ─────────────────────────────────────────── */
+    .tasks-card {
+      background: var(--white); border: 1.5px solid var(--line);
+      border-radius: 16px; overflow: hidden; margin-bottom: 24px;
+    }
+    .tasks-body { padding: 22px 26px; }
+    .progress-bar-wrap { margin: 16px 0; }
+    .progress-top { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--stone); margin-bottom: 6px; }
+    .progress-pct { font-weight: 700; color: var(--orange); }
+    .progress-track { height: 7px; background: #F3F0EB; border-radius: 100px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #FE3C01, #F19A8F); border-radius: 100px; transition: width .4s ease; }
+    .task-item { border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
+    .task-item.done { border-color: rgba(254,60,1,.3); background: rgba(254,60,1,.03); }
+    .task-trigger {
+      display: flex; align-items: center; gap: 10px; width: 100%;
+      padding: 12px 14px; cursor: pointer; background: none; border: none;
+      font-family: 'Inter', sans-serif; text-align: left;
+    }
+    .task-trigger:hover { background: #FAFAFA; }
+    .task-icon {
+      width: 34px; height: 34px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      background: #F3F4F6; color: var(--stone); flex-shrink: 0;
+    }
+    .task-icon svg { width: 16px; height: 16px; }
+    .task-icon.done { background: var(--orange); color: #fff; }
+    .task-name { font-size: 13.5px; font-weight: 600; flex: 1; }
+    .task-name.done { color: var(--orange); }
+    .task-done-chip {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: #F0FDF4; color: #15803D;
+      font-size: 10.5px; font-weight: 600; border-radius: 100px; padding: 2px 8px;
+    }
+    .task-done-chip svg { width: 10px; height: 10px; }
+    .task-body { padding: 0 14px 14px 58px; }
+    .task-body p { font-size: 13.5px; color: var(--stone); line-height: 1.6; margin-bottom: 12px; }
+    .task-body[hidden] { display: none; }
+
+    /* ── Banner cards ─────────────────────────────────────────────── */
+    .banner-card {
+      background: var(--white); border: 1.5px solid var(--line);
+      border-radius: 16px; overflow: hidden; margin-bottom: 24px;
+    }
+    .banner-body {
+      padding: 18px 22px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .banner-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: rgba(254,60,1,.10);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .banner-icon svg { width: 20px; height: 20px; color: var(--orange); }
+    .banner-text h3 { font-size: 15px; font-weight: 700; }
+    .banner-text p { font-size: 13px; color: var(--stone); margin-top: 2px; }
+
+    /* ── Divider ──────────────────────────────────────────────────── */
+    .divider { height: 1px; background: var(--line); margin: 20px 0; }
+
+    /* ── Proposal detail panel ────────────────────────────────────── */
+    .panel-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 100;
+      display: none; align-items: flex-start; justify-content: flex-end;
+    }
+    .panel-overlay.open { display: flex; }
+    .detail-panel {
+      width: 420px; height: 100vh; overflow-y: auto;
+      background: var(--white); box-shadow: -8px 0 40px rgba(0,0,0,.12);
+      padding: 28px 28px; animation: slideIn .25s ease;
+    }
+    @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .panel-close {
+      position: absolute; top: 20px; right: 20px;
+      width: 32px; height: 32px; border-radius: 8px;
+      background: #F3F0EB; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; border: none;
+    }
+    .panel-close:hover { background: #EDE8E0; }
+    .panel-close svg { width: 16px; height: 16px; }
+
+    /* ── Traction Link card ──────────────────────────────────────── */
+    .traction-card {
+      background: var(--white);
+      border: 2px dashed var(--line-strong);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+    .traction-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .traction-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: rgba(254,60,1,.10);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .traction-icon svg { width: 16px; height: 16px; color: var(--orange); }
+    .traction-url-row { display: flex; align-items: center; gap: 8px; }
+    .traction-url {
+      flex: 1; background: #f3f4f6; border-radius: 8px;
+      padding: 8px 12px; font-size: 13px; font-family: monospace;
+      color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* ── Pending request card ────────────────────────────────────── */
+    .pending-initials {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(254,60,1,.10), rgba(254,60,1,.05));
+      border: 1px solid rgba(254,60,1,.10);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: var(--orange); flex-shrink: 0;
+    }
+
+    /* ── Animations ──────────────────────────────────────────────── */
+    @keyframes bid-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.85)} }
+    @keyframes bid-blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* ── Responsive ──────────────────────────────────────────────── */
+    @media (max-width: 800px) {
+      .sidebar { width: 56px; }
+      .sidebar-btn span, .sidebar-logo .logo-text, .company-name, .company-role,
+      .sidebar-create span, .sidebar-marketplace-text, .sidebar-footer .user-name,
+      .sidebar-footer .user-email { display: none; }
+      .sidebar-create { justify-content: center; }
+      .main-inner { padding: 16px; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .rfp-meta, .proposal-meta { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ════════════════ SIDEBAR ════════════════ -->
+  <aside class="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar-accent" aria-hidden="true"></div>
+
+    <!-- Logo + company -->
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <text x="2" y="15" font-family="Inter" font-weight="900" font-size="14" fill="white">b</text>
+          </svg>
+          <div class="logo-dot"></div>
+        </div>
+        <span class="logo-text">bid</span>
+      </div>
+      <div style="margin-top:10px">
+        <div class="company-name">Acme Corporation</div>
+        <div class="company-role">Owner · Verified</div>
+      </div>
+    </div>
+
+    <!-- Create RFP CTA -->
+    <div class="sidebar-section" style="padding-top:14px">
+      <button class="sidebar-create" onclick="switchTab('rfp-proposals')" aria-label="Create a new RFP">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>Create RFP</span>
+      </button>
+    </div>
+
+    <!-- Nav links -->
+    <nav class="sidebar-section" aria-label="Dashboard tabs">
+      <div class="sidebar-section-label">Workspace</div>
+
+      <!-- Overview -->
+      <button
+        class="sidebar-btn active"
+        id="nav-overview"
+        onclick="switchTab('overview')"
+        aria-current="page"
+        aria-controls="tab-overview"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span>Overview</span>
+      </button>
+
+      <!-- RFP Proposals -->
+      <button
+        class="sidebar-btn"
+        id="nav-rfp-proposals"
+        onclick="switchTab('rfp-proposals')"
+        aria-controls="tab-rfp-proposals"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>RFP Proposals</span>
+        <span class="badge" aria-label="8 items">8</span>
+      </button>
+
+      <!-- Vendors Base -->
+      <button
+        class="sidebar-btn"
+        id="nav-vendors"
+        onclick="switchTab('vendors')"
+        aria-controls="tab-vendors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Vendors Base</span>
+      </button>
+    </nav>
+
+    <!-- Marketplace promo -->
+    <div class="sidebar-marketplace" onclick="alert('Marketplace opens in a new tab')" role="button" tabindex="0" aria-label="Browse open RFPs on Marketplace">
+      <div class="sidebar-marketplace-icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </div>
+      <div class="sidebar-marketplace-text">
+        <p>Marketplace</p>
+        <span>Browse open RFPs</span>
+      </div>
+    </div>
+
+    <!-- User footer -->
+    <div class="sidebar-footer">
+      <div class="avatar-wrap">
+        <div class="avatar" aria-hidden="true">AH</div>
+        <div class="avatar-verified" title="Verified" aria-label="Verified">
+          <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+      </div>
+      <div>
+        <div class="user-name">Ahmed Al-Morsy</div>
+        <div class="user-email">ahmorsy07@gmail.com</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ════════════════ MAIN CONTENT ════════════════ -->
+  <main class="main" id="main-content">
+    <div class="main-inner">
+
+      <!-- ══════════════════════════════════════════
+           TAB 1 · OVERVIEW
+      ══════════════════════════════════════════ -->
+      <section
+        class="tab-panel active"
+        id="tab-overview"
+        role="tabpanel"
+        aria-labelledby="nav-overview"
+        tabindex="0"
+      >
+        <div style="margin-bottom:24px">
+          <h1 style="font-size:28px;font-weight:900;letter-spacing:-.04em">Good morning, Ahmed 👋</h1>
+          <p style="font-size:14px;color:var(--stone);margin-top:3px">Here's what's happening with Acme Corporation today.</p>
+        </div>
+
+        <!-- Stat cards -->
+        <div class="stats-grid" role="list" aria-label="Key metrics">
+          <div class="stat-card" role="listitem">
+            <div class="stat-icon orange" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div>
+              <div class="stat-num" aria-label="3 active RFPs">3</div>
+              <div class="stat-label">Active RFPs</div>
+            </div>
+          </div>
+          <div class="stat-card" role="listitem">
+            <div class="stat-icon gray" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+            </div>
+            <div>
+              <div class="stat-num" aria-label="5 pending proposals">5</div>
+              <div class="stat-label">Pending Proposals</div>
+            </div>
+          </div>
+          <div class="stat-card" role="listitem">
+            <div class="stat-icon gray" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div>
+              <div class="stat-num" aria-label="12 vendors in base">12</div>
+              <div class="stat-label">Vendors in Base</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Negotiate now banner -->
+        <div class="card" style="margin-bottom:24px;border-color:rgba(254,60,1,.2)" role="alert" aria-live="polite">
+          <div style="height:3px;background:linear-gradient(90deg,#FE3C01,#FF8A6B)" aria-hidden="true"></div>
+          <div style="padding:18px 22px;background:rgba(254,60,1,.02)">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+              <div style="width:40px;height:40px;border-radius:11px;background:rgba(254,60,1,.1);border:1px solid rgba(254,60,1,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FE3C01" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              <div>
+                <h2 style="font-size:14.5px;font-weight:700">Ready to Negotiate</h2>
+                <p style="font-size:13px;color:var(--stone)">1 RFP has 2+ proposals and is ready for negotiation.</p>
+              </div>
+            </div>
+            <div style="background:var(--white);border-radius:10px;border:1px solid rgba(254,60,1,.12);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <div>
+                <p style="font-size:13.5px;font-weight:600">Office Renovation &amp; Interior Design</p>
+                <p style="font-size:12px;color:var(--stone)">4 proposals received</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="switchTab('rfp-proposals')">Negotiate Now →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Book demo banner -->
+        <div class="banner-card">
+          <div class="card-accent" aria-hidden="true"></div>
+          <div class="banner-body">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div class="banner-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </div>
+              <div class="banner-text">
+                <h3>Book a product demo</h3>
+                <p>See how Bid can streamline your procurement process end-to-end.</p>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="alert('Opening demo booking...')">Book Demo</button>
+          </div>
+        </div>
+
+        <!-- Get started checklist -->
+        <div class="tasks-card">
+          <div class="card-accent" aria-hidden="true"></div>
+          <div class="tasks-body">
+            <h2 style="font-size:20px;font-weight:900;letter-spacing:-.03em">Get started with Bid</h2>
+            <p style="font-size:13px;color:var(--stone);margin-top:2px">Complete these tasks to unlock the full power of the platform.</p>
+            <div class="progress-bar-wrap" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" aria-label="Onboarding progress: 50%">
+              <div class="progress-top">
+                <span>3 of 6 tasks complete</span>
+                <span class="progress-pct">50%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:50%"></div></div>
+            </div>
+
+            <!-- Task 1 – done -->
+            <div class="task-item done">
+              <button class="task-trigger" onclick="toggleTask(this)" aria-expanded="false">
+                <div class="task-icon done" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span class="task-name done">Get company verified</span>
+                <span class="task-done-chip">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                  Completed
+                </span>
+              </button>
+              <div class="task-body" hidden>
+                <p>Upload your commercial registration and VAT certificate to get verified. Verified companies can publish RFPs and access the full marketplace.</p>
+                <button class="btn btn-primary btn-sm">Go to Verification →</button>
+              </div>
+            </div>
+
+            <!-- Task 2 – done -->
+            <div class="task-item done">
+              <button class="task-trigger" onclick="toggleTask(this)" aria-expanded="false">
+                <div class="task-icon done" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span class="task-name done">Complete company profile</span>
+                <span class="task-done-chip">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                  Completed
+                </span>
+              </button>
+              <div class="task-body" hidden>
+                <p>Add your company logo, description, and contact details to build trust with vendors.</p>
+                <button class="btn btn-primary btn-sm">Edit Profile →</button>
+              </div>
+            </div>
+
+            <!-- Task 3 – done -->
+            <div class="task-item done">
+              <button class="task-trigger" onclick="toggleTask(this)" aria-expanded="false">
+                <div class="task-icon done" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span class="task-name done">Build your Vendors Base</span>
+                <span class="task-done-chip">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                  Completed
+                </span>
+              </button>
+              <div class="task-body" hidden>
+                <p>Add trusted vendors to your private base. You can invite them to future RFPs directly.</p>
+                <button class="btn btn-primary btn-sm" onclick="switchTab('vendors')">Go to Vendors →</button>
+              </div>
+            </div>
+
+            <!-- Task 4 – pending -->
+            <div class="task-item">
+              <button class="task-trigger" onclick="toggleTask(this)" aria-expanded="false">
+                <div class="task-icon" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <span class="task-name">Create your first RFP</span>
+              </button>
+              <div class="task-body" hidden>
+                <p>Describe what you need and Bid's AI will turn it into a structured, vendor-ready RFP in seconds.</p>
+                <button class="btn btn-primary btn-sm" onclick="switchTab('rfp-proposals')">Create RFP →</button>
+              </div>
+            </div>
+
+            <!-- Task 5 – pending -->
+            <div class="task-item">
+              <button class="task-trigger" onclick="toggleTask(this)" aria-expanded="false">
+                <div class="task-icon" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </div>
+                <span class="task-name">Review your first proposal</span>
+              </button>
+              <div class="task-body" hidden>
+                <p>Once vendors submit proposals on your RFPs, review them here and accept, shortlist, or reject each one.</p>
+                <button class="btn btn-primary btn-sm" onclick="switchTab('rfp-proposals')">Go to Proposals →</button>
+              </div>
+            </div>
+
+            <!-- Task 6 – pending -->
+            <div class="task-item">
+              <button class="task-trigger" onclick="toggleTask(this)" aria-expanded="false">
+                <div class="task-icon" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+                <span class="task-name">Explore the Tenders Marketplace</span>
+              </button>
+              <div class="task-body" hidden>
+                <p>Browse open RFPs from other companies and submit proposals as a vendor.</p>
+                <button class="btn btn-primary btn-sm" onclick="alert('Opening Marketplace...')">Go to Marketplace →</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════
+           TAB 2 · RFP PROPOSALS
+      ══════════════════════════════════════════ -->
+      <section
+        class="tab-panel"
+        id="tab-rfp-proposals"
+        role="tabpanel"
+        aria-labelledby="nav-rfp-proposals"
+        tabindex="0"
+      >
+        <div class="section-head">
+          <div>
+            <h1 class="section-title">RFP Proposals</h1>
+            <p class="section-desc">Manage your RFPs and review incoming and submitted proposals.</p>
+          </div>
+          <button class="btn btn-primary" onclick="alert('Opening RFP wizard...')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New RFP
+          </button>
+        </div>
+
+        <!-- Sub-tabs: My RFPs / Incoming / Submitted -->
+        <div class="sub-tabs" role="tablist" aria-label="RFP Proposals sections">
+          <div class="sub-tab active" id="rp-tab-rfps"    role="tab" aria-selected="true"  aria-controls="rp-panel-rfps"      tabindex="0"  onclick="setRfpProposalTab('rfps',this)">My RFPs (5)</div>
+          <div class="sub-tab"        id="rp-tab-incoming" role="tab" aria-selected="false" aria-controls="rp-panel-incoming"   tabindex="-1" onclick="setRfpProposalTab('incoming',this)">Incoming Proposals (5)</div>
+          <div class="sub-tab"        id="rp-tab-submitted" role="tab" aria-selected="false" aria-controls="rp-panel-submitted" tabindex="-1" onclick="setRfpProposalTab('submitted',this)">Submitted (3)</div>
+        </div>
+
+        <!-- ── My RFPs panel ── -->
+        <div id="rp-panel-rfps" role="tabpanel" aria-labelledby="rp-tab-rfps">
+          <div class="filter-bar">
+            <div class="search-wrap">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="search" id="rfp-search" placeholder="Search RFPs…" oninput="filterRfps()" aria-label="Search RFPs">
+            </div>
+            <div class="filter-tabs" role="group" aria-label="Filter by status">
+              <div class="filter-tab active" id="rfp-filter-all"       role="button" tabindex="0" onclick="setRfpFilter('all',this)">All</div>
+              <div class="filter-tab"        id="rfp-filter-published" role="button" tabindex="0" onclick="setRfpFilter('published',this)">Published</div>
+              <div class="filter-tab"        id="rfp-filter-draft"     role="button" tabindex="0" onclick="setRfpFilter('draft',this)">Draft</div>
+              <div class="filter-tab"        id="rfp-filter-closed"    role="button" tabindex="0" onclick="setRfpFilter('closed',this)">Closed</div>
+            </div>
+            <div class="select-wrap">
+              <select aria-label="Filter by submission type" onchange="filterRfps()">
+                <option>All types</option>
+                <option>Price Quote Only</option>
+                <option>Technical &amp; Financial</option>
+                <option>Video Only</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="rfp-list" id="rfp-list" aria-live="polite">
+
+            <!-- RFP 1: Office Renovation — green spotlight -->
+            <article class="spotlight-card rfp-card" data-status="published" data-title="office renovation interior design" data-hue="140" data-sat="80" data-lit="50">
+              <div class="sc-glow sc-glow-tl"></div>
+              <div class="sc-glow sc-glow-bl"></div>
+              <div class="sc-stripe"></div>
+              <div class="sc-follow"></div>
+              <div class="sc-content rfp-card-body">
+                <div class="rfp-card-top">
+                  <div style="flex:1">
+                    <div class="rfp-badges">
+                      <h2 class="rfp-title" style="display:inline">Office Renovation &amp; Interior Design</h2>
+                    </div>
+                    <div class="rfp-badges" style="margin-top:8px">
+                      <span class="badge-wrap badge-published"><span class="badge-dot"></span>Published</span>
+                      <span class="badge-wrap" style="background:rgba(254,60,1,1);color:#fff;font-size:9px;font-weight:700;letter-spacing:.02em;padding:2px 8px;animation:bid-pulse 1.5s infinite">Negotiate</span>
+                      <span class="badge-wrap badge-secondary">Companies</span>
+                    </div>
+                    <p class="rfp-desc" style="margin-top:10px">Looking for experienced contractors to handle full office renovation including flooring, lighting, workstations, and meeting room setup.</p>
+                  </div>
+                </div>
+                <div class="rfp-meta">
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Jun 15, 2026</span>
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>4 offers</span>
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Technical &amp; Financial</span>
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>SAR 80,000–120,000</span>
+                </div>
+                <div class="rfp-actions">
+                  <button class="btn btn-outline btn-sm">View</button>
+                  <button class="btn btn-outline btn-sm">Copy Link</button>
+                  <button class="btn btn-outline btn-sm">Edit</button>
+                  <button class="btn btn-outline btn-sm" style="color:#dc2626;border-color:rgba(220,38,38,.3)">Delete</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- RFP 2: IT Audit — green spotlight -->
+            <article class="spotlight-card rfp-card" data-status="published" data-title="annual it infrastructure audit" data-hue="140" data-sat="80" data-lit="50">
+              <div class="sc-glow sc-glow-tl"></div>
+              <div class="sc-glow sc-glow-bl"></div>
+              <div class="sc-stripe"></div>
+              <div class="sc-follow"></div>
+              <div class="sc-content rfp-card-body">
+                <div class="rfp-card-top">
+                  <div style="flex:1">
+                    <div class="rfp-badges"><h2 class="rfp-title" style="display:inline">Annual IT Infrastructure Audit</h2></div>
+                    <div class="rfp-badges" style="margin-top:8px">
+                      <span class="badge-wrap badge-published"><span class="badge-dot"></span>Published</span>
+                      <span class="badge-wrap badge-secondary">Companies</span>
+                    </div>
+                    <p class="rfp-desc" style="margin-top:10px">Seeking a qualified IT auditing firm to review our current infrastructure and identify security vulnerabilities and provide a comprehensive report.</p>
+                  </div>
+                </div>
+                <div class="rfp-meta">
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Jun 30, 2026</span>
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>1 offer</span>
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Technical &amp; Financial</span>
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>SAR 30,000–50,000</span>
+                </div>
+                <div class="rfp-actions">
+                  <button class="btn btn-outline btn-sm">View</button>
+                  <button class="btn btn-outline btn-sm">Copy Link</button>
+                  <button class="btn btn-outline btn-sm">Edit</button>
+                  <button class="btn btn-outline btn-sm" style="color:#dc2626;border-color:rgba(220,38,38,.3)">Delete</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- RFP 3: Catering — green spotlight -->
+            <article class="spotlight-card rfp-card" data-status="published" data-title="corporate catering services" data-hue="140" data-sat="80" data-lit="50">
+              <div class="sc-glow sc-glow-tl"></div>
+              <div class="sc-glow sc-glow-bl"></div>
+              <div class="sc-stripe"></div>
+              <div class="sc-follow"></div>
+              <div class="sc-content rfp-card-body">
+                <div class="rfp-card-top">
+                  <div style="flex:1">
+                    <div class="rfp-badges"><h2 class="rfp-title" style="display:inline">Corporate Catering Services — Q3 2026</h2></div>
+                    <div class="rfp-badges" style="margin-top:8px">
+                      <span class="badge-wrap badge-published"><span class="badge-dot"></span>Published</span>
+                      <span class="badge-wrap badge-secondary">Companies</span>
+                    </div>
+                    <p class="rfp-desc" style="margin-top:10px">Catering service required for a team of 45–60 employees Monday through Friday. Diverse menus including international and local options.</p>
+                  </div>
+                </div>
+                <div class="rfp-meta">
+                  <span style="color:#dc2626"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>May 31, 2026</span>
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>0 offers</span>
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Price Quote Only</span>
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>SAR 15,000/month</span>
+                </div>
+                <div class="rfp-actions">
+                  <button class="btn btn-outline btn-sm">View</button>
+                  <button class="btn btn-outline btn-sm">Copy Link</button>
+                  <button class="btn btn-outline btn-sm">Edit</button>
+                  <button class="btn btn-outline btn-sm" style="color:#dc2626;border-color:rgba(220,38,38,.3)">Delete</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- RFP 4: Brand Redesign — purple spotlight (draft) -->
+            <article class="spotlight-card rfp-card" data-status="draft" data-title="brand redesign visual identity" data-hue="280" data-sat="100" data-lit="60">
+              <div class="sc-glow sc-glow-tl"></div>
+              <div class="sc-glow sc-glow-bl"></div>
+              <div class="sc-stripe"></div>
+              <div class="sc-follow"></div>
+              <div class="sc-content rfp-card-body">
+                <div class="rfp-card-top">
+                  <div style="flex:1">
+                    <div class="rfp-badges"><h2 class="rfp-title" style="display:inline">Brand Redesign &amp; Visual Identity Package</h2></div>
+                    <div class="rfp-badges" style="margin-top:8px">
+                      <span class="badge-wrap badge-draft"><span class="badge-dot"></span>Draft</span>
+                    </div>
+                    <p class="rfp-desc" style="margin-top:10px">Seeking a creative agency to overhaul our brand identity — logo, color palette, typography, brand guidelines, and marketing collateral templates.</p>
+                  </div>
+                </div>
+                <div class="rfp-meta">
+                  <span>No deadline set</span>
+                  <span>0 offers</span>
+                  <span>No submission type</span>
+                  <span>No budget set</span>
+                </div>
+                <div class="rfp-actions">
+                  <button class="btn btn-outline btn-sm">View</button>
+                  <button class="btn btn-outline btn-sm">Copy Link</button>
+                  <button class="btn btn-outline btn-sm">Edit</button>
+                  <button class="btn btn-outline btn-sm" style="color:#dc2626;border-color:rgba(220,38,38,.3)">Delete</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- RFP 5: Legal — orange spotlight (closed) -->
+            <article class="spotlight-card rfp-card" data-status="closed" data-title="legal services retainer" data-hue="30" data-sat="100" data-lit="55">
+              <div class="sc-glow sc-glow-tl"></div>
+              <div class="sc-glow sc-glow-bl"></div>
+              <div class="sc-stripe"></div>
+              <div class="sc-follow"></div>
+              <div class="sc-content rfp-card-body">
+                <div class="rfp-card-top">
+                  <div style="flex:1">
+                    <div class="rfp-badges"><h2 class="rfp-title" style="display:inline">Legal Services Retainer 2025</h2></div>
+                    <div class="rfp-badges" style="margin-top:8px">
+                      <span class="badge-wrap badge-closed"><span class="badge-dot"></span>Closed · Deadline Passed</span>
+                      <span class="badge-wrap badge-secondary">Companies</span>
+                    </div>
+                    <p class="rfp-desc" style="margin-top:10px">Annual legal advisory and retainer services for corporate governance, contracts, and employment law.</p>
+                  </div>
+                </div>
+                <div class="rfp-meta">
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Dec 31, 2025</span>
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>6 offers</span>
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Price Quote Only</span>
+                  <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>SAR 60,000–80,000</span>
+                </div>
+                <div class="rfp-actions">
+                  <button class="btn btn-outline btn-sm">View</button>
+                  <button class="btn btn-outline btn-sm">Copy Link</button>
+                  <button class="btn btn-outline btn-sm" style="color:#dc2626;border-color:rgba(220,38,38,.3)">Delete</button>
+                </div>
+              </div>
+            </article>
+
+          </div><!-- /rfp-list -->
+        </div><!-- /rp-panel-rfps -->
+
+        <!-- ── Incoming Proposals panel ── -->
+        <div id="rp-panel-incoming" role="tabpanel" aria-labelledby="rp-tab-incoming" style="display:none">
+
+          <div class="filter-bar">
+            <div class="search-wrap" style="min-width:0;flex:1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="search" placeholder="Search proposals…" aria-label="Search incoming proposals">
+            </div>
+            <div class="filter-tabs" role="group" aria-label="Filter by status">
+              <div class="filter-tab active" role="button" tabindex="0" onclick="activateFilterTab(this)">All</div>
+              <div class="filter-tab" role="button" tabindex="0" onclick="activateFilterTab(this)">Pending</div>
+              <div class="filter-tab" role="button" tabindex="0" onclick="activateFilterTab(this)">Shortlisted</div>
+              <div class="filter-tab" role="button" tabindex="0" onclick="activateFilterTab(this)">Accepted</div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px" aria-live="polite">
+
+            <article class="proposal-card" style="border-left:3px solid #F59E0B">
+              <div class="proposal-card-top">
+                <div>
+                  <h2 class="proposal-title">Office Renovation &amp; Interior Design</h2>
+                  <div class="proposal-company" style="margin-top:4px">
+                    <span class="co-dot" aria-hidden="true">SB</span>
+                    Saudi Build Co. · Construction &amp; Contracting
+                    <span class="badge-wrap badge-verified" style="margin-left:4px"><span class="badge-dot" aria-hidden="true"></span>Verified</span>
+                  </div>
+                </div>
+                <span class="badge-wrap badge-pending"><span class="badge-dot" aria-hidden="true"></span>Pending</span>
+              </div>
+              <div class="proposal-meta">
+                <span>SAR 95,000 quoted</span>
+                <span>·</span>
+                <span>Technical &amp; Financial</span>
+                <span>·</span>
+                <span>Submitted May 20, 2026</span>
+                <span style="margin-left:auto;display:flex;gap:6px">
+                  <button class="btn btn-outline btn-sm" onclick="openProposalPanel('Saudi Build Co.','SAR 95,000','Office Renovation','pending')" aria-label="Review Saudi Build Co. proposal">Review</button>
+                  <button class="btn btn-primary btn-sm" onclick="alert('Shortlisting...')" aria-label="Shortlist proposal">Shortlist</button>
+                </span>
+              </div>
+            </article>
+
+            <article class="proposal-card" style="border-left:3px solid #F59E0B">
+              <div class="proposal-card-top">
+                <div>
+                  <h2 class="proposal-title">Office Renovation &amp; Interior Design</h2>
+                  <div class="proposal-company" style="margin-top:4px">
+                    <span class="co-dot" aria-hidden="true">DI</span>
+                    Design Interiors LLC · Interior Design
+                  </div>
+                </div>
+                <span class="badge-wrap badge-pending"><span class="badge-dot" aria-hidden="true"></span>Pending</span>
+              </div>
+              <div class="proposal-meta">
+                <span>SAR 88,500 quoted</span>
+                <span>·</span>
+                <span>Technical &amp; Financial</span>
+                <span>·</span>
+                <span>Submitted May 18, 2026</span>
+                <span style="margin-left:auto;display:flex;gap:6px">
+                  <button class="btn btn-outline btn-sm" onclick="openProposalPanel('Design Interiors LLC','SAR 88,500','Office Renovation','pending')" aria-label="Review Design Interiors LLC proposal">Review</button>
+                  <button class="btn btn-primary btn-sm" onclick="alert('Shortlisting...')" aria-label="Shortlist proposal">Shortlist</button>
+                </span>
+              </div>
+            </article>
+
+            <article class="proposal-card" style="border-left:3px solid #3B82F6">
+              <div class="proposal-card-top">
+                <div>
+                  <h2 class="proposal-title">Office Renovation &amp; Interior Design</h2>
+                  <div class="proposal-company" style="margin-top:4px">
+                    <span class="co-dot" aria-hidden="true">NC</span>
+                    Nordic Craft Studios · Architecture
+                    <span class="badge-wrap badge-verified" style="margin-left:4px"><span class="badge-dot" aria-hidden="true"></span>Verified</span>
+                  </div>
+                </div>
+                <span class="badge-wrap badge-shortlisted"><span class="badge-dot" aria-hidden="true"></span>Shortlisted</span>
+              </div>
+              <div class="proposal-meta">
+                <span>SAR 110,000 quoted</span>
+                <span>·</span>
+                <span>Technical &amp; Financial</span>
+                <span>·</span>
+                <span>Submitted May 15, 2026</span>
+                <span style="margin-left:auto;display:flex;gap:6px">
+                  <button class="btn btn-outline btn-sm" onclick="openProposalPanel('Nordic Craft Studios','SAR 110,000','Office Renovation','shortlisted')" aria-label="Review Nordic Craft Studios proposal">Review</button>
+                  <button class="btn btn-primary btn-sm" onclick="alert('Accepting...')" aria-label="Accept proposal">Accept</button>
+                </span>
+              </div>
+            </article>
+
+            <article class="proposal-card" style="border-left:3px solid #F59E0B">
+              <div class="proposal-card-top">
+                <div>
+                  <h2 class="proposal-title">Annual IT Infrastructure Audit</h2>
+                  <div class="proposal-company" style="margin-top:4px">
+                    <span class="co-dot" aria-hidden="true">TG</span>
+                    TechGuard Advisory · IT &amp; Cybersecurity
+                    <span class="badge-wrap badge-verified" style="margin-left:4px"><span class="badge-dot" aria-hidden="true"></span>Verified</span>
+                  </div>
+                </div>
+                <span class="badge-wrap badge-pending"><span class="badge-dot" aria-hidden="true"></span>Pending</span>
+              </div>
+              <div class="proposal-meta">
+                <span>SAR 42,000 quoted</span>
+                <span>·</span>
+                <span>Technical &amp; Financial</span>
+                <span>·</span>
+                <span>Submitted May 22, 2026</span>
+                <span style="margin-left:auto;display:flex;gap:6px">
+                  <button class="btn btn-outline btn-sm" onclick="openProposalPanel('TechGuard Advisory','SAR 42,000','IT Audit','pending')" aria-label="Review TechGuard Advisory proposal">Review</button>
+                  <button class="btn btn-primary btn-sm" onclick="alert('Shortlisting...')" aria-label="Shortlist proposal">Shortlist</button>
+                </span>
+              </div>
+            </article>
+
+            <article class="proposal-card" style="border-left:3px solid #22C55E">
+              <div class="proposal-card-top">
+                <div>
+                  <h2 class="proposal-title">Legal Services Retainer 2025</h2>
+                  <div class="proposal-company" style="margin-top:4px">
+                    <span class="co-dot" aria-hidden="true">AL</span>
+                    Al-Rashid &amp; Partners · Legal
+                    <span class="badge-wrap badge-verified" style="margin-left:4px"><span class="badge-dot" aria-hidden="true"></span>Verified</span>
+                  </div>
+                </div>
+                <span class="badge-wrap badge-accepted"><span class="badge-dot" aria-hidden="true"></span>Accepted</span>
+              </div>
+              <div class="proposal-meta">
+                <span>SAR 72,000/yr quoted</span>
+                <span>·</span>
+                <span>Price Quote Only</span>
+                <span>·</span>
+                <span>Submitted Dec 5, 2025</span>
+                <span style="margin-left:auto">
+                  <button class="btn btn-outline btn-sm" onclick="openProposalPanel('Al-Rashid &amp; Partners','SAR 72,000/yr','Legal Services','accepted')" aria-label="View Al-Rashid proposal">View</button>
+                </span>
+              </div>
+            </article>
+
+          </div>
+        </div><!-- /rp-panel-incoming -->
+
+        <!-- ── Submitted Proposals panel ── -->
+        <div id="rp-panel-submitted" role="tabpanel" aria-labelledby="rp-tab-submitted" style="display:none">
+          <div style="display:flex;flex-direction:column;gap:10px">
+
+            <article class="proposal-card">
+              <div class="proposal-card-top">
+                <div>
+                  <h2 class="proposal-title">Cloud Migration Consultation — Noor Retail Group</h2>
+                  <div style="font-size:12px;color:var(--stone);margin-top:3px">Submitted via Marketplace</div>
+                </div>
+                <span class="badge-wrap badge-pending"><span class="badge-dot" aria-hidden="true"></span>Under review</span>
+              </div>
+              <div class="proposal-meta">
+                <span>SAR 38,000 quoted</span>
+                <span>·</span>
+                <span>Technical &amp; Financial</span>
+                <span>·</span>
+                <span>Submitted May 19, 2026</span>
+              </div>
+            </article>
+
+            <article class="proposal-card">
+              <div class="proposal-card-top">
+                <div>
+                  <h2 class="proposal-title">Employee Training Program — Aldawaa Medical</h2>
+                  <div style="font-size:12px;color:var(--stone);margin-top:3px">Submitted via Marketplace</div>
+                </div>
+                <span class="badge-wrap badge-shortlisted"><span class="badge-dot" aria-hidden="true"></span>Shortlisted</span>
+              </div>
+              <div class="proposal-meta">
+                <span>SAR 24,500 quoted</span>
+                <span>·</span>
+                <span>Price Quote Only</span>
+                <span>·</span>
+                <span>Submitted May 10, 2026</span>
+              </div>
+            </article>
+
+            <article class="proposal-card">
+              <div class="proposal-card-top">
+                <div>
+                  <h2 class="proposal-title">Website Redesign — Al-Faris Holding</h2>
+                  <div style="font-size:12px;color:var(--stone);margin-top:3px">Submitted via Invitation</div>
+                </div>
+                <span class="badge-wrap badge-rejected"><span class="badge-dot" aria-hidden="true"></span>Not selected</span>
+              </div>
+              <div class="proposal-meta">
+                <span>SAR 55,000 quoted</span>
+                <span>·</span>
+                <span>Technical &amp; Financial</span>
+                <span>·</span>
+                <span>Submitted Apr 28, 2026</span>
+              </div>
+            </article>
+
+          </div>
+        </div><!-- /rp-panel-submitted -->
+
+      </section><!-- /tab-rfp-proposals -->
+
+      <!-- ══════════════════════════════════════════
+           TAB 3 · VENDORS BASE
+      ══════════════════════════════════════════ -->
+      <section
+        class="tab-panel"
+        id="tab-vendors"
+        role="tabpanel"
+        aria-labelledby="nav-vendors"
+        tabindex="0"
+      >
+        <div class="section-head">
+          <div>
+            <h1 class="section-title">Vendors Base</h1>
+            <p class="section-desc">Your private network of trusted vendors.</p>
+          </div>
+          <button class="btn btn-primary" onclick="alert('Opening vendor invite flow...')" aria-label="Add a new vendor">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Add Vendor
+          </button>
+        </div>
+
+        <div class="filter-bar">
+          <div class="search-wrap" style="flex:1">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" placeholder="Search vendors…" aria-label="Search vendors">
+          </div>
+          <div class="select-wrap">
+            <select aria-label="Filter by category">
+              <option>All categories</option>
+              <option>Construction &amp; Contracting</option>
+              <option>IT &amp; Cybersecurity</option>
+              <option>Legal</option>
+              <option>Interior Design</option>
+              <option>Catering</option>
+              <option>Marketing</option>
+            </select>
+          </div>
+          <div class="select-wrap">
+            <select aria-label="Filter by city">
+              <option>All cities</option>
+              <option>Riyadh</option>
+              <option>Jeddah</option>
+              <option>Dammam</option>
+            </select>
+          </div>
+          <div class="select-wrap">
+            <select aria-label="Filter by verification status">
+              <option>All statuses</option>
+              <option>Verified</option>
+              <option>Unverified</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="vendors-grid" aria-live="polite">
+
+          <article class="vendor-card">
+            <div class="vendor-card-top">
+              <div class="vendor-logo" style="background:#FFF0EB;color:#FE3C01" aria-hidden="true">SB</div>
+              <div>
+                <h2 class="vendor-name">Saudi Build Co.</h2>
+                <div class="vendor-cat">Construction &amp; Contracting</div>
+              </div>
+            </div>
+            <div class="vendor-meta">
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Riyadh
+              </span>
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8M12 17v4"/></svg>
+                Specializes in commercial fit-outs and large-scale renovations across the GCC.
+              </span>
+            </div>
+            <div class="vendor-footer">
+              <span class="badge-wrap badge-verified"><span class="badge-dot" aria-hidden="true"></span>Verified</span>
+              <button class="btn btn-outline btn-sm" onclick="alert('Opening vendor profile...')" aria-label="View Saudi Build Co. profile">View profile</button>
+            </div>
+          </article>
+
+          <article class="vendor-card">
+            <div class="vendor-card-top">
+              <div class="vendor-logo" style="background:#EFF6FF;color:#3B82F6" aria-hidden="true">TG</div>
+              <div>
+                <h2 class="vendor-name">TechGuard Advisory</h2>
+                <div class="vendor-cat">IT &amp; Cybersecurity</div>
+              </div>
+            </div>
+            <div class="vendor-meta">
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Riyadh
+              </span>
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8M12 17v4"/></svg>
+                ISO-certified cybersecurity consultancy. CISO advisory, penetration testing, and compliance audits.
+              </span>
+            </div>
+            <div class="vendor-footer">
+              <span class="badge-wrap badge-verified"><span class="badge-dot" aria-hidden="true"></span>Verified</span>
+              <button class="btn btn-outline btn-sm" onclick="alert('Opening vendor profile...')" aria-label="View TechGuard Advisory profile">View profile</button>
+            </div>
+          </article>
+
+          <article class="vendor-card">
+            <div class="vendor-card-top">
+              <div class="vendor-logo" style="background:#FDF4FF;color:#A855F7" aria-hidden="true">AR</div>
+              <div>
+                <h2 class="vendor-name">Al-Rashid &amp; Partners</h2>
+                <div class="vendor-cat">Legal Services</div>
+              </div>
+            </div>
+            <div class="vendor-meta">
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Riyadh
+              </span>
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8M12 17v4"/></svg>
+                Full-service law firm specializing in corporate, employment, and commercial law.
+              </span>
+            </div>
+            <div class="vendor-footer">
+              <span class="badge-wrap badge-verified"><span class="badge-dot" aria-hidden="true"></span>Verified</span>
+              <button class="btn btn-outline btn-sm" onclick="alert('Opening vendor profile...')" aria-label="View Al-Rashid &amp; Partners profile">View profile</button>
+            </div>
+          </article>
+
+          <article class="vendor-card">
+            <div class="vendor-card-top">
+              <div class="vendor-logo" style="background:#F0FDF4;color:#16A34A" aria-hidden="true">GC</div>
+              <div>
+                <h2 class="vendor-name">Green Catering Co.</h2>
+                <div class="vendor-cat">Food &amp; Catering</div>
+              </div>
+            </div>
+            <div class="vendor-meta">
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Jeddah
+              </span>
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8M12 17v4"/></svg>
+                Corporate catering specialists with halal-certified kitchens and customizable menus.
+              </span>
+            </div>
+            <div class="vendor-footer">
+              <span class="badge-wrap badge-unverified"><span class="badge-dot" aria-hidden="true"></span>Unverified</span>
+              <button class="btn btn-outline btn-sm" onclick="alert('Opening vendor profile...')" aria-label="View Green Catering Co. profile">View profile</button>
+            </div>
+          </article>
+
+          <article class="vendor-card">
+            <div class="vendor-card-top">
+              <div class="vendor-logo" style="background:#FFF7ED;color:#EA580C" aria-hidden="true">DI</div>
+              <div>
+                <h2 class="vendor-name">Design Interiors LLC</h2>
+                <div class="vendor-cat">Interior Design</div>
+              </div>
+            </div>
+            <div class="vendor-meta">
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Riyadh
+              </span>
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8M12 17v4"/></svg>
+                Award-winning interior design studio with 12+ years in commercial and hospitality spaces.
+              </span>
+            </div>
+            <div class="vendor-footer">
+              <span class="badge-wrap badge-verified"><span class="badge-dot" aria-hidden="true"></span>Verified</span>
+              <button class="btn btn-outline btn-sm" onclick="alert('Opening vendor profile...')" aria-label="View Design Interiors LLC profile">View profile</button>
+            </div>
+          </article>
+
+          <article class="vendor-card">
+            <div class="vendor-card-top">
+              <div class="vendor-logo" style="background:#EFF6FF;color:#2563EB" aria-hidden="true">NC</div>
+              <div>
+                <h2 class="vendor-name">Nordic Craft Studios</h2>
+                <div class="vendor-cat">Architecture &amp; Design</div>
+              </div>
+            </div>
+            <div class="vendor-meta">
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Dammam
+              </span>
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8M12 17v4"/></svg>
+                Scandinavian-inspired architecture firm. Known for sustainable and minimalist corporate spaces.
+              </span>
+            </div>
+            <div class="vendor-footer">
+              <span class="badge-wrap badge-verified"><span class="badge-dot" aria-hidden="true"></span>Verified</span>
+              <button class="btn btn-outline btn-sm" onclick="alert('Opening vendor profile...')" aria-label="View Nordic Craft Studios profile">View profile</button>
+            </div>
+          </article>
+
+          <article class="vendor-card">
+            <div class="vendor-card-top">
+              <div class="vendor-logo" style="background:#F9F5FF;color:#7C3AED" aria-hidden="true">MP</div>
+              <div>
+                <h2 class="vendor-name">Mawakib Print &amp; Media</h2>
+                <div class="vendor-cat">Marketing &amp; Print</div>
+              </div>
+            </div>
+            <div class="vendor-meta">
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Riyadh
+              </span>
+              <span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8M12 17v4"/></svg>
+                Full-service marketing agency covering brand collateral, signage, and digital media.
+              </span>
+            </div>
+            <div class="vendor-footer">
+              <span class="badge-wrap badge-unverified"><span class="badge-dot" aria-hidden="true"></span>Unverified</span>
+              <button class="btn btn-outline btn-sm" onclick="alert('Opening vendor profile...')" aria-label="View Mawakib Print &amp; Media profile">View profile</button>
+            </div>
+          </article>
+
+          <!-- Add vendor card -->
+          <div
+            class="vendor-card"
+            style="border:1.5px dashed var(--line);background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:180px"
+            role="button"
+            tabindex="0"
+            onclick="alert('Opening vendor invite flow...')"
+            onkeydown="if(event.key==='Enter'||event.key===' ')alert('Opening vendor invite flow...')"
+            aria-label="Add a new vendor"
+          >
+            <div style="width:40px;height:40px;border-radius:12px;background:var(--orange-soft);display:flex;align-items:center;justify-content:center;margin-bottom:10px" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FE3C01" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+            <p style="font-size:13.5px;font-weight:600;color:var(--orange)">Add a vendor</p>
+            <p style="font-size:12px;color:var(--stone);margin-top:3px">Invite by email or link</p>
+          </div>
+
+        </div><!-- /vendors-grid -->
+      </section><!-- /tab-vendors -->
+
+    </div><!-- /main-inner -->
+  </main>
+</div><!-- /layout -->
+
+<!-- ════════════════ PROPOSAL DETAIL PANEL ════════════════ -->
+<div class="panel-overlay" id="panel-overlay" role="dialog" aria-modal="true" aria-labelledby="panel-title" onclick="closePanelOverlay(event)">
+  <div class="detail-panel" style="position:relative">
+    <button class="panel-close" onclick="closeProposalPanel()" aria-label="Close proposal panel">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    <h2 style="font-size:18px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px" id="panel-title">Proposal Review</h2>
+    <p style="font-size:13px;color:var(--stone);margin-bottom:20px" id="panel-rfp-name"></p>
+
+    <div style="display:flex;align-items:center;gap:12px;padding:14px;background:#FAFAFA;border:1.5px solid var(--line);border-radius:12px;margin-bottom:20px">
+      <div id="panel-company-logo" style="width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;background:#FFF0EB;color:#FE3C01" aria-hidden="true"></div>
+      <div>
+        <div style="font-size:14.5px;font-weight:700" id="panel-company-name"></div>
+        <div style="font-size:12px;color:var(--stone)">Joined via marketplace · Verified</div>
+      </div>
+      <div id="panel-status-badge" style="margin-left:auto"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+      <div style="padding:12px;background:#FAFAFA;border:1px solid var(--line);border-radius:10px">
+        <div style="font-size:11px;color:var(--stone);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;font-weight:600">Quoted Price</div>
+        <div style="font-size:18px;font-weight:800;letter-spacing:-.03em" id="panel-price"></div>
+      </div>
+      <div style="padding:12px;background:#FAFAFA;border:1px solid var(--line);border-radius:10px">
+        <div style="font-size:11px;color:var(--stone);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;font-weight:600">Submission Type</div>
+        <div style="font-size:14px;font-weight:600">Technical &amp; Financial</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px">
+      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--stone);margin-bottom:8px">Notes from vendor</div>
+      <div style="padding:14px;background:#FAFAFA;border:1px solid var(--line);border-radius:10px;font-size:13.5px;color:var(--ink);line-height:1.6">
+        We bring 8 years of commercial renovation experience across the GCC. Our team includes certified project managers and we use premium materials sourced locally. We can begin within 2 weeks of contract signing and complete the project in 6–8 weeks.
+      </div>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--stone);margin-bottom:8px">Attached Files</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--line);border-radius:9px;background:#FAFAFA">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FE3C01" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span style="font-size:13px;font-weight:500;flex:1">Technical_Proposal.pdf</span>
+          <button class="btn btn-ghost btn-sm" onclick="alert('Downloading...')" aria-label="Download Technical_Proposal.pdf">Download</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--line);border-radius:9px;background:#FAFAFA">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span style="font-size:13px;font-weight:500;flex:1">Financial_Breakdown.xlsx</span>
+          <button class="btn btn-ghost btn-sm" onclick="alert('Downloading...')" aria-label="Download Financial_Breakdown.xlsx">Download</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-actions" style="display:flex;gap:8px">
+      <button class="btn btn-outline" style="flex:1" onclick="alert('Rejecting proposal...');closeProposalPanel()" aria-label="Reject proposal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Reject
+      </button>
+      <button class="btn btn-outline" style="flex:1;color:#3B82F6;border-color:rgba(59,130,246,.3)" onclick="alert('Shortlisting proposal...');closeProposalPanel()" aria-label="Shortlist proposal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Shortlist
+      </button>
+      <button class="btn btn-primary" style="flex:1" onclick="alert('Accepting proposal — vendor added to Vendors Base!');closeProposalPanel()" aria-label="Accept proposal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        Accept
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Tab switching (sidebar) ── */
+  let currentTab = 'overview';
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-btn[id^="nav-"]').forEach(b => {
+      b.classList.remove('active');
+      b.removeAttribute('aria-current');
+    });
+    document.getElementById('tab-' + tab).classList.add('active');
+    const navBtn = document.getElementById('nav-' + tab);
+    if (navBtn) {
+      navBtn.classList.add('active');
+      navBtn.setAttribute('aria-current', 'page');
+    }
+    currentTab = tab;
+  }
+
+  /* ── RFP Proposals inner sub-tabs ── */
+  function setRfpProposalTab(tab, el) {
+    document.querySelectorAll('#tab-rfp-proposals .sub-tab').forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+      t.setAttribute('tabindex', '-1');
+    });
+    el.classList.add('active');
+    el.setAttribute('aria-selected', 'true');
+    el.setAttribute('tabindex', '0');
+
+    document.getElementById('rp-panel-rfps').style.display      = tab === 'rfps'      ? '' : 'none';
+    document.getElementById('rp-panel-incoming').style.display  = tab === 'incoming'  ? '' : 'none';
+    document.getElementById('rp-panel-submitted').style.display = tab === 'submitted' ? '' : 'none';
+  }
+
+  /* ── RFP search + filter ── */
+  let currentRfpFilter = 'all';
+
+  function setRfpFilter(filter, el) {
+    currentRfpFilter = filter;
+    document.querySelectorAll('#rfp-filter-all,#rfp-filter-published,#rfp-filter-draft,#rfp-filter-closed')
+      .forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    filterRfps();
+  }
+
+  function filterRfps() {
+    const q = (document.getElementById('rfp-search').value || '').toLowerCase();
+    document.querySelectorAll('#rfp-list .rfp-card').forEach(card => {
+      const status = card.dataset.status;
+      const title  = (card.dataset.title || '').toLowerCase();
+      const matchFilter = currentRfpFilter === 'all' || status === currentRfpFilter;
+      const matchSearch = !q || title.includes(q);
+      card.style.display = (matchFilter && matchSearch) ? '' : 'none';
+    });
+  }
+
+  /* ── Generic filter-tab toggler ── */
+  function activateFilterTab(el) {
+    el.closest('.filter-tabs').querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  /* ── Onboarding accordion ── */
+  function toggleTask(btn) {
+    const body = btn.nextElementSibling;
+    const isOpen = !body.hidden;
+    document.querySelectorAll('.task-body').forEach(b => { b.hidden = true; });
+    document.querySelectorAll('.task-trigger').forEach(b => b.setAttribute('aria-expanded', 'false'));
+    if (!isOpen) {
+      body.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+    }
+  }
+
+  /* ── Proposal detail panel ── */
+  function openProposalPanel(company, price, rfpName, status) {
+    document.getElementById('panel-title').textContent       = company;
+    document.getElementById('panel-rfp-name').textContent   = 'For: ' + rfpName;
+    document.getElementById('panel-company-name').textContent = company;
+    document.getElementById('panel-price').textContent       = price;
+    document.getElementById('panel-company-logo').textContent =
+      company.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+    const statusEl  = document.getElementById('panel-status-badge');
+    const classMap  = { pending: 'badge-pending', shortlisted: 'badge-shortlisted', accepted: 'badge-accepted', rejected: 'badge-rejected' };
+    const labelMap  = { pending: 'Pending', shortlisted: 'Shortlisted', accepted: 'Accepted', rejected: 'Rejected' };
+    statusEl.innerHTML = `<span class="badge-wrap ${classMap[status]}"><span class="badge-dot" aria-hidden="true"></span>${labelMap[status]}</span>`;
+
+    document.getElementById('panel-actions').style.display = status === 'accepted' ? 'none' : 'flex';
+    document.getElementById('panel-overlay').classList.add('open');
+    document.querySelector('.panel-close').focus();
+  }
+
+  function closeProposalPanel() {
+    document.getElementById('panel-overlay').classList.remove('open');
+  }
+
+  function closePanelOverlay(e) {
+    if (e.target === document.getElementById('panel-overlay')) closeProposalPanel();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeProposalPanel();
+  });
+</script>
+</body>
+</html>

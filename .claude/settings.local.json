@@ -199,7 +199,9 @@
       "Bash(nix-shell -p imagemagick --run \"convert /tmp/homepage.png -crop 300x100+0+0 +repage -resize 900x300 /tmp/logo-zoom.png\")",
       "Bash(nix-shell -p python3 --run \"python3 -m http.server 8080 --directory /home/runner/workspace &\")",
       "Bash(nix-shell -p chromium --run \"chromium --headless=new --no-sandbox --screenshot=/tmp/landing-full.png --window-size=1440,900 'http://localhost:8080/landing.html' 2>/dev/null\")",
-      "Bash(nix-shell -p imagemagick --run \"convert /tmp/landing-full.png -crop 300x100+0+0 +repage -resize 900x300 /tmp/landing-logo.png\")"
+      "Bash(nix-shell -p imagemagick --run \"convert /tmp/landing-full.png -crop 300x100+0+0 +repage -resize 900x300 /tmp/landing-logo.png\")",
+      "Bash(lsof -ti:3000)",
+      "Bash(apt list *)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -201,7 +201,9 @@
       "Bash(nix-shell -p chromium --run \"chromium --headless=new --no-sandbox --screenshot=/tmp/landing-full.png --window-size=1440,900 'http://localhost:8080/landing.html' 2>/dev/null\")",
       "Bash(nix-shell -p imagemagick --run \"convert /tmp/landing-full.png -crop 300x100+0+0 +repage -resize 900x300 /tmp/landing-logo.png\")",
       "Bash(lsof -ti:3000)",
-      "Bash(apt list *)"
+      "Bash(apt list *)",
+      "Read(//usr/bin/**)",
+      "Read(//usr/local/bin/**)"
     ]
   },
   "enableAllProjectMcpServers": true,

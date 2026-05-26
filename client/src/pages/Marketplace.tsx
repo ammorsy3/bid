@@ -1,19 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Search, FileText, MapPin, ChevronLeft, ChevronRight, Loader2, ChevronDown, Building2, Users, ArrowRight, Calendar, SlidersHorizontal, X } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Search, ChevronDown, ChevronLeft, ChevronRight, MapPin, LayoutList, LayoutGrid } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
 import { useAuthStore } from "@/lib/auth";
 import { BidLogo } from "@/components/brand/BidLogo";
-import heroBg from "@assets/image_1775799187200.png";
 
 interface MarketplaceTender {
   id: string;
@@ -33,51 +27,86 @@ interface MarketplaceTender {
   inquiryDeadline: string | null;
   scope: string | null;
   targetAudienceTypes: string[] | null;
-  company: {
-    id: string;
-    name: string;
-    city: string | null;
-    category: string | null;
-  };
-  profile?: {
-    displayName: string | null;
-    logoUrl: string | null;
-  };
+  company: { id: string; name: string; city: string | null; category: string | null };
+  profile?: { displayName: string | null; logoUrl: string | null };
 }
 
 const SAUDI_CITIES = [
   "Riyadh", "Jeddah", "Mecca", "Medina", "Dammam", "Khobar", "Dhahran",
   "Tabuk", "Abha", "Taif", "Hail", "Jubail", "Yanbu", "Najran", "Jazan",
-  "Al Kharj", "Buraydah", "Khamis Mushait", "Al Hofuf", "Sakaka"
+  "Al Kharj", "Buraydah", "Khamis Mushait", "Al Hofuf", "Sakaka",
 ];
 
-function getTenderProgress(createdAt: string, deadline: string) {
+function getTenderProgress(deadline: string) {
   const now = Date.now();
   const end = new Date(deadline).getTime();
   const remaining = end - now;
   if (remaining <= 0) return { days: 0, expired: true, percent: 0 };
   const days = Math.ceil(remaining / (1000 * 60 * 60 * 24));
-  const maxDays = 100;
-  const percent = Math.min(100, Math.max(0, (days / maxDays) * 100));
+  const percent = Math.min(100, Math.max(0, (days / 100) * 100));
   return { days, expired: false, percent };
 }
 
-function CircleProgress({ percent, days, expired, size = 56 }: { percent: number; days: number; expired: boolean; size?: number }) {
-  const isLarge = size >= 80;
-  const stroke = isLarge ? 5 : 3.5;
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percent / 100) * circumference;
-  const color = expired ? '#9ca3af' : percent < 25 ? '#f59e0b' : '#FE3C01';
+function getTenderSize(budgetMin: number | null, budgetMax: number | null): "small" | "mid" | "large" | null {
+  const budget = budgetMax || budgetMin;
+  if (!budget) return null;
+  if (budget < 500_000) return "small";
+  if (budget < 5_000_000) return "mid";
+  return "large";
+}
+
+function getAvatarInitials(name: string): string {
+  const words = name.trim().split(/\s+/);
+  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
+function getAvatarColor(name: string): { bg: string; fg: string } {
+  const sum = name.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const palette = [
+    { bg: "#FE3C01", fg: "#ffffff" },
+    { bg: "#4A8FE7", fg: "#ffffff" },
+    { bg: "#FFC42A", fg: "#0B0907" },
+    { bg: "#0B0907", fg: "#F4EDE1" },
+  ];
+  return palette[sum % 4];
+}
+
+function CircleProgress({
+  percent, days, expired, warn, size = 108,
+}: {
+  percent: number; days: number; expired: boolean; warn: boolean; size?: number;
+}) {
+  const scale = size / 108;
+  const r = Math.round(48 * scale);
+  const sw = Math.max(3, Math.round(5 * scale));
+  const c = 2 * Math.PI * r;
+  const offset = c - (percent / 100) * c;
+  const center = size / 2;
+  const stroke = expired ? "#C9C1B6" : warn ? "#F59E0B" : "#FE3C01";
+  const numCol = expired ? "#8A8078" : warn ? "#F59E0B" : "#FE3C01";
+  const numPx = Math.max(11, Math.round(30 * scale));
 
   return (
-    <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f3f4f6" strokeWidth={stroke} />
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} className="transition-all duration-500" />
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)", display: "block" }}>
+        <circle cx={center} cy={center} r={r} fill="none" stroke="rgba(11,9,7,0.08)" strokeWidth={sw} />
+        <circle
+          cx={center} cy={center} r={r} fill="none"
+          stroke={stroke} strokeWidth={sw} strokeLinecap="round"
+          strokeDasharray={c} strokeDashoffset={offset}
+          style={{ transition: "stroke-dashoffset 0.6s ease" }}
+        />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`${isLarge ? 'text-3xl' : 'text-base'} font-bold leading-none`} style={{ color }}>{expired ? 0 : days}</span>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ fontSize: numPx, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1, color: numCol }}>
+          {expired ? "—" : days}
+        </span>
+        {size >= 70 && (
+          <span style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#8A8078", marginTop: 3 }}>
+            {expired ? "Closed" : "days"}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -89,36 +118,30 @@ export default function Marketplace() {
   const { user } = useAuthStore();
   const isSubdomain = isMarketplaceSubdomain();
   const marketplaceHome = isSubdomain ? "/" : "/marketplace";
+
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [city, setCity] = useState("");
   const [tenderType, setTenderType] = useState("");
   const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const perPage = 9;
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const activeFilterCount = [category, city, tenderType, sort !== "newest" ? sort : ""].filter(Boolean).length;
-
-  const closeDropdown = useCallback(() => setShowCategoryDropdown(false), []);
+  const [showCategoryDrop, setShowCategoryDrop] = useState(false);
+  const catDropRef = useRef<HTMLDivElement>(null);
+  const closeDropdown = useCallback(() => setShowCategoryDrop(false), []);
 
   useEffect(() => {
-    if (!showCategoryDropdown) return;
-    const handleClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) closeDropdown();
+    if (!showCategoryDrop) return;
+    const handler = (e: MouseEvent) => {
+      if (catDropRef.current && !catDropRef.current.contains(e.target as Node)) closeDropdown();
     };
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeDropdown();
-    };
-    document.addEventListener('mousedown', handleClick);
-    document.addEventListener('keydown', handleKey);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [showCategoryDropdown, closeDropdown]);
+    const keyHandler = (e: KeyboardEvent) => { if (e.key === "Escape") closeDropdown(); };
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("keydown", keyHandler);
+    return () => { document.removeEventListener("mousedown", handler); document.removeEventListener("keydown", keyHandler); };
+  }, [showCategoryDrop, closeDropdown]);
 
   const { data: tendersData, isLoading } = useQuery<{ tenders: MarketplaceTender[]; total: number }>({
     queryKey: ["/api/marketplace/tenders", search, category, city, tenderType, sort, page, perPage],
@@ -137,302 +160,195 @@ export default function Marketplace() {
     },
   });
 
-
   const tenders = tendersData?.tenders || [];
   const total = tendersData?.total || 0;
   const totalPages = Math.ceil(total / perPage);
+  const activeFilterCount = [category, city, tenderType, sort !== "newest" ? sort : ""].filter(Boolean).length;
+
+  const fmt = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString(language === "ar" ? "ar-SA" : "en-US", {
+      year: "numeric", month: "2-digit", day: "2-digit",
+    });
+
+  const arrow = isRtl ? "←" : "→";
+
+  // pill style helpers
+  const pillActive = { background: "#0B0907", color: "#F4EDE1" } as const;
+  const pillInactive = { color: "#0B0907", background: "transparent" } as const;
 
   return (
-    <div className={`min-h-screen bg-[#F3F4F6] ${isRtl ? 'rtl' : 'ltr'}`} dir={isRtl ? 'rtl' : 'ltr'}>
-      <header className="bg-card border-b border-border sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
-            <div className="flex items-center gap-8">
-              <Link href={marketplaceHome} className="flex items-center gap-2">
-                <BidLogo variant="orange" size={28} />
+    <div style={{ background: "#F4EDE1", color: "#0B0907" }} className="min-h-screen" dir={isRtl ? "rtl" : "ltr"}>
+
+      {/* ── TOPBAR ── */}
+      <div
+        className="sticky top-0 z-50 border-b"
+        style={{ background: "#F4EDE1", borderColor: "rgba(11,9,7,0.08)" }}
+      >
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-14 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <Link href={marketplaceHome} className="flex items-center">
+              <BidLogo variant="onCream" size={28} />
+            </Link>
+            <nav className="hidden md:flex items-center gap-7">
+              <Link href={marketplaceHome}>
+                <span className="text-sm font-medium" style={{ color: "#FE3C01" }}>
+                  {t("marketplace.title")}
+                </span>
               </Link>
-              <nav className="hidden sm:flex items-center gap-6 text-sm font-medium">
-                <Link href={marketplaceHome}>
-                  <span className="text-[#FE3C01] font-semibold">
-                    {t('marketplace.title')}
-                  </span>
+            </nav>
+          </div>
+          <div className="flex items-center gap-2">
+            {user ? (
+              <>
+                <Link href="/tenders/new">
+                  <button
+                    className="text-sm font-medium px-[18px] py-[11px] rounded-full transition-colors hover:bg-white"
+                    style={{ color: "#0B0907" }}
+                  >
+                    {t("marketplace.postTender")}
+                  </button>
                 </Link>
-              </nav>
-            </div>
-            <div className="flex items-center gap-3">
-              {user ? (
-                <div className="flex items-center gap-2">
-                  <Link href="/tenders/new">
-                    <Button size="sm" variant="outline" className="text-sm px-4 rounded border-[#FE3C01]/30 text-[#FE3C01] hover:bg-[#FE3C01]/5">
-                      {t('marketplace.postTender') || 'Post a Tender'}
-                    </Button>
-                  </Link>
-                  <Link href="/dashboard">
-                    <Button size="sm" className="bg-[#FE3C01] hover:bg-[#E83501] text-white text-sm px-5 rounded">
-                      {t('marketplace.dashboard')}
-                    </Button>
-                  </Link>
-                </div>
-              ) : (
-                <>
-                  <Link href="/login">
-                    <Button variant="ghost" size="sm" className="text-sm text-muted-foreground hover:text-foreground">
-                      {t('marketplace.login')}
-                    </Button>
-                  </Link>
-                  <Link href="/signup">
-                    <Button size="sm" className="bg-[#FE3C01] hover:bg-[#E83501] text-white text-sm px-5 rounded">
-                      {t('marketplace.getStarted')}
-                    </Button>
-                  </Link>
-                </>
-              )}
-            </div>
+                <Link href="/dashboard">
+                  <button
+                    className="text-sm font-medium px-[18px] py-[11px] rounded-full transition-colors"
+                    style={{ background: "#0B0907", color: "#F4EDE1" }}
+                  >
+                    {t("marketplace.dashboard")} {arrow}
+                  </button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/login">
+                  <button
+                    className="text-sm font-medium px-[18px] py-[11px] rounded-full transition-colors hover:bg-white"
+                    style={{ color: "#0B0907" }}
+                  >
+                    {t("marketplace.login")}
+                  </button>
+                </Link>
+                <Link href="/signup">
+                  <button
+                    className="text-sm font-medium px-[18px] py-[11px] rounded-full transition-colors"
+                    style={{ background: "#0B0907", color: "#F4EDE1" }}
+                  >
+                    {t("marketplace.getStarted")} {arrow}
+                  </button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
-      </header>
+      </div>
 
-      <section className="relative h-[280px] sm:h-[320px] overflow-hidden">
-        <img
-          src={heroBg}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/50" />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-          <h1 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-white leading-[0.92] tracking-[-0.04em]">
-            {t('marketplace.title')}
-          </h1>
-        </div>
-      </section>
-
-
-      <section className="bg-card py-14 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="font-display font-black text-2xl sm:text-3xl text-foreground text-center mb-3 tracking-[-0.03em]">
-            {t('marketplace.howItWorks')}
-          </h2>
-          <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-10 text-sm sm:text-base">
-            {t('marketplace.howItWorksDesc')}
-          </p>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="rounded-2xl border border-border bg-muted p-7 flex flex-col items-center text-center">
-              <div className="h-14 w-14 rounded-2xl bg-[#FE3C01]/10 flex items-center justify-center mb-5">
-                <Building2 className="h-7 w-7 text-[#FE3C01]" />
-              </div>
-              <h3 className="text-lg font-bold text-foreground mb-1">{t('marketplace.buyers')}</h3>
-              <p className="text-sm text-muted-foreground mb-5">{t('marketplace.buyersDesc')}</p>
-              <Link href="/signup">
-                <Button className="bg-[#FE3C01] hover:bg-[#E83501] text-white px-6">
-                  {t('marketplace.startBuying')}
-                  <ArrowRight className={`h-4 w-4 ${isRtl ? 'mr-2 rotate-180' : 'ml-2'}`} />
-                </Button>
-              </Link>
-            </div>
-
-            <div className="rounded-2xl border border-border bg-muted p-7 flex flex-col items-center text-center">
-              <div className="h-14 w-14 rounded-2xl bg-[#FE3C01]/10 flex items-center justify-center mb-5">
-                <Users className="h-7 w-7 text-[#FE3C01]" />
-              </div>
-              <h3 className="text-lg font-bold text-foreground mb-1">{t('marketplace.suppliers')}</h3>
-              <p className="text-sm text-muted-foreground mb-5">{t('marketplace.suppliersDesc')}</p>
-              <Link href="/signup">
-                <Button variant="outline" className="border-[#FE3C01] text-[#FE3C01] hover:bg-red-50 px-6">
-                  {t('marketplace.startSelling')}
-                  <ArrowRight className={`h-4 w-4 ${isRtl ? 'mr-2 rotate-180' : 'ml-2'}`} />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
-        <h2 className="font-display font-black text-2xl sm:text-3xl text-foreground text-center mb-8 tracking-[-0.03em]">
-          {t('marketplace.latestOpportunities')}
-        </h2>
-
-        {/* Mobile filter bar — search + filter button */}
-        <div className="flex sm:hidden items-center gap-2 mb-4">
-          <div className="relative flex-1">
-            <Search className={`absolute top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 ${isRtl ? 'right-3' : 'left-3'}`} />
-            <Input
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder={t('marketplace.searchPlaceholder')}
-              className={`w-full h-10 text-sm bg-card border-border rounded-lg ${isRtl ? 'pr-10' : 'pl-10'}`}
-            />
-          </div>
-          <button
-            onClick={() => setMobileFilterOpen(true)}
-            className="relative flex items-center gap-2 h-10 px-3 border border-border rounded-lg bg-card text-sm font-medium flex-shrink-0 hover:border-gray-400 transition-colors"
+      {/* ── HERO ── */}
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-14 pt-16 sm:pt-20 pb-8 sm:pb-10">
+        <div className="max-w-[900px]">
+          {/* Live badge */}
+          <span
+            className="inline-flex items-center gap-2.5 mb-6 sm:mb-7 px-4 py-1.5 rounded-full text-sm font-medium"
+            style={{ background: "white", border: "1px solid rgba(11,9,7,0.08)" }}
           >
-            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-            <span>{t('marketplace.category') === 'Category' ? 'Filters' : 'تصفية'}</span>
-            {activeFilterCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-[#FE3C01] text-white text-[10px] font-bold flex items-center justify-center">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
+            <span
+              className="w-1.5 h-1.5 rounded-full animate-pulse"
+              style={{ background: "#FE3C01" }}
+            />
+            {t("marketplace.liveBadge")}
+          </span>
+          {/* Headline */}
+          <h1
+            className="font-display font-bold leading-[0.92]"
+            style={{ fontSize: "clamp(44px, 9vw, 140px)", letterSpacing: "-0.045em", color: "#0B0907" }}
+          >
+            {t("marketplace.heroLine1")}
+            <br />
+            {t("marketplace.heroLine2")}
+            <span style={{ color: "#FE3C01" }}>.</span>
+          </h1>
+          {/* Subtitle */}
+          <p className="mt-5 sm:mt-6 text-base sm:text-lg leading-relaxed max-w-[46ch]" style={{ color: "#8A8078" }}>
+            {t("marketplace.heroSubtitle")}
+          </p>
+        </div>
+      </div>
+
+      {/* ── LIVE OPPORTUNITIES ── */}
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-14 py-12 sm:py-16">
+
+        {/* Section header */}
+        <div className="mb-8 sm:mb-9">
+          <div
+            className="inline-block text-[13px] font-semibold px-3.5 py-1.5 rounded-full mb-4"
+            style={{ color: "#FE3C01", background: "#FFE4D7" }}
+          >
+            {t("marketplace.browseLabel")}
+          </div>
+          <h2
+            className="font-display font-bold leading-[0.95]"
+            style={{ fontSize: "clamp(36px, 5vw, 72px)", letterSpacing: "-0.035em", color: "#0B0907" }}
+          >
+            {t("marketplace.liveOpportunities")}
+            <span style={{ color: "#FE3C01" }}>.</span>
+          </h2>
         </div>
 
-        {/* Mobile active filter chips */}
-        {activeFilterCount > 0 && (
-          <div className="flex sm:hidden items-center gap-2 mb-4 flex-wrap">
-            {category && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FE3C01]/10 text-[#FE3C01] text-xs font-medium">
-                {category}
-                <button onClick={() => { setCategory(""); setPage(1); }}><X className="h-3 w-3" /></button>
-              </span>
-            )}
-            {tenderType && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FE3C01]/10 text-[#FE3C01] text-xs font-medium">
-                {tenderType.replace(/_/g, ' ')}
-                <button onClick={() => { setTenderType(""); setPage(1); }}><X className="h-3 w-3" /></button>
-              </span>
-            )}
-            {city && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FE3C01]/10 text-[#FE3C01] text-xs font-medium">
-                {city}
-                <button onClick={() => { setCity(""); setPage(1); }}><X className="h-3 w-3" /></button>
-              </span>
-            )}
-            {sort !== "newest" && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FE3C01]/10 text-[#FE3C01] text-xs font-medium">
-                {sort === "deadline_asc" ? t('marketplace.sortDeadline') : t('marketplace.sortBudget')}
-                <button onClick={() => { setSort("newest"); setPage(1); }}><X className="h-3 w-3" /></button>
-              </span>
-            )}
-          </div>
-        )}
+        {/* ── FILTER BAR ── */}
+        <div
+          className="flex items-center gap-2 flex-wrap p-2 rounded-full mb-4 shadow-[0_8px_24px_-16px_rgba(11,9,7,0.08)]"
+          style={{ background: "white", border: "1px solid rgba(11,9,7,0.08)" }}
+        >
+          {/* Left: filter pills */}
+          <div className="flex items-center gap-1.5 flex-1 flex-wrap min-w-0">
 
-        {/* Mobile filter sheet */}
-        <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
-          <SheetContent side="bottom" className="rounded-t-2xl px-5 pt-5 pb-8 max-h-[85vh] overflow-y-auto">
-            <SheetHeader className="mb-5">
-              <div className="flex items-center justify-between">
-                <SheetTitle className="text-lg font-bold">
-                  {t('marketplace.category') === 'Category' ? 'Filters' : 'تصفية'}
-                </SheetTitle>
-                {activeFilterCount > 0 && (
-                  <button
-                    onClick={() => { setCategory(""); setTenderType(""); setCity(""); setSort("newest"); setPage(1); }}
-                    className="text-xs text-[#FE3C01] font-medium"
-                  >
-                    {t('marketplace.category') === 'Category' ? 'Clear all' : 'مسح الكل'}
-                  </button>
-                )}
-              </div>
-            </SheetHeader>
+            {/* All pill */}
+            <button
+              onClick={() => { setCategory(""); setTenderType(""); setCity(""); setPage(1); }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-medium transition-colors whitespace-nowrap"
+              style={!category && !tenderType && !city ? pillActive : pillInactive}
+            >
+              {t("marketplace.allFilter")}
+              {total > 0 && (
+                <span
+                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                  style={
+                    !category && !tenderType && !city
+                      ? { background: "#F4EDE1", color: "#0B0907" }
+                      : { background: "#FE3C01", color: "white" }
+                  }
+                >
+                  {total}
+                </span>
+              )}
+            </button>
 
-            <div className="space-y-5">
-              <div>
-                <p className="text-sm font-semibold mb-2 text-foreground">{t('marketplace.category')}</p>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => { setCategory(""); setPage(1); }}
-                    className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${!category ? 'bg-[#FE3C01] text-white border-[#FE3C01]' : 'border-border text-muted-foreground bg-card'}`}
-                  >
-                    {t('marketplace.allCategories')}
-                  </button>
-                  {VENDOR_CATEGORIES.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => { setCategory(cat); setPage(1); }}
-                      className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${category === cat ? 'bg-[#FE3C01] text-white border-[#FE3C01]' : 'border-border text-muted-foreground bg-card'}`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-semibold mb-2 text-foreground">{t('marketplace.allTypes')}</p>
-                <Select value={tenderType || "all"} onValueChange={(v) => { setTenderType(v === "all" ? "" : v); setPage(1); }}>
-                  <SelectTrigger className="w-full h-10 text-sm bg-card border-border">
-                    <SelectValue placeholder={t('marketplace.allTypes')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('marketplace.allTypes')}</SelectItem>
-                    <SelectItem value="open_tender">{t('marketplace.openTender')}</SelectItem>
-                    <SelectItem value="direct_purchase">{t('marketplace.directPurchase')}</SelectItem>
-                    <SelectItem value="framework_agreement">{t('marketplace.frameworkAgreement')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <p className="text-sm font-semibold mb-2 text-foreground">{t('marketplace.city')}</p>
-                <Select value={city || "all"} onValueChange={(v) => { setCity(v === "all" ? "" : v); setPage(1); }}>
-                  <SelectTrigger className="w-full h-10 text-sm bg-card border-border">
-                    <SelectValue placeholder={t('marketplace.allCities')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('marketplace.allCities')}</SelectItem>
-                    {SAUDI_CITIES.map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <p className="text-sm font-semibold mb-2 text-foreground">{t('marketplace.sortBy')}</p>
-                <Select value={sort} onValueChange={(v) => { setSort(v); setPage(1); }}>
-                  <SelectTrigger className="w-full h-10 text-sm bg-card border-border">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">{t('marketplace.sortNewest')}</SelectItem>
-                    <SelectItem value="deadline_asc">{t('marketplace.sortDeadline')}</SelectItem>
-                    <SelectItem value="budget_desc">{t('marketplace.sortBudget')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button
-                onClick={() => setMobileFilterOpen(false)}
-                className="w-full bg-[#FE3C01] hover:bg-[#E83501] text-white h-11 rounded-xl font-semibold"
-              >
-                {t('marketplace.category') === 'Category' ? 'Show Results' : 'عرض النتائج'}
-              </Button>
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        {/* Desktop filter bar — hidden on mobile */}
-        <div className="hidden sm:flex items-center justify-between mb-6 gap-4 flex-wrap">
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="relative" ref={dropdownRef}>
+            {/* Category pill + dropdown */}
+            <div className="relative" ref={catDropRef}>
               <button
-                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                aria-expanded={showCategoryDropdown}
-                aria-haspopup="listbox"
-                className="flex items-center gap-2 border border-border rounded-lg px-4 py-2.5 text-sm bg-card hover:border-gray-400 transition-colors"
+                onClick={() => setShowCategoryDrop(!showCategoryDrop)}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[13px] font-medium transition-colors whitespace-nowrap hover:bg-[#FAF5EC]"
+                style={category ? pillActive : pillInactive}
               >
-                {category || t('marketplace.category')}
-                <ChevronDown className="h-4 w-4 text-gray-400" />
+                {category || t("marketplace.category")}
+                <ChevronDown className="w-2.5 h-2.5 opacity-50" />
               </button>
-              {showCategoryDropdown && (
-                <div role="listbox" className={`absolute top-full mt-1 bg-card border border-border rounded-lg shadow-lg z-30 min-w-[200px] max-h-60 overflow-y-auto ${isRtl ? 'right-0' : 'left-0'}`}>
+              {showCategoryDrop && (
+                <div
+                  className="absolute top-full mt-1.5 bg-white rounded-2xl border shadow-lg z-30 min-w-[200px] max-h-64 overflow-y-auto"
+                  style={{ borderColor: "rgba(11,9,7,0.08)", [isRtl ? "right" : "left"]: 0 }}
+                >
                   <button
-                    role="option"
-                    aria-selected={!category}
-                    onClick={() => { setCategory(""); setShowCategoryDropdown(false); setPage(1); }}
-                    className={`block w-full text-start px-4 py-2 text-sm hover:bg-muted ${!category ? 'text-[#FE3C01] font-medium' : 'text-muted-foreground'}`}
+                    onClick={() => { setCategory(""); setShowCategoryDrop(false); setPage(1); }}
+                    className="block w-full text-start px-4 py-2.5 text-sm hover:bg-[#F4EDE1] transition-colors"
+                    style={{ color: !category ? "#FE3C01" : "#8A8078", fontWeight: !category ? 600 : 400 }}
                   >
-                    {t('marketplace.allCategories')}
+                    {t("marketplace.allCategories")}
                   </button>
                   {VENDOR_CATEGORIES.map((cat) => (
                     <button
                       key={cat}
-                      role="option"
-                      aria-selected={category === cat}
-                      onClick={() => { setCategory(cat); setShowCategoryDropdown(false); setPage(1); }}
-                      className={`block w-full text-start px-4 py-2 text-sm hover:bg-muted ${category === cat ? 'text-[#FE3C01] font-medium' : 'text-muted-foreground'}`}
+                      onClick={() => { setCategory(cat); setShowCategoryDrop(false); setPage(1); }}
+                      className="block w-full text-start px-4 py-2.5 text-sm hover:bg-[#F4EDE1] transition-colors"
+                      style={{ color: category === cat ? "#FE3C01" : "#8A8078", fontWeight: category === cat ? 600 : 400 }}
                     >
                       {cat}
                     </button>
@@ -441,211 +357,392 @@ export default function Marketplace() {
               )}
             </div>
 
-            <Select value={tenderType || "all"} onValueChange={(v) => { setTenderType(v === "all" ? "" : v); setPage(1); }}>
-              <SelectTrigger className="w-[170px] h-10 text-sm bg-card border-border">
-                <SelectValue placeholder={t('marketplace.allTypes')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('marketplace.allTypes')}</SelectItem>
-                <SelectItem value="open_tender">{t('marketplace.openTender')}</SelectItem>
-                <SelectItem value="direct_purchase">{t('marketplace.directPurchase')}</SelectItem>
-                <SelectItem value="framework_agreement">{t('marketplace.frameworkAgreement')}</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* City pill (native select styled as pill) */}
+            <div className="relative inline-flex items-center">
+              <select
+                value={city}
+                onChange={(e) => { setCity(e.target.value); setPage(1); }}
+                className="appearance-none pl-4 pr-7 py-2.5 rounded-full text-[13px] font-medium cursor-pointer border-0 outline-none transition-colors"
+                style={city ? { background: "#0B0907", color: "#F4EDE1" } : { background: "transparent", color: "#0B0907" }}
+              >
+                <option value="">{t("marketplace.city")}</option>
+                {SAUDI_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <ChevronDown
+                className="absolute pointer-events-none w-2.5 h-2.5 opacity-50"
+                style={{ [isRtl ? "left" : "right"]: 10, top: "50%", transform: "translateY(-50%)" }}
+              />
+            </div>
 
-            <Select value={city || "all"} onValueChange={(v) => { setCity(v === "all" ? "" : v); setPage(1); }}>
-              <SelectTrigger className="w-[160px] h-10 text-sm bg-card border-border">
-                <SelectValue placeholder={t('marketplace.city')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('marketplace.allCities')}</SelectItem>
-                {SAUDI_CITIES.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Type pill */}
+            <div className="relative inline-flex items-center hidden sm:flex">
+              <select
+                value={tenderType}
+                onChange={(e) => { setTenderType(e.target.value); setPage(1); }}
+                className="appearance-none pl-4 pr-7 py-2.5 rounded-full text-[13px] font-medium cursor-pointer border-0 outline-none transition-colors"
+                style={tenderType ? { background: "#0B0907", color: "#F4EDE1" } : { background: "transparent", color: "#0B0907" }}
+              >
+                <option value="">{t("marketplace.allTypes")}</option>
+                <option value="open_tender">{t("marketplace.openTender")}</option>
+                <option value="direct_purchase">{t("marketplace.directPurchase")}</option>
+                <option value="framework_agreement">{t("marketplace.frameworkAgreement")}</option>
+              </select>
+              <ChevronDown
+                className="absolute pointer-events-none w-2.5 h-2.5 opacity-50"
+                style={{ [isRtl ? "left" : "right"]: 10, top: "50%", transform: "translateY(-50%)" }}
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Select value={sort} onValueChange={(v) => { setSort(v); setPage(1); }}>
-              <SelectTrigger className="w-[160px] h-10 text-sm bg-card border-border">
-                <SelectValue placeholder={t('marketplace.sortBy')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">{t('marketplace.sortNewest')}</SelectItem>
-                <SelectItem value="deadline_asc">{t('marketplace.sortDeadline')}</SelectItem>
-                <SelectItem value="budget_desc">{t('marketplace.sortBudget')}</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <div className="relative">
-              <Search className={`absolute top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 ${isRtl ? 'right-3' : 'left-3'}`} />
-              <Input
+          {/* Right: search + sort */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Search */}
+            <div
+              className="relative flex items-center rounded-full min-w-[180px] sm:min-w-[240px]"
+              style={{ background: "#F4EDE1" }}
+            >
+              <Search
+                className="absolute w-3.5 h-3.5 pointer-events-none"
+                style={{ [isRtl ? "right" : "left"]: 14, top: "50%", transform: "translateY(-50%)", color: "#8A8078" }}
+              />
+              <input
+                type="text"
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                placeholder={t('marketplace.searchPlaceholder')}
-                className={`w-48 sm:w-64 h-10 text-sm bg-card border-border rounded-lg ${isRtl ? 'pr-10' : 'pl-10'}`}
+                placeholder={t("marketplace.searchPlaceholder")}
+                className="bg-transparent border-0 outline-none text-[13px] font-medium w-full py-2.5"
+                style={{ [isRtl ? "paddingRight" : "paddingLeft"]: 36, [isRtl ? "paddingLeft" : "paddingRight"]: 16, color: "#0B0907" }}
+              />
+            </div>
+
+            {/* Sort */}
+            <div className="relative inline-flex items-center hidden sm:flex">
+              <select
+                value={sort}
+                onChange={(e) => { setSort(e.target.value); setPage(1); }}
+                className="appearance-none pl-4 pr-7 py-2.5 rounded-full text-[13px] font-medium cursor-pointer border-0 outline-none"
+                style={{ background: "#F4EDE1", color: "#0B0907" }}
+              >
+                <option value="newest">{t("marketplace.sortNewest")}</option>
+                <option value="deadline_asc">{t("marketplace.sortDeadline")}</option>
+                <option value="budget_desc">{t("marketplace.sortBudget")}</option>
+              </select>
+              <ChevronDown
+                className="absolute pointer-events-none w-2.5 h-2.5 opacity-50"
+                style={{ [isRtl ? "left" : "right"]: 10, top: "50%", transform: "translateY(-50%)" }}
               />
             </div>
           </div>
         </div>
 
+        {/* ── ACTIVE FILTER CHIPS ── */}
+        {activeFilterCount > 0 && (
+          <div className="flex items-center gap-2 flex-wrap mb-4">
+            <span
+              className="text-[11px] font-bold uppercase tracking-[0.08em]"
+              style={{ color: "#8A8078" }}
+            >
+              {t("marketplace.activeFiltersLabel")}
+            </span>
+            {category && (
+              <span
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border bg-white"
+                style={{ borderColor: "rgba(11,9,7,0.08)", color: "#0B0907" }}
+              >
+                {category}
+                <button
+                  onClick={() => { setCategory(""); setPage(1); }}
+                  className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold"
+                  style={{ background: "#0B0907", color: "white" }}
+                >×</button>
+              </span>
+            )}
+            {city && (
+              <span
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border bg-white"
+                style={{ borderColor: "rgba(11,9,7,0.08)", color: "#0B0907" }}
+              >
+                {city}
+                <button
+                  onClick={() => { setCity(""); setPage(1); }}
+                  className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold"
+                  style={{ background: "#0B0907", color: "white" }}
+                >×</button>
+              </span>
+            )}
+            {tenderType && (
+              <span
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border bg-white"
+                style={{ borderColor: "rgba(11,9,7,0.08)", color: "#0B0907" }}
+              >
+                {tenderType.replace(/_/g, " ")}
+                <button
+                  onClick={() => { setTenderType(""); setPage(1); }}
+                  className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold"
+                  style={{ background: "#0B0907", color: "white" }}
+                >×</button>
+              </span>
+            )}
+            {sort !== "newest" && (
+              <span
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border bg-white"
+                style={{ borderColor: "rgba(11,9,7,0.08)", color: "#0B0907" }}
+              >
+                {sort === "deadline_asc" ? t("marketplace.sortDeadline") : t("marketplace.sortBudget")}
+                <button
+                  onClick={() => { setSort("newest"); setPage(1); }}
+                  className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold"
+                  style={{ background: "#0B0907", color: "white" }}
+                >×</button>
+              </span>
+            )}
+            <button
+              onClick={() => { setCategory(""); setTenderType(""); setCity(""); setSort("newest"); setPage(1); }}
+              className="text-xs font-semibold underline underline-offset-2"
+              style={{ color: "#FE3C01" }}
+            >
+              {t("marketplace.clearFilters")}
+            </button>
+          </div>
+        )}
+
+        {/* ── RESULTS BAR ── */}
+        <div className="flex items-center justify-between mb-5 gap-6">
+          <div className="text-sm" style={{ color: "#8A8078" }}>
+            {!isLoading && total > 0 && (
+              <>
+                <strong style={{ color: "#0B0907", fontWeight: 700 }}>{total}</strong>{" "}
+                {isRtl ? "نتيجة" : "results"}
+              </>
+            )}
+          </div>
+          <div
+            className="flex items-center gap-1 p-1 rounded-full border"
+            style={{ background: "#FAF5EC", borderColor: "rgba(11,9,7,0.08)" }}
+          >
+            <button
+              onClick={() => setViewMode("list")}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors"
+              style={viewMode === "list" ? { background: "#0B0907", color: "#F4EDE1" } : { color: "#8A8078" }}
+            >
+              <LayoutList className="w-3 h-3" />
+              {t("marketplace.listView")}
+            </button>
+            <button
+              onClick={() => setViewMode("grid")}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors"
+              style={viewMode === "grid" ? { background: "#0B0907", color: "#F4EDE1" } : { color: "#8A8078" }}
+            >
+              <LayoutGrid className="w-3 h-3" />
+              {t("marketplace.gridView")}
+            </button>
+          </div>
+        </div>
+
+        {/* ── TENDER CARDS ── */}
         {isLoading ? (
-          <div className="space-y-4" data-testid="loader-page">
+          <div className="flex flex-col gap-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-xl border border-border overflow-hidden">
-                <div className="flex items-stretch">
-                  {/* Progress circle area */}
-                  <div className="flex flex-col items-center justify-center px-8 py-8 border-e border-border min-w-[160px]">
-                    <Skeleton className="h-20 w-20 rounded-full" />
-                    <Skeleton className="h-3 w-16 mt-3" />
-                    <Skeleton className="h-3 w-12 mt-1.5" />
-                  </div>
-                  {/* Main content */}
-                  <div className="flex-1 p-6 space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Skeleton className="h-5 w-20 rounded-full" />
-                      <Skeleton className="h-5 w-24 rounded-full" />
-                    </div>
-                    <Skeleton className="h-5 w-2/3" />
-                    <Skeleton className="h-3 w-full" />
-                    <Skeleton className="h-3 w-4/5" />
-                    <div className="flex items-center gap-4 pt-2">
-                      <Skeleton className="h-3 w-28" />
-                      <Skeleton className="h-3 w-24" />
-                    </div>
-                  </div>
+              <div
+                key={i}
+                className="grid grid-cols-1 sm:grid-cols-[170px_1fr_220px] bg-white rounded-[20px] border overflow-hidden"
+                style={{ borderColor: "rgba(11,9,7,0.08)" }}
+              >
+                <div
+                  className="flex sm:flex-col items-center sm:justify-center gap-4 px-4 py-4 sm:p-6 border-b sm:border-b-0 sm:border-r"
+                  style={{ background: "linear-gradient(180deg,#FFF3EA,#FCE9DC)", borderColor: "rgba(254,60,1,0.08)" }}
+                >
+                  <Skeleton className="w-14 h-14 sm:w-[108px] sm:h-[108px] rounded-full" />
+                  <Skeleton className="h-3 w-20 hidden sm:block" />
+                </div>
+                <div className="p-4 sm:p-6 flex flex-col gap-3">
+                  <Skeleton className="h-3 w-28" />
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+                <div
+                  className="px-4 py-4 sm:px-5 sm:py-5 flex flex-col gap-4 justify-center border-t sm:border-t-0 sm:border-l"
+                  style={{ background: "#FAF5EC", borderColor: "rgba(11,9,7,0.08)" }}
+                >
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-9 w-full rounded-full" />
                 </div>
               </div>
             ))}
           </div>
         ) : tenders.length === 0 ? (
           <div className="text-center py-24">
-            <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="font-display font-black text-2xl text-muted-foreground tracking-[-0.03em]">{t('marketplace.noTenders')}</h3>
-            <p className="text-sm text-gray-400 mt-2">{t('marketplace.checkBackLater')}</p>
+            <h3
+              className="font-display font-black text-2xl tracking-[-0.03em]"
+              style={{ color: "#8A8078" }}
+            >
+              {t("marketplace.noTenders")}
+            </h3>
+            <p className="text-sm mt-2" style={{ color: "#C9C1B6" }}>
+              {t("marketplace.checkBackLater")}
+            </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className={viewMode === "list" ? "flex flex-col gap-3" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"}>
             {tenders.map((tender) => {
-              const { days, expired, percent } = getTenderProgress(tender.createdAt, tender.deadline);
-              const tenderTypeLabel =
-                tender.tenderType === 'open_tender' ? t('marketplace.openTender') :
-                tender.tenderType === 'direct_purchase' ? t('marketplace.directPurchase') :
-                tender.tenderType === 'framework_agreement' ? t('marketplace.frameworkAgreement') :
-                t('marketplace.openTender');
-              const formatDate = (dateStr: string) => {
-                const d = new Date(dateStr);
-                return d.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-              };
+              const { days, expired, percent } = getTenderProgress(tender.deadline);
+              const warn = !expired && days <= 25;
+              const size = getTenderSize(tender.budgetMin, tender.budgetMax);
+              const displayName = tender.profile?.displayName || tender.company.name;
+              const initials = getAvatarInitials(displayName);
+              const { bg: avatarBg, fg: avatarFg } = getAvatarColor(displayName);
+
               return (
                 <a
                   key={tender.id}
                   href={`/invite/${tender.invitationToken}`}
-                  className="block bg-card rounded-xl border border-border hover:shadow-md hover:border-border transition-all cursor-pointer group no-underline overflow-hidden"
-                  onClick={(e) => { e.preventDefault(); setLocation(user ? `/invite/${tender.invitationToken}` : '/login'); }}
+                  onClick={(e) => { e.preventDefault(); setLocation(user ? `/invite/${tender.invitationToken}` : "/login"); }}
+                  className={`group no-underline bg-white rounded-[20px] border overflow-hidden cursor-pointer transition-all duration-[250ms] hover:-translate-y-0.5 hover:shadow-[0_24px_48px_-28px_rgba(11,9,7,0.16)] hover:border-[rgba(254,60,1,0.25)] ${expired ? "opacity-70" : ""} ${viewMode === "list" ? "grid grid-cols-1 sm:grid-cols-[170px_1fr_220px]" : "flex flex-col"}`}
+                  style={{ borderColor: "rgba(11,9,7,0.08)" }}
                 >
-                  {/* Main content area */}
-                  <div className="flex flex-col sm:flex-row sm:items-stretch">
-                    {/* Countdown — top strip on mobile, left column on desktop */}
-                    <div className="flex flex-row items-center gap-4 px-4 py-3 border-b border-border sm:flex-col sm:items-center sm:justify-center sm:px-8 sm:py-8 sm:border-b-0 sm:border-e sm:min-w-[160px]">
-                      {/* Small circle for mobile */}
-                      <div className="sm:hidden flex-shrink-0">
-                        <CircleProgress percent={percent} days={days} expired={expired} size={56} />
-                      </div>
-                      {/* Large circle for desktop */}
-                      <div className="hidden sm:block">
-                        <CircleProgress percent={percent} days={days} expired={expired} size={110} />
-                      </div>
-                      <p className={`text-xs sm:mt-3 ${expired ? 'text-red-500' : 'text-muted-foreground'}`}>
-                        {expired ? t('marketplace.deadlinePassed') : `${days} ${t('marketplace.daysRemaining')}`}
-                      </p>
+                  {/* ── COUNTDOWN ── */}
+                  <div
+                    className="flex sm:flex-col items-center sm:justify-center gap-4 sm:gap-3 px-4 py-3 sm:px-3.5 sm:py-5 border-b sm:border-b-0 sm:border-e"
+                    style={{
+                      background: "linear-gradient(180deg,#FFF3EA 0%,#FCE9DC 100%)",
+                      borderColor: "rgba(254,60,1,0.08)",
+                    }}
+                  >
+                    {/* Mobile: small ring */}
+                    <div className="sm:hidden">
+                      <CircleProgress percent={percent} days={days} expired={expired} warn={warn} size={56} />
                     </div>
-
-                    {/* Tender info */}
-                    <div className="flex-1 min-w-0 px-4 py-4 sm:px-6 sm:py-6 flex flex-col justify-between">
-                      {/* Top row: publish date + badge */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Calendar className="h-3.5 w-3.5" />
-                          <span className="hidden xs:inline">{t('marketplace.publishDate')}:</span>
-                          <span className="font-medium text-muted-foreground">{formatDate(tender.createdAt)}</span>
-                        </div>
-                        <Badge className="bg-[#FE3C01] text-white border-0 text-[11px] font-medium px-2.5 py-0.5 rounded flex-shrink-0 ml-2">
-                          {tenderTypeLabel}
-                        </Badge>
-                      </div>
-
-                      {/* Title */}
-                      <h3 className="text-base sm:text-lg font-bold text-foreground group-hover:text-[#FE3C01] transition-colors leading-snug mb-2 line-clamp-2">
-                        {tender.title}
-                      </h3>
-
-                      {/* Company info */}
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 flex-wrap">
-                        {tender.profile?.logoUrl && tender.profile.logoUrl.includes('/company-logos/') ? (
-                          <img src={tender.profile.logoUrl} alt="" className="h-5 w-5 rounded-full object-cover border border-border flex-shrink-0" />
-                        ) : (
-                          <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                        )}
-                        <span className="font-medium truncate max-w-[140px] sm:max-w-none">{tender.profile?.displayName || tender.company.name}</span>
-                        {tender.company.city && (
-                          <>
-                            <span className="text-gray-300">·</span>
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3 text-gray-400" />
-                              {tender.company.city}
-                            </span>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Audience badges */}
-                      {tender.targetAudienceTypes && tender.targetAudienceTypes.length > 0 && (
-                        <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-                          {tender.targetAudienceTypes.map((type) => (
-                            <span
-                              key={type}
-                              className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border border-border text-muted-foreground bg-muted"
-                            >
-                              {type === 'company' ? 'Companies' : type === 'team' ? 'Teams' : 'Individuals'}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Category + details link */}
-                      <div className="flex items-center justify-between">
-                        {tender.category && (
-                          <span className="text-xs text-[#FE3C01] font-medium">{tender.category}</span>
-                        )}
-                        <span className="text-xs text-muted-foreground underline underline-offset-2 group-hover:text-[#FE3C01] transition-colors">
-                          {t('marketplace.viewDetails')}
-                        </span>
-                      </div>
+                    {/* Desktop: full ring */}
+                    <div className="hidden sm:block">
+                      <CircleProgress percent={percent} days={days} expired={expired} warn={warn} size={108} />
+                    </div>
+                    <div className="text-center leading-[1.35]">
+                      <em
+                        className="not-italic block text-[9px] font-bold uppercase tracking-[0.08em] mb-0.5"
+                        style={{ color: expired ? "#E84A3F" : "#8A8078" }}
+                      >
+                        {expired
+                          ? t("marketplace.closedOn")
+                          : warn
+                          ? t("marketplace.closingSoon")
+                          : t("marketplace.deadlineLabel")}
+                      </em>
+                      <span
+                        className="text-[11px] font-semibold"
+                        style={{ color: expired ? "#E84A3F" : "#0B0907" }}
+                      >
+                        {fmt(tender.deadline)}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Metadata row */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-muted border-t border-border">
-                    <div className="bg-card px-5 py-4 text-center">
-                      <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.refNumber')}</p>
-                      <p className="text-sm font-semibold text-foreground font-mono">{tender.referenceNumber || '—'}</p>
+                  {/* ── BODY ── */}
+                  <div className="px-4 py-4 sm:px-6 sm:py-5 flex flex-col gap-2.5 min-w-0 justify-center flex-1">
+                    <div className="text-[11px] font-medium" style={{ color: "#8A8078", fontFamily: "ui-monospace, monospace" }}>
+                      {tender.referenceNumber || "—"}
                     </div>
-                    <div className="bg-card px-5 py-4 text-center">
-                      <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.inquiryDeadline')}</p>
-                      <p className="text-sm font-semibold text-foreground">{tender.inquiryDeadline ? formatDate(tender.inquiryDeadline) : '—'}</p>
+                    <h3
+                      className="text-[17px] sm:text-[19px] font-semibold leading-[1.25] line-clamp-2 transition-colors group-hover:text-[#FE3C01]"
+                      style={{ letterSpacing: "-0.02em", color: "#0B0907" }}
+                    >
+                      {tender.title}
+                    </h3>
+                    <div className="flex items-center gap-2 sm:gap-2.5 text-[13px] font-medium flex-wrap" style={{ color: "#8A8078" }}>
+                      {/* Company / avatar */}
+                      <span className="flex items-center gap-1.5 font-medium" style={{ color: "#0B0907" }}>
+                        {tender.profile?.logoUrl && tender.profile.logoUrl.includes("/company-logos/") ? (
+                          <img
+                            src={tender.profile.logoUrl}
+                            alt=""
+                            className="w-5 h-5 rounded-full object-cover flex-shrink-0 border"
+                            style={{ borderColor: "rgba(11,9,7,0.08)" }}
+                          />
+                        ) : (
+                          <span
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
+                            style={{ background: avatarBg, color: avatarFg }}
+                          >
+                            {initials}
+                          </span>
+                        )}
+                        <span className="truncate max-w-[160px] sm:max-w-none">{displayName}</span>
+                        <span
+                          className="w-3 h-3 rounded-full flex items-center justify-center text-[8px] font-black flex-shrink-0"
+                          style={{ background: "#22C55E", color: "white" }}
+                        >✓</span>
+                      </span>
+                      {/* City */}
+                      {tender.company.city && (
+                        <>
+                          <span className="w-[3px] h-[3px] rounded-full flex-shrink-0" style={{ background: "#C9C1B6" }} />
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-[11px] h-[11px] flex-shrink-0" />
+                            {tender.company.city}
+                          </span>
+                        </>
+                      )}
+                      {/* Category */}
+                      {tender.category && (
+                        <>
+                          <span className="w-[3px] h-[3px] rounded-full flex-shrink-0" style={{ background: "#C9C1B6" }} />
+                          <span style={{ color: "#0B0907", fontWeight: 500 }}>{tender.category}</span>
+                        </>
+                      )}
                     </div>
-                    <div className="bg-card px-5 py-4 text-center">
-                      <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.submissionDeadline')}</p>
-                      <p className={`text-sm font-semibold ${expired ? 'text-red-500' : 'text-foreground'}`}>{formatDate(tender.deadline)}</p>
+                  </div>
+
+                  {/* ── FACTS ── */}
+                  <div
+                    className="border-t sm:border-t-0 sm:border-s px-4 py-4 sm:px-5 sm:py-5 flex flex-col gap-3.5 justify-center"
+                    style={{ background: "#FAF5EC", borderColor: "rgba(11,9,7,0.08)" }}
+                  >
+                    <div className="flex gap-4">
+                      {/* Doc fee */}
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: "#8A8078" }}>
+                          {t("marketplace.docFeeLabel")}
+                        </span>
+                        {tender.documentFee ? (
+                          <span
+                            className="text-[15px] font-bold leading-[1.1]"
+                            style={{ letterSpacing: "-0.015em", color: "#0B0907", fontFamily: "ui-monospace, monospace" }}
+                          >
+                            {tender.documentFee.toLocaleString()}
+                            <span className="text-[10px] font-semibold ms-0.5" style={{ color: "#8A8078" }}> SAR</span>
+                          </span>
+                        ) : (
+                          <span className="text-[15px] font-bold leading-[1.1]" style={{ letterSpacing: "-0.015em", color: "#22C55E" }}>
+                            {t("marketplace.free")}
+                          </span>
+                        )}
+                      </div>
+                      {/* Size */}
+                      {size && (
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: "#8A8078" }}>
+                            {t("marketplace.sizeLabel")}
+                          </span>
+                          <span
+                            className="inline-flex items-center gap-1.5 text-[12px] font-semibold px-2.5 py-1 rounded-full w-fit border"
+                            style={{ background: "white", borderColor: "rgba(11,9,7,0.08)", color: "#0B0907" }}
+                          >
+                            <span
+                              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                              style={{ background: size === "small" ? "#4A8FE7" : size === "mid" ? "#FE3C01" : "#0B0907" }}
+                            />
+                            {size === "small" ? t("marketplace.sizeSmall") : size === "mid" ? t("marketplace.sizeMid") : t("marketplace.sizeLarge")}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <div className="bg-card px-5 py-4 text-center">
-                      <p className="text-[11px] text-gray-400 mb-1">{t('marketplace.documentFee')}</p>
-                      <p className={`text-sm font-semibold ${tender.documentFee ? 'text-foreground' : 'text-green-600'}`}>
-                        {tender.documentFee ? <>{tender.documentFee.toLocaleString()} <span className="saudi-riyal-symbol" /></> : t('marketplace.free')}
-                      </p>
-                    </div>
+                    {/* CTA button */}
+                    <span
+                      className="inline-flex items-center justify-between gap-2 px-4 py-2.5 rounded-full text-[12px] font-semibold transition-colors"
+                      style={{ background: expired ? "#8A8078" : "#0B0907", color: expired ? "white" : "#F4EDE1" }}
+                    >
+                      {expired ? t("marketplace.viewArchive") : t("marketplace.viewTender")}
+                      <span className="inline-block transition-transform group-hover:translate-x-0.5">{arrow}</span>
+                    </span>
                   </div>
                 </a>
               );
@@ -653,65 +750,157 @@ export default function Marketplace() {
           </div>
         )}
 
+        {/* ── PAGINATION ── */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center mt-10 gap-2">
-            <Button
-              variant="outline"
-              size="icon"
+          <div className="flex items-center justify-center mt-9 gap-1.5">
+            <button
               disabled={page <= 1}
-              onClick={() => setPage(p => p - 1)}
-              className="h-9 w-9 rounded-lg"
+              onClick={() => setPage((p) => p - 1)}
+              className="w-9 h-9 rounded-full flex items-center justify-center border transition-colors hover:bg-white disabled:opacity-40"
+              style={{ background: "white", borderColor: "rgba(11,9,7,0.08)" }}
             >
-              {isRtl ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-            </Button>
+              {isRtl ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+            </button>
             {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
-              let pageNum;
-              if (totalPages <= 7) pageNum = i + 1;
-              else if (page <= 4) pageNum = i + 1;
-              else if (page >= totalPages - 3) pageNum = totalPages - 6 + i;
-              else pageNum = page - 3 + i;
+              let num: number;
+              if (totalPages <= 7) num = i + 1;
+              else if (page <= 4) num = i + 1;
+              else if (page >= totalPages - 3) num = totalPages - 6 + i;
+              else num = page - 3 + i;
               return (
-                <Button
-                  key={pageNum}
-                  variant={page === pageNum ? "default" : "ghost"}
-                  size="icon"
-                  onClick={() => setPage(pageNum)}
-                  className={`h-9 w-9 rounded-lg text-sm ${page === pageNum ? 'bg-[#FE3C01] hover:bg-[#E83501] text-white' : 'text-muted-foreground hover:bg-muted'}`}
+                <button
+                  key={num}
+                  onClick={() => setPage(num)}
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors hover:bg-white"
+                  style={page === num ? { background: "#0B0907", color: "#F4EDE1" } : { color: "#0B0907" }}
                 >
-                  {pageNum}
-                </Button>
+                  {num}
+                </button>
               );
             })}
-            <Button
-              variant="outline"
-              size="icon"
+            {totalPages > 7 && page < totalPages - 3 && (
+              <span style={{ color: "#8A8078" }} className="px-1">…</span>
+            )}
+            <button
               disabled={page >= totalPages}
-              onClick={() => setPage(p => p + 1)}
-              className="h-9 w-9 rounded-lg"
+              onClick={() => setPage((p) => p + 1)}
+              className="w-9 h-9 rounded-full flex items-center justify-center border transition-colors hover:bg-white disabled:opacity-40"
+              style={{ background: "white", borderColor: "rgba(11,9,7,0.08)" }}
             >
-              {isRtl ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </Button>
+              {isRtl ? <ChevronLeft className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+            </button>
           </div>
         )}
-      </main>
+      </div>
 
-      <footer className="bg-card border-t border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <BidLogo variant="orange" size={20} className="opacity-60" />
-              <span className="text-sm text-gray-400">
-                {t('marketplace.copyright')}
-              </span>
+      {/* ── CTA STRIP ── */}
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-14 mb-16">
+        <div
+          className="grid grid-cols-1 sm:grid-cols-[1.3fr_1fr] gap-8 sm:gap-12 items-center p-8 sm:p-14 rounded-[24px] sm:rounded-[32px] relative overflow-hidden"
+          style={{ background: "linear-gradient(135deg,#FE3C01 0%,#FF6535 100%)" }}
+        >
+          <div
+            className="absolute inset-0 opacity-50"
+            style={{
+              backgroundImage: "radial-gradient(circle at center,rgba(255,255,255,.15) 1.5px,transparent 2px)",
+              backgroundSize: "24px 24px",
+            }}
+          />
+          <h2
+            className="relative z-10 font-display font-bold text-white"
+            style={{ fontSize: "clamp(28px,4vw,44px)", letterSpacing: "-0.03em", lineHeight: 1 }}
+          >
+            {t("marketplace.ctaTitle")}
+          </h2>
+          <div className="relative z-10">
+            <p className="text-white opacity-95 text-[15px] leading-[1.55] mb-6 max-w-[36ch]">
+              {t("marketplace.ctaDesc")}
+            </p>
+            <Link href={user ? "/tenders/new" : "/signup"}>
+              <button
+                className="font-semibold text-sm px-5 py-3.5 rounded-full transition-colors hover:bg-[#F4EDE1]"
+                style={{ background: "white", color: "#FE3C01" }}
+              >
+                {t("marketplace.ctaButton")} {arrow}
+              </button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* ── FOOTER ── */}
+      <footer className="border-t" style={{ borderColor: "rgba(11,9,7,0.08)" }}>
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-14 py-14 sm:py-16">
+          <div
+            className="grid grid-cols-2 sm:grid-cols-[1.6fr_1fr_1fr_1fr] gap-8 sm:gap-10 pb-10 border-b"
+            style={{ borderColor: "rgba(11,9,7,0.08)" }}
+          >
+            {/* Brand */}
+            <div className="col-span-2 sm:col-span-1">
+              <div className="mb-4">
+                <BidLogo variant="onCream" size={30} />
+              </div>
+              <p className="text-sm leading-[1.55] max-w-[36ch]" style={{ color: "#8A8078" }}>
+                {t("marketplace.footerTagline")}
+              </p>
             </div>
-            <div className="flex items-center gap-6 text-sm text-gray-400">
-              <Link href={isSubdomain ? "/" : "/"} className="hover:text-muted-foreground transition-colors">
-                {t('marketplace.home')}
-              </Link>
-              <Link href={marketplaceHome} className="hover:text-muted-foreground transition-colors">
-                {t('marketplace.title')}
-              </Link>
+            {/* For Requesters */}
+            <div>
+              <h5
+                className="text-[11px] font-bold uppercase tracking-[0.08em] mb-3.5"
+                style={{ color: "#0B0907" }}
+              >
+                {t("marketplace.footerForRequesters")}
+              </h5>
+              <div className="flex flex-col gap-1">
+                <Link href={marketplaceHome} className="text-sm py-1 transition-colors hover:text-[#FE3C01]" style={{ color: "#8A8078" }}>
+                  {t("marketplace.title")}
+                </Link>
+                <Link href="/signup" className="text-sm py-1 transition-colors hover:text-[#FE3C01]" style={{ color: "#8A8078" }}>
+                  {t("marketplace.getStarted")}
+                </Link>
+              </div>
             </div>
+            {/* For Vendors */}
+            <div>
+              <h5
+                className="text-[11px] font-bold uppercase tracking-[0.08em] mb-3.5"
+                style={{ color: "#0B0907" }}
+              >
+                {t("marketplace.footerForVendors")}
+              </h5>
+              <div className="flex flex-col gap-1">
+                <Link href={marketplaceHome} className="text-sm py-1 transition-colors hover:text-[#FE3C01]" style={{ color: "#8A8078" }}>
+                  {t("marketplace.title")}
+                </Link>
+                <Link href="/login" className="text-sm py-1 transition-colors hover:text-[#FE3C01]" style={{ color: "#8A8078" }}>
+                  {t("marketplace.login")}
+                </Link>
+              </div>
+            </div>
+            {/* Company */}
+            <div>
+              <h5
+                className="text-[11px] font-bold uppercase tracking-[0.08em] mb-3.5"
+                style={{ color: "#0B0907" }}
+              >
+                {t("marketplace.footerCompany")}
+              </h5>
+              <div className="flex flex-col gap-1">
+                <Link href="/" className="text-sm py-1 transition-colors hover:text-[#FE3C01]" style={{ color: "#8A8078" }}>
+                  {t("marketplace.home")}
+                </Link>
+                <Link href="/login" className="text-sm py-1 transition-colors hover:text-[#FE3C01]" style={{ color: "#8A8078" }}>
+                  {t("marketplace.login")}
+                </Link>
+              </div>
+            </div>
+          </div>
+          <div
+            className="flex items-center justify-between pt-7 text-[13px] gap-6 flex-wrap"
+            style={{ color: "#8A8078" }}
+          >
+            <span>{t("marketplace.copyright")}</span>
           </div>
         </div>
       </footer>

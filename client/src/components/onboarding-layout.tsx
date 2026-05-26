@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
-import { FileText, BarChart3, Shield, Zap } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { BidLogo } from "@/components/brand/BidLogo";
+import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
 
 interface OnboardingLayoutProps {
   children: ReactNode;
@@ -10,120 +10,105 @@ interface OnboardingLayoutProps {
 
 export default function OnboardingLayout({ children, step }: OnboardingLayoutProps) {
   const { t } = useI18n();
+
   const STEPS = [
     { labelKey: "stepBasics", num: 1 },
     { labelKey: "stepDocuments", num: 2 },
     { labelKey: "stepProfile", num: 3 },
     { labelKey: "stepTeam", num: 4 },
   ];
+
+  const headline =
+    step === 1 ? (t("onboardingPanel.stepBasicsHeadline") || "Tell us about your company")
+    : step === 2 ? (t("onboardingPanel.stepDocsHeadline") || "Verify your documents")
+    : step === 3 ? (t("onboardingPanel.stepProfileHeadline") || "Build your public profile")
+    : step === 4 ? (t("onboardingPanel.stepTeamHeadline") || "Invite your team")
+    : t("onboardingPanel.setupWorkspace");
+
   return (
     <div className="min-h-screen flex">
-      {/* Left Panel - Branding (Ink surface · Colorway 02 Cream-on-Ink) */}
-      <div className="hidden lg:flex lg:w-[440px] xl:w-[480px] bg-[var(--bid-ink)] relative overflow-hidden flex-shrink-0">
-        {/* Decorative shapes */}
-        <div className="absolute inset-0">
-          <div className="absolute top-16 -left-10 w-72 h-72 bg-card/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-0 w-80 h-80 bg-card/5 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 left-1/3 w-40 h-40 bg-card/5 rounded-full blur-2xl" />
-          {/* Grid pattern */}
-          <div className="absolute inset-0 opacity-[0.03]" style={{
-            backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
-            backgroundSize: '24px 24px',
-          }} />
+
+      {/* ── Left Panel — full-bleed animation on warm cream ─────────────────── */}
+      <div
+        className="hidden lg:flex lg:w-[440px] xl:w-[480px] relative overflow-hidden flex-shrink-0"
+        style={{ background: "radial-gradient(ellipse at 60% 25%, #FCE9DC 0%, #F4EDE1 68%)" }}
+      >
+        {/* Subtle orange blobs + dot grid */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-12 -left-20 w-96 h-96 bg-[#FE3C01]/[0.07] rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-0   w-80 h-80 bg-[#FE3C01]/[0.05] rounded-full blur-3xl" />
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: "radial-gradient(circle, rgba(11,9,7,0.45) 1px, transparent 1px)",
+              backgroundSize: "24px 24px",
+              opacity: 0.045,
+            }}
+          />
         </div>
 
-        <div className="relative z-10 flex flex-col justify-between p-10 xl:p-12 w-full">
-          {/* Logo (Cream-on-Ink colorway) */}
-          <div>
-            <div className="flex items-center gap-3 mb-16">
-              <BidLogo variant="onInk" size={32} />
-            </div>
-
-            <h1 className="font-display font-black text-3xl xl:text-4xl text-[var(--bid-cream)] leading-[0.95] tracking-[-0.04em] mb-4">
-              {t('onboardingPanel.setupWorkspace')}
-            </h1>
-            <p className="text-[var(--bid-cream)]/70 text-base leading-relaxed">
-              {t('onboardingPanel.setupWorkspaceDesc')}
-            </p>
-          </div>
-
-          {/* Features */}
-          <div className="space-y-5 mt-12">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-card/10 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
-                <FileText className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-0.5">{t('onboardingPanel.createRfpsAi')}</h3>
-                <p className="text-sm text-white/50">{t('onboardingPanel.createRfpsAiDesc')}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-card/10 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
-                <BarChart3 className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-0.5">{t('onboardingPanel.compareProposals')}</h3>
-                <p className="text-sm text-white/50">{t('onboardingPanel.compareProposalsDesc')}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-card/10 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
-                <Shield className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-0.5">{t('onboardingPanel.saudiCompliance')}</h3>
-                <p className="text-sm text-white/50">{t('onboardingPanel.saudiComplianceDesc')}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom trust line */}
-          <div className="mt-12 pt-6 border-t border-white/10">
-            <div className="flex items-center gap-2 text-white/40 text-sm">
-              <Zap className="w-4 h-4" />
-              <span>{t('onboardingPanel.trustedBy')}</span>
-            </div>
-          </div>
+        {/* Animation — centered, fills the panel */}
+        <div className="relative z-10 flex items-center justify-center w-full h-full p-8 xl:p-10">
+          <OnboardingLeftPanelAnimation />
         </div>
       </div>
 
-      {/* Right Panel - Content */}
+      {/* ── Right Panel — logo + headline + step indicator + form ────────────── */}
       <div className="flex-1 flex flex-col min-h-screen bg-muted">
-        {/* Top bar with logo (mobile) + step indicator */}
         <div className="p-6 pb-0">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-6">
+
+          {/* Logo — always visible on both mobile and desktop */}
+          <div className="flex items-center gap-2 mb-5">
             <BidLogo variant="orange" size={28} />
           </div>
 
-          {/* Step indicator — only show for steps 1-3 */}
+          {/* Headline (moved from left panel) */}
+          <div className="max-w-xl mx-auto w-full mb-5">
+            <h2 className="text-xl font-black text-foreground tracking-[-0.03em] leading-tight">
+              {headline}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t("onboardingPanel.setupWorkspaceDesc")}
+            </p>
+          </div>
+
+          {/* Step indicator — only for steps 1-4 */}
           {step && step >= 1 && (
             <div className="flex items-center justify-center gap-1 mb-2 max-w-xl mx-auto w-full">
               {STEPS.map((s, i) => (
                 <div key={s.num} className="flex items-center gap-1">
                   <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold font-mono transition-colors ${
-                      step > s.num
-                        ? 'bg-[var(--state-won)] text-white'
-                        : step === s.num
-                          ? 'bg-[var(--bid-orange)] text-white'
-                          : 'bg-neutral-200 text-neutral-400'
-                    }`}>
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold font-mono transition-colors ${
+                        step > s.num
+                          ? "bg-[var(--state-won)] text-white"
+                          : step === s.num
+                          ? "bg-[var(--bid-orange)] text-white"
+                          : "bg-neutral-200 text-neutral-400"
+                      }`}
+                    >
                       {step > s.num ? (
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
-                      ) : s.num}
+                      ) : (
+                        s.num
+                      )}
                     </div>
-                    <span className={`text-sm hidden sm:inline ${
-                      step === s.num ? 'font-medium text-foreground' : 'text-neutral-400'
-                    }`}>
+                    <span
+                      className={`text-sm hidden sm:inline ${
+                        step === s.num ? "font-medium text-foreground" : "text-neutral-400"
+                      }`}
+                    >
                       {t(`onboardingPanel.${s.labelKey}`)}
                     </span>
                   </div>
                   {i < STEPS.length - 1 && (
-                    <div className={`w-10 h-px mx-1 ${step > s.num ? 'bg-[var(--state-won)]/40' : 'bg-neutral-200'}`} />
+                    <div
+                      className={`w-10 h-px mx-1 ${
+                        step > s.num ? "bg-[var(--state-won)]/40" : "bg-neutral-200"
+                      }`}
+                    />
                   )}
                 </div>
               ))}
@@ -131,11 +116,9 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
           )}
         </div>
 
-        {/* Main content */}
+        {/* Main form content */}
         <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
-          <div className="w-full max-w-xl">
-            {children}
-          </div>
+          <div className="w-full max-w-xl">{children}</div>
         </div>
       </div>
     </div>

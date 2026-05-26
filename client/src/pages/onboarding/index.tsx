@@ -8,7 +8,7 @@ import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Building2, ArrowRight, Users, Loader2, Clock } from "lucide-react";
+import { Building2, UserPlus, ArrowRight, Users, KeyRound, CheckCircle2, Loader2, Clock, User, UsersRound } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 interface DomainMatchWorkspace {
@@ -190,28 +190,133 @@ export default function OnboardingChoice() {
         </div>
       )}
 
-      <Card
-        className="cursor-pointer group hover:border-[#FE3C01]/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
-        onClick={() => setLocation("/onboarding/account-type")}
-      >
-        <CardContent className="pt-8 pb-8 px-4 sm:px-6 text-center">
-          <div className="mx-auto w-14 h-14 bg-[#FE3C01]/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-[#FE3C01]/15 transition-colors">
-            <Building2 className="w-7 h-7 text-[#FE3C01]" />
-          </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">
-            {showSuggestions ? 'Create my own workspace instead' : 'Create new organization'}
-          </h3>
-          <p className="text-sm text-muted-foreground mb-5">
-            {showSuggestions
-              ? "Start fresh — you can invite teammates later from settings."
-              : "Set up your company workspace, add your team, and start managing tenders."}
-          </p>
-          <div className="flex items-center justify-center text-sm font-medium text-[#FE3C01] group-hover:gap-2 transition-all">
-            <span>{t('onboarding.getStarted')}</span>
-            <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Create Company */}
+        <Card
+          className="cursor-pointer group hover:border-[#E25E45]/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
+          onClick={() => setLocation("/onboarding/company-basics")}
+        >
+          <CardContent className="pt-8 pb-8 px-6 text-center">
+            <div className="mx-auto w-14 h-14 bg-[#E25E45]/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-[#E25E45]/15 transition-colors">
+              <Building2 className="w-7 h-7 text-[#E25E45]" />
+            </div>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              {showSuggestions ? 'Create my own workspace instead' : 'Create a new company'}
+            </h3>
+            <p className="text-sm text-neutral-500 mb-5">
+              {showSuggestions
+                ? "Start fresh — you can invite teammates later from settings."
+                : "Set up your company workspace, add your team, and start managing tenders."}
+            </p>
+            <div className="flex items-center justify-center text-sm font-medium text-[#E25E45] group-hover:gap-2 transition-all">
+              <span>{t('onboarding.getStarted')}</span>
+              <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Freelancer / Individual */}
+        <Card
+          className="cursor-pointer group hover:border-violet-400/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
+          onClick={() => setLocation("/onboarding/individual-basics")}
+          data-testid="card-freelancer"
+        >
+          <CardContent className="pt-8 pb-8 px-6 text-center">
+            <div className="mx-auto w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-violet-100 transition-colors">
+              <User className="w-7 h-7 text-violet-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              Freelancer / Individual
+            </h3>
+            <p className="text-sm text-neutral-500 mb-5">
+              Apply to tenders, showcase your work, and grow your reputation as an independent professional.
+            </p>
+            <div className="flex items-center justify-center text-sm font-medium text-violet-600 group-hover:gap-2 transition-all">
+              <span>Get started</span>
+              <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Create a Team */}
+        <Card
+          className="cursor-pointer group hover:border-sky-400/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
+          onClick={() => setLocation("/onboarding/team-basics")}
+          data-testid="card-create-team"
+        >
+          <CardContent className="pt-8 pb-8 px-6 text-center">
+            <div className="mx-auto w-14 h-14 bg-sky-50 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-sky-100 transition-colors">
+              <UsersRound className="w-7 h-7 text-sky-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              Create a Team
+            </h3>
+            <p className="text-sm text-neutral-500 mb-5">
+              Pool skills with others, apply to tenders together, and build a shared reputation.
+            </p>
+            <div className="flex items-center justify-center text-sm font-medium text-sky-600 group-hover:gap-2 transition-all">
+              <span>Create team</span>
+              <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* I have an invitation code */}
+        <Card className="border-2 border-transparent">
+          <CardContent className="pt-8 pb-8 px-6 text-center">
+            <div className="mx-auto w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-5">
+              <KeyRound className="w-7 h-7 text-emerald-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              I have an invitation code
+            </h3>
+            <p className="text-sm text-neutral-500 mb-5">
+              Paste the code from your invitation email to join your team's workspace.
+            </p>
+            {showInviteInput ? (
+              <div className="space-y-2 text-left">
+                <Input
+                  value={inviteToken}
+                  onChange={(e) => setInviteToken(e.target.value)}
+                  placeholder="Paste your invitation code"
+                  className="font-mono text-sm"
+                  data-testid="input-invite-token"
+                  onKeyDown={(e) => e.key === 'Enter' && handleAcceptInvite()}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => { setShowInviteInput(false); setInviteToken(""); }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleAcceptInvite}
+                    disabled={!inviteToken.trim()}
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                    data-testid="button-accept-invite-token"
+                  >
+                    Continue
+                    <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowInviteInput(true)}
+                className="inline-flex items-center justify-center text-sm font-medium text-emerald-600 hover:text-emerald-700"
+                data-testid="button-show-invite-input"
+              >
+                <span>Enter code</span>
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </OnboardingLayout>
   );
 }

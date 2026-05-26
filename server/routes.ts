@@ -136,6 +136,8 @@ const requireCompanyContext = (req: AuthRequest, res: Response, next: Function) 
 // Used to gate actions that need legal verification (creating tenders,
 // submitting offers). Frontend should route the user to the verification
 // form on receiving `requiresVerification: true`.
+// Individual/freelancer workspaces bypass this check — their verification
+// is the nationalIdNumber field, enforced per-route.
 const requireVerifiedCompany = async (req: AuthRequest, res: Response, next: Function) => {
   if (!req.auth?.activeCompanyId) {
     return res.status(400).json({
@@ -146,6 +148,10 @@ const requireVerifiedCompany = async (req: AuthRequest, res: Response, next: Fun
   const company = await storage.getCompany(req.auth.activeCompanyId);
   if (!company) {
     return res.status(404).json({ message: 'Company not found' });
+  }
+  // Individual and team workspaces are not subject to CR/VAT verification
+  if (company.accountType !== 'company' && company.accountType !== undefined) {
+    return next();
   }
   if (company.verificationStatus !== 'verified') {
     return res.status(403).json({
@@ -844,6 +850,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verificationStatus: defaultCompany.company.verificationStatus,
           onboardingState: defaultCompany.company.onboardingState,
           rejectionReason: defaultCompany.company.rejectionReason || null,
+          accountType: defaultCompany.company.accountType,
+          nationalIdNumber: defaultCompany.company.nationalIdNumber || null,
           role: defaultCompany.roleInCompany,
           profile: defaultCompany.profile || null
         } : null,
@@ -860,6 +868,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verificationStatus: uc.company.verificationStatus,
           onboardingState: uc.company.onboardingState,
           rejectionReason: uc.company.rejectionReason || null,
+          accountType: uc.company.accountType,
+          nationalIdNumber: uc.company.nationalIdNumber || null,
           role: uc.roleInCompany,
           profile: uc.profile || null
         }))
@@ -990,6 +1000,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verificationStatus: uc.company.verificationStatus,
           onboardingState: uc.company.onboardingState,
           rejectionReason: uc.company.rejectionReason || null,
+          accountType: uc.company.accountType,
+          nationalIdNumber: uc.company.nationalIdNumber || null,
           role: uc.roleInCompany,
           profile: uc.profile || null
         }))
@@ -2455,6 +2467,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verificationStatus: company.verificationStatus,
           onboardingState: company.onboardingState,
           rejectionReason: company.rejectionReason || null,
+          accountType: company.accountType,
+          nationalIdNumber: company.nationalIdNumber || null,
           role,
           profile: profile || null
         }
@@ -2882,6 +2896,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const activeCompany = await storage.getCompany(req.auth!.activeCompanyId!);
         if (!activeCompany) {
           return res.status(404).json({ message: "Company not found" });
+        }
+
+        if (activeCompany.accountType !== 'company') {
+          return res.status(403).json({
+            message: 'Only company workspaces can create tenders.',
+            code: 'ACCOUNT_TYPE_RESTRICTED',
+          });
         }
 
         const {
@@ -4332,10 +4353,31 @@ Respond with ONLY a JSON object. Example:
           return res.status(404).json({ message: "Company not found" });
         }
 
+        // Freelancers must have National ID on file before submitting
+        if (company.accountType === 'individual' && !company.nationalIdNumber) {
+          return res.status(403).json({
+            message: 'Complete your National ID verification before submitting an offer.',
+            code: 'NATIONAL_ID_REQUIRED',
+          });
+        }
+
         // Check if tender exists and get deadline
         const tender = await storage.getTender(req.params.id);
         if (!tender) {
           return res.status(404).json({ message: "Tender not found" });
+        }
+
+        // Enforce target audience restriction
+        if (tender.targetAudienceTypes && tender.targetAudienceTypes.length > 0) {
+          const companyType = company.accountType as string;
+          // Map 'team' to 'company' for audience purposes — teams are treated as companies
+          const audienceType = companyType === 'team' ? 'company' : companyType;
+          if (!tender.targetAudienceTypes.includes(audienceType as any)) {
+            return res.status(403).json({
+              message: 'This tender is not open to your workspace type.',
+              code: 'AUDIENCE_RESTRICTED',
+            });
+          }
         }
 
         // Check if tender is still accepting submissions (deadline not passed)
@@ -4361,8 +4403,8 @@ Respond with ONLY a JSON object. Example:
           });
         }
 
-        // Require verified company before submitting proposals
-        if (company.verificationStatus !== 'verified') {
+        // Require verified company before submitting proposals (skip for individual/team — middleware handles their gate)
+        if (company.accountType === 'company' && company.verificationStatus !== 'verified') {
           return res.status(403).json({
             message: "Your company must be verified before submitting proposals. Upload your documents in Settings to begin the verification process.",
             requiresVerification: true,

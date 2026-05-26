@@ -216,10 +216,11 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl, worksp
 
   const roleColors: Record<string, string> = {
     owner: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-    admin: 'bg-[var(--bid-orange)]/10 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-    member: 'bg-gray-100 text-muted-foreground dark:bg-card dark:text-muted-foreground',
-    viewer: 'bg-gray-50 text-gray-500 dark:bg-background dark:text-gray-400',
-  };
+    admin: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+    business_developer: 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300',
+    member: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    viewer: 'bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400',
+  } as Record<string, string>;
 
   return (
     <div className="space-y-4">
@@ -284,7 +285,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl, worksp
                           {canModify && (
                             <>
                               <DropdownMenuSeparator />
-                              {['admin', 'member', 'viewer'].filter(r => r !== member.role).map(role => (
+                              {(isTeam ? ['admin', 'business_developer', 'member'] : ['admin', 'member', 'viewer']).filter(r => r !== member.role).map(role => (
                                 <DropdownMenuItem
                                   key={role}
                                   onClick={() => updateRoleMutation.mutate({ userId: member.userId, role })}
@@ -624,6 +625,8 @@ export default function Settings() {
   const canManageCompany = activeCompany && ['owner', 'admin'].includes(activeCompany.role || '');
   const workspaceKind = (activeCompany?.accountType ?? 'company') as 'company' | 'team' | 'individual';
   const isIndividual = workspaceKind === 'individual';
+  const isTeamWorkspace = workspaceKind === 'team';
+  const isCompanyWorkspace = workspaceKind === 'company';
 
   const autoSaveCompanyTimeout = useRef<NodeJS.Timeout | null>(null);
   
@@ -832,6 +835,7 @@ export default function Settings() {
   const [crNumber, setCrNumber] = useState('');
   const [vatNumberField, setVatNumberField] = useState('');
   const [cityField, setCityField] = useState('');
+  const [nationalIdNumber, setNationalIdNumber] = useState((activeCompany as any)?.nationalIdNumber || '');
 
   useEffect(() => {
     if (!verifyInfo) return;
@@ -858,6 +862,26 @@ export default function Settings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompany?.id, 'verify-info'] });
       toast({ title: 'Saved', description: 'Verification info updated.' });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Couldn't save", description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const saveNationalIdMutation = useMutation({
+    mutationFn: async (value: string) => {
+      const res = await apiRequest('PATCH', `/api/companies/${activeCompany!.id}/national-id`, {
+        nationalIdNumber: value.trim() || null,
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to save National ID');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      checkAuth();
+      toast({ title: 'Saved', description: 'National ID number updated.' });
     },
     onError: (error: Error) => {
       toast({ title: "Couldn't save", description: error.message, variant: 'destructive' });
@@ -1551,8 +1575,13 @@ export default function Settings() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="admin">{t('settings.roleAdmin')}</SelectItem>
+                              {isTeamWorkspace ? (
+                                <SelectItem value="business_developer">Business Developer</SelectItem>
+                              ) : null}
                               <SelectItem value="member">{t('settings.roleMember')}</SelectItem>
-                              <SelectItem value="viewer">{t('settings.roleViewer')}</SelectItem>
+                              {!isTeamWorkspace && (
+                                <SelectItem value="viewer">{t('settings.roleViewer')}</SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                           {inviteRows.length > 1 && (
@@ -1702,8 +1731,69 @@ export default function Settings() {
               </div>
               )}
 
+              {/* National ID — individual workspaces only */}
+              {isIndividualWorkspace && (
+              <div id="national-id-verification">
+                <Card>
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-violet-50 rounded-xl flex items-center justify-center">
+                        <Shield className="h-4 w-4 text-violet-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">National ID Verification</CardTitle>
+                        <CardDescription className="text-xs">
+                          Required before you can submit offers on tenders. Enter your National ID number to unlock offer submissions.
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {(activeCompany as any)?.nationalIdNumber && (
+                      <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                        <p className="text-sm text-green-700">National ID verified — you can submit offers.</p>
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <Label htmlFor="nationalIdNumber">National ID Number *</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Your Saudi National ID number (10 digits starting with 1 or 2).
+                      </p>
+                      <Input
+                        id="nationalIdNumber"
+                        value={nationalIdNumber}
+                        onChange={(e) => setNationalIdNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        placeholder="10-digit National ID"
+                        inputMode="numeric"
+                        maxLength={10}
+                        disabled={saveNationalIdMutation.isPending}
+                        data-testid="input-national-id"
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <Button
+                        onClick={() => saveNationalIdMutation.mutate(nationalIdNumber)}
+                        disabled={!nationalIdNumber.trim() || nationalIdNumber.trim().length < 10 || saveNationalIdMutation.isPending}
+                        data-testid="button-save-national-id"
+                      >
+                        {saveNationalIdMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving…
+                          </>
+                        ) : (
+                          'Save National ID'
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              )}
+
               {/* Legal info — required for verification */}
-              <div id="verification-info">
+              {isCompanyWorkspace && (<div id="verification-info">
                 <Card>
                   <CardHeader className="pb-4">
                     <div className="flex items-center gap-3">
@@ -1790,10 +1880,10 @@ export default function Settings() {
                     )}
                   </CardContent>
                 </Card>
-              </div>
+              </div>)}
 
               {/* Verification Documents */}
-              <div
+              {isCompanyWorkspace && (<div
                 id="verification"
                 className={`rounded-xl transition-all duration-700 ${
                   highlightVerification
@@ -1863,7 +1953,7 @@ export default function Settings() {
                     })}
                   </CardContent>
                 </Card>
-              </div>
+              </div>)}
             </div>
           )}
 

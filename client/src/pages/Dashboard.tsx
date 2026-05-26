@@ -504,6 +504,9 @@ export default function Dashboard() {
   const isCompanyVerified = activeCompany.verificationStatus === 'verified';
   const workspaceKind = (activeCompany.accountType ?? 'company') as 'company' | 'team' | 'individual';
   const isBuyerAccount = workspaceKind === 'company';
+  const isIndividual = workspaceKind === 'individual';
+  const isTeam = workspaceKind === 'team';
+  const canCreateTenders = isBuyerAccount;
 
   function handleCreateTender() {
     if (!isCompanyVerified) {
@@ -918,10 +921,10 @@ export default function Dashboard() {
         
         <SidebarContent>
           {/* Action Items - Create & Search */}
-          {canManage && isBuyerAccount && (
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarMenu className="space-y-2">
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu className="space-y-2">
+                {canManage && canCreateTenders && (
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       onClick={handleCreateTender}
@@ -934,16 +937,49 @@ export default function Dashboard() {
                       <span className="text-base font-medium group-data-[collapsible=icon]:hidden text-white">{t('dashboard.createTender')}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                )}
+                {isIndividual && (
                   <SidebarMenuItem>
-                    <SidebarSearchButton
-                      label={t('dashboard.searchTenders')}
-                      onOpen={() => setShowSearchModal(true)}
-                    />
+                    <SidebarMenuButton
+                      onClick={() => setLocation('/onboarding/team-basics')}
+                      tooltip="Create a Team"
+                      data-testid="sidebar-create-team"
+                      className="py-3 text-base rounded-lg bg-sky-600 text-white hover:bg-sky-700 hover:text-white"
+                    >
+                      <Plus className="h-5 w-5 text-white" />
+                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden text-white">Create a Team</span>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
+                )}
+                {isIndividual && activeCompany.profile?.tractionSlug && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => window.open(`/r/${activeCompany.profile!.tractionSlug}`, '_blank')}
+                      tooltip="My Public Profile"
+                      data-testid="sidebar-profile-link"
+                      className="py-3 text-base rounded-lg hover:bg-muted"
+                    >
+                      <ExternalLink className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden">My Public Profile</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
+                {canManage && !isIndividual && !isTeam && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setShowSearchModal(true)}
+                      tooltip={t('dashboard.searchTenders')}
+                      data-testid="sidebar-search-tenders"
+                      className="py-3 text-base rounded-lg hover:bg-muted"
+                    >
+                      <Search className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden">{t('dashboard.searchTenders')}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
 
           {/* Navigation Items */}
           <SidebarGroup data-tour="sidebar-nav">

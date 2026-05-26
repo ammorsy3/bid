@@ -12,15 +12,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { VENDOR_CATEGORIES } from "@shared/schema";
-import { ArrowRight, ArrowLeft, Users, Loader2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, UsersRound, Loader2 } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
-const schema = z.object({
-  name: z.string().min(2, "Team name is required"),
-  category: z.string().optional(),
+const teamBasicsSchema = z.object({
+  teamName: z.string().min(2, "Team name is required"),
+  category: z.string().min(1, "Please select a category"),
 });
 
-type FormValues = z.infer<typeof schema>;
+type TeamBasicsForm = z.infer<typeof teamBasicsSchema>;
 
 export default function TeamBasics() {
   const [, setLocation] = useLocation();
@@ -28,34 +28,39 @@ export default function TeamBasics() {
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { name: "", category: "" },
+  const form = useForm<TeamBasicsForm>({
+    resolver: zodResolver(teamBasicsSchema),
+    defaultValues: {
+      teamName: "",
+      category: "",
+    },
   });
 
   useEffect(() => {
-    if (!user) { setLocation("/signup"); return; }
-    if (!user.otpVerified) { setLocation("/verify-email"); return; }
+    if (!user) setLocation("/signup");
+    else if (!user.otpVerified) setLocation("/verify-email");
   }, [user, setLocation]);
 
-  const onSubmit = async (data: FormValues) => {
+  const onSubmit = async (data: TeamBasicsForm) => {
     setSubmitting(true);
     try {
-      const body: Record<string, any> = {
-        name: data.name,
-        accountType: "team",
-      };
-      if (data.category) body.category = data.category;
-
-      const response = await apiRequest("POST", "/api/companies", body);
+      const response = await apiRequest('POST', '/api/companies', {
+        name: data.teamName,
+        category: data.category,
+        accountType: 'team',
+      });
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || "Failed to create team");
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create team");
       }
       const result = await response.json();
-      localStorage.setItem("token", result.token);
+      localStorage.setItem('token', result.token);
       await checkAuth();
-      setLocation("/onboarding/team-invite");
+      toast({
+        title: "Team workspace created",
+        description: "Now invite your teammates to join.",
+      });
+      setLocation('/onboarding/team-invite');
     } catch (error: any) {
       toast({
         title: "Couldn't create team",
@@ -74,16 +79,12 @@ export default function TeamBasics() {
       <Card>
         <CardContent className="pt-8 pb-8">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-              <Users className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-sky-100 rounded-xl flex items-center justify-center">
+              <UsersRound className="w-5 h-5 text-sky-600" />
             </div>
             <div>
-              <h2 className="font-display font-black text-2xl text-foreground tracking-[-0.03em]">
-                Set up your team
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                You'll be the team admin. Invite members in the next step.
-              </p>
+              <h2 className="text-xl font-bold text-neutral-900">Create your team workspace</h2>
+              <p className="text-sm text-neutral-500">Set up your team's shared profile to apply to tenders together.</p>
             </div>
           </div>
 
@@ -91,16 +92,14 @@ export default function TeamBasics() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="name"
+                name="teamName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Team Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Pixel Squad" {...field} autoFocus />
+                      <Input placeholder="e.g. Alpha Consulting Group" {...field} data-testid="input-team-name" />
                     </FormControl>
-                    <FormDescription>
-                      This is how your team will appear to clients on Bid.
-                    </FormDescription>
+                    <FormDescription>This is the name other users will see when your team applies to tenders.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -111,32 +110,35 @@ export default function TeamBasics() {
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Industry (optional)</FormLabel>
+                    <FormLabel>Team Category *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your team's specialty" />
+                        <SelectTrigger data-testid="select-team-category">
+                          <SelectValue placeholder="Select your team's main area of work" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {VENDOR_CATEGORIES.map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
+                        {VENDOR_CATEGORIES.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormDescription>Helps surface relevant RFPs for your team.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              <div className="rounded-lg bg-sky-50 border border-sky-200 p-3 text-xs text-sky-700">
+                After creating the team workspace, you'll be able to invite teammates and assign them roles.
+              </div>
+
               <div className="flex justify-between pt-4">
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setLocation("/onboarding/account-type")}
+                  onClick={() => setLocation("/onboarding")}
                   disabled={submitting}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -146,7 +148,7 @@ export default function TeamBasics() {
                   type="submit"
                   size="lg"
                   disabled={submitting}
-                  className="bg-[#FE3C01] hover:bg-[#E83501]"
+                  className="bg-sky-600 hover:bg-sky-700"
                 >
                   {submitting ? (
                     <>

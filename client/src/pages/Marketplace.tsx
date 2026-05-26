@@ -177,7 +177,15 @@ export default function Marketplace() {
   const pillInactive = { color: "#0B0907", background: "transparent" } as const;
 
   return (
-    <div style={{ background: "#F4EDE1", color: "#0B0907" }} className="min-h-screen" dir={isRtl ? "rtl" : "ltr"}>
+    <div
+      style={{
+        background: "#F4EDE1",
+        color: "#0B0907",
+        fontFamily: isRtl ? "'IBM Plex Sans Arabic', sans-serif" : undefined,
+      }}
+      className="min-h-screen"
+      dir={isRtl ? "rtl" : "ltr"}
+    >
 
       {/* ── TOPBAR ── */}
       <div
@@ -187,7 +195,7 @@ export default function Marketplace() {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-14 py-5 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link href={marketplaceHome} className="flex items-center">
-              <BidLogo variant="onCream" size={28} />
+              <BidLogo variant="orange" size={28} />
             </Link>
             <nav className="hidden md:flex items-center gap-7">
               <Link href={marketplaceHome}>
@@ -258,7 +266,12 @@ export default function Marketplace() {
           {/* Headline */}
           <h1
             className="font-display font-bold leading-[0.92]"
-            style={{ fontSize: "clamp(44px, 9vw, 140px)", letterSpacing: "-0.045em", color: "#0B0907" }}
+            style={{
+              fontSize: "clamp(44px, 9vw, 140px)",
+              letterSpacing: "-0.045em",
+              color: "#0B0907",
+              ...(isRtl && { fontFamily: "'IBM Plex Sans Arabic', sans-serif" }),
+            }}
           >
             {t("marketplace.heroLine1")}
             <br />
@@ -285,7 +298,12 @@ export default function Marketplace() {
           </div>
           <h2
             className="font-display font-bold leading-[0.95]"
-            style={{ fontSize: "clamp(36px, 5vw, 72px)", letterSpacing: "-0.035em", color: "#0B0907" }}
+            style={{
+              fontSize: "clamp(36px, 5vw, 72px)",
+              letterSpacing: "-0.035em",
+              color: "#0B0907",
+              ...(isRtl && { fontFamily: "'IBM Plex Sans Arabic', sans-serif" }),
+            }}
           >
             {t("marketplace.liveOpportunities")}
             <span style={{ color: "#FE3C01" }}>.</span>
@@ -838,7 +856,7 @@ export default function Marketplace() {
             {/* Brand */}
             <div className="col-span-2 sm:col-span-1">
               <div className="mb-4">
-                <BidLogo variant="onCream" size={30} />
+                <BidLogo variant="orange" size={30} />
               </div>
               <p className="text-sm leading-[1.55] max-w-[36ch]" style={{ color: "#8A8078" }}>
                 {t("marketplace.footerTagline")}

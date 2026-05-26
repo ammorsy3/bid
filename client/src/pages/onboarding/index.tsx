@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { useI18n } from "@/lib/i18n";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Building2, UserPlus, ArrowRight, Users, KeyRound, CheckCircle2, Loader2, Clock, User, UsersRound } from "lucide-react";
+import { Building2, User, Users, UsersRound, ArrowRight, ChevronDown, Loader2, Clock } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 interface DomainMatchWorkspace {
@@ -28,39 +27,29 @@ interface DomainMatchResponse {
 export default function OnboardingChoice() {
   const [, setLocation] = useLocation();
   const { user, activeCompany } = useAuthStore();
-  const { t } = useI18n();
   const { toast } = useToast();
 
+  const [joinExpanded, setJoinExpanded] = useState(false);
   const [requestingId, setRequestingId] = useState<string | null>(null);
-  const [requestMessage, setRequestMessage] = useState<string>("");
+  const [requestMessage, setRequestMessage] = useState("");
   const [acknowledgedRequests, setAcknowledgedRequests] = useState<Record<string, true>>({});
 
   useEffect(() => {
-    if (!user) {
-      setLocation("/signup");
-      return;
-    }
-    if (!user.otpVerified) {
-      setLocation("/verify-email");
-      return;
-    }
-    if (activeCompany) {
-      setLocation("/dashboard");
-      return;
-    }
-    const redirect = localStorage.getItem('postOnboardingRedirect');
-    if (redirect && redirect.startsWith('/invite/')) {
+    if (!user) { setLocation("/signup"); return; }
+    if (!user.otpVerified) { setLocation("/verify-email"); return; }
+    if (activeCompany) { setLocation("/dashboard"); return; }
+    const redirect = localStorage.getItem("postOnboardingRedirect");
+    if (redirect && redirect.startsWith("/invite/")) {
       setLocation(redirect);
-      localStorage.removeItem('postOnboardingRedirect');
-      return;
+      localStorage.removeItem("postOnboardingRedirect");
     }
   }, [user, activeCompany, setLocation]);
 
   const { data: domainMatch, refetch: refetchDomainMatch } = useQuery<DomainMatchResponse>({
-    queryKey: ['/api/onboarding/domain-match'],
+    queryKey: ["/api/onboarding/domain-match"],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/onboarding/domain-match');
-      if (!res.ok) throw new Error('Failed to load domain match');
+      const res = await apiRequest("GET", "/api/onboarding/domain-match");
+      if (!res.ok) throw new Error("Failed to load domain match");
       return res.json();
     },
     enabled: !!user?.otpVerified && !activeCompany,
@@ -68,17 +57,19 @@ export default function OnboardingChoice() {
 
   const requestJoinMutation = useMutation({
     mutationFn: async ({ companyId, message }: { companyId: string; message?: string }) => {
-      const res = await apiRequest('POST', `/api/companies/${companyId}/membership-requests`, { message: message || undefined });
+      const res = await apiRequest("POST", `/api/companies/${companyId}/membership-requests`, {
+        message: message || undefined,
+      });
       if (!res.ok) {
         const err = await res.json();
-        const error = new Error(err.message || 'Failed to send request');
+        const error = new Error(err.message || "Failed to send request");
         (error as any).code = err.code;
         throw error;
       }
       return res.json();
     },
     onSuccess: (_data, vars) => {
-      setAcknowledgedRequests(prev => ({ ...prev, [vars.companyId]: true }));
+      setAcknowledgedRequests((prev) => ({ ...prev, [vars.companyId]: true }));
       setRequestingId(null);
       setRequestMessage("");
       refetchDomainMatch();
@@ -99,223 +90,200 @@ export default function OnboardingChoice() {
   if (!user) return null;
 
   const matches = domainMatch?.workspaces || [];
-  const showSuggestions = !domainMatch?.isPublic && matches.length > 0;
+  const hasMatches = !domainMatch?.isPublic && matches.length > 0;
+
+  const CHOICES = [
+    {
+      key: "company",
+      icon: Building2,
+      title: "I'm a Company",
+      description: "Registered business looking to post tenders, manage vendors, and evaluate proposals.",
+      onClick: () => setLocation("/onboarding/company-basics"),
+      color: "text-[#FE3C01]",
+      iconBg: "bg-[#FE3C01]/10",
+      activeBorder: "border-[#FE3C01]/40",
+      hoverBorder: "hover:border-[#FE3C01]/40",
+    },
+    {
+      key: "freelancer",
+      icon: User,
+      title: "I'm a Freelancer",
+      description: "Solo professional. Build your profile, showcase your work, and respond to opportunities.",
+      onClick: () => setLocation("/onboarding/individual-basics"),
+      color: "text-[var(--state-won)]",
+      iconBg: "bg-[var(--state-won)]/10",
+      activeBorder: "border-[var(--state-won)]/40",
+      hoverBorder: "hover:border-[var(--state-won)]/40",
+    },
+    {
+      key: "team",
+      icon: UsersRound,
+      title: "Create a Team",
+      description: "Pool skills with others, apply to tenders together, and build a shared reputation.",
+      onClick: () => setLocation("/onboarding/team-basics"),
+      color: "text-sky-600",
+      iconBg: "bg-sky-50",
+      activeBorder: "border-sky-300",
+      hoverBorder: "hover:border-sky-300",
+    },
+    ...(hasMatches ? [{
+      key: "join",
+      icon: Users,
+      title: "Join a company",
+      description: "Your company is already on Bid. Find your team's workspace and request access.",
+      onClick: () => setJoinExpanded((v) => !v),
+      color: "text-blue-600",
+      iconBg: "bg-blue-50",
+      activeBorder: "border-blue-300",
+      hoverBorder: "hover:border-blue-300",
+    }] : []),
+  ] as const;
 
   return (
-    <OnboardingLayout step={0}>
+    <OnboardingLayout>
       <div className="text-center mb-8">
         <h1 className="font-display font-black text-3xl text-foreground mb-2 tracking-[-0.04em]">
-          Welcome, {user.name.split(' ')[0]}!
+          Welcome, {user.name.split(" ")[0]}!
         </h1>
-        <p className="text-muted-foreground text-lg">
-          How would you like to get started?
-        </p>
+        <p className="text-muted-foreground text-base">How are you joining Bid?</p>
       </div>
 
-      {showSuggestions && (
-        <div className="mb-6 space-y-3">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <Users className="w-4 h-4 text-[var(--state-won)]" />
-            We found teammates from <span className="font-semibold">{domainMatch?.domain}</span> already on Bid
-          </div>
-          {matches.map(w => {
-            const isPending = w.alreadyRequested || acknowledgedRequests[w.id];
-            return (
-              <Card key={w.id} className="border-emerald-200 bg-[var(--state-won)]/5/30">
+      <div className="space-y-3">
+        {CHOICES.map(({ key, icon: Icon, title, description, onClick, color, iconBg, activeBorder, hoverBorder }) => {
+          const isJoin = key === "join";
+          const isActive = isJoin && joinExpanded;
+
+          return (
+            <div key={key}>
+              <Card
+                className={`cursor-pointer group transition-all duration-200 border-2 ${
+                  isActive
+                    ? `${activeBorder} shadow-md`
+                    : `border-transparent ${hoverBorder} hover:shadow-md`
+                }`}
+                onClick={onClick}
+              >
                 <CardContent className="pt-5 pb-5 px-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-foreground truncate">{w.name}</h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {w.memberCount} {w.memberCount === 1 ? 'colleague' : 'colleagues'} from your domain
-                      </p>
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 ${iconBg} rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform relative`}>
+                      <Icon className={`w-6 h-6 ${color}`} />
+                      {isJoin && hasMatches && (
+                        <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                          {matches.length}
+                        </div>
+                      )}
                     </div>
-                    {isPending ? (
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-amber-700 dark:text-amber-300 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-md whitespace-nowrap">
-                        <Clock className="w-3.5 h-3.5" />
-                        Request pending
-                      </div>
-                    ) : requestingId === w.id ? null : (
-                      <Button
-                        size="sm"
-                        onClick={() => { setRequestingId(w.id); setRequestMessage(""); }}
-                        className="bg-[var(--state-won)] hover:bg-[var(--state-won)]/90 whitespace-nowrap"
-                        data-testid={`button-request-join-${w.slug}`}
-                      >
-                        Request to join
-                      </Button>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-foreground">{title}</h3>
+                      <p className="text-sm text-muted-foreground mt-0.5 leading-snug">{description}</p>
+                    </div>
+                    {isJoin ? (
+                      <ChevronDown
+                        className={`w-5 h-5 ${color} opacity-50 transition-transform flex-shrink-0 ${joinExpanded ? "rotate-180" : ""}`}
+                      />
+                    ) : (
+                      <ArrowRight className={`w-5 h-5 ${color} opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0`} />
                     )}
                   </div>
-                  {requestingId === w.id && (
-                    <div className="mt-3 space-y-2 border-t border-emerald-200 pt-3">
-                      <Textarea
-                        value={requestMessage}
-                        onChange={(e) => setRequestMessage(e.target.value.slice(0, 500))}
-                        placeholder={`Optional: tell the admins of ${w.name} who you are`}
-                        rows={2}
-                        className="text-sm"
-                        disabled={requestJoinMutation.isPending}
-                      />
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setRequestingId(null)}
-                          disabled={requestJoinMutation.isPending}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => requestJoinMutation.mutate({ companyId: w.id, message: requestMessage })}
-                          disabled={requestJoinMutation.isPending}
-                          className="bg-[var(--state-won)] hover:bg-[var(--state-won)]/90"
-                        >
-                          {requestJoinMutation.isPending ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                              Sending…
-                            </>
-                          ) : (
-                            'Send request'
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
-            );
-          })}
-        </div>
-      )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Create Company */}
-        <Card
-          className="cursor-pointer group hover:border-[#E25E45]/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
-          onClick={() => setLocation("/onboarding/company-basics")}
-        >
-          <CardContent className="pt-8 pb-8 px-6 text-center">
-            <div className="mx-auto w-14 h-14 bg-[#E25E45]/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-[#E25E45]/15 transition-colors">
-              <Building2 className="w-7 h-7 text-[#E25E45]" />
-            </div>
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
-              {showSuggestions ? 'Create my own workspace instead' : 'Create a new company'}
-            </h3>
-            <p className="text-sm text-neutral-500 mb-5">
-              {showSuggestions
-                ? "Start fresh — you can invite teammates later from settings."
-                : "Set up your company workspace, add your team, and start managing tenders."}
-            </p>
-            <div className="flex items-center justify-center text-sm font-medium text-[#E25E45] group-hover:gap-2 transition-all">
-              <span>{t('onboarding.getStarted')}</span>
-              <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Freelancer / Individual */}
-        <Card
-          className="cursor-pointer group hover:border-violet-400/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
-          onClick={() => setLocation("/onboarding/individual-basics")}
-          data-testid="card-freelancer"
-        >
-          <CardContent className="pt-8 pb-8 px-6 text-center">
-            <div className="mx-auto w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-violet-100 transition-colors">
-              <User className="w-7 h-7 text-violet-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
-              Freelancer / Individual
-            </h3>
-            <p className="text-sm text-neutral-500 mb-5">
-              Apply to tenders, showcase your work, and grow your reputation as an independent professional.
-            </p>
-            <div className="flex items-center justify-center text-sm font-medium text-violet-600 group-hover:gap-2 transition-all">
-              <span>Get started</span>
-              <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Create a Team */}
-        <Card
-          className="cursor-pointer group hover:border-sky-400/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
-          onClick={() => setLocation("/onboarding/team-basics")}
-          data-testid="card-create-team"
-        >
-          <CardContent className="pt-8 pb-8 px-6 text-center">
-            <div className="mx-auto w-14 h-14 bg-sky-50 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-sky-100 transition-colors">
-              <UsersRound className="w-7 h-7 text-sky-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
-              Create a Team
-            </h3>
-            <p className="text-sm text-neutral-500 mb-5">
-              Pool skills with others, apply to tenders together, and build a shared reputation.
-            </p>
-            <div className="flex items-center justify-center text-sm font-medium text-sky-600 group-hover:gap-2 transition-all">
-              <span>Create team</span>
-              <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* I have an invitation code */}
-        <Card className="border-2 border-transparent">
-          <CardContent className="pt-8 pb-8 px-6 text-center">
-            <div className="mx-auto w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-5">
-              <KeyRound className="w-7 h-7 text-emerald-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
-              I have an invitation code
-            </h3>
-            <p className="text-sm text-neutral-500 mb-5">
-              Paste the code from your invitation email to join your team's workspace.
-            </p>
-            {showInviteInput ? (
-              <div className="space-y-2 text-left">
-                <Input
-                  value={inviteToken}
-                  onChange={(e) => setInviteToken(e.target.value)}
-                  placeholder="Paste your invitation code"
-                  className="font-mono text-sm"
-                  data-testid="input-invite-token"
-                  onKeyDown={(e) => e.key === 'Enter' && handleAcceptInvite()}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => { setShowInviteInput(false); setInviteToken(""); }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleAcceptInvite}
-                    disabled={!inviteToken.trim()}
-                    className="bg-emerald-600 hover:bg-emerald-700"
-                    data-testid="button-accept-invite-token"
-                  >
-                    Continue
-                    <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                  </Button>
+              {/* Inline join expansion */}
+              {isJoin && joinExpanded && (
+                <div className="mt-2 space-y-2">
+                  {hasMatches ? (
+                    <>
+                      <p className="text-sm text-muted-foreground px-1 flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                        We found{" "}
+                        <span className="font-semibold text-foreground">
+                          {matches.length} {matches.length === 1 ? "workspace" : "workspaces"}
+                        </span>{" "}
+                        from <span className="font-semibold text-foreground">{domainMatch?.domain}</span>
+                      </p>
+                      {matches.map((w) => {
+                        const isPending = w.alreadyRequested || acknowledgedRequests[w.id];
+                        return (
+                          <Card key={w.id} className="border-blue-200 bg-blue-50/40">
+                            <CardContent className="pt-4 pb-4 px-5">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-base font-semibold text-foreground truncate">{w.name}</h3>
+                                  <p className="text-xs text-muted-foreground mt-0.5">
+                                    {w.memberCount}{" "}
+                                    {w.memberCount === 1 ? "colleague" : "colleagues"} from your domain
+                                  </p>
+                                </div>
+                                {isPending ? (
+                                  <div className="flex items-center gap-1.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-md whitespace-nowrap">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    Request pending
+                                  </div>
+                                ) : requestingId === w.id ? null : (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => { setRequestingId(w.id); setRequestMessage(""); }}
+                                    className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
+                                    data-testid={`button-request-join-${w.slug}`}
+                                  >
+                                    Request to join
+                                  </Button>
+                                )}
+                              </div>
+                              {requestingId === w.id && (
+                                <div className="mt-3 space-y-2 border-t border-blue-200 pt-3">
+                                  <Textarea
+                                    value={requestMessage}
+                                    onChange={(e) => setRequestMessage(e.target.value.slice(0, 500))}
+                                    placeholder={`Optional: tell the admins of ${w.name} who you are`}
+                                    rows={2}
+                                    className="text-sm"
+                                    disabled={requestJoinMutation.isPending}
+                                  />
+                                  <div className="flex justify-end gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setRequestingId(null)}
+                                      disabled={requestJoinMutation.isPending}
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => requestJoinMutation.mutate({ companyId: w.id, message: requestMessage })}
+                                      disabled={requestJoinMutation.isPending}
+                                      className="bg-blue-600 hover:bg-blue-700"
+                                    >
+                                      {requestJoinMutation.isPending ? (
+                                        <>
+                                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                                          Sending…
+                                        </>
+                                      ) : (
+                                        "Send request"
+                                      )}
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    <div className="text-sm text-muted-foreground text-center py-5 px-4 bg-muted rounded-xl border border-border">
+                      No workspaces found matching your email domain.
+                      <br />
+                      Ask your company admin to invite you directly from their settings.
+                    </div>
+                  )}
                 </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowInviteInput(true)}
-                className="inline-flex items-center justify-center text-sm font-medium text-emerald-600 hover:text-emerald-700"
-                data-testid="button-show-invite-input"
-              >
-                <span>Enter code</span>
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </button>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </div>
+          );
+        })}
       </div>
     </OnboardingLayout>
   );

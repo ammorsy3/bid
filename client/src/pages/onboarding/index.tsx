@@ -9,7 +9,7 @@ import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Building2, UserPlus, ArrowRight, Users, KeyRound, CheckCircle2, Loader2, Clock } from "lucide-react";
+import { Building2, UserPlus, ArrowRight, Users, KeyRound, CheckCircle2, Loader2, Clock, User, UsersRound } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 interface DomainMatchWorkspace {
@@ -219,6 +219,52 @@ export default function OnboardingChoice() {
             </p>
             <div className="flex items-center justify-center text-sm font-medium text-[#E25E45] group-hover:gap-2 transition-all">
               <span>{t('onboarding.getStarted')}</span>
+              <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Freelancer / Individual */}
+        <Card
+          className="cursor-pointer group hover:border-violet-400/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
+          onClick={() => setLocation("/onboarding/individual-basics")}
+          data-testid="card-freelancer"
+        >
+          <CardContent className="pt-8 pb-8 px-6 text-center">
+            <div className="mx-auto w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-violet-100 transition-colors">
+              <User className="w-7 h-7 text-violet-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              Freelancer / Individual
+            </h3>
+            <p className="text-sm text-neutral-500 mb-5">
+              Apply to tenders, showcase your work, and grow your reputation as an independent professional.
+            </p>
+            <div className="flex items-center justify-center text-sm font-medium text-violet-600 group-hover:gap-2 transition-all">
+              <span>Get started</span>
+              <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Create a Team */}
+        <Card
+          className="cursor-pointer group hover:border-sky-400/40 hover:shadow-lg transition-all duration-200 border-2 border-transparent"
+          onClick={() => setLocation("/onboarding/team-basics")}
+          data-testid="card-create-team"
+        >
+          <CardContent className="pt-8 pb-8 px-6 text-center">
+            <div className="mx-auto w-14 h-14 bg-sky-50 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-sky-100 transition-colors">
+              <UsersRound className="w-7 h-7 text-sky-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              Create a Team
+            </h3>
+            <p className="text-sm text-neutral-500 mb-5">
+              Pool skills with others, apply to tenders together, and build a shared reputation.
+            </p>
+            <div className="flex items-center justify-center text-sm font-medium text-sky-600 group-hover:gap-2 transition-all">
+              <span>Create team</span>
               <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
             </div>
           </CardContent>

@@ -16,6 +16,9 @@ import CompanyBasics from "@/pages/onboarding/company-basics";
 import CompanyProfile from "@/pages/onboarding/company-profile";
 import InviteTeam from "@/pages/onboarding/invite-team";
 import CompanyDocuments from "@/pages/onboarding/company-documents";
+import IndividualBasics from "@/pages/onboarding/individual-basics";
+import TeamBasics from "@/pages/onboarding/team-basics";
+import OnboardingTeamInvite from "@/pages/onboarding/team-invite";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminVendors from "@/pages/AdminVendors";
 import TenderDetails from "@/pages/tender-details";
@@ -95,6 +98,9 @@ export default function App() {
             <Route path="/onboarding/company-profile" component={CompanyProfile} />
             <Route path="/onboarding/invite-team" component={InviteTeam} />
             <Route path="/onboarding/company-documents" component={CompanyDocuments} />
+            <Route path="/onboarding/individual-basics" component={IndividualBasics} />
+            <Route path="/onboarding/team-basics" component={TeamBasics} />
+            <Route path="/onboarding/team-invite" component={OnboardingTeamInvite} />
             <Route path="/dashboard" component={Dashboard} />
             <Route path="/admin/dashboard" component={AdminDashboard} />
             <Route path="/admin/vendors" component={AdminVendors} />

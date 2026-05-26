@@ -69,6 +69,10 @@ export const companies = pgTable("companies", {
   vatNumber: text("vat_number").unique(),
   city: text("city"),
   category: text("category"),
+  // Workspace type: 'company' | 'individual' | 'team'
+  accountType: text("account_type").notNull().default("company"),
+  // National ID for individual (freelancer) workspaces — required before offer submission
+  nationalIdNumber: text("national_id_number"),
   certifications: jsonb("certifications").$type<string[]>().default([]),
   documents: jsonb("documents").$type<{
     vatCertificate?: string;
@@ -256,6 +260,9 @@ export const tenders = pgTable("tenders", {
   endDate: text("end_date"),
   status: text("status").notNull().default("draft"), // 'draft', 'published', 'closed', 'cancelled'
 
+  // Who can apply: 'company' | 'individual'. Default both. Requesters set this when creating the tender.
+  targetAudienceTypes: jsonb("target_audience_types").$type<('company' | 'individual')[]>().default(['company', 'individual']),
+
   // Submission Process
   submissionType: text("submission_type"), // 'quote_only', 'tech_fin_proposal', 'video_only', 'tech_fin_with_video'
   videoRequired: boolean("video_required"), // For 'tech_fin_with_video' type, whether video is mandatory
@@ -362,7 +369,12 @@ export const offers = pgTable("offers", {
   decidedAt: timestamp("decided_at"),
   
   submittedAt: timestamp("submitted_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  // One non-superseded offer per user per tender, regardless of which workspace they used
+  offersTenderUserUniq: uniqueIndex("offers_tender_user_uniq")
+    .on(table.tenderId, table.createdBy)
+    .where(sql`status != 'superseded'`),
+}));
 
 // Offer Views - Track which users have viewed each notification/offer
 export const offerViews = pgTable("offer_views", {
@@ -1132,7 +1144,9 @@ export const createCompanySchema = insertCompanySchema.omit({
   city: z.string().optional(),
   category: z.enum(VENDOR_CATEGORIES, {
     errorMap: () => ({ message: "Please select a valid category" })
-  }),
+  }).optional(),
+  accountType: z.enum(['company', 'individual', 'team']).optional().default('company'),
+  nationalIdNumber: z.string().optional(),
 });
 
 // Submitted when a workspace completes verification.

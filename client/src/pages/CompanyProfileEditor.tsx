@@ -227,6 +227,7 @@ export default function CompanyProfileEditor() {
   const user = useAuthStore((s) => s.user);
   const activeCompany = useAuthStore((s) => s.activeCompany);
   const activeCompanyId = activeCompany?.id;
+  const isIndividual = (activeCompany as any)?.accountType === 'individual';
 
   // Active section from query param, default 'basics'
   const initialSection: SectionId = useMemo(() => {
@@ -793,7 +794,7 @@ export default function CompanyProfileEditor() {
               <ArrowLeft className="h-3.5 w-3.5" />
               {t('companyProfileEditor.backToSettings')}
             </button>
-            <h2 className="text-sm font-semibold text-foreground">{t('companyProfileEditor.editCompanyProfile')}</h2>
+            <h2 className="text-sm font-semibold text-foreground">{isIndividual ? 'Edit My Profile' : t('companyProfileEditor.editCompanyProfile')}</h2>
             <p className="text-xs text-muted-foreground mt-0.5 truncate">{company.name}</p>
           </div>
 
@@ -930,7 +931,7 @@ export default function CompanyProfileEditor() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">{t('companyProfileEditor.displayName')}</CardTitle>
+                      <CardTitle className="text-base">{isIndividual ? 'Full Name / Display Name' : t('companyProfileEditor.displayName')}</CardTitle>
                       <CardDescription>{t('companyProfileEditor.displayNameDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -945,7 +946,7 @@ export default function CompanyProfileEditor() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">{t('companyProfileEditor.about')}</CardTitle>
+                      <CardTitle className="text-base">{isIndividual ? 'About Me' : t('companyProfileEditor.about')}</CardTitle>
                       <CardDescription>{t('companyProfileEditor.aboutDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -1013,27 +1014,29 @@ export default function CompanyProfileEditor() {
               {/* ═════ FACTS ═════ */}
               {activeSection === 'facts' && (
                 <>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">{t('companyProfileEditor.companySize')}</CardTitle>
-                      <CardDescription>{t('companyProfileEditor.companySizeDesc')}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Select
-                        value={editState.companySize}
-                        onValueChange={(v) => setEditState(s => ({ ...s, companySize: v }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('companyProfileEditor.selectCompanySize')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {COMPANY_SIZES.map(s => (
-                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </CardContent>
-                  </Card>
+                  {!isIndividual && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">{t('companyProfileEditor.companySize')}</CardTitle>
+                        <CardDescription>{t('companyProfileEditor.companySizeDesc')}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Select
+                          value={editState.companySize}
+                          onValueChange={(v) => setEditState(s => ({ ...s, companySize: v }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('companyProfileEditor.selectCompanySize')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {COMPANY_SIZES.map(s => (
+                              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   <Card>
                     <CardHeader>
@@ -1198,7 +1201,7 @@ export default function CompanyProfileEditor() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <ImagePlus className="h-4 w-4 text-muted-foreground" />
-                        {t('companyProfileEditor.portfolio')}
+                        {isIndividual ? 'Previous Works' : t('companyProfileEditor.portfolio')}
                       </CardTitle>
                       <CardDescription>{t('companyProfileEditor.portfolioDesc')}</CardDescription>
                     </CardHeader>
@@ -1272,7 +1275,7 @@ export default function CompanyProfileEditor() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <Award className="h-4 w-4 text-muted-foreground" />
-                        {t('companyProfileEditor.certifications')}
+                        {isIndividual ? 'Certifications & Credentials' : t('companyProfileEditor.certifications')}
                       </CardTitle>
                       <CardDescription>{t('companyProfileEditor.certificationsDesc')}</CardDescription>
                     </CardHeader>

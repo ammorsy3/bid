@@ -35,6 +35,7 @@ export default function TenderSubmissionProcessStep() {
   const [customEmail, setCustomEmail] = useState("");
   const [saveCustomEmail, setSaveCustomEmail] = useState(false);
   const [isSavingEmail, setIsSavingEmail] = useState(false);
+  const [targetAudienceTypes, setTargetAudienceTypes] = useState<('company' | 'individual')[]>(['company', 'individual']);
 
   const draft = useMemo(() => {
     try {
@@ -68,6 +69,9 @@ export default function TenderSubmissionProcessStep() {
     }
     if (draft.customEmail) {
       setCustomEmail(draft.customEmail);
+    }
+    if (draft.targetAudienceTypes && Array.isArray(draft.targetAudienceTypes)) {
+      setTargetAudienceTypes(draft.targetAudienceTypes);
     }
 
     if (user?.tenderInquiryEmail && !draft.customEmail) {
@@ -124,6 +128,7 @@ export default function TenderSubmissionProcessStep() {
         ...draft,
         submissionDeadline: deadlineISO,
         deadline: deadlineISO,
+        targetAudienceTypes,
         submissionType,
         videoRequired: submissionType === "tech_fin_with_video" ? videoRequired : undefined,
         inquiryType,
@@ -198,6 +203,7 @@ export default function TenderSubmissionProcessStep() {
     submissionDeadline &&
     submissionType &&
     inquiryType &&
+    targetAudienceTypes.length > 0 &&
     (inquiryType === "inside_bid" ||
      (inquiryType === "email_whatsapp" &&
       whatsappContact.trim() &&
@@ -303,6 +309,41 @@ export default function TenderSubmissionProcessStep() {
                         {format(submissionDeadline, "EEEE, MMMM d, yyyy", { locale: dateLocale })}, {t('tenderFlow.deadlineWarning')}
                       </p>
                     </div>
+                  )}
+                </div>
+
+                <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                    Who can apply?
+                  </label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Select which workspace types are eligible to submit offers.
+                  </p>
+                  <div className="space-y-2">
+                    {([
+                      { value: 'company' as const, label: 'Companies' },
+                      { value: 'individual' as const, label: 'Individuals / Freelancers' },
+                    ] as const).map((opt) => (
+                      <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={targetAudienceTypes.includes(opt.value)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setTargetAudienceTypes((prev) => [...prev, opt.value]);
+                            } else {
+                              setTargetAudienceTypes((prev) => prev.filter((v) => v !== opt.value));
+                            }
+                          }}
+                          className="h-4 w-4 rounded cursor-pointer accent-[#E25E45]"
+                          data-testid={`checkbox-audience-${opt.value}`}
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {targetAudienceTypes.length === 0 && (
+                    <p className="text-xs text-red-500">At least one audience type must be selected.</p>
                   )}
                 </div>
 

@@ -625,6 +625,7 @@ export default function Settings() {
   const canManageCompany = activeCompany && ['owner', 'admin'].includes(activeCompany.role || '');
   const workspaceKind = (activeCompany?.accountType ?? 'company') as 'company' | 'team' | 'individual';
   const isIndividual = workspaceKind === 'individual';
+  const isIndividualWorkspace = isIndividual;
   const isTeamWorkspace = workspaceKind === 'team';
   const isCompanyWorkspace = workspaceKind === 'company';
 

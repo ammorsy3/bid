@@ -917,7 +917,7 @@ export default function CompanyProfileEditor() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                        {t('companyProfileEditor.logo')}
+                        {isIndividual ? 'Profile Photo' : t('companyProfileEditor.logo')}
                       </CardTitle>
                       <CardDescription>{t('companyProfileEditor.logoDesc')}</CardDescription>
                     </CardHeader>
@@ -1075,7 +1075,7 @@ export default function CompanyProfileEditor() {
                     </Card>
                   )}
 
-                  <Card>
+                  {!isIndividual && <Card>
                     <CardHeader>
                       <CardTitle className="text-base">{t('companyProfileEditor.yearFounded')}</CardTitle>
                       <CardDescription>{t('companyProfileEditor.yearFoundedDesc')}</CardDescription>
@@ -1091,7 +1091,7 @@ export default function CompanyProfileEditor() {
                         placeholder={t('companyProfileEditor.yearFoundedPlaceholder')}
                       />
                     </CardContent>
-                  </Card>
+                  </Card>}
 
                   <Card>
                     <CardHeader>
@@ -1407,7 +1407,7 @@ export default function CompanyProfileEditor() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  {!isIndividual && <Card>
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <Shield className="h-4 w-4 text-muted-foreground" />
@@ -1533,7 +1533,7 @@ export default function CompanyProfileEditor() {
                       )}
                       <p className="text-xs text-muted-foreground">{editState.insurancePolicies.length}/5</p>
                     </CardContent>
-                  </Card>
+                  </Card>}
                 </>
               )}
 

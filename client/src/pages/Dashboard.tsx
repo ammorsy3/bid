@@ -24,7 +24,7 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase, BookmarkPlus, Bookmark } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase, BookmarkPlus, Bookmark, User } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -507,6 +507,7 @@ export default function Dashboard() {
   const isIndividual = workspaceKind === 'individual';
   const isTeam = workspaceKind === 'team';
   const canCreateTenders = isBuyerAccount;
+  const hasProfileComplete = !!(activeCompany.profile?.bio && activeCompany.profile?.logoUrl);
 
   function handleCreateTender() {
     if (!isCompanyVerified) {
@@ -951,10 +952,12 @@ export default function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}
-                {isIndividual && activeCompany.profile?.tractionSlug && (
+                {isIndividual && (
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => window.open(`/r/${activeCompany.profile!.tractionSlug}`, '_blank')}
+                      onClick={() => activeCompany.profile?.tractionSlug
+                        ? window.open(`/r/${activeCompany.profile.tractionSlug}`, '_blank')
+                        : setLocation('/settings?tab=company')}
                       tooltip="My Public Profile"
                       data-testid="sidebar-profile-link"
                       className="py-3 text-base rounded-lg hover:bg-muted"
@@ -1360,6 +1363,7 @@ export default function Dashboard() {
 
               {/* Footer Actions */}
               <div className="py-2 border-t">
+                {!isIndividual && (
                 <button
                   onClick={() => setLocation('/company/edit')}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
@@ -1368,6 +1372,7 @@ export default function Dashboard() {
                   <Building2 className="h-5 w-5 text-muted-foreground" />
                   <span className="text-sm">{t('settings.companyProfileMenuItem')}</span>
                 </button>
+                )}
 
                 <button
                   onClick={() => setLocation('/settings')}
@@ -1661,7 +1666,7 @@ export default function Dashboard() {
                       {(() => {
                         const adminFlags = canManage && !isIndividual ? [isCompanyVerified, onboardingTasks?.hasCompletedProfile, onboardingTasks?.hasVendors] : [];
                         const memberFlags = isIndividual
-                          ? [onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace]
+                          ? [hasProfileComplete, onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace]
                           : [onboardingTasks?.hasTender, onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace];
                         const allFlags = [...adminFlags, ...memberFlags];
                         const localCount = allFlags.filter(Boolean).length;
@@ -1828,6 +1833,37 @@ export default function Dashboard() {
                             </div>
                             <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
                               <CreateTenderVisual />
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>}
+
+                      {/* Task 4b: Complete your profile (individual only) */}
+                      {isIndividual && <AccordionItem value="task-4b" className={`border-2 rounded-xl px-4 transition-all duration-300 ${hasProfileComplete ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                          <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${hasProfileComplete ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                              {hasProfileComplete ? <Check className="h-4 w-4" /> : <User className="h-4 w-4" />}
+                            </div>
+                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${hasProfileComplete ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>Complete your profile</span>
+                            {hasProfileComplete && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-3 w-3" />{t('dashboard.completed')}
+                              </span>
+                            )}
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-4">
+                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">Add a photo and bio so requesters know who you are before they invite you to a tender.</p>
+                              <Button
+                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
+                                onClick={() => setLocation('/company/edit')}
+                                data-testid="button-task-complete-profile"
+                              >
+                                Edit My Profile
+                              </Button>
                             </div>
                           </div>
                         </AccordionContent>

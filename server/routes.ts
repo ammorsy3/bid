@@ -1818,6 +1818,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const socialLinks: Record<string, string> = {};
       if (websiteUrl) socialLinks.website = websiteUrl;
 
+      // Auto-generate a traction slug for individual accounts so their public
+      // profile is immediately reachable (companies set their slug manually).
+      let autoTractionSlug: string | null = null;
+      if (companyData.accountType === 'individual') {
+        let candidate = generateSlug(companyData.name);
+        let suffix = 1;
+        while (await storage.getCompanyProfileByTractionSlug(candidate)) {
+          candidate = `${generateSlug(companyData.name)}-${suffix++}`;
+        }
+        autoTractionSlug = candidate;
+      }
+
       // Create profile with any provided profile data (logo, bio, etc.)
       const profile = await storage.createCompanyProfile({
         companyId: company.id,
@@ -1829,7 +1841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         brochureUrl: null,
         socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : {},
         isPublic: false,
-        tractionSlug: null
+        tractionSlug: autoTractionSlug
       });
 
       // Add user as owner

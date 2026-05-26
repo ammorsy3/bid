@@ -285,7 +285,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl, worksp
                           {canModify && (
                             <>
                               <DropdownMenuSeparator />
-                              {(isTeam ? ['admin', 'business_developer', 'member'] : ['admin', 'member', 'viewer']).filter(r => r !== member.role).map(role => (
+                              {(workspaceKind === 'team' ? ['admin', 'business_developer', 'member'] : ['admin', 'member', 'viewer']).filter(r => r !== member.role).map(role => (
                                 <DropdownMenuItem
                                   key={role}
                                   onClick={() => updateRoleMutation.mutate({ userId: member.userId, role })}
@@ -996,9 +996,14 @@ export default function Settings() {
   const isPersonalSaving = updateUserMutation.isPending || uploadProfilePictureMutation.isPending;
   const isCompanySaving = updateCompanyMutation.isPending || uploadCompanyLogoMutation.isPending;
 
+  const workspaceTabLabel =
+    workspaceKind === 'team' ? 'Team Settings' :
+    workspaceKind === 'individual' ? 'Freelancer Settings' :
+    'Company Settings';
+
   const sidebarItems = [
     { id: "account" as const, label: user.name || user.username, icon: null, isUser: true },
-    { id: "company" as const, label: activeCompany.name, icon: Building2, isCompany: true },
+    { id: "company" as const, label: workspaceTabLabel, icon: Building2, isCompany: true },
     { id: "notifications" as const, label: t('notifications.sidebar'), icon: Bell, isNotifications: true },
   ];
 
@@ -1403,7 +1408,7 @@ export default function Settings() {
           {activeTab === "company" && (
             <div className="space-y-8">
               <div>
-                <h1 className="font-display font-black text-2xl md:text-3xl tracking-[-0.04em]">{t('settings.teamSettings')}</h1>
+                <h1 className="font-display font-black text-2xl md:text-3xl tracking-[-0.04em]">{workspaceTabLabel}</h1>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-muted-foreground">{activeCompany.name}</p>
                   {activeCompany.verificationStatus === 'verified' ? (
@@ -1455,17 +1460,19 @@ export default function Settings() {
                         onChange={handleCompanyLogoChange}
                         data-testid="input-company-logo"
                       />
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         onClick={() => companyLogoInputRef.current?.click()}
                         disabled={uploadCompanyLogoMutation.isPending || !canManageCompany}
                         data-testid="button-upload-logo"
                       >
                         <Upload className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                        {t('settings.companyLogo')}
+                        {isIndividual ? 'Profile Photo' : t('settings.companyLogo')}
                       </Button>
                       <p className="text-xs text-muted-foreground mt-2">
-                        {t('settings.companyLogoHelper')}
+                        {isIndividual
+                          ? 'Your profile photo, visible to requesters and partners.'
+                          : t('settings.companyLogoHelper')}
                       </p>
                     </div>
                   </div>
@@ -1476,9 +1483,13 @@ export default function Settings() {
               <Card>
                 <CardContent className="pt-6 space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="companyDisplayName">{t('settings.displayName')}</Label>
+                    <Label htmlFor="companyDisplayName">
+                      {isIndividual ? 'Public name' : t('settings.displayName')}
+                    </Label>
                     <p className="text-xs text-muted-foreground">
-                      {t('settings.displayNameHelper')}
+                      {isIndividual
+                        ? 'The name shown on your public profile and on proposals you submit.'
+                        : t('settings.displayNameHelper')}
                     </p>
                     <Input
                       id="companyDisplayName"
@@ -1490,15 +1501,19 @@ export default function Settings() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="companyBio">{t('settings.companyBio')}</Label>
+                    <Label htmlFor="companyBio">
+                      {isIndividual ? 'About me' : t('settings.companyBio')}
+                    </Label>
                     <p className="text-xs text-muted-foreground">
-                      {t('settings.companyBioHelper')}
+                      {isIndividual
+                        ? 'A short intro about yourself — your skills, background, and what you do.'
+                        : t('settings.companyBioHelper')}
                     </p>
                     <Textarea
                       id="companyBio"
                       value={companyBio}
                       onChange={(e) => setCompanyBio(e.target.value)}
-                      placeholder={t('settings.companyBioPlaceholder')}
+                      placeholder={isIndividual ? 'Tell us about yourself...' : t('settings.companyBioPlaceholder')}
                       rows={4}
                       disabled={!canManageCompany}
                       data-testid="input-company-bio"
@@ -1699,6 +1714,43 @@ export default function Settings() {
               </div>
               )}
 
+              {/* My Profile — individual workspaces only */}
+              {canManageCompany && isIndividual && (
+              <div className="space-y-4">
+                <h2 className="font-display font-black text-xl tracking-[-0.02em] flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  My Profile
+                </h2>
+                <Card>
+                  <CardContent className="pt-6 space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Customize how you appear to requesters and potential clients. Add a photo, bio, and portfolio to stand out.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <a href="/company/edit">
+                        <Button style={{ background: '#FE3C01' }} className="text-white">
+                          <Palette className="h-4 w-4 mr-2" />
+                          Edit My Profile
+                        </Button>
+                      </a>
+                      {activeCompany?.profile?.tractionSlug && (
+                        <a
+                          href={`/r/${activeCompany.profile.tractionSlug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Preview
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              )}
+
               {/* Traction Page */}
               {canManageCompany && activeCompany?.profile?.tractionSlug && (
               <div className="space-y-4">
@@ -1752,10 +1804,27 @@ export default function Settings() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {(activeCompany as any)?.nationalIdNumber && (
+                    {(activeCompany as any)?.verificationStatus === 'verified' && (
                       <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
                         <p className="text-sm text-green-700">National ID verified — you can submit offers.</p>
+                      </div>
+                    )}
+                    {(activeCompany as any)?.nationalIdNumber && (activeCompany as any)?.verificationStatus === 'under_review' && (
+                      <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <CheckCircle2 className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                        <p className="text-sm text-amber-700">National ID submitted — pending admin review.</p>
+                      </div>
+                    )}
+                    {(activeCompany as any)?.verificationStatus === 'rejected' && (
+                      <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <CheckCircle2 className="h-4 w-4 text-red-500 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-red-700 font-medium">Verification rejected.</p>
+                          {(activeCompany as any)?.rejectionReason && (
+                            <p className="text-xs text-red-600 mt-0.5">{(activeCompany as any).rejectionReason}</p>
+                          )}
+                        </div>
                       </div>
                     )}
                     <div className="space-y-2">

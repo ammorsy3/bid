@@ -107,9 +107,9 @@ export default function AdminVendors() {
     if (!searchQuery.trim()) return companies;
     const q = searchQuery.toLowerCase();
     return companies.filter(c =>
-      c.name.toLowerCase().includes(q) ||
-      c.legalName.toLowerCase().includes(q) ||
-      c.crNumber.toLowerCase().includes(q) ||
+      (c.name || '').toLowerCase().includes(q) ||
+      (c.legalName || '').toLowerCase().includes(q) ||
+      (c.crNumber || '').toLowerCase().includes(q) ||
       (c.owner?.name || '').toLowerCase().includes(q) ||
       (c.owner?.email || '').toLowerCase().includes(q) ||
       (c.city || '').toLowerCase().includes(q)

@@ -258,8 +258,10 @@ export interface IStorage {
   rejectJoinRequestByAdmin(joinRequestId: string, reason: string, adminId: string): Promise<void>;
   getAuditLogs(limit?: number): Promise<(AuditLog & { admin: User })[]>;
   logAuditAction(auditEntry: InsertAuditLog): Promise<AuditLog>;
+  getFreelancersWithPendingVerification(): Promise<(Company & { owner?: { id: string; name: string; email: string } })[]>;
   getAdminMetrics(): Promise<{
     pendingVerifications: number;
+    pendingFreelancers: number;
     pendingJoinRequests: number;
     proposalsLast24h: number;
     blockedAwards: number;
@@ -481,6 +483,7 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
       .where(and(
         eq(companies.verificationStatus, 'under_review'),
+        eq(companies.accountType, 'company'),
         isNull(companies.deletedAt)
       ))
       .orderBy(desc(companies.createdAt));
@@ -514,6 +517,38 @@ export class DatabaseStorage implements IStorage {
     // documents jsonb column on Company conflicts with the enriched CompanyDocument[] array;
     // cast here since both shapes are intentionally present on the return type.
     return enriched as (Company & { profile?: CompanyProfile; documents?: CompanyDocument[]; owner?: { id: string; name: string; email: string } })[];
+  }
+
+  async getFreelancersWithPendingVerification(): Promise<(Company & { owner?: { id: string; name: string; email: string } })[]> {
+    const results = await db
+      .select({ company: companies })
+      .from(companies)
+      .where(and(
+        eq(companies.verificationStatus, 'under_review'),
+        eq(companies.accountType, 'individual'),
+        isNull(companies.deletedAt)
+      ))
+      .orderBy(desc(companies.createdAt));
+
+    const enriched = await Promise.all(results.map(async (r) => {
+      const ownerResults = await db
+        .select({ user: users })
+        .from(userCompanies)
+        .innerJoin(users, eq(userCompanies.userId, users.id))
+        .where(and(
+          eq(userCompanies.companyId, r.company.id),
+          eq(userCompanies.roleInCompany, 'owner')
+        ))
+        .limit(1);
+
+      const ownerUser = ownerResults[0]?.user;
+      return {
+        ...r.company,
+        owner: ownerUser ? { id: ownerUser.id, name: ownerUser.name, email: ownerUser.email } : undefined,
+      };
+    }));
+
+    return enriched as (Company & { owner?: { id: string; name: string; email: string } })[];
   }
 
   async searchUsers(query: string): Promise<{ id: string; name: string; email: string; username: string; isAdmin: boolean; createdAt: Date }[]> {
@@ -1777,6 +1812,7 @@ export class DatabaseStorage implements IStorage {
 
   async getAdminMetrics(): Promise<{
     pendingVerifications: number;
+    pendingFreelancers: number;
     pendingJoinRequests: number;
     proposalsLast24h: number;
     blockedAwards: number;
@@ -1786,12 +1822,23 @@ export class DatabaseStorage implements IStorage {
     totalTenders: number;
     totalProposals: number;
   }> {
-    // Pending verifications
+    // Pending company verifications (excludes individual accounts)
     const pendingVerifications = await db
       .select()
       .from(companies)
       .where(and(
         eq(companies.verificationStatus, 'under_review'),
+        eq(companies.accountType, 'company'),
+        isNull(companies.deletedAt)
+      ));
+
+    // Pending freelancer (individual) verifications
+    const pendingFreelancersRows = await db
+      .select()
+      .from(companies)
+      .where(and(
+        eq(companies.verificationStatus, 'under_review'),
+        eq(companies.accountType, 'individual'),
         isNull(companies.deletedAt)
       ));
 
@@ -1831,6 +1878,7 @@ export class DatabaseStorage implements IStorage {
 
     return {
       pendingVerifications: pendingVerifications.length,
+      pendingFreelancers: pendingFreelancersRows.length,
       pendingJoinRequests: pendingJoinRequests.length,
       proposalsLast24h: proposalsCount,
       blockedAwards: blockedAwards.length,

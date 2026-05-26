@@ -903,7 +903,7 @@ export default function Dashboard() {
                 </p>
               </div>
             )}
-            {activeCompany?.slug && (
+            {activeCompany?.slug && !isIndividual && (
               <button
                 type="button"
                 onClick={() => window.open(`/company/${activeCompany.slug}`, '_blank', 'noopener,noreferrer')}
@@ -944,7 +944,7 @@ export default function Dashboard() {
                       onClick={() => setLocation('/onboarding/team-basics')}
                       tooltip="Create a Team"
                       data-testid="sidebar-create-team"
-                      className="py-3 text-base rounded-lg bg-sky-600 text-white hover:bg-sky-700 hover:text-white"
+                      className="py-3 text-base rounded-lg bg-[#FE3C01] text-white hover:bg-[#D44D3A] hover:text-white"
                     >
                       <Plus className="h-5 w-5 text-white" />
                       <span className="text-base font-medium group-data-[collapsible=icon]:hidden text-white">Create a Team</span>
@@ -1659,8 +1659,10 @@ export default function Dashboard() {
                     {/* Animated progress bar */}
                     <div className="mb-6">
                       {(() => {
-                        const adminFlags = canManage ? [isCompanyVerified, onboardingTasks?.hasCompletedProfile, onboardingTasks?.hasVendors] : [];
-                        const memberFlags = [onboardingTasks?.hasTender, onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace];
+                        const adminFlags = canManage && !isIndividual ? [isCompanyVerified, onboardingTasks?.hasCompletedProfile, onboardingTasks?.hasVendors] : [];
+                        const memberFlags = isIndividual
+                          ? [onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace]
+                          : [onboardingTasks?.hasTender, onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace];
                         const allFlags = [...adminFlags, ...memberFlags];
                         const localCount = allFlags.filter(Boolean).length;
                         const total = allFlags.length;
@@ -1797,8 +1799,8 @@ export default function Dashboard() {
                       </AccordionItem>
                       )}
 
-                      {/* Task 4: Create your First RFP */}
-                      <AccordionItem value="task-4" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
+                      {/* Task 4: Create your First RFP (company/team only) */}
+                      {!isIndividual && <AccordionItem value="task-4" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasTender ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -1829,7 +1831,7 @@ export default function Dashboard() {
                             </div>
                           </div>
                         </AccordionContent>
-                      </AccordionItem>
+                      </AccordionItem>}
 
                       {/* Task 5: Submit your First Proposal */}
                       <AccordionItem value="task-5" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
@@ -2146,6 +2148,7 @@ export default function Dashboard() {
             </div>
 
             <Tabs value={proposalsSubTab} onValueChange={(v) => { setProposalsSubTab(v); localStorage.setItem('dashboard-proposals-tab', v); }} className="space-y-4">
+              {!isIndividual && !isTeam && (
               <TabsList className="grid w-full max-w-md grid-cols-2">
                 <TabsTrigger value="submitted" className="gap-2" data-testid="tab-submitted-proposals">
                   <Send className="h-4 w-4" />
@@ -2156,6 +2159,7 @@ export default function Dashboard() {
                   {t('dashboard.incomingOffers')} ({incomingOffers.length})
                 </TabsTrigger>
               </TabsList>
+              )}
 
               {/* Submitted Proposals Sub-Tab */}
               <TabsContent value="submitted" className="space-y-4">

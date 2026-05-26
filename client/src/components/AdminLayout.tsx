@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, AlertTriangle, FileText,
-  Shield, LogOut, ArrowLeft, Store, Bug
+  Shield, LogOut, ArrowLeft, Store, Bug, UserCheck
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { useLogout } from "@/hooks/use-logout";
@@ -32,6 +32,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   // Fetch metrics for badge counts
   const { data: metrics } = useQuery<{
     pendingVerifications: number;
+    pendingFreelancers: number;
     pendingJoinRequests: number;
     proposalsLast24h: number;
     blockedAwards: number;
@@ -61,6 +62,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           label: t('admin.navCompanyVerification'),
           icon: Users,
           count: metrics?.pendingVerifications || 0,
+        },
+        {
+          href: "/admin/freelancers",
+          label: t('admin.navFreelancerVerification'),
+          icon: UserCheck,
+          count: metrics?.pendingFreelancers || 0,
         },
         {
           href: "/admin/marketplace",

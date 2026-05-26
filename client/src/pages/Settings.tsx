@@ -1504,6 +1504,7 @@ export default function Settings() {
                     />
                   </div>
 
+                  {!isIndividual && (
                   <div className="space-y-2">
                     <Label>{t('settings.companySlug')}</Label>
                     <p className="text-xs text-muted-foreground">
@@ -1516,6 +1517,7 @@ export default function Settings() {
                       data-testid="input-company-slug"
                     />
                   </div>
+                  )}
 
                 </CardContent>
               </Card>
@@ -1660,7 +1662,7 @@ export default function Settings() {
               )}
 
               {/* Company Profile Page */}
-              {canManageCompany && (
+              {canManageCompany && !isIndividual && (
               <div className="space-y-4">
                 <h2 className="font-display font-black text-xl tracking-[-0.02em] flex items-center gap-2">
                   <Building2 className="h-5 w-5" />

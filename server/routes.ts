@@ -5780,6 +5780,17 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
+  // Get pending freelancer (individual) verifications
+  app.get("/api/admin/freelancers/pending", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const freelancers = await storage.getFreelancersWithPendingVerification();
+      res.json(freelancers);
+    } catch (error) {
+      console.error('Get pending freelancers error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Verify company
   app.post("/api/admin/companies/:companyId/verify", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
     try {

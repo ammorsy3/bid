@@ -956,7 +956,7 @@ export default function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       onClick={() => activeCompany.profile?.tractionSlug
-                        ? window.open(`/r/${activeCompany.profile.tractionSlug}`, '_blank')
+                        ? window.open(`/traction/${activeCompany.profile.tractionSlug}`, '_blank')
                         : setLocation('/settings?tab=company')}
                       tooltip="My Public Profile"
                       data-testid="sidebar-profile-link"

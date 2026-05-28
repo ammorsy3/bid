@@ -1487,11 +1487,7 @@ export default function Dashboard() {
         {/* Main Content */}
         <main
           className="flex-1 overflow-auto p-4 sm:p-6"
-          style={activeTab === 'overview' && currentTheme !== 'dark' ? {
-            backgroundColor: '#F4EDE1',
-            backgroundImage: 'radial-gradient(circle, rgba(254, 60, 1, 0.06) 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-          } : {
+          style={{
             backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
             backgroundSize: '20px 20px',
           }}
@@ -1502,50 +1498,24 @@ export default function Dashboard() {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-10 w-full pt-2 px-1 sm:px-2">
 
-            {/* ── Overview Section Heading ────────────────────────────── */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className={isRtl ? 'text-right' : ''}
-            >
-              {canManage && (
-                <span className="inline-block text-xs font-semibold text-[#FE3C01] bg-[#FFE4D7] dark:bg-[#FE3C01]/15 px-3 py-1.5 rounded-full mb-4 tracking-wide">
-                  01
-                </span>
-              )}
-              <h1 className="font-display font-bold text-4xl sm:text-5xl text-[#1A1613] dark:text-foreground tracking-[-0.04em] leading-[0.95]">
-                {t('dashboard.overview')}<span className="text-[#FE3C01]">.</span>
-              </h1>
-              {canManage && (
-                <p className="text-sm sm:text-base text-[#8A8078] dark:text-muted-foreground mt-3 max-w-xl leading-relaxed">
-                  {t('dashboard.getStartedDesc')}
-                </p>
-              )}
-            </motion.div>
-
             {/* ── Stat Cards Row ──────────────────────────────────────── */}
             {canManage && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5" data-tour="dashboard-tabs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6" data-tour="dashboard-tabs">
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0, duration: 0.35, ease: "easeOut" }}
-                  whileHover={{ y: -3 }}
-                  className="rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)]"
-                  style={currentTheme !== 'dark' ? {
-                    background: 'linear-gradient(180deg, #FFF3EA 0%, #FCE9DC 100%)',
-                  } : undefined}
+                  className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm p-5 sm:p-7"
                 >
-                  <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <div className="h-11 w-11 rounded-2xl bg-[#FE3C01] text-white flex items-center justify-center flex-shrink-0 shadow-[0_8px_18px_-6px_rgba(254,60,1,0.45)]">
+                  <div className={`flex items-center gap-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <div className="p-3 rounded-xl bg-[#FE3C01] text-white flex-shrink-0">
                       <FileText className="h-5 w-5" />
                     </div>
-                    <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
-                      <p className="font-display font-bold text-5xl text-[#1A1613] dark:text-foreground tracking-[-0.04em] leading-[1] tabular-nums">
+                    <div className={isRtl ? 'text-right' : ''}>
+                      <p className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.03em] leading-[1.1] tabular-nums">
                         {tenders.filter(tender => tender.status === 'published').length}
                       </p>
-                      <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-2 font-medium">{t('dashboard.activeRfps')}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.activeRfps')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -1554,21 +1524,17 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05, duration: 0.35, ease: "easeOut" }}
-                  whileHover={{ y: -3 }}
-                  className="rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)]"
-                  style={currentTheme !== 'dark' ? {
-                    background: 'linear-gradient(180deg, #FFF3EA 0%, #FCE9DC 100%)',
-                  } : undefined}
+                  className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm p-5 sm:p-7"
                 >
-                  <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <div className="h-11 w-11 rounded-2xl bg-white dark:bg-gray-700 text-[#1A1613] dark:text-gray-300 flex items-center justify-center flex-shrink-0 border border-[#FE3C01]/10 shadow-sm">
+                  <div className={`flex items-center gap-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <div className="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex-shrink-0">
                       <Inbox className="h-5 w-5" />
                     </div>
-                    <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
-                      <p className="font-display font-bold text-5xl text-[#1A1613] dark:text-foreground tracking-[-0.04em] leading-[1] tabular-nums">
+                    <div className={isRtl ? 'text-right' : ''}>
+                      <p className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.03em] leading-[1.1] tabular-nums">
                         {incomingOffers.filter(o => o.status === 'pending').length}
                       </p>
-                      <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-2 font-medium">{t('dashboard.pendingProposals')}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.pendingProposals')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -1577,21 +1543,17 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1, duration: 0.35, ease: "easeOut" }}
-                  whileHover={{ y: -3 }}
-                  className="rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)]"
-                  style={currentTheme !== 'dark' ? {
-                    background: 'linear-gradient(180deg, #FFF3EA 0%, #FCE9DC 100%)',
-                  } : undefined}
+                  className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm p-5 sm:p-7"
                 >
-                  <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <div className="h-11 w-11 rounded-2xl bg-white dark:bg-gray-700 text-[#1A1613] dark:text-gray-300 flex items-center justify-center flex-shrink-0 border border-[#FE3C01]/10 shadow-sm">
+                  <div className={`flex items-center gap-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <div className="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex-shrink-0">
                       <Users className="h-5 w-5" />
                     </div>
-                    <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
-                      <p className="font-display font-bold text-5xl text-[#1A1613] dark:text-foreground tracking-[-0.04em] leading-[1] tabular-nums">
+                    <div className={isRtl ? 'text-right' : ''}>
+                      <p className="font-display font-black text-4xl text-gray-900 dark:text-foreground tracking-[-0.03em] leading-[1.1] tabular-nums">
                         {vendors.length}
                       </p>
-                      <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-2 font-medium">{t('dashboard.vendorsInBase')}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.vendorsInBase')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -1604,36 +1566,38 @@ export default function Dashboard() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.12, duration: 0.35, ease: "easeOut" }}
-                className="rounded-3xl overflow-hidden border border-[#FE3C01]/15 dark:border-border dark:bg-card"
-                style={currentTheme !== 'dark' ? {
-                  background: 'linear-gradient(180deg, #FFF3EA 0%, #FCE9DC 100%)',
-                } : undefined}
+                className="border-2 border-[#FE3C01]/20 rounded-2xl overflow-hidden"
+                style={{
+                  backgroundColor: '#FFF8F7',
+                  backgroundImage: 'radial-gradient(circle, #e8c5be 1px, transparent 1px)',
+                  backgroundSize: '18px 18px',
+                }}
               >
                 <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
-                <div className="p-6 sm:p-7">
-                  <div className={`flex items-center gap-4 mb-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <div className="h-11 w-11 rounded-2xl bg-[#FE3C01] flex items-center justify-center flex-shrink-0 shadow-[0_8px_18px_-6px_rgba(254,60,1,0.45)]">
-                      <Handshake className="h-5 w-5 text-white" />
+                <div className="p-5">
+                  <div className={`flex items-center gap-3 mb-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <div className="h-10 w-10 rounded-xl bg-[#FE3C01]/10 border border-[#FE3C01]/20 flex items-center justify-center flex-shrink-0">
+                      <Handshake className="h-5 w-5 text-[#FE3C01]" />
                     </div>
                     <div className={isRtl ? 'text-right' : ''}>
-                      <h3 className="font-display font-bold text-xl text-[#1A1613] dark:text-foreground tracking-[-0.02em]">{t('dashboard.readyToNegotiateTitle')}</h3>
-                      <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-0.5">
+                      <h3 className="font-semibold text-foreground">{t('dashboard.readyToNegotiateTitle')}</h3>
+                      <p className="text-sm text-muted-foreground">
                         {t('dashboard.readyToNegotiateDesc').replace('{count}', String(tendersReadyToNegotiate.length))}
                       </p>
                     </div>
                   </div>
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {tendersReadyToNegotiate.slice(0, 3).map(tender => (
-                      <div key={tender.id} className={`bg-white dark:bg-card rounded-2xl border border-[#FE3C01]/10 px-4 py-3 flex items-center justify-between shadow-[0_8px_20px_-12px_rgba(11,9,7,0.12)] ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div key={tender.id} className={`bg-card rounded-xl border border-[#FE3C01]/10 p-3 flex items-center justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
                         <div className={isRtl ? 'text-right' : ''}>
-                          <p className="font-semibold text-sm text-[#1A1613] dark:text-foreground">{tender.title}</p>
-                          <p className="text-xs text-[#8A8078] dark:text-muted-foreground mt-0.5">
+                          <p className="font-medium text-sm text-foreground">{tender.title}</p>
+                          <p className="text-xs text-muted-foreground">
                             {t('dashboard.proposalsCount').replace('{count}', String(tender.offersCount))}
                           </p>
                         </div>
                         <Button
                           size="sm"
-                          className="bg-[#1A1613] hover:bg-[#FE3C01] text-[#F4EDE1] rounded-full px-4 flex-shrink-0 transition-colors"
+                          className="bg-[#FE3C01] hover:bg-[#d54d35] text-white flex-shrink-0"
                           onClick={() => setLocation(`/tenders/${tender.id}`)}
                         >
                           {t('dashboard.negotiateNowBtn')} →
@@ -1642,7 +1606,7 @@ export default function Dashboard() {
                     ))}
                     {tendersReadyToNegotiate.length > 3 && (
                       <p
-                        className={`text-xs text-[#FE3C01] cursor-pointer hover:underline font-medium ${isRtl ? 'text-right' : 'text-left'} px-1 pt-1`}
+                        className={`text-xs text-[#FE3C01] cursor-pointer hover:underline ${isRtl ? 'text-right' : 'text-left'} px-1`}
                         onClick={() => setActiveTab('tenders')}
                       >
                         and {tendersReadyToNegotiate.length - 3} more →
@@ -1658,23 +1622,21 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.35, ease: "easeOut" }}
-              className="rounded-3xl overflow-hidden border border-[#1A1613]/10 dark:border-border dark:bg-card"
-              style={currentTheme !== 'dark' ? {
-                background: '#1A1613',
-              } : undefined}
+              className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-sm overflow-hidden"
             >
-              <div className={`flex items-center justify-between gap-4 p-6 sm:p-7 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                <div className={`flex items-center gap-4 min-w-0 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                  <div className="h-11 w-11 rounded-2xl bg-[#FE3C01] flex items-center justify-center flex-shrink-0">
-                    <Play className="h-5 w-5 text-white fill-white" />
+              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]" />
+              <div className={`flex items-center justify-between p-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                <div className={`flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  <div className="p-3 rounded-xl bg-[#FE3C01]/10 flex-shrink-0">
+                    <Play className="h-5 w-5 text-[#FE3C01]" />
                   </div>
-                  <div className={`min-w-0 ${isRtl ? 'text-right' : ''}`}>
-                    <h3 className="font-display font-bold text-lg sm:text-xl text-[#F4EDE1] dark:text-foreground tracking-[-0.02em]">{t('dashboard.bookDemoTitle')}</h3>
-                    <p className="text-sm text-[#F4EDE1]/60 dark:text-muted-foreground mt-0.5">{t('dashboard.bookDemoDesc')}</p>
+                  <div className={isRtl ? 'text-right' : ''}>
+                    <h3 className="font-semibold text-gray-900 dark:text-foreground">{t('dashboard.bookDemoTitle')}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.bookDemoDesc')}</p>
                   </div>
                 </div>
                 <Button
-                  className="bg-[#FE3C01] hover:bg-[#F4EDE1] hover:text-[#1A1613] text-white rounded-full px-5 flex-shrink-0 transition-colors"
+                  className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white flex-shrink-0"
                   data-testid="button-book-demo"
                 >
                   {t('dashboard.bookDemo')}
@@ -1687,19 +1649,16 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.35, ease: "easeOut" }}
-              className="rounded-3xl border border-[#FE3C01]/10 dark:border-border overflow-hidden dark:bg-card"
-              style={currentTheme !== 'dark' ? {
-                background: 'linear-gradient(180deg, #FFF3EA 0%, #FCE9DC 100%)',
-              } : undefined}
+              className="bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-lg overflow-hidden"
               data-tour="onboarding-tasks"
             >
-              <div className="px-6 sm:px-8 pt-7 pb-6 sm:pt-8 sm:pb-8">
-                <div className={`mb-6 ${isRtl ? 'text-right' : ''}`}>
-                      <span className="inline-block text-xs font-semibold text-[#FE3C01] bg-[#FFE4D7] dark:bg-[#FE3C01]/15 px-3 py-1.5 rounded-full mb-3 tracking-wide">
-                        02
-                      </span>
-                      <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#1A1613] dark:text-foreground tracking-[-0.035em] leading-[1.05]">{t('dashboard.getStartedTitle')}<span className="text-[#FE3C01]">.</span></h2>
-                      <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-2 max-w-xl">{t('dashboard.getStartedDesc')}</p>
+              {/* Brand top strip */}
+              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]" />
+
+              <div className="px-6 sm:px-8 pt-5 pb-6 sm:pt-6 sm:pb-8">
+                <div className={`mb-4 ${isRtl ? 'text-right' : ''}`}>
+                      <h2 className="font-display font-black text-2xl text-gray-900 dark:text-foreground tracking-[-0.03em] leading-[1.15]">{t('dashboard.getStartedTitle')}</h2>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('dashboard.getStartedDesc')}</p>
                     </div>
 
                     {/* Animated progress bar */}
@@ -1716,12 +1675,12 @@ export default function Dashboard() {
                         return (
                           <>
                             <div className={`flex items-center justify-between mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                              <span className="text-sm text-[#8A8078] dark:text-muted-foreground font-medium">
+                              <span className="text-sm text-gray-600 dark:text-gray-400">
                                 {localCount} {t('tenderFlow.ofLabel')} {total} {t('dashboard.tasksComplete')}
                               </span>
-                              <span className="text-sm font-bold text-[#FE3C01] tabular-nums">{pct}%</span>
+                              <span className="text-sm font-bold text-[#FE3C01]">{pct}%</span>
                             </div>
-                            <div className="h-2 bg-white/70 dark:bg-gray-700 rounded-full overflow-hidden border border-[#FE3C01]/10">
+                            <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                               <motion.div
                                 className="h-full rounded-full bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]"
                                 initial={{ width: 0 }}
@@ -1739,7 +1698,7 @@ export default function Dashboard() {
 
                       {/* Task 1: Get Verified (admins/owners only) */}
                       {canManage && (
-                      <AccordionItem value="task-1" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${isCompanyVerified ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      <AccordionItem value="task-1" className={`border-2 rounded-xl px-4 transition-all duration-300 ${isCompanyVerified ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isCompanyVerified ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -1775,7 +1734,7 @@ export default function Dashboard() {
 
                       {/* Task 2: Complete Company Profile (only for owners/admins) */}
                       {canManage && (
-                      <AccordionItem value="task-2" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      <AccordionItem value="task-2" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -1811,7 +1770,7 @@ export default function Dashboard() {
 
                       {/* Task 3: Set Your Vendors Base (admins/owners only) */}
                       {canManage && (
-                      <AccordionItem value="task-3" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      <AccordionItem value="task-3" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -1846,7 +1805,7 @@ export default function Dashboard() {
                       )}
 
                       {/* Task 4: Create your First RFP (company/team only) */}
-                      {!isIndividual && <AccordionItem value="task-4" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      {!isIndividual && <AccordionItem value="task-4" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasTender ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -1880,7 +1839,7 @@ export default function Dashboard() {
                       </AccordionItem>}
 
                       {/* Task 4b: Complete your profile (individual only) */}
-                      {isIndividual && <AccordionItem value="task-4b" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${hasProfileComplete ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      {isIndividual && <AccordionItem value="task-4b" className={`border-2 rounded-xl px-4 transition-all duration-300 ${hasProfileComplete ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${hasProfileComplete ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -1911,7 +1870,7 @@ export default function Dashboard() {
                       </AccordionItem>}
 
                       {/* Task 5: Submit your First Proposal */}
-                      <AccordionItem value="task-5" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      <AccordionItem value="task-5" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -1945,7 +1904,7 @@ export default function Dashboard() {
                       </AccordionItem>
 
                       {/* Task 6: Explore Tenders Marketplace */}
-                      <AccordionItem value="task-6" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      <AccordionItem value="task-6" className={`border-2 rounded-xl px-4 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'border-[#FE3C01] bg-[#FE3C01]/5 dark:bg-[#FE3C01]/10' : 'border-border dark:border-border hover:border-border dark:hover:border-gray-600'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>

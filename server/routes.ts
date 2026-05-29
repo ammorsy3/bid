@@ -5561,15 +5561,15 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  // Authenticated-only: brochures and portfolio images are company-sensitive materials
-  app.get("/objects/company-brochures/:filename", authenticateToken, async (req: AuthRequest, res) => {
+  app.get("/objects/credential-documents/:filename", async (req, res) => {
     try {
+      res.setHeader("Cache-Control", "public, max-age=3600");
       const objectStorageService = new ObjectStorageService();
-      const objectPath = `/objects/company-brochures/${req.params.filename}`;
+      const objectPath = `/objects/credential-documents/${req.params.filename}`;
       const objectFile = await objectStorageService.getPublicFile(objectPath);
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
-      console.error("Error serving company brochure:", error);
+      console.error("Error serving credential document:", error);
       if (error instanceof ObjectNotFoundError) {
         return res.sendStatus(404);
       }
@@ -5586,6 +5586,22 @@ Respond with ONLY a JSON object. Example:
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
       console.error("Error serving portfolio image:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  // Authenticated-only: brochures and portfolio images are company-sensitive materials
+  app.get("/objects/company-brochures/:filename", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = `/objects/company-brochures/${req.params.filename}`;
+      const objectFile = await objectStorageService.getPublicFile(objectPath);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error serving company brochure:", error);
       if (error instanceof ObjectNotFoundError) {
         return res.sendStatus(404);
       }

@@ -52,7 +52,6 @@ interface Company {
   onboardingState: string;
   rejectionReason: string | null;
   role: string; // User's role in this company: 'owner' | 'admin' | 'member' | 'viewer' | 'business_developer'
-  accountType: string; // 'company' | 'individual' | 'team'
   nationalIdNumber: string | null;
   profile: CompanyProfile | null;
 }

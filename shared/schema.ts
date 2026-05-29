@@ -166,7 +166,8 @@ export const companyProfiles = pgTable("company_profiles", {
   portfolio: jsonb("portfolio").$type<{
     title: string;
     description?: string;
-    imageUrl: string;
+    images: { url: string; caption?: string }[];
+    imageUrl?: string; // legacy field — kept for backward compat
   }[]>().default([]),
   
   // Social Links

@@ -5577,8 +5577,9 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.get("/objects/portfolio-images/:filename", authenticateToken, async (req: AuthRequest, res) => {
+  app.get("/objects/portfolio-images/:filename", async (req, res) => {
     try {
+      res.setHeader("Cache-Control", "public, max-age=3600");
       const objectStorageService = new ObjectStorageService();
       const objectPath = `/objects/portfolio-images/${req.params.filename}`;
       const objectFile = await objectStorageService.getPublicFile(objectPath);

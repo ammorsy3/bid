@@ -112,7 +112,7 @@ interface CompanyProfileData {
     industriesServed: string[] | null;
     availabilityStatus: 'accepting' | 'limited' | 'booked' | null;
     availabilityNote: string | null;
-    portfolio: { title: string; description?: string; imageUrl: string }[];
+    portfolio: { title: string; description?: string; imageUrl?: string; images?: { url: string; caption?: string }[] }[];
     socialLinks: { website?: string; linkedin?: string; twitter?: string } | null;
     introVideoUrl: string | null;
     stats: CompanyStats | null;
@@ -330,7 +330,7 @@ export default function CompanyProfilePage() {
         <div className="max-w-[900px] mx-auto px-4 sm:px-6 pt-6">
           <div className={`rounded-2xl px-5 py-3 flex items-center gap-3 border ${
             availabilityStatus === 'accepting'
-              ? 'bg-[var(--state-won)]/5/60 border-emerald-200'
+              ? 'bg-emerald-50/60 border-emerald-200'
               : availabilityStatus === 'limited'
                 ? 'bg-amber-50/60 border-amber-200'
                 : 'bg-muted border-border'
@@ -434,7 +434,7 @@ export default function CompanyProfilePage() {
 
             {/* Verified Credentials */}
             {company.verifiedDocuments && company.verifiedDocuments.length > 0 && (
-              <div className="bg-[var(--state-won)]/5/40 rounded-2xl border border-emerald-100 p-6">
+              <div className="bg-emerald-50/40 rounded-2xl border border-emerald-100 p-6">
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-[var(--state-won)]" />
@@ -523,7 +523,7 @@ export default function CompanyProfilePage() {
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">{t('companyProfile.industriesServedLabel')}</p>
                     <div className="flex gap-2 flex-wrap">
                       {industriesServed.map((ind, i) => (
-                        <span key={i} className="text-xs font-semibold rounded-full px-3 py-1 bg-[var(--bid-orange)]/5 text-[var(--bid-orange)] border border-blue-100">
+                        <span key={i} className="text-xs font-semibold rounded-full px-3 py-1 bg-orange-50 text-[var(--bid-orange)] border border-orange-100">
                           {ind}
                         </span>
                       ))}
@@ -573,7 +573,7 @@ export default function CompanyProfilePage() {
                     </div>
                     <div className="space-y-2">
                       {visibleCertifications.map((cert, i) => (
-                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-emerald-100 bg-[var(--state-won)]/5/40">
+                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-emerald-100 bg-emerald-50/40">
                           <CheckCircle2 className="h-4 w-4 text-[var(--state-won)] mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-foreground">{cert.name}</p>
@@ -610,7 +610,7 @@ export default function CompanyProfilePage() {
                     </div>
                     <div className="space-y-2">
                       {visibleInsurance.map((pol, i) => (
-                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-blue-100 bg-[var(--bid-orange)]/5/40">
+                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-orange-100 bg-orange-50/40">
                           <CheckCircle2 className="h-4 w-4 text-[var(--bid-orange)] mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-foreground">{t(`companyProfile.${INSURANCE_TYPE_KEYS[pol.type]}`)}</p>
@@ -620,7 +620,7 @@ export default function CompanyProfilePage() {
                                 <span className="text-[11px] text-gray-400">· {pol.coverageAmount.toLocaleString()} {pol.currency || ''}</span>
                               )}
                               {pol.expiryDate && (
-                                <span className="text-[11px] text-gray-400">· Valid until {pol.expiryDate}</span>
+                                <span className="text-[11px] text-gray-400">{t('companyProfile.certValidUntil', { date: pol.expiryDate })}</span>
                               )}
                             </div>
                           </div>
@@ -670,22 +670,36 @@ export default function CompanyProfilePage() {
                     ? t('companyProfile.sectionPreviousWorks')
                     : t('companyProfile.sectionPortfolio')}
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {profile!.portfolio.map((item, i) => (
-                    <div key={i} className="rounded-xl overflow-hidden border border-border group">
-                      <img
-                        src={item.imageUrl}
-                        alt={item.title}
-                        className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="p-3">
-                        <p className="text-sm font-bold text-foreground">{item.title}</p>
-                        {item.description && (
-                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{item.description}</p>
+                <div className="space-y-5">
+                  {profile!.portfolio.map((project, i) => {
+                    const images = project.images ?? (project.imageUrl ? [{ url: project.imageUrl }] : []);
+                    return (
+                      <div key={i} className="rounded-xl border border-border overflow-hidden">
+                        <div className="px-4 py-3 border-b border-border">
+                          <p className="text-sm font-bold text-foreground">{project.title}</p>
+                          {project.description && (
+                            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{project.description}</p>
+                          )}
+                        </div>
+                        {images.length > 0 && (
+                          <div className={`grid gap-2 p-3 ${images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                            {images.map((img, j) => (
+                              <div key={j}>
+                                <img
+                                  src={img.url}
+                                  alt={img.caption || project.title}
+                                  className="w-full h-44 object-cover rounded-lg"
+                                />
+                                {img.caption && (
+                                  <p className="text-xs text-muted-foreground mt-1 px-1">{img.caption}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

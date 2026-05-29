@@ -201,7 +201,7 @@ export default function VendorsBase() {
           ) : (
             <div className="grid gap-4">
               {vendors.map((vendor) => (
-                <SpotlightCard key={vendor.id} className="bg-card border-border" spotlightColor="blue" data-testid={`card-vendor-${vendor.id}`}>
+                <SpotlightCard key={vendor.id} spotlightColor="orange" data-testid={`card-vendor-${vendor.id}`}>
                   <div className="px-5 py-4">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -284,8 +284,7 @@ export default function VendorsBase() {
                   return (
                     <SpotlightCard
                       key={request.id}
-                      className="bg-card border-border"
-                      spotlightColor={request.vendor?.verificationStatus === 'verified' ? 'green' : request.vendor?.verificationStatus === 'under_review' ? 'orange' : 'purple'}
+                      spotlightColor={request.vendor?.verificationStatus === 'verified' ? 'green' : 'orange'}
                       data-testid={`card-request-${request.id}`}
                     >
                       <div className="p-6">

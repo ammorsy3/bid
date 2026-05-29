@@ -376,11 +376,8 @@ function proposalStatusBadge(status: string) {
   return { state: "pending" as const, label: "Pending" };
 }
 
-function spotlightColor(status: string): "green" | "red" | "blue" | "orange" | "purple" {
-  if (status === "published") return "green";
-  if (status === "draft") return "purple";
-  if (status === "closed" || status === "cancelled") return "orange";
-  return "blue";
+function spotlightColor(status: string): "green" | "red" | "orange" {
+  return status === "cancelled" ? "red" : "orange";
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -954,7 +951,6 @@ export default function DashboardUI() {
                         return (
                           <SpotlightCard
                             key={tender.id}
-                            className="bg-card border-border"
                             spotlightColor={spotlightColor(tender.status)}
                           >
                             <div className="p-6">
@@ -1075,8 +1071,7 @@ export default function DashboardUI() {
                           return (
                             <SpotlightCard
                               key={offer.id}
-                              className="bg-card border-border"
-                              spotlightColor={offer.status === "accepted" ? "green" : offer.status === "rejected" ? "red" : offer.status === "shortlisted" ? "blue" : "orange"}
+                                spotlightColor={offer.status === "accepted" ? "green" : offer.status === "rejected" ? "red" : "orange"}
                             >
                               <div className="p-6">
                                 <div className="flex items-start justify-between mb-4">
@@ -1152,8 +1147,7 @@ export default function DashboardUI() {
                           return (
                             <SpotlightCard
                               key={offer.id}
-                              className="bg-card border-border"
-                              spotlightColor={offer.status === "accepted" ? "green" : offer.status === "rejected" ? "red" : "blue"}
+                                spotlightColor={offer.status === "accepted" ? "green" : offer.status === "rejected" ? "red" : "orange"}
                             >
                               <div className="p-6">
                                 <div className="flex items-start justify-between mb-4">
@@ -1382,7 +1376,7 @@ export default function DashboardUI() {
                       ) : (
                         <div className="grid gap-4">
                           {filteredVendors.map((vendor) => (
-                            <SpotlightCard key={vendor.id} className="bg-card border-border" spotlightColor="blue">
+                            <SpotlightCard key={vendor.id} spotlightColor="orange">
                               <div className="p-6">
                                 <div className="flex items-start justify-between mb-4">
                                   <div className="flex items-start gap-4">
@@ -1459,8 +1453,7 @@ export default function DashboardUI() {
                               return (
                                 <SpotlightCard
                                   key={request.id}
-                                  className="bg-card border-border"
-                                  spotlightColor={request.vendor?.verificationStatus === "verified" ? "green" : "purple"}
+                                        spotlightColor={request.vendor?.verificationStatus === "verified" ? "green" : "orange"}
                                 >
                                   <div className="p-6">
                                     <div className="flex items-start justify-between mb-4">

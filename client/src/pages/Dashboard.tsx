@@ -24,7 +24,9 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase, BookmarkPlus, Bookmark, User } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase, BookmarkPlus, Bookmark, User, Code2, CheckCircle2 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -101,6 +103,86 @@ const SUBMISSION_TYPE_LABELS_DASH: Record<string, string> = {
   video_only: "Video Only",
   tech_fin_with_video: "Tech & Fin + Video",
 };
+
+// ── Brand surfaces ───────────────────────────────────────────────────────────
+// Design intent: cream is the canvas (the page), so data CARDS are clean white —
+// they lift off the background and keep dense content legible. Orange shows up
+// only as a subtle border + an interaction (hover) accent, never as a fill behind
+// text. The peach gradient is reserved for the Overview's sparse showcase cards.
+// Warm paper — lighter than the cream page so cards lift, but warm enough to
+// belong to the same family (cold #FFF on cream reads as two unrelated colors).
+const BRAND_CARD_CLASS =
+  "rounded-2xl border border-[#FE3C01]/10 dark:border-border [background:var(--spotlight-card-bg)] shadow-[0_4px_16px_-8px_rgba(11,9,7,0.12)]";
+const BRAND_CARD_GRADIENT = "linear-gradient(180deg, #FFF3EA 0%, #FCE9DC 100%)";
+
+// Branded segmented control (sub-tab navigation): a quiet warm-paper track with
+// an orange active pill — the active state earns the accent, the rest stays calm.
+const BRAND_TABSLIST =
+  "bg-[#FFFCF7] dark:bg-card border border-[#FE3C01]/10 dark:border-border rounded-xl p-1 shadow-[0_4px_16px_-8px_rgba(11,9,7,0.12)]";
+const BRAND_TABTRIGGER =
+  "rounded-lg data-[state=active]:bg-[#FE3C01] data-[state=active]:text-white data-[state=active]:shadow-[0_6px_16px_-8px_rgba(254,60,1,0.45)]";
+
+// Static containers (filters, empty states): warm-paper card on the cream page.
+function brandCardProps(extraClass = "") {
+  return {
+    className: `${BRAND_CARD_CLASS} ${extraClass}`.trim(),
+    style: undefined,
+  };
+}
+
+// SpotlightCard list rows: restrained hover — small lift + warm orange shadow.
+function brandSpotlightProps(extraClass = "") {
+  return {
+    className:
+      `shadow-[0_4px_16px_-8px_rgba(11,9,7,0.10)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#FE3C01]/25 hover:shadow-[0_18px_40px_-24px_rgba(254,60,1,0.22)] ${extraClass}`.trim(),
+    style: undefined,
+  };
+}
+
+// Signature landing-page section heading: numbered eyebrow chip + big display
+// title with the orange "dot-end" period (the BId brand mark) + subtitle.
+// Mirrors the Overview tab heading and the landing's `.sec-head`.
+function BrandSectionHeading({
+  num,
+  title,
+  description,
+  isRtl,
+  action,
+  titleTestId,
+  descTestId,
+}: {
+  num: string;
+  title: string;
+  description?: string;
+  isRtl: boolean;
+  action?: React.ReactNode;
+  titleTestId?: string;
+  descTestId?: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className={`flex items-end justify-between gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}
+    >
+      <div className={isRtl ? 'text-right' : ''}>
+        <span className="inline-block text-xs font-semibold text-[#FE3C01] bg-[#FFE4D7] dark:bg-[#FE3C01]/15 px-3 py-1.5 rounded-full mb-4 tracking-wide tabular-nums">
+          {num}
+        </span>
+        <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#1A1613] dark:text-foreground tracking-[-0.04em] leading-[1.05]" data-testid={titleTestId}>
+          {title}<span className="text-[#FE3C01]">.</span>
+        </h2>
+        {description && (
+          <p className="text-sm sm:text-base text-[#8A8078] dark:text-muted-foreground mt-3 max-w-xl leading-relaxed" data-testid={descTestId}>
+            {description}
+          </p>
+        )}
+      </div>
+      {action && <div className="flex-shrink-0">{action}</div>}
+    </motion.div>
+  );
+}
 
 interface TenderWithCounts {
   id: string;
@@ -353,14 +435,9 @@ function ChatHistorySidebar() {
 function SidebarLogoToggle() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
-  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div
-      className="relative flex-shrink-0"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="relative flex-shrink-0">
       {isCollapsed ? (
         <SidebarTrigger className="h-6 w-6" />
       ) : (
@@ -399,9 +476,9 @@ function SidebarNavButton({
       }}
       tooltip={item.label}
       data-testid={`sidebar-${item.value}`}
-      className={`py-3 text-base rounded-lg ${isActive ? "bg-[#FE3C01]/15 text-[#FE3C01] hover:bg-[#FE3C01]/20 hover:text-[#FE3C01]" : "hover:bg-muted"}`}
+      className={`py-3 text-base rounded-xl transition-all ${isActive ? "bg-[#FE3C01]/15 text-[#FE3C01] font-semibold hover:bg-[#FE3C01]/20 hover:text-[#FE3C01] shadow-[0_6px_16px_-10px_rgba(254,60,1,0.6)]" : "hover:bg-[#FE3C01]/5 hover:text-[#FE3C01]"}`}
     >
-      <item.icon className={`h-5 w-5 ${isActive ? "text-[#FE3C01]" : "text-muted-foreground"}`} />
+      <item.icon className={`h-5 w-5 transition-colors ${isActive ? "text-[#FE3C01]" : "text-muted-foreground group-hover/menu-item:text-[#FE3C01]"}`} />
       <span className={`text-base font-medium ${isActive ? "text-[#FE3C01]" : ""}`}>{item.label}</span>
     </SidebarMenuButton>
   );
@@ -545,6 +622,10 @@ export default function Dashboard() {
   });
 
   const [vendorToRemove, setVendorToRemove] = useState<{ id: string; companyId: string; name: string } | null>(null);
+  const [profileLinkCopied, setProfileLinkCopied] = useState(false);
+  const [profileEmbedOpen, setProfileEmbedOpen] = useState(false);
+  const [profileEmbedVariant, setProfileEmbedVariant] = useState<'inline' | 'popup' | 'text'>('inline');
+  const [profileEmbedCopied, setProfileEmbedCopied] = useState(false);
 
   const removeVendorMutation = useMutation({
     mutationFn: async ({ id }: { id: string; name: string }) => {
@@ -636,6 +717,16 @@ export default function Dashboard() {
       if (!response.ok) throw new Error("Failed to fetch onboarding tasks");
       return response.json();
     }
+  });
+
+  // Full profile data for "My Profile Link" tab — only fetched when that tab is active
+  const { data: profileLinkData } = useQuery<{
+    company: { id: string; name: string; slug: string; legalName: string; category: string | null; city: string | null; accountType: string; verificationStatus: string; certifications: string[]; crNumber: string; vatNumber: string | null; createdAt: string; verifiedAt: string | null; verifiedDocuments: string[] };
+    profile: { displayName: string; bio: string | null; tags: string[]; logoUrl: string | null; headerUrl: string | null; brochureUrl: string | null; companySize: string | null; yearFounded: number | null; serviceAreas: string[] | null; languages: string[] | null; industriesServed: string[] | null; availabilityStatus: string | null; availabilityNote: string | null; portfolio: { title: string; description?: string; imageUrl: string }[]; socialLinks: { website?: string; linkedin?: string; twitter?: string } | null; introVideoUrl: string | null; stats: Record<string, number> | null; certifications: { name: string }[] | null; insurancePolicies: { type: string; provider: string }[] | null } | null;
+  }>({
+    queryKey: ['/api/companies/by-slug', activeCompany.slug, 'profile'],
+    queryFn: () => apiRequest('GET', `/api/companies/by-slug/${activeCompany.slug}/profile`).then(r => r.json()),
+    enabled: activeTab === 'profile-link' && !!activeCompany.slug && (isIndividual || isTeam),
   });
 
   // Tenders eligible for negotiation: closed, 2+ offers, no accepted offer
@@ -838,7 +929,7 @@ export default function Dashboard() {
     { value: "tenders", label: t('dashboard.tenders'), icon: FileText, show: canManage && isBuyerAccount },
     { value: "proposals", label: t('dashboard.proposals'), icon: Inbox, show: true },
     { value: "vendors", label: t('dashboard.vendorsBase'), icon: Users, show: canManage && isBuyerAccount },
-    { value: "profile-link", label: t('dashboard.profileLink'), icon: Link2, show: !isBuyerAccount, href: activeCompany.profile?.tractionSlug ? `/traction/${activeCompany.profile.tractionSlug}` : undefined },
+    { value: "profile-link", label: isIndividual ? t('dashboard.profileLinkFreelancer') : t('dashboard.profileLinkTeam'), icon: Link2, show: isIndividual || isTeam },
   ];
 
   return (
@@ -904,7 +995,7 @@ export default function Dashboard() {
                 </p>
               </div>
             )}
-            {activeCompany?.slug && !isIndividual && (
+            {activeCompany?.slug && (
               <button
                 type="button"
                 onClick={() => window.open(`/company/${activeCompany.slug}`, '_blank', 'noopener,noreferrer')}
@@ -932,7 +1023,7 @@ export default function Dashboard() {
                       tooltip={t('dashboard.createTender')}
                       data-testid="sidebar-create-tender"
                       data-tour="create-tender"
-                      className="py-3 text-base rounded-lg bg-[#FE3C01] text-white hover:bg-[#D44D3A] hover:text-white"
+                      className="py-3 text-base rounded-xl bg-[#FE3C01] text-white hover:bg-[#1A1613] hover:text-white shadow-[0_10px_24px_-8px_rgba(254,60,1,0.55)] transition-all"
                     >
                       <Plus className="h-5 w-5 text-white" />
                       <span className="text-base font-medium group-data-[collapsible=icon]:hidden text-white">{t('dashboard.createTender')}</span>
@@ -943,27 +1034,27 @@ export default function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       onClick={() => setLocation('/onboarding/team-basics')}
-                      tooltip="Create a Team"
+                      tooltip={t('dashboard.createTeam')}
                       data-testid="sidebar-create-team"
-                      className="py-3 text-base rounded-lg bg-[#FE3C01] text-white hover:bg-[#D44D3A] hover:text-white"
+                      className="py-3 text-base rounded-xl bg-[#FE3C01] text-white hover:bg-[#1A1613] hover:text-white shadow-[0_10px_24px_-8px_rgba(254,60,1,0.55)] transition-all"
                     >
                       <Plus className="h-5 w-5 text-white" />
-                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden text-white">Create a Team</span>
+                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden text-white">{t('dashboard.createTeam')}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}
                 {isIndividual && (
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => activeCompany.profile?.tractionSlug
-                        ? window.open(`/traction/${activeCompany.profile.tractionSlug}`, '_blank')
-                        : setLocation('/settings?tab=company')}
-                      tooltip="My Public Profile"
+                      onClick={() => activeCompany.slug
+                        ? window.open(`/company/${activeCompany.slug}`, '_blank')
+                        : setLocation('/company/edit')}
+                      tooltip={t('dashboard.myPublicProfile')}
                       data-testid="sidebar-profile-link"
                       className="py-3 text-base rounded-lg hover:bg-muted"
                     >
                       <ExternalLink className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden">My Public Profile</span>
+                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden">{t('dashboard.myPublicProfile')}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}
@@ -1478,7 +1569,7 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      <SidebarInset className="bg-gray-50 dark:bg-background">
+      <SidebarInset className="bg-[#F4EDE1] dark:bg-background">
         {/* Mobile top bar — only way to reach navigation on phones */}
         <header className="md:hidden sticky top-0 z-30 flex items-center gap-3 h-14 px-4 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
           <SidebarTrigger className="h-9 w-9 -ms-1.5" aria-label="Open menu" />
@@ -1487,7 +1578,7 @@ export default function Dashboard() {
         {/* Main Content */}
         <main
           className="flex-1 overflow-auto p-4 sm:p-6"
-          style={activeTab === 'overview' && currentTheme !== 'dark' ? {
+          style={currentTheme !== 'dark' ? {
             backgroundColor: '#F4EDE1',
             backgroundImage: 'radial-gradient(circle, rgba(254, 60, 1, 0.06) 1px, transparent 1px)',
             backgroundSize: '24px 24px',
@@ -1534,7 +1625,7 @@ export default function Dashboard() {
                   whileHover={{ y: -3 }}
                   className="rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)]"
                   style={currentTheme !== 'dark' ? {
-                    background: 'linear-gradient(180deg, #FFF3EA 0%, #FCE9DC 100%)',
+                    background: BRAND_CARD_GRADIENT,
                   } : undefined}
                 >
                   <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -1557,11 +1648,11 @@ export default function Dashboard() {
                   whileHover={{ y: -3 }}
                   className="rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)]"
                   style={currentTheme !== 'dark' ? {
-                    background: 'linear-gradient(180deg, #FFF3EA 0%, #FCE9DC 100%)',
+                    background: BRAND_CARD_GRADIENT,
                   } : undefined}
                 >
                   <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <div className="h-11 w-11 rounded-2xl bg-white dark:bg-gray-700 text-[#1A1613] dark:text-gray-300 flex items-center justify-center flex-shrink-0 border border-[#FE3C01]/10 shadow-sm">
+                    <div className="h-11 w-11 rounded-2xl [background:var(--spotlight-card-bg)] dark:bg-gray-700 text-[#1A1613] dark:text-gray-300 flex items-center justify-center flex-shrink-0 border border-[#FE3C01]/10 shadow-sm">
                       <Inbox className="h-5 w-5" />
                     </div>
                     <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
@@ -1580,11 +1671,11 @@ export default function Dashboard() {
                   whileHover={{ y: -3 }}
                   className="rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)]"
                   style={currentTheme !== 'dark' ? {
-                    background: 'linear-gradient(180deg, #FFF3EA 0%, #FCE9DC 100%)',
+                    background: BRAND_CARD_GRADIENT,
                   } : undefined}
                 >
                   <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <div className="h-11 w-11 rounded-2xl bg-white dark:bg-gray-700 text-[#1A1613] dark:text-gray-300 flex items-center justify-center flex-shrink-0 border border-[#FE3C01]/10 shadow-sm">
+                    <div className="h-11 w-11 rounded-2xl [background:var(--spotlight-card-bg)] dark:bg-gray-700 text-[#1A1613] dark:text-gray-300 flex items-center justify-center flex-shrink-0 border border-[#FE3C01]/10 shadow-sm">
                       <Users className="h-5 w-5" />
                     </div>
                     <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
@@ -1606,7 +1697,7 @@ export default function Dashboard() {
                 transition={{ delay: 0.12, duration: 0.35, ease: "easeOut" }}
                 className="rounded-3xl overflow-hidden border border-[#FE3C01]/15 dark:border-border dark:bg-card"
                 style={currentTheme !== 'dark' ? {
-                  background: 'linear-gradient(180deg, #FFF3EA 0%, #FCE9DC 100%)',
+                  background: BRAND_CARD_GRADIENT,
                 } : undefined}
               >
                 <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
@@ -1624,7 +1715,7 @@ export default function Dashboard() {
                   </div>
                   <div className="space-y-2.5">
                     {tendersReadyToNegotiate.slice(0, 3).map(tender => (
-                      <div key={tender.id} className={`bg-white dark:bg-card rounded-2xl border border-[#FE3C01]/10 px-4 py-3 flex items-center justify-between shadow-[0_8px_20px_-12px_rgba(11,9,7,0.12)] ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div key={tender.id} className={`[background:var(--spotlight-card-bg)] rounded-2xl border border-[#FE3C01]/10 px-4 py-3 flex items-center justify-between shadow-[0_8px_20px_-12px_rgba(11,9,7,0.12)] ${isRtl ? 'flex-row-reverse' : ''}`}>
                         <div className={isRtl ? 'text-right' : ''}>
                           <p className="font-semibold text-sm text-[#1A1613] dark:text-foreground">{tender.title}</p>
                           <p className="text-xs text-[#8A8078] dark:text-muted-foreground mt-0.5">
@@ -1689,7 +1780,7 @@ export default function Dashboard() {
               transition={{ delay: 0.2, duration: 0.35, ease: "easeOut" }}
               className="rounded-3xl border border-[#FE3C01]/10 dark:border-border overflow-hidden dark:bg-card"
               style={currentTheme !== 'dark' ? {
-                background: 'linear-gradient(180deg, #FFF3EA 0%, #FCE9DC 100%)',
+                background: BRAND_CARD_GRADIENT,
               } : undefined}
               data-tour="onboarding-tasks"
             >
@@ -1739,7 +1830,7 @@ export default function Dashboard() {
 
                       {/* Task 1: Get Verified (admins/owners only) */}
                       {canManage && (
-                      <AccordionItem value="task-1" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${isCompanyVerified ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      <AccordionItem value="task-1" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${isCompanyVerified ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isCompanyVerified ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -1775,7 +1866,7 @@ export default function Dashboard() {
 
                       {/* Task 2: Complete Company Profile (only for owners/admins) */}
                       {canManage && (
-                      <AccordionItem value="task-2" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      <AccordionItem value="task-2" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -1811,7 +1902,7 @@ export default function Dashboard() {
 
                       {/* Task 3: Set Your Vendors Base (admins/owners only) */}
                       {canManage && (
-                      <AccordionItem value="task-3" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      <AccordionItem value="task-3" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -1846,7 +1937,7 @@ export default function Dashboard() {
                       )}
 
                       {/* Task 4: Create your First RFP (company/team only) */}
-                      {!isIndividual && <AccordionItem value="task-4" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      {!isIndividual && <AccordionItem value="task-4" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasTender ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -1880,13 +1971,13 @@ export default function Dashboard() {
                       </AccordionItem>}
 
                       {/* Task 4b: Complete your profile (individual only) */}
-                      {isIndividual && <AccordionItem value="task-4b" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${hasProfileComplete ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      {isIndividual && <AccordionItem value="task-4b" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${hasProfileComplete ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${hasProfileComplete ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {hasProfileComplete ? <Check className="h-4 w-4" /> : <User className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${hasProfileComplete ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>Complete your profile</span>
+                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${hasProfileComplete ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4bTitle')}</span>
                             {hasProfileComplete && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-3 w-3" />{t('dashboard.completed')}
@@ -1897,13 +1988,13 @@ export default function Dashboard() {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">Add a photo and bio so requesters know who you are before they invite you to a tender.</p>
+                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task4bDesc')}</p>
                               <Button
                                 className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setLocation('/company/edit')}
                                 data-testid="button-task-complete-profile"
                               >
-                                Edit My Profile
+                                {t('dashboard.task4bAction')}
                               </Button>
                             </div>
                           </div>
@@ -1911,7 +2002,7 @@ export default function Dashboard() {
                       </AccordionItem>}
 
                       {/* Task 5: Submit your First Proposal */}
-                      <AccordionItem value="task-5" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      <AccordionItem value="task-5" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -1945,7 +2036,7 @@ export default function Dashboard() {
                       </AccordionItem>
 
                       {/* Task 6: Explore Tenders Marketplace */}
-                      <AccordionItem value="task-6" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'border-[#FE3C01] bg-white dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : 'bg-white dark:bg-card border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      <AccordionItem value="task-6" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -1988,27 +2079,29 @@ export default function Dashboard() {
           {canManage && (
             <TabsContent value="tenders" className="space-y-6">
               {/* Header */}
-              <div className={`flex justify-between items-start ${isRtl ? 'flex-row-reverse' : ''}`}>
-                <div className={isRtl ? 'text-right' : ''}>
-                  <h2 className="font-display font-black text-3xl tracking-[-0.04em]" data-testid="text-tenders-title">{t('dashboard.tendersTitle')}</h2>
-                  <p className="text-muted-foreground" data-testid="text-tenders-description">
-                    {t('dashboard.tendersDesc')}
-                  </p>
-                </div>
-                <ParticleButton
-                  onSuccess={handleCreateTender}
-                  successDuration={600}
-                  particleColor="bg-blue-400"
-                  className="bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90"
-                  data-testid="button-create-tender-header"
-                >
-                  <Plus className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
-                  {t('dashboard.newTender')}
-                </ParticleButton>
-              </div>
+              <BrandSectionHeading
+                num="02"
+                title={t('dashboard.tendersTitle')}
+                description={t('dashboard.tendersDesc')}
+                isRtl={isRtl}
+                titleTestId="text-tenders-title"
+                descTestId="text-tenders-description"
+                action={
+                  <ParticleButton
+                    onSuccess={handleCreateTender}
+                    successDuration={600}
+                    particleColor="bg-blue-400"
+                    className="bg-[#FE3C01] hover:bg-[#1A1613] text-white rounded-full shadow-[0_10px_24px_-8px_rgba(254,60,1,0.5)] transition-colors"
+                    data-testid="button-create-tender-header"
+                  >
+                    <Plus className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                    {t('dashboard.newTender')}
+                  </ParticleButton>
+                }
+              />
 
               {/* Filters */}
-              <Card>
+              <Card {...brandCardProps()}>
                 <CardContent className="pt-6">
                   <div className={`flex flex-col sm:flex-row gap-4 ${isRtl ? 'sm:flex-row-reverse' : ''}`}>
                     <div className="relative flex-1">
@@ -2060,9 +2153,11 @@ export default function Dashboard() {
               {loadingTenders ? (
                 <SkeletonList items={3} />
               ) : filteredTenders.length === 0 ? (
-                <Card>
+                <Card {...brandCardProps()}>
                   <CardContent className="flex flex-col items-center justify-center py-16">
-                    <FileText className="h-16 w-16 text-muted-foreground mb-4" />
+                    <div className="h-16 w-16 rounded-2xl bg-[#FE3C01] text-white flex items-center justify-center mb-4 shadow-[0_12px_24px_-10px_rgba(254,60,1,0.5)]">
+                      <FileText className="h-8 w-8" />
+                    </div>
                     <h3 className="font-display font-black text-2xl mb-2 tracking-[-0.03em]" data-testid="text-no-tenders-title">
                       {t('dashboard.noTenders')}
                     </h3>
@@ -2087,20 +2182,17 @@ export default function Dashboard() {
                         const statusBadge = getStatusBadge(tender.status, tender.deadline);
                         const isDeadlineSoon = new Date(tender.deadline).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000;
                         const isReadyToNegotiate = tender.status === 'closed' && tender.offersCount >= 2 && !incomingOffers.some(o => o.tenderId === tender.id && o.status === 'accepted');
-                        const getSpotlightColor = (status: string): 'blue' | 'purple' | 'green' | 'red' | 'orange' => {
+                        const getSpotlightColor = (status: string): 'green' | 'red' | 'orange' => {
                           switch (status) {
-                            case 'published': return 'green';
-                            case 'draft': return 'purple';
-                            case 'closed': return 'orange';
                             case 'cancelled': return 'red';
-                            default: return 'blue';
+                            default: return 'orange';
                           }
                         };
                         
                         return (
-                          <SpotlightCard 
-                            key={tender.id} 
-                            className="bg-card border-border"
+                          <SpotlightCard
+                            key={tender.id}
+                            {...brandSpotlightProps()}
                             spotlightColor={getSpotlightColor(tender.status)}
                             data-testid={`card-tender-${tender.id}`}
                           >
@@ -2217,21 +2309,23 @@ export default function Dashboard() {
 
           {/* Proposals Tab */}
           <TabsContent value="proposals" className="space-y-6">
-            <div className={`mb-4 ${isRtl ? 'text-right' : ''}`}>
-              <h2 className="font-display font-black text-3xl tracking-[-0.04em]" data-testid="text-proposals-title">{t('dashboard.proposalsTitle')}</h2>
-              <p className="text-muted-foreground" data-testid="text-proposals-description">
-                {t('dashboard.proposalsDesc')}
-              </p>
-            </div>
+            <BrandSectionHeading
+              num="03"
+              title={t('dashboard.proposalsTitle')}
+              description={t('dashboard.proposalsDesc')}
+              isRtl={isRtl}
+              titleTestId="text-proposals-title"
+              descTestId="text-proposals-description"
+            />
 
             <Tabs value={proposalsSubTab} onValueChange={(v) => { setProposalsSubTab(v); localStorage.setItem('dashboard-proposals-tab', v); }} className="space-y-4">
               {!isIndividual && !isTeam && (
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="submitted" className="gap-2" data-testid="tab-submitted-proposals">
+              <TabsList className={`grid w-full max-w-md grid-cols-2 ${BRAND_TABSLIST}`}>
+                <TabsTrigger value="submitted" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-submitted-proposals">
                   <Send className="h-4 w-4" />
                   {t('dashboard.myProposals')} ({myOffers.length})
                 </TabsTrigger>
-                <TabsTrigger value="received" className="gap-2" data-testid="tab-received-proposals">
+                <TabsTrigger value="received" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-received-proposals">
                   <Inbox className="h-4 w-4" />
                   {t('dashboard.incomingOffers')} ({incomingOffers.length})
                 </TabsTrigger>
@@ -2243,9 +2337,11 @@ export default function Dashboard() {
                 {loadingMyOffers ? (
                   <SkeletonList items={3} />
                 ) : myOffers.length === 0 ? (
-                  <Card>
+                  <Card {...brandCardProps()}>
                     <CardContent className="flex flex-col items-center justify-center py-12">
-                      <Send className="h-12 w-12 text-muted-foreground mb-3" />
+                      <div className="h-14 w-14 rounded-2xl bg-[#FE3C01] text-white flex items-center justify-center mb-3 shadow-[0_12px_24px_-10px_rgba(254,60,1,0.5)]">
+                        <Send className="h-7 w-7" />
+                      </div>
                       <p className="font-display font-black text-2xl tracking-[-0.03em]">{t('dashboard.noProposals')}</p>
                       <p className="text-sm text-muted-foreground mt-1">
                         {t('dashboard.noProposalsDesc')}
@@ -2261,8 +2357,8 @@ export default function Dashboard() {
                           return (
                         <SpotlightCard
                           key={offer.id}
-                          className="bg-card border-border"
-                          spotlightColor={offer.status === 'accepted' ? 'green' : offer.status === 'rejected' ? 'red' : offer.status === 'shortlisted' ? 'blue' : 'orange'}
+                          {...brandSpotlightProps()}
+                          spotlightColor={offer.status === 'accepted' ? 'green' : offer.status === 'rejected' ? 'red' : 'orange'}
                           data-testid={`card-my-offer-${offer.id}`}
                         >
                           <div className="p-6">
@@ -2391,10 +2487,12 @@ export default function Dashboard() {
                 {loadingIncomingOffers ? (
                   <SkeletonList items={3} />
                 ) : incomingOffers.length === 0 ? (
-                  <Card>
+                  <Card {...brandCardProps()}>
                     <CardContent className="flex flex-col items-center justify-center py-12">
-                      <Inbox className="h-12 w-12 text-muted-foreground mb-3" />
-                      <p className="text-muted-foreground">{t('dashboard.noIncomingOffers')}</p>
+                      <div className="h-14 w-14 rounded-2xl bg-[#FE3C01] text-white flex items-center justify-center mb-3 shadow-[0_12px_24px_-10px_rgba(254,60,1,0.5)]">
+                        <Inbox className="h-7 w-7" />
+                      </div>
+                      <p className="font-display font-black text-2xl tracking-[-0.03em]">{t('dashboard.noIncomingOffers')}</p>
                       <p className="text-sm text-muted-foreground mt-1">
                         {t('dashboard.noIncomingOffersDesc')}
                       </p>
@@ -2409,8 +2507,8 @@ export default function Dashboard() {
                       return (
                         <SpotlightCard
                           key={offer.id}
-                          className="bg-card border-border"
-                          spotlightColor={offer.status === 'accepted' ? 'green' : offer.status === 'rejected' ? 'red' : 'blue'}
+                          {...brandSpotlightProps()}
+                          spotlightColor={offer.status === 'accepted' ? 'green' : offer.status === 'rejected' ? 'red' : 'orange'}
                           data-testid={`card-incoming-offer-${offer.id}`}
                         >
                           <div className="p-6">
@@ -2436,7 +2534,7 @@ export default function Dashboard() {
                                     </Badge>
                                   )}
                                   {offer.status === 'shortlisted' && (
-                                    <Badge className="bg-[var(--bid-orange)]/10 text-blue-800 dark:text-blue-300 text-xs">
+                                    <Badge className="bg-[#FE3C01]/10 text-[#FE3C01] dark:text-[#FE3C01] text-xs">
                                       <Bookmark className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
                                       {t('dashboard.shortlisted')}
                                     </Badge>
@@ -2567,15 +2665,17 @@ export default function Dashboard() {
           {/* Vendors Base Tab */}
           {canManage && (
             <TabsContent value="vendors" className="space-y-6">
-              <div className={`mb-4 ${isRtl ? 'text-right' : ''}`}>
-                <h2 className="font-display font-black text-3xl tracking-[-0.04em]" data-testid="text-vendors-title">{t('dashboard.vendorsBaseTitle')}</h2>
-                <p className="text-muted-foreground" data-testid="text-vendors-description">
-                  {t('dashboard.vendorsBaseDesc')}
-                </p>
-              </div>
+              <BrandSectionHeading
+                num="04"
+                title={t('dashboard.vendorsBaseTitle')}
+                description={t('dashboard.vendorsBaseDesc')}
+                isRtl={isRtl}
+                titleTestId="text-vendors-title"
+                descTestId="text-vendors-description"
+              />
 
               {/* Traction Link Card */}
-              <Card className="border-dashed">
+              <Card {...brandCardProps('border-dashed')}>
                 <CardContent className="pt-6">
                   {activeCompany?.profile?.tractionSlug ? (
                     <div className="space-y-3">
@@ -2626,12 +2726,12 @@ export default function Dashboard() {
               </Card>
 
               <Tabs value={vendorsSubTab} onValueChange={(v) => { setVendorsSubTab(v); localStorage.setItem('dashboard-vendors-tab', v); }} className="space-y-4">
-                <TabsList className="grid w-full max-w-md grid-cols-2" data-tour="vendors-tabs">
-                  <TabsTrigger value="vendors-list" className="gap-2" data-testid="tab-vendors-list">
+                <TabsList className={`grid w-full max-w-md grid-cols-2 ${BRAND_TABSLIST}`} data-tour="vendors-tabs">
+                  <TabsTrigger value="vendors-list" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-vendors-list">
                     <Users className="h-4 w-4" />
                     {t('dashboard.vendorsBase')} ({vendors.length})
                   </TabsTrigger>
-                  <TabsTrigger value="join-requests" className="gap-2" data-testid="tab-join-requests" data-tour="vendors-requests-tab">
+                  <TabsTrigger value="join-requests" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-join-requests" data-tour="vendors-requests-tab">
                     <UserPlus className="h-4 w-4" />
                     {t('dashboard.pendingRequests')}
                     {pendingRequests.length > 0 && (
@@ -2645,7 +2745,7 @@ export default function Dashboard() {
                 {/* Vendors List Sub-Tab */}
                 <TabsContent value="vendors-list" className="space-y-4">
                   {/* Search */}
-                  <Card data-tour="vendors-search">
+                  <Card {...brandCardProps()} data-tour="vendors-search">
                     <CardContent className="pt-6">
                       <div className="relative">
                         <Search className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground`} />
@@ -2786,9 +2886,11 @@ export default function Dashboard() {
                   {loadingVendors ? (
                     <SkeletonList items={4} />
                   ) : filteredVendors.length === 0 ? (
-                    <Card>
+                    <Card {...brandCardProps()}>
                       <CardContent className="flex flex-col items-center justify-center py-16">
-                        <Users className="h-16 w-16 text-muted-foreground mb-4" />
+                        <div className="h-16 w-16 rounded-2xl bg-[#FE3C01] text-white flex items-center justify-center mb-4 shadow-[0_12px_24px_-10px_rgba(254,60,1,0.5)]">
+                          <Users className="h-8 w-8" />
+                        </div>
                         <h3 className="font-display font-black text-2xl mb-2 tracking-[-0.03em]" data-testid="text-empty-vendors-title">
                           {t('dashboard.noVendors')}
                         </h3>
@@ -2800,7 +2902,7 @@ export default function Dashboard() {
                   ) : (
                     <div className="grid gap-4">
                       {filteredVendors.map((vendor) => (
-                        <SpotlightCard key={vendor.id} className="bg-card border-border" spotlightColor="blue" data-testid={`card-vendor-${vendor.id}`}>
+                        <SpotlightCard key={vendor.id} {...brandSpotlightProps()} spotlightColor="orange" data-testid={`card-vendor-${vendor.id}`}>
                           <div className="p-6">
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex items-start gap-4">
@@ -2883,10 +2985,12 @@ export default function Dashboard() {
                 {/* Join Requests Sub-Tab */}
                 <TabsContent value="join-requests" className="space-y-4">
                   {pendingRequests.length === 0 ? (
-                    <Card>
+                    <Card {...brandCardProps()}>
                       <CardContent className="flex flex-col items-center justify-center py-16">
-                        <UserPlus className="h-12 w-12 text-muted-foreground mb-3" />
-                        <p className="text-muted-foreground" data-testid="text-no-requests">
+                        <div className="h-14 w-14 rounded-2xl bg-[#FE3C01] text-white flex items-center justify-center mb-3 shadow-[0_12px_24px_-10px_rgba(254,60,1,0.5)]">
+                          <UserPlus className="h-7 w-7" />
+                        </div>
+                        <p className="font-display font-black text-2xl tracking-[-0.03em]" data-testid="text-no-requests">
                           {t('dashboard.noPendingRequests')}
                         </p>
                       </CardContent>
@@ -2910,8 +3014,8 @@ export default function Dashboard() {
                           return (
                             <SpotlightCard
                               key={request.id}
-                              className="bg-card border-border"
-                              spotlightColor={request.vendor?.verificationStatus === 'verified' ? 'green' : request.vendor?.verificationStatus === 'under_review' ? 'orange' : 'purple'}
+                              {...brandSpotlightProps()}
+                              spotlightColor={request.vendor?.verificationStatus === 'verified' ? 'green' : 'orange'}
                               data-testid={`card-request-${request.id}`}
                             >
                               <div className="p-6">
@@ -3058,6 +3162,212 @@ export default function Dashboard() {
               </Tabs>
             </TabsContent>
           )}
+
+          {/* ══════════════════════ MY PROFILE LINK TAB (freelancers & teams only) ══════════════════════ */}
+          {(isIndividual || isTeam) && (() => {
+            const profileUrl = `${window.location.origin}/company/${activeCompany.slug}`;
+            const pl = profileLinkData?.profile;
+
+            // Completion items — labels/descriptions adapt to account type
+            const completionItems = isIndividual ? [
+              { section: 'basics',       label: t('dashboard.completionBasicsFreelancer'),       description: t('dashboard.completionBasicsFreelancerDesc'),       complete: !!(pl?.bio && pl.bio.length > 0) },
+              { section: 'media',        label: t('dashboard.completionPhotoFreelancer'),        description: t('dashboard.completionPhotoFreelancerDesc'),         complete: !!(pl?.logoUrl) },
+              { section: 'availability', label: t('dashboard.completionAvailabilityFreelancer'), description: t('dashboard.completionAvailabilityFreelancerDesc'),  complete: !!(pl?.availabilityStatus) },
+              { section: 'capabilities', label: t('dashboard.completionSkillsFreelancer'),       description: t('dashboard.completionSkillsFreelancerDesc'),         complete: !!(pl?.tags?.length) },
+              { section: 'facts',        label: t('dashboard.completionReachFreelancer'),        description: t('dashboard.completionReachFreelancerDesc'),          complete: !!(pl?.serviceAreas?.length || pl?.languages?.length) },
+              { section: 'credentials', label: t('dashboard.completionCredentialsFreelancer'),   description: t('dashboard.completionCredentialsFreelancerDesc'),    complete: !!(pl?.certifications?.length || pl?.insurancePolicies?.length) },
+              { section: 'links',        label: t('dashboard.completionLinksFreelancer'),        description: t('dashboard.completionLinksFreelancerDesc'),          complete: !!(pl?.socialLinks?.website || pl?.socialLinks?.linkedin) },
+            ] : [
+              { section: 'basics',       label: t('dashboard.completionBasicsTeam'),       description: t('dashboard.completionBasicsTeamDesc'),       complete: !!(pl?.bio && pl.bio.length > 0) },
+              { section: 'media',        label: t('dashboard.completionPhotoTeam'),        description: t('dashboard.completionPhotoTeamDesc'),         complete: !!(pl?.logoUrl) },
+              { section: 'availability', label: t('dashboard.completionAvailabilityTeam'), description: t('dashboard.completionAvailabilityTeamDesc'),  complete: !!(pl?.availabilityStatus) },
+              { section: 'capabilities', label: t('dashboard.completionSkillsTeam'),       description: t('dashboard.completionSkillsTeamDesc'),         complete: !!(pl?.tags?.length) },
+              { section: 'facts',        label: t('dashboard.completionReachTeam'),        description: t('dashboard.completionReachTeamDesc'),          complete: !!(pl?.serviceAreas?.length || pl?.languages?.length) },
+              { section: 'credentials', label: t('dashboard.completionCredentialsTeam'),   description: t('dashboard.completionCredentialsTeamDesc'),    complete: !!(pl?.certifications?.length || pl?.insurancePolicies?.length) },
+              { section: 'links',        label: t('dashboard.completionLinksTeam'),        description: t('dashboard.completionLinksTeamDesc'),          complete: !!(pl?.socialLinks?.website || pl?.socialLinks?.linkedin) },
+            ];
+            const completedCount = completionItems.filter(i => i.complete).length;
+            const totalSections = completionItems.length;
+
+            // Embed snippet builders
+            const jsStr = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/<\/script/gi, '<\\/script');
+            const htmlAttr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+            const inlineSnippet = `<!-- Bid profile inline embed -->\n<div style="min-width:320px;height:700px;">\n  <iframe\n    src="${htmlAttr(profileUrl)}"\n    width="100%"\n    height="100%"\n    frameborder="0"\n    style="border:0;border-radius:12px;"\n    title="${htmlAttr(activeCompany.profile?.displayName || activeCompany.name)}"\n  ></iframe>\n</div>`;
+
+            const popupSnippet = `<!-- Bid profile popup widget -->\n<script>\n(function(){\n  var u="${jsStr(profileUrl)}";\n  function openProfile(){\n    var o=document.createElement('div');\n    o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;';\n    o.onclick=function(e){if(e.target===o)document.body.removeChild(o);};\n    var b=document.createElement('div');\n    b.style.cssText='background:#fff;border-radius:12px;width:100%;max-width:900px;height:90vh;max-height:720px;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.3);';\n    var x=document.createElement('button');\n    x.innerHTML='&times;';x.setAttribute('aria-label','Close');\n    x.style.cssText='position:absolute;top:10px;right:12px;background:#fff;border:1px solid #e5e7eb;width:32px;height:32px;border-radius:50%;font-size:20px;cursor:pointer;z-index:1;';\n    x.onclick=function(){document.body.removeChild(o);};\n    var f=document.createElement('iframe');\n    f.src=u;f.style.cssText='width:100%;height:100%;border:0;';\n    b.appendChild(f);b.appendChild(x);o.appendChild(b);document.body.appendChild(o);\n  }\n  var btn=document.createElement('button');\n  btn.type='button';btn.innerText='View Profile';\n  btn.style.cssText='position:fixed;bottom:20px;right:20px;z-index:2147483646;padding:12px 22px;background:#FE3C01;color:#fff;border:0;border-radius:28px;font-family:system-ui,sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,0.18);';\n  btn.onclick=openProfile;\n  document.body.appendChild(btn);\n})();\n<\/script>`;
+
+            const textSnippet = `<!-- Bid profile text link -->\n<a href="${htmlAttr(profileUrl)}" style="color:#FE3C01;font-weight:600;text-decoration:underline;">${htmlAttr(activeCompany.profile?.displayName || activeCompany.name)}</a>`;
+
+            const snippets = { inline: inlineSnippet, popup: popupSnippet, text: textSnippet };
+            const currentSnippet = snippets[profileEmbedVariant];
+
+            const embedVariantDescs: Record<string, string> = {
+              inline: t('tractionPage.editorEmbedInlineDesc'),
+              popup: t('tractionPage.editorEmbedPopupDesc'),
+              text: t('tractionPage.editorEmbedTextDesc'),
+            };
+
+            const copyProfileLink = async () => {
+              await navigator.clipboard.writeText(profileUrl);
+              setProfileLinkCopied(true);
+              setTimeout(() => setProfileLinkCopied(false), 2000);
+            };
+
+            const copyEmbed = async () => {
+              await navigator.clipboard.writeText(currentSnippet);
+              setProfileEmbedCopied(true);
+              setTimeout(() => setProfileEmbedCopied(false), 2000);
+            };
+
+            return (
+              <TabsContent value="profile-link" className="space-y-6">
+                <BrandSectionHeading
+                  num="05"
+                  title={isIndividual ? t('dashboard.profileLinkTitleFreelancer') : t('dashboard.profileLinkTitleTeam')}
+                  description={isIndividual ? t('dashboard.profileLinkDescFreelancer') : t('dashboard.profileLinkDescTeam')}
+                  isRtl={isRtl}
+                  titleTestId="text-profile-link-title"
+                  descTestId="text-profile-link-description"
+                />
+
+                {/* ─── Profile Link Card ─── */}
+                <Card {...brandCardProps()}>
+                  <CardContent className="pt-6 space-y-4">
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">{t('dashboard.yourProfileLink')}</p>
+                      <div className={`flex items-center gap-2 flex-wrap ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <div className="flex-1 min-w-0 bg-muted rounded-lg px-3 py-2 text-sm font-mono truncate">
+                          {profileUrl}
+                        </div>
+                        <Button variant="outline" size="sm" onClick={copyProfileLink} className="flex-shrink-0 gap-1.5">
+                          {profileLinkCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                          {profileLinkCopied ? t('dashboard.copied') : t('dashboard.copyLink')}
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => window.open(`/company/${activeCompany.slug}`, '_blank')} className="flex-shrink-0 gap-1.5">
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          {t('dashboard.viewProfile')}
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setLocation('/company/edit')} className="flex-shrink-0 gap-1.5">
+                          <Edit className="h-3.5 w-3.5" />
+                          {t('dashboard.editProfile')}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Share / Embed */}
+                    <Collapsible open={profileEmbedOpen} onOpenChange={setProfileEmbedOpen}>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground px-0">
+                          <Code2 className="h-4 w-4" />
+                          {t('dashboard.shareEmbed')}
+                          <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${profileEmbedOpen ? 'rotate-180' : ''}`} />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3 space-y-3">
+                        <div className="grid grid-cols-3 gap-1.5">
+                          {(['inline', 'popup', 'text'] as const).map(v => (
+                            <button
+                              key={v}
+                              onClick={() => setProfileEmbedVariant(v)}
+                              className={`px-2 py-2 rounded-lg text-[10px] font-semibold transition-all ${
+                                profileEmbedVariant === v
+                                  ? 'bg-card ring-2 ring-offset-1 text-foreground'
+                                  : 'bg-muted border border-border text-muted-foreground hover:text-foreground'
+                              }`}
+                              style={profileEmbedVariant === v ? { '--tw-ring-color': '#FE3C01' } as React.CSSProperties : undefined}
+                            >
+                              {t(`tractionPage.editorEmbed${v.charAt(0).toUpperCase()}${v.slice(1)}`)}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed">{embedVariantDescs[profileEmbedVariant]}</p>
+                        <Textarea
+                          readOnly
+                          value={currentSnippet}
+                          rows={6}
+                          className="font-mono text-[10px] bg-muted resize-none"
+                          onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+                        />
+                        <Button size="sm" variant="outline" className="w-full gap-1.5" onClick={copyEmbed}>
+                          {profileEmbedCopied
+                            ? <><Check className="h-3.5 w-3.5" />{t('tractionPage.editorEmbedCopied')}</>
+                            : <><Copy className="h-3.5 w-3.5" />{t('tractionPage.editorCopyEmbed')}</>
+                          }
+                        </Button>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </CardContent>
+                </Card>
+
+                {/* ─── Profile Completion Card ─── */}
+                <Card {...brandCardProps()}>
+                  <CardContent className="pt-6 space-y-5">
+                    <div>
+                      <div className={`flex items-center justify-between mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <h3 className="text-sm font-semibold text-foreground">{t('dashboard.profileCompletion')}</h3>
+                        <span className="text-sm font-bold" style={{ color: '#FE3C01' }}>
+                          {profileLinkData ? `${completedCount}/${totalSections}` : '—'}
+                        </span>
+                      </div>
+                      <Progress
+                        value={profileLinkData ? (completedCount / totalSections) * 100 : 0}
+                        className="h-2"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1.5">{t('dashboard.profileCompletionHint')}</p>
+                    </div>
+
+                    {!profileLinkData ? (
+                      <div className="space-y-2">
+                        {[...Array(7)].map((_, i) => (
+                          <div key={i} className="h-[60px] rounded-xl bg-muted animate-pulse" />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {completionItems.map(item => (
+                          <div
+                            key={item.section}
+                            className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                              item.complete
+                                ? 'border-emerald-100 bg-emerald-50/40'
+                                : 'border-border bg-muted/30'
+                            }`}
+                          >
+                            <div className={`flex items-center gap-3 min-w-0 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                              {item.complete
+                                ? <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                                : <div className="h-4 w-4 rounded-full border-2 border-gray-300 flex-shrink-0" />
+                              }
+                              <div className={`min-w-0 ${isRtl ? 'text-right' : ''}`}>
+                                <p className={`text-sm font-semibold ${item.complete ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                  {item.label}
+                                </p>
+                                <p className="text-[11px] text-gray-400 truncate">{item.description}</p>
+                              </div>
+                            </div>
+                            {!item.complete && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="flex-shrink-0 text-xs gap-0.5 hover:bg-[#FE3C01]/5"
+                                style={{ color: '#FE3C01' }}
+                                onClick={() => setLocation(`/company/edit?section=${item.section}`)}
+                              >
+                                {t('dashboard.fillIn')}
+                                <ChevronRight className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            );
+          })()}
+
           </Tabs>
         </main>
 

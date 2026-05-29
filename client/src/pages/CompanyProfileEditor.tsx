@@ -91,10 +91,15 @@ function parseVideoEmbed(url: string | null | undefined): { provider: 'youtube' 
   return null;
 }
 
+interface PortfolioImage {
+  url: string;
+  caption?: string;
+}
+
 interface PortfolioItem {
   title: string;
   description?: string;
-  imageUrl: string;
+  images: PortfolioImage[];
 }
 
 interface ProfileData {
@@ -227,7 +232,7 @@ export default function CompanyProfileEditor() {
   const user = useAuthStore((s) => s.user);
   const activeCompany = useAuthStore((s) => s.activeCompany);
   const activeCompanyId = activeCompany?.id;
-  const isIndividual = (activeCompany as any)?.accountType === 'individual';
+  const isIndividual = activeCompany?.accountType === 'individual';
 
   // Active section from query param, default 'basics'
   const initialSection: SectionId = useMemo(() => {
@@ -255,8 +260,7 @@ export default function CompanyProfileEditor() {
     pendingOriginal: File | null;
   }>({ open: false, imageSrc: '', aspect: 1, target: 'logo', pendingOriginal: null });
 
-  const [portfolioTitle, setPortfolioTitle] = useState('');
-  const [portfolioDesc, setPortfolioDesc] = useState('');
+  const [draftProject, setDraftProject] = useState<{ title: string; description: string; images: PortfolioImage[] } | null>(null);
   const [serviceAreaInput, setServiceAreaInput] = useState('');
   const [industryInput, setIndustryInput] = useState('');
 
@@ -326,7 +330,11 @@ export default function CompanyProfileEditor() {
         industriesServed: data.profile?.industriesServed || [],
         availabilityStatus: data.profile?.availabilityStatus || null,
         availabilityNote: data.profile?.availabilityNote || '',
-        portfolio: data.profile?.portfolio || [],
+        portfolio: (data.profile?.portfolio || []).map((item: any) => ({
+          title: item.title,
+          description: item.description,
+          images: item.images ?? (item.imageUrl ? [{ url: item.imageUrl, caption: '' }] : []),
+        })),
         socialLinks: {
           website: data.profile?.socialLinks?.website || '',
           linkedin: data.profile?.socialLinks?.linkedin || '',
@@ -491,17 +499,24 @@ export default function CompanyProfileEditor() {
     },
   });
 
+  type PortfolioUploadCtx = { type: 'draft' } | { type: 'existing'; idx: number };
+
   const uploadPortfolioImageMutation = useMutation({
-    mutationFn: (file: File) => uploadFile('/api/company/portfolio-image', file),
-    onSuccess: (result) => {
-      const title = portfolioTitle.trim();
-      const desc = portfolioDesc.trim() || undefined;
-      setEditState(s => ({
-        ...s,
-        portfolio: [...s.portfolio, { title, description: desc, imageUrl: result.url }],
-      }));
-      setPortfolioTitle('');
-      setPortfolioDesc('');
+    mutationFn: async ({ file, ctx }: { file: File; ctx: PortfolioUploadCtx }) => {
+      const result = await uploadFile('/api/company/portfolio-image', file);
+      return { url: result.url as string, ctx };
+    },
+    onSuccess: ({ url, ctx }) => {
+      if (ctx.type === 'draft') {
+        setDraftProject(prev => prev ? { ...prev, images: [...prev.images, { url, caption: '' }] } : null);
+      } else {
+        setEditState(s => ({
+          ...s,
+          portfolio: s.portfolio.map((item, i) =>
+            i === ctx.idx ? { ...item, images: [...item.images, { url, caption: '' }] } : item
+          ),
+        }));
+      }
       toast({ title: t('companyProfileEditor.portfolioImageAdded') });
     },
     onError: () => {
@@ -591,6 +606,18 @@ export default function CompanyProfileEditor() {
   };
   const removeTag = (index: number) => setEditState(s => ({ ...s, tags: s.tags.filter((_, i) => i !== index) }));
   const removePortfolioItem = (index: number) => setEditState(s => ({ ...s, portfolio: s.portfolio.filter((_, i) => i !== index) }));
+  const removePortfolioImage = (pIdx: number, iIdx: number) => setEditState(s => ({
+    ...s,
+    portfolio: s.portfolio.map((item, i) =>
+      i === pIdx ? { ...item, images: item.images.filter((_, j) => j !== iIdx) } : item
+    ),
+  }));
+  const updatePortfolioImageCaption = (pIdx: number, iIdx: number, caption: string) => setEditState(s => ({
+    ...s,
+    portfolio: s.portfolio.map((item, i) =>
+      i === pIdx ? { ...item, images: item.images.map((img, j) => j === iIdx ? { ...img, caption } : img) } : item
+    ),
+  }));
 
   const addServiceArea = () => {
     const v = serviceAreaInput.trim();
@@ -1238,68 +1265,175 @@ export default function CompanyProfileEditor() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <ImagePlus className="h-4 w-4 text-muted-foreground" />
-                        {isIndividual ? 'Previous Works' : t('companyProfileEditor.portfolio')}
+                        {isIndividual ? t('companyProfileEditor.sectionPreviousWork') : t('companyProfileEditor.portfolio')}
                       </CardTitle>
                       <CardDescription>{t('companyProfileEditor.portfolioDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {editState.portfolio.length > 0 && (
-                        <div className="space-y-2">
-                          {editState.portfolio.map((item, i) => (
-                            <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-card rounded-lg border border-border dark:border-border">
-                              <img src={item.imageUrl} alt={item.title} className="w-14 h-14 rounded-md object-cover flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold truncate">{item.title}</p>
-                                {item.description && <p className="text-xs text-muted-foreground truncate">{item.description}</p>}
-                              </div>
-                              <Button variant="ghost" size="icon" onClick={() => removePortfolioItem(i)} aria-label={`Remove ${item.title}`} className="h-8 w-8 text-muted-foreground hover:text-red-500">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
 
-                      {editState.portfolio.length < 8 && (
-                        <div className="space-y-3 p-4 bg-gray-50 dark:bg-card rounded-lg border border-dashed border-border dark:border-border">
+                      {/* Existing projects */}
+                      {editState.portfolio.map((project, pIdx) => (
+                        <div key={pIdx} className="rounded-xl border border-border overflow-hidden">
+                          <div className="flex items-start justify-between gap-3 px-4 py-3 bg-muted/40">
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold truncate">{project.title}</p>
+                              {project.description && (
+                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{project.description}</p>
+                              )}
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => removePortfolioItem(pIdx)} className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-red-500">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+
+                          <div className="p-4 space-y-3">
+                            {project.images.length > 0 && (
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {project.images.map((img, iIdx) => (
+                                  <div key={iIdx} className="group relative space-y-1">
+                                    <div className="relative">
+                                      <img src={img.url} alt={img.caption || project.title} className="w-full h-28 object-cover rounded-lg" />
+                                      <button
+                                        type="button"
+                                        onClick={() => removePortfolioImage(pIdx, iIdx)}
+                                        className="absolute top-1 right-1 h-5 w-5 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                      >
+                                        <X className="h-3 w-3 text-white" />
+                                      </button>
+                                    </div>
+                                    <Input
+                                      value={img.caption || ''}
+                                      onChange={(e) => updatePortfolioImageCaption(pIdx, iIdx, e.target.value)}
+                                      placeholder={t('companyProfileEditor.imageCaptionPlaceholder')}
+                                      className="h-7 text-xs"
+                                      maxLength={120}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file && validateImage(file)) uploadPortfolioImageMutation.mutate({ file, ctx: { type: 'existing', idx: pIdx } });
+                                  e.target.value = '';
+                                }}
+                              />
+                              <Upload className="h-3.5 w-3.5" />
+                              {uploadPortfolioImageMutation.isPending ? t('companyProfileEditor.uploading') : t('companyProfileEditor.addImageToProject')}
+                            </label>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Add new project */}
+                      {draftProject ? (
+                        <div className="rounded-xl border-2 border-dashed border-[#FE3C01]/30 bg-[#FE3C01]/[0.03] p-4 space-y-3">
                           <Input
-                            value={portfolioTitle}
-                            onChange={(e) => setPortfolioTitle(e.target.value)}
+                            value={draftProject.title}
+                            onChange={(e) => setDraftProject(p => p ? { ...p, title: e.target.value } : null)}
                             placeholder={t('companyProfileEditor.projectName')}
                             maxLength={60}
+                            autoFocus
                           />
-                          <Input
-                            value={portfolioDesc}
-                            onChange={(e) => setPortfolioDesc(e.target.value)}
-                            placeholder={t('companyProfileEditor.shortDescriptionOptional')}
-                            maxLength={120}
+                          <Textarea
+                            value={draftProject.description}
+                            onChange={(e) => setDraftProject(p => p ? { ...p, description: e.target.value } : null)}
+                            placeholder={t('companyProfileEditor.projectDescription')}
+                            maxLength={300}
+                            rows={2}
+                            className="resize-none"
                           />
-                          <label className={cn("block", portfolioTitle.trim() ? "cursor-pointer" : "cursor-not-allowed opacity-60")}>
+
+                          {draftProject.images.length > 0 && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                              {draftProject.images.map((img, iIdx) => (
+                                <div key={iIdx} className="group relative space-y-1">
+                                  <div className="relative">
+                                    <img src={img.url} alt={img.caption || ''} className="w-full h-28 object-cover rounded-lg" />
+                                    <button
+                                      type="button"
+                                      onClick={() => setDraftProject(p => p ? { ...p, images: p.images.filter((_, j) => j !== iIdx) } : null)}
+                                      className="absolute top-1 right-1 h-5 w-5 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      <X className="h-3 w-3 text-white" />
+                                    </button>
+                                  </div>
+                                  <Input
+                                    value={img.caption || ''}
+                                    onChange={(e) => setDraftProject(p => p ? { ...p, images: p.images.map((im, j) => j === iIdx ? { ...im, caption: e.target.value } : im) } : null)}
+                                    placeholder={t('companyProfileEditor.imageCaptionPlaceholder')}
+                                    className="h-7 text-xs"
+                                    maxLength={120}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <label className="cursor-pointer block">
                             <input
                               type="file"
                               accept="image/*"
                               className="hidden"
-                              disabled={!portfolioTitle.trim()}
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
-                                if (file && validateImage(file)) uploadPortfolioImageMutation.mutate(file);
+                                if (file && validateImage(file)) uploadPortfolioImageMutation.mutate({ file, ctx: { type: 'draft' } });
                                 e.target.value = '';
                               }}
                             />
-                            <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-                              <Upload className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm text-muted-foreground">
-                                {uploadPortfolioImageMutation.isPending
-                                  ? t('companyProfileEditor.uploading')
-                                  : portfolioTitle.trim()
-                                    ? t('companyProfileEditor.uploadProjectImage')
-                                    : t('companyProfileEditor.enterProjectNameFirst')}
-                              </span>
+                            <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-border hover:border-[#FE3C01]/40 hover:bg-[#FE3C01]/5 transition-colors text-sm text-muted-foreground">
+                              {uploadPortfolioImageMutation.isPending
+                                ? <><Loader2 className="h-4 w-4 animate-spin" />{t('companyProfileEditor.uploading')}</>
+                                : <><Upload className="h-4 w-4" />{t('companyProfileEditor.addProjectImage')}</>
+                              }
                             </div>
                           </label>
+
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              disabled={!draftProject.title.trim()}
+                              className="bg-[#FE3C01] hover:bg-[#FE3C01]/90 text-white"
+                              onClick={() => {
+                                if (!draftProject.title.trim()) return;
+                                setEditState(s => ({
+                                  ...s,
+                                  portfolio: [...s.portfolio, {
+                                    title: draftProject.title.trim(),
+                                    description: draftProject.description.trim() || undefined,
+                                    images: draftProject.images,
+                                  }],
+                                }));
+                                setDraftProject(null);
+                              }}
+                            >
+                              {t('companyProfileEditor.saveProject')}
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => setDraftProject(null)}>
+                              {t('companyProfileEditor.cancel')}
+                            </Button>
+                          </div>
                         </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          className="w-full border-dashed gap-2"
+                          onClick={() => setDraftProject({ title: '', description: '', images: [] })}
+                        >
+                          <Plus className="h-4 w-4" />
+                          {t('companyProfileEditor.addProject')}
+                        </Button>
                       )}
-                      <p className="text-xs text-muted-foreground">{t('companyProfileEditor.projectsCount', { count: editState.portfolio.length })}</p>
+
+                      <p className="text-xs text-muted-foreground">
+                        {t('companyProfileEditor.projectsCount', { count: editState.portfolio.length })}
+                      </p>
                     </CardContent>
                   </Card>
                 </>

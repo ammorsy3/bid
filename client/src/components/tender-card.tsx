@@ -44,14 +44,8 @@ export default function TenderCard({ tender }: TenderCardProps) {
     }
   };
 
-  const getSpotlightColor = (status: string): 'blue' | 'purple' | 'green' | 'red' | 'orange' => {
-    switch (status) {
-      case 'published': return 'orange';
-      case 'draft': return 'purple';
-      case 'closed': return 'orange';
-      case 'cancelled': return 'red';
-      default: return 'orange';
-    }
+  const getSpotlightColor = (status: string): 'green' | 'red' | 'orange' => {
+    return status === 'cancelled' ? 'red' : 'orange';
   };
 
   return (

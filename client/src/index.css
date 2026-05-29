@@ -80,6 +80,20 @@
   --ring: hsl(14, 99%, 50%);
   --radius: 0.5rem;
 
+  /* SpotlightCard background — peach gradient lifts off the cream canvas */
+  --spotlight-card-bg: #FEFCF9;
+
+  /* Sidebar — a deeper, warmer cream so the rail reads as a distinct panel
+     framing the lighter content area (page #F4EDE1, cards warm paper). */
+  --sidebar-background: #EBE1D0;
+  --sidebar-foreground: hsl(26, 16%, 9%);
+  --sidebar-primary: hsl(14, 99%, 50%);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F6EDE0;
+  --sidebar-accent-foreground: hsl(26, 16%, 9%);
+  --sidebar-border: rgba(11, 9, 7, 0.10);
+  --sidebar-ring: hsl(14, 99%, 50%);
+
   /* Rainbow button colors (legacy effect — left intact) */
   --color-1: 0, 100%, 50%;
   --color-2: 60, 100%, 50%;
@@ -149,6 +163,19 @@
   --destructive: hsl(6, 65%, 42%);
   --destructive-foreground: hsl(38, 47%, 96%);
   --ring: hsl(14, 99%, 50%);
+
+  /* SpotlightCard background — dark: flat card surface */
+  --spotlight-card-bg: hsl(26, 14%, 11%);
+
+  /* Sidebar — ink rail matching the dark dashboard background */
+  --sidebar-background: hsl(26, 16%, 9%);
+  --sidebar-foreground: hsl(38, 47%, 92%);
+  --sidebar-primary: hsl(14, 99%, 50%);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: hsl(26, 12%, 16%);
+  --sidebar-accent-foreground: hsl(38, 47%, 92%);
+  --sidebar-border: hsl(26, 10%, 20%);
+  --sidebar-ring: hsl(14, 99%, 50%);
 }
 
 @layer base {

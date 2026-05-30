@@ -2318,7 +2318,7 @@ export default function Dashboard() {
               descTestId="text-proposals-description"
             />
 
-            <Tabs value={proposalsSubTab} onValueChange={(v) => { setProposalsSubTab(v); localStorage.setItem('dashboard-proposals-tab', v); }} className="space-y-4">
+            <Tabs value={(isIndividual || isTeam) ? 'submitted' : proposalsSubTab} onValueChange={(v) => { setProposalsSubTab(v); localStorage.setItem('dashboard-proposals-tab', v); }} className="space-y-4">
               {!isIndividual && !isTeam && (
               <TabsList className={`grid w-full max-w-md grid-cols-2 ${BRAND_TABSLIST}`}>
                 <TabsTrigger value="submitted" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-submitted-proposals">
@@ -2482,8 +2482,8 @@ export default function Dashboard() {
                 )}
               </TabsContent>
 
-              {/* Received Proposals Sub-Tab */}
-              <TabsContent value="received" className="space-y-4">
+              {/* Received Proposals Sub-Tab — company only */}
+              {!isIndividual && !isTeam && <TabsContent value="received" className="space-y-4">
                 {loadingIncomingOffers ? (
                   <SkeletonList items={3} />
                 ) : incomingOffers.length === 0 ? (
@@ -2658,7 +2658,7 @@ export default function Dashboard() {
                         })}
                   </div>
                 )}
-              </TabsContent>
+              </TabsContent>}
             </Tabs>
           </TabsContent>
 

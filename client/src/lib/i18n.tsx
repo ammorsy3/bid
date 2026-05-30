@@ -7176,11 +7176,11 @@ interface I18nContextType {
 
 // Persist context across HMR reloads so multiple queued saves never create
 // a fresh context object that orphans the existing I18nProvider in the tree.
-const _global = globalThis as unknown as { __i18nContext?: ReturnType<typeof createContext<I18nContextType | null>> };
-if (!_global.__i18nContext) {
-  _global.__i18nContext = createContext<I18nContextType | null>(null);
+const _g = globalThis as Record<string, unknown>;
+if (!_g.__i18nContext) {
+  _g.__i18nContext = createContext<I18nContextType | null>(null);
 }
-const I18nContext = _global.__i18nContext;
+const I18nContext = _g.__i18nContext as React.Context<I18nContextType | null>;
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {

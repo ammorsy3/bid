@@ -233,6 +233,7 @@ export default function CompanyProfileEditor() {
   const activeCompany = useAuthStore((s) => s.activeCompany);
   const activeCompanyId = activeCompany?.id;
   const isIndividual = activeCompany?.accountType === 'individual';
+  const isTeam = activeCompany?.accountType === 'team';
 
   // Active section from query param, default 'basics'
   const initialSection: SectionId = useMemo(() => {
@@ -821,7 +822,7 @@ export default function CompanyProfileEditor() {
               <ArrowLeft className="h-3.5 w-3.5" />
               {t('companyProfileEditor.backToSettings')}
             </button>
-            <h2 className="text-sm font-semibold text-foreground">{isIndividual ? 'Edit My Profile' : t('companyProfileEditor.editCompanyProfile')}</h2>
+            <h2 className="text-sm font-semibold text-foreground">{isIndividual ? 'Edit My Profile' : isTeam ? 'Edit Team Profile' : t('companyProfileEditor.editCompanyProfile')}</h2>
             <p className="text-xs text-muted-foreground mt-0.5 truncate">{company.name}</p>
           </div>
 
@@ -944,7 +945,7 @@ export default function CompanyProfileEditor() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                        {isIndividual ? 'Profile Photo' : t('companyProfileEditor.logo')}
+                        {isIndividual ? 'Profile Photo' : isTeam ? 'Team Logo' : t('companyProfileEditor.logo')}
                       </CardTitle>
                       <CardDescription>{t('companyProfileEditor.logoDesc')}</CardDescription>
                     </CardHeader>
@@ -995,7 +996,7 @@ export default function CompanyProfileEditor() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">{isIndividual ? 'Full Name / Display Name' : t('companyProfileEditor.displayName')}</CardTitle>
+                      <CardTitle className="text-base">{isIndividual ? 'Full Name / Display Name' : isTeam ? 'Team Name' : t('companyProfileEditor.displayName')}</CardTitle>
                       <CardDescription>{t('companyProfileEditor.displayNameDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -1010,7 +1011,7 @@ export default function CompanyProfileEditor() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">{isIndividual ? 'About Me' : t('companyProfileEditor.about')}</CardTitle>
+                      <CardTitle className="text-base">{isIndividual ? 'About Me' : isTeam ? 'About the Team' : t('companyProfileEditor.about')}</CardTitle>
                       <CardDescription>{t('companyProfileEditor.aboutDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -1265,7 +1266,7 @@ export default function CompanyProfileEditor() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center gap-2">
                         <ImagePlus className="h-4 w-4 text-muted-foreground" />
-                        {isIndividual ? t('companyProfileEditor.sectionPreviousWork') : t('companyProfileEditor.portfolio')}
+                        {isIndividual || isTeam ? t('companyProfileEditor.sectionPreviousWork') : t('companyProfileEditor.portfolio')}
                       </CardTitle>
                       <CardDescription>{t('companyProfileEditor.portfolioDesc')}</CardDescription>
                     </CardHeader>

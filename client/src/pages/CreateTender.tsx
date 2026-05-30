@@ -189,9 +189,14 @@ export default function CreateTender() {
     },
     onError: (error: any) => {
       if (error?.requiresProfile) {
+        const profileDesc = activeCompany?.accountType === 'team'
+          ? "Please complete your team profile before creating tenders"
+          : activeCompany?.accountType === 'individual'
+            ? "Please complete your profile before creating tenders"
+            : "Please complete your company profile before creating tenders";
         toast({
           title: "Profile Required",
-          description: "Please complete your company profile before creating tenders",
+          description: profileDesc,
         });
         navigate('/company-onboarding');
       } else {

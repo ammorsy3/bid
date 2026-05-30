@@ -1682,12 +1682,14 @@ export default function Settings() {
               <div className="space-y-4">
                 <h2 className="font-display font-black text-xl tracking-[-0.02em] flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
-                  {t('settings.companyProfilePage')}
+                  {isTeamWorkspace ? 'Team Profile Page' : t('settings.companyProfilePage')}
                 </h2>
                 <Card>
                   <CardContent className="pt-6 space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      {t('settings.companyProfilePageDesc')}
+                      {isTeamWorkspace
+                        ? 'Customize how your team profile appears to clients when they review your proposals.'
+                        : t('settings.companyProfilePageDesc')}
                     </p>
                     <div className="flex items-center gap-3">
                       <a href="/company/edit">
@@ -1786,8 +1788,8 @@ export default function Settings() {
               </div>
               )}
 
-              {/* National ID — individual workspaces only */}
-              {isIndividualWorkspace && (
+              {/* National ID — individual and team workspaces */}
+              {(isIndividualWorkspace || isTeamWorkspace) && (
               <div id="national-id-verification">
                 <Card>
                   <CardHeader className="pb-4">
@@ -1798,7 +1800,9 @@ export default function Settings() {
                       <div>
                         <CardTitle className="text-base">National ID Verification</CardTitle>
                         <CardDescription className="text-xs">
-                          Required before you can submit offers on tenders. Enter your National ID number to unlock offer submissions.
+                          {isTeamWorkspace
+                            ? 'As the team owner, submit your National ID to verify this team and unlock offer submissions.'
+                            : 'Required before you can submit offers on tenders. Enter your National ID number to unlock offer submissions.'}
                         </CardDescription>
                       </div>
                     </div>

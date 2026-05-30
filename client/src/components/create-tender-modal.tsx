@@ -58,7 +58,7 @@ const FORM_ID = 'create-tender';
 const REQUIRED_FIELDS: (keyof CreateTenderForm)[] = ['title', 'description', 'deadline', 'projectTimeline'];
 
 export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModalProps) {
-  const { user } = useAuthStore();
+  const { user, activeCompany } = useAuthStore();
   const { toast } = useToast();
   const { language, t } = useI18n();
   const dateLocale = language === 'ar' ? arLocale : undefined;
@@ -143,9 +143,14 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
       if (error?.requiresVerification) {
         setShowVerificationGate(true);
       } else if (error?.requiresProfile) {
+        const profileDesc = activeCompany?.accountType === 'team'
+          ? "Please complete your team profile before creating tenders"
+          : activeCompany?.accountType === 'individual'
+            ? "Please complete your profile before creating tenders"
+            : "Please complete your company profile before creating tenders";
         toast({
           title: "Profile Required",
-          description: "Please complete your company profile before creating tenders",
+          description: profileDesc,
         });
         handleClose();
         navigate('/company-onboarding');

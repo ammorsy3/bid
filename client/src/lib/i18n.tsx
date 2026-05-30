@@ -71,6 +71,8 @@ const translations = {
       adminPanelDesc: "Manage platform & users",
       companyNotVerified: "Company not verified",
       companyNotVerifiedDesc: "Upload your documents to unlock features like creating RFPs and submitting proposals.",
+      teamNotVerified: "Team not verified",
+      teamNotVerifiedDesc: "Submit your National ID to unlock features like creating RFPs and submitting proposals.",
       verifyNow: "Verify now →",
       verificationInProgress: "Verification in progress",
       verificationInProgressDesc: "Your documents are under review. You'll be notified once your company is verified.",
@@ -79,6 +81,7 @@ const translations = {
       verificationRejectedDesc: "Your documents were not accepted. Please re-upload them to try again.",
       reUploadDocuments: "Re-upload documents →",
       companyProfileMenuItem: "Company Profile",
+      teamProfileMenuItem: "Team Profile",
       viewPublicProfile: "View public profile",
       // Settings extras
       noRecordedActivity: "No recorded activity yet.",
@@ -297,6 +300,9 @@ const translations = {
       verificationRejected: "Company Verification Rejected",
       verificationUnderReviewDesc: "Your company documents are currently being reviewed. You'll be notified as soon as the review is complete. In the meantime, you can browse the dashboard but some actions like creating RFPs are restricted.",
       verificationNotVerifiedDesc: "Your company needs to be verified before you can create RFPs and access other key features. Please upload your company documents to get started.",
+      teamVerificationRequired: "Team Verification Required",
+      teamVerificationUnderReviewDesc: "Your National ID is under review. You'll be notified once the review is complete. Some actions are restricted in the meantime.",
+      teamVerificationNotVerifiedDesc: "Your team needs to be verified before you can submit proposals. As the team owner, please submit your National ID to get started.",
       verificationRejectedDesc: "Your company verification was not approved. Please review your documents and re-submit them for another review.",
       uploadDocuments: "Upload Documents",
       goBack: "Go Back",
@@ -411,11 +417,14 @@ const translations = {
       // Onboarding tasks
       task1Title: "Get Verified",
       task1Desc: "Submit your company verification documents to get officially verified on the platform and unlock full access.",
+      task1DescTeam: "As the team owner, submit your National ID to get officially verified on the platform and unlock full access.",
       task1Action: "Get Verified",
       task1Tip: "Build trust instantly",
       task1TipDesc: "Verified companies attract more qualified vendors and responses.",
       task2Title: "Complete Your Company Profile",
+      task2TitleTeam: "Complete Your Team Profile",
       task2Desc: "Add your company details, logo, and bio to build trust with vendors and stand out in the marketplace.",
+      task2DescTeam: "Add your team details, logo, and previous works to build trust with clients and stand out in the marketplace.",
       task2Action: "Complete Profile",
       task2Tip: "First impressions matter",
       task2TipDesc: "A complete profile increases vendor response rates by 40%.",
@@ -3647,6 +3656,8 @@ const translations = {
       adminPanelDesc: "إدارة المنصة والمستخدمين",
       companyNotVerified: "الشركة غير موثّقة",
       companyNotVerifiedDesc: "ارفع مستنداتك لفتح ميزات مثل إنشاء طلبات العروض وتقديم العروض.",
+      teamNotVerified: "الفريق غير موثّق",
+      teamNotVerifiedDesc: "قدّم هويتك الوطنية لفتح ميزات مثل إنشاء طلبات العروض وتقديم العروض.",
       verifyNow: "وثّق الآن ←",
       verificationInProgress: "التحقق قيد التنفيذ",
       verificationInProgressDesc: "مستنداتك قيد المراجعة. ستصلك إشعار بمجرد التحقق من شركتك.",
@@ -3655,6 +3666,7 @@ const translations = {
       verificationRejectedDesc: "لم يتم قبول مستنداتك. يُرجى إعادة رفعها والمحاولة مرة أخرى.",
       reUploadDocuments: "إعادة رفع المستندات ←",
       companyProfileMenuItem: "ملف الشركة",
+      teamProfileMenuItem: "ملف الفريق",
       viewPublicProfile: "عرض الملف العام",
       // Settings extras
       noRecordedActivity: "لا يوجد نشاط مسجّل بعد.",
@@ -3873,6 +3885,9 @@ const translations = {
       verificationRejected: "تم رفض التحقق من الشركة",
       verificationUnderReviewDesc: "مستندات شركتك قيد المراجعة حالياً. سيتم إشعارك فور اكتمال المراجعة. في هذه الأثناء، يمكنك تصفح لوحة التحكم لكن بعض الإجراءات مثل إنشاء طلبات العروض محدودة.",
       verificationNotVerifiedDesc: "يجب التحقق من شركتك قبل أن تتمكن من إنشاء طلبات العروض والوصول إلى الميزات الأخرى. يرجى رفع مستندات شركتك للبدء.",
+      teamVerificationRequired: "التحقق من الفريق مطلوب",
+      teamVerificationUnderReviewDesc: "هويتك الوطنية قيد المراجعة. ستصلك إشعار فور اكتمال المراجعة. بعض الإجراءات محدودة في هذه الأثناء.",
+      teamVerificationNotVerifiedDesc: "يجب التحقق من فريقك قبل تقديم العروض. بوصفك مالك الفريق، يرجى تقديم هويتك الوطنية للبدء.",
       verificationRejectedDesc: "لم تتم الموافقة على التحقق من شركتك. يرجى مراجعة مستنداتك وإعادة تقديمها للمراجعة.",
       uploadDocuments: "رفع المستندات",
       goBack: "رجوع",
@@ -3987,11 +4002,14 @@ const translations = {
       // Onboarding tasks
       task1Title: "احصل على التحقق",
       task1Desc: "قدّم وثائق التحقق الخاصة بشركتك للحصول على الاعتماد الرسمي وفتح الوصول الكامل للمنصة.",
+      task1DescTeam: "بوصفك مالك الفريق، قدّم هويتك الوطنية للحصول على الاعتماد الرسمي وفتح الوصول الكامل للمنصة.",
       task1Action: "احصل على التحقق",
       task1Tip: "ابنِ الثقة فوراً",
       task1TipDesc: "الشركات المعتمدة تجذب موردين أكثر كفاءة واستجابة.",
       task2Title: "أكمل ملف شركتك",
+      task2TitleTeam: "أكمل ملف فريقك",
       task2Desc: "أضف تفاصيل شركتك وشعارها ونبذة عنها لبناء الثقة مع الموردين والتميز في السوق.",
+      task2DescTeam: "أضف تفاصيل فريقك وشعاره وأعماله السابقة لبناء الثقة مع العملاء والتميز في السوق.",
       task2Action: "إكمال الملف",
       task2Tip: "الانطباع الأول مهم",
       task2TipDesc: "الملف المكتمل يزيد معدل استجابة الموردين بنسبة 40%.",
@@ -7156,7 +7174,13 @@ interface I18nContextType {
   isRtl: boolean;
 }
 
-const I18nContext = createContext<I18nContextType | null>(null);
+// Persist context across HMR reloads so multiple queued saves never create
+// a fresh context object that orphans the existing I18nProvider in the tree.
+const _global = globalThis as unknown as { __i18nContext?: ReturnType<typeof createContext<I18nContextType | null>> };
+if (!_global.__i18nContext) {
+  _global.__i18nContext = createContext<I18nContextType | null>(null);
+}
+const I18nContext = _global.__i18nContext;
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {

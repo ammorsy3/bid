@@ -1147,8 +1147,8 @@ export default function Dashboard() {
           {/* Verification banner — shown for unverified/pending/rejected companies */}
           {activeCompany.verificationStatus === 'not_verified' && (
             <div className="mb-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
-              <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-0.5">{t('settings.companyNotVerified')}</p>
-              <p className="text-xs text-amber-700 dark:text-amber-400 mb-1.5 leading-snug">{t('settings.companyNotVerifiedDesc')}</p>
+              <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-0.5">{isTeam ? t('settings.teamNotVerified') : t('settings.companyNotVerified')}</p>
+              <p className="text-xs text-amber-700 dark:text-amber-400 mb-1.5 leading-snug">{isTeam ? t('settings.teamNotVerifiedDesc') : t('settings.companyNotVerifiedDesc')}</p>
               <button
                 onClick={() => setLocation('/settings?tab=company')}
                 className="text-xs font-semibold text-amber-800 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900"
@@ -1461,7 +1461,7 @@ export default function Dashboard() {
                   data-testid="menu-company-profile"
                 >
                   <Building2 className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm">{t('settings.companyProfileMenuItem')}</span>
+                  <span className="text-sm">{isTeam ? t('settings.teamProfileMenuItem') : t('settings.companyProfileMenuItem')}</span>
                 </button>
                 )}
 
@@ -1847,7 +1847,7 @@ export default function Dashboard() {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task1Desc')}</p>
+                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{isTeam ? t('dashboard.task1DescTeam') : t('dashboard.task1Desc')}</p>
                               <Button
                                 className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setLocation('/settings?tab=company&highlight=verification')}
@@ -1872,7 +1872,7 @@ export default function Dashboard() {
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasCompletedProfile ? <Check className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasCompletedProfile ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task2Title')}</span>
+                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasCompletedProfile ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{isTeam ? t('dashboard.task2TitleTeam') : t('dashboard.task2Title')}</span>
                             {onboardingTasks?.hasCompletedProfile && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-3 w-3" />{t('dashboard.completed')}
@@ -1883,7 +1883,7 @@ export default function Dashboard() {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task2Desc')}</p>
+                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{isTeam ? t('dashboard.task2DescTeam') : t('dashboard.task2Desc')}</p>
                               <Button
                                 className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setLocation('/company-onboarding')}
@@ -3816,7 +3816,7 @@ export default function Dashboard() {
               ? t('dashboard.verificationPending')
               : activeCompany.verificationStatus === 'rejected'
                 ? t('dashboard.verificationRejected')
-                : t('dashboard.verificationRequired')}
+                : isTeam ? t('dashboard.teamVerificationRequired') : t('dashboard.verificationRequired')}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
@@ -3829,7 +3829,7 @@ export default function Dashboard() {
                 <>
                   <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mb-1">{t('dashboard.verificationPending')}</p>
                   <p className="text-sm text-amber-700 dark:text-amber-300">
-                    {t('dashboard.verificationUnderReviewDesc')}
+                    {isTeam ? t('dashboard.teamVerificationUnderReviewDesc') : t('dashboard.verificationUnderReviewDesc')}
                   </p>
                 </>
               ) : activeCompany.verificationStatus === 'rejected' ? (
@@ -3841,9 +3841,9 @@ export default function Dashboard() {
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mb-1">{t('dashboard.verificationRequired')}</p>
+                  <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mb-1">{isTeam ? t('dashboard.teamVerificationRequired') : t('dashboard.verificationRequired')}</p>
                   <p className="text-sm text-amber-700 dark:text-amber-300">
-                    {t('dashboard.verificationNotVerifiedDesc')}
+                    {isTeam ? t('dashboard.teamVerificationNotVerifiedDesc') : t('dashboard.verificationNotVerifiedDesc')}
                   </p>
                 </>
               )}

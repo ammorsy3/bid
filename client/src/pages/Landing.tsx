@@ -4,35 +4,102 @@ import "./landing.css";
 import { BidLogo, BidMonogram } from "@/components/brand/BidLogo";
 import { useAuthStore } from "@/lib/auth";
 
-function SignUpModal({ onClose }: { onClose: () => void }) {
-  const [, navigate] = useLocation();
+type Lang = "en" | "ar";
 
+const copy = {
+  en: {
+    navAbout: "About Bid", navMarketplace: "Marketplace", navTraction: "Traction Link", navVendors: "For Vendors",
+    btnSignIn: "Sign in", btnCreateAccount: "Create an Account\u00a0→", btnDashboard: "Dashboard",
+    heroBadge: "Now live", heroLine1: "Sourcing", heroLine2: "Redefined",
+    heroSub: "Brief, Invite, Receive, Award Pre-Verified Vendors.",
+    heroCta: "Try Bid\u00a0→", heroSignIn: "Sign in",
+    awarded: "Awarded", aiDrafted: "AI drafted",
+    modalHeadline: "Source top vendors. Win top clients.", modalLogin: "Log in", modalSignUp: "Sign Up",
+    forRequesters: "For Requesters",
+    feat01Num: "01", feat01Title: "RFP Crafting",
+    feat01S1: "Create your brief.", feat01S2: "Invite your vendors.", feat01S3: "Receive proposals, ranked.",
+    feat01Quote: "One clear brief. No meetings.", feat01Accent: "Multiple proposals.",
+    feat01Stat: "72 hrs", feat01StatK: "Brief → proposals",
+    feat02Num: "02", feat02Title: "Bid Tenders Marketplace.",
+    feat02S1: "Craft the RFP.", feat02S2: "Attach the PO.", feat02S3: "Publish to marketplace.", feat02S4: "Receive proposals, ranked.",
+    feat02Quote: "Real intent. New vendors.", feat02Accent: "Proposals from the best.",
+    feat02Stat: "~38", feat02StatK: "New vendors / tender",
+    feat03Num: "03", feat03Title: "Traction Link",
+    feat03S1: "Vendors request to join.", feat03S2: "Expand your network.", feat03S3: "Invite to your next RFPs.",
+    feat03Quote: "Leverage your channels. ", feat03Accent: "Expand your network.", feat03Suffix: " Source from the inside.",
+    feat03Stat: "22→41%", feat03StatK: "Visitor → vendor",
+    forVendors: "For Vendors",
+    vc1Title: "Receive clear briefs.", vc1Body: "One‑pager RFPs you can actually read. Submit your proposal in a unified format every time, no re‑typing.",
+    vc2Title: "Explore pre‑POed tenders.", vc2Body: "A live feed of real, budgeted tenders. Stop chasing leads that vanish and win projects that are actually funded.",
+    vc3Title: "Connect with clients.", vc3Body: "Request to join their vendors base through Traction Links. Expand your client base without sending a single cold email.",
+    moreTitle: "And many more",
+    mc1Title: "Vendor verification.", mc1l1: "Identity, registration & tax compliance", mc1l2: "Past‑work references on the record", mc1l3: "Real‑time trust badges across the app",
+    mc2Title: "AI across the workflow.", mc2l1: "AI RFP creation from a paragraph or voice note", mc2l2: "Proposals summariser, read 14 bids in 2 minutes", mc2l3: "Vendors matching, find who's right for the brief",
+    mc3Title: "Make it yours.", mc3l1: "Customised company profiles", mc3l2: "Branded Traction Links on your domain", mc3l3: "White‑label vendor‑facing interfaces",
+    ctaTitle: "Start your first brief in 4 minutes.",
+    ctaBody: "No demos, no sales calls. Paste a paragraph and watch your first RFP land in your vendors' inboxes by lunch.",
+    ctaBtn: "Start free →",
+    ftBrand: "Bid turns messy sourcing into a clear workflow: create the RFP, invite the right vendors, and receive proposals in a unified format.",
+    ftReq: "FOR REQUESTERS", ftVen: "FOR VENDORS", ftCo: "COMPANY",
+    ftRFP: "RFP Crafting", ftMkt: "Marketplace", ftTrac: "Traction Link",
+    ftBriefs: "Receive briefs", ftTenders: "Explore tenders", ftConnect: "Connect with clients",
+    ftContact: "Contact", ftTerms: "Terms", ftPrivacy: "Privacy",
+    ftCopy: "© 2026 Bid, Sourcing Redefined.", ftCookies: "Cookies",
+  },
+  ar: {
+    navAbout: "عن Bid", navMarketplace: "السوق", navTraction: "رابط الجذب", navVendors: "للموردين",
+    btnSignIn: "تسجيل الدخول", btnCreateAccount: "إنشاء حساب\u00a0←", btnDashboard: "لوحة التحكم",
+    heroBadge: "متاح الآن", heroLine1: "المصادر", heroLine2: "مُعاد تعريفها",
+    heroSub: "أنشئ الطلب. ادعُ. استلم. كافئ موردين معتمدين.",
+    heroCta: "جرّب Bid\u00a0←", heroSignIn: "تسجيل الدخول",
+    awarded: "مُكافأ", aiDrafted: "بالذكاء الاصطناعي",
+    modalHeadline: "اكتشف أفضل الموردين. اكسب أفضل العملاء.", modalLogin: "تسجيل الدخول", modalSignUp: "إنشاء حساب",
+    forRequesters: "لأصحاب الطلبات",
+    feat01Num: "٠١", feat01Title: "إنشاء طلب العروض",
+    feat01S1: "أنشئ طلبك.", feat01S2: "ادعُ موردينك.", feat01S3: "استلم العروض مُصنَّفة.",
+    feat01Quote: "طلب واحد واضح. بدون اجتماعات.", feat01Accent: "عروض متعددة.",
+    feat01Stat: "٧٢ ساعة", feat01StatK: "من الطلب إلى العروض",
+    feat02Num: "٠٢", feat02Title: "سوق Bid للمناقصات.",
+    feat02S1: "أنشئ طلب العروض.", feat02S2: "أرفق أمر الشراء.", feat02S3: "انشر في السوق.", feat02S4: "استلم العروض مُصنَّفة.",
+    feat02Quote: "نية حقيقية. موردون جدد.", feat02Accent: "عروض من الأفضل.",
+    feat02Stat: "~٣٨", feat02StatK: "مورد جديد / مناقصة",
+    feat03Num: "٠٣", feat03Title: "رابط الجذب",
+    feat03S1: "الموردون يطلبون الانضمام.", feat03S2: "وسّع شبكتك.", feat03S3: "ادعُ إلى طلبات عروضك القادمة.",
+    feat03Quote: "استثمر قنواتك. ", feat03Accent: "وسّع شبكتك.", feat03Suffix: " تعامل من الداخل.",
+    feat03Stat: "٢٢←٤١٪", feat03StatK: "زائر ← مورد",
+    forVendors: "للموردين",
+    vc1Title: "استلم طلبات واضحة.", vc1Body: "طلبات عروض في صفحة واحدة يمكنك قراءتها فعلاً. قدّم عرضك بصيغة موحّدة كل مرة، بدون إعادة كتابة.",
+    vc2Title: "استكشف مناقصات مُقدَّمة الدفع.", vc2Body: "تغذية حية بمناقصات حقيقية ومموّلة. توقف عن ملاحقة عملاء محتملين يتلاشون واكسب مشاريع ممولة فعلاً.",
+    vc3Title: "تواصل مع العملاء.", vc3Body: "اطلب الانضمام إلى قاعدة مورديهم عبر روابط الجذب. وسّع قاعدة عملائك دون إرسال بريد إلكتروني بارد واحد.",
+    moreTitle: "والمزيد",
+    mc1Title: "التحقق من الموردين.", mc1l1: "الهوية والتسجيل والامتثال الضريبي", mc1l2: "مراجع الأعمال السابقة موثّقة", mc1l3: "شارات ثقة فورية في جميع أنحاء التطبيق",
+    mc2Title: "الذكاء الاصطناعي في كل مرحلة.", mc2l1: "إنشاء طلب عروض من فقرة أو ملاحظة صوتية", mc2l2: "ملخّص العروض — اقرأ ١٤ عرضاً في دقيقتين", mc2l3: "مطابقة الموردين، اعثر على المناسب للطلب",
+    mc3Title: "اجعله ملكك.", mc3l1: "ملفات شركة مخصّصة", mc3l2: "روابط جذب بعلامتك التجارية", mc3l3: "واجهات بيضاء للموردين",
+    ctaTitle: "ابدأ طلب عروضك الأول في ٤ دقائق.",
+    ctaBody: "بدون عروض تقديمية أو مكالمات مبيعات. الصق فقرة وشاهد طلبك يصل إلى بريد مورديك قبل الغداء.",
+    ctaBtn: "ابدأ مجاناً ←",
+    ftBrand: "Bid يحوّل عملية التوريد الفوضوية إلى سير عمل واضح: أنشئ طلب العروض، ادعُ الموردين المناسبين، واستلم العروض بصيغة موحدة.",
+    ftReq: "لأصحاب الطلبات", ftVen: "للموردين", ftCo: "الشركة",
+    ftRFP: "إنشاء طلب العروض", ftMkt: "السوق", ftTrac: "رابط الجذب",
+    ftBriefs: "استلم الطلبات", ftTenders: "استكشف المناقصات", ftConnect: "تواصل مع العملاء",
+    ftContact: "تواصل معنا", ftTerms: "الشروط", ftPrivacy: "الخصوصية",
+    ftCopy: "© ٢٠٢٦ Bid، المصادر مُعاد تعريفها.", ftCookies: "الكوكيز",
+  },
+} as const;
+
+function SignUpModal({ onClose, lang }: { onClose: () => void; lang: Lang }) {
+  const [, navigate] = useLocation();
+  const c = copy[lang];
   return (
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal-card">
+      <div className="modal-card" dir={lang === "ar" ? "rtl" : "ltr"}>
         <button className="modal-close" onClick={onClose} aria-label="Close">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
-
-        <div className="modal-icon">
-          <BidMonogram variant="onInk" size={56} />
-        </div>
-
-        <h2 className="modal-headline">Source top vendors. Win top clients.</h2>
-
-        <button
-          className="modal-btn"
-          onClick={() => { onClose(); navigate("/login?redirect=%2Ftenders%2Fnew%2Fai"); }}
-        >
-          Log in
-        </button>
-
-        <button
-          className="modal-btn primary"
-          onClick={() => { onClose(); navigate("/signup?redirect=%2Ftenders%2Fnew%2Fai"); }}
-        >
-          Sign Up
-        </button>
+        <div className="modal-icon"><BidMonogram variant="onInk" size={56} /></div>
+        <h2 className="modal-headline">{c.modalHeadline}</h2>
+        <button className="modal-btn" onClick={() => { onClose(); navigate("/login?redirect=%2Ftenders%2Fnew%2Fai"); }}>{c.modalLogin}</button>
+        <button className="modal-btn primary" onClick={() => { onClose(); navigate("/signup?redirect=%2Ftenders%2Fnew%2Fai"); }}>{c.modalSignUp}</button>
       </div>
     </div>
   );
@@ -40,20 +107,33 @@ function SignUpModal({ onClose }: { onClose: () => void }) {
 
 const Landing = () => {
   const [showModal, setShowModal] = useState(false);
+  const [lang, setLang] = useState<Lang>(() => {
+    try { return (localStorage.getItem("landing-lang") as Lang) || "en"; } catch { return "en"; }
+  });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuthStore();
+  const c = copy[lang];
+  const isRtl = lang === "ar";
 
-  const handleCreate = () => {
-    setShowModal(true);
+  const toggleLang = () => {
+    const next = lang === "en" ? "ar" : "en";
+    setLang(next);
+    try { localStorage.setItem("landing-lang", next); } catch {}
   };
+
+  const handleCreate = () => setShowModal(true);
 
   const scrollTo = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault();
+    setMobileMenuOpen(false);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const arrowRight = isRtl ? "←" : "→";
+
   return (
-    <div style={{ background: "var(--cream)" }}>
-      {showModal && <SignUpModal onClose={() => setShowModal(false)} />}
+    <div style={{ background: "var(--cream)" }} dir={isRtl ? "rtl" : "ltr"} className={isRtl ? "landing-rtl" : ""}>
+      {showModal && <SignUpModal onClose={() => setShowModal(false)} lang={lang} />}
       <div className="page">
 
         {/* ===== TOPBAR ===== */}
@@ -61,46 +141,71 @@ const Landing = () => {
           <a href="/" style={{ textDecoration: "none" }}>
             <BidLogo variant="orange" size={28} />
           </a>
-          <nav>
-            <a href="#rfp" onClick={scrollTo("rfp")}>About Bid</a>
-            <Link href="/marketplace">Marketplace</Link>
-            <a href="#traction" onClick={scrollTo("traction")}>Traction Link</a>
-            <a href="#vendors" onClick={scrollTo("vendors")}>For Vendors</a>
+
+          {/* Desktop nav */}
+          <nav className="topbar-nav-desktop">
+            <a href="#rfp" onClick={scrollTo("rfp")}>{c.navAbout}</a>
+            <Link href="/marketplace">{c.navMarketplace}</Link>
+            <a href="#traction" onClick={scrollTo("traction")}>{c.navTraction}</a>
+            <a href="#vendors" onClick={scrollTo("vendors")}>{c.navVendors}</a>
           </nav>
-          <div className="right">
-            {user ? (
-              <Link href="/dashboard">
-                <button className="btn btn-primary">Dashboard</button>
-              </Link>
-            ) : (
-              <>
-                <Link href="/login">
-                  <button className="btn btn-ghost">Sign in</button>
-                </Link>
-                <Link href="/signup">
-                  <button className="btn btn-primary">
-                    <span className="arrow">Create an Account→</span>
-                  </button>
-                </Link>
-              </>
-            )}
+
+          <div className="topbar-right">
+            {/* Language toggle */}
+            <button className="lang-toggle" onClick={toggleLang} aria-label="Switch language">
+              {lang === "en" ? "AR" : "EN"}
+            </button>
+
+            {/* Desktop auth buttons */}
+            <div className="topbar-auth-desktop">
+              {user ? (
+                <Link href="/dashboard"><button className="btn btn-primary">{c.btnDashboard}</button></Link>
+              ) : (
+                <>
+                  <Link href="/login"><button className="btn btn-ghost">{c.btnSignIn}</button></Link>
+                  <Link href="/signup"><button className="btn btn-primary"><span className="arrow">{c.btnCreateAccount}</span></button></Link>
+                </>
+              )}
+            </div>
+
+            {/* Mobile hamburger */}
+            <button className="hamburger" onClick={() => setMobileMenuOpen(o => !o)} aria-label="Menu">
+              <span></span><span></span><span></span>
+            </button>
           </div>
         </div>
 
+        {/* Mobile menu drawer */}
+        {mobileMenuOpen && (
+          <div className="mobile-menu" dir={isRtl ? "rtl" : "ltr"}>
+            <a href="#rfp" onClick={scrollTo("rfp")}>{c.navAbout}</a>
+            <Link href="/marketplace" onClick={() => setMobileMenuOpen(false)}>{c.navMarketplace}</Link>
+            <a href="#traction" onClick={scrollTo("traction")}>{c.navTraction}</a>
+            <a href="#vendors" onClick={scrollTo("vendors")}>{c.navVendors}</a>
+            <div className="mobile-menu-btns">
+              {user ? (
+                <Link href="/dashboard"><button className="btn btn-primary" style={{ width: "100%" }}>{c.btnDashboard}</button></Link>
+              ) : (
+                <>
+                  <Link href="/login"><button className="btn btn-ghost" style={{ width: "100%" }}>{c.btnSignIn}</button></Link>
+                  <Link href="/signup"><button className="btn btn-primary" style={{ width: "100%" }}>{c.btnCreateAccount}</button></Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ===== HERO ===== */}
         <section className="hero" id="hero">
-          <span className="badge"><span className="d"></span>Now live</span>
-          <h1>Sourcing<br />Redefined<span className="accent" style={{ color: "var(--orange)" }}>.</span></h1>
-          <p className="sub">Brief, Invite, Receive, Award Pre-Verified Vendors.</p>
-
+          <span className="badge"><span className="d"></span>{c.heroBadge}</span>
+          <h1>{c.heroLine1}<br />{c.heroLine2}<span className="accent" style={{ color: "var(--orange)" }}>.</span></h1>
+          <p className="sub">{c.heroSub}</p>
           <div className="ctas">
-            <button className="btn btn-primary" onClick={handleCreate}>Try Bid&nbsp;→</button>
-            <Link href="/login">
-              <button className="btn btn-ghost">Sign in</button>
-            </Link>
+            <button className="btn btn-primary" onClick={handleCreate}>{c.heroCta}</button>
+            <Link href="/login"><button className="btn btn-ghost">{c.heroSignIn}</button></Link>
           </div>
 
-          {/* Floating decorations */}
+          {/* Floating decorations — hidden on mobile via CSS */}
           <div className="hero-deco">
             <div className="piece" style={{ top: "24%", left: "5%", "--r": "-7deg", transform: "rotate(-7deg)" } as React.CSSProperties}>
               <div style={{ background: "white", borderRadius: 12, padding: "10px 12px", width: 170, boxShadow: "0 14px 28px -10px rgba(11,9,7,.18)", display: "flex", flexDirection: "column", gap: 6 }}>
@@ -126,7 +231,7 @@ const Landing = () => {
             <div className="piece" style={{ top: "58%", left: "9%", "--r": "4deg", transform: "rotate(4deg)", animationDelay: "1.3s" } as React.CSSProperties}>
               <div style={{ background: "var(--green)", color: "white", borderRadius: 100, padding: "9px 16px 9px 12px", fontSize: 13, fontWeight: 600, boxShadow: "0 14px 28px -10px rgba(34,197,94,.5)", display: "inline-flex", alignItems: "center", gap: 8 }}>
                 <span style={{ width: 18, height: 18, borderRadius: "50%", background: "white", color: "var(--green)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800 }}>✓</span>
-                Awarded
+                {c.awarded}
               </div>
             </div>
             <div className="piece" style={{ top: "50%", right: "5%", "--r": "-12deg", transform: "rotate(-12deg)", animationDelay: ".9s" } as React.CSSProperties}>
@@ -139,29 +244,26 @@ const Landing = () => {
                 <span style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--orange)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M12 0l2 8 8 2-8 2-2 8-2-8-8-2 8-2z" /></svg>
                 </span>
-                AI drafted
+                {c.aiDrafted}
               </div>
             </div>
           </div>
-
         </section>
 
         {/* ===== FOR REQUESTERS BANNER ===== */}
         <section id="requesters" className="vendors-section">
           <div className="vendors-hero">
             <div className="bg-dots"></div>
-            <h2>For Requesters<span className="dot-end">.</span></h2>
+            <h2>{c.forRequesters}<span className="dot-end">.</span></h2>
           </div>
         </section>
-
-        {/* ===== FEATURES ===== */}
 
         {/* Feature 01 · RFP Crafting */}
         <section id="rfp">
           <div className="sec-head">
             <div>
-              <div className="num">01</div>
-              <h2>RFP Crafting<span className="dot-end">.</span></h2>
+              <div className="num">{c.feat01Num}</div>
+              <h2>{c.feat01Title}<span className="dot-end">.</span></h2>
             </div>
           </div>
           <div className="stages s3">
@@ -182,7 +284,7 @@ const Landing = () => {
                   <div className="sparkle"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2 8 8 2-8 2-2 8-2-8-8-2 8-2z" /><circle cx="20" cy="4" r="1.5" /><circle cx="4" cy="20" r="1" /></svg></div>
                 </div>
               </div>
-              <div className="footer"><h3>Create your brief.</h3><div className="arrow-pill">→</div></div>
+              <div className="footer"><h3>{c.feat01S1}</h3><div className="arrow-pill">{arrowRight}</div></div>
             </div>
             <div className="stage">
               <div className="visual">
@@ -203,7 +305,7 @@ const Landing = () => {
                   </div>
                 </div>
               </div>
-              <div className="footer"><h3>Invite your vendors.</h3><div className="arrow-pill">→</div></div>
+              <div className="footer"><h3>{c.feat01S2}</h3><div className="arrow-pill">{arrowRight}</div></div>
             </div>
             <div className="stage">
               <div className="visual">
@@ -219,19 +321,19 @@ const Landing = () => {
                   ))}
                 </div>
               </div>
-              <div className="footer"><h3>Receive proposals, ranked.</h3><div className="arrow-pill" style={{ background: "var(--orange)" }}>✓</div></div>
+              <div className="footer"><h3>{c.feat01S3}</h3><div className="arrow-pill" style={{ background: "var(--orange)" }}>✓</div></div>
             </div>
           </div>
           <div className="takeaway">
-            <div className="quote">One clear brief. No meetings. <span className="accent">Multiple proposals.</span></div>
-            <div className="stat"><div className="v">72 hrs</div><div className="k">Brief → proposals</div></div>
+            <div className="quote">{c.feat01Quote} <span className="accent">{c.feat01Accent}</span></div>
+            <div className="stat"><div className="v">{c.feat01Stat}</div><div className="k">{c.feat01StatK}</div></div>
           </div>
         </section>
 
-        {/* Feature 02 · Bid Tenders Marketplace */}
+        {/* Feature 02 · Marketplace */}
         <section id="marketplace">
           <div className="sec-head">
-            <div><div className="num">02</div><h2>Bid Tenders Marketplace.</h2></div>
+            <div><div className="num">{c.feat02Num}</div><h2>{c.feat02Title}</h2></div>
           </div>
           <div className="stages s4">
             <div className="stage">
@@ -245,7 +347,7 @@ const Landing = () => {
                   <div className="line" style={{ width: "80%" }}></div><div className="line" style={{ width: "55%" }}></div>
                 </div>
               </div>
-              <div className="footer"><h3>Craft the RFP.</h3><div className="arrow-pill">→</div></div>
+              <div className="footer"><h3>{c.feat02S1}</h3><div className="arrow-pill">{arrowRight}</div></div>
             </div>
             <div className="stage">
               <div className="visual">
@@ -259,7 +361,7 @@ const Landing = () => {
                   <div className="stamp">Pre‑<br />Awarded</div>
                 </div>
               </div>
-              <div className="footer"><h3>Attach the PO.</h3><div className="arrow-pill">→</div></div>
+              <div className="footer"><h3>{c.feat02S2}</h3><div className="arrow-pill">{arrowRight}</div></div>
             </div>
             <div className="stage">
               <div className="visual">
@@ -270,7 +372,7 @@ const Landing = () => {
                   {[0, 1, 2, 3].map((i) => (<div key={i} className="item"><div className="swatch"></div><div className="l"></div><div className="l short"></div></div>))}
                 </div>
               </div>
-              <div className="footer"><h3>Publish to marketplace.</h3><div className="arrow-pill">→</div></div>
+              <div className="footer"><h3>{c.feat02S3}</h3><div className="arrow-pill">{arrowRight}</div></div>
             </div>
             <div className="stage">
               <div className="visual">
@@ -288,19 +390,19 @@ const Landing = () => {
                   ))}
                 </div>
               </div>
-              <div className="footer"><h3>Receive proposals, ranked.</h3><div className="arrow-pill" style={{ background: "var(--orange)" }}>✓</div></div>
+              <div className="footer"><h3>{c.feat02S4}</h3><div className="arrow-pill" style={{ background: "var(--orange)" }}>✓</div></div>
             </div>
           </div>
           <div className="takeaway">
-            <div className="quote">Real intent. New vendors. <span className="accent">Proposals from the best.</span></div>
-            <div className="stat"><div className="v">~38</div><div className="k">New vendors / tender</div></div>
+            <div className="quote">{c.feat02Quote} <span className="accent">{c.feat02Accent}</span></div>
+            <div className="stat"><div className="v">{c.feat02Stat}</div><div className="k">{c.feat02StatK}</div></div>
           </div>
         </section>
 
         {/* Feature 03 · Traction Link */}
         <section id="traction">
           <div className="sec-head">
-            <div><div className="num">03</div><h2>Traction Link<span className="dot-end">.</span></h2></div>
+            <div><div className="num">{c.feat03Num}</div><h2>{c.feat03Title}<span className="dot-end">.</span></h2></div>
           </div>
           <div className="stages s3">
             <div className="stage">
@@ -317,7 +419,7 @@ const Landing = () => {
                   <div className="row-mini"><div className="label">Requests this week</div><div className="stat">+12</div></div>
                 </div>
               </div>
-              <div className="footer"><h3>Vendors request to join.</h3><div className="arrow-pill">→</div></div>
+              <div className="footer"><h3>{c.feat03S1}</h3><div className="arrow-pill">{arrowRight}</div></div>
             </div>
             <div className="stage">
               <div className="visual">
@@ -330,7 +432,7 @@ const Landing = () => {
                   <span className="badge-pill"><span className="d"></span>Network +27</span>
                 </div>
               </div>
-              <div className="footer"><h3>Expand your network.</h3><div className="arrow-pill">→</div></div>
+              <div className="footer"><h3>{c.feat03S2}</h3><div className="arrow-pill">{arrowRight}</div></div>
             </div>
             <div className="stage">
               <div className="visual">
@@ -344,12 +446,12 @@ const Landing = () => {
                   ))}
                 </div>
               </div>
-              <div className="footer"><h3>Invite to your next RFPs.</h3><div className="arrow-pill" style={{ background: "var(--orange)" }}>✓</div></div>
+              <div className="footer"><h3>{c.feat03S3}</h3><div className="arrow-pill" style={{ background: "var(--orange)" }}>✓</div></div>
             </div>
           </div>
           <div className="takeaway">
-            <div className="quote">Leverage your channels. <span className="accent">Expand your network.</span> Source from the inside.</div>
-            <div className="stat"><div className="v">22→41%</div><div className="k">Visitor → vendor</div></div>
+            <div className="quote">{c.feat03Quote}<span className="accent">{c.feat03Accent}</span>{c.feat03Suffix}</div>
+            <div className="stat"><div className="v">{c.feat03Stat}</div><div className="k">{c.feat03StatK}</div></div>
           </div>
         </section>
 
@@ -357,7 +459,7 @@ const Landing = () => {
         <section id="vendors" className="vendors-section">
           <div className="vendors-hero">
             <div className="bg-dots"></div>
-            <h2>For Vendors<span className="dot-end">.</span></h2>
+            <h2>{c.forVendors}<span className="dot-end">.</span></h2>
           </div>
           <div className="vendor-cards">
             <div className="vcard">
@@ -368,8 +470,8 @@ const Landing = () => {
                   <div className="send">Submit →</div>
                 </div>
               </div>
-              <h3>Receive clear briefs.</h3>
-              <p>One‑pager RFPs you can actually read. Submit your proposal in a unified format every time, no re‑typing.</p>
+              <h3>{c.vc1Title}</h3>
+              <p>{c.vc1Body}</p>
             </div>
             <div className="vcard">
               <div className="visual">
@@ -379,8 +481,8 @@ const Landing = () => {
                   ))}
                 </div>
               </div>
-              <h3>Explore pre‑POed tenders.</h3>
-              <p>A live feed of real, budgeted tenders. Stop chasing leads that vanish and win projects that are actually funded.</p>
+              <h3>{c.vc2Title}</h3>
+              <p>{c.vc2Body}</p>
             </div>
             <div className="vcard">
               <div className="visual">
@@ -396,8 +498,8 @@ const Landing = () => {
                   ))}
                 </div>
               </div>
-              <h3>Connect with clients.</h3>
-              <p>Request to join their vendors base through Traction Links. Expand your client base without sending a single cold email.</p>
+              <h3>{c.vc3Title}</h3>
+              <p>{c.vc3Body}</p>
             </div>
           </div>
         </section>
@@ -405,29 +507,29 @@ const Landing = () => {
         {/* ===== AND MANY MORE ===== */}
         <section style={{ padding: "40px 0 80px" }}>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <h2 style={{ fontSize: "clamp(64px,7vw,108px)", fontWeight: 700, letterSpacing: "-.04em", lineHeight: .95, color: "var(--ink)" }}>And many more<span style={{ color: "var(--orange)" }}>.</span></h2>
+            <h2 style={{ fontSize: "clamp(56px,7vw,108px)", fontWeight: 700, letterSpacing: "-.04em", lineHeight: .95, color: "var(--ink)" }}>{c.moreTitle}<span style={{ color: "var(--orange)" }}>.</span></h2>
           </div>
           <div className="more-grid">
             <div className="mcard">
               <div className="icon-bubble">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L4 6v6c0 5 3 9 8 10 5-1 8-5 8-10V6l-8-4z" /><path d="M9 12l2 2 4-4" /></svg>
               </div>
-              <h4>Vendor verification.</h4>
-              <ul><li>Identity, registration &amp; tax compliance</li><li>Past‑work references on the record</li><li>Real‑time trust badges across the app</li></ul>
+              <h4>{c.mc1Title}</h4>
+              <ul><li>{c.mc1l1}</li><li>{c.mc1l2}</li><li>{c.mc1l3}</li></ul>
             </div>
             <div className="mcard">
               <div className="icon-bubble">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2 8 8 2-8 2-2 8-2-8-8-2 8-2z" /><circle cx="20" cy="4" r="1.5" /><circle cx="4" cy="20" r="1" /></svg>
               </div>
-              <h4>AI across the workflow.</h4>
-              <ul><li>AI RFP creation from a paragraph or voice note</li><li>Proposals summariser, read 14 bids in 2 minutes</li><li>Vendors matching, find who's right for the brief</li></ul>
+              <h4>{c.mc2Title}</h4>
+              <ul><li>{c.mc2l1}</li><li>{c.mc2l2}</li><li>{c.mc2l3}</li></ul>
             </div>
             <div className="mcard">
               <div className="icon-bubble">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18" /></svg>
               </div>
-              <h4>Make it yours.</h4>
-              <ul><li>Customised company profiles</li><li>Branded Traction Links on your domain</li><li>White‑label vendor‑facing interfaces</li></ul>
+              <h4>{c.mc3Title}</h4>
+              <ul><li>{c.mc3l1}</li><li>{c.mc3l2}</li><li>{c.mc3l3}</li></ul>
             </div>
           </div>
         </section>
@@ -437,11 +539,11 @@ const Landing = () => {
       {/* ===== CTA STRIP ===== */}
       <div className="cta-strip" style={{ margin: "0 56px 80px" }}>
         <div className="bg-dots"></div>
-        <h2 style={{ color: "white" }}>Start your first brief in 4 minutes.</h2>
+        <h2 style={{ color: "white" }}>{c.ctaTitle}</h2>
         <div className="right">
-          <p>No demos, no sales calls. Paste a paragraph and watch your first RFP land in your vendors' inboxes by lunch.</p>
+          <p>{c.ctaBody}</p>
           <div className="btns">
-            <button className="btn-white" style={{ cursor: "pointer" }} onClick={handleCreate}>Start free →</button>
+            <button className="btn-white" style={{ cursor: "pointer" }} onClick={handleCreate}>{c.ctaBtn}</button>
           </div>
         </div>
       </div>
@@ -452,36 +554,36 @@ const Landing = () => {
           <div className="footer-row">
             <div className="brand">
               <BidLogo variant="orange" size={32} style={{ marginBottom: 16, display: "block" }} />
-              <p>Bid turns messy sourcing into a clear workflow: create the RFP, invite the right vendors, and receive proposals in a unified format.</p>
+              <p>{c.ftBrand}</p>
             </div>
             <div>
-              <h5>FOR REQUESTERS</h5>
-              <a href="#rfp" onClick={scrollTo("rfp")}>RFP Crafting</a>
-              <Link href="/marketplace">Marketplace</Link>
-              <a href="#traction" onClick={scrollTo("traction")}>Traction Link</a>
+              <h5>{c.ftReq}</h5>
+              <a href="#rfp" onClick={scrollTo("rfp")}>{c.ftRFP}</a>
+              <Link href="/marketplace">{c.ftMkt}</Link>
+              <a href="#traction" onClick={scrollTo("traction")}>{c.ftTrac}</a>
             </div>
             <div>
-              <h5>FOR VENDORS</h5>
-              <a href="#vendors" onClick={scrollTo("vendors")}>Receive briefs</a>
-              <a href="#vendors" onClick={scrollTo("vendors")}>Explore tenders</a>
-              <a href="#vendors" onClick={scrollTo("vendors")}>Connect with clients</a>
+              <h5>{c.ftVen}</h5>
+              <a href="#vendors" onClick={scrollTo("vendors")}>{c.ftBriefs}</a>
+              <a href="#vendors" onClick={scrollTo("vendors")}>{c.ftTenders}</a>
+              <a href="#vendors" onClick={scrollTo("vendors")}>{c.ftConnect}</a>
             </div>
             <div>
-              <h5>COMPANY</h5>
-              <a href="mailto:hello@bid.sa">Contact</a>
-              <Link href="/terms">Terms</Link>
-              <Link href="/privacy">Privacy</Link>
+              <h5>{c.ftCo}</h5>
+              <a href="mailto:hello@bid.sa">{c.ftContact}</a>
+              <Link href="/terms">{c.ftTerms}</Link>
+              <Link href="/privacy">{c.ftPrivacy}</Link>
             </div>
           </div>
           <div className="footer-bot">
-            <span>© 2026 Bid, Sourcing Redefined.</span>
+            <span>{c.ftCopy}</span>
             <span className="footer-partner">
               <img src="/saudi-tech-logo.png" alt="Saudi Tech" />
             </span>
             <span>
-              <Link href="/terms">Terms</Link>{" · "}
-              <Link href="/privacy">Privacy</Link>{" · "}
-              <a href="#">Cookies</a>
+              <Link href="/terms">{c.ftTerms}</Link>{" · "}
+              <Link href="/privacy">{c.ftPrivacy}</Link>{" · "}
+              <a href="#">{c.ftCookies}</a>
             </span>
           </div>
         </div>

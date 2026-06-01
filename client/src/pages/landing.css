@@ -717,10 +717,10 @@
     /* Hero: extra bottom padding creates a safe zone for the bottom cards */
     .hero{padding:64px 0 200px;overflow:hidden;min-height:620px}
 
-    /* p1 — RFP card: hug left edge, top corner, peek ~40px in */
-    .hero-deco .piece.p1{top:4%;left:-110px;--s:.65}
-    /* p2 — avatar cluster: hug right edge, top corner */
-    .hero-deco .piece.p2{top:2%;right:-90px;--s:.62}
+    /* p1 — RFP card: top-left, about half visible */
+    .hero-deco .piece.p1{top:4%;left:-52px;--s:.65}
+    /* p2 — avatar cluster: top-right, about half visible */
+    .hero-deco .piece.p2{top:2%;right:-44px;--s:.62}
     /* p3 — Awarded pill: bottom-left, below the CTA zone */
     .hero-deco .piece.p3{top:auto;bottom:7%;left:-8px;--s:.82}
     /* p4 — Pre-Awarded PO circle: bottom-right, below CTAs */

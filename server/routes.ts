@@ -3032,6 +3032,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json(tender);
         }
 
+        // Vendors who submitted an offer have read access
+        const submittedOffer = await storage.getOfferByTenderAndCompany(req.params.id, userCompanyId!);
+        if (submittedOffer) {
+          return res.json(tender);
+        }
+
         return res.status(403).json({ message: "Access denied" });
       } catch (error) {
         console.error('Get tender error:', error);

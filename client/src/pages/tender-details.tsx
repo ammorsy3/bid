@@ -393,10 +393,13 @@ export default function TenderDetails() {
       const response = await fetch(`/api/tenders/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
-      if (response.status === 401 || response.status === 403) {
+      if (response.status === 401) {
         localStorage.removeItem("token");
         useAuthStore.getState().logout();
         throw new Error("Session expired");
+      }
+      if (response.status === 403) {
+        throw new Error("Access denied");
       }
       if (!response.ok) throw new Error("Failed to fetch tender");
       return response.json();
@@ -439,7 +442,7 @@ export default function TenderDetails() {
     userId: user?.id ?? '',
     steps: getSteps(TENDER_DETAILS_TOUR_STEPS, language),
     isRtl,
-    autoStart: !!user && !!tender,
+    autoStart: !!user && !!tender && isOwner,
     autoStartDelay: 1500,
   });
 

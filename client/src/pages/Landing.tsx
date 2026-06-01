@@ -205,9 +205,9 @@ const Landing = () => {
             <Link href="/login"><button className="btn btn-ghost">{c.heroSignIn}</button></Link>
           </div>
 
-          {/* Floating decorations — hidden on mobile via CSS */}
+          {/* Floating decorations */}
           <div className="hero-deco">
-            <div className="piece" style={{ top: "24%", left: "5%", "--r": "-7deg", transform: "rotate(-7deg)" } as React.CSSProperties}>
+            <div className="piece p1" style={{ "--r": "-7deg" } as React.CSSProperties}>
               <div style={{ background: "white", borderRadius: 12, padding: "10px 12px", width: 170, boxShadow: "0 14px 28px -10px rgba(11,9,7,.18)", display: "flex", flexDirection: "column", gap: 6 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ height: 6, width: "50%", background: "var(--ink)", borderRadius: 3 }}></div>
@@ -218,7 +218,7 @@ const Landing = () => {
                 <div style={{ alignSelf: "flex-end", background: "var(--orange)", color: "white", fontSize: 9, fontWeight: 600, padding: "4px 9px", borderRadius: 5, marginTop: 2 }}>Publish</div>
               </div>
             </div>
-            <div className="piece" style={{ top: "14%", right: "7%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".6s" } as React.CSSProperties}>
+            <div className="piece p2" style={{ "--r": "5deg" } as React.CSSProperties}>
               <div style={{ background: "white", borderRadius: 100, padding: "6px 8px", display: "inline-flex", alignItems: "center", gap: 4, boxShadow: "0 14px 28px -10px rgba(11,9,7,.16)" }}>
                 {["var(--orange)", "var(--yellow)", "var(--blue)"].map((bg, i) => (
                   <div key={i} style={{ width: 28, height: 28, borderRadius: "50%", background: bg, border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center", color: bg === "var(--yellow)" ? "var(--ink)" : "white", marginLeft: i === 0 ? 0 : -10 }}>
@@ -228,18 +228,18 @@ const Landing = () => {
                 <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink)", padding: "0 8px 0 4px" }}>+27</span>
               </div>
             </div>
-            <div className="piece" style={{ top: "58%", left: "9%", "--r": "4deg", transform: "rotate(4deg)", animationDelay: "1.3s" } as React.CSSProperties}>
+            <div className="piece p3" style={{ "--r": "4deg" } as React.CSSProperties}>
               <div style={{ background: "var(--green)", color: "white", borderRadius: 100, padding: "9px 16px 9px 12px", fontSize: 13, fontWeight: 600, boxShadow: "0 14px 28px -10px rgba(34,197,94,.5)", display: "inline-flex", alignItems: "center", gap: 8 }}>
                 <span style={{ width: 18, height: 18, borderRadius: "50%", background: "white", color: "var(--green)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800 }}>✓</span>
                 {c.awarded}
               </div>
             </div>
-            <div className="piece" style={{ top: "50%", right: "5%", "--r": "-12deg", transform: "rotate(-12deg)", animationDelay: ".9s" } as React.CSSProperties}>
+            <div className="piece p4" style={{ "--r": "-12deg" } as React.CSSProperties}>
               <div style={{ width: 88, height: 88, borderRadius: "50%", background: "var(--orange)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, textAlign: "center", lineHeight: 1.1, letterSpacing: ".04em", textTransform: "uppercase", boxShadow: "0 14px 28px -10px rgba(254,60,1,.5)" }}>
                 Pre‑<br />Awarded<br />PO
               </div>
             </div>
-            <div className="piece" style={{ bottom: "8%", right: "14%", "--r": "6deg", transform: "rotate(6deg)", animationDelay: "2.1s" } as React.CSSProperties}>
+            <div className="piece p5" style={{ "--r": "6deg" } as React.CSSProperties}>
               <div style={{ background: "var(--ink)", color: "white", borderRadius: 100, padding: "8px 14px 8px 10px", fontSize: 13, fontWeight: 600, boxShadow: "0 14px 28px -10px rgba(11,9,7,.4)", display: "inline-flex", alignItems: "center", gap: 8 }}>
                 <span style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--orange)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M12 0l2 8 8 2-8 2-2 8-2-8-8-2 8-2z" /></svg>

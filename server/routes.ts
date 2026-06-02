@@ -261,12 +261,17 @@ const optionalAuth = async (req: AuthRequest, res: Response, next: Function) => 
 // HELPER FUNCTIONS
 // ============================================================================
 
-// Returns an error message if evaluationCriteria.weights don't sum to 100 (±1 rounding tolerance)
+// Returns an error message if evaluationCriteria weights don't sum to 100 (±1 rounding tolerance).
+// Both category weights and custom-criteria weights count toward the 100% total, matching the UI.
 const validateEvalWeights = (ec: unknown): string | null => {
   if (!ec || typeof ec !== 'object' || Array.isArray(ec)) return null;
   const weights: any[] = Array.isArray((ec as any).weights) ? (ec as any).weights : [];
   if (weights.length === 0) return null;
-  const total = weights.reduce((sum: number, w: any) => sum + (Number(w.weight) || 0), 0);
+  const categoryTotal = weights.reduce((sum: number, w: any) => sum + (Number(w.weight) || 0), 0);
+  const customTotal = Array.isArray((ec as any).customCriteria)
+    ? (ec as any).customCriteria.reduce((sum: number, c: any) => sum + (Number(c.weight) || 0), 0)
+    : 0;
+  const total = categoryTotal + customTotal;
   if (Math.abs(total - 100) > 1) {
     return `Evaluation criteria weights must sum to 100% (currently ${total.toFixed(1)}%)`;
   }

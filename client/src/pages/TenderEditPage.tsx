@@ -352,7 +352,11 @@ export default function TenderEditPage() {
         description: m.description,
         dueDate: m.dueDate ? m.dueDate.toISOString() : undefined,
       }));
-      const hasAnyCriteria = selectedRequirements.length > 0 || customCriteria.length > 0;
+      const totalCategoryWeight = categoryWeights.reduce((sum, cw) => sum + cw.weight, 0);
+      const hasAnyCriteria =
+        selectedRequirements.length > 0 ||
+        customCriteria.length > 0 ||
+        totalCategoryWeight > 0;
       const evaluationCriteriaPayload = hasAnyCriteria
         ? { requirements: selectedRequirements, weights: categoryWeights, customCriteria }
         : null;

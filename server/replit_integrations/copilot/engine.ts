@@ -83,7 +83,11 @@ export function readinessFailures(draft: any): string[] {
   }
   const weights = draft?.evaluationCriteria?.weights;
   if (Array.isArray(weights) && weights.length > 0) {
-    const sum = weights.reduce((a: number, w: any) => a + (Number(w?.weight) || 0), 0);
+    const categorySum = weights.reduce((a: number, w: any) => a + (Number(w?.weight) || 0), 0);
+    const customSum = Array.isArray(draft?.evaluationCriteria?.customCriteria)
+      ? draft.evaluationCriteria.customCriteria.reduce((a: number, c: any) => a + (Number(c?.weight) || 0), 0)
+      : 0;
+    const sum = categorySum + customSum;
     if (Math.abs(sum - 100) > 0.5) fails.push(`evaluationCriteria weights sum ${sum}≠100`);
   }
   return fails;

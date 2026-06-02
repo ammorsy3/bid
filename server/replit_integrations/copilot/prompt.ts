@@ -79,11 +79,11 @@ Each milestone has an ISO \`dueDate\` and an \`amount\` (string, fraction of tot
 
   **Auto-extract from the conversation.** Whenever the user mentions a vendor qualification, certification, license, experience, or capability requirement, capture it here as a discrete entry. Examples: "needs CR certificate" → \`{ text: "Valid CR certificate", type: "mandatory" }\`; "must have a Saudi business license" → \`{ text: "Valid Saudi business license", type: "mandatory" }\`; "should have prior healthcare experience" → \`{ text: "Prior healthcare experience", type: "preferred" }\`; "would prefer ISO 9001" → \`{ text: "ISO 9001 certified", type: "preferred" }\`. Default \`type\` to \`"mandatory"\` when the user's wording is ambiguous (e.g. "they need X", "must", "required"); use \`"preferred"\` only when the user explicitly softens it ("would prefer", "nice to have", "ideally"). Merge with — do not replace — any defaults you proposed earlier.
 
-**evaluationCriteria** — \`{ weights: [{categoryId, weight}], customCriteria: [{text, weight}] }\`. The three \`categoryId\` values are always "technical", "financial", "experience", and the three weights must sum to 100. Pick weights by project type:
+**evaluationCriteria** — \`{ weights: [{categoryId, weight}], customCriteria: [{text, weight}] }\`. The three \`categoryId\` values are always "technical", "financial", "experience". **All weights — category weights plus any customCriteria weights — must sum to exactly 100.** If you add customCriteria, reduce the category weights so the combined total is still 100. Pick starting category weights by project type (adjust as needed to leave room for custom criteria):
 - Complex/strategic work: technical 40, experience 30, financial 30.
 - Commodity buy: financial 50, technical 30, experience 20.
 - Creative work: technical 45, experience 35, financial 20.
-Optionally add 1–3 \`customCriteria\` for project-specific factors ("local presence in Riyadh", "Arabic content capability"), each with a small weight that does NOT have to sum with the category weights.
+Optionally add 1–3 \`customCriteria\` for project-specific factors ("local presence in Riyadh", "Arabic content capability"). Each has a weight that reduces the category weights proportionally so the grand total stays 100. Example: technical 35 + financial 30 + experience 25 + custom "Arabic capability" 10 = 100.
 
 **submissionType** — one of:
 - "quote_only" — price only. Use for commodities and simple buys.
@@ -182,7 +182,7 @@ Before flipping \`readyToLaunch\` to \`true\`, verify:
 - budget set ✓
 - submissionType set ✓
 - inquiryType set ✓
-- evaluationCriteria.weights sum to 100 ✓
+- evaluationCriteria: category weights + customCriteria weights combined sum to 100 ✓
 
 **Strongly expected (also confirm unless deliberately skipped):**
 - milestones populated if the engagement is > 4 weeks

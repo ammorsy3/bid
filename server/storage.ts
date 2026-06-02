@@ -2252,6 +2252,7 @@ export class DatabaseStorage implements IStorage {
       eq(tenders.marketplaceStatus, 'approved'),
       eq(tenders.status, 'published'),
       isNull(companies.deletedAt),
+      gte(tenders.deadline, new Date().toISOString().split('T')[0]),
     ];
 
     if (options.search) {

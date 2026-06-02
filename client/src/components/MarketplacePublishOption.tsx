@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -128,7 +129,16 @@ export function MarketplacePublishOption({
       </div>
 
       {/* Expanded fields when enabled */}
+      <AnimatePresence initial={false}>
       {value.enabled && (
+        <motion.div
+          key="marketplace-expanded"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.22, ease: "easeInOut" }}
+          className="overflow-hidden"
+        >
         <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
           {/* Binding warning */}
           <div className="p-3 bg-amber-50 rounded-lg border border-amber-200/60">
@@ -290,7 +300,9 @@ export function MarketplacePublishOption({
             </span>
           </label>
         </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

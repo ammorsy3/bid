@@ -1413,6 +1413,56 @@ export default function TenderAICopilot() {
                   </button>
                 </div>
               )}
+              {isReady && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mb-3 space-y-3"
+                >
+                  <MarketplacePublishOption
+                    value={marketplaceOptions}
+                    onChange={setMarketplaceOptions}
+                    deadline={tenderDraft.submissionDeadline}
+                    language={i18nLang}
+                    isRtl={i18nIsRtl}
+                    t={t}
+                  />
+                  {Array.isArray(tenderDraft.vendorRequirements) && tenderDraft.vendorRequirements.length > 0 && (
+                    <div
+                      className="text-xs text-muted-foreground flex items-center gap-1.5"
+                      data-testid="copilot-vendor-reqs-detected"
+                    >
+                      <Shield className="h-3.5 w-3.5" />
+                      <span>
+                        {tenderDraft.vendorRequirements.filter((r: any) => r.type === 'mandatory').length} mandatory
+                        {' · '}
+                        {tenderDraft.vendorRequirements.filter((r: any) => r.type === 'preferred').length} preferred vendor requirements detected
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      onClick={handleLaunchTender}
+                      disabled={marketplaceOptions.enabled && !marketplaceOptions.confirmed}
+                      className="h-12 px-6 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 rounded-xl gap-2 shadow-lg shadow-green-500/25"
+                    >
+                      <Rocket className="h-4 w-4" />
+                      {t('copilot.launchRfp')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleEditInBuilder}
+                      className="h-12 px-4 rounded-xl gap-2 border-border"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      {t('copilot.editFullBuilder')}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -1446,58 +1496,6 @@ export default function TenderAICopilot() {
                     </Button>
                   </div>
                 </div>
-
-                {isReady && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex flex-col items-center gap-3 w-full max-w-md"
-                  >
-                    <div className="w-full">
-                      <MarketplacePublishOption
-                        value={marketplaceOptions}
-                        onChange={setMarketplaceOptions}
-                        deadline={tenderDraft.submissionDeadline}
-                        language={i18nLang}
-                        isRtl={i18nIsRtl}
-                        t={t}
-                      />
-                    </div>
-                    {Array.isArray(tenderDraft.vendorRequirements) && tenderDraft.vendorRequirements.length > 0 && (
-                      <div
-                        className="text-xs text-muted-foreground flex items-center gap-1.5"
-                        data-testid="copilot-vendor-reqs-detected"
-                      >
-                        <Shield className="h-3.5 w-3.5" />
-                        <span>
-                          {tenderDraft.vendorRequirements.filter((r: any) => r.type === 'mandatory').length} mandatory
-                          {' · '}
-                          {tenderDraft.vendorRequirements.filter((r: any) => r.type === 'preferred').length} preferred vendor requirements detected
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        onClick={handleLaunchTender}
-                        disabled={marketplaceOptions.enabled && !marketplaceOptions.confirmed}
-                        className="h-12 px-6 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 rounded-xl gap-2 shadow-lg shadow-green-500/25"
-                      >
-                        <Rocket className="h-4 w-4" />
-                        {t('copilot.launchRfp')}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleEditInBuilder}
-                        className="h-12 px-4 rounded-xl gap-2 border-border"
-                      >
-                        <Pencil className="h-4 w-4" />
-                        {t('copilot.editFullBuilder')}
-                      </Button>
-                    </div>
-                  </motion.div>
-                )}
               </form>
 
               {/* Quick Reply Chips */}

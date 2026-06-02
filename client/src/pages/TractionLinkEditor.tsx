@@ -403,10 +403,10 @@ export default function TractionLinkEditor() {
 
         {/* ── LEFT: Editor Panel ── */}
         <ScrollArea className="w-full md:w-[340px] flex-shrink-0 border-r border-border bg-muted">
-          <div className="p-4 space-y-5">
+          <div className="divide-y divide-border">
 
             {/* ─── Logo ─── */}
-            <section>
+            <section className="px-4 py-3">
               <div className="flex items-center gap-2 mb-2">
                 <Image className="h-3.5 w-3.5 text-gray-400" />
                 <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{t('tractionPage.editorLogo')}</h3>
@@ -444,7 +444,7 @@ export default function TractionLinkEditor() {
             </section>
 
             {/* ─── Background Style ─── */}
-            <section>
+            <section className="px-4 py-3">
               <div className="flex items-center gap-2 mb-2">
                 <Paintbrush className="h-3.5 w-3.5 text-gray-400" />
                 <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{t('tractionPage.editorBackground')}</h3>
@@ -527,7 +527,7 @@ export default function TractionLinkEditor() {
             </section>
 
             {/* ─── Colors ─── */}
-            <section>
+            <section className="px-4 py-3">
               <div className="flex items-center gap-2 mb-2">
                 <Palette className="h-3.5 w-3.5 text-gray-400" />
                 <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{t('tractionPage.editorColors')}</h3>
@@ -573,7 +573,7 @@ export default function TractionLinkEditor() {
             </section>
 
             {/* ─── Content ─── */}
-            <section>
+            <section className="px-4 py-3">
               <div className="flex items-center gap-2 mb-2">
                 <Type className="h-3.5 w-3.5 text-gray-400" />
                 <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{t('tractionPage.editorContent')}</h3>
@@ -611,7 +611,7 @@ export default function TractionLinkEditor() {
             </section>
 
             {/* ─── Theme Presets ─── */}
-            <section>
+            <section className="px-4 py-3">
               <div className="flex items-center gap-2 mb-2">
                 <Paintbrush className="h-3.5 w-3.5 text-gray-400" />
                 <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{t('tractionPage.editorQuickPresets')}</h3>
@@ -736,7 +736,7 @@ function BidTraction_open(e){
               const current = variants.find(v => v.id === embedVariant)!;
 
               return (
-                <section>
+                <section className="px-4 py-3">
                   <div className="flex items-center gap-2 mb-2">
                     <Code2 className="h-3.5 w-3.5 text-gray-400" />
                     <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{t('tractionPage.editorEmbed') || 'Embed on your website'}</h3>

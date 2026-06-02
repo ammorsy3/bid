@@ -804,7 +804,7 @@ export default function TenderInviteLink() {
   const remainingReqCount = Math.max(0, mandatoryRequirements.length - 3);
 
   const activeLanguage = viewLanguage || language || tenderOriginalLang;
-  const isActiveRtl = activeLanguage === 'ar';
+  const isActiveRtl = language === 'ar';
 
   return (
     <div className="min-h-screen bg-muted" dir={isActiveRtl ? "rtl" : "ltr"}>

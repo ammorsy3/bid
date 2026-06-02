@@ -403,13 +403,13 @@ export default function TractionLinkEditor() {
 
         {/* ── LEFT: Editor Panel ── */}
         <ScrollArea className="w-full md:w-[340px] flex-shrink-0 border-r border-border bg-muted">
-          <div className="p-5 space-y-7">
+          <div className="p-4 space-y-5">
 
             {/* ─── Logo ─── */}
             <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Image className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-foreground">{t('tractionPage.editorLogo')}</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <Image className="h-3.5 w-3.5 text-gray-400" />
+                <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{t('tractionPage.editorLogo')}</h3>
               </div>
               <div className="flex items-center gap-3">
                 {currentLogoUrl ? (
@@ -445,9 +445,9 @@ export default function TractionLinkEditor() {
 
             {/* ─── Background Style ─── */}
             <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Paintbrush className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-foreground">{t('tractionPage.editorBackground')}</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <Paintbrush className="h-3.5 w-3.5 text-gray-400" />
+                <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{t('tractionPage.editorBackground')}</h3>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {bgStyles.map((bg) => (
@@ -528,11 +528,11 @@ export default function TractionLinkEditor() {
 
             {/* ─── Colors ─── */}
             <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Palette className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-foreground">{t('tractionPage.editorColors')}</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <Palette className="h-3.5 w-3.5 text-gray-400" />
+                <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{t('tractionPage.editorColors')}</h3>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div>
                   <Label className="text-xs text-muted-foreground mb-1.5 block">{t('tractionPage.editorPrimaryColor')}</Label>
                   <div className="flex items-center gap-2">
@@ -574,13 +574,13 @@ export default function TractionLinkEditor() {
 
             {/* ─── Content ─── */}
             <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Type className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-foreground">{t('tractionPage.editorContent')}</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <Type className="h-3.5 w-3.5 text-gray-400" />
+                <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{t('tractionPage.editorContent')}</h3>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">{t('tractionPage.editorHeading')}</Label>
+                  <Label className="text-xs text-muted-foreground mb-1 block">{t('tractionPage.editorHeading')}</Label>
                   <Input
                     value={theme.welcomeHeading || ''}
                     onChange={(e) => updateTheme({ welcomeHeading: e.target.value || undefined })}
@@ -589,7 +589,7 @@ export default function TractionLinkEditor() {
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">{t('tractionPage.editorSubtext')}</Label>
+                  <Label className="text-xs text-muted-foreground mb-1 block">{t('tractionPage.editorSubtext')}</Label>
                   <Textarea
                     value={theme.welcomeSubtext || ''}
                     onChange={(e) => updateTheme({ welcomeSubtext: e.target.value || undefined })}
@@ -599,7 +599,7 @@ export default function TractionLinkEditor() {
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">{t('tractionPage.editorButtonText')}</Label>
+                  <Label className="text-xs text-muted-foreground mb-1 block">{t('tractionPage.editorButtonText')}</Label>
                   <Input
                     value={theme.ctaText || ''}
                     onChange={(e) => updateTheme({ ctaText: e.target.value || undefined })}
@@ -612,9 +612,9 @@ export default function TractionLinkEditor() {
 
             {/* ─── Theme Presets ─── */}
             <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Paintbrush className="h-4 w-4 text-gray-400" />
-                <h3 className="text-sm font-semibold text-foreground">{t('tractionPage.editorQuickPresets')}</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <Paintbrush className="h-3.5 w-3.5 text-gray-400" />
+                <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{t('tractionPage.editorQuickPresets')}</h3>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {([
@@ -737,12 +737,12 @@ function BidTraction_open(e){
 
               return (
                 <section>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Code2 className="h-4 w-4 text-gray-400" />
-                    <h3 className="text-sm font-semibold text-foreground">{t('tractionPage.editorEmbed') || 'Embed on your website'}</h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Code2 className="h-3.5 w-3.5 text-gray-400" />
+                    <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">{t('tractionPage.editorEmbed') || 'Embed on your website'}</h3>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-1.5 mb-3">
+                  <div className="grid grid-cols-3 gap-1.5 mb-2">
                     {variants.map(v => (
                       <button
                         key={v.id}

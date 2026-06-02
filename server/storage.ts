@@ -2252,7 +2252,6 @@ export class DatabaseStorage implements IStorage {
       eq(tenders.marketplaceStatus, 'approved'),
       eq(tenders.status, 'published'),
       isNull(companies.deletedAt),
-      gte(tenders.deadline, new Date().toISOString().split('T')[0]),
     ];
 
     if (options.search) {
@@ -2273,9 +2272,6 @@ export class DatabaseStorage implements IStorage {
     }
     if (options.tenderType) {
       conditions.push(eq(tenders.tenderType, options.tenderType));
-    }
-    if (options.callerAccountType) {
-      conditions.push(sql`${options.callerAccountType} = ANY(${tenders.targetAudienceTypes})`);
     }
 
     const whereClause = and(...conditions);

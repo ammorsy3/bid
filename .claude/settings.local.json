@@ -203,7 +203,8 @@
       "Bash(lsof -ti:3000)",
       "Bash(apt list *)",
       "Read(//usr/bin/**)",
-      "Read(//usr/local/bin/**)"
+      "Read(//usr/local/bin/**)",
+      "Bash(psql *)"
     ]
   },
   "enableAllProjectMcpServers": true,

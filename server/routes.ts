@@ -6436,6 +6436,16 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
+  app.get("/api/marketplace/categories", async (_req, res) => {
+    try {
+      const categories = await storage.getMarketplaceCategories();
+      res.json({ categories });
+    } catch (error) {
+      console.error("Error fetching marketplace categories:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   app.get("/api/marketplace/stats", async (_req, res) => {
     try {
       const stats = await storage.getMarketplaceStats();

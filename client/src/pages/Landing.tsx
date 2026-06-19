@@ -107,9 +107,10 @@ function SignUpModal({ onClose, lang }: { onClose: () => void; lang: Lang }) {
 
 const Landing = () => {
   const [showModal, setShowModal] = useState(false);
-  const [lang, setLang] = useState<Lang>(() => {
-    try { return (localStorage.getItem("landing-lang") as Lang) || "en"; } catch { return "en"; }
-  });
+  // Always default to English on load for every visitor. Users can still
+  // toggle to Arabic for the session, but the page no longer restores a
+  // previously-saved language preference.
+  const [lang, setLang] = useState<Lang>("en");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuthStore();
   const c = copy[lang];

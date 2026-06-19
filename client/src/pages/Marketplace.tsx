@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Search, ChevronDown, ChevronLeft, ChevronRight, MapPin, LayoutList, LayoutGrid } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { Skeleton } from "@/components/ui/skeleton";
-import { VENDOR_CATEGORIES } from "@shared/schema";
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
 import { useAuthStore } from "@/lib/auth";
 import { BidLogo } from "@/components/brand/BidLogo";
@@ -61,6 +60,15 @@ function getAvatarInitials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
+function snippetDescription(text: string, maxLen = 130): string {
+  if (!text) return "";
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  if (cleaned.length <= maxLen) return cleaned;
+  const cut = cleaned.slice(0, maxLen);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > 60 ? cut.slice(0, lastSpace) : cut) + "…";
+}
+
 function getAvatarColor(name: string): { bg: string; fg: string } {
   const sum = name.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
   const palette = [
@@ -112,6 +120,79 @@ function CircleProgress({
   );
 }
 
+function FilterDropdown({
+  label,
+  value,
+  options,
+  onChange,
+  align = "start",
+  isActive,
+}: {
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (v: string) => void;
+  align?: "start" | "end";
+  isActive?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onMouse = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onMouse);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onMouse);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const active = isActive !== undefined ? isActive : !!value;
+  const displayLabel = value
+    ? (options.find(o => o.value === value)?.label ?? label)
+    : label;
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[13px] font-medium transition-colors whitespace-nowrap hover:bg-[#FAF5EC]"
+        style={active ? { background: "#0B0907", color: "#F4EDE1" } : { background: "transparent", color: "#0B0907" }}
+      >
+        {displayLabel}
+        <ChevronDown
+          className={`w-2.5 h-2.5 opacity-50 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && (
+        <div
+          className="absolute top-full mt-1.5 bg-white rounded-2xl border shadow-lg z-30 min-w-[180px] max-h-60 overflow-y-auto"
+          style={{ borderColor: "rgba(11,9,7,0.08)", ...(align === "end" ? { right: 0 } : { left: 0 }) }}
+        >
+          {options.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => { onChange(opt.value); setOpen(false); }}
+              className="block w-full text-start px-4 py-2.5 text-sm hover:bg-[#F4EDE1] transition-colors"
+              style={{
+                color: value === opt.value ? "#FE3C01" : "#8A8078",
+                fontWeight: value === opt.value ? 600 : 400,
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Marketplace() {
   const { t, language, isRtl } = useI18n();
   const [, setLocation] = useLocation();
@@ -120,34 +201,34 @@ export default function Marketplace() {
   const marketplaceHome = isSubdomain ? "/" : "/marketplace";
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("");
   const [city, setCity] = useState("");
   const [tenderType, setTenderType] = useState("");
   const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [search]);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const perPage = 9;
 
-  const [showCategoryDrop, setShowCategoryDrop] = useState(false);
-  const catDropRef = useRef<HTMLDivElement>(null);
-  const closeDropdown = useCallback(() => setShowCategoryDrop(false), []);
-
-  useEffect(() => {
-    if (!showCategoryDrop) return;
-    const handler = (e: MouseEvent) => {
-      if (catDropRef.current && !catDropRef.current.contains(e.target as Node)) closeDropdown();
-    };
-    const keyHandler = (e: KeyboardEvent) => { if (e.key === "Escape") closeDropdown(); };
-    document.addEventListener("mousedown", handler);
-    document.addEventListener("keydown", keyHandler);
-    return () => { document.removeEventListener("mousedown", handler); document.removeEventListener("keydown", keyHandler); };
-  }, [showCategoryDrop, closeDropdown]);
+  const { data: categoriesData } = useQuery<{ categories: string[] }>({
+    queryKey: ["/api/marketplace/categories"],
+    staleTime: 5 * 60 * 1000,
+  });
+  const availableCategories = categoriesData?.categories ?? [];
 
   const { data: tendersData, isLoading } = useQuery<{ tenders: MarketplaceTender[]; total: number }>({
-    queryKey: ["/api/marketplace/tenders", search, category, city, tenderType, sort, page, perPage],
+    queryKey: ["/api/marketplace/tenders", debouncedSearch, category, city, tenderType, sort, page, perPage],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (search) params.set("search", search);
+      if (debouncedSearch) params.set("search", debouncedSearch);
       if (category) params.set("category", category);
       if (city) params.set("city", city);
       if (tenderType) params.set("tenderType", tenderType);
@@ -339,77 +420,45 @@ export default function Marketplace() {
               )}
             </button>
 
-            {/* Category pill + dropdown */}
-            <div className="relative" ref={catDropRef}>
-              <button
-                onClick={() => setShowCategoryDrop(!showCategoryDrop)}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[13px] font-medium transition-colors whitespace-nowrap hover:bg-[#FAF5EC]"
-                style={category ? pillActive : pillInactive}
-              >
-                {category || t("marketplace.category")}
-                <ChevronDown className="w-2.5 h-2.5 opacity-50" />
-              </button>
-              {showCategoryDrop && (
-                <div
-                  className="absolute top-full mt-1.5 bg-white rounded-2xl border shadow-lg z-30 min-w-[200px] max-h-64 overflow-y-auto"
-                  style={{ borderColor: "rgba(11,9,7,0.08)", [isRtl ? "right" : "left"]: 0 }}
-                >
-                  <button
-                    onClick={() => { setCategory(""); setShowCategoryDrop(false); setPage(1); }}
-                    className="block w-full text-start px-4 py-2.5 text-sm hover:bg-[#F4EDE1] transition-colors"
-                    style={{ color: !category ? "#FE3C01" : "#8A8078", fontWeight: !category ? 600 : 400 }}
-                  >
-                    {t("marketplace.allCategories")}
-                  </button>
-                  {VENDOR_CATEGORIES.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => { setCategory(cat); setShowCategoryDrop(false); setPage(1); }}
-                      className="block w-full text-start px-4 py-2.5 text-sm hover:bg-[#F4EDE1] transition-colors"
-                      style={{ color: category === cat ? "#FE3C01" : "#8A8078", fontWeight: category === cat ? 600 : 400 }}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Category */}
+            <FilterDropdown
+              label={t("marketplace.category")}
+              value={category}
+              options={[
+                { value: "", label: t("marketplace.allCategories") },
+                ...(availableCategories.length > 0
+                  ? availableCategories.map(c => ({ value: c, label: c }))
+                  : []),
+              ]}
+              onChange={v => { setCategory(v); setPage(1); }}
+              align={isRtl ? "end" : "start"}
+            />
 
-            {/* City pill (native select styled as pill) */}
-            <div className="relative inline-flex items-center">
-              <select
-                value={city}
-                onChange={(e) => { setCity(e.target.value); setPage(1); }}
-                className="appearance-none pl-4 pr-7 py-2.5 rounded-full text-[13px] font-medium cursor-pointer border-0 outline-none transition-colors"
-                style={city ? { background: "#0B0907", color: "#F4EDE1" } : { background: "transparent", color: "#0B0907" }}
-              >
-                <option value="">{t("marketplace.city")}</option>
-                {SAUDI_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <ChevronDown
-                className="absolute pointer-events-none w-2.5 h-2.5 opacity-50"
-                style={{ [isRtl ? "left" : "right"]: 10, top: "50%", transform: "translateY(-50%)" }}
-              />
-            </div>
+            {/* City */}
+            <FilterDropdown
+              label={t("marketplace.city")}
+              value={city}
+              options={[
+                { value: "", label: t("marketplace.city") },
+                ...SAUDI_CITIES.map(c => ({ value: c, label: c })),
+              ]}
+              onChange={v => { setCity(v); setPage(1); }}
+              align={isRtl ? "end" : "start"}
+            />
 
-            {/* Type pill */}
-            <div className="relative inline-flex items-center hidden sm:flex">
-              <select
-                value={tenderType}
-                onChange={(e) => { setTenderType(e.target.value); setPage(1); }}
-                className="appearance-none pl-4 pr-7 py-2.5 rounded-full text-[13px] font-medium cursor-pointer border-0 outline-none transition-colors"
-                style={tenderType ? { background: "#0B0907", color: "#F4EDE1" } : { background: "transparent", color: "#0B0907" }}
-              >
-                <option value="">{t("marketplace.allTypes")}</option>
-                <option value="open_tender">{t("marketplace.openTender")}</option>
-                <option value="direct_purchase">{t("marketplace.directPurchase")}</option>
-                <option value="framework_agreement">{t("marketplace.frameworkAgreement")}</option>
-              </select>
-              <ChevronDown
-                className="absolute pointer-events-none w-2.5 h-2.5 opacity-50"
-                style={{ [isRtl ? "left" : "right"]: 10, top: "50%", transform: "translateY(-50%)" }}
-              />
-            </div>
+            {/* Type */}
+            <FilterDropdown
+              label={t("marketplace.allTypes")}
+              value={tenderType}
+              options={[
+                { value: "", label: t("marketplace.allTypes") },
+                { value: "open_tender", label: t("marketplace.openTender") },
+                { value: "direct_purchase", label: t("marketplace.directPurchase") },
+                { value: "framework_agreement", label: t("marketplace.frameworkAgreement") },
+              ]}
+              onChange={v => { setTenderType(v); setPage(1); }}
+              align={isRtl ? "end" : "start"}
+            />
           </div>
 
           {/* Right: search + sort */}
@@ -426,7 +475,7 @@ export default function Marketplace() {
               <input
                 type="text"
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("marketplace.searchPlaceholder")}
                 className="bg-transparent border-0 outline-none text-[13px] font-medium w-full py-2.5"
                 style={{ [isRtl ? "paddingRight" : "paddingLeft"]: 36, [isRtl ? "paddingLeft" : "paddingRight"]: 16, color: "#0B0907" }}
@@ -434,22 +483,18 @@ export default function Marketplace() {
             </div>
 
             {/* Sort */}
-            <div className="relative inline-flex items-center hidden sm:flex">
-              <select
-                value={sort}
-                onChange={(e) => { setSort(e.target.value); setPage(1); }}
-                className="appearance-none pl-4 pr-7 py-2.5 rounded-full text-[13px] font-medium cursor-pointer border-0 outline-none"
-                style={{ background: "#F4EDE1", color: "#0B0907" }}
-              >
-                <option value="newest">{t("marketplace.sortNewest")}</option>
-                <option value="deadline_asc">{t("marketplace.sortDeadline")}</option>
-                <option value="budget_desc">{t("marketplace.sortBudget")}</option>
-              </select>
-              <ChevronDown
-                className="absolute pointer-events-none w-2.5 h-2.5 opacity-50"
-                style={{ [isRtl ? "left" : "right"]: 10, top: "50%", transform: "translateY(-50%)" }}
-              />
-            </div>
+            <FilterDropdown
+              label={t("marketplace.sortNewest")}
+              value={sort}
+              options={[
+                { value: "newest", label: t("marketplace.sortNewest") },
+                { value: "deadline_asc", label: t("marketplace.sortDeadline") },
+                { value: "budget_desc", label: t("marketplace.sortBudget") },
+              ]}
+              onChange={v => { setSort(v); setPage(1); }}
+              align="end"
+              isActive={sort !== "newest"}
+            />
           </div>
         </div>
 
@@ -665,6 +710,19 @@ export default function Marketplace() {
                     >
                       {tender.title}
                     </h3>
+                    {tender.description && (
+                      <div className="flex flex-col gap-1.5">
+                        <p className="text-[13px] leading-[1.5] line-clamp-2" style={{ color: "#8A8078" }}>
+                          {snippetDescription(tender.description)}
+                        </p>
+                        <span
+                          className="inline-flex items-center gap-1 w-fit text-[11px] font-bold uppercase tracking-[0.06em] px-2.5 py-1 rounded-full transition-all"
+                          style={{ background: "#FFF3EA", color: "#FE3C01", border: "1px solid rgba(254,60,1,0.18)" }}
+                        >
+                          Read more →
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 sm:gap-2.5 text-[13px] font-medium flex-wrap" style={{ color: "#8A8078" }}>
                       {/* Company / avatar */}
                       <span className="flex items-center gap-1.5 font-medium" style={{ color: "#0B0907" }}>

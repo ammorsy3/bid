@@ -2269,7 +2269,7 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(tenders.category, options.category));
     }
     if (options.city) {
-      conditions.push(eq(companies.city, options.city));
+      conditions.push(ilike(companies.city, options.city));
     }
     if (options.tenderType) {
       conditions.push(eq(tenders.tenderType, options.tenderType));
@@ -2310,6 +2310,24 @@ export class DatabaseStorage implements IStorage {
       })),
       total: countResult?.count || 0,
     };
+  }
+
+  async getMarketplaceCategories(): Promise<string[]> {
+    const rows = await db
+      .selectDistinct({ category: tenders.category })
+      .from(tenders)
+      .innerJoin(companies, eq(tenders.companyId, companies.id))
+      .where(and(
+        eq(tenders.isMarketplace, true),
+        eq(tenders.marketplaceStatus, 'approved'),
+        eq(tenders.status, 'published'),
+        isNull(companies.deletedAt),
+        gte(tenders.deadline, new Date().toISOString().split('T')[0]),
+      ));
+    return rows
+      .map(r => r.category)
+      .filter((c): c is string => typeof c === 'string' && c.trim().length > 0)
+      .sort();
   }
 
   async getMarketplaceStats(): Promise<{ activeTenders: number; awardedTenders: number; totalOffers: number }> {

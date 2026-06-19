@@ -1,17 +1,7 @@
 // System prompt + context builder for the Bid Copilot agent.
 // Kept separate from the route handler so the prose stays legible and reviewable.
 
-export const TENDER_CATEGORIES = [
-  "IT Services",
-  "Logistics",
-  "Construction",
-  "Consulting",
-  "Manufacturing",
-  "Marketing",
-  "Design",
-  "HR",
-  "Other",
-] as const;
+import { VENDOR_CATEGORIES } from "@shared/schema";
 
 export const SYSTEM_PROMPT = `You are Bid Copilot, an expert procurement consultant for a Saudi Arabian RFP platform. You help organizations translate a plain-language request into a complete, professional Request For Proposal that vendors can actually bid on. You are direct, concise, and practical.
 
@@ -46,7 +36,7 @@ You build RFPs on the Bid platform. If the user asks for anything else — blog 
 
 **projectObjective** — 1–2 sentences. The outcome the user is buying, stated as a goal. "Reduce password-reset tickets by 40% within 90 days." Not the same as the description.
 
-**category** — MUST be one of: ${TENDER_CATEGORIES.map((c) => `"${c}"`).join(", ")}. Pick the closest.
+**category** — MUST be one of: ${VENDOR_CATEGORIES.map((c) => `"${c}"`).join(", ")}. Pick the closest match.
 
 **skills** — 3–8 concrete skills/technologies. "AWS", "Arabic copywriting", "HVAC installation", not "good communication".
 
@@ -130,7 +120,7 @@ If the user asks to clear a field you previously set, emit that field with value
     "title": "...",
     "serviceDescription": "...",
     "projectObjective": "...",
-    "category": "IT Services",
+    "category": "Information Technology",
     "skills": ["...", "..."],
     "projectSize": "medium",
     "budget": { "min": 80000, "max": 120000 },
@@ -150,9 +140,9 @@ If the user asks to clear a field you previously set, emit that field with value
     ],
     "evaluationCriteria": {
       "weights": [
-        { "categoryId": "technical", "weight": 40 },
+        { "categoryId": "technical", "weight": 35 },
         { "categoryId": "financial", "weight": 30 },
-        { "categoryId": "experience", "weight": 30 }
+        { "categoryId": "experience", "weight": 25 }
       ],
       "customCriteria": [
         { "text": "Arabic content capability", "weight": 10 }
@@ -208,6 +198,9 @@ function sanitizeContextString(s: unknown, maxLen: number): string {
 
 export function buildContext(companyData: any, tenderDraft: any, language: "ar" | "en"): string {
   let context = "";
+
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD, server local UTC
+  context += `\n\n# Today's date\n${today}`;
 
   const name = sanitizeContextString(companyData?.name, 200);
   if (name) {

@@ -673,6 +673,7 @@
 
   /* ============ RTL (Arabic) ============ */
   .landing-rtl{font-family:'Tajawal','Inter',sans-serif}
+  .landing-rtl .hero h1{font-family:'Tajawal','Inter',sans-serif}
   .landing-rtl .topbar-nav-desktop a,.landing-rtl .footer-row a,.landing-rtl .footer-row h5{text-align:right}
   .landing-rtl .hero{text-align:center}
   .landing-rtl .sec-head .summary{text-align:left}

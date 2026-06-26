@@ -13,9 +13,9 @@ import { useI18n } from "@/lib/i18n";
 import { CheckCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
-import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
+import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
 
 type LoginForm = { email: string; password: string };
 type ForgotForm = { email: string };
@@ -123,163 +123,178 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-screen bg-card flex flex-col overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <FlickeringGrid
-          className="size-full"
-          squareSize={4}
-          gridGap={6}
-          color="rgb(254, 60, 1)"
-          maxOpacity={0.15}
-          flickerChance={0.1}
-        />
+    <div className="h-screen flex overflow-hidden">
+
+      {/* Left panel — warm cream with animated illustration */}
+      <div
+        className="hidden lg:flex lg:w-[440px] xl:w-[480px] relative overflow-hidden flex-shrink-0"
+        style={{ background: "radial-gradient(ellipse at 60% 25%, #FCE9DC 0%, #F4EDE1 68%)" }}
+      >
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-12 -left-20 w-96 h-96 bg-[#FE3C01]/[0.07] rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-0 w-80 h-80 bg-[#FE3C01]/[0.05] rounded-full blur-3xl" />
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: "radial-gradient(circle, rgba(11,9,7,0.45) 1px, transparent 1px)",
+              backgroundSize: "24px 24px",
+              opacity: 0.045,
+            }}
+          />
+        </div>
+        <div className="relative z-10 flex items-center justify-center w-full h-full p-8 xl:p-10">
+          <OnboardingLeftPanelAnimation />
+        </div>
       </div>
 
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-12">
-        <header className="mb-10">
-          <Link href="/">
-            <BidLogo variant="orange" size={48} className="cursor-pointer hover:opacity-80 transition-opacity" />
-          </Link>
-        </header>
+      {/* Right panel — form */}
+      <div className="flex-1 flex flex-col bg-muted overflow-y-auto">
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-6">
+          <header className="mb-6">
+            <Link href="/">
+              <BidLogo variant="orange" size={48} className="cursor-pointer hover:opacity-80 transition-opacity" />
+            </Link>
+          </header>
 
-        <div className="w-full max-w-md">
-          {forgotMode ? (
-            <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/60 shadow-sm p-5 sm:p-8">
-              <div className="mb-6 text-center">
-                <h2 className="text-xl font-bold text-foreground mb-1">{t('auth.forgotPasswordTitle')}</h2>
-                <p className="text-sm text-muted-foreground">{t('auth.forgotPasswordDesc')}</p>
-              </div>
-
-              {forgotSent ? (
-                <div className="text-center space-y-4 py-4">
-                  <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto">
-                    <CheckCircle className="h-7 w-7 text-green-500" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground">{t('auth.resetLinkSent')}</h3>
-                  <p className="text-sm text-muted-foreground">{t('auth.resetLinkSentDesc')}</p>
-                  <button
-                    type="button"
-                    onClick={() => { setForgotMode(false); setForgotSent(false); }}
-                    className="text-sm text-[#FE3C01] hover:text-[#d54d35] font-medium transition-colors"
-                  >
-                    {t('auth.backToLogin')}
-                  </button>
+          <div className="w-full max-w-md">
+            {forgotMode ? (
+              <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-5 sm:p-8">
+                <div className="mb-6 text-center">
+                  <h2 className="text-xl font-bold text-foreground mb-1">{t('auth.forgotPasswordTitle')}</h2>
+                  <p className="text-sm text-muted-foreground">{t('auth.forgotPasswordDesc')}</p>
                 </div>
-              ) : (
-                <>
-                  <Form {...forgotForm}>
-                    <form onSubmit={forgotForm.handleSubmit(onForgotSubmit)} className="space-y-4">
-                      <FormField
-                        control={forgotForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('auth.email')}</FormLabel>
-                            <FormControl>
-                              <Input placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <NeonButton type="submit" size="lg" className="w-full mt-2" disabled={forgotForm.formState.isSubmitting}>
-                        {forgotForm.formState.isSubmitting ? t('auth.sendingResetLink') : t('auth.sendResetLink')}
-                      </NeonButton>
-                    </form>
-                  </Form>
-                  <div className="mt-5 text-center">
+
+                {forgotSent ? (
+                  <div className="text-center space-y-4 py-4">
+                    <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto">
+                      <CheckCircle className="h-7 w-7 text-green-500" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground">{t('auth.resetLinkSent')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('auth.resetLinkSentDesc')}</p>
                     <button
                       type="button"
-                      onClick={() => setForgotMode(false)}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => { setForgotMode(false); setForgotSent(false); }}
+                      className="text-sm text-[#FE3C01] hover:text-[#d54d35] font-medium transition-colors"
                     >
                       {t('auth.backToLogin')}
                     </button>
                   </div>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/60 shadow-sm p-5 sm:p-8">
-              <div className="mb-6 text-center">
-                <h2 className="text-xl font-bold text-foreground mb-1">{t('authPanel.signInTitle')}</h2>
-                <p className="text-sm text-muted-foreground">{t('authPanel.signInDesc')}</p>
+                ) : (
+                  <>
+                    <Form {...forgotForm}>
+                      <form onSubmit={forgotForm.handleSubmit(onForgotSubmit)} className="space-y-4">
+                        <FormField
+                          control={forgotForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t('auth.email')}</FormLabel>
+                              <FormControl>
+                                <Input placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <NeonButton type="submit" size="lg" className="w-full mt-2" disabled={forgotForm.formState.isSubmitting}>
+                          {forgotForm.formState.isSubmitting ? t('auth.sendingResetLink') : t('auth.sendResetLink')}
+                        </NeonButton>
+                      </form>
+                    </Form>
+                    <div className="mt-5 text-center">
+                      <button
+                        type="button"
+                        onClick={() => setForgotMode(false)}
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {t('auth.backToLogin')}
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
+            ) : (
+              <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-5 sm:p-8">
+                <div className="mb-6 text-center">
+                  <h2 className="text-xl font-bold text-foreground mb-1">{t('authPanel.signInTitle')}</h2>
+                  <p className="text-sm text-muted-foreground">{t('authPanel.signInDesc')}</p>
+                </div>
 
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('auth.email')}</FormLabel>
-                        <FormControl>
-                          <Input data-testid="input-email" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex items-center justify-between">
-                          <FormLabel>{t('auth.password')}</FormLabel>
-                          <button
-                            type="button"
-                            onClick={() => setForgotMode(true)}
-                            className="text-xs text-[#FE3C01] hover:text-[#d54d35] font-medium transition-colors"
-                          >
-                            {t('auth.forgotPassword')}
-                          </button>
-                        </div>
-                        <FormControl>
-                          <Input data-testid="input-password" type="password" placeholder={t('auth.passwordPlaceholder')} className="bg-card" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="flex items-center gap-2 mt-4">
-                    <Checkbox
-                      id="rememberDevice"
-                      checked={rememberDevice}
-                      onCheckedChange={(checked) => setRememberDevice(checked as boolean)}
-                      data-testid="checkbox-remember"
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('auth.email')}</FormLabel>
+                          <FormControl>
+                            <Input data-testid="input-email" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                    <label htmlFor="rememberDevice" className="text-sm text-muted-foreground cursor-pointer select-none">
-                      {t('auth.rememberDevice')}
-                    </label>
-                  </div>
 
-                  <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full mt-4" disabled={isLoading}>
-                    {isLoading ? t('auth.signingIn') : t('auth.signIn')}
-                  </NeonButton>
-                </form>
-              </Form>
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center justify-between">
+                            <FormLabel>{t('auth.password')}</FormLabel>
+                            <button
+                              type="button"
+                              onClick={() => setForgotMode(true)}
+                              className="text-xs text-[#FE3C01] hover:text-[#d54d35] font-medium transition-colors"
+                            >
+                              {t('auth.forgotPassword')}
+                            </button>
+                          </div>
+                          <FormControl>
+                            <Input data-testid="input-password" type="password" placeholder={t('auth.passwordPlaceholder')} className="bg-card" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <ClerkSocialButtons mode="signin" />
+                    <div className="flex items-center gap-2 mt-4">
+                      <Checkbox
+                        id="rememberDevice"
+                        checked={rememberDevice}
+                        onCheckedChange={(checked) => setRememberDevice(checked as boolean)}
+                        data-testid="checkbox-remember"
+                      />
+                      <label htmlFor="rememberDevice" className="text-sm text-muted-foreground cursor-pointer select-none">
+                        {t('auth.rememberDevice')}
+                      </label>
+                    </div>
 
-              <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
-                  {t('auth.noAccount')}{" "}
-                  <Link href="/signup" className="text-[#FE3C01] hover:text-[#d54d35] font-medium">
-                    {t('auth.signUp')}
-                  </Link>
-                </p>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  <Link href="/terms" className="hover:text-foreground" data-testid="link-terms">Terms of Service</Link>
-                  <span className="mx-2">·</span>
-                  <Link href="/privacy" className="hover:text-foreground" data-testid="link-privacy">Privacy Policy</Link>
-                </p>
+                    <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full mt-4" disabled={isLoading}>
+                      {isLoading ? t('auth.signingIn') : t('auth.signIn')}
+                    </NeonButton>
+                  </form>
+                </Form>
+
+                <ClerkSocialButtons mode="signin" />
+
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    {t('auth.noAccount')}{" "}
+                    <Link href="/signup" className="text-[#FE3C01] hover:text-[#d54d35] font-medium">
+                      {t('auth.signUp')}
+                    </Link>
+                  </p>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    <Link href="/terms" className="hover:text-foreground" data-testid="link-terms">Terms of Service</Link>
+                    <span className="mx-2">·</span>
+                    <Link href="/privacy" className="hover:text-foreground" data-testid="link-privacy">Privacy Policy</Link>
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

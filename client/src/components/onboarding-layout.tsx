@@ -26,7 +26,7 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
     : t("onboardingPanel.setupWorkspace");
 
   return (
-    <div className="min-h-screen flex">
+    <div className="h-screen flex overflow-hidden">
 
       {/* ── Left Panel — full-bleed animation on warm cream ─────────────────── */}
       <div
@@ -54,7 +54,7 @@ export default function OnboardingLayout({ children, step }: OnboardingLayoutPro
       </div>
 
       {/* ── Right Panel — logo + headline + step indicator + form ────────────── */}
-      <div className="flex-1 flex flex-col min-h-screen bg-muted">
+      <div className="flex-1 flex flex-col bg-muted overflow-y-auto">
         <div className="p-6 pb-0">
 
           {/* Logo — always visible on both mobile and desktop */}

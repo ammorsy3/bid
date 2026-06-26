@@ -9,10 +9,10 @@ import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
-import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { Check, Eye, EyeOff, X } from "lucide-react";
 import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
+import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
 
 type RegisterForm = { email: string; password: string; confirmPassword: string; name: string };
 
@@ -137,185 +137,200 @@ export default function Register() {
   };
 
   return (
-    <div className="relative min-h-screen bg-card flex flex-col overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <FlickeringGrid
-          className="size-full"
-          squareSize={4}
-          gridGap={6}
-          color="rgb(254, 60, 1)"
-          maxOpacity={0.15}
-          flickerChance={0.1}
-        />
+    <div className="h-screen flex overflow-hidden">
+
+      {/* Left panel — warm cream with animated illustration */}
+      <div
+        className="hidden lg:flex lg:w-[440px] xl:w-[480px] relative overflow-hidden flex-shrink-0"
+        style={{ background: "radial-gradient(ellipse at 60% 25%, #FCE9DC 0%, #F4EDE1 68%)" }}
+      >
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-12 -left-20 w-96 h-96 bg-[#FE3C01]/[0.07] rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-0 w-80 h-80 bg-[#FE3C01]/[0.05] rounded-full blur-3xl" />
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: "radial-gradient(circle, rgba(11,9,7,0.45) 1px, transparent 1px)",
+              backgroundSize: "24px 24px",
+              opacity: 0.045,
+            }}
+          />
+        </div>
+        <div className="relative z-10 flex items-center justify-center w-full h-full p-8 xl:p-10">
+          <OnboardingLeftPanelAnimation />
+        </div>
       </div>
 
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-12">
-        <header className="mb-10">
-          <Link href="/">
-            <BidLogo variant="orange" size={48} className="cursor-pointer hover:opacity-80 transition-opacity" />
-          </Link>
-        </header>
+      {/* Right panel — form */}
+      <div className="flex-1 flex flex-col bg-muted overflow-y-auto">
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-6">
+          <header className="mb-6">
+            <Link href="/">
+              <BidLogo variant="orange" size={48} className="cursor-pointer hover:opacity-80 transition-opacity" />
+            </Link>
+          </header>
 
-        <div className="w-full max-w-md">
-          <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/60 shadow-sm p-5 sm:p-8">
-            <div className="mb-6 text-center">
-              <h2 className="text-xl font-bold text-foreground mb-1">{t('authPanel.createAccountTitle')}</h2>
-              <p className="text-sm text-muted-foreground">{t('authPanel.createAccountDesc')}</p>
-            </div>
+          <div className="w-full max-w-md">
+            <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-5 sm:p-8">
+              <div className="mb-6 text-center">
+                <h2 className="text-xl font-bold text-foreground mb-1">{t('authPanel.createAccountTitle')}</h2>
+                <p className="text-sm text-muted-foreground">{t('authPanel.createAccountDesc')}</p>
+              </div>
 
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('auth.fullName')}</FormLabel>
-                      <FormControl>
-                        <Input data-testid="input-name" placeholder={t('auth.fullNamePlaceholder')} className="bg-card" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('auth.fullName')}</FormLabel>
+                        <FormControl>
+                          <Input data-testid="input-name" placeholder={t('auth.fullNamePlaceholder')} className="bg-card" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('auth.email')}</FormLabel>
-                      <FormControl>
-                        <Input data-testid="input-email" type="email" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('auth.email')}</FormLabel>
+                        <FormControl>
+                          <Input data-testid="input-email" type="email" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('auth.password')}</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            data-testid="input-password"
-                            type={showPassword ? "text" : "password"}
-                            placeholder={t('auth.passwordCreatePlaceholder')}
-                            className="bg-card pr-10"
-                            {...field}
-                            onFocus={() => setPasswordFocused(true)}
-                            onBlur={(e) => { field.onBlur(); setPasswordFocused(false); }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(s => !s)}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
-                            aria-label={showPassword ? "Hide password" : "Show password"}
-                            tabIndex={-1}
-                          >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        </div>
-                      </FormControl>
-                      {passwordValue && (
-                        <div className="mt-1.5 space-y-1">
-                          <div className="flex gap-1" aria-hidden="true">
-                            {[1, 2, 3, 4].map(i => (
-                              <div
-                                key={i}
-                                className={`h-1 flex-1 rounded-full transition-colors ${
-                                  i <= strength.score ? strength.barClass : "bg-neutral-200"
-                                }`}
-                              />
-                            ))}
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('auth.password')}</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              data-testid="input-password"
+                              type={showPassword ? "text" : "password"}
+                              placeholder={t('auth.passwordCreatePlaceholder')}
+                              className="bg-card pr-10"
+                              {...field}
+                              onFocus={() => setPasswordFocused(true)}
+                              onBlur={(e) => { field.onBlur(); setPasswordFocused(false); }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(s => !s)}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
+                              aria-label={showPassword ? "Hide password" : "Show password"}
+                              tabIndex={-1}
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
                           </div>
-                          <p className={`text-xs ${strength.textClass}`}>{strength.label}</p>
-                        </div>
-                      )}
-                      {showRequirements && (
-                        <ul className="mt-2 space-y-1" data-testid="password-requirements">
-                          {requirements.map(({ key, label }) => {
-                            const passed = checks[key];
-                            return (
-                              <li
-                                key={key}
-                                data-testid={`pw-req-${key}`}
-                                className={`flex items-center gap-1.5 text-xs transition-colors ${
-                                  passed ? "text-[var(--state-won)]" : "text-muted-foreground"
-                                }`}
-                              >
-                                {passed ? (
-                                  <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
-                                ) : (
-                                  <X className="h-3 w-3 shrink-0 text-neutral-400" aria-hidden="true" />
-                                )}
-                                <span>{label}</span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        </FormControl>
+                        {passwordValue && (
+                          <div className="mt-1.5 space-y-1">
+                            <div className="flex gap-1" aria-hidden="true">
+                              {[1, 2, 3, 4].map(i => (
+                                <div
+                                  key={i}
+                                  className={`h-1 flex-1 rounded-full transition-colors ${
+                                    i <= strength.score ? strength.barClass : "bg-neutral-200"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <p className={`text-xs ${strength.textClass}`}>{strength.label}</p>
+                          </div>
+                        )}
+                        {showRequirements && (
+                          <ul className="mt-2 space-y-1" data-testid="password-requirements">
+                            {requirements.map(({ key, label }) => {
+                              const passed = checks[key];
+                              return (
+                                <li
+                                  key={key}
+                                  data-testid={`pw-req-${key}`}
+                                  className={`flex items-center gap-1.5 text-xs transition-colors ${
+                                    passed ? "text-[var(--state-won)]" : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {passed ? (
+                                    <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
+                                  ) : (
+                                    <X className="h-3 w-3 shrink-0 text-neutral-400" aria-hidden="true" />
+                                  )}
+                                  <span>{label}</span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('authPanel.confirmPasswordLabel')}</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            data-testid="input-confirm-password"
-                            type={showConfirm ? "text" : "password"}
-                            placeholder={t('authPanel.reenterPassword')}
-                            className="bg-card pr-10"
-                            {...field}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowConfirm(s => !s)}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
-                            aria-label={showConfirm ? "Hide password" : "Show password"}
-                            tabIndex={-1}
-                          >
-                            {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('authPanel.confirmPasswordLabel')}</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              data-testid="input-confirm-password"
+                              type={showConfirm ? "text" : "password"}
+                              placeholder={t('authPanel.reenterPassword')}
+                              className="bg-card pr-10"
+                              {...field}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirm(s => !s)}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
+                              aria-label={showConfirm ? "Hide password" : "Show password"}
+                              tabIndex={-1}
+                            >
+                              {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full mt-6" disabled={isLoading}>
-                  {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}
-                </NeonButton>
-              </form>
-            </Form>
+                  <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full mt-6" disabled={isLoading}>
+                    {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}
+                  </NeonButton>
+                </form>
+              </Form>
 
-            <ClerkSocialButtons mode="signup" />
+              <ClerkSocialButtons mode="signup" />
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                {t('auth.haveAccount')}{" "}
-                <Link href="/login" className="text-[#FE3C01] hover:text-[#d54d35] font-medium">
-                  {t('auth.signInLink')}
-                </Link>
-              </p>
-              <p className="mt-3 text-xs text-muted-foreground">
-                By creating an account you agree to our{" "}
-                <Link href="/terms" className="underline hover:text-foreground" data-testid="link-terms">Terms of Service</Link>
-                {" "}and{" "}
-                <Link href="/privacy" className="underline hover:text-foreground" data-testid="link-privacy">Privacy Policy</Link>.
-              </p>
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {t('auth.haveAccount')}{" "}
+                  <Link href="/login" className="text-[#FE3C01] hover:text-[#d54d35] font-medium">
+                    {t('auth.signInLink')}
+                  </Link>
+                </p>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  By creating an account you agree to our{" "}
+                  <Link href="/terms" className="underline hover:text-foreground" data-testid="link-terms">Terms of Service</Link>
+                  {" "}and{" "}
+                  <Link href="/privacy" className="underline hover:text-foreground" data-testid="link-privacy">Privacy Policy</Link>.
+                </p>
+              </div>
             </div>
           </div>
         </div>

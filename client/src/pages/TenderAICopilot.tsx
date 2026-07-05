@@ -42,7 +42,7 @@ import { useAuthStore } from "@/lib/auth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { usePageTour } from "@/lib/tour";
-import { AI_COPILOT_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
+import { AI_COPILOT_TOUR_STEPS, AI_COPILOT_PREVIEW_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 import { ToastAction } from "@/components/ui/toast";
 import { AIAgentOrb, OrbState } from "@/components/ui/ai-agent-orb";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
@@ -479,7 +479,7 @@ export default function TenderAICopilot() {
 
   const _lang = localStorage.getItem('language') ?? 'en';
   const _isRtl = _lang === 'ar';
-  const { overlay: tourOverlay } = usePageTour({
+  const { overlay: tourOverlay, isActive: introTourActive } = usePageTour({
     tourId: 'ai-copilot',
     userId: user?.id ?? '',
     steps: getSteps(AI_COPILOT_TOUR_STEPS, _lang),
@@ -492,6 +492,20 @@ export default function TenderAICopilot() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [tenderDraft, setTenderDraft] = useState<Record<string, any>>({});
+  const hasPreviewContent = Object.keys(tenderDraft).length > 0;
+  // The preview toggle only exists once hasPreviewContent flips true, which never
+  // happens before the main tour's autoStartDelay on a fresh visit — so it's a
+  // separate tour, triggered by the draft actually appearing instead of a timer.
+  // Gated on the intro tour being done so a fast quick-action reply can't pop both
+  // full-screen overlays at once.
+  const { overlay: previewTourOverlay } = usePageTour({
+    tourId: 'ai-copilot-preview',
+    userId: user?.id ?? '',
+    steps: getSteps(AI_COPILOT_PREVIEW_TOUR_STEPS, _lang),
+    isRtl: _isRtl,
+    autoStart: !!user && hasPreviewContent && !introTourActive,
+    autoStartDelay: 600,
+  });
   const [showPreview, setShowPreview] = useState(true);
   const [isReady, setIsReady] = useState(false);
   const [orbState, setOrbState] = useState<OrbState>("idle");
@@ -1076,7 +1090,6 @@ export default function TenderAICopilot() {
     }
   };
 
-  const hasPreviewContent = Object.keys(tenderDraft).length > 0;
   const progressPercentage = isReady ? 100 : hasPreviewContent ? 60 : messages.length > 0 ? 30 : 0;
 
   const mappedPreview = useMemo(
@@ -1627,6 +1640,7 @@ export default function TenderAICopilot() {
       </AlertDialogContent>
     </AlertDialog>
     {tourOverlay}
+    {previewTourOverlay}
     </>
   );
 }

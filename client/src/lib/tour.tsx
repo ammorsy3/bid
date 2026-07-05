@@ -10,6 +10,8 @@ export interface TourStep {
   title: string;
   body: string;
   placement: 'top' | 'bottom' | 'left' | 'right';
+  /** Target lives inside the off-canvas mobile sidebar drawer — consumer must open it while this step is active. */
+  requiresMobileSidebar?: boolean;
 }
 
 interface SpotlightRect {
@@ -45,6 +47,36 @@ export function resetTour(tourId: string, userId: string) {
 
 function getToken(): string | null {
   return localStorage.getItem('token');
+}
+
+/**
+ * Clear dismissal state for every tour/banner (local cache + server), not just one
+ * tourId. Used by a global "Take a tour" action so re-arming guides on one page also
+ * re-arms the ones on every other page — otherwise a user who already dismissed all
+ * of them would see nothing when they later visit those other pages.
+ */
+export async function resetAllTours(userId: string): Promise<void> {
+  const prefix = 'bid-guide-';
+  const suffix = `-${userId}`;
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(prefix) && key.endsWith(suffix)) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach(key => localStorage.removeItem(key));
+
+  const token = getToken();
+  if (!token) return;
+  try {
+    await fetch('/api/tour-progress', {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    // Local cache is already cleared — guides will still re-arm on this device
+  }
 }
 
 /** Fetch all dismissed tour IDs for the user and cache them in localStorage. */
@@ -83,6 +115,8 @@ const CARD_W = 320;
 const CARD_H = 200;
 const MARGIN = 16;
 const SPOTLIGHT_PAD = 8;
+const MOBILE_BP = 768; // matches the app's shared sidebar breakpoint (client/src/hooks/use-mobile.tsx)
+const MOBILE_CARD_MARGIN = 12;
 
 function getCardPosition(
   rect: SpotlightRect,
@@ -153,32 +187,81 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
 
   const updateSpotlight = useCallback(() => {
     const el = document.querySelector(step.target);
-    if (!el) return;
+    if (!el) {
+      setSpotlight(null);
+      return;
+    }
     const r = el.getBoundingClientRect();
     setSpotlight({ top: r.top, left: r.left, width: r.width, height: r.height });
     setVp({ w: window.innerWidth, h: window.innerHeight });
   }, [step.target]);
 
+  // Re-measure on every frame for a short settle window instead of a single fixed-delay
+  // read. The target may still be animating in (e.g. the mobile sidebar drawer sliding
+  // open, which takes ~500ms) or mid smooth-scroll, so one guessed delay was unreliable.
   useEffect(() => {
-    const el = document.querySelector(step.target);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      const t = setTimeout(updateSpotlight, 150);
-      return () => clearTimeout(t);
-    } else {
-      updateSpotlight();
-    }
-  }, [step.target, currentStep, updateSpotlight]);
+    let rafId: number;
+    let cancelled = false;
+    const start = performance.now();
+    const SETTLE_MS = 700;
 
+    const tick = () => {
+      if (cancelled) return;
+      updateSpotlight();
+      const elapsed = performance.now() - start;
+      if (elapsed < SETTLE_MS) {
+        rafId = requestAnimationFrame(tick);
+        return;
+      }
+      // Target never showed up for this step even after settling — it depends on data
+      // that doesn't exist yet (e.g. AI Copilot's preview toggle before any draft has
+      // been created). Skip forward instead of leaving a blank spotlight-less overlay.
+      if (!document.querySelector(step.target)) {
+        if (currentStep >= steps.length - 1) onDismiss();
+        else onNext();
+      }
+    };
+
+    const el = document.querySelector(step.target);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    rafId = requestAnimationFrame(tick);
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+    };
+  }, [step.target, currentStep, updateSpotlight, steps.length, onNext, onDismiss]);
+
+  // Keep the spotlight synced if the user manually scrolls mid-step (common on mobile,
+  // where touch-scroll is the primary way to reveal content). `capture: true` lets a
+  // single window listener catch scroll events from nested scroll containers too, since
+  // scroll doesn't bubble but does propagate in the capture phase.
   useEffect(() => {
-    const onResize = () => updateSpotlight();
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    const onReflow = () => updateSpotlight();
+    window.addEventListener('resize', onReflow);
+    window.addEventListener('scroll', onReflow, { passive: true, capture: true });
+    return () => {
+      window.removeEventListener('resize', onReflow);
+      window.removeEventListener('scroll', onReflow, true);
+    };
   }, [updateSpotlight]);
 
-  const cardPos = spotlight
+  const isMobile = vp.w < MOBILE_BP;
+  const cardPos = !isMobile && spotlight
     ? getCardPosition(spotlight, step.placement, isRtl, vp.w, vp.h)
     : null;
+  const showCard = isMobile || cardPos !== null;
+
+  // On mobile the card is normally pinned to the bottom of the screen. If the
+  // spotlighted target itself sits low enough that the pinned card would cover it
+  // (e.g. the user-menu step, which highlights the sidebar footer), float the card
+  // above the target instead so the highlighted element stays visible.
+  const mobileCardBottom = (() => {
+    if (!spotlight) return MOBILE_CARD_MARGIN;
+    const spaceBelowSpotlight = vp.h - (spotlight.top + spotlight.height + SPOTLIGHT_PAD);
+    if (spaceBelowSpotlight >= CARD_H) return MOBILE_CARD_MARGIN;
+    return Math.max(MOBILE_CARD_MARGIN, vp.h - (spotlight.top - SPOTLIGHT_PAD) + MOBILE_CARD_MARGIN);
+  })();
 
   const isFirst = currentStep === 0;
   const isLast = currentStep === steps.length - 1;
@@ -196,7 +279,7 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
       {spotlight ? (
         <>
           <div className="absolute bg-black/55" style={{ top: 0, left: 0, right: 0, height: Math.max(0, spotlight.top - SPOTLIGHT_PAD) }} />
-          <div className="absolute bg-black/55" style={{ top: spotlight.top + spotlight.height + SPOTLIGHT_PAD, left: 0, right: 0, bottom: 0 }} />
+          <div className="absolute bg-black/55" style={{ top: spotlight.top + spotlight.height + SPOTLIGHT_PAD, left: 0, right: 0, bottom: isMobile ? mobileCardBottom + CARD_H : 0 }} />
           <div className="absolute bg-black/55" style={{ top: spotlight.top - SPOTLIGHT_PAD, left: 0, width: Math.max(0, spotlight.left - SPOTLIGHT_PAD), height: spotlight.height + SPOTLIGHT_PAD * 2 }} />
           <div className="absolute bg-black/55" style={{ top: spotlight.top - SPOTLIGHT_PAD, left: spotlight.left + spotlight.width + SPOTLIGHT_PAD, right: 0, height: spotlight.height + SPOTLIGHT_PAD * 2 }} />
           {/* Spotlight ring */}
@@ -218,15 +301,19 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
 
       {/* Tour card */}
       <AnimatePresence mode="wait">
-        {cardPos && (
+        {showCard && (
           <motion.div
             key={`step-${currentStep}`}
-            initial={{ opacity: 0, scale: 0.94, y: 6 }}
+            initial={{ opacity: 0, scale: 0.94, y: isMobile ? 16 : 6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.94, y: 6 }}
+            exit={{ opacity: 0, scale: 0.94, y: isMobile ? 16 : 6 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="absolute bg-white dark:bg-background rounded-2xl shadow-2xl border border-border dark:border-border overflow-hidden"
-            style={{ width: CARD_W, top: cardPos.top, left: cardPos.left, transformOrigin: cardPos.transformOrigin }}
+            className="absolute bg-white dark:bg-background shadow-2xl border border-border dark:border-border overflow-hidden"
+            style={
+              isMobile
+                ? { left: 12, right: 12, bottom: mobileCardBottom, borderRadius: 24, transformOrigin: 'bottom center' }
+                : { width: CARD_W, top: cardPos!.top, left: cardPos!.left, borderRadius: 16, transformOrigin: cardPos!.transformOrigin }
+            }
           >
             {/* Progress bar */}
             <div className="relative h-1 bg-gray-100 dark:bg-card">
@@ -397,7 +484,9 @@ export function usePageTour({
       />
     ) : null;
 
-  return { overlay, isActive, tourDismissed, retake };
+  const activeStep = isActive ? steps[currentStep] ?? null : null;
+
+  return { overlay, isActive, tourDismissed, retake, activeStep };
 }
 
 // Backwards-compatible alias used by Dashboard

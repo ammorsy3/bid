@@ -16,11 +16,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
 import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
+import { useForceLightMode } from "@/hooks/useForceLightMode";
 
 type LoginForm = { email: string; password: string };
 type ForgotForm = { email: string };
 
 export default function Login() {
+  useForceLightMode();
   const [, setLocation] = useLocation();
   const search = useSearch();
   const { login, isLoading, user, activeCompany } = useAuthStore();

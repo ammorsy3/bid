@@ -18,8 +18,10 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { BidLogo } from "@/components/brand/BidLogo";
+import { useForceLightMode } from "@/hooks/useForceLightMode";
 
 export default function VerifyEmail() {
+  useForceLightMode();
   const [, setLocation] = useLocation();
   const { user, token, checkAuth } = useAuthStore();
   const { toast } = useToast();

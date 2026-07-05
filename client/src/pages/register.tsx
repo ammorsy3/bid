@@ -13,6 +13,7 @@ import { BidLogo } from "@/components/brand/BidLogo";
 import { Check, Eye, EyeOff, X } from "lucide-react";
 import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
 import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
+import { useForceLightMode } from "@/hooks/useForceLightMode";
 
 type RegisterForm = { email: string; password: string; confirmPassword: string; name: string };
 
@@ -48,6 +49,7 @@ function scorePassword(pw: string): { score: 0 | 1 | 2 | 3 | 4; label: string; b
 }
 
 export default function Register() {
+  useForceLightMode();
   const [, setLocation] = useLocation();
   const search = useSearch();
   const { register, isLoading, user } = useAuthStore();

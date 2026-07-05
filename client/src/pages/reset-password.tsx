@@ -11,10 +11,12 @@ import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { CheckCircle, XCircle } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
+import { useForceLightMode } from "@/hooks/useForceLightMode";
 
 type ResetForm = { password: string; confirmPassword: string };
 
 export default function ResetPassword() {
+  useForceLightMode();
   const search = useSearch();
   const [, setLocation] = useLocation();
   const { t } = useI18n();

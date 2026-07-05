@@ -159,7 +159,7 @@ const Landing = () => {
 
             {/* Desktop auth buttons */}
             <div className="topbar-auth-desktop">
-              {user ? (
+              {user?.otpVerified ? (
                 <Link href="/dashboard"><button className="btn btn-primary">{c.btnDashboard}</button></Link>
               ) : (
                 <>
@@ -184,7 +184,7 @@ const Landing = () => {
             <a href="#traction" onClick={scrollTo("traction")}>{c.navTraction}</a>
             <a href="#vendors" onClick={scrollTo("vendors")}>{c.navVendors}</a>
             <div className="mobile-menu-btns">
-              {user ? (
+              {user?.otpVerified ? (
                 <Link href="/dashboard"><button className="btn btn-primary" style={{ width: "100%" }}>{c.btnDashboard}</button></Link>
               ) : (
                 <>

@@ -10,6 +10,7 @@ import { useAuthStore } from "@/lib/auth";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
+import { useForceLightMode } from "@/hooks/useForceLightMode";
 
 const getPostOnboardingRedirect = () => {
   const redirect = localStorage.getItem('postOnboardingRedirect');
@@ -21,6 +22,7 @@ const getPostOnboardingRedirect = () => {
 };
 
 export default function CompanyOnboarding() {
+  useForceLightMode();
   const [, setLocation] = useLocation();
   const { user, token, activeCompany } = useAuthStore();
   const { toast } = useToast();

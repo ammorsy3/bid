@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
+import { useForceLightMode } from "@/hooks/useForceLightMode";
 
 interface OnboardingLayoutProps {
   children: ReactNode;
@@ -9,6 +10,7 @@ interface OnboardingLayoutProps {
 }
 
 export default function OnboardingLayout({ children, step }: OnboardingLayoutProps) {
+  useForceLightMode();
   const { t } = useI18n();
 
   const STEPS = [

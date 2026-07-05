@@ -35,7 +35,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription, PopoverBody, PopoverFooter } from "@/components/ui/popover";
 import { useState, useEffect } from "react";
-import { useDashboardTour, usePageTour } from "@/lib/tour";
+import { useDashboardTour, usePageTour, resetAllTours } from "@/lib/tour";
 import { DASHBOARD_TOUR_STEPS, VENDORS_BASE_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -447,6 +447,27 @@ function SidebarLogoToggle() {
   );
 }
 
+// On mobile the sidebar renders inside an off-canvas drawer that's closed by default,
+// so tour steps that highlight sidebar content (nav, create-tender, user-menu) would
+// otherwise point at an invisible element. This opens/closes the drawer in lockstep
+// with the active tour step. Must live inside <SidebarProvider> to reach useSidebar().
+//
+// The tour card lives outside the drawer's own DOM subtree (it's a separate fixed
+// overlay), so tapping its Next/Skip buttons registers as a Radix "outside click" and
+// the Sheet closes itself even while `open` is still logically true across consecutive
+// steps that both need it open (e.g. sidebar-nav -> create-tender). Keying the effect
+// on `stepId` (which changes every step) forces it to re-open on every transition, not
+// just when the open/closed requirement flips.
+function MobileTourSidebarSync({ open, stepId }: { open: boolean; stepId: string | null }) {
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  useEffect(() => {
+    if (isMobile) setOpenMobile(open);
+  }, [isMobile, open, stepId, setOpenMobile]);
+
+  return null;
+}
+
 type SidebarNavItem = {
   value: string;
   label: string;
@@ -542,12 +563,21 @@ export default function Dashboard() {
   const { toast } = useToast();
 
   // ── First-time user guided tour ──────────────────────────────────────────
-  const { overlay: tourOverlay, tourDismissed, retake: retakeTour } = useDashboardTour({
+  const { overlay: tourOverlay, tourDismissed, retake: retakeTour, activeStep: dashboardTourStep } = useDashboardTour({
     userId: user?.id ?? '',
     steps: getSteps(DASHBOARD_TOUR_STEPS, language),
     isRtl,
     autoStart: !!user,
   });
+
+  // "Take a tour" is meant to re-arm every guide across the app, not just this page's —
+  // otherwise someone who already dismissed all of them sees nothing when they later
+  // visit Settings, Vendors, etc. Clear every tour's dismissal state first, then start
+  // this page's tour immediately since we're already here.
+  const handleRetakeTour = async () => {
+    if (user?.id) await resetAllTours(user.id);
+    retakeTour();
+  };
 
   // ── Vendors tab tour (fires first time user opens the vendors tab) ────────
   const { overlay: vendorsTourOverlay } = usePageTour({
@@ -566,6 +596,11 @@ export default function Dashboard() {
 
   if (!user) {
     setLocation("/login");
+    return null;
+  }
+
+  if (!user.otpVerified) {
+    setLocation("/verify-email");
     return null;
   }
 
@@ -935,6 +970,7 @@ export default function Dashboard() {
   return (
     <>
     <SidebarProvider>
+      <MobileTourSidebarSync open={!!dashboardTourStep?.requiresMobileSidebar} stepId={dashboardTourStep?.id ?? null} />
       <Sidebar collapsible="icon" side={isRtl ? "right" : "left"} className={isRtl ? "border-l border-border dark:border-border" : "border-r border-border dark:border-border"}>
         {/* Brand accent strip */}
         <div className="h-0.5 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F] flex-shrink-0" />
@@ -1489,7 +1525,7 @@ export default function Dashboard() {
           {/* Take a tour — only shown after dismissal */}
           {tourDismissed && (
             <button
-              onClick={retakeTour}
+              onClick={handleRetakeTour}
               className={`mt-3 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full px-1 group-data-[collapsible=icon]:hidden ${isRtl ? 'flex-row-reverse' : ''}`}
               data-testid="button-retake-tour"
             >

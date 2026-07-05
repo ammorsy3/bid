@@ -2229,6 +2229,12 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(tourProgress.userId, userId), eq(tourProgress.tourId, tourId)));
   }
 
+  async resetAllTourProgress(userId: string): Promise<void> {
+    await db
+      .delete(tourProgress)
+      .where(eq(tourProgress.userId, userId));
+  }
+
   // ============================================================================
   // MARKETPLACE OPERATIONS
   // ============================================================================

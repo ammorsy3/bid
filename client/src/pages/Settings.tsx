@@ -496,7 +496,7 @@ export default function Settings() {
   });
   const [docUploadedTypes, setDocUploadedTypes] = useState<Set<string>>(new Set());
 
-  const { overlay: tourOverlay, tourDismissed, retake: retakeTour } = usePageTour({
+  const { overlay: tourOverlay, tourDismissed, retake: retakeTour, activeStep: settingsTourStep } = usePageTour({
     tourId: 'settings',
     userId: user?.id ?? '',
     steps: getSteps(SETTINGS_TOUR_STEPS, language),
@@ -504,6 +504,25 @@ export default function Settings() {
     autoStart: !!user,
     autoStartDelay: 900,
   });
+
+  // The "team" step highlights content that only renders under the Company tab, so
+  // switch tabs as the tour reaches it instead of leaving the step pointing at nothing.
+  useEffect(() => {
+    if (!settingsTourStep) return;
+    const stepTab: Partial<Record<string, SettingsTab>> = {
+      'settings-company-tab': 'company',
+      'settings-team-section': 'company',
+    };
+    const tab = stepTab[settingsTourStep.id];
+    if (tab) setActiveTab(tab);
+  }, [settingsTourStep]);
+
+  // Keep the active tab's pill visible in the horizontal scroll strip on mobile —
+  // both when the user taps a tab directly and when the tour switches tabs for them.
+  useEffect(() => {
+    const el = document.querySelector(`[data-testid="sidebar-${activeTab}"]`);
+    el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [activeTab]);
 
   const [firstName, setFirstName] = useState(user?.name?.split(' ')[0] || '');
   const [lastName, setLastName] = useState(user?.name?.split(' ').slice(1).join(' ') || '');

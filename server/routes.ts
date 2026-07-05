@@ -1725,6 +1725,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reset every tour for the user (for a global "Take the tour again" that should
+  // re-arm guides on every page, not just the one it was clicked from)
+  app.delete("/api/tour-progress", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      await storage.resetAllTourProgress(req.auth!.userId);
+      res.json({ message: "OK" });
+    } catch (error) {
+      console.error('Reset all tours error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Reset a tour (for "Take the tour again")
   app.delete("/api/tour-progress/:tourId", authenticateToken, async (req: AuthRequest, res) => {
     try {

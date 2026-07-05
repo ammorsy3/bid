@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "computedHash": "781bd6d3f9b19f8c9af6b53d8d0e4876d0183841b565db34ca7092ffa412d111"
+    },
+    "mobile-responsiveness": {
+      "source": "hoodini/ai-agents-skills",
+      "sourceType": "github",
+      "skillPath": "skills/mobile-responsiveness/SKILL.md",
+      "computedHash": "d40ffbede786927da70723ebd4bfd332505d04f495e7e75ab4b6651a13006a62"
+    }
+  }
+}

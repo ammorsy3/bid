@@ -718,20 +718,20 @@
     /* Hero: extra bottom padding creates a safe zone for the bottom cards */
     .hero{padding:64px 0 200px;overflow:hidden;min-height:620px}
 
-    /* p1 — RFP card: top-left, mostly visible */
-    .hero-deco .piece.p1{top:4%;left:-16px;--s:.65}
+    /* p1 — RFP card: same height as avatar cluster, smaller */
+    .hero-deco .piece.p1{top:2%;left:-16px;--s:.52}
     /* p2 — avatar cluster: top-right, mostly visible */
     .hero-deco .piece.p2{top:2%;right:-10px;--s:.62}
-    /* p3 — Awarded pill: bottom-left, below the CTA zone */
-    .hero-deco .piece.p3{top:auto;bottom:7%;left:-8px;--s:.82}
-    /* p4 — Pre-Awarded PO circle: bottom-right, below CTAs */
-    .hero-deco .piece.p4{top:auto;bottom:14%;right:-18px;--s:.78}
-    /* p5 — AI drafted pill: bottom-right corner, lowest */
-    .hero-deco .piece.p5{top:auto;bottom:3%;right:10px;--s:.8}
+    /* p3 — Awarded pill: raised up */
+    .hero-deco .piece.p3{top:auto;bottom:12%;left:-8px;--s:.82}
+    /* p4 — Pre-Awarded PO circle: raised up */
+    .hero-deco .piece.p4{top:auto;bottom:19%;right:-18px;--s:.78}
+    /* p5 — AI drafted pill: raised up */
+    .hero-deco .piece.p5{top:auto;bottom:8%;right:10px;--s:.8}
 
     /* Sections */
     section{padding:48px 0}
-    .sec-head{flex-direction:column;gap:16px;margin-bottom:24px}
+    .sec-head{flex-direction:column;align-items:flex-start;gap:16px;margin-bottom:24px}
     .sec-head h2{font-size:clamp(36px,10vw,56px)}
     .sec-head .summary{text-align:left;max-width:none}
 

@@ -10,6 +10,7 @@ export const DASHBOARD_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
       title: 'Your navigation hub',
       body: 'Use the sidebar to move between your Tenders, Proposals, Vendors, and Settings. Click the toggle at the top to collapse it when you need more space.',
       placement: 'right',
+      requiresMobileSidebar: true,
     },
     {
       id: 'create-tender',
@@ -17,6 +18,7 @@ export const DASHBOARD_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
       title: 'Start sourcing: Create a Tender',
       body: 'This is your primary action. Publish a tender to invite vendors to submit proposals — our AI Copilot can help you write it in minutes.',
       placement: 'right',
+      requiresMobileSidebar: true,
     },
     {
       id: 'dashboard-tabs',
@@ -38,6 +40,7 @@ export const DASHBOARD_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
       title: 'Your profile & settings',
       body: 'Access account settings, switch between companies, change language and theme, and manage notifications — all from your profile menu.',
       placement: 'top',
+      requiresMobileSidebar: true,
     },
   ],
   ar: [
@@ -47,6 +50,7 @@ export const DASHBOARD_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
       title: 'مركز التنقل',
       body: 'استخدم الشريط الجانبي للتنقل بين المناقصات والعروض والموردين والإعدادات. انقر على زر التبديل لطيه عند الحاجة.',
       placement: 'left',
+      requiresMobileSidebar: true,
     },
     {
       id: 'create-tender',
@@ -54,6 +58,7 @@ export const DASHBOARD_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
       title: 'ابدأ التوريد: أنشئ مناقصة',
       body: 'هذا هو إجراؤك الأساسي. انشر مناقصة لدعوة الموردين لتقديم عروضهم — يمكن لمساعد الذكاء الاصطناعي مساعدتك في كتابتها خلال دقائق.',
       placement: 'left',
+      requiresMobileSidebar: true,
     },
     {
       id: 'dashboard-tabs',
@@ -75,6 +80,7 @@ export const DASHBOARD_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
       title: 'ملفك الشخصي والإعدادات',
       body: 'الوصول إلى إعدادات الحساب والتبديل بين الشركات وتغيير اللغة والمظهر وإدارة الإشعارات — كل ذلك من قائمة ملفك الشخصي.',
       placement: 'top',
+      requiresMobileSidebar: true,
     },
   ],
 };
@@ -134,13 +140,6 @@ export const AI_COPILOT_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
       body: 'Click the orb to start, or just type below. Describe what you need in plain language — the AI will ask follow-up questions and build your tender as you chat.',
       placement: 'bottom',
     },
-    {
-      id: 'preview-toggle',
-      target: '[data-tour="preview-toggle"]',
-      title: 'Watch your tender take shape',
-      body: 'Toggle this panel to see your tender draft update in real-time as you chat. When it looks good, hit "Launch" to publish it.',
-      placement: 'left',
-    },
   ],
   ar: [
     {
@@ -157,6 +156,24 @@ export const AI_COPILOT_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
       body: 'انقر على الكرة للبدء أو اكتب في الأسفل. صِف ما تحتاجه بلغة بسيطة — سيطرح الذكاء الاصطناعي أسئلة متابعة ويبني مناقصتك أثناء المحادثة.',
       placement: 'bottom',
     },
+  ],
+};
+
+// The preview toggle only exists once the AI has actually produced a draft, which
+// never happens before autoStartDelay fires on a fresh visit — so it runs as its own
+// tour, triggered by that draft appearing rather than by a fixed timer. See
+// TenderAICopilot.tsx's second usePageTour call.
+export const AI_COPILOT_PREVIEW_TOUR_STEPS: Record<'en' | 'ar', TourStep[]> = {
+  en: [
+    {
+      id: 'preview-toggle',
+      target: '[data-tour="preview-toggle"]',
+      title: 'Watch your tender take shape',
+      body: 'Toggle this panel to see your tender draft update in real-time as you chat. When it looks good, hit "Launch" to publish it.',
+      placement: 'left',
+    },
+  ],
+  ar: [
     {
       id: 'preview-toggle',
       target: '[data-tour="preview-toggle"]',

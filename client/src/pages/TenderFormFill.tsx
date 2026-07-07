@@ -352,7 +352,7 @@ export default function TenderFormFill() {
                   </div>
 
                   {/* Input */}
-                  <CardInputRenderer card={card} onUpdate={handleUpdateCard} />
+                  <CardInputRenderer card={card} onUpdate={handleUpdateCard} allCards={cards} />
                 </div>
               </motion.div>
             );

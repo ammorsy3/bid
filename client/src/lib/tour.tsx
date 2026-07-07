@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, ArrowLeft, Lightbulb } from 'lucide-react';
 
@@ -184,6 +184,22 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
   const step = steps[currentStep];
   const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight });
+  const cardRef = useRef<HTMLDivElement>(null);
+  // Real card height varies with each step's title/body length. CARD_H is only a
+  // fallback for the first paint before the card has rendered — using it as a fixed
+  // assumption for the mobile clear-zone left a gap of un-dimmed page content showing
+  // through whenever the actual card was shorter than 200px.
+  const [cardHeight, setCardHeight] = useState(CARD_H);
+
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const measure = () => setCardHeight(el.getBoundingClientRect().height);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [currentStep]);
 
   const updateSpotlight = useCallback(() => {
     const el = document.querySelector(step.target);
@@ -259,7 +275,7 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
   const mobileCardBottom = (() => {
     if (!spotlight) return MOBILE_CARD_MARGIN;
     const spaceBelowSpotlight = vp.h - (spotlight.top + spotlight.height + SPOTLIGHT_PAD);
-    if (spaceBelowSpotlight >= CARD_H) return MOBILE_CARD_MARGIN;
+    if (spaceBelowSpotlight >= cardHeight) return MOBILE_CARD_MARGIN;
     return Math.max(MOBILE_CARD_MARGIN, vp.h - (spotlight.top - SPOTLIGHT_PAD) + MOBILE_CARD_MARGIN);
   })();
 
@@ -279,7 +295,7 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
       {spotlight ? (
         <>
           <div className="absolute bg-black/55" style={{ top: 0, left: 0, right: 0, height: Math.max(0, spotlight.top - SPOTLIGHT_PAD) }} />
-          <div className="absolute bg-black/55" style={{ top: spotlight.top + spotlight.height + SPOTLIGHT_PAD, left: 0, right: 0, bottom: isMobile ? mobileCardBottom + CARD_H : 0 }} />
+          <div className="absolute bg-black/55" style={{ top: spotlight.top + spotlight.height + SPOTLIGHT_PAD, left: 0, right: 0, bottom: isMobile ? mobileCardBottom + cardHeight : 0 }} />
           <div className="absolute bg-black/55" style={{ top: spotlight.top - SPOTLIGHT_PAD, left: 0, width: Math.max(0, spotlight.left - SPOTLIGHT_PAD), height: spotlight.height + SPOTLIGHT_PAD * 2 }} />
           <div className="absolute bg-black/55" style={{ top: spotlight.top - SPOTLIGHT_PAD, left: spotlight.left + spotlight.width + SPOTLIGHT_PAD, right: 0, height: spotlight.height + SPOTLIGHT_PAD * 2 }} />
           {/* Spotlight ring */}
@@ -304,6 +320,7 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
         {showCard && (
           <motion.div
             key={`step-${currentStep}`}
+            ref={cardRef}
             initial={{ opacity: 0, scale: 0.94, y: isMobile ? 16 : 6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: isMobile ? 16 : 6 }}
@@ -419,15 +436,17 @@ export function usePageTour({
   const [currentStep, setCurrentStep] = useState(0);
   const [tourDismissed, setTourDismissed] = useState(() => isTourDismissed(tourId, userId));
 
-  // Sync dismissal state from server on mount (populates localStorage cache)
+  // Sync dismissal state from server on mount (populates localStorage cache). Must set
+  // tourDismissed in both directions — a "Take a tour" reset on another page clears this
+  // tour's dismissal server-side, and if that hasn't propagated by the time this sync GET
+  // fires, an if-dismissed-only check would leave tourDismissed stuck true with nothing to
+  // ever correct it back.
   useEffect(() => {
     if (!userId) return;
     syncTourProgressFromServer(userId).then(() => {
       const dismissed = isTourDismissed(tourId, userId);
-      if (dismissed) {
-        setTourDismissed(true);
-        setIsActive(false);
-      }
+      setTourDismissed(dismissed);
+      if (dismissed) setIsActive(false);
     });
   }, [tourId, userId]);
 
@@ -507,11 +526,13 @@ interface TourBannerProps {
 export function TourBanner({ tourId, userId, title, body, isRtl = false }: TourBannerProps) {
   const [visible, setVisible] = useState(() => !isTourDismissed(tourId, userId));
 
-  // Sync from server on mount — hide if already dismissed on another device
+  // Sync from server on mount — must set visible in both directions (not just hide when
+  // dismissed), otherwise a "Take a tour" reset done from another page can't ever bring
+  // this banner back if this sync happens to run before that reset's DELETE has propagated.
   useEffect(() => {
     if (!userId) return;
     syncTourProgressFromServer(userId).then(() => {
-      if (isTourDismissed(tourId, userId)) setVisible(false);
+      setVisible(!isTourDismissed(tourId, userId));
     });
   }, [tourId, userId]);
 

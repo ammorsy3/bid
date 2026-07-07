@@ -157,7 +157,7 @@ export default function AdminMarketplace() {
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+    return d.toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', {
       year: 'numeric', month: 'short', day: 'numeric',
     });
   };

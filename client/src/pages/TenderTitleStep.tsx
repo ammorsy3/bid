@@ -4,7 +4,7 @@ import { FloatingPathsBackground } from "@/components/ui/floating-paths-bg";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AutocompleteInput } from "@/components/ui/autocomplete-input";
 import { getSuggestions } from "@/lib/tender-suggestions";
 import { useI18n } from "@/lib/i18n";
@@ -28,6 +28,17 @@ export default function TenderTitleStep() {
   })();
 
   const [title, setTitle] = useState(draft.title || "");
+
+  // Persist every keystroke so navigating away mid-typing (back to dashboard,
+  // closed tab, etc.) never drops what was typed — not just on "Next".
+  useEffect(() => {
+    try {
+      const current = JSON.parse(localStorage.getItem("tenderDraft") || "{}");
+      localStorage.setItem("tenderDraft", JSON.stringify({ ...current, title }));
+    } catch {
+      // localStorage may be full / disabled — UI state still updates.
+    }
+  }, [title]);
 
   const wordCount = countWords(title);
   const isOverLimit = wordCount > MAX_WORDS;

@@ -298,16 +298,17 @@ export default function TenderBriefStep() {
   };
 
   const getDurationDisplay = () => {
-    if (draft.duration && DURATION_LABELS[draft.duration]) return DURATION_LABELS[draft.duration];
-    if (draft.duration) return draft.duration;
     if (draft.startDate && draft.endDate) {
       const start = new Date(draft.startDate);
       const end = new Date(draft.endDate);
-      const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-      if (months <= 3) return t('tenderFlow.duration1to3');
-      if (months <= 6) return t('tenderFlow.duration3to6');
+      const days = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      if (days <= 30) return t('tenderFlow.upTo1Month');
+      if (days <= 90) return t('tenderFlow.duration1to3');
+      if (days <= 182) return t('tenderFlow.duration3to6');
       return t('tenderFlow.durationMoreThan6');
     }
+    if (draft.duration && DURATION_LABELS[draft.duration]) return DURATION_LABELS[draft.duration];
+    if (draft.duration) return draft.duration;
     return t('tenderFlow.notSpecified');
   };
 

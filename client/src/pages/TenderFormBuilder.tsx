@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useLocation } from "wouter";
 import { useAuthStore } from "@/lib/auth";
@@ -124,6 +124,12 @@ export default function TenderFormBuilder() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Persist every change locally as it happens, not just on "Continue" —
+  // otherwise a refresh or back-nav mid-edit silently drops typed input.
+  useEffect(() => {
+    localStorage.setItem(TENDER_STATE_KEY, JSON.stringify(cards));
+  }, [cards]);
 
   // Get list of card types already in the form
   const usedCardTypes = cards.map((c) => c.type);

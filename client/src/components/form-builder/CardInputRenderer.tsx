@@ -15,14 +15,18 @@ import VoiceRecorder from "@/components/voice-recorder";
 import VendorRequirementsEditor from "@/components/VendorRequirementsEditor";
 import { apiRequest } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
+import { useToast } from "@/hooks/use-toast";
 
 interface CardInputRendererProps {
   card: FormCard;
   onUpdate?: (id: string, updates: Partial<FormCard>) => void;
   readOnly?: boolean;
+  // Full card list — only needed so the description card can pull sibling
+  // title/deliverables context for the "Suggest with AI" option.
+  allCards?: FormCard[];
 }
 
-export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInputRendererProps) {
+export function CardInputRenderer({ card, onUpdate, readOnly = false, allCards }: CardInputRendererProps) {
   const { t, language } = useI18n();
   const dateLocale = language === 'ar' ? arLocale : undefined;
 
@@ -60,8 +64,19 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false }: CardInpu
     case "milestones":
       return <MilestonesInput value={card.value || []} onChange={updateValue} readOnly={readOnly} />;
 
-    case "project-description":
-      return <ProjectDescriptionInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
+    case "project-description": {
+      const titleCard = allCards?.find((c) => c.type === "project-title");
+      const deliverablesCard = allCards?.find((c) => c.type === "key-deliverables");
+      return (
+        <ProjectDescriptionInput
+          value={card.value}
+          onChange={updateValue}
+          readOnly={readOnly}
+          title={titleCard?.value || ""}
+          deliverables={deliverablesCard?.value || []}
+        />
+      );
+    }
 
     case "submission-deadline":
       return <DatePickerInput value={card.value} onChange={updateValue} label={t('formBuilder.submissionDeadlineLabel')} readOnly={readOnly} />;
@@ -677,13 +692,19 @@ function ProjectDescriptionInput({
   value,
   onChange,
   readOnly = false,
+  title = "",
+  deliverables = [],
 }: {
   value: DescriptionValue | null;
   onChange: (value: DescriptionValue) => void;
   readOnly?: boolean;
+  title?: string;
+  deliverables?: DeliverableItem[];
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const { toast } = useToast();
   const [tab, setTab] = useState<"text" | "voice">("text");
+  const [isSuggesting, setIsSuggesting] = useState(false);
   const val: DescriptionValue = value && typeof value === "object" && "text" in value
     ? value
     : { text: typeof value === "string" ? (value as string) : "", voiceNoteUrl: "", videoUrl: "" };
@@ -693,6 +714,31 @@ function ProjectDescriptionInput({
   const countWords = (str: string) => str.trim().split(/\s+/).filter(Boolean).length;
   const wordCount = countWords(val.text);
   const charCount = val.text.length;
+
+  const namedDeliverables = deliverables.filter((d) => d.name.trim());
+
+  const handleSuggestDescription = async () => {
+    if (namedDeliverables.length === 0 || isSuggesting) return;
+    setIsSuggesting(true);
+    try {
+      const res = await apiRequest("POST", "/api/tenders/suggest-description", {
+        title,
+        deliverables: namedDeliverables.map((d) => ({ name: d.name, description: d.description })),
+        language,
+      });
+      if (!res.ok) throw new Error("Failed to generate description");
+      const data = await res.json();
+      update({ text: data.description });
+    } catch {
+      toast({
+        title: t('common.error'),
+        description: t('tenderFlow.suggestDescriptionFailed'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
 
   if (readOnly) {
     return (
@@ -751,6 +797,22 @@ function ProjectDescriptionInput({
       {/* Write tab */}
       {tab === "text" && (
         <div className="space-y-2">
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleSuggestDescription}
+              disabled={namedDeliverables.length === 0 || isSuggesting}
+              className="flex items-center gap-1.5 text-xs font-medium text-[#FE3C01] hover:text-[#d54d35] disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
+              title={namedDeliverables.length === 0 ? t('tenderFlow.suggestDescriptionNeedsDeliverables') : undefined}
+            >
+              {isSuggesting ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="h-3.5 w-3.5" />
+              )}
+              {isSuggesting ? t('tenderFlow.suggestingDescription') : t('tenderFlow.suggestDescriptionWithAi')}
+            </button>
+          </div>
           <textarea
             placeholder={t('tenderFlow.descriptionPlaceholder')}
             value={val.text}
@@ -760,9 +822,9 @@ function ProjectDescriptionInput({
             className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none"
           />
           <div className="flex justify-between items-center text-xs">
-            <p className={wordCount > 0 && wordCount < 50 ? "text-amber-600 font-medium" : wordCount >= 50 ? "text-green-600 font-medium" : "text-gray-400"}>
-              {wordCount < 50
-                ? `${Math.max(0, 50 - wordCount)} ${t('tenderFlow.moreWordsNeeded')}`
+            <p className={wordCount > 0 && wordCount < 10 ? "text-amber-600 font-medium" : wordCount >= 10 ? "text-green-600 font-medium" : "text-gray-400"}>
+              {wordCount < 10
+                ? `${Math.max(0, 10 - wordCount)} ${t('tenderFlow.moreWordsNeeded')}`
                 : `${t('tenderFlow.minWordCountMet')} ✓`}
             </p>
             <p className="text-gray-400">{wordCount} {t('tenderFlow.words')} · {charCount}/5000</p>

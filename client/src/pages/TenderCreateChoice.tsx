@@ -17,7 +17,7 @@ import type { UploadResult } from "@/components/ObjectUploader";
 
 export default function TenderCreateChoice() {
   const [, setLocation] = useLocation();
-  const { user } = useAuthStore();
+  const { user, activeCompany } = useAuthStore();
   const { t, isRtl, language } = useI18n();
 
   const DOCUMENT_SLOTS = [
@@ -30,8 +30,8 @@ export default function TenderCreateChoice() {
   const queryClient = useQueryClient();
   const [docUploadedTypes, setDocUploadedTypes] = useState<Set<string>>(new Set());
 
-  const verificationStatus = (user as any)?.activeCompany?.verificationStatus;
-  const activeCompanyId = (user as any)?.activeCompany?.id;
+  const verificationStatus = activeCompany?.verificationStatus;
+  const activeCompanyId = activeCompany?.id;
   const firstName = user?.name?.split(' ')[0] || user?.username || 'there';
 
   const { overlay: tourOverlay } = usePageTour({

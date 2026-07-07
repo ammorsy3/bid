@@ -428,7 +428,7 @@ export default function ProposalComparison({
                       )}
                     </div>
                     <span className="text-[10px] text-gray-300 flex-shrink-0 mt-0.5">
-                      {new Date(action.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' })}
+                      {new Date(action.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'short', day: 'numeric' })}
                     </span>
                   </div>
                 );
@@ -914,7 +914,7 @@ export default function ProposalComparison({
                     )}
                   </div>
                   <span className="text-[10px] text-gray-300 flex-shrink-0 mt-0.5">
-                    {new Date(action.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' })}
+                    {new Date(action.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'short', day: 'numeric' })}
                   </span>
                 </div>
               );
@@ -1037,7 +1037,7 @@ export default function ProposalComparison({
           )}
           {completedAnalyses[0]?.analyzedAt && (
             <p className="text-xs text-gray-400 ml-auto">
-              {t('tenderFlow.analyzedLabel')} {new Date(completedAnalyses[0].analyzedAt).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')}
+              {t('tenderFlow.analyzedLabel')} {new Date(completedAnalyses[0].analyzedAt).toLocaleString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US')}
             </p>
           )}
         </div>

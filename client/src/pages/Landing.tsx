@@ -98,7 +98,7 @@ function SignUpModal({ onClose, lang }: { onClose: () => void; lang: Lang }) {
         </button>
         <div className="modal-icon"><BidMonogram variant="onInk" size={56} /></div>
         <h2 className="modal-headline">{c.modalHeadline}</h2>
-        <button className="modal-btn" onClick={() => { onClose(); navigate("/login?redirect=%2Ftenders%2Fnew%2Fai"); }}>{c.modalLogin}</button>
+        <button className="modal-btn" onClick={() => { onClose(); navigate("/login"); }}>{c.modalLogin}</button>
         <button className="modal-btn primary" onClick={() => { onClose(); navigate("/signup?redirect=%2Ftenders%2Fnew%2Fai"); }}>{c.modalSignUp}</button>
       </div>
     </div>
@@ -133,7 +133,7 @@ const Landing = () => {
   const arrowRight = isRtl ? "←" : "→";
 
   return (
-    <div style={{ background: "var(--cream)" }} dir={isRtl ? "rtl" : "ltr"} className={isRtl ? "landing-rtl" : ""}>
+    <div style={{ background: "var(--cream)" }} dir={isRtl ? "rtl" : "ltr"} className={`landing-page${isRtl ? " landing-rtl" : ""}`}>
       {showModal && <SignUpModal onClose={() => setShowModal(false)} lang={lang} />}
       <div className="page">
 

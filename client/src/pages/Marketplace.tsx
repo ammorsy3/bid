@@ -247,7 +247,7 @@ export default function Marketplace() {
   const activeFilterCount = [category, city, tenderType, sort !== "newest" ? sort : ""].filter(Boolean).length;
 
   const fmt = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString(language === "ar" ? "ar-SA" : "en-US", {
+    new Date(dateStr).toLocaleDateString(language === "ar" ? "ar-SA-u-ca-gregory" : "en-US", {
       year: "numeric", month: "2-digit", day: "2-digit",
     });
 

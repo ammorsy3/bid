@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Sparkles, Edit3, Loader2, AlertCircle, Eye, EyeOff, Info } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
 
@@ -47,6 +47,12 @@ export default function TenderAIBudgetStep() {
   }, []);
 
   useEffect(() => {
+    if (draft.budgetMode) {
+      setBudgetMode(draft.budgetMode);
+    }
+    if (draft.aiEstimate) {
+      setAiEstimate(draft.aiEstimate);
+    }
     if (draft.budgetMin && draft.budgetMax) {
       setPriceType("range");
       setMinPrice(draft.budgetMin.toString());
@@ -61,6 +67,36 @@ export default function TenderAIBudgetStep() {
     ? (parseFloat(budget) || 0)
     : (parseFloat(maxPrice) || 0);
   const projectSize = budgetNumber > 0 ? getProjectSize(budgetNumber) : null;
+
+  // Persist every change as it happens (not just on "Next") so navigating
+  // away mid-edit never drops the budget being entered. Skips the very first
+  // render, which still holds pre-hydration defaults from before the effect
+  // above populates them from the saved draft.
+  const didHydrate = useRef(false);
+  useEffect(() => {
+    if (!didHydrate.current) {
+      didHydrate.current = true;
+      return;
+    }
+    try {
+      const current = JSON.parse(localStorage.getItem("tenderDraft") || "{}");
+      localStorage.setItem(
+        "tenderDraft",
+        JSON.stringify({
+          ...current,
+          budgetMode: budgetMode || undefined,
+          budget: priceType === "exact" ? budget : (minPrice || maxPrice ? `${minPrice} - ${maxPrice}` : current.budget),
+          budgetMin: priceType === "range" ? (parseFloat(minPrice) || undefined) : undefined,
+          budgetMax: priceType === "range" ? (parseFloat(maxPrice) || undefined) : undefined,
+          projectSize: projectSize || undefined,
+          showPriceToVendors,
+          aiEstimate: aiEstimate || undefined,
+        })
+      );
+    } catch {
+      // localStorage may be full / disabled — UI state still updates.
+    }
+  }, [budgetMode, budget, priceType, minPrice, maxPrice, showPriceToVendors, aiEstimate, projectSize]);
 
   const getProjectSizeLabel = (size: ProjectSize): string => {
     switch (size) {

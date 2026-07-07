@@ -2,10 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, ArrowRight, X, Plus, Mic, ChevronDown, CalendarIcon, Video } from "lucide-react";
+import { ArrowLeft, ArrowRight, X, Plus, Mic, ChevronDown, CalendarIcon, Video, Sparkles, Loader2 } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,8 @@ import { getSuggestions } from "@/lib/tender-suggestions";
 import { smartSuggestionEngine } from "@/lib/smart-suggestions";
 import { SmartUnitDropdown, UNIT_LABELS_AR } from "@/components/ui/smart-unit-dropdown";
 import { useI18n } from "@/lib/i18n";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 type InputMode = "text" | "voice";
 
@@ -41,6 +43,7 @@ const countWords = (text: string): number => {
 export default function TenderProjectScopeStep() {
   const [, navigate] = useLocation();
   const { t, language, isRtl } = useI18n();
+  const { toast } = useToast();
   const dateLocale = language === 'ar' ? arLocale : undefined;
   const [keyDeliverables, setKeyDeliverables] = useState<Deliverable[]>([]);
   const [expandedDeliverableId, setExpandedDeliverableId] = useState<string | null>(null);
@@ -48,6 +51,8 @@ export default function TenderProjectScopeStep() {
   const [inputMode, setInputMode] = useState<InputMode>("text");
   const [voiceNoteUrl, setVoiceNoteUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [isSuggestingDescription, setIsSuggestingDescription] = useState(false);
+  const [preAiDescription, setPreAiDescription] = useState<string | null>(null);
 
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -104,6 +109,40 @@ export default function TenderProjectScopeStep() {
 
   const [deliverableSuggestions, setDeliverableSuggestions] = useState<string[]>([]);
   const [descriptionSuggestions, setDescriptionSuggestions] = useState<string[]>([]);
+
+  // Persist every change as it happens (not just on "Next") so navigating
+  // away mid-edit never drops deliverables, dates, or description text.
+  // Skips the very first render, since that render still holds the pre-hydration
+  // defaults set before the draft-loading effect above has populated them.
+  const didHydrate = useRef(false);
+  useEffect(() => {
+    if (!didHydrate.current) {
+      didHydrate.current = true;
+      return;
+    }
+    try {
+      const current = JSON.parse(localStorage.getItem("tenderDraft") || "{}");
+      const serializedMilestones = milestones.map((m) => ({
+        ...m,
+        dueDate: m.dueDate?.toISOString(),
+      }));
+      localStorage.setItem(
+        "tenderDraft",
+        JSON.stringify({
+          ...current,
+          startDate: startDate?.toISOString(),
+          endDate: endDate?.toISOString(),
+          keyDeliverables,
+          milestones: serializedMilestones,
+          projectDescription: inputMode === "text" ? projectDescription : "",
+          voiceNoteUrl: inputMode === "voice" ? voiceNoteUrl : "",
+          videoUrl: videoUrl.trim() || "",
+        })
+      );
+    } catch {
+      // localStorage may be full / disabled — UI state still updates.
+    }
+  }, [startDate, endDate, keyDeliverables, milestones, projectDescription, voiceNoteUrl, videoUrl, inputMode]);
 
   useEffect(() => {
     const generalDeliverable = getSuggestions("deliverable", language);
@@ -344,10 +383,60 @@ export default function TenderProjectScopeStep() {
   const isFormValid =
     isTimelineComplete &&
     areDeliverablesComplete &&
-    (inputMode === "text" ? descriptionWordCount >= 50 : voiceNoteUrl.length > 0);
+    (inputMode === "text" ? descriptionWordCount >= 10 : voiceNoteUrl.length > 0);
 
   const maxDescriptionChars = 5000;
   const descriptionCharCount = projectDescription.length;
+
+  const namedDeliverables = keyDeliverables.filter((d) => d.name.trim());
+
+  const handleSuggestDescription = async () => {
+    if (namedDeliverables.length === 0 || isSuggestingDescription) return;
+    const previousDescription = projectDescription;
+    setIsSuggestingDescription(true);
+    try {
+      const res = await apiRequest("POST", "/api/tenders/suggest-description", {
+        title: draft.title,
+        deliverables: namedDeliverables.map((d) => ({ name: d.name, description: d.description, unit: d.unit, quantity: d.quantity })),
+        startDate: startDate?.toISOString(),
+        endDate: endDate?.toISOString(),
+        milestones: milestones
+          .filter((m) => m.name.trim())
+          .map((m) => ({ name: m.name, description: m.description, dueDate: m.dueDate?.toISOString() })),
+        language,
+      });
+      if (res.status === 429) {
+        const data = await res.json().catch(() => null);
+        toast({
+          title: t('common.error'),
+          description: data?.retryAfterSeconds
+            ? t('tenderFlow.suggestDescriptionRateLimited').replace('{seconds}', String(data.retryAfterSeconds))
+            : t('tenderFlow.suggestDescriptionFailed'),
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!res.ok) throw new Error("Failed to generate description");
+      const data = await res.json();
+      setProjectDescription(data.description);
+      setPreAiDescription(previousDescription);
+      toast({ title: t('tenderFlow.descriptionGenerated') });
+    } catch {
+      toast({
+        title: t('common.error'),
+        description: t('tenderFlow.suggestDescriptionFailed'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSuggestingDescription(false);
+    }
+  };
+
+  const handleUndoAiDescription = () => {
+    if (preAiDescription === null) return;
+    setProjectDescription(preAiDescription);
+    setPreAiDescription(null);
+  };
 
   const showTimeline = hasAtLeastOneCompleteDeliverable;
   const showMilestones = isTimelineComplete;
@@ -607,12 +696,12 @@ export default function TenderProjectScopeStep() {
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal",
+                              "w-full justify-start text-left font-normal overflow-hidden",
                               !startDate && "text-muted-foreground"
                             )}
                           >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {startDate ? format(startDate, "PPP", { locale: dateLocale }) : t('tenderFlow.selectDate')}
+                            <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                            <span className="truncate">{startDate ? format(startDate, "PPP", { locale: dateLocale }) : t('tenderFlow.selectDate')}</span>
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -635,12 +724,12 @@ export default function TenderProjectScopeStep() {
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal",
+                              "w-full justify-start text-left font-normal overflow-hidden",
                               !endDate && "text-muted-foreground"
                             )}
                           >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {endDate ? format(endDate, "PPP", { locale: dateLocale }) : t('tenderFlow.selectDate')}
+                            <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                            <span className="truncate">{endDate ? format(endDate, "PPP", { locale: dateLocale }) : t('tenderFlow.selectDate')}</span>
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -845,6 +934,33 @@ export default function TenderProjectScopeStep() {
 
                   {inputMode === "text" && (
                     <>
+                      <div className="flex justify-end items-center gap-3">
+                        {preAiDescription !== null && (
+                          <button
+                            type="button"
+                            onClick={handleUndoAiDescription}
+                            className="text-xs font-medium text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+                            data-testid="button-undo-ai-description"
+                          >
+                            {t('tenderFlow.undo')}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleSuggestDescription}
+                          disabled={namedDeliverables.length === 0 || isSuggestingDescription}
+                          className="flex items-center gap-1.5 text-xs font-medium text-[#FE3C01] hover:text-[#d54d35] disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
+                          data-testid="button-suggest-description"
+                          title={namedDeliverables.length === 0 ? t('tenderFlow.suggestDescriptionNeedsDeliverables') : undefined}
+                        >
+                          {isSuggestingDescription ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-3.5 w-3.5" />
+                          )}
+                          {isSuggestingDescription ? t('tenderFlow.suggestingDescription') : t('tenderFlow.suggestDescriptionWithAi')}
+                        </button>
+                      </div>
                       <AutocompleteInput
                         value={projectDescription}
                         onChange={setProjectDescription}
@@ -856,8 +972,8 @@ export default function TenderProjectScopeStep() {
                         data-testid="textarea-project-description"
                       />
                       <div className="flex justify-between items-center text-xs">
-                        <p className={descriptionWordCount < 50 ? "text-amber-600 font-medium" : "text-green-600 font-medium"}>
-                          {descriptionWordCount < 50 ? `${50 - descriptionWordCount} ${t('tenderFlow.moreWordsNeeded')}` : `${t('tenderFlow.minWordCountMet')} ✓`}
+                        <p className={descriptionWordCount < 10 ? "text-amber-600 font-medium" : "text-green-600 font-medium"}>
+                          {descriptionWordCount < 10 ? `${10 - descriptionWordCount} ${t('tenderFlow.moreWordsNeeded')}` : `${t('tenderFlow.minWordCountMet')} ✓`}
                         </p>
                         <p className="text-gray-400">{descriptionWordCount} {t('tenderFlow.words')} · {descriptionCharCount}/{maxDescriptionChars}</p>
                       </div>

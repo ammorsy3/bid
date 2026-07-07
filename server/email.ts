@@ -104,7 +104,16 @@ async function sendEmail(to: string | string[], subject: string, htmlBody: strin
   }
 }
 
-function getBaseUrl(appBaseUrl?: string): string {
+// Published Replit deployments still set REPLIT_DOMAINS (to their *.replit.app
+// domain), so it can't be used to detect "production" — only NODE_ENV (set by
+// `npm run start`, see .replit's [deployment] block) reliably does. In
+// production, links must always point at bidapp.sa regardless of what
+// Replit's own domain env vars say; only the dev workspace should fall back
+// to the Replit dev domain.
+export function getBaseUrl(appBaseUrl?: string): string {
+  if (process.env.NODE_ENV === "production") {
+    return "https://bidapp.sa";
+  }
   if (appBaseUrl) return appBaseUrl;
   const domains = process.env.REPLIT_DOMAINS;
   if (domains) {
@@ -359,7 +368,7 @@ export async function sendNewOfferNotification(params: {
     const lang: Lang = recipient.language || 'en';
     const isAr = lang === 'ar';
 
-    const formattedDate = submittedAt.toLocaleDateString(isAr ? "ar-SA" : "en-US", {
+    const formattedDate = submittedAt.toLocaleDateString(isAr ? "ar-SA-u-ca-gregory" : "en-US", {
       year: "numeric", month: "long", day: "numeric",
       hour: "2-digit", minute: "2-digit",
     });

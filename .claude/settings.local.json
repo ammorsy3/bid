@@ -220,7 +220,21 @@
       "Bash(TOUR_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIwN2M3MzY2Mi1kZjk5LTRiMmEtOTU5Zi1lMTBkODliNzQ2NTAiLCJhY3RpdmVDb21wYW55SWQiOiJlMTBiOTM4YS0zMTIyLTRjOTItYjk4Yy1mMGU5MzdkZmViM2EiLCJyb2xlSW5Db21wYW55Ijoib3duZXIiLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNzgzMjU2MTM3LCJleHAiOjE3ODM4NjA5Mzd9.ERCx2wmkVlV5uSLe2BwNYRjtvEpuiFqgwDSxm-u7608 node -e ' *)",
       "Bash(wait)",
       "Bash(nix --version)",
-      "Bash(awk 'NR==476,NR==1087' /home/runner/workspace/client/src/pages/TenderAICopilot.tsx)"
+      "Bash(awk 'NR==476,NR==1087' /home/runner/workspace/client/src/pages/TenderAICopilot.tsx)",
+      "Bash(set -e)",
+      "Skill(run)",
+      "Bash(command -v chromium-cli)",
+      "Bash(find / -maxdepth 6 -iname \"chromium-cli*\")",
+      "Bash(timeout 40 bash -c 'until curl -sf http://localhost:5000 >/dev/null 2>&1 || curl -sf http://localhost:3000 >/dev/null 2>&1; do sleep 1; done; echo ready')",
+      "Bash(ldd /home/runner/workspace/.cache/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-linux64/chrome-headless-shell)",
+      "Bash(pkill -f \"tsx watch server/index.ts\")",
+      "Bash(GIT_CONFIG_NOSYSTEM=1 git status)",
+      "Bash(export GIT_CONFIG_NOSYSTEM=1)",
+      "Bash(jobs)",
+      "Bash(/nix/store/1lagpgadaybvs1n2312gysg2phjk89y8-nodejs-20.20.0-wrapped/bin/node --version)",
+      "Bash(awk -F: '{print $1\": \"$0}')",
+      "Bash(command -v convert magick python3)",
+      "Bash(awk *)"
     ]
   },
   "enableAllProjectMcpServers": true,

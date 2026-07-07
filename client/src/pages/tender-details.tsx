@@ -97,6 +97,7 @@ const DURATION_LABELS: Record<string, Record<string, string>> = {
   "6plus": { en: "More than 6 months", ar: "أكثر من 6 أشهر" },
   "3to6": { en: "3 to 6 months", ar: "3 إلى 6 أشهر" },
   "1to3": { en: "1 to 3 months", ar: "1 إلى 3 أشهر" },
+  "under1": { en: "Less than a month", ar: "أقل من شهر" },
 };
 
 function AudioPlayer({ src }: { src: string }) {
@@ -437,12 +438,25 @@ export default function TenderDetails() {
   const isTenderRtl = tenderLanguage === 'ar';
   const isRtl = language === 'ar';
 
+  // negotiate-banner and proposal-comparison only render once there are 2+ offers (and,
+  // for negotiate-banner, the tender is closed) — filter them out up front instead of
+  // letting the tour discover they're missing and auto-skip through them one by one.
+  const tenderDetailsTourSteps = getSteps(TENDER_DETAILS_TOUR_STEPS, language).filter((step) => {
+    if (step.id === 'negotiate-banner') return tender?.status === 'closed' && offers.length >= 2;
+    if (step.id === 'proposal-comparison') return offers.length >= 2;
+    return true;
+  });
+
   const { overlay: tourOverlay } = usePageTour({
     tourId: 'tender-details',
     userId: user?.id ?? '',
-    steps: getSteps(TENDER_DETAILS_TOUR_STEPS, language),
+    steps: tenderDetailsTourSteps,
     isRtl,
-    autoStart: !!user && !!tender && isOwner,
+    // Wait for the offers fetch to settle too — it's a separate query from `tender` and
+    // isn't guaranteed to resolve within autoStartDelay, so starting on `tender` alone
+    // could evaluate the filter above against a still-empty `offers` default and wrongly
+    // drop steps that the real (in-flight) data would have included.
+    autoStart: !!user && !!tender && isOwner && !loadingOffers,
     autoStartDelay: 1500,
   });
 
@@ -648,7 +662,7 @@ export default function TenderDetails() {
 
   const formatDate = (dateStr: string | Date) => {
     const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-    return date.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+    return date.toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric'
@@ -667,16 +681,17 @@ export default function TenderDetails() {
   };
 
   const getDurationDisplay = () => {
-    if (tender.duration && DURATION_LABELS[tender.duration]) return DURATION_LABELS[tender.duration]?.[language] || DURATION_LABELS[tender.duration]?.en;
-    if (tender.duration) return tender.duration;
     if (tender.startDate && tender.endDate) {
       const start = new Date(tender.startDate);
       const end = new Date(tender.endDate);
-      const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-      if (months <= 3) return DURATION_LABELS["1to3"]?.[language];
-      if (months <= 6) return DURATION_LABELS["3to6"]?.[language];
+      const days = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      if (days <= 30) return DURATION_LABELS["under1"]?.[language];
+      if (days <= 90) return DURATION_LABELS["1to3"]?.[language];
+      if (days <= 182) return DURATION_LABELS["3to6"]?.[language];
       return DURATION_LABELS["6plus"]?.[language];
     }
+    if (tender.duration && DURATION_LABELS[tender.duration]) return DURATION_LABELS[tender.duration]?.[language] || DURATION_LABELS[tender.duration]?.en;
+    if (tender.duration) return tender.duration;
     return t('tenderFlow.notSpecified');
   };
 
@@ -1538,7 +1553,7 @@ export default function TenderDetails() {
                                     )}
                                     <p className="text-sm text-gray-900 dark:text-foreground">{q.question}</p>
                                     <p className="text-xs text-gray-400 mt-1">
-                                      {t('tenderFlow.askedLabel')} {new Date(q.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' })}
+                                      {t('tenderFlow.askedLabel')} {new Date(q.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'short', day: 'numeric' })}
                                       {q.askedByCompany?.category && (
                                         <span className={`${isRtl ? 'mr-1' : 'ml-1'} text-muted-foreground`}>· {q.askedByCompany.category}</span>
                                       )}
@@ -2196,7 +2211,7 @@ export default function TenderDetails() {
                           <Calendar className="h-3.5 w-3.5 text-gray-300" /> {t('tenderFlow.submittedOn')}
                         </span>
                         <span className="text-sm font-medium text-foreground">
-                          {new Date(selectedOffer.submittedAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+                          {new Date(selectedOffer.submittedAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',

@@ -298,7 +298,7 @@ function MobileAtAGlance({
               </div>
             )}
             {tender.category && (
-              <div className="bg-muted rounded-lg p-2.5 border border-border col-span-2">
+              <div className="bg-muted rounded-lg p-2.5 border border-border">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Tag className="h-3 w-3 flex-shrink-0 text-indigo-500" />
                   <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.categoryLabel')}</span>
@@ -581,24 +581,28 @@ export default function TenderInviteLink() {
   };
 
   // ── Duration helpers ─────────────────────────────────────────────────────────
+  // Prefer the actual start/end dates (set later in tender creation, so more precise)
+  // over the coarse duration bucket, which may still hold a stale default value.
+  const durationFromDates = (() => {
+    if (tender.startDate && tender.endDate) {
+      const start = new Date(tender.startDate);
+      const end = new Date(tender.endDate);
+      const days = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      if (days <= 30) return t('tenderFlow.upTo1Month');
+      if (days <= 90) return t('tenderFlow.oneToThreeMonths');
+      if (days <= 182) return t('tenderFlow.threeToSixMonths');
+      return t('tenderFlow.moreThanSixMonths');
+    }
+    return null;
+  })();
+
   const durationLabel = (() => {
     if (tender.duration && translatedDurationLabels[tender.duration]) return translatedDurationLabels[tender.duration];
     if (tender.duration) return tender.duration;
     return null;
   })();
 
-  const durationDisplay = durationLabel || (() => {
-    if (tender.startDate && tender.endDate) {
-      const start = new Date(tender.startDate);
-      const end = new Date(tender.endDate);
-      const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-      if (months <= 1) return t('tenderFlow.upTo1Month');
-      if (months <= 3) return t('tenderFlow.oneToThreeMonths');
-      if (months <= 6) return t('tenderFlow.threeToSixMonths');
-      return t('tenderFlow.moreThanSixMonths');
-    }
-    return null;
-  })();
+  const durationDisplay = durationFromDates || durationLabel;
 
   // Show date range only when no duration label/text is set at all
   const showDurationDateRange = !tender.duration && (tender.startDate || tender.endDate);
@@ -616,7 +620,7 @@ export default function TenderInviteLink() {
   };
 
   const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    new Date(dateStr).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
   const handleSubmitOffer = () => {
     if (!user) {
@@ -874,20 +878,20 @@ export default function TenderInviteLink() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-6">
 
           {/* Company & Status */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3 min-w-0">
               {logoUrl ? (
-                <img src={logoUrl} alt={displayName} className="w-14 h-14 rounded-xl object-cover border border-border shadow-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} />
+                <img src={logoUrl} alt={displayName} className="w-14 h-14 rounded-xl object-cover border border-border shadow-sm flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} />
               ) : null}
-              <div className={`w-14 h-14 rounded-xl bg-muted border border-border flex items-center justify-center shadow-sm ${logoUrl ? 'hidden' : ''}`}>
+              <div className={`w-14 h-14 rounded-xl bg-muted border border-border flex items-center justify-center shadow-sm flex-shrink-0 ${logoUrl ? 'hidden' : ''}`}>
                 <Building2 className="h-7 w-7 text-gray-400" />
               </div>
-              <div>
-                <p className="text-foreground font-bold text-lg">{displayName}</p>
+              <div className="min-w-0">
+                <p className="text-foreground font-bold text-lg truncate">{displayName}</p>
                 <p className="text-gray-400 text-sm">{t('tenderFlow.requestingOrganization')}</p>
               </div>
             </div>
-            <div>
+            <div className="flex-shrink-0">
               {tender.status === 'published' && !isDeadlinePassed && !isDeadlineToday && (
                 <Badge className="bg-[var(--state-won)]/5 text-[var(--state-won)] border border-emerald-200 text-xs px-3 py-1" data-testid="badge-status">
                   {t('tenderFlow.openForSubmissions')}
@@ -1652,7 +1656,7 @@ export default function TenderInviteLink() {
                       </div>
                     )}
                     {tender.category && (
-                      <div className="bg-muted rounded-lg p-2.5 border border-border col-span-2">
+                      <div className="bg-muted rounded-lg p-2.5 border border-border">
                         <div className="flex items-center gap-1.5 mb-1">
                           <Tag className="h-3 w-3 flex-shrink-0 text-indigo-500" />
                           <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.categoryLabel')}</span>
@@ -1794,7 +1798,7 @@ export default function TenderInviteLink() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm text-foreground font-medium">{qa.question}</p>
                             <p className="text-xs text-gray-400 mt-1">
-                              {t('tenderFlow.askedOn')} {new Date(qa.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' })}
+                              {t('tenderFlow.askedOn')} {new Date(qa.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'short', day: 'numeric' })}
                             </p>
                           </div>
                         </div>
@@ -1803,7 +1807,7 @@ export default function TenderInviteLink() {
                             <p className="text-sm text-muted-foreground">{qa.answer}</p>
                             {qa.answeredAt && (
                               <p className="text-xs text-[var(--state-won)] mt-1 font-medium">
-                                {t('tenderFlow.answeredOn')} {new Date(qa.answeredAt).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' })}
+                                {t('tenderFlow.answeredOn')} {new Date(qa.answeredAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'short', day: 'numeric' })}
                               </p>
                             )}
                           </div>

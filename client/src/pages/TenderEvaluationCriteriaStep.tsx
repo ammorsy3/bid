@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Check, Scale, ChevronDown, Briefcase, Clock, Plus, X, Shield } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { ENTERPRISE_CRITERIA_CATEGORIES, CRITERIA_TRANSLATIONS_AR } from "@/lib/evaluation-criteria-data";
 import { useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/lib/auth";
@@ -120,6 +120,35 @@ export default function TenderEvaluationCriteriaStep() {
       setVendorRequirements(draft.vendorRequirements);
     }
   }, []);
+
+  // Persist every change as it happens (not just on "Continue") so navigating
+  // away mid-edit never drops criteria weights or requirement selections.
+  // Skips the very first render, which still holds pre-hydration defaults
+  // from before the effect above populates them from the saved draft.
+  const didHydrate = useRef(false);
+  useEffect(() => {
+    if (!didHydrate.current) {
+      didHydrate.current = true;
+      return;
+    }
+    try {
+      const current = JSON.parse(localStorage.getItem("tenderDraft") || "{}");
+      localStorage.setItem(
+        "tenderDraft",
+        JSON.stringify({
+          ...current,
+          evaluationCriteria: {
+            requirements: selectedRequirements,
+            weights: categoryWeights,
+            customCriteria,
+          },
+          vendorRequirements: vendorRequirements.length > 0 ? vendorRequirements : undefined,
+        })
+      );
+    } catch {
+      // localStorage may be full / disabled — UI state still updates.
+    }
+  }, [selectedRequirements, categoryWeights, customCriteria, vendorRequirements]);
 
   // ── Evaluation criteria handlers ───────────────────────────────────────────
 

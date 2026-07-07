@@ -89,7 +89,7 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
 
   const formatDate = (dateStr: string | Date) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    return d.toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
 
   const slides = [

@@ -51,6 +51,7 @@ import {
   getOpenAIConfig,
   translateTexts,
   suggestTenderCategory,
+  suggestTenderDescription,
   buildTenderTranslation,
 } from "./lib/tender-ai";
 import {
@@ -168,6 +169,28 @@ const requireAdmin = (req: AuthRequest, res: Response, next: Function) => {
   if (!req.auth?.isAdmin) {
     return res.status(403).json({ message: 'Admin access required' });
   }
+  next();
+};
+
+// Middleware: Throttle a per-user action to at most once per minute (in-memory,
+// good enough for a single-process cost-control guard on paid AI calls).
+const SUGGEST_DESCRIPTION_MIN_INTERVAL_MS = 60 * 1000;
+const suggestDescriptionLastRequestAt = new Map<string, number>();
+const suggestDescriptionRateLimit = (req: AuthRequest, res: Response, next: Function) => {
+  const userId = req.auth?.userId;
+  if (!userId) return next();
+
+  const now = Date.now();
+  const last = suggestDescriptionLastRequestAt.get(userId);
+  if (last && now - last < SUGGEST_DESCRIPTION_MIN_INTERVAL_MS) {
+    const retryAfterSeconds = Math.ceil((SUGGEST_DESCRIPTION_MIN_INTERVAL_MS - (now - last)) / 1000);
+    res.set('Retry-After', String(retryAfterSeconds));
+    return res.status(429).json({
+      message: 'Please wait a moment before generating another description',
+      retryAfterSeconds,
+    });
+  }
+  suggestDescriptionLastRequestAt.set(userId, now);
   next();
 };
 
@@ -909,15 +932,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passwordResetExpiry: expiry,
       } as any);
 
-      const domains = process.env.REPLIT_DOMAINS;
-      const appBaseUrl = domains ? `https://${domains.split(',')[0]}` : 'https://bidapp.sa';
-
       try {
         await sendPasswordResetEmail({
           email: user.email,
           resetToken: token,
           recipientName: user.name,
-          appBaseUrl,
           language: (user.language as 'en' | 'ar') || 'en',
         });
       } catch (emailErr) {
@@ -3190,6 +3209,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Translation error:', error);
       res.status(500).json({ message: "Translation failed" });
+    }
+  });
+
+  // Suggest a project description from the title + deliverables (custom form builder
+  // and Bid Recommended template's "Suggest with AI" option on the description field)
+  app.post("/api/tenders/suggest-description", authenticateToken, suggestDescriptionRateLimit, async (req: AuthRequest, res) => {
+    try {
+      const { title, deliverables, startDate, endDate, milestones, language } = req.body;
+
+      if (!Array.isArray(deliverables) || deliverables.length === 0) {
+        return res.status(400).json({ message: "deliverables (non-empty array) is required" });
+      }
+
+      const description = await suggestTenderDescription({
+        title,
+        deliverables,
+        startDate: typeof startDate === 'string' ? startDate : undefined,
+        endDate: typeof endDate === 'string' ? endDate : undefined,
+        milestones: Array.isArray(milestones) ? milestones : undefined,
+        language: language === 'ar' ? 'ar' : 'en',
+      });
+
+      if (!description) {
+        return res.status(502).json({ message: "Could not generate a description" });
+      }
+      res.json({ description });
+    } catch (error) {
+      console.error('Suggest description error:', error);
+      res.status(500).json({ message: "Failed to generate description" });
     }
   });
 

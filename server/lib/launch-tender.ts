@@ -13,7 +13,7 @@ import { storage } from "../storage";
 import { createTenderSchema, type CreateTender } from "@shared/schema";
 import { draftToTenderPayload, type DraftToTenderPayloadExtras } from "@shared/tender-mapping";
 import { suggestTenderCategory, buildTenderTranslation } from "./tender-ai";
-import { sendTenderCreatedNotification } from "../email";
+import { sendTenderCreatedNotification, getBaseUrl } from "../email";
 
 export type TenderCreationSource = "web" | "api_key" | "webhook" | "mcp";
 
@@ -186,7 +186,7 @@ export async function launchTenderFromPayload(
   return {
     tender: outputTender,
     invitationToken,
-    tenderUrl: `/tenders/${tender.id}`,
+    tenderUrl: `${getBaseUrl()}/tenders/${tender.id}`,
     marketplaceRefNumber,
   };
 }

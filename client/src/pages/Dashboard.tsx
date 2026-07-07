@@ -34,7 +34,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription, PopoverBody, PopoverFooter } from "@/components/ui/popover";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDashboardTour, usePageTour, resetAllTours } from "@/lib/tour";
 import { DASHBOARD_TOUR_STEPS, VENDORS_BASE_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -543,6 +543,7 @@ export default function Dashboard() {
   const [selectedVendor, setSelectedVendor] = useState<VendorProfile | null>(null);
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
+  const mainRef = useRef<HTMLElement>(null);
   const [proposalsSubTab, setProposalsSubTab] = useState(() => localStorage.getItem('dashboard-proposals-tab') || 'submitted');
   const [vendorsSubTab, setVendorsSubTab] = useState(() => localStorage.getItem('dashboard-vendors-tab') || 'vendors-list');
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
@@ -579,8 +580,16 @@ export default function Dashboard() {
     retakeTour();
   };
 
+  // Switching tabs swaps TabsContent in place inside the same scrollable <main> —
+  // scrollTop isn't reset automatically, so a tab opened while scrolled down from the
+  // previous one can leave its content (and any tour spotlight targeting it) starting
+  // out partially off-screen instead of at the top.
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0 });
+  }, [activeTab]);
+
   // ── Vendors tab tour (fires first time user opens the vendors tab) ────────
-  const { overlay: vendorsTourOverlay } = usePageTour({
+  const { overlay: vendorsTourOverlay, isActive: vendorsTourActive } = usePageTour({
     tourId: 'vendors-base',
     userId: user?.id ?? '',
     steps: getSteps(VENDORS_BASE_TOUR_STEPS, language),
@@ -588,6 +597,13 @@ export default function Dashboard() {
     autoStart: !!user && activeTab === 'vendors',
     autoStartDelay: 800,
   });
+
+  // The tour's 2nd step spotlights the vendors-list sub-tab's search card, which only
+  // exists in the DOM while that sub-tab is active. Force it so the step can't silently
+  // skip because the user last left the join-requests sub-tab open.
+  useEffect(() => {
+    if (vendorsTourActive) setVendorsSubTab('vendors-list');
+  }, [vendorsTourActive]);
 
   // Bid grid texture — low-opacity Stone on light, low-opacity Cream on Ink (dark mode).
   const dotColor = currentTheme === 'dark'
@@ -1613,6 +1629,7 @@ export default function Dashboard() {
         </header>
         {/* Main Content */}
         <main
+          ref={mainRef}
           className="flex-1 overflow-auto p-4 sm:p-6"
           style={currentTheme !== 'dark' ? {
             backgroundColor: '#F4EDE1',
@@ -1790,7 +1807,7 @@ export default function Dashboard() {
                 background: '#1A1613',
               } : undefined}
             >
-              <div className={`flex items-center justify-between gap-4 p-6 sm:p-7 ${isRtl ? 'flex-row-reverse' : ''}`}>
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-7 ${isRtl ? 'sm:flex-row-reverse' : ''}`}>
                 <div className={`flex items-center gap-4 min-w-0 ${isRtl ? 'flex-row-reverse' : ''}`}>
                   <div className="h-11 w-11 rounded-2xl bg-[#FE3C01] flex items-center justify-center flex-shrink-0">
                     <Play className="h-5 w-5 text-white fill-white" />
@@ -1872,10 +1889,10 @@ export default function Dashboard() {
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isCompanyVerified ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {isCompanyVerified ? <Check className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${isCompanyVerified ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task1Title')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${isCompanyVerified ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task1Title')}</span>
                             {isCompanyVerified && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-3 w-3" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
                               </span>
                             )}
                           </div>
@@ -1908,10 +1925,10 @@ export default function Dashboard() {
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasCompletedProfile ? <Check className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasCompletedProfile ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{isTeam ? t('dashboard.task2TitleTeam') : t('dashboard.task2Title')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasCompletedProfile ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{isTeam ? t('dashboard.task2TitleTeam') : t('dashboard.task2Title')}</span>
                             {onboardingTasks?.hasCompletedProfile && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-3 w-3" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
                               </span>
                             )}
                           </div>
@@ -1944,10 +1961,10 @@ export default function Dashboard() {
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasVendors ? <Check className="h-4 w-4" /> : <Users className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasVendors ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task3Title')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasVendors ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task3Title')}</span>
                             {onboardingTasks?.hasVendors && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-3 w-3" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
                               </span>
                             )}
                           </div>
@@ -1979,10 +1996,10 @@ export default function Dashboard() {
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasTender ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasTender ? <Check className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasTender ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4Title')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasTender ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4Title')}</span>
                             {onboardingTasks?.hasTender && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-3 w-3" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
                               </span>
                             )}
                           </div>
@@ -2013,10 +2030,10 @@ export default function Dashboard() {
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${hasProfileComplete ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {hasProfileComplete ? <Check className="h-4 w-4" /> : <User className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${hasProfileComplete ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4bTitle')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${hasProfileComplete ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4bTitle')}</span>
                             {hasProfileComplete && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-3 w-3" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
                               </span>
                             )}
                           </div>
@@ -2044,10 +2061,10 @@ export default function Dashboard() {
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasReviewedProposal ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasReviewedProposal ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task5Title')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasReviewedProposal ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task5Title')}</span>
                             {onboardingTasks?.hasReviewedProposal && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-3 w-3" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
                               </span>
                             )}
                           </div>
@@ -2078,10 +2095,10 @@ export default function Dashboard() {
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasExploredMarketplace ? <Check className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasExploredMarketplace ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task6Title')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasExploredMarketplace ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task6Title')}</span>
                             {onboardingTasks?.hasExploredMarketplace && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-3 w-3" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
                               </span>
                             )}
                           </div>

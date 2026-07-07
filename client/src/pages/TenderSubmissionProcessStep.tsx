@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ArrowLeft, ArrowRight, FileText, Video, FileCheck, FileVideo, MessageSquare, Mail, MessageCircle, CalendarIcon, AlertCircle } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -35,7 +35,7 @@ export default function TenderSubmissionProcessStep() {
   const [customEmail, setCustomEmail] = useState("");
   const [saveCustomEmail, setSaveCustomEmail] = useState(false);
   const [isSavingEmail, setIsSavingEmail] = useState(false);
-  const [targetAudienceTypes, setTargetAudienceTypes] = useState<('company' | 'individual')[]>(['company', 'individual']);
+  const [targetAudienceTypes, setTargetAudienceTypes] = useState<('company' | 'individual' | 'team')[]>(['company', 'individual', 'team']);
 
   const draft = useMemo(() => {
     try {
@@ -79,6 +79,44 @@ export default function TenderSubmissionProcessStep() {
       setSaveCustomEmail(true);
     }
   }, [draft.submissionDeadline, draft.submissionType, draft.videoRequired, draft.inquiryType, draft.inquiryDeadline, draft.whatsappContact, draft.useAccountEmail, draft.customEmail, user?.tenderInquiryEmail]);
+
+  // Persist every change as it happens (not just on "Next") so navigating
+  // away mid-edit never drops the submission process settings. Skips the
+  // very first render, which still holds pre-hydration defaults from before
+  // the effect above populates them from the saved draft.
+  const didHydrate = useRef(false);
+  useEffect(() => {
+    if (!didHydrate.current) {
+      didHydrate.current = true;
+      return;
+    }
+    try {
+      const current = JSON.parse(localStorage.getItem("tenderDraft") || "{}");
+      const emailToUse = useAccountEmail ? user?.email : customEmail;
+      const deadlineISO = submissionDeadline ? submissionDeadline.toISOString().split('T')[0] : undefined;
+      localStorage.setItem(
+        "tenderDraft",
+        JSON.stringify({
+          ...current,
+          submissionDeadline: deadlineISO,
+          deadline: deadlineISO,
+          targetAudienceTypes,
+          submissionType: submissionType || undefined,
+          videoRequired: submissionType === "tech_fin_with_video" ? videoRequired : undefined,
+          inquiryType: inquiryType || undefined,
+          inquiryDeadline: inquiryType === "inside_bid" && inquiryDeadline
+            ? inquiryDeadline.toISOString().split('T')[0]
+            : undefined,
+          whatsappContact: inquiryType === "email_whatsapp" ? whatsappContact : undefined,
+          emailContact: inquiryType === "email_whatsapp" ? emailToUse : undefined,
+          useAccountEmail,
+          customEmail: !useAccountEmail ? customEmail : undefined,
+        })
+      );
+    } catch {
+      // localStorage may be full / disabled — UI state still updates.
+    }
+  }, [submissionDeadline, submissionType, videoRequired, inquiryType, inquiryDeadline, whatsappContact, useAccountEmail, customEmail, targetAudienceTypes, user?.email]);
 
   const handleSaveEmail = async (email: string) => {
     setIsSavingEmail(true);
@@ -317,6 +355,7 @@ export default function TenderSubmissionProcessStep() {
                   <div className="space-y-2">
                     {([
                       { value: 'company' as const, label: 'Companies' },
+                      { value: 'team' as const, label: 'Teams' },
                       { value: 'individual' as const, label: 'Individuals / Freelancers' },
                     ] as const).map((opt) => (
                       <label key={opt.value} className="flex items-center gap-2 cursor-pointer">

@@ -1,9 +1,5 @@
 {pkgs}: {
   deps = [
-    pkgs.uv
-    pkgs.sox
-    pkgs.gh
-    pkgs.haskellPackages.github
   ];
   shellHook = ''
     # Restore Claude auth from persistent workspace storage

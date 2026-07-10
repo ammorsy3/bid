@@ -1033,13 +1033,29 @@ export default function TenderDetails() {
                         <Clock className="h-3.5 w-3.5 text-[#FE3C01]" />
                         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{t('tenderFlow.projectDurationLabel')}</p>
                       </div>
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-semibold text-foreground text-[15px]">{durationDisplay}</span>
-                        {(tender.startDate || tender.endDate) && (
-                          <span className="text-gray-400 text-sm">
-                            ({tender.startDate && formatDate(tender.startDate)}{tender.startDate && tender.endDate && ' → '}{tender.endDate && formatDate(tender.endDate)})
-                          </span>
-                        )}
+                      <div className="bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-2xl p-5">
+                        <div className="text-center mb-4">
+                          <span className="text-xl font-bold text-foreground">{durationDisplay}</span>
+                        </div>
+                        <div className="relative">
+                          <div className="h-2 bg-[var(--bid-orange)]/10 rounded-full overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full" style={{ width: '100%' }} />
+                          </div>
+                          <div className="flex justify-between mt-2.5">
+                            <div className="flex flex-col items-start">
+                              <span className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide">{t('tenderFlow.startLabel')}</span>
+                              <span className="text-xs font-semibold text-muted-foreground">
+                                {tender.startDate ? formatDate(tender.startDate) : formatDate(tender.createdAt)}
+                              </span>
+                            </div>
+                            <div className="flex flex-col items-end">
+                              <span className="text-[10px] font-semibold text-[#FE3C01] uppercase tracking-wide">{t('tenderFlow.endLabel')}</span>
+                              <span className="text-xs font-semibold text-muted-foreground">
+                                {tender.endDate ? formatDate(tender.endDate) : formatDate(tender.deadline)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}

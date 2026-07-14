@@ -11,17 +11,30 @@ interface ClerkSocialButtonsProps {
   redirectPath?: string;
 }
 
-export function ClerkSocialButtons({ mode = "signin", redirectPath = "/auth/clerk-callback" }: ClerkSocialButtonsProps) {
+/**
+ * When no Clerk key is configured, main.tsx renders the app *without* a
+ * ClerkProvider — social sign-in is meant to degrade to nothing. This guard has
+ * to sit outside the component that calls Clerk's hooks: hooks run before any
+ * early return inside a component, so a `if (!HAS_CLERK) return null` placed
+ * after them still executes useSignIn(), which throws "can only be used within
+ * <ClerkProvider>" and takes the whole page down with a blank screen.
+ *
+ * That is exactly what happened on the first Vercel deploy, where the key was
+ * not yet set: /login and /signup rendered white instead of simply hiding the
+ * social buttons.
+ */
+export function ClerkSocialButtons(props: ClerkSocialButtonsProps) {
+  if (!HAS_CLERK) return null;
+  return <ClerkSocialButtonsInner {...props} />;
+}
+
+function ClerkSocialButtonsInner({ mode = "signin", redirectPath = "/auth/clerk-callback" }: ClerkSocialButtonsProps) {
   const { signIn, isLoaded: signInLoaded } = useSignIn();
   const { signUp, isLoaded: signUpLoaded } = useSignUp();
   const { isSignedIn } = useAuth();
   const { signOut } = useClerk();
   const { toast } = useToast();
   const [busy, setBusy] = useState<Provider | null>(null);
-
-  // Same source as the ClerkProvider, so the buttons can never disagree with the
-  // key the app actually booted with.
-  if (!HAS_CLERK) return null;
 
   const isLoaded = mode === "signup" ? signUpLoaded : signInLoaded;
 

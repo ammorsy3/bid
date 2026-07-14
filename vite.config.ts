@@ -17,6 +17,12 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
+  // .env lives at the repo root, but `root` is client/, and Vite looks for env
+  // files relative to `root` unless told otherwise. Without this, a production
+  // build silently inlines nothing for VITE_* and the app ships with no Clerk
+  // key — while `npm run dev` still works, because the server loads .env into
+  // process.env before Vite ever runs.
+  envDir: path.resolve(import.meta.dirname),
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,

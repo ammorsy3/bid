@@ -31,11 +31,13 @@ type Table =
   | "tenders"
   | "offers"
   | "company_documents"
+  | "company_profiles"
   | "object_acl";
 
 // Insertion order matters on teardown: children are removed before parents.
 const TEARDOWN_ORDER: Table[] = [
   "object_acl",
+  "company_profiles",
   "company_documents",
   "offers",
   "tenders",
@@ -51,6 +53,7 @@ const created: Record<Table, string[]> = {
   tenders: [],
   offers: [],
   company_documents: [],
+  company_profiles: [],
   object_acl: [],
 };
 
@@ -161,6 +164,17 @@ export async function makeCompanyDocument(args: {
   `);
   track("company_documents", id);
   return { id };
+}
+
+/** Points a company's profile logo at an object, creating the profile row if needed. */
+export async function setCompanyLogo(companyId: string, logoUrl: string) {
+  const id = randomUUID();
+  await db.execute(sql`
+    insert into company_profiles (id, company_id, display_name, logo_url)
+    values (${id}, ${companyId}, ${`ACL Test Co ${RUN}`}, ${logoUrl})
+    on conflict (company_id) do update set logo_url = excluded.logo_url
+  `);
+  track("company_profiles", id);
 }
 
 export function tokenFor(user: {

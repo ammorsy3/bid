@@ -32,6 +32,7 @@ import {
   makeCompanyDocument,
   makePrivateFile,
   setAcl,
+  setCompanyLogo,
   tokenFor,
   teardown,
 } from "./helpers/fixtures";
@@ -52,6 +53,7 @@ let buyerCo: { id: string };
 let ownedFile: string;      // private file owned by `owner`
 let sealedBid: string;      // supplier's offer document on buyer's tender
 let verificationDoc: string; // owner's company CR certificate
+let companyLogo: string;    // brand asset that happens to live in the private bucket
 let orphanFile: string;     // real object with no ACL row at all
 
 beforeAll(async () => {
@@ -95,6 +97,13 @@ beforeAll(async () => {
     fileUrl: verificationDoc,
     uploadedBy: owner.id,
   });
+
+  // A company logo uploaded through the generic private-upload flow: it sits in
+  // the private bucket, owned by the uploader, but is shown on a profile that
+  // anyone can view.
+  companyLogo = (await makePrivateFile("logo-bytes")).objectPath;
+  await setAcl(companyLogo, { owner: owner.id, visibility: "private" });
+  await setCompanyLogo(ownerCo.id, companyLogo);
 
   // A real object in the bucket that nothing references and no ACL covers —
   // like the files whose ACLs were lost in the Replit → Supabase migration.
@@ -159,6 +168,20 @@ describe("sealed bids", () => {
   it("denies a platform admin — admins must not read sealed bids", async () => {
     const res = await get(sealedBid, tokenFor({ id: admin.id, isAdmin: true }));
     expect(res.status).toBe(403);
+  });
+});
+
+describe("company brand assets", () => {
+  // Regression: some company logos were uploaded through the generic private
+  // upload flow, so they live under uploads/ with a private ACL owned by whoever
+  // uploaded them. Enforcing the ACL made those logos 403 — i.e. broken images —
+  // for every visitor to the company's profile except that one person.
+  it("a company logo is readable by someone from another company", async () => {
+    const res = await get(
+      companyLogo,
+      tokenFor({ id: stranger.id, activeCompanyId: strangerCo.id }),
+    );
+    expect(res.status).toBe(200);
   });
 });
 

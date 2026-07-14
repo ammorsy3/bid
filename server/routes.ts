@@ -5752,17 +5752,26 @@ Respond with ONLY a JSON object. Example:
         }
       }
       
-      // Check if this is a voice note attached to a tender (any authenticated user can access)
+      // A tender's own media — voice note or video. Same rule as the tender:
+      // visible on a published tender, and always to the owning company.
       if (!canAccess) {
-        const tenderWithVoice = await storage.getTenderByVoiceNoteUrl(filePath);
-        if (tenderWithVoice) {
-          if (tenderWithVoice.status === 'published') {
+        const tenderWithMedia = await storage.getTenderByMediaUrl(filePath);
+        if (tenderWithMedia) {
+          if (tenderWithMedia.status === 'published') {
             canAccess = true;
           }
-          if (activeCompanyId && tenderWithVoice.companyId === activeCompanyId) {
+          if (activeCompanyId && tenderWithMedia.companyId === activeCompanyId) {
             canAccess = true;
           }
         }
+      }
+
+      // A company's public-facing brand assets (logo, header, brochure) are part
+      // of a profile anyone can view, so they must not be locked to whoever
+      // uploaded them. Some were uploaded through the generic private-upload
+      // flow and therefore live under uploads/ with a private ACL.
+      if (!canAccess && (await storage.isCompanyBrandAsset(filePath))) {
+        canAccess = true;
       }
 
       // Check if this is an attachment on a published tender

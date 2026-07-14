@@ -10,7 +10,7 @@ import { storage } from "../../storage";
 import { db } from "../../db";
 import { aiChatMessages, aiChatSessions } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import { runCopilotTurn } from "../../replit_integrations/copilot/engine";
+import { runCopilotTurn } from "../../ai/copilot/engine";
 import {
   launchTenderFromDraft,
   CompanyNotVerifiedError,

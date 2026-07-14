@@ -11,7 +11,7 @@
 import type { Express, Request, Response } from "express";
 import { Router } from "express";
 import { storage } from "../../storage";
-import { runCopilotTurn } from "../../replit_integrations/copilot/engine";
+import { runCopilotTurn } from "../../ai/copilot/engine";
 import {
   launchTenderFromDraft,
   CompanyNotVerifiedError,

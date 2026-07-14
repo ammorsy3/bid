@@ -23,7 +23,7 @@ import {
 import { getEmailDomain, isPublicEmailDomain } from "./publicEmailDomains";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
-import { registerCopilotRoutes } from "./replit_integrations/copilot";
+import { registerCopilotRoutes } from "./ai/copilot";
 import { registerCopilotV1Routes } from "./routes/v1/copilot";
 import { registerWebhookAdapter } from "./routes/integrations/webhook";
 import { registerMcpAdapter } from "./routes/integrations/mcp";

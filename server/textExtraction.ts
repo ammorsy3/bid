@@ -49,13 +49,9 @@ export async function extractTextFromBuffer(buffer: Buffer, contentType: string)
 export async function fetchAndExtractFile(objectPath: string): Promise<string> {
   try {
     const file = await objectStorage.getObjectEntityFile(objectPath);
-    const [metadata] = await file.getMetadata();
-    const contentType = (metadata.contentType as string) || "application/octet-stream";
+    const { buffer, contentType } = await objectStorage.downloadToBuffer(file);
 
-    // Download file to buffer
-    const [buffer] = await file.download();
-
-    const text = await extractTextFromBuffer(Buffer.from(buffer), contentType);
+    const text = await extractTextFromBuffer(buffer, contentType);
 
     // Truncate to prevent excessive token usage
     if (text.length > MAX_TEXT_LENGTH) {

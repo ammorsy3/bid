@@ -5680,24 +5680,11 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.get("/objects/uploads/:filename", authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const objectStorageService = new ObjectStorageService();
-      const objectPath = `/objects/uploads/${req.params.filename}`;
-      try {
-        const objectFile = await objectStorageService.getPublicFile(objectPath);
-        return objectStorageService.downloadObject(objectFile, res);
-      } catch {}
-      const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
-      objectStorageService.downloadObject(objectFile, res);
-    } catch (error) {
-      console.error("Error serving upload:", error);
-      if (error instanceof ObjectNotFoundError) {
-        return res.sendStatus(404);
-      }
-      return res.sendStatus(500);
-    }
-  });
+  // Note: /objects/uploads/* is deliberately NOT handled here. It falls through
+  // to the "/objects/:objectPath(*)" handler below, which enforces the object
+  // ACL (owner, tender access, and company-level access to offer files).
+  // An earlier handler here authenticated the caller but never checked the ACL,
+  // so any logged-in user could read any other company's private uploads.
 
   const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50MB
   const ALLOWED_MIME_TYPES = [
@@ -5829,7 +5816,7 @@ Respond with ONLY a JSON object. Example:
         return res.status(403).json({ error: "Not authorized to modify this file" });
       }
 
-      const fileSize = objectFile.metadata?.size ? parseInt(String(objectFile.metadata.size), 10) : 0;
+      const fileSize = await objectStorageService.getObjectSize(objectFile);
       if (fileSize > MAX_UPLOAD_SIZE) {
         return res.status(400).json({ error: `File too large (${(fileSize / (1024 * 1024)).toFixed(1)}MB). Maximum size is ${MAX_UPLOAD_SIZE / (1024 * 1024)}MB.` });
       }
@@ -6750,27 +6737,9 @@ Respond with ONLY a JSON object. Example:
         return objectStorageService.downloadObject(objectFile, res);
       }
 
-      // Raw object store path (e.g. /replit-objstore-.../.private/uploads/uuid)
-      const { bucketName, objectName } = (() => {
-        let path = fileUrl;
-        if (!path.startsWith("/")) path = `/${path}`;
-        const parts = path.split("/");
-        return { bucketName: parts[1], objectName: parts.slice(2).join("/") };
-      })();
-
-      const { objectStorageClient } = await import('./objectStorage');
-      const bucket = objectStorageClient.bucket(bucketName);
-      const file = bucket.file(objectName);
-      const [exists] = await file.exists();
-      if (!exists) return res.status(404).json({ message: "File not found in storage" });
-
-      const [metadata] = await file.getMetadata();
-      res.set({
-        "Content-Type": metadata.contentType || "application/octet-stream",
-        "Content-Length": metadata.size?.toString() || undefined,
-        "Cache-Control": "private, max-age=3600",
-      });
-      file.createReadStream().pipe(res);
+      // Anything not under /objects/ is a raw path from the old Replit object
+      // store, which no longer exists post-Supabase migration.
+      return res.status(404).json({ message: "File not found in storage" });
     } catch (error) {
       console.error("Error serving PO file:", error);
       if (!res.headersSent) res.status(500).json({ message: "Server error" });

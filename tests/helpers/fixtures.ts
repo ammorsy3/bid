@@ -94,6 +94,20 @@ export async function makeCompany(ownerUserId: string) {
   return { id };
 }
 
+/** Adds an existing user to a company as a plain member (not the owner). */
+export async function addMember(
+  companyId: string,
+  userId: string,
+  role: "admin" | "member" | "viewer" = "member",
+) {
+  const id = randomUUID();
+  await db.execute(sql`
+    insert into user_companies (id, user_id, company_id, role_in_company)
+    values (${id}, ${userId}, ${companyId}, ${role})
+  `);
+  track("user_companies", id);
+}
+
 export async function makeTender(companyId: string, createdBy: string, status = "published") {
   const id = randomUUID();
   await db.execute(sql`

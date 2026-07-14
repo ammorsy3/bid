@@ -157,6 +157,8 @@ export interface IStorage {
   getTender(id: string): Promise<Tender | undefined>;
   getTenderByVoiceNoteUrl(voiceNoteUrl: string): Promise<Tender | null>;
   getTenderByAttachmentUrl(attachmentUrl: string): Promise<Tender | null>;
+  getTenderByMediaUrl(mediaUrl: string): Promise<Tender | null>;
+  isCompanyBrandAsset(fileUrl: string): Promise<boolean>;
   getTenderWithProposalCount(id: string): Promise<(Tender & { proposalCount: number }) | undefined>;
   getTendersByCompany(companyId: string): Promise<Tender[]>;
   getTendersWithProposalCounts(companyId: string): Promise<(Tender & { proposalCount: number })[]>;
@@ -174,6 +176,7 @@ export interface IStorage {
   getOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender })[]>;
   getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null>;
   getOfferByFileUrl(fileUrl: string): Promise<Offer | null>;
+  getCompanyDocumentByFileUrl(fileUrl: string): Promise<CompanyDocument | null>;
   getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile })[]>;
   getIncomingOffersByCompanyWithViews(companyId: string, viewerId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile; isViewed: boolean })[]>;
   updateOfferStatus(offerId: string, status: string, decidedBy: string): Promise<Offer>;
@@ -955,6 +958,41 @@ export class DatabaseStorage implements IStorage {
     return tender || null;
   }
 
+  /** A tender's own media (voice note or video), whichever field it lives in. */
+  async getTenderByMediaUrl(mediaUrl: string): Promise<Tender | null> {
+    const [tender] = await db
+      .select()
+      .from(tenders)
+      .where(or(eq(tenders.voiceNoteUrl, mediaUrl), eq(tenders.videoUrl, mediaUrl)))
+      .limit(1);
+    return tender || null;
+  }
+
+  /**
+   * True when the file is a company's public-facing brand asset — logo, header
+   * or brochure. These are shown on the company profile to anyone who can see
+   * the profile, so they must not be restricted to whoever happened to upload
+   * them. Most live in the public bucket, but some were uploaded through the
+   * generic private-upload flow and sit under uploads/.
+   */
+  async isCompanyBrandAsset(fileUrl: string): Promise<boolean> {
+    const [row] = await db
+      .select({ id: companyProfiles.id })
+      .from(companyProfiles)
+      .where(
+        or(
+          eq(companyProfiles.logoUrl, fileUrl),
+          eq(companyProfiles.logoOriginalUrl, fileUrl),
+          eq(companyProfiles.headerUrl, fileUrl),
+          eq(companyProfiles.headerOriginalUrl, fileUrl),
+          eq(companyProfiles.brochureUrl, fileUrl),
+          eq(companyProfiles.introVideoUrl, fileUrl),
+        ),
+      )
+      .limit(1);
+    return !!row;
+  }
+
   async getTenderByAttachmentUrl(attachmentUrl: string): Promise<Tender | null> {
     const allTenders = await db
       .select()
@@ -1156,6 +1194,16 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     return offer || null;
+  }
+
+  async getCompanyDocumentByFileUrl(fileUrl: string): Promise<CompanyDocument | null> {
+    const [doc] = await db
+      .select()
+      .from(companyDocuments)
+      .where(eq(companyDocuments.fileUrl, fileUrl))
+      .limit(1);
+
+    return doc || null;
   }
 
   async getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile })[]> {

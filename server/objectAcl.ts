@@ -1,6 +1,6 @@
-import { File } from "@google-cloud/storage";
-
-const ACL_POLICY_METADATA_KEY = "custom:aclPolicy";
+import { sql } from "drizzle-orm";
+import { db } from "./db";
+import type { StoredObject } from "./objectStorage";
 
 export enum ObjectPermission {
   READ = "read",
@@ -8,77 +8,85 @@ export enum ObjectPermission {
 }
 
 // The ACL policy of the object.
-// This would be set as part of the object custom metadata
+// Persisted in the `object_acl` table, keyed by the app-relative object path
+// (e.g. "/objects/uploads/<uuid>"). It used to live in Google Cloud custom
+// object metadata, which does not survive a bucket-to-bucket migration —
+// Postgres keeps it with the rest of the app's state.
 export interface ObjectAclPolicy {
-  owner: string;
+  owner?: string | null;
   visibility: "public" | "private";
-  // For our tender platform, we'll keep it simple - owner and tender access
   tenderAccess?: {
     tenderId: string;
     allowedUserIds: string[];
   };
 }
 
-// Check if the requested permission is allowed based on the granted permission.
-function isPermissionAllowed(
-  requested: ObjectPermission,
-  granted: ObjectPermission,
-): boolean {
-  // Users granted with read or write permissions can read the object.
-  if (requested === ObjectPermission.READ) {
-    return [ObjectPermission.READ, ObjectPermission.WRITE].includes(granted);
-  }
-
-  // Only users granted with write permissions can write the object.
-  return granted === ObjectPermission.WRITE;
-}
-
-// Sets the ACL policy to the object metadata.
 export async function setObjectAclPolicy(
-  objectFile: File,
+  object: StoredObject,
   aclPolicy: ObjectAclPolicy,
 ): Promise<void> {
-  const [exists] = await objectFile.exists();
-  if (!exists) {
-    throw new Error(`Object not found: ${objectFile.name}`);
-  }
+  const tenderAccess = aclPolicy.tenderAccess
+    ? JSON.stringify(aclPolicy.tenderAccess)
+    : null;
 
-  await objectFile.setMetadata({
-    metadata: {
-      [ACL_POLICY_METADATA_KEY]: JSON.stringify(aclPolicy),
-    },
-  });
+  await db.execute(sql`
+    insert into object_acl (object_path, owner_id, visibility, tender_access)
+    values (
+      ${object.objectPath},
+      ${aclPolicy.owner ?? null},
+      ${aclPolicy.visibility},
+      ${tenderAccess}::jsonb
+    )
+    on conflict (object_path) do update set
+      owner_id = excluded.owner_id,
+      visibility = excluded.visibility,
+      tender_access = excluded.tender_access
+  `);
 }
 
-// Gets the ACL policy from the object metadata.
 export async function getObjectAclPolicy(
-  objectFile: File,
+  object: StoredObject,
 ): Promise<ObjectAclPolicy | null> {
-  const [metadata] = await objectFile.getMetadata();
-  const aclPolicy = metadata?.metadata?.[ACL_POLICY_METADATA_KEY];
-  if (!aclPolicy) {
-    return null;
-  }
-  return JSON.parse(aclPolicy as string);
+  const result = await db.execute(sql`
+    select owner_id, visibility, tender_access
+    from object_acl
+    where object_path = ${object.objectPath}
+    limit 1
+  `);
+
+  const row = (result as any).rows?.[0];
+  if (!row) return null;
+
+  return {
+    owner: row.owner_id,
+    visibility: row.visibility,
+    tenderAccess: row.tender_access ?? undefined,
+  };
 }
 
-// Checks if the user can access the object.
 export async function canAccessObject({
   userId,
-  objectFile,
+  object,
   requestedPermission,
 }: {
   userId?: string;
-  objectFile: File;
+  object: StoredObject;
   requestedPermission: ObjectPermission;
 }): Promise<boolean> {
-  // When this function is called, the acl policy is required.
-  const aclPolicy = await getObjectAclPolicy(objectFile);
+  // Objects living in the public bucket are world-readable by construction —
+  // they are served without auth and need no ACL row.
+  if (object.isPublic && requestedPermission === ObjectPermission.READ) {
+    return true;
+  }
+
+  // No policy means no access. Files migrated from the old Replit/GCS bucket
+  // lost their metadata ACLs, so an unclaimed private object stays denied
+  // rather than defaulting open.
+  const aclPolicy = await getObjectAclPolicy(object);
   if (!aclPolicy) {
     return false;
   }
 
-  // Public objects are always accessible for read.
   if (
     aclPolicy.visibility === "public" &&
     requestedPermission === ObjectPermission.READ
@@ -86,21 +94,16 @@ export async function canAccessObject({
     return true;
   }
 
-  // Access control requires the user id.
   if (!userId) {
     return false;
   }
 
-  // The owner of the object can always access it.
-  if (aclPolicy.owner === userId) {
+  if (aclPolicy.owner && aclPolicy.owner === userId) {
     return true;
   }
 
-  // Check tender access if specified
-  if (aclPolicy.tenderAccess) {
-    if (aclPolicy.tenderAccess.allowedUserIds.includes(userId)) {
-      return true;
-    }
+  if (aclPolicy.tenderAccess?.allowedUserIds.includes(userId)) {
+    return true;
   }
 
   return false;

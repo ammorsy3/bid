@@ -8,3 +8,10 @@ vite.config.ts.*
 .env
 .env.local
 .env.*.local.archive/
+.env.*
+!.env.example
+
+# Playwright
+tests/e2e/.auth/
+playwright-report/
+test-results/

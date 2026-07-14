@@ -11,7 +11,7 @@ import { db } from "../../db";
 import { integrations, aiChatSessions, aiChatMessages } from "@shared/schema";
 import { and, eq } from "drizzle-orm";
 import { storage } from "../../storage";
-import { runCopilotTurn } from "../../replit_integrations/copilot/engine";
+import { runCopilotTurn } from "../../ai/copilot/engine";
 import {
   launchTenderFromDraft,
   CompanyNotVerifiedError,

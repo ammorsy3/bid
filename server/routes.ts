@@ -5778,7 +5778,28 @@ Respond with ONLY a JSON object. Example:
         }
       }
       
+      // Company verification documents (CR, VAT, ...). Readable by the company
+      // the document belongs to, and by platform admins, who have to open them
+      // to approve or reject a pending company registration.
+      //
+      // Deliberately scoped to these documents rather than granting admins
+      // blanket read on every object: offer documents are sealed bids and stay
+      // restricted to the parties to the tender.
       if (!canAccess) {
+        const companyDoc = await storage.getCompanyDocumentByFileUrl(filePath);
+        if (companyDoc) {
+          if (req.auth!.isAdmin) {
+            canAccess = true;
+          } else if (activeCompanyId && companyDoc.companyId === activeCompanyId) {
+            canAccess = true;
+          }
+        }
+      }
+
+      if (!canAccess) {
+        console.warn(
+          `[objects] 403 path=${filePath} userId=${userId} activeCompanyId=${activeCompanyId}`,
+        );
         return res.sendStatus(403);
       }
       objectStorageService.downloadObject(objectFile, res);

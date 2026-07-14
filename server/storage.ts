@@ -174,6 +174,7 @@ export interface IStorage {
   getOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender })[]>;
   getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null>;
   getOfferByFileUrl(fileUrl: string): Promise<Offer | null>;
+  getCompanyDocumentByFileUrl(fileUrl: string): Promise<CompanyDocument | null>;
   getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile })[]>;
   getIncomingOffersByCompanyWithViews(companyId: string, viewerId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile; isViewed: boolean })[]>;
   updateOfferStatus(offerId: string, status: string, decidedBy: string): Promise<Offer>;
@@ -1156,6 +1157,16 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     return offer || null;
+  }
+
+  async getCompanyDocumentByFileUrl(fileUrl: string): Promise<CompanyDocument | null> {
+    const [doc] = await db
+      .select()
+      .from(companyDocuments)
+      .where(eq(companyDocuments.fileUrl, fileUrl))
+      .limit(1);
+
+    return doc || null;
   }
 
   async getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile })[]> {

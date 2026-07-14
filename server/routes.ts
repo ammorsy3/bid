@@ -331,11 +331,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Finds-or-creates a user in our DB based on the Clerk-verified email.
   app.post("/api/auth/clerk-exchange", async (req, res) => {
     try {
-      // Auto-pick secret key: production uses CLERK_SECRET_KEY_PROD (sk_live_),
-      // dev uses CLERK_SECRET_KEY (sk_test_). Both can coexist in Replit Secrets.
-      const clerkSecretKey = process.env.NODE_ENV === 'production'
-        ? (process.env.CLERK_SECRET_KEY_PROD || process.env.CLERK_SECRET_KEY)
-        : process.env.CLERK_SECRET_KEY;
+      // The secret must belong to the same Clerk instance as the publishable key
+      // the browser used, or the session token will not verify. That pairing is a
+      // property of the deployment, not of NODE_ENV — on a serverless host
+      // NODE_ENV is "production" even for a preview deploy, which would pick the
+      // live secret to verify a token minted by the test instance. So the
+      // environment supplies the key, exactly as it does for the client.
+      const clerkSecretKey =
+        process.env.CLERK_SECRET_KEY || process.env.CLERK_SECRET_KEY_PROD;
 
       if (!clerkSecretKey) {
         return res.status(500).json({ message: "Clerk is not configured on the server" });

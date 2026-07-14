@@ -1,6 +1,7 @@
 import { useSignIn, useSignUp, useAuth, useClerk } from "@clerk/clerk-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { HAS_CLERK } from "@/lib/clerkConfig";
 import { SiGoogle, SiLinkedin, SiSlack } from "react-icons/si";
 
 type Provider = "oauth_google" | "oauth_linkedin_oidc" | "oauth_slack";
@@ -18,10 +19,9 @@ export function ClerkSocialButtons({ mode = "signin", redirectPath = "/auth/cler
   const { toast } = useToast();
   const [busy, setBusy] = useState<Provider | null>(null);
 
-  const hasClerk = !!(import.meta.env.PROD
-    ? import.meta.env.VITE_CLERK_PUBLISHABLE_KEY_PROD
-    : import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
-  if (!hasClerk) return null;
+  // Same source as the ClerkProvider, so the buttons can never disagree with the
+  // key the app actually booted with.
+  if (!HAS_CLERK) return null;
 
   const isLoaded = mode === "signup" ? signUpLoaded : signInLoaded;
 

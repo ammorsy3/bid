@@ -6,6 +6,10 @@ export default defineConfig({
     environment: "node",
     globals: true,
     include: ["tests/**/*.test.ts"],
+    setupFiles: ["tests/setup.ts"],
+    // Integration tests hit the real database and object storage.
+    testTimeout: 30_000,
+    hookTimeout: 60_000,
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],

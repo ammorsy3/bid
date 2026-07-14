@@ -6,7 +6,9 @@ import express, {
   type NextFunction,
 } from "express";
 import { registerRoutes } from "./routes";
-import { log } from "./vite";
+// Must NOT come from ./vite: that module imports the `vite` package and
+// vite.config at load time, neither of which exists in a serverless runtime.
+import { log } from "./log";
 
 /**
  * Builds the Express app with routes and middleware, but does not listen.

@@ -8,16 +8,10 @@ import { nanoid } from "nanoid";
 
 const viteLogger = createLogger();
 
-export function log(message: string, source = "express") {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-
-  console.log(`${formattedTime} [${source}] ${message}`);
-}
+// Lives in ./log so that serverless code can log without importing Vite.
+// Re-exported here for the existing callers in the dev server.
+export { log } from "./log";
+import { log } from "./log";
 
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {

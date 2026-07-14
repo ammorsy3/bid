@@ -15,9 +15,10 @@ import {
   SidebarGroup, 
   SidebarGroupContent, 
   SidebarHeader, 
-  SidebarMenu, 
-  SidebarMenuButton, 
-  SidebarMenuItem, 
+  SidebarMenu,
+  SidebarMenuAction,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarProvider, 
   SidebarInset,
   SidebarTrigger,
@@ -414,16 +415,20 @@ function ChatHistorySidebar() {
                   <span className="text-sm truncate block">{session.title}</span>
                   <span className="text-[10px] text-muted-foreground">{formatDate(session.updatedAt)}</span>
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteMutation.mutate(session.id);
-                  }}
-                  className="opacity-0 group-hover/chat:opacity-100 shrink-0 p-0.5 hover:text-destructive transition-opacity group-data-[collapsible=icon]:hidden"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </button>
               </SidebarMenuButton>
+              {/* Sibling, not a child: SidebarMenuButton is itself a <button>,
+                  and a nested button is invalid DOM — it breaks keyboard focus
+                  and screen readers. */}
+              <SidebarMenuAction
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteMutation.mutate(session.id);
+                }}
+                aria-label="Delete chat"
+                className="opacity-0 group-hover/chat:opacity-100 p-0.5 hover:text-destructive transition-opacity group-data-[collapsible=icon]:hidden"
+              >
+                <Trash2 className="h-3 w-3" />
+              </SidebarMenuAction>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

@@ -11,7 +11,10 @@
     "db:push": "drizzle-kit push",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "e2e:login": "E2E_SKIP_SESSION_CHECK=1 playwright test --project=login",
+    "e2e": "playwright test --project=chromium",
+    "e2e:ui": "playwright test --project=chromium --ui"
   },
   "dependencies": {
     "@anthropic-ai/claude-code": "^2.1.101",
@@ -112,6 +115,7 @@
     "zustand": "^5.0.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@replit/vite-plugin-cartographer": "^0.2.8",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@tailwindcss/typography": "^0.5.15",

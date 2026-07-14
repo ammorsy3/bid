@@ -3,6 +3,8 @@ import { Router, Route, Switch } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { I18nProvider as AriaI18nProvider } from "react-aria-components";
 import { queryClient } from "@/lib/queryClient";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Toaster } from "@/components/ui/toaster";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/lib/auth";
@@ -101,6 +103,8 @@ export default function App() {
                 <Route path="/:rest*">{() => { window.location.href = '/'; return null; }}</Route>
               </Switch>
               <Toaster />
+              <Analytics />
+              <SpeedInsights />
             </Router>
           </AriaLocaleProvider>
         </I18nProvider>
@@ -173,6 +177,8 @@ export default function App() {
               <Route path="/privacy" component={Privacy} />
             </Switch>
             <Toaster />
+            <Analytics />
+            <SpeedInsights />
           </Router>
         </AriaLocaleProvider>
       </I18nProvider>

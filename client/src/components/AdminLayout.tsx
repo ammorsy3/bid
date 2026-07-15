@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, AlertTriangle, FileText,
-  Shield, LogOut, ArrowLeft, Store, Bug, UserCheck
+  Shield, LogOut, ArrowLeft, Store, Bug, UserCheck, Bell
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { useLogout } from "@/hooks/use-logout";
@@ -37,6 +37,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     proposalsLast24h: number;
     blockedAwards: number;
     pendingMarketplace: number;
+    unreadNotifications: number;
   }>({
     queryKey: ["/api/admin/metrics"],
     refetchInterval: 30000,
@@ -51,6 +52,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           label: t('admin.navDashboard'),
           icon: LayoutDashboard,
           count: 0,
+        },
+        {
+          href: "/admin/notifications",
+          label: t('admin.navNotifications'),
+          icon: Bell,
+          count: metrics?.unreadNotifications || 0,
         },
       ],
     },

@@ -39,6 +39,7 @@ import {
   sendTenderQuestionNotification,
   sendTenderAnswerNotification,
   sendCompanyVerificationNotification,
+  sendMarketplaceTenderNotification,
   sendJoinRequestNotification,
   sendJoinRequestDecisionNotification,
   sendMembershipRequestNotification,
@@ -2896,6 +2897,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const company = await storage.getCompany(companyId);
         if (company && (company.verificationStatus === 'not_verified' || company.verificationStatus === 'rejected')) {
           await storage.updateCompany(companyId, { verificationStatus: 'under_review' });
+          // Notify admins that a workspace is awaiting verification review.
+          const isFreelancer = company.accountType === 'individual';
+          storage.createAdminNotification({
+            type: isFreelancer ? 'freelancer_verification' : 'company_verification',
+            title: `${isFreelancer ? 'Freelancer' : 'Company'} awaiting verification: ${company.name}`,
+            body: `${company.name} uploaded verification documents and is now awaiting review.`,
+            severity: 'info',
+            link: isFreelancer ? '/admin/freelancers' : '/admin/vendors',
+            relatedId: companyId,
+            metadata: { accountType: company.accountType },
+          }).catch(err => console.error('[Admin] Verification notification failed:', err));
         }
 
         res.status(201).json(doc);
@@ -6484,6 +6496,60 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
+  // Verification analytics — funnel of doc uploads vs verification, by account type
+  app.get("/api/admin/verification-analytics", authenticateToken, requireAdmin, async (_req, res) => {
+    try {
+      const analytics = await storage.getUserVerificationAnalytics();
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching verification analytics:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Tenders overview — published RFPs, owners, and offers per tender
+  app.get("/api/admin/tenders-overview", authenticateToken, requireAdmin, async (_req, res) => {
+    try {
+      const overview = await storage.getTendersOverview(100);
+      res.json(overview);
+    } catch (error) {
+      console.error("Error fetching tenders overview:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Admin notifications feed
+  app.get("/api/admin/notifications", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const unreadOnly = req.query.unreadOnly === 'true';
+      const notifications = await storage.getAdminNotifications({ limit: 100, unreadOnly });
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching admin notifications:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/admin/notifications/:id/read", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      await storage.markAdminNotificationRead(req.params.id, req.auth!.userId);
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Error marking notification read:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/api/admin/notifications/read-all", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      await storage.markAllAdminNotificationsRead(req.auth!.userId);
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Error marking all notifications read:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // ==========================================================================
   // MARKETPLACE ROUTES (PUBLIC)
   // ==========================================================================
@@ -6605,6 +6671,46 @@ Respond with ONLY a JSON object. Example:
       });
 
       res.json({ message: "Submitted to marketplace for review", referenceNumber: refNum });
+
+      // Fire-and-forget: record an admin notification + email the shared inbox and
+      // every admin. Marketplace tenders are the ones that need immediate attention.
+      (async () => {
+        try {
+          const company = await storage.getCompany(req.auth!.activeCompanyId!);
+          const submitter = await storage.getUser(req.auth!.userId);
+          const companyName = company?.name || 'A company';
+
+          await storage.createAdminNotification({
+            type: 'marketplace_submission',
+            title: `New marketplace tender: ${tender.title}`,
+            body: `${companyName} submitted "${tender.title}" to the marketplace (ref ${refNum}). Pending your review.`,
+            severity: 'warning',
+            link: '/admin/marketplace',
+            relatedId: tender.id,
+            metadata: { referenceNumber: refNum, companyId: company?.id },
+          });
+
+          const admins = await storage.getAdminUsers();
+          const recipientMap = new Map<string, { email: string; name?: string }>();
+          // Shared inbox always gets it.
+          recipientMap.set('info@bidapp.sa', { email: 'info@bidapp.sa' });
+          for (const a of admins) {
+            if (a.email) recipientMap.set(a.email.toLowerCase(), { email: a.email, name: a.name || undefined });
+          }
+          await sendMarketplaceTenderNotification({
+            tenderTitle: tender.title,
+            tenderId: tender.id,
+            referenceNumber: refNum,
+            companyName,
+            submittedByName: submitter?.name,
+            tenderType: reqTenderType || 'open_tender',
+            documentFee: reqDocFee || null,
+            recipients: Array.from(recipientMap.values()),
+          });
+        } catch (notifyErr) {
+          console.error('[Admin] Marketplace submission notification failed:', notifyErr);
+        }
+      })();
     } catch (error) {
       console.error("Error submitting to marketplace:", error);
       res.status(500).json({ message: "Server error" });

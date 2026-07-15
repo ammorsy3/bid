@@ -1,9 +1,36 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, FileText, Package, AlertTriangle, Store, TrendingUp, Activity } from "lucide-react";
+import { Users, FileText, Package, AlertTriangle, Store, TrendingUp, Activity, ClipboardList, Send } from "lucide-react";
 import { Link } from "wouter";
+import { format, isValid } from "date-fns";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
+
+interface TenderRow {
+  id: string;
+  title: string;
+  status: string;
+  isMarketplace: boolean;
+  marketplaceStatus: string | null;
+  createdAt: string;
+  companyName: string | null;
+  ownerName: string | null;
+  ownerEmail: string | null;
+  offerCount: number;
+}
+interface TendersOverview {
+  summary: { total: number; published: number; draft: number; closed: number; cancelled: number; marketplace: number; totalOffers: number };
+  tenders: TenderRow[];
+}
+
+const statusStyle = (status: string): string => {
+  switch (status) {
+    case "published": return "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300";
+    case "closed": return "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300";
+    case "cancelled": return "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300";
+    default: return "bg-gray-100 dark:bg-card text-gray-600 dark:text-gray-400"; // draft
+  }
+};
 
 export default function AdminDashboard() {
   const { t } = useI18n();
@@ -20,6 +47,10 @@ export default function AdminDashboard() {
     totalProposals: number;
   }>({
     queryKey: ["/api/admin/metrics"],
+  });
+
+  const { data: tendersOverview, isLoading: tendersLoading } = useQuery<TendersOverview>({
+    queryKey: ["/api/admin/tenders-overview"],
   });
 
   const statCards = [
@@ -218,6 +249,108 @@ export default function AdminDashboard() {
                   </span>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tenders & RFP tracking */}
+        <div className="mt-8">
+          <div className="mb-4">
+            <h2 className="font-display font-bold text-xl text-gray-900 dark:text-foreground tracking-[-0.02em] flex items-center gap-2">
+              <ClipboardList className="h-5 w-5 text-[var(--bid-orange)]" />
+              {t('adminTenders.title')}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{t('adminTenders.subtitle')}</p>
+          </div>
+
+          {/* Summary tiles */}
+          {tendersLoading ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-5">
+              {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-gray-100 dark:bg-card rounded-xl animate-pulse" />)}
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-5">
+              {[
+                { label: t('adminTenders.totalTenders'), value: tendersOverview?.summary.total ?? 0, Icon: ClipboardList, fg: "text-gray-600 dark:text-gray-400", bg: "bg-gray-100 dark:bg-card" },
+                { label: t('adminTenders.published'), value: tendersOverview?.summary.published ?? 0, Icon: FileText, fg: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/40" },
+                { label: t('adminTenders.marketplace'), value: tendersOverview?.summary.marketplace ?? 0, Icon: Store, fg: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/40" },
+                { label: t('adminTenders.totalOffers'), value: tendersOverview?.summary.totalOffers ?? 0, Icon: Send, fg: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-950/40" },
+              ].map((tile) => (
+                <div key={tile.label} className="rounded-xl border border-border dark:border-border bg-white dark:bg-background p-5">
+                  <div className={`${tile.bg} rounded-lg p-2 w-fit mb-3`}>
+                    <tile.Icon className={`h-4 w-4 ${tile.fg}`} />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-foreground mb-0.5">{tile.value}</div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">{tile.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Recent tenders table */}
+          <Card className="border-border dark:border-border bg-white dark:bg-background">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">{t('adminTenders.recentTenders')}</CardTitle>
+              <CardDescription className="text-xs">{t('adminTenders.recentTendersDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {tendersLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-12 bg-gray-100 dark:bg-card rounded-lg animate-pulse" />)}
+                </div>
+              ) : !tendersOverview || tendersOverview.tenders.length === 0 ? (
+                <div className="py-10 text-center">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('adminTenders.noTenders')}</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto -mx-2">
+                  <table className="w-full min-w-[640px] text-sm">
+                    <thead>
+                      <tr className="text-[11px] uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                        <th className="text-start font-semibold px-2 pb-2">{t('adminTenders.colTender')}</th>
+                        <th className="text-start font-semibold px-2 pb-2">{t('adminTenders.colOwner')}</th>
+                        <th className="text-start font-semibold px-2 pb-2">{t('adminTenders.colStatus')}</th>
+                        <th className="text-end font-semibold px-2 pb-2">{t('adminTenders.colOffers')}</th>
+                        <th className="text-end font-semibold px-2 pb-2">{t('adminTenders.colCreated')}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                      {tendersOverview.tenders.slice(0, 12).map((tn) => {
+                        const d = new Date(tn.createdAt ?? "");
+                        return (
+                          <tr key={tn.id} className="hover:bg-muted/40 dark:hover:bg-gray-800/30">
+                            <td className="px-2 py-3">
+                              <Link href={`/tenders/${tn.id}`} className="font-medium text-gray-900 dark:text-foreground hover:text-[var(--bid-orange)] line-clamp-1">
+                                {tn.title}
+                              </Link>
+                              {tn.isMarketplace && (
+                                <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-medium text-orange-600 dark:text-orange-400">
+                                  <Store className="h-2.5 w-2.5" /> {t('adminTenders.marketplace')}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-2 py-3">
+                              <div className="text-gray-700 dark:text-gray-300 line-clamp-1">{tn.companyName || '—'}</div>
+                              {tn.ownerName && <div className="text-xs text-gray-400 dark:text-gray-500 line-clamp-1">{tn.ownerName}</div>}
+                            </td>
+                            <td className="px-2 py-3">
+                              <span className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${statusStyle(tn.status)}`}>
+                                {tn.status}
+                              </span>
+                            </td>
+                            <td className="px-2 py-3 text-end font-semibold tabular-nums text-gray-900 dark:text-foreground">
+                              {tn.offerCount}
+                            </td>
+                            <td className="px-2 py-3 text-end text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                              {isValid(d) ? format(d, 'PP') : '—'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

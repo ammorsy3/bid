@@ -86,9 +86,65 @@ import {
   notificationPreferences,
   type NotificationPreference,
   type InsertNotificationPreference,
+  adminNotifications,
+  type AdminNotification,
+  type InsertAdminNotification,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, asc, desc, ilike, or, isNull, sql, gte, count, ne, lt } from "drizzle-orm";
+
+// One funnel group (companies or freelancers). Numbers are workspace counts.
+export interface VerificationFunnel {
+  total: number;              // workspaces of this type
+  uploadedDocs: number;       // have uploaded at least one verification document
+  awaitingReview: number;     // uploaded / submitted but not yet verified (under_review)
+  verified: number;           // verified by admin
+  rejected: number;           // reviewed and rejected
+  noDocs: number;             // no documents uploaded at all
+}
+
+export interface UserVerificationAnalytics {
+  totalUsers: number;
+  totalWorkspaces: number;
+  companies: VerificationFunnel;
+  freelancers: VerificationFunnel;
+  // How many workspaces have each specific document type on file.
+  documentTypes: {
+    crCertificate: number;
+    vatCertificate: number;
+    gosiCertificate: number;
+    nationalAddressCertificate: number;
+    nationalIdCard: number;
+    other: number;
+  };
+}
+
+export interface TenderOverviewRow {
+  id: string;
+  title: string;
+  status: string;
+  isMarketplace: boolean;
+  marketplaceStatus: string | null;
+  createdAt: Date;
+  companyId: string | null;
+  companyName: string | null;
+  ownerName: string | null;
+  ownerEmail: string | null;
+  offerCount: number;
+}
+
+export interface TendersOverview {
+  summary: {
+    total: number;
+    published: number;
+    draft: number;
+    closed: number;
+    cancelled: number;
+    marketplace: number;
+    totalOffers: number;
+  };
+  tenders: TenderOverviewRow[];
+}
 
 export interface IStorage {
   // ============================================================================
@@ -273,7 +329,19 @@ export interface IStorage {
     verifiedCompanies: number;
     totalTenders: number;
     totalProposals: number;
+    unreadNotifications: number;
   }>;
+  getUserVerificationAnalytics(): Promise<UserVerificationAnalytics>;
+  getTendersOverview(limit?: number): Promise<TendersOverview>;
+
+  // ============================================================================
+  // ADMIN NOTIFICATION OPERATIONS
+  // ============================================================================
+  createAdminNotification(n: InsertAdminNotification): Promise<AdminNotification>;
+  getAdminNotifications(opts?: { limit?: number; unreadOnly?: boolean }): Promise<AdminNotification[]>;
+  getUnreadAdminNotificationCount(): Promise<number>;
+  markAdminNotificationRead(id: string, userId: string): Promise<void>;
+  markAllAdminNotificationsRead(userId: string): Promise<void>;
 
   // ============================================================================
   // TENDER TEMPLATE OPERATIONS
@@ -1869,6 +1937,7 @@ export class DatabaseStorage implements IStorage {
     verifiedCompanies: number;
     totalTenders: number;
     totalProposals: number;
+    unreadNotifications: number;
   }> {
     // Pending company verifications (excludes individual accounts)
     const pendingVerifications = await db
@@ -1924,6 +1993,12 @@ export class DatabaseStorage implements IStorage {
     // Total proposals (offers)
     const allOffers = await db.select({ cnt: count() }).from(offers);
 
+    // Unread admin notifications
+    const unreadNotifs = await db
+      .select({ cnt: count() })
+      .from(adminNotifications)
+      .where(eq(adminNotifications.isRead, false));
+
     return {
       pendingVerifications: pendingVerifications.length,
       pendingFreelancers: pendingFreelancersRows.length,
@@ -1935,7 +2010,166 @@ export class DatabaseStorage implements IStorage {
       verifiedCompanies: verifiedCompanies[0]?.cnt || 0,
       totalTenders: allTenders[0]?.cnt || 0,
       totalProposals: allOffers[0]?.cnt || 0,
+      unreadNotifications: unreadNotifs[0]?.cnt || 0,
     };
+  }
+
+  async getUserVerificationAnalytics(): Promise<UserVerificationAnalytics> {
+    // Count of platform user accounts (people, not workspaces).
+    const usersCount = await db.select({ cnt: count() }).from(users);
+
+    // Every active workspace with just the fields we need to bucket it.
+    const workspaces = await db
+      .select({
+        id: companies.id,
+        accountType: companies.accountType,
+        verificationStatus: companies.verificationStatus,
+      })
+      .from(companies)
+      .where(isNull(companies.deletedAt));
+
+    // Which workspaces have uploaded documents, and of which types.
+    const docs = await db
+      .select({ companyId: companyDocuments.companyId, documentType: companyDocuments.documentType })
+      .from(companyDocuments);
+
+    const companiesWithDocs = new Set<string>();
+    const docTypeCompanies: Record<string, Set<string>> = {};
+    for (const d of docs) {
+      companiesWithDocs.add(d.companyId);
+      (docTypeCompanies[d.documentType] ??= new Set()).add(d.companyId);
+    }
+
+    const emptyFunnel = (): VerificationFunnel => ({
+      total: 0, uploadedDocs: 0, awaitingReview: 0, verified: 0, rejected: 0, noDocs: 0,
+    });
+    const companiesFunnel = emptyFunnel();
+    const freelancersFunnel = emptyFunnel();
+
+    for (const w of workspaces) {
+      // 'individual' accounts are freelancers; everything else counts as a company.
+      const bucket = w.accountType === 'individual' ? freelancersFunnel : companiesFunnel;
+      bucket.total += 1;
+      const hasDocs = companiesWithDocs.has(w.id);
+      if (hasDocs) bucket.uploadedDocs += 1; else bucket.noDocs += 1;
+      switch (w.verificationStatus) {
+        case 'verified': bucket.verified += 1; break;
+        case 'under_review': bucket.awaitingReview += 1; break;
+        case 'rejected': bucket.rejected += 1; break;
+        default: break; // not_verified
+      }
+    }
+
+    return {
+      totalUsers: usersCount[0]?.cnt || 0,
+      totalWorkspaces: workspaces.length,
+      companies: companiesFunnel,
+      freelancers: freelancersFunnel,
+      documentTypes: {
+        crCertificate: docTypeCompanies['cr_certificate']?.size || 0,
+        vatCertificate: docTypeCompanies['vat_certificate']?.size || 0,
+        gosiCertificate: docTypeCompanies['gosi_certificate']?.size || 0,
+        nationalAddressCertificate: docTypeCompanies['national_address_certificate']?.size || 0,
+        nationalIdCard: docTypeCompanies['national_id_card']?.size || 0,
+        other: docTypeCompanies['other']?.size || 0,
+      },
+    };
+  }
+
+  async getTendersOverview(limitN = 100): Promise<TendersOverview> {
+    // Per-tender offer counts.
+    const offerCountRows = await db
+      .select({ tenderId: offers.tenderId, cnt: count() })
+      .from(offers)
+      .groupBy(offers.tenderId);
+    const offerCountMap = new Map<string, number>();
+    for (const r of offerCountRows) offerCountMap.set(r.tenderId, r.cnt);
+
+    // Recent tenders with owner (company + creator) details.
+    const rows = await db
+      .select({
+        id: tenders.id,
+        title: tenders.title,
+        status: tenders.status,
+        isMarketplace: tenders.isMarketplace,
+        marketplaceStatus: tenders.marketplaceStatus,
+        createdAt: tenders.createdAt,
+        companyId: tenders.companyId,
+        companyName: companies.name,
+        ownerName: users.name,
+        ownerEmail: users.email,
+      })
+      .from(tenders)
+      .leftJoin(companies, eq(tenders.companyId, companies.id))
+      .leftJoin(users, eq(tenders.createdBy, users.id))
+      .orderBy(desc(tenders.createdAt))
+      .limit(limitN);
+
+    const tenderRows: TenderOverviewRow[] = rows.map((r) => ({
+      ...r,
+      offerCount: offerCountMap.get(r.id) || 0,
+    }));
+
+    // Summary across ALL tenders, not just the recent slice.
+    const statusRows = await db
+      .select({ status: tenders.status, isMarketplace: tenders.isMarketplace })
+      .from(tenders);
+    const summary = {
+      total: statusRows.length,
+      published: 0, draft: 0, closed: 0, cancelled: 0, marketplace: 0,
+      totalOffers: 0,
+    };
+    for (const s of statusRows) {
+      if (s.status === 'published') summary.published += 1;
+      else if (s.status === 'draft') summary.draft += 1;
+      else if (s.status === 'closed') summary.closed += 1;
+      else if (s.status === 'cancelled') summary.cancelled += 1;
+      if (s.isMarketplace) summary.marketplace += 1;
+    }
+    const totalOffersRow = await db.select({ cnt: count() }).from(offers);
+    summary.totalOffers = totalOffersRow[0]?.cnt || 0;
+
+    return { summary, tenders: tenderRows };
+  }
+
+  // ============================================================================
+  // ADMIN NOTIFICATION OPERATIONS
+  // ============================================================================
+
+  async createAdminNotification(n: InsertAdminNotification): Promise<AdminNotification> {
+    const [created] = await db.insert(adminNotifications).values(n).returning();
+    return created;
+  }
+
+  async getAdminNotifications(opts?: { limit?: number; unreadOnly?: boolean }): Promise<AdminNotification[]> {
+    const limitN = opts?.limit ?? 50;
+    if (opts?.unreadOnly) {
+      return db.select().from(adminNotifications)
+        .where(eq(adminNotifications.isRead, false))
+        .orderBy(desc(adminNotifications.createdAt))
+        .limit(limitN);
+    }
+    return db.select().from(adminNotifications)
+      .orderBy(desc(adminNotifications.createdAt))
+      .limit(limitN);
+  }
+
+  async getUnreadAdminNotificationCount(): Promise<number> {
+    const r = await db.select({ cnt: count() }).from(adminNotifications)
+      .where(eq(adminNotifications.isRead, false));
+    return r[0]?.cnt || 0;
+  }
+
+  async markAdminNotificationRead(id: string, userId: string): Promise<void> {
+    await db.update(adminNotifications)
+      .set({ isRead: true, readAt: new Date(), readBy: userId })
+      .where(eq(adminNotifications.id, id));
+  }
+
+  async markAllAdminNotificationsRead(userId: string): Promise<void> {
+    await db.update(adminNotifications)
+      .set({ isRead: true, readAt: new Date(), readBy: userId })
+      .where(eq(adminNotifications.isRead, false));
   }
 
   // ============================================================================

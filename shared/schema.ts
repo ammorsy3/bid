@@ -830,6 +830,31 @@ export const errorLogs = pgTable("error_logs", {
 export type ErrorLog = typeof errorLogs.$inferSelect;
 export type InsertErrorLog = typeof errorLogs.$inferInsert;
 
+// Admin Notifications — internal feed for platform admins. One row per event
+// that needs (or may need) admin attention. Read state is shared across the
+// admin team (whoever clears it clears it for everyone).
+export const adminNotifications = pgTable("admin_notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  // 'marketplace_submission' | 'company_verification' | 'freelancer_verification' | 'join_request' | 'blocked_award'
+  type: varchar("type", { length: 40 }).notNull(),
+  title: text("title").notNull(),
+  body: text("body"),
+  severity: varchar("severity", { length: 16 }).notNull().default("info"), // 'info' | 'warning' | 'critical'
+  link: text("link"), // admin URL to act on the item
+  relatedId: varchar("related_id"), // tender / company / join-request id
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  isRead: boolean("is_read").default(false).notNull(),
+  readAt: timestamp("read_at"),
+  readBy: varchar("read_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  createdIdx: index("admin_notif_created_idx").on(t.createdAt),
+  unreadIdx: index("admin_notif_unread_idx").on(t.isRead),
+}));
+
+export type AdminNotification = typeof adminNotifications.$inferSelect;
+export type InsertAdminNotification = typeof adminNotifications.$inferInsert;
+
 // ============================================================================
 // LEGACY TABLES - Preserved from old role-based schema (production data)
 // ============================================================================

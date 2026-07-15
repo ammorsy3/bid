@@ -58,6 +58,7 @@ import AdminAwards from "@/pages/AdminAwards";
 import AdminUsers from "@/pages/AdminUsers";
 import AdminAuditLogs from "@/pages/AdminAuditLogs";
 import AdminErrors from "@/pages/AdminErrors";
+import AdminNotifications from "@/pages/AdminNotifications";
 import ClerkCallback from "@/pages/ClerkCallback";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
@@ -138,6 +139,7 @@ export default function App() {
               <Route path="/onboarding/team-invite" component={TeamInviteOnboarding} />
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/admin/dashboard" component={AdminDashboard} />
+              <Route path="/admin/notifications" component={AdminNotifications} />
               <Route path="/admin/vendors" component={AdminVendors} />
               <Route path="/admin/freelancers" component={AdminFreelancers} />
               <Route path="/tenders/new" component={TenderCreateChoice} />

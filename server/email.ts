@@ -1033,6 +1033,62 @@ export async function sendNewVerificationSubmissionNotification(params: {
   }
 }
 
+// Marketplace tender submitted — urgent admin review. Sent to the shared inbox
+// plus every admin. These are the tenders that need immediate attention.
+export async function sendMarketplaceTenderNotification(params: {
+  tenderTitle: string;
+  tenderId: string;
+  referenceNumber: string;
+  companyName: string;
+  submittedByName?: string | null;
+  tenderType?: string | null;
+  documentFee?: number | null;
+  recipients: { email: string; name?: string }[];
+  appBaseUrl?: string;
+}): Promise<void> {
+  const { tenderTitle, tenderId, referenceNumber, companyName, submittedByName, tenderType, documentFee, recipients, appBaseUrl } = params;
+  if (recipients.length === 0) return;
+
+  const baseUrl = getBaseUrl(appBaseUrl);
+  const adminUrl = `${baseUrl}/admin/marketplace`;
+  const subject = `\u{1F6D2} New Marketplace Tender Needs Review — ${tenderTitle}`;
+
+  const prettyType = tenderType
+    ? tenderType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+    : null;
+
+  const details: DetailRow[] = [
+    { iconEmoji: "&#128203;", iconBg: "#FFF1EE", label: "Tender", value: tenderTitle },
+    { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: "Submitted By", value: submittedByName ? `${submittedByName} · ${companyName}` : companyName },
+    { iconEmoji: "&#128278;", iconBg: "#F0FDF4", label: "Reference", value: referenceNumber },
+  ];
+  if (prettyType) {
+    details.push({ iconEmoji: "&#128196;", iconBg: "#F5F3FF", label: "Type", value: prettyType });
+  }
+  details.push({
+    iconEmoji: "&#128176;", iconBg: "#FFF7ED", label: "Document Fee",
+    value: documentFee ? `${documentFee.toLocaleString()} SAR` : "Free",
+  });
+
+  for (const recipient of recipients) {
+    const html = buildEmailHtml({
+      language: 'en',
+      iconEmoji: "&#128722;",
+      iconBg: "#FFF7ED",
+      headline: "New Marketplace Tender",
+      subheadline: `${companyName} submitted a tender to the marketplace and it needs your review.`,
+      recipientName: recipient.name,
+      bodyText: `A new tender has been submitted to the public marketplace and is pending approval. Marketplace tenders are visible to all vendors once approved, so please review it promptly.`,
+      details,
+      ctaLabel: "Review in Admin Panel",
+      ctaUrl: adminUrl,
+      ctaColor: BRAND_COLOR,
+      reasonText: `You are receiving this because you are a platform admin on Bid.`,
+    });
+    sendEmail(recipient.email, subject, html).catch(err => console.error(`[Email] Failed to send marketplace notification to ${recipient.email}:`, err));
+  }
+}
+
 // =============================================================================
 // JOIN REQUESTS
 // =============================================================================

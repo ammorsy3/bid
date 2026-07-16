@@ -1,0 +1,21 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start localhost",
+      "type": "shell",
+      "command": "npm run dev",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "runOptions": {
+        "instanceLimit": 1
+      },
+      "detail": "Runs the Express + Vite dev server on http://localhost:5000 (rolls to the next free port if 5000 is taken)"
+    }
+  ]
+}

@@ -20,18 +20,23 @@ process.on("SIGINT", () => process.exit(0));
     serveStatic(app);
   }
 
-  const port = parseInt(process.env.PORT || "5000", 10);
+  const basePort = parseInt(process.env.PORT || "5000", 10);
 
-  const startListen = (retriesLeft: number, delay = 250): Promise<void> =>
+  // Try the preferred port first; if it's taken, roll forward to the next one.
+  // A fixed PORT env var pins the port (only that one is attempted).
+  const portPinned = Boolean(process.env.PORT);
+
+  const startListen = (port: number, attemptsLeft: number): Promise<void> =>
     new Promise((resolve, reject) => {
       const onError = (err: any) => {
         server.removeListener("listening", onListening);
-        if (err.code === "EADDRINUSE" && retriesLeft > 0) {
-          setTimeout(() => resolve(startListen(retriesLeft - 1, delay)), delay);
+        if (err.code === "EADDRINUSE" && !portPinned && attemptsLeft > 0) {
+          log(`port ${port} in use, trying ${port + 1}...`);
+          resolve(startListen(port + 1, attemptsLeft - 1));
         } else {
           if (err.code === "EADDRINUSE") {
             log(
-              `port ${port} is still in use after retries — find and kill the holder with: lsof -i :${port}  or  fuser -k ${port}/tcp`,
+              `port ${port} is in use — find and kill the holder with: lsof -i :${port}  or  fuser -k ${port}/tcp`,
             );
           }
           reject(err);
@@ -47,5 +52,5 @@ process.on("SIGINT", () => process.exit(0));
       server.listen({ port, host: "0.0.0.0" });
     });
 
-  await startListen(40);
+  await startListen(basePort, 40);
 })();

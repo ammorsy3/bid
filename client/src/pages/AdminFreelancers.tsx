@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, User, Mail, Search, ShieldCheck } from "lucide-react";
+import { CheckCircle, XCircle, User, Mail, Search, ShieldCheck, UserCheck } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AdminLayout from "@/components/AdminLayout";
+import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
 
 interface FreelancerEntry {
   id: string;
@@ -90,15 +91,13 @@ export default function AdminFreelancers() {
 
   return (
     <AdminLayout>
-      <div className="p-8 max-w-5xl mx-auto">
-        <div className="mb-8">
-          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]">
-            Freelancer Verification Queue
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Review pending freelancer identity (National ID) submissions.
-          </p>
-        </div>
+      <AdminPage width="narrow">
+        <AdminHeader
+          eyebrow="Verification"
+          eyebrowIcon={UserCheck}
+          title="Freelancer Verification Queue"
+          subtitle="Review pending freelancer identity (National ID) submissions."
+        />
 
         <div className="mb-6">
           <div className="relative max-w-md">
@@ -107,32 +106,23 @@ export default function AdminFreelancers() {
               placeholder="Search by name, National ID, or email…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              className="pl-9 rounded-xl"
             />
           </div>
         </div>
 
         {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-28 bg-gray-100 dark:bg-card rounded-xl animate-pulse" />
-            ))}
-          </div>
+          <SkeletonList rows={3} />
         ) : filteredFreelancers.length === 0 ? (
-          <Card className="border-border bg-white dark:bg-background">
-            <CardContent className="py-16 text-center">
-              <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-card flex items-center justify-center mx-auto mb-4">
-                <ShieldCheck className="h-7 w-7 text-gray-400" />
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {searchQuery ? `No freelancers match "${searchQuery}"` : "No pending freelancer verifications."}
-              </p>
-            </CardContent>
-          </Card>
+          <AdminEmpty
+            icon={ShieldCheck}
+            title={searchQuery ? `No freelancers match "${searchQuery}"` : "No pending freelancer verifications."}
+            tone="positive"
+          />
         ) : (
           <div className="space-y-3">
             {filteredFreelancers.map((f) => (
-              <Card key={f.id} className="border-border bg-white dark:bg-background">
+              <AdminCard key={f.id} hover>
                 <CardContent className="py-4 px-5">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex-1 min-w-0 space-y-1">
@@ -182,11 +172,11 @@ export default function AdminFreelancers() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </AdminCard>
             ))}
           </div>
         )}
-      </div>
+      </AdminPage>
 
       {/* Approve dialog */}
       <Dialog open={actionType === "approve"} onOpenChange={handleClose}>

@@ -858,3 +858,13 @@
   --base: 30;
   --spread: 200;
 }
+
+/* Admin panel top loading bar — slides a brand-orange highlight across the top
+   whenever a react-query request is in flight (see AdminUI TopLoadingBar). */
+@keyframes admin-loading-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.admin-loading-bar {
+  animation: admin-loading-slide 1.1s ease-in-out infinite;
+}

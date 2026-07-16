@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bug, AlertTriangle, Server, Monitor, ChevronDown, ChevronRight } from "lucide-react";
 import { format, isValid } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import AdminLayout from "@/components/AdminLayout";
 import { useI18n } from "@/lib/i18n";
+import { AdminPage, AdminHeader, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
 
 // Matches the shape stored in the error_logs table (server/routes.ts POST /api/errors
 // and the global error middleware).
@@ -72,15 +73,13 @@ export default function AdminErrors() {
 
   return (
     <AdminLayout>
-      <div className="p-8 max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]">
-            {t("adminErrors.title")}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {t("adminErrors.subtitle")}
-          </p>
-        </div>
+      <AdminPage>
+        <AdminHeader
+          eyebrow={t('admin.adminPanel')}
+          eyebrowIcon={Bug}
+          title={t("adminErrors.title")}
+          subtitle={t("adminErrors.subtitle")}
+        />
 
         {/* Source filter */}
         {!isLoading && counts.all > 0 && (
@@ -105,21 +104,9 @@ export default function AdminErrors() {
         )}
 
         {isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-24 bg-gray-100 dark:bg-card rounded-xl animate-pulse" />
-            ))}
-          </div>
+          <SkeletonList rows={4} />
         ) : filtered.length === 0 ? (
-          <Card className="border-border dark:border-border bg-white dark:bg-background">
-            <CardContent className="py-16 text-center">
-              <div className="h-14 w-14 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center mx-auto mb-4">
-                <Bug className="h-7 w-7 text-emerald-500" />
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t("adminErrors.noErrors")}</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t("adminErrors.runningSmoothly")}</p>
-            </CardContent>
-          </Card>
+          <AdminEmpty icon={Bug} title={t("adminErrors.noErrors")} subtitle={t("adminErrors.runningSmoothly")} tone="positive" />
         ) : (
           <div className="space-y-3">
             {filtered.map((error) => {
@@ -127,7 +114,7 @@ export default function AdminErrors() {
               const isOpen = !!expanded[error.id];
               const hasDetails = !!(error.stack || error.userAgent || error.userId);
               return (
-                <Card key={error.id} className="border-border dark:border-border bg-white dark:bg-background">
+                <div key={error.id} className="rounded-2xl border border-[#FE3C01]/10 dark:border-border bg-white dark:bg-card">
                   <CardHeader className="pb-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       <AlertTriangle className={`h-4 w-4 flex-shrink-0 ${severityOf(error.statusCode) === "critical" ? "text-red-500" : severityOf(error.statusCode) === "warning" ? "text-amber-500" : "text-gray-400"}`} />
@@ -204,12 +191,12 @@ export default function AdminErrors() {
                       )}
                     </CardContent>
                   )}
-                </Card>
+                </div>
               );
             })}
           </div>
         )}
-      </div>
+      </AdminPage>
     </AdminLayout>
   );
 }

@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { BidLogo } from "@/components/brand/BidLogo";
+import { TopLoadingBar } from "@/components/admin/AdminUI";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -119,10 +120,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
+      <TopLoadingBar />
       {/* Sidebar */}
       <aside className="w-[272px] flex-shrink-0 bg-white dark:bg-background border-r border-border dark:border-border flex flex-col">
         {/* Brand accent strip */}
-        <div className="h-0.5 bg-[var(--bid-orange)] flex-shrink-0" />
+        <div className="h-0.5 bg-gradient-to-r from-[var(--bid-orange)] to-[#F19A8F] flex-shrink-0" />
 
         {/* Header */}
         <div className="px-5 pt-5 pb-4 border-b border-border dark:border-border">
@@ -159,12 +161,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      className={`relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                         isActive
-                          ? "bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] dark:bg-[var(--bid-orange)]/15"
+                          ? "bg-gradient-to-r from-[var(--bid-orange)]/[0.12] to-[var(--bid-orange)]/[0.02] text-[var(--bid-orange)] shadow-[inset_0_0_0_1px_rgba(254,60,1,0.12)]"
                           : "text-gray-600 dark:text-gray-400 hover:bg-muted dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-200"
                       }`}
                     >
+                      {isActive && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-[var(--bid-orange)]" />
+                      )}
                       <Icon className={`h-[18px] w-[18px] flex-shrink-0 ${
                         isActive ? "text-[var(--bid-orange)]" : "text-gray-400 dark:text-gray-500"
                       }`} />

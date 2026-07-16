@@ -11,6 +11,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
+import { AdminPage, AdminHeader, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
 import { StatusBadge } from "@/components/brand/StatusDot";
 import { verificationStatusToState } from "@/components/brand/statusMap";
 
@@ -377,15 +378,14 @@ export default function AdminMarketplace() {
 
   return (
     <AdminLayout>
-      <div className={`p-8 max-w-6xl mx-auto ${isRtl ? 'rtl' : 'ltr'}`} dir={isRtl ? 'rtl' : 'ltr'}>
-        <div className="mb-8">
-          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]">
-            {t('marketplace.requests')}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {t('marketplace.requestsSubtitle')}
-          </p>
-        </div>
+      <AdminPage>
+        <div className={isRtl ? 'rtl' : 'ltr'} dir={isRtl ? 'rtl' : 'ltr'}>
+        <AdminHeader
+          eyebrow={t('admin.adminPanel')}
+          eyebrowIcon={Store}
+          title={t('marketplace.requests')}
+          subtitle={t('marketplace.requestsSubtitle')}
+        />
 
         <div className="flex gap-2 mb-6">
           <Button
@@ -413,41 +413,20 @@ export default function AdminMarketplace() {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-          </div>
+          <SkeletonList rows={3} />
         ) : allTenders.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              {activeTab === 'pending' ? (
-                <>
-                  <CheckCircle className="h-12 w-12 text-green-400 mb-4" />
-                  <h3 className="text-lg font-medium text-muted-foreground">
-                    {t('marketplace.noPendingRequests')}
-                  </h3>
-                  <p className="text-sm text-gray-400 mt-1">
-                    {t('marketplace.allReviewed')}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <Store className="h-12 w-12 text-gray-300 mb-4" />
-                  <h3 className="text-lg font-medium text-muted-foreground">
-                    {t('marketplace.noApprovedTenders') || 'No approved tenders yet'}
-                  </h3>
-                  <p className="text-sm text-gray-400 mt-1">
-                    {t('marketplace.approveToShow') || 'Approved tenders will appear on the public marketplace.'}
-                  </p>
-                </>
-              )}
-            </CardContent>
-          </Card>
+          activeTab === 'pending' ? (
+            <AdminEmpty icon={CheckCircle} title={t('marketplace.noPendingRequests')} subtitle={t('marketplace.allReviewed')} tone="positive" />
+          ) : (
+            <AdminEmpty icon={Store} title={t('marketplace.noApprovedTenders') || 'No approved tenders yet'} subtitle={t('marketplace.approveToShow') || 'Approved tenders will appear on the public marketplace.'} />
+          )
         ) : (
           <div className="space-y-4">
             {allTenders.map(renderTenderCard)}
           </div>
         )}
-      </div>
+        </div>
+      </AdminPage>
 
       <Dialog open={!!rejectDialog} onOpenChange={(open) => { if (!open) { setRejectDialog(null); setRejectionReason(""); } }}>
         <DialogContent>

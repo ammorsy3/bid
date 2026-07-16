@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, User as UserIcon } from "lucide-react";
+import { CheckCircle, XCircle, User as UserIcon, Users } from "lucide-react";
 import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
+import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
 
 export default function AdminJoinRequests() {
   const { toast } = useToast();
@@ -89,38 +90,27 @@ export default function AdminJoinRequests() {
 
   return (
     <AdminLayout>
-      <div className="p-8 max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]" data-testid="text-page-title">
-            {t('admin.joinRequestsManagement')}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {t('admin.joinRequestsManagementDesc')}
-          </p>
-        </div>
+      <AdminPage>
+        <AdminHeader
+          eyebrow={t('admin.adminPanel')}
+          eyebrowIcon={Users}
+          title={t('admin.joinRequestsManagement')}
+          subtitle={t('admin.joinRequestsManagementDesc')}
+        />
 
         {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-100 dark:bg-card rounded-xl animate-pulse" />
-            ))}
-          </div>
+          <SkeletonList rows={3} />
         ) : pendingRequests.length === 0 ? (
-          <Card className="border-border dark:border-border bg-white dark:bg-background">
-            <CardContent className="py-16 text-center">
-              <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-card flex items-center justify-center mx-auto mb-4">
-                <UserIcon className="h-7 w-7 text-gray-400" />
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="text-empty-state">
-                {t('admin.noPendingJoinRequests')}
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('admin.allJoinRequestsProcessed')}</p>
-            </CardContent>
-          </Card>
+          <AdminEmpty
+            icon={UserIcon}
+            title={t('admin.noPendingJoinRequests')}
+            subtitle={t('admin.allJoinRequestsProcessed')}
+            tone="positive"
+          />
         ) : (
           <div className="space-y-4">
             {pendingRequests.map((request: any) => (
-              <Card key={request.id} className="border-border dark:border-border bg-white dark:bg-background" data-testid={`card-request-${request.id}`}>
+              <AdminCard key={request.id} hover data-testid={`card-request-${request.id}`}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -168,11 +158,11 @@ export default function AdminJoinRequests() {
                     </Button>
                   </div>
                 </CardContent>
-              </Card>
+              </AdminCard>
             ))}
           </div>
         )}
-      </div>
+      </AdminPage>
 
       <Dialog open={actionType !== null} onOpenChange={(open) => !open && handleClose()}>
         <DialogContent data-testid="dialog-action">

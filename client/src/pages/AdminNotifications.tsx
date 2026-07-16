@@ -12,6 +12,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
+import { AdminPage, AdminHeader } from "@/components/admin/AdminUI";
 
 interface AdminNotification {
   id: string;
@@ -73,29 +74,25 @@ export default function AdminNotifications() {
 
   return (
     <AdminLayout>
-      <div className="p-8 max-w-4xl mx-auto">
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]">
-              {t("adminNotifications.title")}
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {t("adminNotifications.subtitle")}
-            </p>
-          </div>
-          {unreadCount > 0 && (
+      <AdminPage width="narrow">
+        <AdminHeader
+          eyebrow={t('admin.adminPanel')}
+          eyebrowIcon={Bell}
+          title={t("adminNotifications.title")}
+          subtitle={t("adminNotifications.subtitle")}
+          action={unreadCount > 0 ? (
             <Button
               variant="outline"
               size="sm"
-              className="h-9 text-xs flex-shrink-0"
+              className="h-9 text-xs rounded-full"
               onClick={() => markAllRead.mutate()}
               disabled={markAllRead.isPending}
             >
               <CheckCheck className="h-3.5 w-3.5 mr-1.5" />
               {t("adminNotifications.markAllRead")}
             </Button>
-          )}
-        </div>
+          ) : undefined}
+        />
 
         {/* Filter */}
         <div className="flex items-center gap-2 mb-5">
@@ -202,7 +199,7 @@ export default function AdminNotifications() {
             })}
           </div>
         )}
-      </div>
+      </AdminPage>
     </AdminLayout>
   );
 }

@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
+import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
 import { viewAuthenticatedFile, downloadAuthenticatedFile } from "@/lib/downloadFile";
 
 interface CompanyDoc {
@@ -193,15 +194,13 @@ export default function AdminVendors() {
 
   return (
     <AdminLayout>
-      <div className="p-8 max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]" data-testid="text-page-title">
-            {t('admin.companyVerificationQueue')}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {t('admin.companyVerificationQueueDesc')}
-          </p>
-        </div>
+      <AdminPage>
+        <AdminHeader
+          eyebrow={t('admin.adminPanel')}
+          eyebrowIcon={Building2}
+          title={t('admin.companyVerificationQueue')}
+          subtitle={t('admin.companyVerificationQueueDesc')}
+        />
 
         {/* Status filter tabs */}
         <div className="flex gap-1.5 mb-4 flex-wrap">
@@ -239,25 +238,14 @@ export default function AdminVendors() {
         </div>
 
         {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-48 bg-gray-100 dark:bg-card rounded-xl animate-pulse" />
-            ))}
-          </div>
+          <SkeletonList rows={3} />
         ) : filteredCompanies.length === 0 ? (
-          <Card className="border-border dark:border-border bg-white dark:bg-background">
-            <CardContent className="py-16 text-center">
-              <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-card flex items-center justify-center mx-auto mb-4">
-                <Building2 className="h-7 w-7 text-gray-400" />
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="text-empty-state">
-                {t('admin.noPendingVerifications')}
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                {searchQuery ? t('admin.noResultsFor', { query: searchQuery }) : statusFilter === 'under_review' ? t('admin.allCompaniesReviewed') : t('admin.noCompaniesStatus')}
-              </p>
-            </CardContent>
-          </Card>
+          <AdminEmpty
+            icon={Building2}
+            title={t('admin.noPendingVerifications')}
+            subtitle={searchQuery ? t('admin.noResultsFor', { query: searchQuery }) : statusFilter === 'under_review' ? t('admin.allCompaniesReviewed') : t('admin.noCompaniesStatus')}
+            tone="positive"
+          />
         ) : (
           <div className="space-y-4">
             {filteredCompanies.map((company) => {
@@ -266,7 +254,7 @@ export default function AdminVendors() {
               const resubmission = isResubmission(company);
 
               return (
-                <Card key={company.id} className="border-border dark:border-border bg-white dark:bg-background" data-testid={`card-company-${company.id}`}>
+                <AdminCard key={company.id} data-testid={`card-company-${company.id}`}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -377,12 +365,12 @@ export default function AdminVendors() {
                       )}
                     </div>
                   </CardContent>
-                </Card>
+                </AdminCard>
               );
             })}
           </div>
         )}
-      </div>
+      </AdminPage>
 
       {/* View Details Dialog */}
       <Dialog open={actionType === "view"} onOpenChange={handleClose}>

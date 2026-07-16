@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FileText, User, Search } from "lucide-react";
 import { format } from "date-fns";
@@ -7,6 +7,7 @@ import { useState, useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
 import { StatusBadge, type BidState } from "@/components/brand/StatusDot";
+import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
 
 export default function AdminAuditLogs() {
   const { t } = useI18n();
@@ -46,15 +47,13 @@ export default function AdminAuditLogs() {
 
   return (
     <AdminLayout>
-      <div className="p-8 max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]" data-testid="text-page-title">
-            {t('admin.auditLogs')}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {t('admin.auditLogsDesc')}
-          </p>
-        </div>
+      <AdminPage>
+        <AdminHeader
+          eyebrow={t('admin.adminPanel')}
+          eyebrowIcon={FileText}
+          title={t('admin.auditLogs')}
+          subtitle={t('admin.auditLogsDesc')}
+        />
 
         {/* Search */}
         <div className="mb-6">
@@ -64,33 +63,19 @@ export default function AdminAuditLogs() {
               placeholder={t('admin.searchAuditLogsPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              className="pl-9 rounded-xl"
             />
           </div>
         </div>
 
         {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-32 bg-gray-100 dark:bg-card rounded-xl animate-pulse" />
-            ))}
-          </div>
+          <SkeletonList rows={5} />
         ) : filteredLogs.length === 0 ? (
-          <Card className="border-border dark:border-border bg-white dark:bg-background">
-            <CardContent className="py-16 text-center">
-              <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-card flex items-center justify-center mx-auto mb-4">
-                <FileText className="h-7 w-7 text-gray-400" />
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="text-empty-state">
-                {t('admin.noAuditLogs')}
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('admin.adminActionsRecorded')}</p>
-            </CardContent>
-          </Card>
+          <AdminEmpty icon={FileText} title={t('admin.noAuditLogs')} subtitle={t('admin.adminActionsRecorded')} />
         ) : (
           <div className="space-y-3">
             {filteredLogs.map((log: any) => (
-              <Card key={log.id} className="border-border dark:border-border bg-white dark:bg-background" data-testid={`card-log-${log.id}`}>
+              <AdminCard key={log.id} className="overflow-hidden" data-testid={`card-log-${log.id}`}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -141,11 +126,11 @@ export default function AdminAuditLogs() {
                     </div>
                   </CardContent>
                 )}
-              </Card>
+              </AdminCard>
             ))}
           </div>
         )}
-      </div>
+      </AdminPage>
     </AdminLayout>
   );
 }

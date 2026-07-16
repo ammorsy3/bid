@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
+import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
 import { viewAuthenticatedFile, downloadAuthenticatedFile } from "@/lib/downloadFile";
 import { StatusBadge } from "@/components/brand/StatusDot";
 import { verificationStatusToState } from "@/components/brand/statusMap";
@@ -118,41 +119,30 @@ export default function AdminAwards() {
 
   return (
     <AdminLayout>
-      <div className="p-8 max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-foreground tracking-[-0.04em]" data-testid="text-page-title">
-            {t('admin.blockedAwardsManagement')}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {t('admin.blockedAwardsDesc')}
-          </p>
-        </div>
+      <AdminPage>
+        <AdminHeader
+          eyebrow={t('admin.adminPanel')}
+          eyebrowIcon={AlertTriangle}
+          title={t('admin.blockedAwardsManagement')}
+          subtitle={t('admin.blockedAwardsDesc')}
+        />
 
         {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="h-40 bg-gray-100 dark:bg-card rounded-xl animate-pulse" />
-            ))}
-          </div>
+          <SkeletonList rows={2} />
         ) : !awards || (awards as any[]).length === 0 ? (
-          <Card className="border-border dark:border-border bg-white dark:bg-background">
-            <CardContent className="py-16 text-center">
-              <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-card flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="h-7 w-7 text-gray-400" />
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="text-empty-state">
-                {t('admin.noBlockedAwards')}
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('admin.noBlockedAwardsDesc')}</p>
-            </CardContent>
-          </Card>
+          <AdminEmpty
+            icon={AlertTriangle}
+            title={t('admin.noBlockedAwards')}
+            subtitle={t('admin.noBlockedAwardsDesc')}
+            tone="positive"
+          />
         ) : (
           <div className="space-y-4">
             {(awards as any[]).map((award: any) => {
               const isVendorVerified = award.company?.verificationStatus === 'verified';
 
               return (
-                <Card key={award.id} className="border-border dark:border-border bg-white dark:bg-background" data-testid={`card-award-${award.id}`}>
+                <AdminCard key={award.id} data-testid={`card-award-${award.id}`}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -225,12 +215,12 @@ export default function AdminAwards() {
                       </Button>
                     </div>
                   </CardContent>
-                </Card>
+                </AdminCard>
               );
             })}
           </div>
         )}
-      </div>
+      </AdminPage>
 
       {/* View Vendor Dialog */}
       <Dialog open={actionType === "view_vendor"} onOpenChange={handleClose}>

@@ -158,3 +158,17 @@ Ordering = user-impact × visibility. Each item: current issues (UX/UI, desktop-
 - Reuse: existing dot-state tokens, `saudi-riyal-symbol` CSS, shadcn primitives, the numbered-header pattern from `Dashboard.tsx`.
 - **Verification:** re-run this exact Playwright walkthrough after each phase; screenshot to `docs/ux-review/after/` with identical names; diff against `before/`. `npm run check` + `npm run test` green; e2e specs (`tests/e2e/pages.spec.ts`) still pass. i18n: grep rendered pages for `\w+\.\w+` key patterns in en and ar. Dates: create tender with deadline D, assert review shows D.
 - **Open item for the user:** approve the dev-DB verification update (or supply a verified/admin account) → then a follow-up capture+review of Tender details, offers, award flow, and the Admin suite; append findings to Section B before implementing those screens.
+
+---
+
+## Implementation status (2026-07-18, branch `review/fable-improvements`)
+
+**Done & verified** (commits `54bed6e`, `3c7b82d`, `1d73363`):
+- Bug register B1–B10: all fixed, verified end-to-end (a tender was published through the real flow to prove the date/currency/publish paths).
+- Section A: primitives built (`page-header`, `status-chip`, `empty-state`, `lib/date.ts`, `RequireVerified`).
+- Dashboard visual redesign — "signal desk": ink hero panel (grain + orange bloom) fusing heading and tappable stat tiles; porcelain canvas replaces cream + dot grid; demo banner demoted; white cards for get-started/negotiate. Verified light/dark, desktop/mobile.
+- B-3 wizard: consistent step numbering (5/5), "Balance to 100%" weight fix, clean disabled buttons across 11 steps. B-5 tiles/stamps. B-8 company band on-brand. B-10 PDPL copy. B-11 login errors + password toggle + unified role-choice icons.
+
+**Deliberately skipped** (owner's instruction): B-6 marketplace redesign, B-9 AI copilot redesign.
+
+**Deferred** (next increment): B-1 unified app shell (bottom-tab mobile nav, notifications bell, one chrome for wizard/settings/docs) and the dependent B-7/B-12 route unification; full B-13 dark audit beyond the dashboard.

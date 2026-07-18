@@ -254,7 +254,8 @@
       "mcp__ide__getDiagnostics",
       "Bash(lsof *)",
       "Bash(PORT=5001 npm run *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(ps -o command= -p 26378)"
     ]
   },
   "enableAllProjectMcpServers": true,

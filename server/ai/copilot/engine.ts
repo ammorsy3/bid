@@ -211,6 +211,11 @@ export async function runCopilotTurn(input: CopilotTurnInput): Promise<CopilotTu
   const completion = await clientFor(input.apiKey).chat.completions.create({
     model: input.model || DEFAULT_MODEL,
     messages,
+    // Moderate temperature: the Copilot's job is sharp, spec-style prose and
+    // reliable JSON, not creative variety. The default 1.0 drifted toward flowery
+    // filler and occasional malformed JSON; 0.6 keeps it grounded while leaving
+    // enough room for natural phrasing.
+    temperature: 0.6,
     max_completion_tokens: 2048,
     response_format: { type: "json_object" },
   });
@@ -239,6 +244,9 @@ export async function* runCopilotTurnStream(
     model: input.model || DEFAULT_MODEL,
     messages,
     stream: true,
+    // See runCopilotTurn: keep the streaming path at the same temperature so
+    // in-app and API callers get the same sharp, reliable output.
+    temperature: 0.6,
     max_completion_tokens: 2048,
     response_format: { type: "json_object" },
   });

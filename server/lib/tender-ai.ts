@@ -4,6 +4,7 @@
 // without pulling in the whole routes module.
 
 import { VENDOR_CATEGORIES } from "@shared/schema";
+import { BANNED_FILLER_PHRASES_LIST } from "@shared/rfp-writing";
 
 export function getOpenAIConfig(): { url: string; key: string } | null {
   const openaiKey = process.env.OPENAI_API_KEY;
@@ -209,7 +210,7 @@ Rules:
 - Reference the actual quantity/unit of each deliverable where given (e.g. "across 3 campaigns", "for all 5 branch locations") instead of ignoring the numbers.
 - Do not contradict or restate each deliverable's own scope in detail — they're already itemized separately. Use this section for the overall requirements, context, and expectations that tie the deliverables together (timeline expectations, quality bar, constraints, coordination needs, etc.), not a re-list of the line items.
 - If a project timeline or milestones are given, ground the description in them (e.g. overall duration, key checkpoints vendors must plan around) instead of speaking about timing in the abstract. Do not restate each milestone individually — they're already itemized separately, same as deliverables.
-- Never use generic filler phrases. Banned phrases and any close variant of them: "in today's digital landscape", "in today's world", "in an increasingly digital world", "diverse audience", "culture of resilience" / "culture of cyber resilience", "impactful and far-reaching", "cutting-edge", "state-of-the-art", "seamless", "seamlessly", "robust", "dynamic", "holistic", "synergy", "unlock", "empower", "leverage", "game-changing", "best-in-class".
+- Never use generic filler phrases. Banned phrases and any close variant of them: ${BANNED_FILLER_PHRASES_LIST}.
 - 2-4 short paragraphs. No headers, no bullet points, no markdown, no title.
 - ${langInstruction}
 

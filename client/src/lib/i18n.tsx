@@ -1219,7 +1219,8 @@ const translations = {
       failedSaveEmail: "Failed to save email",
       failedSaveEmailDesc: "Could not save your email preference. Please try again.",
 
-      step5Label: "5 / 7 (Optional)",
+      step5Label: "5 / 5 (Optional)",
+      balanceTo100: "Balance to 100%",
       evaluationCriteria: "Evaluation Criteria",
       step5Desc: "Define structured evaluation criteria for fair and auditable vendor selection.",
       submissionRequirements: "Submission Requirements",
@@ -4885,7 +4886,8 @@ const translations = {
       failedSaveEmail: "فشل حفظ البريد",
       failedSaveEmailDesc: "تعذر حفظ تفضيل بريدك الإلكتروني. حاول مرة أخرى.",
 
-      step5Label: "5 / 7 (اختياري)",
+      step5Label: "5 / 5 (اختياري)",
+      balanceTo100: "موازنة إلى 100%",
       evaluationCriteria: "معايير التقييم",
       step5Desc: "حدد معايير تقييم منظمة لاختيار الموردين بعدالة وشفافية.",
       submissionRequirements: "متطلبات التقديم",

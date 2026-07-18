@@ -182,6 +182,33 @@ export default function TenderEvaluationCriteriaStep() {
     setCategoryWeights(prev => prev.map(cw => cw.categoryId === categoryId ? { ...cw, weight } : cw));
   };
 
+  // One-click fix for the "defaults sum to 85%" dead-end: proportionally scale
+  // every weight (categories + custom criteria) so the total lands exactly on
+  // 100, absorbing rounding residue into the heaviest category.
+  const balanceWeights = () => {
+    const catTotal = categoryWeights.reduce((s, cw) => s + cw.weight, 0);
+    const custTotal = customCriteria.reduce((s, c) => s + c.weight, 0);
+    const total = catTotal + custTotal;
+    if (total === 0) {
+      const n = categoryWeights.length || 1;
+      const base = Math.floor(100 / n);
+      setCategoryWeights(prev => prev.map((cw, i) => ({ ...cw, weight: base + (i === 0 ? 100 - base * n : 0) })));
+      return;
+    }
+    const factor = 100 / total;
+    const scaledCats = categoryWeights.map(cw => ({ ...cw, weight: Math.round(cw.weight * factor) }));
+    const scaledCustom = customCriteria.map(c => ({ ...c, weight: Math.round(c.weight * factor) }));
+    const newTotal = scaledCats.reduce((s, cw) => s + cw.weight, 0) + scaledCustom.reduce((s, c) => s + c.weight, 0);
+    const residual = 100 - newTotal;
+    if (residual !== 0 && scaledCats.length > 0) {
+      let idx = 0;
+      for (let i = 1; i < scaledCats.length; i++) if (scaledCats[i].weight > scaledCats[idx].weight) idx = i;
+      scaledCats[idx] = { ...scaledCats[idx], weight: scaledCats[idx].weight + residual };
+    }
+    setCategoryWeights(scaledCats);
+    if (scaledCustom.length) setCustomCriteria(scaledCustom);
+  };
+
   const addCustomCriterion = () => {
     if (newCriterionText.trim()) {
       setCustomCriteria(prev => [
@@ -365,6 +392,18 @@ export default function TenderEvaluationCriteriaStep() {
                       {totalWeight === 100 ? t('tenderFlow.weightsCorrect') : totalWeight > 100 ? `${t('tenderFlow.removeWeight')} ${totalWeight - 100}% ${t('tenderFlow.toBalance')}` : `${t('tenderFlow.addWeight')} ${100 - totalWeight}% ${t('tenderFlow.moreWeight')}`}
                     </p>
                   </div>
+                  {totalWeight !== 100 && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={balanceWeights}
+                      data-testid="button-balance-weights"
+                      className="flex-shrink-0 rounded-full border-[#FE3C01]/40 text-[#FE3C01] hover:bg-[#FE3C01] hover:text-white transition-colors"
+                    >
+                      {t('tenderFlow.balanceTo100')}
+                    </Button>
+                  )}
                 </div>
 
                 {/* Category accordions */}

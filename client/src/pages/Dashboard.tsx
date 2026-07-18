@@ -573,7 +573,7 @@ export default function Dashboard() {
     userId: user?.id ?? '',
     steps: getSteps(DASHBOARD_TOUR_STEPS, language),
     isRtl,
-    autoStart: !!user,
+    autoStart: false, // opt-in only (was auto-launch)
   });
 
   // "Take a tour" is meant to re-arm every guide across the app, not just this page's —
@@ -599,7 +599,7 @@ export default function Dashboard() {
     userId: user?.id ?? '',
     steps: getSteps(VENDORS_BASE_TOUR_STEPS, language),
     isRtl,
-    autoStart: !!user && activeTab === 'vendors',
+    autoStart: false, // opt-in only (was auto-launch)
     autoStartDelay: 800,
   });
 
@@ -1681,7 +1681,11 @@ export default function Dashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0, duration: 0.35, ease: "easeOut" }}
                   whileHover={{ y: -3 }}
-                  className="rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)]"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setActiveTab('tenders')}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('tenders'); } }}
+                  className="cursor-pointer rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01] focus-visible:ring-offset-2"
                   style={currentTheme !== 'dark' ? {
                     background: BRAND_CARD_GRADIENT,
                   } : undefined}
@@ -1704,7 +1708,11 @@ export default function Dashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05, duration: 0.35, ease: "easeOut" }}
                   whileHover={{ y: -3 }}
-                  className="rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)]"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setActiveTab('proposals')}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('proposals'); } }}
+                  className="cursor-pointer rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01] focus-visible:ring-offset-2"
                   style={currentTheme !== 'dark' ? {
                     background: BRAND_CARD_GRADIENT,
                   } : undefined}
@@ -1727,7 +1735,11 @@ export default function Dashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1, duration: 0.35, ease: "easeOut" }}
                   whileHover={{ y: -3 }}
-                  className="rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)]"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setActiveTab('vendors')}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('vendors'); } }}
+                  className="cursor-pointer rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01] focus-visible:ring-offset-2"
                   style={currentTheme !== 'dark' ? {
                     background: BRAND_CARD_GRADIENT,
                   } : undefined}

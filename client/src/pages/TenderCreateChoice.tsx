@@ -21,10 +21,10 @@ export default function TenderCreateChoice() {
   const { t, isRtl, language } = useI18n();
 
   const DOCUMENT_SLOTS = [
-    { type: 'cr_certificate', label: t('onboarding.docCrLabel'), description: t('onboarding.docCrDesc'), required: true },
-    { type: 'vat_certificate', label: t('onboarding.docVatLabel'), description: t('onboarding.docVatDesc'), required: false },
-    { type: 'gosi_certificate', label: t('onboarding.docGosiLabel'), description: t('onboarding.docGosiDesc'), required: false },
-    { type: 'national_address_certificate', label: t('onboarding.docNationalAddressLabel'), description: t('onboarding.docNationalAddressDesc'), required: false },
+    { type: 'cr_certificate', label: t('onboardingPanel.docCrLabel'), description: t('onboardingPanel.docCrDesc'), required: true },
+    { type: 'vat_certificate', label: t('onboardingPanel.docVatLabel'), description: t('onboardingPanel.docVatDesc'), required: false },
+    { type: 'gosi_certificate', label: t('onboardingPanel.docGosiLabel'), description: t('onboardingPanel.docGosiDesc'), required: false },
+    { type: 'national_address_certificate', label: t('onboardingPanel.docNationalAddressLabel'), description: t('onboardingPanel.docNationalAddressDesc'), required: false },
   ];
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -39,7 +39,7 @@ export default function TenderCreateChoice() {
     userId: user?.id ?? '',
     steps: getSteps(TENDER_CREATE_TOUR_STEPS, language),
     isRtl,
-    autoStart: !!user && verificationStatus === 'verified',
+    autoStart: false, // opt-in only (was auto-launch)
     autoStartDelay: 800,
   });
 
@@ -126,18 +126,18 @@ export default function TenderCreateChoice() {
 
               <h2 className="font-display font-black text-2xl text-foreground mb-2 tracking-[-0.03em]">
                 {isRejected
-                  ? t('onboarding.verificationRejectedTitle')
+                  ? t('onboardingPanel.verificationRejectedTitle')
                   : isUnderReview
-                  ? t('onboarding.verificationInProgressTitle')
-                  : t('onboarding.verifyToContinueTitle')}
+                  ? t('onboardingPanel.verificationInProgressTitle')
+                  : t('onboardingPanel.verifyToContinueTitle')}
               </h2>
 
               <p className="text-muted-foreground text-sm">
                 {isRejected
-                  ? t('onboarding.verificationRejectedDesc')
+                  ? t('onboardingPanel.verificationRejectedDesc')
                   : isUnderReview
-                  ? t('onboarding.verificationInProgressDesc')
-                  : t('onboarding.verifyToContinueDesc')}
+                  ? t('onboardingPanel.verificationInProgressDesc')
+                  : t('onboardingPanel.verifyToContinueDesc')}
               </p>
             </div>
 
@@ -160,7 +160,7 @@ export default function TenderCreateChoice() {
                             <span className="text-sm font-medium text-foreground">{slot.label}</span>
                             {slot.required && !isUploaded && (
                               <span className="text-xs font-medium text-[#FE3C01] bg-[#FE3C01]/10 px-1.5 py-0.5 rounded">
-                                {t('onboarding.requiredBadge')}
+                                {t('onboardingPanel.requiredBadge')}
                               </span>
                             )}
                           </div>
@@ -168,7 +168,7 @@ export default function TenderCreateChoice() {
                           {isUploaded && (
                             <p className="text-xs text-green-600 flex items-center gap-1 mt-1.5">
                               <CheckCircle2 className="h-3.5 w-3.5" />
-                              {existingDoc?.originalName || t('onboarding.uploadedLabel')}
+                              {existingDoc?.originalName || t('onboardingPanel.uploadedLabel')}
                             </p>
                           )}
                         </div>
@@ -183,7 +183,7 @@ export default function TenderCreateChoice() {
                         >
                           <div className="flex items-center gap-1.5 text-sm">
                             <Upload className="h-3.5 w-3.5" />
-                            {isUploaded ? t('onboarding.replaceBtn') : t('onboarding.uploadBtn')}
+                            {isUploaded ? t('onboardingPanel.replaceBtn') : t('onboardingPanel.uploadBtn')}
                           </div>
                         </ObjectUploader>
                       </div>
@@ -198,7 +198,7 @@ export default function TenderCreateChoice() {
               onClick={() => setLocation('/dashboard')}
               className="w-full h-11 border-border text-muted-foreground text-sm font-medium rounded-lg"
             >
-              {t('onboarding.backToDashboard')}
+              {t('onboardingPanel.backToDashboard')}
             </Button>
           </div>
         </div>

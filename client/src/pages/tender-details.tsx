@@ -456,7 +456,7 @@ export default function TenderDetails() {
     // isn't guaranteed to resolve within autoStartDelay, so starting on `tender` alone
     // could evaluate the filter above against a still-empty `offers` default and wrongly
     // drop steps that the real (in-flight) data would have included.
-    autoStart: !!user && !!tender && isOwner && !loadingOffers,
+    autoStart: false, // opt-in only (was auto-launch)
     autoStartDelay: 1500,
   });
 

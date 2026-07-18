@@ -33,7 +33,7 @@ export function OnboardingLeftPanelAnimation() {
               <BidMonogram variant="orange" size={32} />
             </div>
             <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-.03em", color: "#0B0907", lineHeight: 1.1, marginBottom: 8 }}>Welcome to Bid</h2>
-            <p style={{ fontSize: 13.5, color: "#6B625A", lineHeight: 1.5, marginBottom: 18 }}>Sourcing, redefined. Let's get your<br />workspace set up.</p>
+            <p style={{ fontSize: 13.5, color: "#6B625A", lineHeight: 1.5, marginBottom: 18 }}>Sourcing, redefined. Let's get your <br />workspace set up.</p>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,.55)", border: "1px solid rgba(11,9,7,.06)", borderRadius: 999, padding: "6px 14px" }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#0B0907", animation: "ob-dot 2.4s ease-in-out infinite" }} />
               <span style={{ fontSize: 11.5, fontWeight: 600, color: "#0B0907" }}>Now live</span>

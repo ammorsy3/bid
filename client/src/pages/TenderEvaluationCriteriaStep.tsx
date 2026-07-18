@@ -487,7 +487,7 @@ export default function TenderEvaluationCriteriaStep() {
                         placeholder={t('tenderFlow.customCriteriaPlaceholder')}
                         className="flex-1 px-3 py-2 text-sm border border-border rounded-lg bg-card text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                       />
-                      <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#FE3C01] hover:bg-[#d54d35]">
+                      <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none">
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -651,7 +651,7 @@ export default function TenderEvaluationCriteriaStep() {
               <Button
                 onClick={() => handleContinue(false)}
                 disabled={!isWeightValid}
-                className="w-full bg-[#FE3C01] hover:bg-[#d54d35] py-6"
+                className="w-full bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none py-6"
                 data-testid="button-continue"
               >
                 {vendorRequirements.length > 0

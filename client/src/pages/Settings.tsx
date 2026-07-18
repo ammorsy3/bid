@@ -501,7 +501,7 @@ export default function Settings() {
     userId: user?.id ?? '',
     steps: getSteps(SETTINGS_TOUR_STEPS, language),
     isRtl,
-    autoStart: !!user,
+    autoStart: false, // opt-in only (was auto-launch)
     autoStartDelay: 900,
   });
 

@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ar as arLocale } from "date-fns/locale";
+import { toDateString } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { TourBanner } from "@/lib/tour";
@@ -93,7 +94,7 @@ export default function TenderSubmissionProcessStep() {
     try {
       const current = JSON.parse(localStorage.getItem("tenderDraft") || "{}");
       const emailToUse = useAccountEmail ? user?.email : customEmail;
-      const deadlineISO = submissionDeadline ? submissionDeadline.toISOString().split('T')[0] : undefined;
+      const deadlineISO = submissionDeadline ? toDateString(submissionDeadline) : undefined;
       localStorage.setItem(
         "tenderDraft",
         JSON.stringify({
@@ -105,7 +106,7 @@ export default function TenderSubmissionProcessStep() {
           videoRequired: submissionType === "tech_fin_with_video" ? videoRequired : undefined,
           inquiryType: inquiryType || undefined,
           inquiryDeadline: inquiryType === "inside_bid" && inquiryDeadline
-            ? inquiryDeadline.toISOString().split('T')[0]
+            ? toDateString(inquiryDeadline)
             : undefined,
           whatsappContact: inquiryType === "email_whatsapp" ? whatsappContact : undefined,
           emailContact: inquiryType === "email_whatsapp" ? emailToUse : undefined,
@@ -160,7 +161,7 @@ export default function TenderSubmissionProcessStep() {
   const handleNext = () => {
     if (submissionDeadline && submissionType && inquiryType) {
       const emailToUse = useAccountEmail ? user?.email : customEmail;
-      const deadlineISO = submissionDeadline.toISOString().split('T')[0];
+      const deadlineISO = toDateString(submissionDeadline);
 
       const updated = {
         ...draft,
@@ -171,7 +172,7 @@ export default function TenderSubmissionProcessStep() {
         videoRequired: submissionType === "tech_fin_with_video" ? videoRequired : undefined,
         inquiryType,
         inquiryDeadline: inquiryType === "inside_bid" && inquiryDeadline
-          ? inquiryDeadline.toISOString().split('T')[0]
+          ? toDateString(inquiryDeadline)
           : undefined,
         whatsappContact: inquiryType === "email_whatsapp" ? whatsappContact : undefined,
         emailContact: inquiryType === "email_whatsapp" ? emailToUse : undefined,
@@ -671,7 +672,7 @@ export default function TenderSubmissionProcessStep() {
                   <Button
                     onClick={handleNext}
                     disabled={!isFormValid}
-                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
+                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
                     data-testid="button-next"
                   >
                     {t('tenderFlow.next')}

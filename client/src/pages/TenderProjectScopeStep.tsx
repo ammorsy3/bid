@@ -494,7 +494,7 @@ export default function TenderProjectScopeStep() {
                     <Button
                       onClick={handleAddDeliverable}
                       size="sm"
-                      className="bg-[#FE3C01] hover:bg-[#d54d35]"
+                      className="bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
                       data-testid="button-add-deliverable"
                     >
                       <Plus className="h-4 w-4 mr-1" />
@@ -1037,7 +1037,7 @@ export default function TenderProjectScopeStep() {
                   <Button
                     onClick={handleNext}
                     disabled={!isFormValid}
-                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
+                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
                     data-testid="button-next"
                   >
                     {t('tenderFlow.next')}

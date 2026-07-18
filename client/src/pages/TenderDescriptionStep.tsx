@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { toDateString } from "@/lib/date";
 import { ArrowLeft, ArrowRight, Sparkles, Video, Loader2, Copy } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
@@ -66,7 +67,7 @@ export default function TenderDescriptionStep() {
         category: draft.skills?.[0] || "Other",
         skills: draft.skills || [],
         scope: draft.scope || undefined,
-        deadline: draft.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        deadline: draft.deadline || toDateString(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)),
         duration: draft.duration || "1-3 months",
         budget: draft.budget || "",
         projectSize: draft.projectSize || undefined,
@@ -234,7 +235,7 @@ export default function TenderDescriptionStep() {
                   <Button
                     onClick={handleSubmit}
                     disabled={!isFormValid || submitTender.isPending}
-                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
+                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
                     data-testid="button-next"
                   >
                     {submitTender.isPending ? (

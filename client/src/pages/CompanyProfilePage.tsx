@@ -296,7 +296,7 @@ export default function CompanyProfilePage() {
           </div>
         </div>
       ) : (
-        <div className="h-52 md:h-64 w-full relative" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+        <div className="h-52 md:h-64 w-full relative" style={{ background: 'linear-gradient(135deg, #1A1613 0%, #3A1B12 50%, #C23000 100%)' }}>
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 max-w-[900px] mx-auto px-4 sm:px-6 pb-5">
             <div className="flex items-end gap-4">
@@ -767,10 +767,12 @@ export default function CompanyProfilePage() {
 
                 <div className="h-px bg-muted my-1" />
 
-                <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-                  <FileText className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                  <span className="font-mono text-[11px] tracking-tight">CR {company.crNumber}</span>
-                </div>
+                {company.crNumber && (
+                  <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+                    <FileText className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                    <span className="font-mono text-[11px] tracking-tight">CR {company.crNumber}</span>
+                  </div>
+                )}
                 {company.vatNumber && (
                   <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
                     <FileText className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />

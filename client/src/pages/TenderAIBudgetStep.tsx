@@ -6,6 +6,7 @@ import { useLocation } from "wouter";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
+import { formatCurrency } from "@/lib/format-currency";
 
 type BudgetMode = "manual" | "ai" | null;
 
@@ -26,7 +27,7 @@ const getProjectSize = (budget: number): ProjectSize => {
 
 export default function TenderAIBudgetStep() {
   const [, navigate] = useLocation();
-  const { t, isRtl } = useI18n();
+  const { t, isRtl, language } = useI18n();
   const [budgetMode, setBudgetMode] = useState<BudgetMode>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [aiEstimate, setAiEstimate] = useState<AIBudgetEstimate | null>(null);
@@ -161,14 +162,10 @@ export default function TenderAIBudgetStep() {
     (priceType === "range" && parseFloat(minPrice) > 0 && parseFloat(maxPrice) > 0 && parseFloat(minPrice) < parseFloat(maxPrice))
   );
 
-  const formatSAR = (amount: number) => {
-    return new Intl.NumberFormat("ar-SA", {
-      style: "currency",
-      currency: "SAR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Format money in the ACTIVE app language, not a hardcoded locale — otherwise
+  // the English UI shows Arabic-Indic digits (٣٠٠٬٠٠٠) while the next step shows
+  // "SAR 300,000". Routes through the shared helper so every surface matches.
+  const formatSAR = (amount: number) => formatCurrency(amount, language === 'ar' ? 'ar' : 'en');
 
   return (
     <div className="py-8 px-4">
@@ -529,7 +526,7 @@ export default function TenderAIBudgetStep() {
                   <Button
                     onClick={handleNext}
                     disabled={!isFormValid}
-                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
+                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
                     data-testid="button-next"
                   >
                     {t('tenderFlow.next')}

@@ -1,0 +1,521 @@
+{
+  "stats": {
+    "enKeys": 3457,
+    "arKeys": 3457,
+    "unionKeys": 3457,
+    "missingAr": 0,
+    "missingEn": 0,
+    "sameValue": 13,
+    "dupesEn": 0,
+    "dupesAr": 0
+  },
+  "missingAr": [],
+  "missingEn": [],
+  "sameValue": [
+    "onboardingPanel.emailPlaceholder",
+    "tenderFlow.viewInEnglish",
+    "tenderFlow.pdfHint",
+    "tenderFlow.editVideoUrlPlaceholder",
+    "tenderFlow.editContactEmailPlaceholder",
+    "tenderFlow.editWhatsappPlaceholder",
+    "requesterProfile.websitePlaceholder",
+    "requesterProfile.linkedinPlaceholder",
+    "requesterProfile.contactEmailPlaceholder",
+    "requesterProfile.contactPhonePlaceholder",
+    "companyProfileEditor.websitePlaceholder",
+    "companyProfileEditor.linkedinPlaceholder",
+    "companyProfileEditor.twitterPlaceholder"
+  ],
+  "dupesEn": [],
+  "dupesAr": [],
+  "glossary": {
+    "RFP/tender": {
+      "طلب عروض": {
+        "count": 22,
+        "namespaces": [
+          "dashboard",
+          "auth",
+          "tenderFlow",
+          "formBuilder",
+          "copilot"
+        ]
+      },
+      "طلب العروض": {
+        "count": 43,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "auth",
+          "tenderFlow",
+          "formBuilder",
+          "marketplace",
+          "copilot"
+        ]
+      },
+      "طلبات العروض": {
+        "count": 43,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "onboarding",
+          "onboardingPanel",
+          "authPanel",
+          "tenderFlow",
+          "formBuilder",
+          "landing"
+        ]
+      },
+      "مناقصة": {
+        "count": 54,
+        "namespaces": [
+          "dashboard",
+          "auth",
+          "common",
+          "tenderFlow",
+          "admin",
+          "marketplace",
+          "createTender",
+          "adminTenders"
+        ]
+      },
+      "المناقصة": {
+        "count": 43,
+        "namespaces": [
+          "auth",
+          "common",
+          "tenderFlow",
+          "marketplace",
+          "createTender",
+          "adminTenders",
+          "notifications",
+          "invitationLinks"
+        ]
+      },
+      "مناقصات": {
+        "count": 25,
+        "namespaces": [
+          "dashboard",
+          "onboarding",
+          "tractionPage",
+          "tenderFlow",
+          "admin",
+          "marketplace",
+          "adminTenders",
+          "notifications"
+        ]
+      }
+    },
+    "proposal/offer": {
+      "عرض": {
+        "count": 153,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "auth",
+          "tractionPage",
+          "tenderFlow",
+          "admin",
+          "formBuilder",
+          "marketplace"
+        ]
+      },
+      "العرض": {
+        "count": 17,
+        "namespaces": [
+          "dashboard",
+          "tenderFlow",
+          "vendorInvitationCard",
+          "companyProfileEditor",
+          "validation"
+        ]
+      },
+      "عروض": {
+        "count": 240,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "auth",
+          "onboarding",
+          "nav",
+          "onboardingPanel",
+          "authPanel",
+          "common"
+        ]
+      },
+      "العروض": {
+        "count": 150,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "auth",
+          "onboarding",
+          "onboardingPanel",
+          "authPanel",
+          "tractionPage",
+          "tenderFlow"
+        ]
+      },
+      "اقتراح": {
+        "count": 2,
+        "namespaces": [
+          "tenderFlow",
+          "formBuilder"
+        ]
+      },
+      "مقترح": {
+        "count": 8,
+        "namespaces": [
+          "tractionPage",
+          "tenderFlow",
+          "landing",
+          "tenderSteps"
+        ]
+      }
+    },
+    "vendor": {
+      "مورد": {
+        "count": 278,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "auth",
+          "onboarding",
+          "nav",
+          "onboardingPanel",
+          "authPanel",
+          "common"
+        ]
+      },
+      "المورد": {
+        "count": 201,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "auth",
+          "onboarding",
+          "nav",
+          "onboardingPanel",
+          "authPanel",
+          "common"
+        ]
+      },
+      "موردين": {
+        "count": 159,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "onboardingPanel",
+          "authPanel",
+          "common",
+          "tractionPage",
+          "tenderFlow",
+          "admin"
+        ]
+      },
+      "الموردين": {
+        "count": 115,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "onboardingPanel",
+          "authPanel",
+          "common",
+          "tractionPage",
+          "tenderFlow",
+          "admin"
+        ]
+      }
+    },
+    "requester/buyer": {
+      "مشتري": {
+        "count": 14,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "onboardingPanel",
+          "authPanel",
+          "formBuilder",
+          "marketplace",
+          "landing",
+          "tenderSteps"
+        ]
+      },
+      "المشتري": {
+        "count": 10,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "authPanel",
+          "formBuilder",
+          "marketplace",
+          "landing",
+          "tenderSteps",
+          "notifications"
+        ]
+      },
+      "طالب": {
+        "count": 10,
+        "namespaces": [
+          "dashboard",
+          "tenderFlow",
+          "admin",
+          "companyProfileEditor"
+        ]
+      }
+    },
+    "company": {
+      "شركة": {
+        "count": 109,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "onboarding",
+          "onboardingPanel",
+          "tractionPage",
+          "tenderFlow",
+          "admin",
+          "formBuilder"
+        ]
+      },
+      "الشركة": {
+        "count": 95,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "onboarding",
+          "onboardingPanel",
+          "tractionPage",
+          "tenderFlow",
+          "admin",
+          "formBuilder"
+        ]
+      },
+      "شركات": {
+        "count": 18,
+        "namespaces": [
+          "dashboard",
+          "onboardingPanel",
+          "authPanel",
+          "tenderFlow",
+          "admin",
+          "landing",
+          "teamInvite",
+          "adminAnalytics"
+        ]
+      }
+    },
+    "dashboard": {
+      "لوحة التحكم": {
+        "count": 13,
+        "namespaces": [
+          "dashboard",
+          "nav",
+          "onboardingPanel",
+          "tractionPage",
+          "tenderFlow",
+          "admin",
+          "marketplace",
+          "teamInvite"
+        ]
+      },
+      "اللوحة": {
+        "count": 1,
+        "namespaces": [
+          "formBuilder"
+        ]
+      }
+    },
+    "marketplace": {
+      "السوق": {
+        "count": 14,
+        "namespaces": [
+          "dashboard",
+          "tenderFlow",
+          "admin",
+          "landing",
+          "adminTenders"
+        ]
+      },
+      "سوق": {
+        "count": 17,
+        "namespaces": [
+          "dashboard",
+          "tenderFlow",
+          "admin",
+          "marketplace",
+          "landing",
+          "adminTenders"
+        ]
+      }
+    },
+    "award": {
+      "ترسية": {
+        "count": 26,
+        "namespaces": [
+          "tenderFlow",
+          "admin",
+          "marketplace",
+          "notifications"
+        ]
+      },
+      "الترسية": {
+        "count": 17,
+        "namespaces": [
+          "tenderFlow",
+          "admin",
+          "marketplace",
+          "notifications"
+        ]
+      },
+      "منح": {
+        "count": 5,
+        "namespaces": [
+          "settings",
+          "admin",
+          "formBuilder"
+        ]
+      }
+    },
+    "submit": {
+      "تقديم": {
+        "count": 141,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "auth",
+          "onboarding",
+          "onboardingPanel",
+          "common",
+          "tractionPage",
+          "tenderFlow"
+        ]
+      },
+      "إرسال": {
+        "count": 45,
+        "namespaces": [
+          "settings",
+          "auth",
+          "onboarding",
+          "onboardingPanel",
+          "tractionPage",
+          "tenderFlow",
+          "marketplace",
+          "tenderSteps"
+        ]
+      },
+      "رفع": {
+        "count": 98,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "onboarding",
+          "onboardingPanel",
+          "voiceRecorder",
+          "tractionPage",
+          "tenderFlow",
+          "admin"
+        ]
+      }
+    },
+    "verify/verification": {
+      "التحقق": {
+        "count": 63,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "auth",
+          "onboarding",
+          "onboardingPanel",
+          "authPanel",
+          "tenderFlow",
+          "admin"
+        ]
+      },
+      "توثيق": {
+        "count": 13,
+        "namespaces": [
+          "onboardingPanel",
+          "admin",
+          "marketplace",
+          "vendorStatus"
+        ]
+      },
+      "التوثيق": {
+        "count": 3,
+        "namespaces": [
+          "admin",
+          "vendorStatus"
+        ]
+      },
+      "تحقق": {
+        "count": 80,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "auth",
+          "onboarding",
+          "onboardingPanel",
+          "authPanel",
+          "tenderFlow",
+          "admin"
+        ]
+      }
+    },
+    "deadline": {
+      "الموعد النهائي": {
+        "count": 37,
+        "namespaces": [
+          "dashboard",
+          "auth",
+          "tenderFlow",
+          "admin",
+          "formBuilder",
+          "marketplace",
+          "vendorInvitation",
+          "createTender"
+        ]
+      },
+      "آخر موعد": {
+        "count": 12,
+        "namespaces": [
+          "tenderFlow",
+          "marketplace"
+        ]
+      },
+      "تاريخ الاستحقاق": {
+        "count": 3,
+        "namespaces": [
+          "tenderFlow",
+          "formBuilder"
+        ]
+      }
+    },
+    "brand name Bid": {
+      "بِد": {
+        "count": 2,
+        "namespaces": [
+          "marketplace"
+        ]
+      },
+      "بيد": {
+        "count": 5,
+        "namespaces": [
+          "landing"
+        ]
+      },
+      "Bid": {
+        "count": 27,
+        "namespaces": [
+          "settings",
+          "dashboard",
+          "auth",
+          "onboardingPanel",
+          "tractionPage",
+          "tenderFlow",
+          "marketplace",
+          "companyProfile"
+        ]
+      }
+    }
+  }
+}

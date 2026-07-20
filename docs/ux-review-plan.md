@@ -171,4 +171,20 @@ Ordering = user-impact × visibility. Each item: current issues (UX/UI, desktop-
 
 **Deliberately skipped** (owner's instruction): B-6 marketplace redesign, B-9 AI copilot redesign.
 
-**Deferred** (next increment): B-1 unified app shell (bottom-tab mobile nav, notifications bell, one chrome for wizard/settings/docs) and the dependent B-7/B-12 route unification; full B-13 dark audit beyond the dashboard.
+---
+
+## Implementation status (2026-07-21, branch `review/fable-improvements`)
+
+**Arabic localization completed** (commit `89e0781`): applied the diagnosis from the Arabic Content Audit Pack (`950da36`) that had only been extracted, not fixed — `server/email.ts` RFP-object terminology aligned with the in-app dictionary (مناقصة → طلب العروض family) and brand normalized to Latin "Bid"; `i18n.tsx` verification terminology converged (تأكيد for email/OTP, توثيق for company/vendor vetting); full Arabic coverage added to FAQ, GettingStarted, Terms, Privacy, AdminFreelancers, and the team/individual onboarding steps; hardcoded English fixed in login/register/Settings/CreateTender/VendorOnboarding/company-profile onboarding/queryClient; dead `DashboardUI.tsx` removed.
+
+**B-1/B-7/B-12 unified-chrome work landed** (commit `af3b4a7`), scoped down from a full sidebar/shell extraction — judged too high-risk to do in one unsupervised pass on a ~4000-line, business-critical `Dashboard.tsx` — to concrete wins: `/rfps`, `/proposals`, `/vendors` are now real, shareable, back-button-friendly routes (URL ↔ tab state kept in sync both ways) using the previously-unused `PageHeader` primitive in place of a near-duplicate local component; a shared `BackPillButton` replaced three divergent back-affordances (Settings, Settings Integrations — which had no header/logo at all — and the Company Profile Editor, which was the literal "plain link" case the plan called out); docs kept their intentionally distinct API-reference layout but no longer forks dark-mode preference into a separate `docs-theme` key.
+
+**B-13 dark-mode gaps fixed** (commit `49db0a3`): `CompanyProfilePage.tsx`'s ~35 `text-gray-300/400` labels and a `bg-gray-200` divider (no `dark:` pairing) swapped to `text-muted-foreground`/`bg-border`; wizard start-method illustration chips, disabled-button state (3 files), range-slider tracks, and requirement-chip hovers that stayed light-only fixed with `dark:` variants.
+
+**Deliberately left untouched:**
+- Dashboard's sidebar/company-switcher/notification-bell internals — works today; a generic extraction for reuse elsewhere was assessed as materially higher regression risk than budget justified in one session.
+- Wizard step chrome (`BidLogo` + orange pill + step counter) — already internally consistent across its 11 files; not the cross-page inconsistency the plan flags, so left as duplicated-but-consistent rather than risking a mechanical extraction across all 11 on top of the touched files above.
+- Local bilingual maps outside `i18n.tsx` (`submit-offer-modal.tsx`, `evaluation-criteria-data.ts`, `smart-unit-dropdown.tsx`, `tour-steps.ts`, `tender-suggestions.ts`) and the `docs/*` API reference pages' English-only content — both flagged by the Arabic audit as lower priority than the terminology/coverage fixes that shipped.
+- Server-side AI content (`server/lib/tender-ai.ts` prompts, AI Copilot conversation) returning English regardless of UI language — a backend/model-prompt change, out of scope for a UI/i18n pass.
+
+**Deferred** (next increment): the above untouched items, plus full B-13 dark audit beyond the files above (not exhaustively re-swept for `text-gray-*`/`bg-gray-*` literals repo-wide).

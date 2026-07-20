@@ -25,7 +25,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Copy, Trash2, KeyRound, Plug, Plus, AlertCircle, CheckCircle2, BookOpen, ExternalLink, ArrowLeft } from "lucide-react";
+import { Copy, Trash2, KeyRound, Plug, Plus, AlertCircle, CheckCircle2, BookOpen, ExternalLink } from "lucide-react";
+import { BackPillButton } from "@/components/ui/back-pill-button";
+import { BidLogo } from "@/components/brand/BidLogo";
 
 type ApiKeyRow = {
   id: string;
@@ -55,7 +57,7 @@ function copyToClipboard(text: string) {
 export default function SettingsIntegrations() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { t, isRtl } = useI18n();
+  const { t } = useI18n();
   const user = useAuthStore((s) => s.user);
   const activeCompany = useAuthStore((s) => s.activeCompany);
 
@@ -141,25 +143,16 @@ export default function SettingsIntegrations() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10 space-y-10">
+      <div className="flex items-center gap-3">
+        <BidLogo variant="orange" size={28} />
+      </div>
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <Button
-            className="group relative overflow-hidden h-8 mb-3"
+          <BackPillButton
             onClick={() => setLocation("/settings")}
+            className="mb-3"
             data-testid="button-back-to-settings"
-          >
-            <span className="w-12 translate-x-2 transition-opacity duration-500 group-hover:opacity-0 text-sm">
-              {t('common.back')}
-            </span>
-            <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
-              <ArrowLeft
-                className={`opacity-60 ${isRtl ? 'rotate-180' : ''}`}
-                size={16}
-                strokeWidth={2}
-                aria-hidden="true"
-              />
-            </i>
-          </Button>
+          />
           <h1 className="font-display font-black text-3xl tracking-[-0.04em]">{t('settings.intPageTitle')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {t('settings.intPageDesc')}

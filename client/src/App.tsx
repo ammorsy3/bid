@@ -139,6 +139,9 @@ export default function App() {
               <Route path="/onboarding/team-basics" component={TeamBasics} />
               <Route path="/onboarding/team-invite" component={TeamInviteOnboarding} />
               <Route path="/dashboard" component={Dashboard} />
+              <Route path="/rfps" component={Dashboard} />
+              <Route path="/proposals" component={Dashboard} />
+              <Route path="/vendors" component={Dashboard} />
               <Route path="/admin/dashboard" component={AdminDashboard} />
               <Route path="/admin/notifications" component={AdminNotifications} />
               <Route path="/admin/vendors" component={AdminVendors} />

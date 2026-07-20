@@ -3341,6 +3341,8 @@ const translations = {
       // Nav / header
       backToSettings: "Back to Settings",
       editCompanyProfile: "Edit Company Profile",
+      editMyProfile: "Edit My Profile",
+      editTeamProfile: "Edit Team Profile",
       profileStrength: "Profile strength",
       fieldsComplete: "{done} of {total} fields complete",
       profileEdit: "Company Profile / Edit",
@@ -7279,6 +7281,8 @@ const translations = {
       // Nav / header
       backToSettings: "رجوع إلى الإعدادات",
       editCompanyProfile: "تعديل ملف الشركة",
+      editMyProfile: "تعديل ملفي الشخصي",
+      editTeamProfile: "تعديل ملف الفريق",
       profileStrength: "اكتمال الملف",
       fieldsComplete: "{done} من {total} حقول مكتملة",
       profileEdit: "ملف الشركة / تعديل",

@@ -14,7 +14,9 @@ function useDarkToggle() {
       const next = !prev;
       if (next) document.documentElement.classList.add("dark");
       else document.documentElement.classList.remove("dark");
-      try { localStorage.setItem("docs-theme", next ? "dark" : "light"); } catch {}
+      // Shares the main app's "theme" key (not a separate "docs-theme") so a
+      // preference set from either surface persists across both on reload.
+      try { localStorage.setItem("theme", next ? "dark" : "light"); } catch {}
       return next;
     });
   };

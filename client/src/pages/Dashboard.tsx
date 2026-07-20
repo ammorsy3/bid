@@ -59,6 +59,7 @@ import { BidLogo } from "@/components/brand/BidLogo";
 import { StatusBadge, type BidState } from "@/components/brand/StatusDot";
 import { tenderStatusToState, proposalStatusToState } from "@/components/brand/statusMap";
 import { SkeletonList } from "@/components/skeletons";
+import { PageHeader } from "@/components/ui/page-header";
 
 interface VendorProfile {
   id: string;
@@ -139,50 +140,6 @@ function brandSpotlightProps(extraClass = "") {
   };
 }
 
-// Signature landing-page section heading: numbered eyebrow chip + big display
-// title with the orange "dot-end" period (the BId brand mark) + subtitle.
-// Mirrors the Overview tab heading and the landing's `.sec-head`.
-function BrandSectionHeading({
-  num,
-  title,
-  description,
-  isRtl,
-  action,
-  titleTestId,
-  descTestId,
-}: {
-  num: string;
-  title: string;
-  description?: string;
-  isRtl: boolean;
-  action?: React.ReactNode;
-  titleTestId?: string;
-  descTestId?: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`flex items-end justify-between gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}
-    >
-      <div className={isRtl ? 'text-right' : ''}>
-        <span className="inline-block text-xs font-semibold text-[#FE3C01] bg-[#FFE4D7] dark:bg-[#FE3C01]/15 px-3 py-1.5 rounded-full mb-4 tracking-wide tabular-nums">
-          {num}
-        </span>
-        <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#1A1613] dark:text-foreground tracking-[-0.04em] leading-[1.05]" data-testid={titleTestId}>
-          {title}<span className="text-[#FE3C01]">.</span>
-        </h2>
-        {description && (
-          <p className="text-sm sm:text-base text-[#8A8078] dark:text-muted-foreground mt-3 max-w-xl leading-relaxed" data-testid={descTestId}>
-            {description}
-          </p>
-        )}
-      </div>
-      {action && <div className="flex-shrink-0">{action}</div>}
-    </motion.div>
-  );
-}
 
 interface TenderWithCounts {
   id: string;
@@ -535,9 +492,26 @@ function SidebarSearchButton({
   );
 }
 
+// B-7: RFPs/Proposals/Vendors are real, shareable routes rather than pure
+// client-side tab state, while still rendering inside this single component
+// (splitting their ~1100 lines of tightly-coupled queries/mutations/tour
+// hooks into separate files was judged too high-risk to do unsupervised).
+const TAB_TO_ROUTE: Record<string, string> = {
+  overview: '/dashboard',
+  tenders: '/rfps',
+  proposals: '/proposals',
+  vendors: '/vendors',
+};
+const ROUTE_TO_TAB: Record<string, string> = {
+  '/dashboard': 'overview',
+  '/rfps': 'tenders',
+  '/proposals': 'proposals',
+  '/vendors': 'vendors',
+};
+
 export default function Dashboard() {
   const { user, activeCompany, companies, switchCompany } = useAuthStore();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { t, isRtl, language, setLanguage } = useI18n();
     const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
@@ -546,8 +520,21 @@ export default function Dashboard() {
   const [selectedProposal, setSelectedProposal] = useState<IncomingOffer | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<VendorProfile | null>(null);
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTabState] = useState(() => ROUTE_TO_TAB[location] ?? "overview");
   const mainRef = useRef<HTMLElement>(null);
+
+  // Keep the URL in sync with the active tab so /rfps, /proposals, and
+  // /vendors are real, shareable, back-button-friendly routes (B-7) instead
+  // of pure client-side tab state.
+  const setActiveTab = (value: string) => {
+    setActiveTabState(value);
+    const route = TAB_TO_ROUTE[value];
+    if (route && route !== location) setLocation(route);
+  };
+  useEffect(() => {
+    const tabForRoute = ROUTE_TO_TAB[location];
+    if (tabForRoute && tabForRoute !== activeTab) setActiveTabState(tabForRoute);
+  }, [location]);
   const [proposalsSubTab, setProposalsSubTab] = useState(() => localStorage.getItem('dashboard-proposals-tab') || 'submitted');
   const [vendorsSubTab, setVendorsSubTab] = useState(() => localStorage.getItem('dashboard-vendors-tab') || 'vendors-list');
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
@@ -2135,7 +2122,8 @@ export default function Dashboard() {
           {canManage && (
             <TabsContent value="tenders" className="space-y-6">
               {/* Header */}
-              <BrandSectionHeading
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>
+<PageHeader
                 num="02"
                 title={t('dashboard.tendersTitle')}
                 description={t('dashboard.tendersDesc')}
@@ -2155,6 +2143,7 @@ export default function Dashboard() {
                   </ParticleButton>
                 }
               />
+              </motion.div>
 
               {/* Filters */}
               <Card {...brandCardProps()}>
@@ -2365,7 +2354,8 @@ export default function Dashboard() {
 
           {/* Proposals Tab */}
           <TabsContent value="proposals" className="space-y-6">
-            <BrandSectionHeading
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>
+<PageHeader
               num="03"
               title={t('dashboard.proposalsTitle')}
               description={t('dashboard.proposalsDesc')}
@@ -2373,6 +2363,7 @@ export default function Dashboard() {
               titleTestId="text-proposals-title"
               descTestId="text-proposals-description"
             />
+            </motion.div>
 
             <Tabs value={(isIndividual || isTeam) ? 'submitted' : proposalsSubTab} onValueChange={(v) => { setProposalsSubTab(v); localStorage.setItem('dashboard-proposals-tab', v); }} className="space-y-4">
               {!isIndividual && !isTeam && (
@@ -2721,7 +2712,8 @@ export default function Dashboard() {
           {/* Vendors Base Tab */}
           {canManage && (
             <TabsContent value="vendors" className="space-y-6">
-              <BrandSectionHeading
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>
+<PageHeader
                 num="04"
                 title={t('dashboard.vendorsBaseTitle')}
                 description={t('dashboard.vendorsBaseDesc')}
@@ -2729,6 +2721,7 @@ export default function Dashboard() {
                 titleTestId="text-vendors-title"
                 descTestId="text-vendors-description"
               />
+              </motion.div>
 
               {/* Traction Link Card */}
               <Card {...brandCardProps('border-dashed')}>
@@ -3278,7 +3271,8 @@ export default function Dashboard() {
 
             return (
               <TabsContent value="profile-link" className="space-y-6">
-                <BrandSectionHeading
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>
+<PageHeader
                   num="05"
                   title={isIndividual ? t('dashboard.profileLinkTitleFreelancer') : t('dashboard.profileLinkTitleTeam')}
                   description={isIndividual ? t('dashboard.profileLinkDescFreelancer') : t('dashboard.profileLinkDescTeam')}
@@ -3286,6 +3280,7 @@ export default function Dashboard() {
                   titleTestId="text-profile-link-title"
                   descTestId="text-profile-link-description"
                 />
+                </motion.div>
 
                 {/* ─── Profile Link Card ─── */}
                 <Card {...brandCardProps()}>

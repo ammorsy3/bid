@@ -2,6 +2,7 @@ import { useAuthStore } from "@/lib/auth";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { BackPillButton } from "@/components/ui/back-pill-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -1034,23 +1035,10 @@ export default function Settings() {
         <div className="p-4 border-b">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-sm text-muted-foreground">{t('settings.accountSettings')}</h2>
-            <Button
-              className="group relative overflow-hidden h-8"
+            <BackPillButton
               onClick={() => setLocation('/dashboard')}
               data-testid="button-close-settings"
-            >
-              <span className="w-12 translate-x-2 transition-opacity duration-500 group-hover:opacity-0 text-sm">
-                {t('common.back')}
-              </span>
-              <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
-                <ArrowLeft
-                  className="opacity-60"
-                  size={16}
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
-              </i>
-            </Button>
+            />
           </div>
         </div>
 

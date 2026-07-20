@@ -22,7 +22,8 @@ async function throwIfResNotOk(res: Response) {
         localStorage.removeItem('user');
         localStorage.removeItem('auth-storage');
         window.location.href = '/login';
-        throw new Error('Session expired. Please log in again.');
+        const lang = localStorage.getItem('language') === 'ar' ? 'ar' : 'en';
+        throw new Error(lang === 'ar' ? 'انتهت الجلسة. يُرجى تسجيل الدخول مرة أخرى.' : 'Session expired. Please log in again.');
       }
     }
 

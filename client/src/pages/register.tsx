@@ -33,16 +33,22 @@ function checkPassword(pw: string): PasswordChecks {
   };
 }
 
-function scorePassword(pw: string): { score: 0 | 1 | 2 | 3 | 4; label: string; barClass: string; textClass: string } {
-  if (!pw) return { score: 0, label: "", barClass: "bg-neutral-200", textClass: "text-neutral-400" };
+function scorePassword(pw: string): { score: 0 | 1 | 2 | 3 | 4; labelKey: string; barClass: string; textClass: string } {
+  if (!pw) return { score: 0, labelKey: "", barClass: "bg-neutral-200", textClass: "text-neutral-400" };
   const checks = checkPassword(pw);
   const s = Number(checks.min8) + Number(checks.min12) + Number(checks.mixedCase) + Number(checks.numberSymbol);
-  const labels = ["Too short", "Weak", "Fair", "Good", "Strong"];
+  const labelKeys = [
+    "auth.passwordStrengthTooShort",
+    "auth.passwordStrengthWeak",
+    "auth.passwordStrengthFair",
+    "auth.passwordStrengthGood",
+    "auth.passwordStrengthStrong",
+  ];
   const barClasses = ["bg-red-500", "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-[var(--state-won)]"];
   const textClasses = ["text-red-600", "text-red-600", "text-orange-600", "text-yellow-700 dark:text-yellow-300", "text-[var(--state-won)]"];
   return {
     score: s as 0 | 1 | 2 | 3 | 4,
-    label: labels[s],
+    labelKey: labelKeys[s],
     barClass: barClasses[s],
     textClass: textClasses[s],
   };
@@ -230,7 +236,7 @@ export default function Register() {
                               type="button"
                               onClick={() => setShowPassword(s => !s)}
                               className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
-                              aria-label={showPassword ? "Hide password" : "Show password"}
+                              aria-label={showPassword ? t('auth.hidePasswordAria') : t('auth.showPasswordAria')}
                               tabIndex={-1}
                             >
                               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -249,7 +255,7 @@ export default function Register() {
                                 />
                               ))}
                             </div>
-                            <p className={`text-xs ${strength.textClass}`}>{strength.label}</p>
+                            <p className={`text-xs ${strength.textClass}`}>{strength.labelKey ? t(strength.labelKey) : ""}</p>
                           </div>
                         )}
                         {showRequirements && (
@@ -299,7 +305,7 @@ export default function Register() {
                               type="button"
                               onClick={() => setShowConfirm(s => !s)}
                               className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
-                              aria-label={showConfirm ? "Hide password" : "Show password"}
+                              aria-label={showConfirm ? t('auth.hidePasswordAria') : t('auth.showPasswordAria')}
                               tabIndex={-1}
                             >
                               {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

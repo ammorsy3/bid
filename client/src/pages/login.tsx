@@ -288,7 +288,7 @@ export default function Login() {
                                 type="button"
                                 onClick={() => setShowPassword(s => !s)}
                                 className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
-                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                aria-label={showPassword ? t('auth.hidePasswordAria') : t('auth.showPasswordAria')}
                                 tabIndex={-1}
                               >
                                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -328,9 +328,9 @@ export default function Login() {
                     </Link>
                   </p>
                   <p className="mt-3 text-xs text-muted-foreground">
-                    <Link href="/terms" className="hover:text-foreground" data-testid="link-terms">Terms of Service</Link>
+                    <Link href="/terms" className="hover:text-foreground" data-testid="link-terms">{t('terms.pageTitle')}</Link>
                     <span className="mx-2">·</span>
-                    <Link href="/privacy" className="hover:text-foreground" data-testid="link-privacy">Privacy Policy</Link>
+                    <Link href="/privacy" className="hover:text-foreground" data-testid="link-privacy">{t('privacy.pageTitle')}</Link>
                   </p>
                 </div>
               </div>

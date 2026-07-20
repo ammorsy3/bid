@@ -14,14 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { ArrowRight, ArrowLeft, User, Loader2, Info } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
-
-const individualBasicsSchema = z.object({
-  displayName: z.string().min(2, "Display name is required"),
-  specialization: z.string().min(1, "Please select a specialization"),
-  nationalIdNumber: z.string().optional(),
-});
-
-type IndividualBasicsForm = z.infer<typeof individualBasicsSchema>;
+import { useI18n } from "@/lib/i18n";
 
 const getPostOnboardingRedirect = () => {
   const redirect = localStorage.getItem('postOnboardingRedirect');
@@ -36,7 +29,17 @@ export default function IndividualBasics() {
   const [, setLocation] = useLocation();
   const { user, checkAuth } = useAuthStore();
   const { toast } = useToast();
+  const { t, isRtl } = useI18n();
   const [submitting, setSubmitting] = useState(false);
+  const BackArrow = isRtl ? ArrowRight : ArrowLeft;
+  const ForwardArrow = isRtl ? ArrowLeft : ArrowRight;
+
+  const individualBasicsSchema = z.object({
+    displayName: z.string().min(2, t('onboardingIndividualBasics.displayNameRequired')),
+    specialization: z.string().min(1, t('onboardingIndividualBasics.selectSpecializationRequired')),
+    nationalIdNumber: z.string().optional(),
+  });
+  type IndividualBasicsForm = z.infer<typeof individualBasicsSchema>;
 
   const form = useForm<IndividualBasicsForm>({
     resolver: zodResolver(individualBasicsSchema),
@@ -63,20 +66,20 @@ export default function IndividualBasics() {
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to create profile");
+        throw new Error(error.message || t('onboardingIndividualBasics.createProfileFailedDesc'));
       }
       const result = await response.json();
       localStorage.setItem('token', result.token);
       await checkAuth();
       toast({
-        title: "Freelancer profile ready",
-        description: "Browse tenders and apply. Add your National ID in Settings to start submitting.",
+        title: t('onboardingIndividualBasics.profileReadyTitle'),
+        description: t('onboardingIndividualBasics.profileReadyDesc'),
       });
       setLocation(getPostOnboardingRedirect());
     } catch (error: any) {
       toast({
-        title: "Couldn't create profile",
-        description: error.message || "Please try again.",
+        title: t('onboardingIndividualBasics.couldNotCreateProfileTitle'),
+        description: error.message || t('onboardingIndividualBasics.tryAgain'),
         variant: "destructive",
       });
     } finally {
@@ -95,8 +98,8 @@ export default function IndividualBasics() {
               <User className="w-5 h-5 text-violet-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">Set up your freelancer profile</h2>
-              <p className="text-sm text-neutral-500">Tell us who you are. You can fill out the rest later.</p>
+              <h2 className="text-xl font-bold text-neutral-900">{t('onboardingIndividualBasics.heading')}</h2>
+              <p className="text-sm text-neutral-500">{t('onboardingIndividualBasics.subheading')}</p>
             </div>
           </div>
 
@@ -107,11 +110,11 @@ export default function IndividualBasics() {
                 name="displayName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Display Name *</FormLabel>
+                    <FormLabel>{t('onboardingIndividualBasics.displayNameLabel')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your full name or professional alias" {...field} data-testid="input-display-name" />
+                      <Input placeholder={t('onboardingIndividualBasics.displayNamePlaceholder')} {...field} data-testid="input-display-name" />
                     </FormControl>
-                    <FormDescription>This is what others will see when you apply to tenders.</FormDescription>
+                    <FormDescription>{t('onboardingIndividualBasics.displayNameDesc')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -122,11 +125,11 @@ export default function IndividualBasics() {
                 name="specialization"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Specialization *</FormLabel>
+                    <FormLabel>{t('onboardingIndividualBasics.specializationLabel')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-specialization">
-                          <SelectValue placeholder="Select your main area of expertise" />
+                          <SelectValue placeholder={t('onboardingIndividualBasics.specializationPlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -147,13 +150,13 @@ export default function IndividualBasics() {
                 name="nationalIdNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>National ID Number</FormLabel>
+                    <FormLabel>{t('onboardingIndividualBasics.nationalIdLabel')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. 1234567890" {...field} data-testid="input-national-id" />
+                      <Input placeholder={t('onboardingIndividualBasics.nationalIdPlaceholder')} {...field} data-testid="input-national-id" />
                     </FormControl>
                     <FormDescription className="flex items-start gap-1.5">
                       <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" />
-                      <span>Required before you can submit offers. You can add it now or later from Settings.</span>
+                      <span>{t('onboardingIndividualBasics.nationalIdDesc')}</span>
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -167,8 +170,8 @@ export default function IndividualBasics() {
                   onClick={() => setLocation("/onboarding")}
                   disabled={submitting}
                 >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  <BackArrow className="mr-2 h-4 w-4" />
+                  {t('common.back')}
                 </Button>
                 <Button
                   type="submit"
@@ -179,12 +182,12 @@ export default function IndividualBasics() {
                   {submitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating profile…
+                      {t('onboardingIndividualBasics.creatingProfile')}
                     </>
                   ) : (
                     <>
-                      Go to dashboard
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      {t('onboardingIndividualBasics.goToDashboard')}
+                      <ForwardArrow className="ml-2 h-4 w-4" />
                     </>
                   )}
                 </Button>

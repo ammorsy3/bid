@@ -881,10 +881,10 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompany?.id, 'verify-info'] });
-      toast({ title: 'Saved', description: 'Verification info updated.' });
+      toast({ title: t('settings.verifyInfoSavedTitle'), description: t('settings.verifyInfoSavedDesc') });
     },
     onError: (error: Error) => {
-      toast({ title: "Couldn't save", description: error.message, variant: 'destructive' });
+      toast({ title: t('settings.couldNotSaveTitle'), description: error.message, variant: 'destructive' });
     },
   });
 
@@ -901,10 +901,10 @@ export default function Settings() {
     },
     onSuccess: () => {
       checkAuth();
-      toast({ title: 'Saved', description: 'National ID number updated.' });
+      toast({ title: t('settings.nationalIdSavedTitle'), description: t('settings.nationalIdSavedDesc') });
     },
     onError: (error: Error) => {
-      toast({ title: "Couldn't save", description: error.message, variant: 'destructive' });
+      toast({ title: t('settings.couldNotSaveTitle'), description: error.message, variant: 'destructive' });
     },
   });
 
@@ -1905,12 +1905,12 @@ export default function Settings() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="legalName">Legal name *</Label>
+                      <Label htmlFor="legalName">{t('settings.legalNameFieldLabel')}</Label>
                       <Input
                         id="legalName"
                         value={legalName}
                         onChange={(e) => setLegalName(e.target.value)}
-                        placeholder="Registered legal entity name"
+                        placeholder={t('settings.legalNameFieldPlaceholder')}
                         disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
                         data-testid="input-legal-name"
                       />
@@ -1918,25 +1918,25 @@ export default function Settings() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="crNumber">CR number *</Label>
+                        <Label htmlFor="crNumber">{t('settings.crNumberFieldLabel')}</Label>
                         <Input
                           id="crNumber"
                           value={crNumber}
                           inputMode="numeric"
                           maxLength={10}
                           onChange={(e) => setCrNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                          placeholder="10-digit CR"
+                          placeholder={t('settings.crNumberFieldPlaceholder')}
                           disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
                           data-testid="input-cr"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="vatNumber">VAT number</Label>
+                        <Label htmlFor="vatNumber">{t('settings.vatNumberFieldLabel')}</Label>
                         <Input
                           id="vatNumber"
                           value={vatNumberField}
                           onChange={(e) => setVatNumberField(e.target.value)}
-                          placeholder="Optional"
+                          placeholder={t('settings.vatNumberFieldPlaceholder')}
                           disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
                           data-testid="input-vat"
                         />

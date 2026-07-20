@@ -317,19 +317,19 @@ function buildEmailHtml(params: EmailTemplateParams): string {
 
 // Shared reason text helpers — returns string in requested language
 const REASON_VENDOR     = (lang: Lang) => lang === 'ar'
-  ? "لقد تلقيت هذا البريد لأنك قدّمت عرضاً لهذه المناقصة على منصة بِد."
+  ? "لقد تلقيت هذا البريد لأنك قدّمت عرضاً لطلب العروض هذا على منصة Bid."
   : "You received this email because you submitted a proposal to this tender on Bid.";
 const REASON_REQUESTER  = (lang: Lang) => lang === 'ar'
-  ? "لقد تلقيت هذا البريد لأنك مالك أو مسؤول في الشركة التي نشرت هذه المناقصة على منصة بِد."
+  ? "لقد تلقيت هذا البريد لأنك مالك أو مسؤول في الشركة التي نشرت طلب العروض هذا على منصة Bid."
   : "You received this email because you are an owner or admin of the company that posted this tender on Bid.";
 const REASON_COMPANY    = (name: string, lang: Lang) => lang === 'ar'
-  ? `لقد تلقيت هذا البريد لأنك مالك أو مسؤول في ${name} على منصة بِد.`
+  ? `لقد تلقيت هذا البريد لأنك مالك أو مسؤول في ${name} على منصة Bid.`
   : `You received this email because you are an owner or admin of ${name} on Bid.`;
 const REASON_JOIN_VENDOR    = (lang: Lang) => lang === 'ar'
-  ? "لقد تلقيت هذا البريد لأنك قدّمت طلب انضمام إلى قاعدة موردين على منصة بِد."
+  ? "لقد تلقيت هذا البريد لأنك قدّمت طلب انضمام إلى قاعدة موردين على منصة Bid."
   : "You received this email because you submitted a request to join a vendor base on Bid.";
 const REASON_JOIN_REQUESTER = (lang: Lang) => lang === 'ar'
-  ? "لقد تلقيت هذا البريد لأنك مالك أو مسؤول في شركة العميل على منصة بِد."
+  ? "لقد تلقيت هذا البريد لأنك مالك أو مسؤول في شركة العميل على منصة Bid."
   : "You received this email because you are an owner or admin of the requester company on Bid.";
 
 // =============================================================================
@@ -383,21 +383,21 @@ export async function sendNewOfferNotification(params: {
 
     const bodyText = isMilestone
       ? (isAr
-          ? `مناقصتك تسير بشكل رائع — لقد وصلت إلى ${proposalCount} عروض مقدمة. توجه إلى لوحة التحكم لمراجعتها وتقييمها.`
+          ? `طلبك للعروض يسير بشكل رائع — لقد وصلت إلى ${proposalCount} عروض مقدمة. توجه إلى لوحة التحكم لمراجعتها وتقييمها.`
           : `Your tender is doing great — you've now reached ${proposalCount} submitted proposals. Head to your dashboard to review and evaluate them.`)
       : (isAr
-          ? "خبر رائع — تم تقديم عرض جديد لإحدى مناقصاتك النشطة. راجع التفاصيل أدناه وانتقل إلى لوحة التحكم لتقييمه."
+          ? "خبر رائع — تم تقديم عرض جديد لأحد طلبات العروض النشطة الخاصة بك. راجع التفاصيل أدناه وانتقل إلى لوحة التحكم لتقييمه."
           : "Great news — a new proposal has been submitted to one of your active tenders. Review the details below and head to your dashboard to evaluate it.");
 
     const details = isMilestone
       ? [
-          { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة"          : "Tender",            value: tenderTitle },
+          { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "طلب العروض"          : "Tender",            value: tenderTitle },
           { iconEmoji: "&#128202;", iconBg: "#EFF6FF", label: isAr ? "إجمالي العروض"     : "Total Proposals",   value: String(proposalCount) },
           { iconEmoji: "&#127970;", iconBg: "#F0FDF4", label: isAr ? "آخر عرض من"        : "Latest Proposal By", value: vendorCompanyName },
           { iconEmoji: "&#128337;", iconBg: "#F5F3FF", label: isAr ? "تاريخ التقديم"     : "Submitted",         value: formattedDate },
         ]
       : [
-          { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة"        : "Tender",    value: tenderTitle },
+          { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "طلب العروض"        : "Tender",    value: tenderTitle },
           { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: isAr ? "المورد"          : "Vendor",    value: vendorCompanyName },
           { iconEmoji: "&#128337;", iconBg: "#F0FDF4", label: isAr ? "تاريخ التقديم"   : "Submitted", value: formattedDate },
         ];
@@ -411,7 +411,7 @@ export async function sendNewOfferNotification(params: {
       recipientName: recipient.name,
       bodyText,
       details,
-      ctaLabel:   isAr ? "عرض المناقصة" : "View Tender",
+      ctaLabel:   isAr ? "عرض طلب العروض" : "View Tender",
       ctaUrl: tenderUrl,
       ctaColor: BRAND_COLOR,
       reasonText: REASON_REQUESTER(lang),
@@ -464,10 +464,10 @@ export async function sendOfferDecisionNotification(params: {
         : (isAr ? "نشكرك على الوقت الذي أمضيته في تقديم العرض. للأسف، قرر هذا المشتري عدم المضي قُدُماً بعرضك في الوقت الحالي."
                 : "Thank you for taking the time to submit a proposal. Unfortunately, this buyer has decided not to proceed with your submission at this time."),
       details: [
-        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة"      : "Tender",    value: tenderTitle },
+        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "طلب العروض"      : "Tender",    value: tenderTitle },
         { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: isAr ? "منشور بواسطة"  : "Posted by", value: requesterCompanyName },
       ],
-      ctaLabel:  isAr ? "عرض المناقصة" : "View Tender",
+      ctaLabel:  isAr ? "عرض طلب العروض" : "View Tender",
       ctaUrl: tenderUrl,
       ctaColor: isAccepted ? "#16a34a" : BRAND_COLOR,
       reasonText: REASON_VENDOR(lang),
@@ -503,7 +503,7 @@ export async function sendAwardNotification(params: {
       : `Congratulations — You've Been Awarded: ${tenderTitle}`;
 
     const details: { iconEmoji: string; iconBg: string; label: string; value: string }[] = [
-      { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة"      : "Tender",     value: tenderTitle },
+      { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "طلب العروض"      : "Tender",     value: tenderTitle },
       { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: isAr ? "ممنوح بواسطة"  : "Awarded by", value: requesterCompanyName },
     ];
 
@@ -603,11 +603,11 @@ export async function sendNegotiationActionNotification(params: {
       subheadline: cfg.subheadline,
       recipientName: recipient.name,
       details: [
-        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة"     : "Tender",    value: tenderTitle },
+        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "طلب العروض"     : "Tender",    value: tenderTitle },
         { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: isAr ? "منشور بواسطة" : "Posted by", value: requesterCompanyName },
       ],
       messageBlock: { label: cfg.messageLabel, text: message, borderColor: cfg.borderColor },
-      ctaLabel:  isAr ? "عرض المناقصة" : "View Tender",
+      ctaLabel:  isAr ? "عرض طلب العروض" : "View Tender",
       ctaUrl: tenderUrl,
       ctaColor: BRAND_COLOR,
       reasonText: REASON_VENDOR(lang),
@@ -649,13 +649,13 @@ export async function sendAwardBlockedNotification(params: {
       subheadline: isAr ? "يُرجى اتخاذ إجراء قبل إتمام الترسية."        : "Action required before the award can be finalised.",
       recipientName: recipient.name,
       bodyText: isAr
-        ? `حاولت ترسية العقد على <strong>${vendorCompanyName}</strong>، لكن ملف هذا المورد لم يتم التحقق منه بعد على منصة بِد. الترسية معلقة وستُفعَّل بعد اكتمال التحقق.`
+        ? `حاولت ترسية العقد على <strong>${vendorCompanyName}</strong>، لكن ملف هذا المورد لم يتم التحقق منه بعد على منصة Bid. الترسية معلقة وستُفعَّل بعد اكتمال التحقق.`
         : `You attempted to award the contract to <strong>${vendorCompanyName}</strong>, but this vendor's company profile has not yet been verified on Bid. The award is on hold and will be released once verification is complete.`,
       details: [
-        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة"       : "Tender",          value: tenderTitle },
+        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "طلب العروض"       : "Tender",          value: tenderTitle },
         { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: isAr ? "المورد المختار"  : "Selected Vendor", value: vendorCompanyName },
       ],
-      ctaLabel:  isAr ? "عرض المناقصة" : "View Tender",
+      ctaLabel:  isAr ? "عرض طلب العروض" : "View Tender",
       ctaUrl: tenderUrl,
       ctaColor: "#f59e0b",
       reasonText: REASON_REQUESTER(lang),
@@ -688,27 +688,27 @@ export async function sendTenderStatusNotification(params: {
     return {
       published: {
         iconEmoji: "&#128640;", iconBg: "#F0FDF4",
-        headline:    isAr ? "تم نشر المناقصة"                                          : "Tender Published",
-        subheadline: isAr ? "مناقصتك الآن متاحة وتقبل العروض من الموردين."             : "Your tender is now live and accepting proposals from vendors.",
-        bodyText:    isAr ? "تم نشر مناقصتك وأصبحت مرئية للموردين على منصة بِد. ستبدأ العروض بالوصول إليك — وستتلقى إشعاراً في كل مرة يتم فيها تقديم عرض."
+        headline:    isAr ? "تم نشر طلب العروض"                                          : "Tender Published",
+        subheadline: isAr ? "طلبك للعروض الآن متاح ويقبل العروض من الموردين."             : "Your tender is now live and accepting proposals from vendors.",
+        bodyText:    isAr ? "تم نشر طلبك للعروض وأصبح مرئياً للموردين على منصة Bid. ستبدأ العروض بالوصول إليك — وستتلقى إشعاراً في كل مرة يتم فيها تقديم عرض."
                           : "Your tender has been published and is now visible to vendors on Bid. Proposals will start coming in — you'll receive a notification each time one is submitted.",
-        subject: isAr ? `تم نشر المناقصة — ${tenderTitle}` : `Tender Published — ${tenderTitle}`,
+        subject: isAr ? `تم نشر طلب العروض — ${tenderTitle}` : `Tender Published — ${tenderTitle}`,
       },
       closed: {
         iconEmoji: "&#128274;", iconBg: "#FFF1EE",
-        headline:    isAr ? "أُغلقت المناقصة"                                          : "Tender Closed",
-        subheadline: isAr ? "لم تعد مناقصتك تقبل تقديم عروض جديدة."                   : "Your tender has been closed to new proposal submissions.",
-        bodyText:    isAr ? "لم تعد المناقصة تقبل عروضاً جديدة. انتقل إلى لوحة التحكم لمراجعة جميع العروض المقدمة وبدء عملية التقييم."
+        headline:    isAr ? "أُغلق طلب العروض"                                          : "Tender Closed",
+        subheadline: isAr ? "لم يعد طلبك للعروض يقبل تقديم عروض جديدة."                   : "Your tender has been closed to new proposal submissions.",
+        bodyText:    isAr ? "لم يعد طلب العروض يقبل عروضاً جديدة. انتقل إلى لوحة التحكم لمراجعة جميع العروض المقدمة وبدء عملية التقييم."
                           : "Your tender is no longer accepting new proposals. Head to your dashboard to review all submitted proposals and begin the evaluation process.",
-        subject: isAr ? `أُغلقت المناقصة — ${tenderTitle}` : `Tender Closed — ${tenderTitle}`,
+        subject: isAr ? `أُغلق طلب العروض — ${tenderTitle}` : `Tender Closed — ${tenderTitle}`,
       },
       cancelled: {
         iconEmoji: "&#10060;", iconBg: "#FFF7ED",
-        headline:    isAr ? "تم إلغاء المناقصة"   : "Tender Cancelled",
-        subheadline: isAr ? "تم إلغاء مناقصتك."  : "Your tender has been cancelled.",
-        bodyText:    isAr ? "تم إلغاء هذه المناقصة ولم تعد مرئية للموردين. إذا كان ذلك خطأً أو أردت إعادة فتحها، يرجى التواصل مع الدعم أو إنشاء مناقصة جديدة."
+        headline:    isAr ? "تم إلغاء طلب العروض"   : "Tender Cancelled",
+        subheadline: isAr ? "تم إلغاء طلبك للعروض."  : "Your tender has been cancelled.",
+        bodyText:    isAr ? "تم إلغاء طلب العروض هذا ولم يعد مرئياً للموردين. إذا كان ذلك خطأً أو أردت إعادة فتحه، يرجى التواصل مع الدعم أو إنشاء طلب عروض جديد."
                           : "This tender has been cancelled and is no longer visible to vendors. If this was a mistake or you'd like to reopen it, please contact support or create a new tender.",
-        subject: isAr ? `تم إلغاء المناقصة — ${tenderTitle}` : `Tender Cancelled — ${tenderTitle}`,
+        subject: isAr ? `تم إلغاء طلب العروض — ${tenderTitle}` : `Tender Cancelled — ${tenderTitle}`,
       },
     };
   };
@@ -727,9 +727,9 @@ export async function sendTenderStatusNotification(params: {
       recipientName: recipient.name,
       bodyText: cfg.bodyText,
       details: [
-        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة" : "Tender", value: tenderTitle },
+        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "طلب العروض" : "Tender", value: tenderTitle },
       ],
-      ctaLabel:  isAr ? "عرض المناقصة" : "View Tender",
+      ctaLabel:  isAr ? "عرض طلب العروض" : "View Tender",
       ctaUrl: tenderUrl,
       ctaColor: BRAND_COLOR,
       reasonText: REASON_REQUESTER(lang),
@@ -759,23 +759,23 @@ export async function sendTenderCreatedNotification(params: {
     const isAr = lang === 'ar';
 
     const subject = isAr
-      ? `تم نشر مناقصة جديدة — ${tenderTitle}`
+      ? `تم نشر طلب عروض جديد — ${tenderTitle}`
       : `New Tender Published — ${tenderTitle}`;
 
     const html = buildEmailHtml({
       language: lang,
       iconEmoji: "&#128640;",
       iconBg: "#F0FDF4",
-      headline:    isAr ? "تم نشر مناقصة جديدة"                       : "New Tender Published",
-      subheadline: isAr ? "المناقصة الآن متاحة وتقبل العروض من الموردين." : "The tender is now live and accepting proposals from vendors.",
+      headline:    isAr ? "تم نشر طلب عروض جديد"                       : "New Tender Published",
+      subheadline: isAr ? "طلب العروض الآن متاح ويقبل العروض من الموردين." : "The tender is now live and accepting proposals from vendors.",
       recipientName: recipient.name,
       bodyText: isAr
-        ? "تم نشر مناقصة جديدة على منصة بِد وأصبحت مرئية للموردين. انتقل إلى لوحة التحكم لمراجعتها."
+        ? "تم نشر طلب عروض جديد على منصة Bid وأصبح مرئياً للموردين. انتقل إلى لوحة التحكم لمراجعته."
         : "A new tender has been published on Bid and is now visible to vendors. Head to your dashboard to review it.",
       details: [
-        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة" : "Tender", value: tenderTitle },
+        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "طلب العروض" : "Tender", value: tenderTitle },
       ],
-      ctaLabel:  isAr ? "عرض المناقصة" : "View Tender",
+      ctaLabel:  isAr ? "عرض طلب العروض" : "View Tender",
       ctaUrl: tenderUrl,
       ctaColor: BRAND_COLOR,
       reasonText: REASON_REQUESTER(lang),
@@ -806,7 +806,7 @@ export async function sendTenderClosedToVendorsNotification(params: {
     const isAr = lang === 'ar';
 
     const subject = isAr
-      ? `أُغلقت المناقصة — عرضك قيد المراجعة: ${tenderTitle}`
+      ? `أُغلق طلب العروض — عرضك قيد المراجعة: ${tenderTitle}`
       : `Tender Closed — Your Proposal Is Under Review: ${tenderTitle}`;
 
     const html = buildEmailHtml({
@@ -814,16 +814,16 @@ export async function sendTenderClosedToVendorsNotification(params: {
       iconEmoji: "&#128269;",
       iconBg: "#EFF6FF",
       headline:    isAr ? "عرضك قيد المراجعة"                                                          : "Your Proposal Is Under Review",
-      subheadline: isAr ? `أُغلقت المناقصة. ${requesterCompanyName} يقيّم الآن جميع العروض المقدمة.`  : `The tender has closed. ${requesterCompanyName} is now evaluating all submissions.`,
+      subheadline: isAr ? `أُغلق طلب العروض. ${requesterCompanyName} يقيّم الآن جميع العروض المقدمة.`  : `The tender has closed. ${requesterCompanyName} is now evaluating all submissions.`,
       recipientName: recipient.name,
       bodyText: isAr
-        ? "لم تعد المناقصة أدناه تقبل تقديمات جديدة. عرضك حالياً قيد التقييم. قد يتواصل معك المشتري إذا كان لديه أسئلة أو يرغب في التفاوض."
+        ? "لم يعد طلب العروض أدناه يقبل تقديمات جديدة. عرضك حالياً قيد التقييم. قد يتواصل معك المشتري إذا كان لديه أسئلة أو يرغب في التفاوض."
         : "The tender below has been closed to new submissions. Your proposal is currently under evaluation. You may be contacted by the buyer if they have questions or wish to negotiate.",
       details: [
-        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة"     : "Tender",    value: tenderTitle },
+        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "طلب العروض"     : "Tender",    value: tenderTitle },
         { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: isAr ? "منشور بواسطة" : "Posted by", value: requesterCompanyName },
       ],
-      ctaLabel:  isAr ? "عرض المناقصة" : "View Tender",
+      ctaLabel:  isAr ? "عرض طلب العروض" : "View Tender",
       ctaUrl: tenderUrl,
       ctaColor: BRAND_COLOR,
       reasonText: REASON_VENDOR(lang),
@@ -865,7 +865,7 @@ export async function sendTenderQuestionNotification(params: {
       subheadline: isAr ? "قدّم مورد سؤالاً. سجّل الدخول لنشر إجابتك."         : "A vendor has submitted a question. Log in to post your answer.",
       recipientName: recipient.name,
       details: [
-        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة" : "Tender", value: tenderTitle },
+        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "طلب العروض" : "Tender", value: tenderTitle },
       ],
       messageBlock: { label: isAr ? "سؤال" : "Question", text: questionText, borderColor: "#6366f1" },
       ctaLabel:  isAr ? "الإجابة على السؤال" : "Answer Question",
@@ -896,7 +896,7 @@ export async function sendTenderAnswerNotification(params: {
     const isAr = lang === 'ar';
 
     const subject = isAr
-      ? `تحديث المناقصة: تمت الإجابة على سؤال — ${tenderTitle}`
+      ? `تحديث طلب العروض: تمت الإجابة على سؤال — ${tenderTitle}`
       : `Tender Update: A Question Has Been Answered — ${tenderTitle}`;
 
     const qLabel = isAr ? 'س' : 'Q';
@@ -906,18 +906,18 @@ export async function sendTenderAnswerNotification(params: {
       language: lang,
       iconEmoji: "&#10003;",
       iconBg: "#F0FDF4",
-      headline:    isAr ? "تم تحديث أسئلة وأجوبة المناقصة"          : "Tender Q&amp;A Updated",
-      subheadline: isAr ? "أجاب المشتري على سؤال في هذه المناقصة."   : "The buyer has answered a question on this tender.",
+      headline:    isAr ? "تم تحديث أسئلة وأجوبة طلب العروض"          : "Tender Q&amp;A Updated",
+      subheadline: isAr ? "أجاب المشتري على سؤال في طلب العروض هذا."   : "The buyer has answered a question on this tender.",
       recipientName: recipient.name,
       details: [
-        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "المناقصة" : "Tender", value: tenderTitle },
+        { iconEmoji: "&#128196;", iconBg: "#FFF1EE", label: isAr ? "طلب العروض" : "Tender", value: tenderTitle },
       ],
       messageBlock: {
         label: isAr ? "سؤال وجواب" : "Question & Answer",
         text: `<strong>${qLabel}:</strong> ${questionText}<br><br><strong>${aLabel}:</strong> ${answerText}`,
         borderColor: "#16a34a",
       },
-      ctaLabel:  isAr ? "عرض المناقصة" : "View Tender",
+      ctaLabel:  isAr ? "عرض طلب العروض" : "View Tender",
       ctaUrl: tenderUrl,
       ctaColor: BRAND_COLOR,
       reasonText: REASON_VENDOR(lang),
@@ -971,7 +971,7 @@ export async function sendCompanyVerificationNotification(params: {
         : (isAr ? "لم نتمكن من التحقق من ملف شركتك في الوقت الحالي."      : "We were unable to verify your company profile at this time."),
       recipientName: recipient.name,
       bodyText: isVerified
-        ? (isAr ? `خبر رائع! تم التحقق من <strong>${companyName}</strong> على منصة بِد. يمكنك الآن المشاركة في المناقصات وتقديم العروض والوصول إلى جميع مميزات المنصة.`
+        ? (isAr ? `خبر رائع! تم التحقق من <strong>${companyName}</strong> على منصة Bid. يمكنك الآن المشاركة في طلبات العروض وتقديم العروض والوصول إلى جميع مميزات المنصة.`
                 : `Great news! <strong>${companyName}</strong> has been verified on Bid. You can now participate in tenders, submit proposals, and access all platform features.`)
         : (isAr ? `راجعنا ملف <strong>${companyName}</strong> ولم نتمكن من إتمام التحقق. يُرجى مراجعة السبب أدناه وتحديث معلومات شركتك.`
                 : `We reviewed <strong>${companyName}</strong>'s profile and were unable to complete verification. Please review the reason below and update your company information.`),
@@ -1170,7 +1170,7 @@ export async function sendJoinRequestDecisionNotification(params: {
         : (isAr ? `لم تتم الموافقة على طلبك للانضمام إلى قاعدة موردي ${requesterCompanyName}.` : `Your request to join ${requesterCompanyName}'s vendor base was not approved.`),
       recipientName: recipient.name,
       bodyText: isApproved
-        ? (isAr ? `بشرى سارة! تمت الموافقة على طلبك للانضمام إلى قاعدة موردي <strong>${requesterCompanyName}</strong>. أنت الآن مدرج في كتالوج الموردين لديهم وقد تتلقى دعوات مناقصات منهم.`
+        ? (isAr ? `بشرى سارة! تمت الموافقة على طلبك للانضمام إلى قاعدة موردي <strong>${requesterCompanyName}</strong>. أنت الآن مدرج في كتالوج الموردين لديهم وقد تتلقى دعوات للمشاركة في طلبات عروضهم.`
                 : `Good news! Your request to join <strong>${requesterCompanyName}</strong>'s vendor base has been approved. You are now listed in their vendor catalog and may receive tender invitations from them.`)
         : (isAr ? `لم تتم الموافقة على طلبك للانضمام إلى قاعدة موردي <strong>${requesterCompanyName}</strong> في الوقت الحالي. يمكنك التواصل مع الشركة مباشرة أو إعادة المحاولة لاحقاً.`
                 : `Your request to join <strong>${requesterCompanyName}</strong>'s vendor base was not approved at this time. You may reach out to the company directly or try again later.`),
@@ -1200,7 +1200,7 @@ export async function sendVerificationOTP(params: {
   const { email, otp, recipientName, language = 'en' } = params;
   const isAr = language === 'ar';
 
-  const subject = isAr ? `${otp} — رمز التحقق من بِد` : `${otp} — Your Bid verification code`;
+  const subject = isAr ? `${otp} — رمز التحقق من Bid` : `${otp} — Your Bid verification code`;
 
   const html = buildEmailHtml({
     iconEmoji: "&#128274;",
@@ -1211,10 +1211,10 @@ export async function sendVerificationOTP(params: {
     bodyText: isAr
       ? `رمز التحقق الخاص بك هو:<div style="margin:24px 0;text-align:center;"><span style="font-size:32px;font-weight:800;letter-spacing:8px;color:#18181b;background:#f4f4f5;padding:16px 32px;border-radius:12px;display:inline-block;">${otp}</span></div><p style="color:#71717a;font-size:13px;">هذا الرمز صالح لمدة 10 دقائق. إذا لم تطلب هذا الرمز، يمكنك تجاهل هذا البريد.</p>`
       : `Your verification code is:<div style="margin:24px 0;text-align:center;"><span style="font-size:32px;font-weight:800;letter-spacing:8px;color:#18181b;background:#f4f4f5;padding:16px 32px;border-radius:12px;display:inline-block;">${otp}</span></div><p style="color:#71717a;font-size:13px;">This code is valid for 10 minutes. If you didn't request this, you can safely ignore this email.</p>`,
-    ctaLabel: isAr ? "فتح بِد" : "Open Bid",
+    ctaLabel: isAr ? "فتح Bid" : "Open Bid",
     ctaUrl: getBaseUrl(),
     reasonText: isAr
-      ? "لقد تلقيت هذا البريد لأنك أنشأت حساباً على منصة بِد."
+      ? "لقد تلقيت هذا البريد لأنك أنشأت حساباً على منصة Bid."
       : "You received this email because you created an account on Bid.",
     language,
   });
@@ -1242,7 +1242,7 @@ export async function sendPasswordResetEmail(params: {
   const baseUrl = getBaseUrl(appBaseUrl);
   const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
 
-  const subject = isAr ? "إعادة تعيين كلمة مرور بِد" : "Reset your Bid password";
+  const subject = isAr ? "إعادة تعيين كلمة مرور Bid" : "Reset your Bid password";
 
   const html = buildEmailHtml({
     iconEmoji: "&#128272;",
@@ -1253,7 +1253,7 @@ export async function sendPasswordResetEmail(params: {
       : "Click the button below to set a new password",
     recipientName,
     bodyText: isAr
-      ? `طلبت إعادة تعيين كلمة مرور حسابك على منصة بِد. انقر على الزر أدناه لمتابعة العملية. <p style="color:#71717a;font-size:13px;margin-top:16px;">هذا الرابط صالح لمدة ساعة واحدة فقط. إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذا البريد بأمان.</p>`
+      ? `طلبت إعادة تعيين كلمة مرور حسابك على منصة Bid. انقر على الزر أدناه لمتابعة العملية. <p style="color:#71717a;font-size:13px;margin-top:16px;">هذا الرابط صالح لمدة ساعة واحدة فقط. إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذا البريد بأمان.</p>`
       : `You requested a password reset for your Bid account. Click the button below to continue. <p style="color:#71717a;font-size:13px;margin-top:16px;">This link is valid for 1 hour. If you didn't request a password reset, you can safely ignore this email.</p>`,
     ctaLabel: isAr ? "إعادة تعيين كلمة المرور" : "Reset Password",
     ctaUrl: resetUrl,
@@ -1293,7 +1293,7 @@ export async function sendTeamInviteEmail(params: {
     : role.charAt(0).toUpperCase() + role.slice(1);
 
   const subject = isAr
-    ? `${inviterName} دعاك للانضمام إلى ${companyName} على بِد`
+    ? `${inviterName} دعاك للانضمام إلى ${companyName} على Bid`
     : `${inviterName} invited you to join ${companyName} on Bid`;
 
   const signupUrl = `${baseUrl}/team-invite/${inviteToken}`;
@@ -1303,7 +1303,7 @@ export async function sendTeamInviteEmail(params: {
     iconBg: "#F0FDF4",
     headline: isAr ? "لقد تمت دعوتك!" : "You've been invited!",
     subheadline: isAr
-      ? `${inviterName} يريد منك الانضمام إلى فريقهم على بِد`
+      ? `${inviterName} يريد منك الانضمام إلى فريقهم على Bid`
       : `${inviterName} wants you to join their team on Bid`,
     bodyText: isAr
       ? `لقد تمت دعوتك للانضمام إلى <strong>${companyName}</strong> بصفتك <strong>${roleLabel}</strong>. انقر على الزر أدناه لإنشاء حسابك والانضمام إلى الفريق.`
@@ -1317,7 +1317,7 @@ export async function sendTeamInviteEmail(params: {
     ctaUrl: signupUrl,
     ctaColor: "#16a34a",
     reasonText: isAr
-      ? `لقد تلقيت هذا البريد لأن ${inviterName} دعاك للانضمام إلى ${companyName} على منصة بِد.`
+      ? `لقد تلقيت هذا البريد لأن ${inviterName} دعاك للانضمام إلى ${companyName} على منصة Bid.`
       : `You received this email because ${inviterName} invited you to join ${companyName} on Bid.`,
     language,
   });
@@ -1386,7 +1386,7 @@ export async function sendMembershipRequestNotification(params: {
       ctaUrl: dashboardUrl,
       ctaColor: BRAND_COLOR,
       reasonText: isAr
-        ? `لقد تلقيت هذا البريد لأنك مسؤول في ${companyName} على منصة بِد.`
+        ? `لقد تلقيت هذا البريد لأنك مسؤول في ${companyName} على منصة Bid.`
         : `You received this email because you are an admin of ${companyName} on Bid.`,
     });
     sendEmail(recipient.email, subject, html).catch(err => console.error(`[Email] Failed to send to ${recipient.email}:`, err));
@@ -1432,11 +1432,11 @@ export async function sendMembershipDecisionNotification(params: {
       text: reason,
       borderColor: BRAND_COLOR,
     } : undefined,
-    ctaLabel: isApproved ? (isAr ? "افتح المنصة" : "Open Bid") : (isAr ? "العودة إلى بِد" : "Back to Bid"),
+    ctaLabel: isApproved ? (isAr ? "افتح المنصة" : "Open Bid") : (isAr ? "العودة إلى Bid" : "Back to Bid"),
     ctaUrl: `${baseUrl}/dashboard`,
     ctaColor: isApproved ? "#16a34a" : BRAND_COLOR,
     reasonText: isAr
-      ? `لقد تلقيت هذا البريد لأنك قدّمت طلب انضمام إلى ${companyName} على منصة بِد.`
+      ? `لقد تلقيت هذا البريد لأنك قدّمت طلب انضمام إلى ${companyName} على منصة Bid.`
       : `You received this email because you requested to join ${companyName} on Bid.`,
   });
 

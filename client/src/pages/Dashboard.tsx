@@ -1629,7 +1629,7 @@ export default function Dashboard() {
         {/* Main Content */}
         <main
           ref={mainRef}
-          className="flex-1 overflow-auto p-4 sm:p-6"
+          className="flex-1 overflow-auto p-4 sm:p-6 max-md:pb-28"
           style={currentTheme !== 'dark' ? {
             // Porcelain canvas with two soft blooms — orange top-right, ink
             // bottom-left — replacing the old flat cream + dot grid.
@@ -3861,6 +3861,39 @@ export default function Dashboard() {
       </Dialog>
       </SidebarInset>
     </SidebarProvider>
+
+    {/* ── Mobile bottom tab bar — primary navigation on phones. Replaces the
+           hamburger→drawer as the way to move between dashboard sections;
+           the drawer stays available for secondary items (marketplace,
+           profile, settings). Safe-area aware. ── */}
+    <nav
+      className="md:hidden fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      aria-label="Primary"
+    >
+      <div className={`flex items-stretch ${isRtl ? 'flex-row-reverse' : ''}`}>
+        {sidebarItems.filter(i => i.show).slice(0, 4).map((item) => {
+          const ActiveIcon = item.icon;
+          const active = activeTab === item.value;
+          return (
+            <button
+              key={item.value}
+              type="button"
+              onClick={() => { setActiveTab(item.value); mainRef.current?.scrollTo({ top: 0 }); }}
+              aria-current={active ? 'page' : undefined}
+              data-testid={`bottomnav-${item.value}`}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] px-1 text-[11px] font-medium transition-colors ${
+                active ? 'text-[#FE3C01]' : 'text-muted-foreground'
+              }`}
+            >
+              <ActiveIcon className="h-5 w-5" aria-hidden />
+              <span className="truncate max-w-full leading-none">{item.label}</span>
+              <span className={`h-1 w-1 rounded-full ${active ? 'bg-[#FE3C01]' : 'bg-transparent'}`} aria-hidden />
+            </button>
+          );
+        })}
+      </div>
+    </nav>
 
     {/* Verification required dialog */}
     <Dialog open={showUnverifiedDialog} onOpenChange={setShowUnverifiedDialog}>

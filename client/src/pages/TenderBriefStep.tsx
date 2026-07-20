@@ -1122,7 +1122,7 @@ export default function TenderBriefStep() {
                   <Button
                     onClick={handlePublish}
                     disabled={submitTender.isPending || (marketplaceOptions.enabled && !marketplaceOptions.confirmed)}
-                    className="w-full bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none h-12 text-base font-semibold shadow-lg shadow-[#FE3C01]/20"
+                    className="w-full bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] dark:disabled:bg-muted disabled:text-[var(--bid-stone)] dark:disabled:text-muted-foreground disabled:shadow-none h-12 text-base font-semibold shadow-lg shadow-[#FE3C01]/20"
                     data-testid="button-publish-tender"
                   >
                     {submitTender.isPending ? (
@@ -1167,7 +1167,7 @@ export default function TenderBriefStep() {
           <Button
             onClick={handlePublish}
             disabled={submitTender.isPending}
-            className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none h-11 font-semibold"
+            className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] dark:disabled:bg-muted disabled:text-[var(--bid-stone)] dark:disabled:text-muted-foreground disabled:shadow-none h-11 font-semibold"
           >
             {submitTender.isPending ? (
               <>

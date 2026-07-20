@@ -137,7 +137,7 @@ export default function TenderVendorRequirementsStep() {
                   </Button>
                   <Button
                     onClick={handleNext}
-                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
+                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] dark:disabled:bg-muted disabled:text-[var(--bid-stone)] dark:disabled:text-muted-foreground disabled:shadow-none"
                     data-testid="button-next"
                   >
                     {selected.length > 0

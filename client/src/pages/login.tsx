@@ -17,6 +17,7 @@ import { BidLogo } from "@/components/brand/BidLogo";
 import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
 import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
 import { useForceLightMode } from "@/hooks/useForceLightMode";
+import { FullscreenLoader } from "@/components/ui/fullscreen-loader";
 
 type LoginForm = { email: string; password: string };
 type ForgotForm = { email: string };
@@ -33,6 +34,7 @@ export default function Login() {
   const [forgotSent, setForgotSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [transitioning, setTransitioning] = useState(false);
 
   const forgotForm = useForm<ForgotForm>({
     resolver: zodResolver(z.object({
@@ -66,7 +68,13 @@ export default function Login() {
   });
 
   useEffect(() => {
-    if (user) {
+    if (!user) return;
+
+    // Hold a branded loading veil for a beat before routing on, so signing in
+    // lands with a deliberate "preparing your workspace" moment rather than an
+    // instant jump. The redirect itself is unchanged — just delayed ~700ms.
+    setTransitioning(true);
+    const timer = setTimeout(() => {
       if (isMarketplaceSubdomain()) {
         const mainDomain = window.location.hostname.replace(/^marketplace\./, '');
         const mainOrigin = `${window.location.protocol}//${mainDomain}${window.location.port ? ':' + window.location.port : ''}`;
@@ -100,7 +108,9 @@ export default function Login() {
         }
         setLocation("/onboarding");
       }
-    }
+    }, 700);
+
+    return () => clearTimeout(timer);
   }, [user, activeCompany, setLocation, invitationToken, redirectUrl]);
 
   const onSubmit = async (data: LoginForm) => {
@@ -136,6 +146,7 @@ export default function Login() {
 
   return (
     <div className="h-screen flex overflow-hidden">
+      {transitioning && <FullscreenLoader label={t('auth.preparingWorkspace')} />}
 
       {/* Left panel — warm cream with animated illustration */}
       <div

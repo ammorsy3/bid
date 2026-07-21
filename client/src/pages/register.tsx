@@ -14,6 +14,7 @@ import { Check, Eye, EyeOff, X } from "lucide-react";
 import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
 import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
 import { useForceLightMode } from "@/hooks/useForceLightMode";
+import { FullscreenLoader } from "@/components/ui/fullscreen-loader";
 
 type RegisterForm = { email: string; password: string; confirmPassword: string; name: string };
 
@@ -89,6 +90,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
   const passwordValue = form.watch("password");
   const strength = scorePassword(passwordValue || "");
   const checks = checkPassword(passwordValue || "");
@@ -128,6 +130,10 @@ export default function Register() {
       } else if (invitationToken) {
         localStorage.setItem('postOnboardingRedirect', `/invite/${invitationToken}`);
       }
+      // Hold a branded veil for a beat so account creation lands deliberately,
+      // mirroring the sign-in flow, before routing on to verification.
+      setTransitioning(true);
+      await new Promise((resolve) => setTimeout(resolve, 700));
       setLocation("/verify-email");
     } catch (error: any) {
       let description = t('auth.registerError');
@@ -146,6 +152,7 @@ export default function Register() {
 
   return (
     <div className="h-screen flex overflow-hidden">
+      {transitioning && <FullscreenLoader label={t('auth.preparingWorkspace')} />}
 
       {/* Left panel — warm cream with animated illustration */}
       <div

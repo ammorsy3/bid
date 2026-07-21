@@ -694,7 +694,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                         <input
                           type="number"
                           placeholder={s('enterPrice')}
-                          className={`w-full ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
+                          className={`w-full ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 bg-background text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
                           dir="ltr"
                           value={field.value ?? ''}
                           onChange={(e) => {
@@ -732,7 +732,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                           type="url"
                           placeholder={s('videoPlaceholder')}
                           dir="ltr"
-                          className={`w-full ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
+                          className={`w-full ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 bg-background text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
                           data-testid="input-video-url"
                           {...field}
                         />

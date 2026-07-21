@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Sparkles, ShieldAlert, Clock, XCircle, Upload, CheckCircle2 } from "lucide-react";
+import { ShieldAlert, Clock, XCircle, Upload, CheckCircle2 } from "lucide-react";
 import { AILoader } from "@/components/ui/ai-loader";
 import { useAuthStore } from "@/lib/auth";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
@@ -249,19 +249,8 @@ export default function TenderCreateChoice() {
 
             <div className="space-y-3 max-w-sm mx-auto">
               <Button
-                onClick={() => setLocation("/tenders/new/ai")}
-                className="w-full h-12 bg-[#FE3C01] hover:bg-[#d54d35] text-white text-base font-medium rounded-lg"
-                data-testid="button-create-with-ai"
-                data-tour="ai-choice"
-              >
-                <Sparkles className="h-5 w-5 mr-2" />
-                {t('tenderFlow.getStartedWithAI')}
-              </Button>
-
-              <Button
-                variant="outline"
                 onClick={() => setLocation("/tenders/new/manual")}
-                className="w-full h-12 border-border text-muted-foreground hover:bg-muted text-base font-medium rounded-lg"
+                className="w-full h-12 bg-[#FE3C01] hover:bg-[#d54d35] text-white text-base font-medium rounded-lg"
                 data-testid="button-create-manually"
                 data-tour="manual-choice"
               >

@@ -84,7 +84,7 @@ export default function TenderVendorRequirementsStep() {
           {/* Left: Title + explanation */}
           <div>
             <div className="space-y-4 max-sm:space-y-2">
-              <div className="text-sm font-medium text-muted-foreground">6 / 7</div>
+              <div className="text-sm font-medium text-muted-foreground" dir="ltr">6 / 7</div>
               <h1 className="font-display font-black text-5xl max-sm:text-3xl text-foreground leading-[0.92] tracking-[-0.045em]">
                 {t('tenderSteps.submissionRequirements')}
               </h1>

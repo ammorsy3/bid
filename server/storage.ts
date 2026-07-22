@@ -91,7 +91,7 @@ import {
   type InsertAdminNotification,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, asc, desc, ilike, or, isNull, sql, gte, count, ne, lt } from "drizzle-orm";
+import { eq, and, asc, desc, ilike, or, isNull, sql, gte, gt, count, ne, lt, notInArray } from "drizzle-orm";
 
 // One funnel group (companies or freelancers). Numbers are workspace counts.
 export interface VerificationFunnel {
@@ -205,6 +205,8 @@ export interface IStorage {
   getTeamInvitationByToken(token: string): Promise<(TeamInvitation & { company: Company; inviter: User }) | undefined>;
   updateTeamInvitation(id: string, updates: Partial<InsertTeamInvitation>): Promise<TeamInvitation>;
   getPendingTeamInvitationForEmail(email: string, companyId: string): Promise<TeamInvitation | undefined>;
+  getPendingTeamInvitationsForEmail(email: string): Promise<(TeamInvitation & { company: Company; inviter: User })[]>;
+  searchCompaniesByName(query: string, limit?: number): Promise<{ id: string; name: string; slug: string; memberCount: number }[]>;
 
   // ============================================================================
   // TENDER OPERATIONS
@@ -230,6 +232,7 @@ export interface IStorage {
   getOffer(id: string): Promise<Offer | undefined>;
   getOffersByTender(tenderId: string): Promise<(Offer & { company: Company; profile?: CompanyProfile })[]>;
   getOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender })[]>;
+  hasAppliedToRequester(applicantCompanyId: string, requesterCompanyId: string): Promise<boolean>;
   getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null>;
   getOfferByFileUrl(fileUrl: string): Promise<Offer | null>;
   getCompanyDocumentByFileUrl(fileUrl: string): Promise<CompanyDocument | null>;
@@ -244,6 +247,7 @@ export interface IStorage {
   // ============================================================================
   createInvitation(invitation: InsertInvitation): Promise<Invitation>;
   getInvitationsByTender(tenderId: string): Promise<Invitation[]>;
+  getInvitationsByCompany(companyId: string): Promise<(Invitation & { tender: Tender; requester: Company })[]>;
 
   // ============================================================================
   // VENDORS BASE OPERATIONS
@@ -251,6 +255,8 @@ export interface IStorage {
   addVendorToBase(vendorBase: InsertVendorBase): Promise<VendorBase>;
   getVendorsInBase(requesterCompanyId: string, searchQuery?: string): Promise<(VendorBase & { vendorCompany: Company; profile?: CompanyProfile })[]>;
   isVendorInBase(requesterCompanyId: string, vendorCompanyId: string): Promise<boolean>;
+  searchIndividuals(opts: { search?: string; city?: string; category?: string; limit?: number; offset?: number }): Promise<{ rows: (Company & { profile?: CompanyProfile })[]; total: number }>;
+  getSuggestedIndividualsForTender(opts: { category?: string | null; city?: string | null; excludeCompanyIds?: string[]; limit?: number }): Promise<(Company & { profile?: CompanyProfile })[]>;
   removeVendorFromBase(requesterCompanyId: string, vendorCompanyId: string): Promise<void>;
 
   // ============================================================================
@@ -429,6 +435,8 @@ export interface IStorage {
     sort?: string;
     page?: number;
     limit?: number;
+    callerAccountType?: string;
+    audienceType?: string;
   }): Promise<{ tenders: (Tender & { company: Company; profile?: CompanyProfile })[]; total: number }>;
   getMarketplaceStats(): Promise<{ activeTenders: number; awardedTenders: number; totalOffers: number }>;
   getPendingMarketplaceRequests(): Promise<(Tender & { company: Company; profile?: CompanyProfile })[]>;
@@ -981,6 +989,68 @@ export class DatabaseStorage implements IStorage {
     return result || undefined;
   }
 
+  // All pending, non-expired invitations sent to a given email — used on the
+  // onboarding "Join a Company" step to surface invites a company sent before
+  // the user had even signed up.
+  async getPendingTeamInvitationsForEmail(email: string): Promise<(TeamInvitation & { company: Company; inviter: User })[]> {
+    const results = await db
+      .select({
+        invitation: teamInvitations,
+        company: companies,
+        inviter: users,
+      })
+      .from(teamInvitations)
+      .innerJoin(companies, eq(teamInvitations.companyId, companies.id))
+      .innerJoin(users, eq(teamInvitations.invitedBy, users.id))
+      .where(and(
+        ilike(teamInvitations.email, email),
+        eq(teamInvitations.status, 'pending'),
+        gt(teamInvitations.expiresAt, new Date()),
+        isNull(companies.deletedAt),
+      ))
+      .orderBy(desc(teamInvitations.createdAt));
+
+    return results.map(r => ({
+      ...r.invitation,
+      company: r.company,
+      inviter: r.inviter,
+    }));
+  }
+
+  // Free-text company search for the "request to join any company" flow.
+  // Restricted to real companies (not team/individual workspaces).
+  async searchCompaniesByName(query: string, limit: number = 8): Promise<{ id: string; name: string; slug: string; memberCount: number }[]> {
+    const safe = query.trim().replace(/[%_]/g, '');
+    if (safe.length < 2) return [];
+    const results = await db
+      .select({
+        id: companies.id,
+        name: companies.name,
+        slug: companies.slug,
+        memberCount: count(userCompanies.id),
+      })
+      .from(companies)
+      .leftJoin(userCompanies, and(
+        eq(userCompanies.companyId, companies.id),
+        isNull(userCompanies.deletedAt),
+      ))
+      .where(and(
+        ilike(companies.name, `%${safe}%`),
+        eq(companies.accountType, 'company'),
+        isNull(companies.deletedAt),
+      ))
+      .groupBy(companies.id, companies.name, companies.slug)
+      .orderBy(desc(count(userCompanies.id)))
+      .limit(limit);
+
+    return results.map(r => ({
+      id: r.id,
+      name: r.name,
+      slug: r.slug,
+      memberCount: Number(r.memberCount),
+    }));
+  }
+
   // ============================================================================
   // COMPANY DOCUMENT OPERATIONS
   // ============================================================================
@@ -1238,6 +1308,23 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
+  // Has `applicantCompanyId` submitted any offer to a tender owned by
+  // `requesterCompanyId`? Used to gate WhatsApp visibility on individual
+  // profiles (a requester can see the number of an individual who applied to
+  // one of their tenders).
+  async hasAppliedToRequester(applicantCompanyId: string, requesterCompanyId: string): Promise<boolean> {
+    const [row] = await db
+      .select({ id: offers.id })
+      .from(offers)
+      .innerJoin(tenders, eq(offers.tenderId, tenders.id))
+      .where(and(
+        eq(offers.companyId, applicantCompanyId),
+        eq(tenders.companyId, requesterCompanyId),
+      ))
+      .limit(1);
+    return !!row;
+  }
+
   async getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null> {
     const [offer] = await db
       .select()
@@ -1383,6 +1470,23 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(invitations.invitedAt));
   }
 
+  // Tenders a given workspace has been invited to (the "Invited" list). Joins in
+  // the tender and the requesting company so the invitee can see who invited them.
+  async getInvitationsByCompany(companyId: string): Promise<(Invitation & { tender: Tender; requester: Company })[]> {
+    const results = await db
+      .select({ invitation: invitations, tender: tenders, requester: companies })
+      .from(invitations)
+      .innerJoin(tenders, eq(invitations.tenderId, tenders.id))
+      .innerJoin(companies, eq(tenders.companyId, companies.id))
+      .where(and(
+        eq(invitations.companyId, companyId),
+        isNull(companies.deletedAt),
+      ))
+      .orderBy(desc(invitations.invitedAt));
+
+    return results.map(r => ({ ...r.invitation, tender: r.tender, requester: r.requester }));
+  }
+
   // ============================================================================
   // VENDORS BASE OPERATIONS
   // ============================================================================
@@ -1424,6 +1528,94 @@ export class DatabaseStorage implements IStorage {
       vendorCompany: r.vendorCompany,
       profile: r.profile || undefined
     }));
+  }
+
+  // Directory search over individual accounts (the company-facing "Find
+  // Individuals" tab). Returns completed individual profiles matching the
+  // optional filters; the route annotates each with whether it's already in
+  // the caller's vendors base.
+  async searchIndividuals(opts: {
+    search?: string;
+    city?: string;
+    category?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ rows: (Company & { profile?: CompanyProfile })[]; total: number }> {
+    const conditions = [
+      eq(companies.accountType, 'individual'),
+      isNull(companies.deletedAt),
+      eq(companies.onboardingState, 'completed'),
+    ];
+    if (opts.city) conditions.push(ilike(companies.city, `%${opts.city}%`));
+    if (opts.category) conditions.push(eq(companies.category, opts.category));
+    if (opts.search) {
+      conditions.push(or(
+        ilike(companies.name, `%${opts.search}%`),
+        ilike(companyProfiles.displayName, `%${opts.search}%`),
+        ilike(companyProfiles.bio, `%${opts.search}%`),
+      )!);
+    }
+    const whereClause = and(...conditions);
+
+    const [countRow] = await db
+      .select({ count: count() })
+      .from(companies)
+      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
+      .where(whereClause);
+
+    const results = await db
+      .select({ company: companies, profile: companyProfiles })
+      .from(companies)
+      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
+      .where(whereClause)
+      .orderBy(desc(companies.createdAt))
+      .limit(opts.limit ?? 12)
+      .offset(opts.offset ?? 0);
+
+    return {
+      rows: results.map(r => ({ ...r.company, profile: r.profile || undefined })),
+      total: Number(countRow?.count ?? 0),
+    };
+  }
+
+  // Ranked individual suggestions for a tender: prefers same field/category,
+  // then verified, "open to work", and same city. Used for the RFP
+  // "Suggested individuals" one-click invite strip.
+  async getSuggestedIndividualsForTender(opts: {
+    category?: string | null;
+    city?: string | null;
+    excludeCompanyIds?: string[];
+    limit?: number;
+  }): Promise<(Company & { profile?: CompanyProfile })[]> {
+    const conditions = [
+      eq(companies.accountType, 'individual'),
+      isNull(companies.deletedAt),
+      eq(companies.onboardingState, 'completed'),
+    ];
+    if (opts.excludeCompanyIds && opts.excludeCompanyIds.length > 0) {
+      conditions.push(notInArray(companies.id, opts.excludeCompanyIds));
+    }
+
+    const rows = await db
+      .select({ company: companies, profile: companyProfiles })
+      .from(companies)
+      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
+      .where(and(...conditions))
+      .limit(60);
+
+    const scored = rows.map((r) => {
+      let score = 0;
+      if (opts.category && r.company.category === opts.category) score += 100;
+      if (r.company.verificationStatus === 'verified') score += 20;
+      if (r.profile?.availabilityStatus === 'accepting') score += 15;
+      if (opts.city && r.company.city && r.company.city.toLowerCase() === opts.city.toLowerCase()) score += 10;
+      return { r, score, created: r.company.createdAt?.getTime?.() ?? 0 };
+    });
+    scored.sort((a, b) => b.score - a.score || b.created - a.created);
+
+    return scored
+      .slice(0, opts.limit ?? 10)
+      .map((s) => ({ ...s.r.company, profile: s.r.profile || undefined }));
   }
 
   async isVendorInBase(requesterCompanyId: string, vendorCompanyId: string): Promise<boolean> {
@@ -2530,6 +2722,7 @@ export class DatabaseStorage implements IStorage {
     page?: number;
     limit?: number;
     callerAccountType?: string;
+    audienceType?: string;
   }): Promise<{ tenders: (Tender & { company: Company; profile?: CompanyProfile })[]; total: number }> {
     const page = options.page || 1;
     const limit = options.limit || 6;
@@ -2561,6 +2754,12 @@ export class DatabaseStorage implements IStorage {
     }
     if (options.tenderType) {
       conditions.push(eq(tenders.tenderType, options.tenderType));
+    }
+    // Audience filtering: only surface tenders whose target audience includes
+    // the requested account type (e.g. individuals only see tenders open to
+    // individual applicants).
+    if (options.audienceType) {
+      conditions.push(sql`${options.audienceType} = ANY(${tenders.targetAudienceTypes})`);
     }
 
     const whereClause = and(...conditions);

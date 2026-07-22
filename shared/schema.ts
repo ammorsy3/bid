@@ -170,14 +170,20 @@ export const companyProfiles = pgTable("company_profiles", {
     imageUrl?: string; // legacy field — kept for backward compat
   }[]>().default([]),
   
-  // Social Links
+  // Social Links (extensible — website, linkedin, twitter/x, behance, instagram, …)
   socialLinks: jsonb("social_links").$type<{
     website?: string;
     linkedin?: string;
     twitter?: string;
     [key: string]: string | undefined;
   }>(),
-  
+
+  // WhatsApp contact — required for individual profiles. Visibility controls who
+  // can see the number: 'requesters' (default/min — only requesters whose tenders
+  // the individual has applied to) or 'public' (shown to everyone on the profile).
+  whatsappNumber: text("whatsapp_number"),
+  whatsappVisibility: text("whatsapp_visibility").notNull().default("requesters"), // 'requesters' | 'public'
+
   // Visibility
   isPublic: boolean("is_public").default(true).notNull(),
   

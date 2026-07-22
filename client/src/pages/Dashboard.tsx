@@ -43,6 +43,8 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import CreateTeamDialog from "@/components/CreateTeamDialog";
+import IndividualsDirectory from "@/components/IndividualsDirectory";
 import { useToast } from "@/hooks/use-toast";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import VendorProfileDrawer from "@/components/VendorProfileDrawer";
@@ -544,6 +546,7 @@ export default function Dashboard() {
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
   const [profileDrawerOpen, setProfileDrawerOpen] = useState(false);
   const [profileJoinRequestId, setProfileJoinRequestId] = useState<string | null>(null);
+  const [createTeamOpen, setCreateTeamOpen] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState<IncomingOffer | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<VendorProfile | null>(null);
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
@@ -1090,7 +1093,7 @@ export default function Dashboard() {
                 {isIndividual && (
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => setLocation('/onboarding/team-basics')}
+                      onClick={() => setCreateTeamOpen(true)}
                       tooltip={t('dashboard.createTeam')}
                       data-testid="sidebar-create-team"
                       className="py-3 text-base rounded-xl bg-[#FE3C01] text-white hover:bg-[#1A1613] hover:text-white shadow-[0_10px_24px_-8px_rgba(254,60,1,0.55)] transition-all"
@@ -2784,10 +2787,14 @@ export default function Dashboard() {
               </Card>
 
               <Tabs value={vendorsSubTab} onValueChange={(v) => { setVendorsSubTab(v); localStorage.setItem('dashboard-vendors-tab', v); }} className="space-y-4">
-                <TabsList className={`grid w-full max-w-md grid-cols-2 ${BRAND_TABSLIST}`} data-tour="vendors-tabs">
+                <TabsList className={`grid w-full max-w-2xl grid-cols-3 ${BRAND_TABSLIST}`} data-tour="vendors-tabs">
                   <TabsTrigger value="vendors-list" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-vendors-list">
                     <Users className="h-4 w-4" />
                     {t('dashboard.vendorsBase')} ({vendors.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="discover" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-discover-individuals">
+                    <Search className="h-4 w-4" />
+                    Discover
                   </TabsTrigger>
                   <TabsTrigger value="join-requests" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-join-requests" data-tour="vendors-requests-tab">
                     <UserPlus className="h-4 w-4" />
@@ -2799,6 +2806,16 @@ export default function Dashboard() {
                     )}
                   </TabsTrigger>
                 </TabsList>
+
+                {/* Discover individuals Sub-Tab */}
+                <TabsContent value="discover" className="space-y-4">
+                  <div className="max-w-[52ch]">
+                    <p className="text-sm text-muted-foreground">
+                      Find individuals across Bid and add them to your vendors base with one click — then invite them to your tenders.
+                    </p>
+                  </div>
+                  <IndividualsDirectory />
+                </TabsContent>
 
                 {/* Vendors List Sub-Tab */}
                 <TabsContent value="vendors-list" className="space-y-4">
@@ -3932,6 +3949,8 @@ export default function Dashboard() {
     {tourOverlay}
     {/* Vendors tab tour overlay */}
     {vendorsTourOverlay}
+    {/* Create-team dialog (individuals) */}
+    <CreateTeamDialog open={createTeamOpen} onOpenChange={setCreateTeamOpen} />
     </>
   );
 }

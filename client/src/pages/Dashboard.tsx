@@ -2787,16 +2787,16 @@ export default function Dashboard() {
               </Card>
 
               <Tabs value={vendorsSubTab} onValueChange={(v) => { setVendorsSubTab(v); localStorage.setItem('dashboard-vendors-tab', v); }} className="space-y-4">
-                <TabsList className={`grid w-full max-w-2xl grid-cols-3 ${BRAND_TABSLIST}`} data-tour="vendors-tabs">
-                  <TabsTrigger value="vendors-list" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-vendors-list">
+                <TabsList className={`flex w-full max-w-2xl overflow-x-auto sm:grid sm:grid-cols-3 ${BRAND_TABSLIST}`} data-tour="vendors-tabs">
+                  <TabsTrigger value="vendors-list" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-vendors-list">
                     <Users className="h-4 w-4" />
                     {t('dashboard.vendorsBase')} ({vendors.length})
                   </TabsTrigger>
-                  <TabsTrigger value="discover" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-discover-individuals">
+                  <TabsTrigger value="discover" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-discover-individuals">
                     <Search className="h-4 w-4" />
                     Discover
                   </TabsTrigger>
-                  <TabsTrigger value="join-requests" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-join-requests" data-tour="vendors-requests-tab">
+                  <TabsTrigger value="join-requests" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-join-requests" data-tour="vendors-requests-tab">
                     <UserPlus className="h-4 w-4" />
                     {t('dashboard.pendingRequests')}
                     {pendingRequests.length > 0 && (

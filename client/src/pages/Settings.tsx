@@ -1017,7 +1017,7 @@ export default function Settings() {
 
   const workspaceTabLabel =
     workspaceKind === 'team' ? 'Team Settings' :
-    workspaceKind === 'individual' ? 'Freelancer Settings' :
+    workspaceKind === 'individual' ? 'Profile Settings' :
     'Company Settings';
 
   const sidebarItems = [

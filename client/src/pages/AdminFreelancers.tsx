@@ -61,11 +61,11 @@ export default function AdminFreelancers() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/freelancers/pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/metrics"] });
-      toast({ title: "Freelancer verified", description: "National ID has been approved." });
+      toast({ title: "Individual verified", description: "National ID has been approved." });
       handleClose();
     },
     onError: () => {
-      toast({ title: "Error", description: "Could not verify freelancer.", variant: "destructive" });
+      toast({ title: "Error", description: "Could not verify individual.", variant: "destructive" });
     },
   });
 
@@ -75,11 +75,11 @@ export default function AdminFreelancers() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/freelancers/pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/metrics"] });
-      toast({ title: "Freelancer rejected", description: "Verification has been declined." });
+      toast({ title: "Individual rejected", description: "Verification has been declined." });
       handleClose();
     },
     onError: () => {
-      toast({ title: "Error", description: "Could not reject freelancer.", variant: "destructive" });
+      toast({ title: "Error", description: "Could not reject individual.", variant: "destructive" });
     },
   });
 
@@ -95,8 +95,8 @@ export default function AdminFreelancers() {
         <AdminHeader
           eyebrow="Verification"
           eyebrowIcon={UserCheck}
-          title="Freelancer Verification Queue"
-          subtitle="Review pending freelancer identity (National ID) submissions."
+          title="Individual Verification Queue"
+          subtitle="Review pending individual identity (National ID) submissions."
         />
 
         <div className="mb-6">
@@ -116,7 +116,7 @@ export default function AdminFreelancers() {
         ) : filteredFreelancers.length === 0 ? (
           <AdminEmpty
             icon={ShieldCheck}
-            title={searchQuery ? `No freelancers match "${searchQuery}"` : "No pending freelancer verifications."}
+            title={searchQuery ? `No individuals match "${searchQuery}"` : "No pending individual verifications."}
             tone="positive"
           />
         ) : (
@@ -182,7 +182,7 @@ export default function AdminFreelancers() {
       <Dialog open={actionType === "approve"} onOpenChange={handleClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Verify Freelancer</DialogTitle>
+            <DialogTitle>Verify Individual</DialogTitle>
             <DialogDescription>
               Approve National ID{" "}
               <span className="font-mono font-semibold">
@@ -217,7 +217,7 @@ export default function AdminFreelancers() {
       <Dialog open={actionType === "reject"} onOpenChange={handleClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reject Freelancer</DialogTitle>
+            <DialogTitle>Reject Individual</DialogTitle>
             <DialogDescription>
               Decline verification for {selected?.owner?.name || selected?.name}. A reason is required.
             </DialogDescription>

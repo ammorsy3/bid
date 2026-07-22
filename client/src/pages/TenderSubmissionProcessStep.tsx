@@ -356,7 +356,7 @@ export default function TenderSubmissionProcessStep() {
                     {([
                       { value: 'company' as const, label: 'Companies' },
                       { value: 'team' as const, label: 'Teams' },
-                      { value: 'individual' as const, label: 'Individuals / Freelancers' },
+                      { value: 'individual' as const, label: 'Individuals' },
                     ] as const).map((opt) => (
                       <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
                         <input

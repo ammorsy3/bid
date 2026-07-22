@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/lib/auth";
 import Dashboard from "@/pages/Dashboard";
+import DashboardGuard from "@/pages/DashboardGuard";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import ResetPassword from "@/pages/reset-password";
@@ -52,6 +53,8 @@ import SettingsIntegrations from "@/pages/SettingsIntegrations";
 import DocsPage from "@/pages/docs/DocsPage";
 import CompanyProfilePage from "@/pages/CompanyProfilePage";
 import CompanyProfileEditor from "@/pages/CompanyProfileEditor";
+import ProfileEditorRouter from "@/pages/ProfileEditorRouter";
+import IndividualProfileEditor from "@/pages/IndividualProfileEditor";
 import Marketplace from "@/pages/Marketplace";
 import AdminMarketplace from "@/pages/AdminMarketplace";
 import AdminAwards from "@/pages/AdminAwards";
@@ -134,10 +137,11 @@ export default function App() {
               <Route path="/onboarding/invite-team" component={InviteTeam} />
               <Route path="/onboarding/company-documents" component={CompanyDocuments} />
               <Route path="/onboarding/individual-basics" component={IndividualBasics} />
+              <Route path="/onboarding/individual-profile" component={IndividualProfileEditor} />
               <Route path="/onboarding/individual-verify" component={IndividualVerify} />
               <Route path="/onboarding/team-basics" component={TeamBasics} />
               <Route path="/onboarding/team-invite" component={TeamInviteOnboarding} />
-              <Route path="/dashboard" component={Dashboard} />
+              <Route path="/dashboard" component={DashboardGuard} />
               <Route path="/admin/dashboard" component={AdminDashboard} />
               <Route path="/admin/notifications" component={AdminNotifications} />
               <Route path="/admin/vendors" component={AdminVendors} />
@@ -159,7 +163,7 @@ export default function App() {
               <Route path="/team-invite/:token" component={TeamInvite} />
               <Route path="/tenders/:id/edit" component={TenderEditPage} />
               <Route path="/tenders/:id" component={TenderDetails} />
-              <Route path="/company/edit" component={CompanyProfileEditor} />
+              <Route path="/company/edit" component={ProfileEditorRouter} />
               <Route path="/company/:slug" component={CompanyProfilePage} />
               <Route path="/traction/:slug/edit" component={TractionLinkEditor} />
               <Route path="/traction/:slug" component={TractionLink} />

@@ -23,15 +23,6 @@ const individualBasicsSchema = z.object({
 
 type IndividualBasicsForm = z.infer<typeof individualBasicsSchema>;
 
-const getPostOnboardingRedirect = () => {
-  const redirect = localStorage.getItem('postOnboardingRedirect');
-  if (redirect) {
-    localStorage.removeItem('postOnboardingRedirect');
-    return redirect;
-  }
-  return '/dashboard';
-};
-
 export default function IndividualBasics() {
   const [, setLocation] = useLocation();
   const { user, checkAuth } = useAuthStore();
@@ -69,10 +60,19 @@ export default function IndividualBasics() {
       localStorage.setItem('token', result.token);
       await checkAuth();
       toast({
-        title: "Freelancer profile ready",
-        description: "Browse tenders and apply. Add your National ID in Settings to start submitting.",
+        title: "Account created",
+        description: "Let's set up your profile.",
       });
-      setLocation(getPostOnboardingRedirect());
+      // Individuals must set up their public profile before reaching the
+      // dashboard. Honour an invite redirect if one is pending, otherwise send
+      // them straight to the profile-creation step.
+      const pending = localStorage.getItem('postOnboardingRedirect');
+      if (pending) {
+        localStorage.removeItem('postOnboardingRedirect');
+        setLocation(pending);
+      } else {
+        setLocation('/onboarding/individual-profile');
+      }
     } catch (error: any) {
       toast({
         title: "Couldn't create profile",
@@ -95,7 +95,7 @@ export default function IndividualBasics() {
               <User className="w-5 h-5 text-violet-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">Set up your freelancer profile</h2>
+              <h2 className="text-xl font-bold text-neutral-900">Set up your individual profile</h2>
               <p className="text-sm text-neutral-500">Tell us who you are. You can fill out the rest later.</p>
             </div>
           </div>

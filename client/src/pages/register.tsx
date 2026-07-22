@@ -14,6 +14,7 @@ import { Check, Eye, EyeOff, X } from "lucide-react";
 import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
 import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
 import { useForceLightMode } from "@/hooks/useForceLightMode";
+import { FullscreenLoader } from "@/components/ui/fullscreen-loader";
 
 type RegisterForm = { email: string; password: string; confirmPassword: string; name: string };
 
@@ -33,16 +34,22 @@ function checkPassword(pw: string): PasswordChecks {
   };
 }
 
-function scorePassword(pw: string): { score: 0 | 1 | 2 | 3 | 4; label: string; barClass: string; textClass: string } {
-  if (!pw) return { score: 0, label: "", barClass: "bg-neutral-200", textClass: "text-neutral-400" };
+function scorePassword(pw: string): { score: 0 | 1 | 2 | 3 | 4; labelKey: string; barClass: string; textClass: string } {
+  if (!pw) return { score: 0, labelKey: "", barClass: "bg-neutral-200", textClass: "text-neutral-400" };
   const checks = checkPassword(pw);
   const s = Number(checks.min8) + Number(checks.min12) + Number(checks.mixedCase) + Number(checks.numberSymbol);
-  const labels = ["Too short", "Weak", "Fair", "Good", "Strong"];
+  const labelKeys = [
+    "auth.passwordStrengthTooShort",
+    "auth.passwordStrengthWeak",
+    "auth.passwordStrengthFair",
+    "auth.passwordStrengthGood",
+    "auth.passwordStrengthStrong",
+  ];
   const barClasses = ["bg-red-500", "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-[var(--state-won)]"];
   const textClasses = ["text-red-600", "text-red-600", "text-orange-600", "text-yellow-700 dark:text-yellow-300", "text-[var(--state-won)]"];
   return {
     score: s as 0 | 1 | 2 | 3 | 4,
-    label: labels[s],
+    labelKey: labelKeys[s],
     barClass: barClasses[s],
     textClass: textClasses[s],
   };
@@ -83,6 +90,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
   const passwordValue = form.watch("password");
   const strength = scorePassword(passwordValue || "");
   const checks = checkPassword(passwordValue || "");
@@ -122,6 +130,10 @@ export default function Register() {
       } else if (invitationToken) {
         localStorage.setItem('postOnboardingRedirect', `/invite/${invitationToken}`);
       }
+      // Hold a branded veil for a beat so account creation lands deliberately,
+      // mirroring the sign-in flow, before routing on to verification.
+      setTransitioning(true);
+      await new Promise((resolve) => setTimeout(resolve, 700));
       setLocation("/verify-email");
     } catch (error: any) {
       let description = t('auth.registerError');
@@ -140,6 +152,7 @@ export default function Register() {
 
   return (
     <div className="h-screen flex overflow-hidden">
+      {transitioning && <FullscreenLoader label={t('auth.preparingWorkspace')} />}
 
       {/* Left panel — warm cream with animated illustration */}
       <div
@@ -230,7 +243,7 @@ export default function Register() {
                               type="button"
                               onClick={() => setShowPassword(s => !s)}
                               className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
-                              aria-label={showPassword ? "Hide password" : "Show password"}
+                              aria-label={showPassword ? t('auth.hidePasswordAria') : t('auth.showPasswordAria')}
                               tabIndex={-1}
                             >
                               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -249,7 +262,7 @@ export default function Register() {
                                 />
                               ))}
                             </div>
-                            <p className={`text-xs ${strength.textClass}`}>{strength.label}</p>
+                            <p className={`text-xs ${strength.textClass}`}>{strength.labelKey ? t(strength.labelKey) : ""}</p>
                           </div>
                         )}
                         {showRequirements && (
@@ -299,7 +312,7 @@ export default function Register() {
                               type="button"
                               onClick={() => setShowConfirm(s => !s)}
                               className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
-                              aria-label={showConfirm ? "Hide password" : "Show password"}
+                              aria-label={showConfirm ? t('auth.hidePasswordAria') : t('auth.showPasswordAria')}
                               tabIndex={-1}
                             >
                               {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

@@ -10,13 +10,14 @@ import { isMarketplaceSubdomain } from "@/lib/subdomain";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, ApiError } from "@/lib/queryClient";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
 import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
 import { useForceLightMode } from "@/hooks/useForceLightMode";
+import { FullscreenLoader } from "@/components/ui/fullscreen-loader";
 
 type LoginForm = { email: string; password: string };
 type ForgotForm = { email: string };
@@ -31,6 +32,9 @@ export default function Login() {
   const [rememberDevice, setRememberDevice] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [transitioning, setTransitioning] = useState(false);
 
   const forgotForm = useForm<ForgotForm>({
     resolver: zodResolver(z.object({
@@ -64,7 +68,13 @@ export default function Login() {
   });
 
   useEffect(() => {
-    if (user) {
+    if (!user) return;
+
+    // Hold a branded loading veil for a beat before routing on, so signing in
+    // lands with a deliberate "preparing your workspace" moment rather than an
+    // instant jump. The redirect itself is unchanged — just delayed ~700ms.
+    setTransitioning(true);
+    const timer = setTimeout(() => {
       if (isMarketplaceSubdomain()) {
         const mainDomain = window.location.hostname.replace(/^marketplace\./, '');
         const mainOrigin = `${window.location.protocol}//${mainDomain}${window.location.port ? ':' + window.location.port : ''}`;
@@ -98,10 +108,13 @@ export default function Login() {
         }
         setLocation("/onboarding");
       }
-    }
+    }, 700);
+
+    return () => clearTimeout(timer);
   }, [user, activeCompany, setLocation, invitationToken, redirectUrl]);
 
   const onSubmit = async (data: LoginForm) => {
+    setLoginError(null);
     try {
       const trustedToken = localStorage.getItem('trustedBrowserToken');
       sessionStorage.setItem('otp_sent_by_login', 'true');
@@ -116,9 +129,16 @@ export default function Login() {
     } catch (error) {
       sessionStorage.removeItem('otp_sent_by_login');
       sessionStorage.removeItem('remember_browser');
+      // Map the failure to a specific, persistent inline message.
+      const status = error instanceof ApiError ? error.statusCode : undefined;
+      const message =
+        status === 401 ? t('auth.loginError')
+        : status === 429 ? t('auth.loginErrorRateLimit')
+        : t('auth.loginErrorGeneric');
+      setLoginError(message);
       toast({
         title: t('common.error'),
-        description: t('auth.loginError'),
+        description: message,
         variant: "destructive",
       });
     }
@@ -126,6 +146,7 @@ export default function Login() {
 
   return (
     <div className="h-screen flex overflow-hidden">
+      {transitioning && <FullscreenLoader label={t('auth.preparingWorkspace')} />}
 
       {/* Left panel — warm cream with animated illustration */}
       <div
@@ -222,6 +243,17 @@ export default function Login() {
                   <p className="text-sm text-muted-foreground">{t('authPanel.signInDesc')}</p>
                 </div>
 
+                {loginError && (
+                  <div
+                    role="alert"
+                    data-testid="login-error"
+                    className="mb-4 flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+                  >
+                    <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <span>{loginError}</span>
+                  </div>
+                )}
+
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <FormField
@@ -231,7 +263,7 @@ export default function Login() {
                         <FormItem>
                           <FormLabel>{t('auth.email')}</FormLabel>
                           <FormControl>
-                            <Input data-testid="input-email" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
+                            <Input data-testid="input-email" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} onChange={(e) => { field.onChange(e); if (loginError) setLoginError(null); }} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -254,7 +286,25 @@ export default function Login() {
                             </button>
                           </div>
                           <FormControl>
-                            <Input data-testid="input-password" type="password" placeholder={t('auth.passwordPlaceholder')} className="bg-card" {...field} />
+                            <div className="relative">
+                              <Input
+                                data-testid="input-password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder={t('auth.passwordPlaceholder')}
+                                className="bg-card pr-10"
+                                {...field}
+                                onChange={(e) => { field.onChange(e); if (loginError) setLoginError(null); }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(s => !s)}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
+                                aria-label={showPassword ? t('auth.hidePasswordAria') : t('auth.showPasswordAria')}
+                                tabIndex={-1}
+                              >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -289,9 +339,9 @@ export default function Login() {
                     </Link>
                   </p>
                   <p className="mt-3 text-xs text-muted-foreground">
-                    <Link href="/terms" className="hover:text-foreground" data-testid="link-terms">Terms of Service</Link>
+                    <Link href="/terms" className="hover:text-foreground" data-testid="link-terms">{t('terms.pageTitle')}</Link>
                     <span className="mx-2">·</span>
-                    <Link href="/privacy" className="hover:text-foreground" data-testid="link-privacy">Privacy Policy</Link>
+                    <Link href="/privacy" className="hover:text-foreground" data-testid="link-privacy">{t('privacy.pageTitle')}</Link>
                   </p>
                 </div>
               </div>

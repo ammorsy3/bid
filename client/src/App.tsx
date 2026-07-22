@@ -6,6 +6,8 @@ import { queryClient } from "@/lib/queryClient";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Toaster } from "@/components/ui/toaster";
+import { NavigationProgress } from "@/components/ui/navigation-progress";
+import { RequireVerified } from "@/components/RequireVerified";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/lib/auth";
 import Dashboard from "@/pages/Dashboard";
@@ -92,6 +94,7 @@ export default function App() {
         <I18nProvider>
           <AriaLocaleProvider>
             <Router>
+              <NavigationProgress />
               <Switch>
                 <Route path="/" component={Marketplace} />
                 <Route path="/invite/:id" component={TenderInviteLink} />
@@ -118,6 +121,7 @@ export default function App() {
       <I18nProvider>
         <AriaLocaleProvider>
           <Router>
+            <NavigationProgress />
             <Switch>
               <Route path="/" component={Landing} />
               <Route path="/login" component={Login} />
@@ -138,23 +142,26 @@ export default function App() {
               <Route path="/onboarding/team-basics" component={TeamBasics} />
               <Route path="/onboarding/team-invite" component={TeamInviteOnboarding} />
               <Route path="/dashboard" component={Dashboard} />
+              <Route path="/rfps" component={Dashboard} />
+              <Route path="/proposals" component={Dashboard} />
+              <Route path="/vendors" component={Dashboard} />
               <Route path="/admin/dashboard" component={AdminDashboard} />
               <Route path="/admin/notifications" component={AdminNotifications} />
               <Route path="/admin/vendors" component={AdminVendors} />
               <Route path="/admin/freelancers" component={AdminFreelancers} />
               <Route path="/tenders/new" component={TenderCreateChoice} />
-              <Route path="/tenders/new/ai" component={TenderAICopilot} />
-              <Route path="/tenders/new/manual" component={TenderStartMethodStep} />
-              <Route path="/tenders/new/title" component={TenderTitleStep} />
-              <Route path="/tenders/new/project-scope" component={TenderProjectScopeStep} />
-              <Route path="/tenders/new/ai-budget" component={TenderAIBudgetStep} />
-              <Route path="/tenders/new/submission-process" component={TenderSubmissionProcessStep} />
-              <Route path="/tenders/new/evaluation-criteria" component={TenderEvaluationCriteriaStep} />
-              <Route path="/tenders/new/vendor-requirements" component={TenderVendorRequirementsStep} />
-              <Route path="/tenders/new/brief" component={TenderBriefStep} />
-              <Route path="/tenders/new/form-builder" component={TenderFormBuilder} />
-              <Route path="/tenders/new/fill" component={TenderFormFill} />
-              <Route path="/tenders/new/review" component={TenderReview} />
+              <Route path="/tenders/new/ai">{() => <RequireVerified><TenderAICopilot /></RequireVerified>}</Route>
+              <Route path="/tenders/new/manual">{() => <RequireVerified><TenderStartMethodStep /></RequireVerified>}</Route>
+              <Route path="/tenders/new/title">{() => <RequireVerified><TenderTitleStep /></RequireVerified>}</Route>
+              <Route path="/tenders/new/project-scope">{() => <RequireVerified><TenderProjectScopeStep /></RequireVerified>}</Route>
+              <Route path="/tenders/new/ai-budget">{() => <RequireVerified><TenderAIBudgetStep /></RequireVerified>}</Route>
+              <Route path="/tenders/new/submission-process">{() => <RequireVerified><TenderSubmissionProcessStep /></RequireVerified>}</Route>
+              <Route path="/tenders/new/evaluation-criteria">{() => <RequireVerified><TenderEvaluationCriteriaStep /></RequireVerified>}</Route>
+              <Route path="/tenders/new/vendor-requirements">{() => <RequireVerified><TenderVendorRequirementsStep /></RequireVerified>}</Route>
+              <Route path="/tenders/new/brief">{() => <RequireVerified><TenderBriefStep /></RequireVerified>}</Route>
+              <Route path="/tenders/new/form-builder">{() => <RequireVerified><TenderFormBuilder /></RequireVerified>}</Route>
+              <Route path="/tenders/new/fill">{() => <RequireVerified><TenderFormFill /></RequireVerified>}</Route>
+              <Route path="/tenders/new/review">{() => <RequireVerified><TenderReview /></RequireVerified>}</Route>
               <Route path="/invite/:id" component={TenderInviteLink} />
               <Route path="/team-invite/:token" component={TeamInvite} />
               <Route path="/tenders/:id/edit" component={TenderEditPage} />

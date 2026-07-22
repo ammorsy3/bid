@@ -21,9 +21,9 @@ const DRAFT_KEY = "onboarding-draft";
 
 const BIO_MAX = 250;
 
-const makeCompanyProfileSchema = (t: (k: string) => string) => z.object({
+const makeCompanyProfileSchema = (t: (k: string, vars?: Record<string, string | number>) => string) => z.object({
   logoUrl: z.string().optional(),
-  bio: z.string().max(BIO_MAX, `Bio must not exceed ${BIO_MAX} characters`).optional(),
+  bio: z.string().max(BIO_MAX, t('onboarding.bioMaxExceeded', { max: BIO_MAX })).optional(),
   websiteUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
   linkedinUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal("")),
 });
@@ -201,13 +201,13 @@ export default function CompanyProfile() {
                         {...field}
                         rows={3}
                         maxLength={BIO_MAX}
-                        placeholder="Briefly describe your company and services"
+                        placeholder={t('onboarding.briefBioPlaceholder')}
                         data-testid="input-bio"
                       />
                     </FormControl>
                     <FormDescription>
                       <span className="text-neutral-400">
-                        {(field.value || "").length} / {BIO_MAX} characters
+                        {t('onboarding.charsOfMax', { count: (field.value || "").length, max: BIO_MAX })}
                       </span>
                     </FormDescription>
                     <FormMessage />
@@ -223,7 +223,7 @@ export default function CompanyProfile() {
                     <FormItem>
                       <FormLabel>{t('onboarding.websiteLabel')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://example.com" {...field} data-testid="input-website" />
+                        <Input placeholder={t('onboarding.websitePlaceholderGeneric')} {...field} data-testid="input-website" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -237,7 +237,7 @@ export default function CompanyProfile() {
                     <FormItem>
                       <FormLabel>{t('onboarding.yourLinkedin')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://linkedin.com/in/yourname" {...field} data-testid="input-linkedin" />
+                        <Input placeholder={t('onboarding.linkedinPlaceholderPersonal')} {...field} data-testid="input-linkedin" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

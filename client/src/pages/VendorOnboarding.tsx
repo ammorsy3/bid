@@ -285,7 +285,7 @@ export default function VendorOnboarding() {
                       <FormItem>
                         <FormLabel>{t('auth.password')} *</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="At least 6 characters" {...field} data-testid="input-password" />
+                          <Input type="password" placeholder={t('onboarding.passwordMinCharsPlaceholder')} {...field} data-testid="input-password" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -367,7 +367,7 @@ export default function VendorOnboarding() {
                       name="crNumber"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>CR Number *</FormLabel>
+                          <FormLabel>{t('onboarding.crNumberLabel')}</FormLabel>
                           <FormControl>
                             <Input 
                               {...field}
@@ -375,7 +375,7 @@ export default function VendorOnboarding() {
                                 const value = e.target.value.replace(/\D/g, '');
                                 field.onChange(value);
                               }}
-                              placeholder="Numeric only"
+                              placeholder={t('onboarding.numericOnly')}
                               data-testid="input-cr-number"
                             />
                           </FormControl>
@@ -610,7 +610,7 @@ export default function VendorOnboarding() {
                               {...field} 
                               rows={4}
                               maxLength={100}
-                              placeholder="Describe your company, services, and expertise (5-100 characters)"
+                              placeholder={t('onboarding.bioPlaceholderWithRange')}
                               data-testid="input-bio"
                             />
                           </FormControl>
@@ -618,7 +618,7 @@ export default function VendorOnboarding() {
                             <div className="flex items-center justify-between">
                               <span>{t('onboarding.shortBioDesc')}</span>
                               <span className="text-muted-foreground">
-                                {(field.value || "").length} / 100 characters
+                                {t('onboarding.charsCountShort', { count: (field.value || "").length })}
                               </span>
                             </div>
                           </FormDescription>
@@ -636,7 +636,7 @@ export default function VendorOnboarding() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-category">
-                                <SelectValue placeholder="Select a category" />
+                                <SelectValue placeholder={t('onboarding.selectCategory')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>

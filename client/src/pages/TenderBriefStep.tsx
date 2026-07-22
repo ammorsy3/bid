@@ -11,6 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useAuthStore } from "@/lib/auth";
 import { format } from "date-fns";
+import { parseDateOnly, toDateString } from "@/lib/date";
+import { formatCurrency } from "@/lib/format-currency";
 import { useI18n, type Language } from "@/lib/i18n";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -233,7 +235,7 @@ export default function TenderBriefStep() {
       category: draft.category || undefined,
       skills: draft.skills || [],
       scope: draft.scope || undefined,
-      deadline: draft.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      deadline: draft.deadline || toDateString(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)),
       duration: draft.duration || "1-3 months",
       budget: draft.budget || "",
       budgetMin: draft.budgetMin || undefined,
@@ -291,7 +293,9 @@ export default function TenderBriefStep() {
 
   const formatDate = (dateStr: string) => {
     try {
-      return format(new Date(dateStr), "PPP");
+      // parseDateOnly keeps `YYYY-MM-DD` values (deadline) on their picked day
+      // in every timezone, while still parsing full ISO timestamps normally.
+      return format(parseDateOnly(dateStr), "PPP");
     } catch {
       return dateStr;
     }
@@ -314,11 +318,11 @@ export default function TenderBriefStep() {
 
   const getBudgetDisplay = () => {
     if (draft.budgetMin && draft.budgetMax) {
-      return `SAR ${Number(draft.budgetMin).toLocaleString()} – ${Number(draft.budgetMax).toLocaleString()}`;
+      return `${formatCurrency(Number(draft.budgetMin), language)} – ${formatCurrency(Number(draft.budgetMax), language)}`;
     }
     if (draft.budget) {
       const num = Number(draft.budget);
-      return !isNaN(num) && num > 0 ? `SAR ${num.toLocaleString()}` : draft.budget;
+      return !isNaN(num) && num > 0 ? formatCurrency(num, language) : draft.budget;
     }
     return t('tenderFlow.notSpecified');
   };
@@ -551,7 +555,7 @@ export default function TenderBriefStep() {
                             <p className="text-sm font-medium text-muted-foreground">{formatDate(milestone.dueDate)}</p>
                           )}
                           {milestone.amount && (
-                            <p className="text-sm font-semibold text-[var(--state-won)]">SAR {Number(milestone.amount).toLocaleString()}</p>
+                            <p className="text-sm font-semibold text-[var(--state-won)]">{formatCurrency(Number(milestone.amount), language)}</p>
                           )}
                         </div>
                       </div>
@@ -1013,11 +1017,11 @@ export default function TenderBriefStep() {
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">{t('tenderFlow.aiBudgetInsight')}</p>
                     <div className="bg-[var(--bid-orange)]/5 rounded-lg p-3 space-y-1.5">
                       <p className="text-sm font-medium text-blue-900 dark:text-blue-200">
-                        Est. SAR {Number(draft.aiEstimate.estimatedBudget).toLocaleString()}
+                        {formatCurrency(Number(draft.aiEstimate.estimatedBudget), language)}
                       </p>
                       {draft.aiEstimate.budgetRange && (
                         <p className="text-xs text-[var(--bid-orange)]">
-                          Range: SAR {Number(draft.aiEstimate.budgetRange.min).toLocaleString()} – {Number(draft.aiEstimate.budgetRange.max).toLocaleString()}
+                          {t('tenderFlow.budgetRange')}: {formatCurrency(Number(draft.aiEstimate.budgetRange.min), language)} – {formatCurrency(Number(draft.aiEstimate.budgetRange.max), language)}
                         </p>
                       )}
                       {draft.aiEstimate.reasoning && (
@@ -1118,7 +1122,7 @@ export default function TenderBriefStep() {
                   <Button
                     onClick={handlePublish}
                     disabled={submitTender.isPending || (marketplaceOptions.enabled && !marketplaceOptions.confirmed)}
-                    className="w-full bg-[#FE3C01] hover:bg-[#d54d35] h-12 text-base font-semibold shadow-lg shadow-[#FE3C01]/20"
+                    className="w-full bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] dark:disabled:bg-muted disabled:text-[var(--bid-stone)] dark:disabled:text-muted-foreground disabled:shadow-none h-12 text-base font-semibold shadow-lg shadow-[#FE3C01]/20"
                     data-testid="button-publish-tender"
                   >
                     {submitTender.isPending ? (
@@ -1163,7 +1167,7 @@ export default function TenderBriefStep() {
           <Button
             onClick={handlePublish}
             disabled={submitTender.isPending}
-            className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] h-11 font-semibold"
+            className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] dark:disabled:bg-muted disabled:text-[var(--bid-stone)] dark:disabled:text-muted-foreground disabled:shadow-none h-11 font-semibold"
           >
             {submitTender.isPending ? (
               <>

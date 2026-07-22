@@ -182,6 +182,33 @@ export default function TenderEvaluationCriteriaStep() {
     setCategoryWeights(prev => prev.map(cw => cw.categoryId === categoryId ? { ...cw, weight } : cw));
   };
 
+  // One-click fix for the "defaults sum to 85%" dead-end: proportionally scale
+  // every weight (categories + custom criteria) so the total lands exactly on
+  // 100, absorbing rounding residue into the heaviest category.
+  const balanceWeights = () => {
+    const catTotal = categoryWeights.reduce((s, cw) => s + cw.weight, 0);
+    const custTotal = customCriteria.reduce((s, c) => s + c.weight, 0);
+    const total = catTotal + custTotal;
+    if (total === 0) {
+      const n = categoryWeights.length || 1;
+      const base = Math.floor(100 / n);
+      setCategoryWeights(prev => prev.map((cw, i) => ({ ...cw, weight: base + (i === 0 ? 100 - base * n : 0) })));
+      return;
+    }
+    const factor = 100 / total;
+    const scaledCats = categoryWeights.map(cw => ({ ...cw, weight: Math.round(cw.weight * factor) }));
+    const scaledCustom = customCriteria.map(c => ({ ...c, weight: Math.round(c.weight * factor) }));
+    const newTotal = scaledCats.reduce((s, cw) => s + cw.weight, 0) + scaledCustom.reduce((s, c) => s + c.weight, 0);
+    const residual = 100 - newTotal;
+    if (residual !== 0 && scaledCats.length > 0) {
+      let idx = 0;
+      for (let i = 1; i < scaledCats.length; i++) if (scaledCats[i].weight > scaledCats[idx].weight) idx = i;
+      scaledCats[idx] = { ...scaledCats[idx], weight: scaledCats[idx].weight + residual };
+    }
+    setCategoryWeights(scaledCats);
+    if (scaledCustom.length) setCustomCriteria(scaledCustom);
+  };
+
   const addCustomCriterion = () => {
     if (newCriterionText.trim()) {
       setCustomCriteria(prev => [
@@ -365,6 +392,18 @@ export default function TenderEvaluationCriteriaStep() {
                       {totalWeight === 100 ? t('tenderFlow.weightsCorrect') : totalWeight > 100 ? `${t('tenderFlow.removeWeight')} ${totalWeight - 100}% ${t('tenderFlow.toBalance')}` : `${t('tenderFlow.addWeight')} ${100 - totalWeight}% ${t('tenderFlow.moreWeight')}`}
                     </p>
                   </div>
+                  {totalWeight !== 100 && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={balanceWeights}
+                      data-testid="button-balance-weights"
+                      className="flex-shrink-0 rounded-full border-[#FE3C01]/40 text-[#FE3C01] hover:bg-[#FE3C01] hover:text-white transition-colors"
+                    >
+                      {t('tenderFlow.balanceTo100')}
+                    </Button>
+                  )}
                 </div>
 
                 {/* Category accordions */}
@@ -403,7 +442,7 @@ export default function TenderEvaluationCriteriaStep() {
                               <input
                                 type="range" min="0" max="100" step="5" value={currentWeight}
                                 onChange={(e) => handleWeightChange(category.id, parseInt(e.target.value))}
-                                className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#FE3C01]"
+                                className="w-full h-1.5 bg-gray-200 dark:bg-muted rounded-lg appearance-none cursor-pointer accent-[#FE3C01]"
                               />
                             </div>
                             {category.requirements.map((req) => {
@@ -472,7 +511,7 @@ export default function TenderEvaluationCriteriaStep() {
                           <input
                             type="range" min="0" max="50" step="5" value={criterion.weight}
                             onChange={(e) => updateCustomCriterionWeight(criterion.id, parseInt(e.target.value))}
-                            className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#FE3C01]"
+                            className="w-full h-1.5 bg-gray-200 dark:bg-muted rounded-lg appearance-none cursor-pointer accent-[#FE3C01]"
                           />
                         </div>
                       ))}
@@ -487,7 +526,7 @@ export default function TenderEvaluationCriteriaStep() {
                         placeholder={t('tenderFlow.customCriteriaPlaceholder')}
                         className="flex-1 px-3 py-2 text-sm border border-border rounded-lg bg-card text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                       />
-                      <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#FE3C01] hover:bg-[#d54d35]">
+                      <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] dark:disabled:bg-muted disabled:text-[var(--bid-stone)] dark:disabled:text-muted-foreground disabled:shadow-none">
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -497,7 +536,7 @@ export default function TenderEvaluationCriteriaStep() {
                         <input
                           type="range" min="0" max="50" step="5" value={newCriterionWeight}
                           onChange={(e) => setNewCriterionWeight(parseInt(e.target.value))}
-                          className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#FE3C01]"
+                          className="flex-1 h-1.5 bg-gray-200 dark:bg-muted rounded-lg appearance-none cursor-pointer accent-[#FE3C01]"
                         />
                         <span className="text-xs font-medium text-[#FE3C01] w-8">{newCriterionWeight}%</span>
                       </div>
@@ -560,14 +599,14 @@ export default function TenderEvaluationCriteriaStep() {
                                 <button
                                   type="button"
                                   onClick={() => setReqType(preset.id, 'mandatory')}
-                                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200'}`}
+                                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-muted/50'}`}
                                 >
                                   {t('tenderFlow.mandatoryLabel')}
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => setReqType(preset.id, 'preferred')}
-                                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200'}`}
+                                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-muted/50'}`}
                                 >
                                   {t('tenderFlow.preferredLabel')}
                                 </button>
@@ -616,14 +655,14 @@ export default function TenderEvaluationCriteriaStep() {
                               <button
                                 type="button"
                                 onClick={() => setReqType(req.id, 'mandatory')}
-                                className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200'}`}
+                                className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-muted/50'}`}
                               >
                                 {t('tenderFlow.mandatoryLabel')}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setReqType(req.id, 'preferred')}
-                                className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200'}`}
+                                className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-muted/50'}`}
                               >
                                 {t('tenderFlow.preferredLabel')}
                               </button>
@@ -632,7 +671,7 @@ export default function TenderEvaluationCriteriaStep() {
                           <button
                             type="button"
                             onClick={() => removeCustomReq(req.id)}
-                            className="flex-shrink-0 p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-muted-foreground transition-colors mt-0.5"
+                            className="flex-shrink-0 p-1 rounded hover:bg-gray-200 dark:hover:bg-muted/50 text-gray-400 dark:text-muted-foreground hover:text-muted-foreground transition-colors mt-0.5"
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
@@ -651,7 +690,7 @@ export default function TenderEvaluationCriteriaStep() {
               <Button
                 onClick={() => handleContinue(false)}
                 disabled={!isWeightValid}
-                className="w-full bg-[#FE3C01] hover:bg-[#d54d35] py-6"
+                className="w-full bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] dark:disabled:bg-muted disabled:text-[var(--bid-stone)] dark:disabled:text-muted-foreground disabled:shadow-none py-6"
                 data-testid="button-continue"
               >
                 {vendorRequirements.length > 0

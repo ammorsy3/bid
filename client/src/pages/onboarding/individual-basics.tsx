@@ -12,13 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { VENDOR_CATEGORIES } from "@shared/schema";
-import { ArrowRight, ArrowLeft, User, Loader2, Info } from "lucide-react";
+import { ArrowRight, ArrowLeft, User, Loader2 } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 const individualBasicsSchema = z.object({
   displayName: z.string().min(2, "Display name is required"),
   specialization: z.string().min(1, "Please select a specialization"),
-  nationalIdNumber: z.string().optional(),
 });
 
 type IndividualBasicsForm = z.infer<typeof individualBasicsSchema>;
@@ -34,7 +33,6 @@ export default function IndividualBasics() {
     defaultValues: {
       displayName: user?.name || "",
       specialization: "",
-      nationalIdNumber: "",
     },
   });
 
@@ -50,7 +48,6 @@ export default function IndividualBasics() {
         name: data.displayName,
         category: data.specialization,
         accountType: 'individual',
-        nationalIdNumber: data.nationalIdNumber?.trim() || undefined,
       });
       if (!response.ok) {
         const error = await response.json();
@@ -137,24 +134,6 @@ export default function IndividualBasics() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="nationalIdNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>National ID Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. 1234567890" {...field} data-testid="input-national-id" />
-                    </FormControl>
-                    <FormDescription className="flex items-start gap-1.5">
-                      <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" />
-                      <span>Required before you can submit offers. You can add it now or later from Settings.</span>
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

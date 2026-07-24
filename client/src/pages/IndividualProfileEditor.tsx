@@ -156,8 +156,14 @@ export default function IndividualProfileEditor() {
     onSuccess: async () => {
       await checkAuth(); // slug may have changed → refresh workspace
       queryClient.invalidateQueries({ queryKey: ["/api/companies", activeCompanyId, "profile"] });
-      toast({ title: "Profile saved", description: "Your profile has been updated." });
-      navigate("/dashboard");
+      if (isOnboarding) {
+        // First-time setup → next comes identity verification.
+        toast({ title: "Profile created", description: "One last step — verify your identity." });
+        navigate("/onboarding/individual-verify");
+      } else {
+        toast({ title: "Profile saved", description: "Your profile has been updated." });
+        navigate("/dashboard");
+      }
     },
     onError: (e: any) => {
       toast({ title: "Couldn't save", description: e.message || "Please try again.", variant: "destructive" });

@@ -23,7 +23,7 @@ type FormValues = z.infer<typeof schema>;
 
 export default function IndividualVerify() {
   const [, setLocation] = useLocation();
-  const { user, activeCompany } = useAuthStore();
+  const { user, activeCompany, checkAuth } = useAuthStore();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,6 +36,8 @@ export default function IndividualVerify() {
     if (!user) { setLocation("/signup"); return; }
     if (!user.otpVerified) { setLocation("/verify-email"); return; }
     if (!activeCompany) { setLocation("/onboarding/individual-basics"); return; }
+    // Already submitted or verified — nothing to do here.
+    if (activeCompany.verificationStatus !== "not_verified") { setLocation("/dashboard"); return; }
   }, [user, activeCompany, setLocation]);
 
   const onSubmit = async (data: FormValues) => {
@@ -51,6 +53,9 @@ export default function IndividualVerify() {
         const err = await response.json();
         throw new Error(err.message || "Failed to submit verification");
       }
+      // Refresh the store so activeCompany.verificationStatus is 'under_review'
+      // before we navigate — otherwise the dashboard gate bounces us back here.
+      await checkAuth();
       toast({
         title: "Verification submitted",
         description: "Your National ID is under review. We'll notify you once it's approved.",
@@ -120,15 +125,7 @@ export default function IndividualVerify() {
                 </span>
               </div>
 
-              <div className="flex justify-between pt-4">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setLocation("/dashboard")}
-                  disabled={submitting}
-                >
-                  Skip for now
-                </Button>
+              <div className="flex justify-end pt-4">
                 <Button
                   type="submit"
                   size="lg"

@@ -49,7 +49,7 @@ const copy = {
   ar: {
     navAbout: "عن Bid", navMarketplace: "سوق Bid", navTraction: "روابط الإنضمام", navVendors: "للموردين",
     btnSignIn: "دخول", btnCreateAccount: "سجّل حساب\u00a0←", btnDashboard: "لوحة التحكم",
-    heroBadge: "الإطلاق التجريبي", heroLine1: "التوريد", heroLine2: "بشكل جديد",
+    heroBadge: "الإطلاق التجريبي", heroLine1: "إدارة البريفات والمنافسات", heroLine2: "في مكان واحد",
     heroSub: "اكتب بريف، أرسل للموردين، استلم العروض، رسّ المشروع.",
     heroCta: "جرّب Bid\u00a0←", heroSignIn: "دخول",
     awarded: "Awarded", aiDrafted: "AI drafted",

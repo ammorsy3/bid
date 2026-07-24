@@ -643,6 +643,9 @@ export default function Dashboard() {
   const isIndividual = workspaceKind === 'individual';
   const isTeam = workspaceKind === 'team';
   const canCreateTenders = isBuyerAccount;
+  // A user can spin up a personal individual workspace unless they already have one.
+  const hasIndividualWorkspace = companies.some((c: any) => c.accountType === 'individual');
+  const canActivateIndividual = !hasIndividualWorkspace;
   const hasProfileComplete = !!(activeCompany.profile?.bio && activeCompany.profile?.logoUrl);
 
   function handleCreateTender() {
@@ -1001,7 +1004,7 @@ export default function Dashboard() {
         <SidebarHeader className="border-b px-4 py-4">
           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
             <SidebarLogoToggle />
-            {companies.length > 1 ? (
+            {companies.length > 1 || canActivateIndividual ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className={`flex-1 min-w-0 group-data-[collapsible=icon]:hidden flex items-center gap-1 hover:bg-muted/50 rounded-md px-2 py-1 -mx-2 transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}>
@@ -1043,6 +1046,24 @@ export default function Dashboard() {
                       {company.id === activeCompany.id && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
                     </DropdownMenuItem>
                   ))}
+                  {canActivateIndividual && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => setLocation('/onboarding/individual-basics')}
+                        className="flex items-center gap-3 py-2"
+                        data-testid="menu-activate-individual"
+                      >
+                        <div className="h-8 w-8 rounded-md bg-[var(--state-won)]/10 flex items-center justify-center text-[var(--state-won)] flex-shrink-0">
+                          <Plus className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">Activate individual account</p>
+                          <p className="text-xs text-muted-foreground truncate">Set up your personal profile</p>
+                        </div>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (

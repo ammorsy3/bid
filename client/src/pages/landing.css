@@ -511,37 +511,53 @@
   .ticker-track .d{width:7px;height:7px;border-radius:50%;background:var(--orange);display:inline-block}
   @keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-  .more-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+  .more-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
   .mcard{
-    background:linear-gradient(180deg, var(--peach-light) 0%, var(--peach) 100%);
-    border-radius:24px;padding:36px 32px;border:1px solid rgba(254,60,1,.08);
-    display:flex;flex-direction:column;gap:18px;min-height:260px;
-    align-items:center;text-align:center;
+    background:var(--white);
+    border-radius:24px;padding:36px 32px;border:1px solid var(--line);
+    display:flex;flex-direction:column;gap:20px;
+    align-items:flex-start;text-align:start;
+    transition:transform .3s, box-shadow .3s;
   }
+  .mcard:hover{transform:translateY(-4px);box-shadow:0 24px 48px -24px rgba(11,9,7,.22)}
   .mcard .icon-bubble{
-    width:64px;height:64px;border-radius:20px;background:var(--orange);
-    display:flex;align-items:center;justify-content:center;color:white;
+    width:56px;height:56px;border-radius:16px;background:var(--orange);
+    display:flex;align-items:center;justify-content:center;color:white;flex-shrink:0;
     box-shadow:0 12px 24px -10px rgba(254,60,1,.5);
   }
-  .mcard .icon-bubble svg{width:28px;height:28px}
-  .mcard h4{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
-  .mcard ul{list-style:none;display:flex;flex-direction:column;gap:8px;align-items:center}
-  .mcard li{font-size:13px;color:var(--stone);line-height:1.5;text-align:center;max-width:34ch}
+  .mcard .icon-bubble svg{width:26px;height:26px}
+  .mcard h4{font-size:21px;font-weight:700;letter-spacing:-.02em;line-height:1.2;color:var(--ink)}
+  .mcard ul{list-style:none;display:flex;flex-direction:column;gap:13px;align-items:stretch;width:100%}
+  .mcard li{
+    font-size:14px;color:var(--stone);line-height:1.5;text-align:start;
+    position:relative;padding-inline-start:26px;
+  }
+  .mcard li::before{
+    content:"";position:absolute;inset-inline-start:0;top:2px;
+    width:17px;height:17px;border-radius:50%;
+    background:var(--orange-soft);
+  }
+  .mcard li::after{
+    content:"";position:absolute;inset-inline-start:5px;top:7px;
+    width:6px;height:3.5px;border-left:1.6px solid var(--orange);
+    border-bottom:1.6px solid var(--orange);transform:rotate(-45deg);
+  }
 
   /* ============ CTA ============ */
   .cta-strip{
     background:linear-gradient(135deg, var(--orange) 0%, #FF6535 100%);
-    color:white;border-radius:32px;padding:64px;margin:80px 0;
-    display:grid;grid-template-columns:1.3fr 1fr;gap:48px;align-items:center;
+    color:white;border-radius:32px;padding:72px 48px;margin:80px 0;
+    display:flex;flex-direction:column;align-items:center;text-align:center;gap:22px;
     position:relative;overflow:hidden;
   }
   .cta-strip .bg-dots{position:absolute;inset:0;background-image:radial-gradient(circle at center, rgba(255,255,255,.15) 1.5px, transparent 2px);background-size:24px 24px;opacity:.5}
-  .cta-strip h2{font-size:48px;font-weight:600;letter-spacing:-.03em;line-height:1;position:relative;z-index:1}
-  .cta-strip .right{position:relative;z-index:1}
-  .cta-strip p{font-size:15px;line-height:1.55;opacity:.95;margin-bottom:24px;max-width:36ch}
-  .cta-strip .btns{display:flex;gap:10px;flex-wrap:wrap}
-  .cta-strip .btn-white{background:white;color:var(--orange);padding:14px 22px;font-size:14px;font-weight:600;border-radius:100px}
-  .cta-strip .btn-dark{background:var(--ink);color:white;padding:14px 22px;font-size:14px;font-weight:600;border-radius:100px}
+  .cta-strip h2{font-size:clamp(36px,4.6vw,56px);font-weight:700;letter-spacing:-.03em;line-height:1.05;position:relative;z-index:1;max-width:20ch}
+  .cta-strip .right{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:26px}
+  .cta-strip p{font-size:16px;line-height:1.6;opacity:.95;margin:0;max-width:46ch}
+  .cta-strip .btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  .cta-strip .btn-white{background:white;color:var(--orange);padding:15px 34px;font-size:15px;font-weight:700;border-radius:100px;cursor:pointer;transition:transform .2s, box-shadow .2s}
+  .cta-strip .btn-white:hover{transform:translateY(-2px);box-shadow:0 16px 30px -12px rgba(0,0,0,.3)}
+  .cta-strip .btn-dark{background:var(--ink);color:white;padding:15px 34px;font-size:15px;font-weight:700;border-radius:100px}
 
   /* ============ FOOTER ============ */
   .landing-page footer{padding:64px 0 48px}
@@ -554,7 +570,7 @@
   .footer-row h5{font-size:11px;font-weight:600;color:var(--ink);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
   .footer-row a{display:block;font-size:14px;color:var(--stone);padding:5px 0;transition:color .2s}
   .footer-row a:hover{color:var(--orange)}
-  .footer-bot{display:flex;justify-content:space-between;align-items:center;padding-top:28px;font-size:13px;color:var(--stone);gap:24px}
+  .footer-bot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;padding-top:28px;font-size:13px;color:var(--stone);gap:16px 24px}
   .footer-partner{display:inline-flex;align-items:center}
   .footer-partner img{height:48px;width:auto;display:block}
 
@@ -672,7 +688,7 @@
 
   /* ============ RTL (Arabic) ============ */
   .landing-rtl{font-family:'Tajawal','Inter',sans-serif}
-  .landing-rtl .hero h1{font-family:'Tajawal','Inter',sans-serif}
+  .landing-rtl .hero h1{font-family:'Tajawal','Inter',sans-serif;font-size:clamp(38px,5vw,76px);max-width:26ch;line-height:1.16;letter-spacing:-.02em}
   .landing-rtl .topbar-nav-desktop a,.landing-rtl .footer-row a,.landing-rtl .footer-row h5{text-align:right}
   .landing-rtl .hero{text-align:center}
   .landing-rtl .sec-head .summary{text-align:left}
@@ -684,9 +700,8 @@
   .landing-rtl .modal-icon{justify-content:flex-end}
   .landing-rtl .stage .footer{flex-direction:row-reverse}
   .landing-rtl .vcard h3,.landing-rtl .vcard p{text-align:right}
-  .landing-rtl .mcard{text-align:right;align-items:flex-end}
-  .landing-rtl .mcard ul{align-items:flex-end}
-  .landing-rtl .mcard li{text-align:right}
+  /* .mcard uses logical properties (text-align:start, padding-inline-start),
+     so it mirrors automatically under dir="rtl" — no overrides needed. */
 
   /* ============ TABLET (≤ 960px) ============ */
   @media (max-width:960px){

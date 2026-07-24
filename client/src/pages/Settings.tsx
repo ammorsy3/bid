@@ -1,6 +1,7 @@
 import { useAuthStore } from "@/lib/auth";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import JoinCodeCard from "@/components/JoinCodeCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1568,6 +1569,9 @@ export default function Settings() {
               {canManageCompany && !isIndividual && (
                 <MembershipRequestsSection companyId={activeCompany.id} />
               )}
+
+              {/* Join code + invite link (owners/admins only, not for individual) */}
+              {canManageCompany && !isIndividual && <JoinCodeCard />}
 
               {/* Invite Team Members (owners/admins only, not for individual) */}
               {canManageCompany && !isIndividual && (

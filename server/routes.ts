@@ -339,6 +339,18 @@ const generateSlug = (name: string): string => {
     .replace(/^-|-$/g, '');
 };
 
+// Generate a reusable workspace join code (unambiguous chars, 8 long).
+const JOIN_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const generateJoinCode = (): string =>
+  Array.from({ length: 8 }, () => JOIN_CODE_ALPHABET[Math.floor(Math.random() * JOIN_CODE_ALPHABET.length)]).join('');
+const uniqueJoinCode = async (): Promise<string> => {
+  for (let i = 0; i < 10; i++) {
+    const code = generateJoinCode();
+    if (!(await storage.getCompanyByJoinCode(code))) return code;
+  }
+  return generateJoinCode() + Date.now().toString(36).slice(-3).toUpperCase();
+};
+
 // Generate JWT token
 const generateToken = (payload: JWTPayload): string => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
@@ -1935,6 +1947,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const company = await storage.createCompany({
         ...companyData,
         slug,
+        joinCode: await uniqueJoinCode(),
         verificationStatus: initialVerificationStatus,
         onboardingState: 'draft',
         ...(companyData.accountType !== 'company' && { ownerUserId: req.auth!.userId }),
@@ -2613,6 +2626,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Switch company error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Join a company/team instantly via its reusable join code, then switch into it.
+  app.post("/api/companies/join-by-code", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const code = String(req.body.code || '').trim().toUpperCase();
+      if (!code) return res.status(400).json({ message: "Join code is required" });
+
+      const company = await storage.getCompanyByJoinCode(code);
+      if (!company) return res.status(404).json({ code: 'INVALID_CODE', message: "That join code isn't valid." });
+      if (company.accountType === 'individual') {
+        return res.status(400).json({ message: "This code can't be used to join a workspace." });
+      }
+
+      let role = await storage.getUserRoleInCompany(req.auth!.userId, company.id);
+      if (!role) {
+        await storage.addUserToCompany({
+          userId: req.auth!.userId,
+          companyId: company.id,
+          roleInCompany: 'member',
+          invitedBy: null,
+        });
+        await storage.logMemberActivity({
+          companyId: company.id,
+          actorUserId: req.auth!.userId,
+          action: 'member.joined',
+          targetType: 'member',
+          targetId: req.auth!.userId,
+          summary: 'Joined via join code',
+          metadata: { method: 'join_code' },
+        });
+        role = 'member';
+      }
+
+      const profile = await storage.getCompanyProfile(company.id);
+      const token = generateToken({
+        userId: req.auth!.userId,
+        activeCompanyId: company.id,
+        roleInCompany: role,
+        isAdmin: req.auth!.isAdmin,
+      });
+
+      res.json({
+        token,
+        activeCompany: {
+          id: company.id,
+          name: company.name,
+          slug: company.slug,
+          verificationStatus: company.verificationStatus,
+          onboardingState: company.onboardingState,
+          rejectionReason: company.rejectionReason || null,
+          accountType: company.accountType,
+          nationalIdNumber: company.nationalIdNumber || null,
+          role,
+          profile: profile || null,
+        },
+      });
+    } catch (error) {
+      console.error('Join by code error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // View the active workspace's join code + shareable link (admins only).
+  app.get("/api/company/join-code", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const roleInCompany = req.auth!.roleInCompany;
+      if (roleInCompany !== 'owner' && roleInCompany !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const company = await storage.getCompany(req.auth!.activeCompanyId!);
+      if (!company) return res.status(404).json({ message: "Company not found" });
+      let code = company.joinCode;
+      if (!code) {
+        code = await uniqueJoinCode();
+        await storage.updateCompany(company.id, { joinCode: code });
+      }
+      res.json({ code, link: `/join/${code}` });
+    } catch (error) {
+      console.error('Get join code error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Regenerate the join code (admins only) — invalidates the old one.
+  app.post("/api/company/join-code/regenerate", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const roleInCompany = req.auth!.roleInCompany;
+      if (roleInCompany !== 'owner' && roleInCompany !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const code = await uniqueJoinCode();
+      await storage.updateCompany(req.auth!.activeCompanyId!, { joinCode: code });
+      res.json({ code, link: `/join/${code}` });
+    } catch (error) {
+      console.error('Regenerate join code error:', error);
       res.status(500).json({ message: "Server error" });
     }
   });

@@ -55,6 +55,7 @@ import CompanyProfilePage from "@/pages/CompanyProfilePage";
 import CompanyProfileEditor from "@/pages/CompanyProfileEditor";
 import ProfileEditorRouter from "@/pages/ProfileEditorRouter";
 import IndividualProfileEditor from "@/pages/IndividualProfileEditor";
+import JoinByCode from "@/pages/JoinByCode";
 import Marketplace from "@/pages/Marketplace";
 import AdminMarketplace from "@/pages/AdminMarketplace";
 import AdminAwards from "@/pages/AdminAwards";
@@ -125,6 +126,7 @@ export default function App() {
               <Route path="/" component={Landing} />
               <Route path="/login" component={Login} />
               <Route path="/signup" component={Register} />
+              <Route path="/join/:code" component={JoinByCode} />
               <Route path="/auth/clerk-callback" component={ClerkCallback} />
               <Route path="/sso-callback" component={ClerkCallback} />
               <Route path="/reset-password" component={ResetPassword} />

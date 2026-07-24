@@ -163,6 +163,7 @@ export interface IStorage {
   createCompany(company: InsertCompany): Promise<Company>;
   getCompany(id: string): Promise<Company | undefined>;
   getCompanyBySlug(slug: string): Promise<Company | undefined>;
+  getCompanyByJoinCode(code: string): Promise<Company | undefined>;
   getCompanyByCrNumber(crNumber: string): Promise<Company | undefined>;
   getCompanyByNationalId(nationalId: string): Promise<Company | undefined>;
   updateCompany(id: string, updates: Partial<InsertCompany>): Promise<Company>;
@@ -524,6 +525,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(companies)
       .where(and(eq(companies.slug, slug), isNull(companies.deletedAt)));
+    return company || undefined;
+  }
+
+  async getCompanyByJoinCode(code: string): Promise<Company | undefined> {
+    const [company] = await db
+      .select()
+      .from(companies)
+      .where(and(eq(companies.joinCode, code), isNull(companies.deletedAt)));
     return company || undefined;
   }
 

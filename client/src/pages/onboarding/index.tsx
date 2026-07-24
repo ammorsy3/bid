@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Building2, User, Users, ArrowRight, ChevronDown, Loader2, Clock, Mail, Search } from "lucide-react";
+import { Building2, User, Users, ArrowRight, ChevronDown, Loader2, Clock, Mail, KeyRound } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 interface DomainMatchWorkspace {
@@ -35,15 +35,6 @@ interface PendingInvite {
   expiresAt: string;
 }
 
-interface CompanySearchResult {
-  id: string;
-  name: string;
-  slug: string;
-  memberCount: number;
-  alreadyMember: boolean;
-  alreadyRequested: boolean;
-}
-
 export default function OnboardingChoice() {
   const [, setLocation] = useLocation();
   const { user, activeCompany } = useAuthStore();
@@ -53,15 +44,18 @@ export default function OnboardingChoice() {
   const [requestingId, setRequestingId] = useState<string | null>(null);
   const [requestMessage, setRequestMessage] = useState("");
   const [acknowledgedRequests, setAcknowledgedRequests] = useState<Record<string, true>>({});
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [acceptingToken, setAcceptingToken] = useState<string | null>(null);
+  const [joinCode, setJoinCode] = useState("");
 
-  // Debounce the company search so we don't hit the API on every keystroke.
+  // Prefill a join code arriving from an invite link (/join/:code stashes it).
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 300);
-    return () => clearTimeout(t);
-  }, [searchQuery]);
+    const pending = localStorage.getItem("pendingJoinCode");
+    if (pending) {
+      setJoinCode(pending);
+      setJoinExpanded(true);
+      localStorage.removeItem("pendingJoinCode");
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) { setLocation("/signup"); return; }
@@ -127,15 +121,31 @@ export default function OnboardingChoice() {
     enabled: !!user?.otpVerified && !activeCompany,
   });
 
-  // Free-text company search (join any company, not just domain matches).
-  const { data: searchResults = [], isFetching: isSearching } = useQuery<CompanySearchResult[]>({
-    queryKey: ["/api/companies/search", debouncedQuery],
-    queryFn: async () => {
-      const res = await apiRequest("GET", `/api/companies/search?q=${encodeURIComponent(debouncedQuery)}`);
-      if (!res.ok) throw new Error("Failed to search companies");
-      return res.json();
+  // Join a company/team instantly with its code.
+  const joinByCodeMutation = useMutation({
+    mutationFn: async (code: string) => {
+      const res = await apiRequest("POST", "/api/companies/join-by-code", { code: code.trim() });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const err = new Error(body.message || "Failed to join");
+        (err as any).code = body.code;
+        throw err;
+      }
+      return body;
     },
-    enabled: joinExpanded && debouncedQuery.length >= 2,
+    onSuccess: async (data) => {
+      if (data?.token) localStorage.setItem("token", data.token);
+      await useAuthStore.getState().checkAuth();
+      toast({ title: "You're in!", description: `Joined ${data.activeCompany?.name || "the workspace"}.` });
+      setLocation("/dashboard");
+    },
+    onError: (err: any) => {
+      toast({
+        title: "Couldn't join",
+        description: err.message || "Check the code and try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const acceptInviteMutation = useMutation({
@@ -400,50 +410,39 @@ export default function OnboardingChoice() {
                     </div>
                   )}
 
-                  {/* 3. Search for any company by name */}
+                  {/* 3. Join with a code (or invite link) */}
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground px-1 flex items-center gap-1.5">
-                      <Search className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                      Search for your company
+                      <KeyRound className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                      Have a join code?
                     </p>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <div className="flex gap-2">
                       <Input
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search by company name…"
-                        className="pl-9"
-                        data-testid="input-company-search"
+                        value={joinCode}
+                        onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 16))}
+                        placeholder="Enter code, e.g. AB12CD34"
+                        className="uppercase tracking-widest font-mono"
+                        data-testid="input-join-code"
+                        onKeyDown={(e) => { if (e.key === "Enter" && joinCode.trim()) joinByCodeMutation.mutate(joinCode); }}
                       />
+                      <Button
+                        onClick={() => joinCode.trim() && joinByCodeMutation.mutate(joinCode)}
+                        disabled={!joinCode.trim() || joinByCodeMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
+                        data-testid="button-join-code"
+                      >
+                        {joinByCodeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Join"}
+                      </Button>
                     </div>
-
-                    {debouncedQuery.length >= 2 && (
-                      <>
-                        {isSearching ? (
-                          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-4">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Searching…
-                          </div>
-                        ) : searchResults.length > 0 ? (
-                          searchResults.map((w) =>
-                            renderRequestCard(
-                              w,
-                              `${w.memberCount} ${w.memberCount === 1 ? "member" : "members"}`,
-                            ),
-                          )
-                        ) : (
-                          <div className="text-sm text-muted-foreground text-center py-4 px-4 bg-muted rounded-xl border border-border">
-                            No companies found matching “{debouncedQuery}”.
-                          </div>
-                        )}
-                      </>
-                    )}
+                    <p className="text-xs text-muted-foreground px-1">
+                      Ask a company admin for its join code or invite link.
+                    </p>
                   </div>
 
-                  {/* Fallback when nothing to show at all */}
-                  {pendingInvites.length === 0 && !hasMatches && debouncedQuery.length < 2 && (
+                  {/* Fallback when nothing is waiting for them */}
+                  {pendingInvites.length === 0 && !hasMatches && (
                     <div className="text-xs text-muted-foreground text-center px-4">
-                      No pending invitations. Search above to find your company, or ask an admin to invite you.
+                      No invitations found for your email — use a join code above, or ask an admin to invite you.
                     </div>
                   )}
                 </div>

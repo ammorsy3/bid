@@ -61,6 +61,10 @@ export const companies = pgTable("companies", {
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(), // For URLs and lookups
 
+  // Reusable join code — anyone who enters it joins this workspace instantly.
+  // Admins can view and regenerate it. Shared as a code or an invite link.
+  joinCode: varchar("join_code").unique(),
+
   // Account Type — discriminator for workspace kind
   // 'company' (default) | 'team' | 'individual'
   accountType: text("account_type").notNull().default("company"),

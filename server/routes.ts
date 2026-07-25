@@ -21,6 +21,7 @@ import {
   type AccountType,
 } from "@shared/schema";
 import { getEmailDomain, isPublicEmailDomain } from "./publicEmailDomains";
+import { generateJoinCode, marketplaceAudienceFor, gateWhatsappVisibility } from "./lib/individual-sourcing";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import { registerCopilotRoutes } from "./ai/copilot";
@@ -294,22 +295,19 @@ const optionalAuth = async (req: AuthRequest, res: Response, next: Function) => 
 // can render an "unlocks when they apply to your tender" state.
 const gateWhatsapp = async (profile: any, profileCompanyId: string, req: AuthRequest) => {
   if (!profile) return null;
-  const number = profile.whatsappNumber;
-  if (!number) {
-    return { ...profile, whatsappNumber: null, whatsappLocked: false };
-  }
   const isOwner = req.auth?.activeCompanyId === profileCompanyId;
-  let visible = false;
-  if (isOwner || profile.whatsappVisibility === 'public') {
-    visible = true;
-  } else if (req.auth?.activeCompanyId) {
-    visible = await storage.hasAppliedToRequester(profileCompanyId, req.auth.activeCompanyId);
-  }
-  return {
-    ...profile,
-    whatsappNumber: visible ? number : null,
-    whatsappLocked: !visible,
-  };
+  // Only look up the application relationship when it can actually matter.
+  const viewerHasApplication =
+    !!profile.whatsappNumber && !isOwner && profile.whatsappVisibility !== 'public' && !!req.auth?.activeCompanyId
+      ? await storage.hasAppliedToRequester(profileCompanyId, req.auth.activeCompanyId)
+      : false;
+  const gated = gateWhatsappVisibility({
+    number: profile.whatsappNumber,
+    visibility: profile.whatsappVisibility,
+    isOwner,
+    viewerHasApplication,
+  });
+  return { ...profile, whatsappNumber: gated.number, whatsappLocked: gated.locked };
 };
 
 // Returns an error message if evaluationCriteria weights don't sum to 100 (±1 rounding tolerance).
@@ -339,10 +337,7 @@ const generateSlug = (name: string): string => {
     .replace(/^-|-$/g, '');
 };
 
-// Generate a reusable workspace join code (unambiguous chars, 8 long).
-const JOIN_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const generateJoinCode = (): string =>
-  Array.from({ length: 8 }, () => JOIN_CODE_ALPHABET[Math.floor(Math.random() * JOIN_CODE_ALPHABET.length)]).join('');
+// Reusable workspace join code (see server/lib/individual-sourcing.ts).
 const uniqueJoinCode = async (): Promise<string> => {
   for (let i = 0; i < 10; i++) {
     const code = generateJoinCode();
@@ -573,6 +568,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timezone: user.timezone,
           linkedinUrl: user.linkedinUrl,
           phoneNumber: user.phoneNumber,
+          language: user.language || 'en',
           emailVerified: user.emailVerified,
           otpVerified: user.otpVerified,
         },
@@ -593,6 +589,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (user.emailVerified && user.otpVerified) {
         return res.status(400).json({ message: "Email already verified" });
+      }
+
+      // Prefer the language currently shown in the client over the (possibly stale)
+      // stored preference, and keep the two in sync.
+      const clientLanguage: 'en' | 'ar' | undefined = req.body?.language === 'ar' || req.body?.language === 'en' ? req.body.language : undefined;
+      const otpLanguage: 'en' | 'ar' = clientLanguage || (user.language as 'en' | 'ar') || 'en';
+      if (clientLanguage && clientLanguage !== user.language) {
+        await storage.updateUser(user.id, { language: clientLanguage });
       }
 
       // Rate limit: max 5 OTP requests per 15-minute window
@@ -629,7 +633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: user.email,
         otp,
         recipientName: user.name,
-        language: (user.language as 'en' | 'ar') || 'en',
+        language: otpLanguage,
       });
 
       res.json({ message: "Verification code sent" });
@@ -752,6 +756,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Email already verified and cannot be changed here" });
       }
 
+      const clientLanguage: 'en' | 'ar' | undefined = req.body?.language === 'ar' || req.body?.language === 'en' ? req.body.language : undefined;
+      const otpLanguage: 'en' | 'ar' = clientLanguage || (user.language as 'en' | 'ar') || 'en';
+
       if (normalized === user.email.toLowerCase()) {
         return res.status(400).json({ message: "This is already your current email" });
       }
@@ -772,6 +779,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         otpLockedUntil: null as any,
         otpSendCount: 0,
         otpSendWindowStart: null as any,
+        ...(clientLanguage && clientLanguage !== user.language ? { language: clientLanguage } : {}),
       });
 
       // Immediately send a new OTP to the new address
@@ -788,7 +796,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: normalized,
         otp,
         recipientName: user.name,
-        language: (user.language as 'en' | 'ar') || 'en',
+        language: otpLanguage,
       });
 
       res.json({ message: "Email updated and verification code sent", email: normalized });
@@ -802,6 +810,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password, trustedBrowserToken } = req.body;
+      const clientLanguage: 'en' | 'ar' | undefined = req.body?.language === 'ar' || req.body?.language === 'en' ? req.body.language : undefined;
 
       const user = await storage.getUserByEmail(email);
       if (!user) {
@@ -855,6 +864,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           otpLockedUntil: null as any,
           otpSendCount: sendCount + 1,
           otpSendWindowStart: sendCount === 0 ? now : (windowStart || now),
+          ...(clientLanguage && clientLanguage !== user.language ? { language: clientLanguage } : {}),
         });
 
         // Send OTP email — await to ensure delivery before responding
@@ -863,7 +873,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             email: user.email,
             otp,
             recipientName: user.name,
-            language: (user.language as 'en' | 'ar') || 'en',
+            language: clientLanguage || (user.language as 'en' | 'ar') || 'en',
           });
         } catch (emailErr) {
           console.error('[Email] Failed to send login OTP:', emailErr);
@@ -904,7 +914,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timezone: user.timezone,
           linkedinUrl: user.linkedinUrl,
           phoneNumber: user.phoneNumber,
-          language: user.language || 'en',
+          language: clientLanguage || user.language || 'en',
           emailVerified: user.emailVerified,
           otpVerified: skipOtp, // true if trusted browser, false until OTP verified
         },
@@ -7077,7 +7087,7 @@ Respond with ONLY a JSON object. Example:
 
       // Individuals only see tenders open to individual applicants (their
       // dedicated marketplace section). Companies/teams keep the full view.
-      const audienceType = callerAccountType === 'individual' ? 'individual' : undefined;
+      const audienceType = marketplaceAudienceFor(callerAccountType);
 
       const result = await storage.getMarketplaceTenders({
         search: search as string,

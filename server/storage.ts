@@ -92,6 +92,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, asc, desc, ilike, or, isNull, sql, gte, gt, count, ne, lt, notInArray } from "drizzle-orm";
+import { scoreSuggestion } from "./lib/individual-sourcing";
 
 // One funnel group (companies or freelancers). Numbers are workspace counts.
 export interface VerificationFunnel {
@@ -1613,11 +1614,16 @@ export class DatabaseStorage implements IStorage {
       .limit(60);
 
     const scored = rows.map((r) => {
-      let score = 0;
-      if (opts.category && r.company.category === opts.category) score += 100;
-      if (r.company.verificationStatus === 'verified') score += 20;
-      if (r.profile?.availabilityStatus === 'accepting') score += 15;
-      if (opts.city && r.company.city && r.company.city.toLowerCase() === opts.city.toLowerCase()) score += 10;
+      const score = scoreSuggestion({
+        tenderCategory: opts.category,
+        requesterCity: opts.city,
+        candidate: {
+          category: r.company.category,
+          city: r.company.city,
+          verificationStatus: r.company.verificationStatus,
+          availabilityStatus: r.profile?.availabilityStatus,
+        },
+      });
       return { r, score, created: r.company.createdAt?.getTime?.() ?? 0 };
     });
     scored.sort((a, b) => b.score - a.score || b.created - a.created);

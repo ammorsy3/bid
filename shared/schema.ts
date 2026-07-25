@@ -61,6 +61,10 @@ export const companies = pgTable("companies", {
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(), // For URLs and lookups
 
+  // Reusable join code — anyone who enters it joins this workspace instantly.
+  // Admins can view and regenerate it. Shared as a code or an invite link.
+  joinCode: varchar("join_code").unique(),
+
   // Account Type — discriminator for workspace kind
   // 'company' (default) | 'team' | 'individual'
   accountType: text("account_type").notNull().default("company"),
@@ -170,14 +174,20 @@ export const companyProfiles = pgTable("company_profiles", {
     imageUrl?: string; // legacy field — kept for backward compat
   }[]>().default([]),
   
-  // Social Links
+  // Social Links (extensible — website, linkedin, twitter/x, behance, instagram, …)
   socialLinks: jsonb("social_links").$type<{
     website?: string;
     linkedin?: string;
     twitter?: string;
     [key: string]: string | undefined;
   }>(),
-  
+
+  // WhatsApp contact — required for individual profiles. Visibility controls who
+  // can see the number: 'requesters' (default/min — only requesters whose tenders
+  // the individual has applied to) or 'public' (shown to everyone on the profile).
+  whatsappNumber: text("whatsapp_number"),
+  whatsappVisibility: text("whatsapp_visibility").notNull().default("requesters"), // 'requesters' | 'public'
+
   // Visibility
   isPublic: boolean("is_public").default(true).notNull(),
   

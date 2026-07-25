@@ -21,6 +21,7 @@ import {
   type AccountType,
 } from "@shared/schema";
 import { getEmailDomain, isPublicEmailDomain } from "./publicEmailDomains";
+import { generateJoinCode, marketplaceAudienceFor, gateWhatsappVisibility } from "./lib/individual-sourcing";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import { registerCopilotRoutes } from "./ai/copilot";
@@ -285,6 +286,30 @@ const optionalAuth = async (req: AuthRequest, res: Response, next: Function) => 
 // HELPER FUNCTIONS
 // ============================================================================
 
+// Returns a copy of a company profile with its WhatsApp number gated by the
+// profile's visibility setting:
+//   'public'     → number shown to everyone
+//   'requesters' → number shown only to the profile owner and to requesters
+//                  whose tenders this individual has applied to
+// When withheld, whatsappNumber is nulled and whatsappLocked=true so the client
+// can render an "unlocks when they apply to your tender" state.
+const gateWhatsapp = async (profile: any, profileCompanyId: string, req: AuthRequest) => {
+  if (!profile) return null;
+  const isOwner = req.auth?.activeCompanyId === profileCompanyId;
+  // Only look up the application relationship when it can actually matter.
+  const viewerHasApplication =
+    !!profile.whatsappNumber && !isOwner && profile.whatsappVisibility !== 'public' && !!req.auth?.activeCompanyId
+      ? await storage.hasAppliedToRequester(profileCompanyId, req.auth.activeCompanyId)
+      : false;
+  const gated = gateWhatsappVisibility({
+    number: profile.whatsappNumber,
+    visibility: profile.whatsappVisibility,
+    isOwner,
+    viewerHasApplication,
+  });
+  return { ...profile, whatsappNumber: gated.number, whatsappLocked: gated.locked };
+};
+
 // Returns an error message if evaluationCriteria weights don't sum to 100 (±1 rounding tolerance).
 // Both category weights and custom-criteria weights count toward the 100% total, matching the UI.
 const validateEvalWeights = (ec: unknown): string | null => {
@@ -310,6 +335,15 @@ const generateSlug = (name: string): string => {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
+};
+
+// Reusable workspace join code (see server/lib/individual-sourcing.ts).
+const uniqueJoinCode = async (): Promise<string> => {
+  for (let i = 0; i < 10; i++) {
+    const code = generateJoinCode();
+    if (!(await storage.getCompanyByJoinCode(code))) return code;
+  }
+  return generateJoinCode() + Date.now().toString(36).slice(-3).toUpperCase();
 };
 
 // Generate JWT token
@@ -534,6 +568,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timezone: user.timezone,
           linkedinUrl: user.linkedinUrl,
           phoneNumber: user.phoneNumber,
+          language: user.language || 'en',
           emailVerified: user.emailVerified,
           otpVerified: user.otpVerified,
         },
@@ -554,6 +589,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (user.emailVerified && user.otpVerified) {
         return res.status(400).json({ message: "Email already verified" });
+      }
+
+      // Prefer the language currently shown in the client over the (possibly stale)
+      // stored preference, and keep the two in sync.
+      const clientLanguage: 'en' | 'ar' | undefined = req.body?.language === 'ar' || req.body?.language === 'en' ? req.body.language : undefined;
+      const otpLanguage: 'en' | 'ar' = clientLanguage || (user.language as 'en' | 'ar') || 'en';
+      if (clientLanguage && clientLanguage !== user.language) {
+        await storage.updateUser(user.id, { language: clientLanguage });
       }
 
       // Rate limit: max 5 OTP requests per 15-minute window
@@ -590,7 +633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: user.email,
         otp,
         recipientName: user.name,
-        language: (user.language as 'en' | 'ar') || 'en',
+        language: otpLanguage,
       });
 
       res.json({ message: "Verification code sent" });
@@ -713,6 +756,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Email already verified and cannot be changed here" });
       }
 
+      const clientLanguage: 'en' | 'ar' | undefined = req.body?.language === 'ar' || req.body?.language === 'en' ? req.body.language : undefined;
+      const otpLanguage: 'en' | 'ar' = clientLanguage || (user.language as 'en' | 'ar') || 'en';
+
       if (normalized === user.email.toLowerCase()) {
         return res.status(400).json({ message: "This is already your current email" });
       }
@@ -733,6 +779,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         otpLockedUntil: null as any,
         otpSendCount: 0,
         otpSendWindowStart: null as any,
+        ...(clientLanguage && clientLanguage !== user.language ? { language: clientLanguage } : {}),
       });
 
       // Immediately send a new OTP to the new address
@@ -749,7 +796,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: normalized,
         otp,
         recipientName: user.name,
-        language: (user.language as 'en' | 'ar') || 'en',
+        language: otpLanguage,
       });
 
       res.json({ message: "Email updated and verification code sent", email: normalized });
@@ -763,6 +810,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password, trustedBrowserToken } = req.body;
+      const clientLanguage: 'en' | 'ar' | undefined = req.body?.language === 'ar' || req.body?.language === 'en' ? req.body.language : undefined;
 
       const user = await storage.getUserByEmail(email);
       if (!user) {
@@ -816,6 +864,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           otpLockedUntil: null as any,
           otpSendCount: sendCount + 1,
           otpSendWindowStart: sendCount === 0 ? now : (windowStart || now),
+          ...(clientLanguage && clientLanguage !== user.language ? { language: clientLanguage } : {}),
         });
 
         // Send OTP email — await to ensure delivery before responding
@@ -824,7 +873,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             email: user.email,
             otp,
             recipientName: user.name,
-            language: (user.language as 'en' | 'ar') || 'en',
+            language: clientLanguage || (user.language as 'en' | 'ar') || 'en',
           });
         } catch (emailErr) {
           console.error('[Email] Failed to send login OTP:', emailErr);
@@ -865,7 +914,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timezone: user.timezone,
           linkedinUrl: user.linkedinUrl,
           phoneNumber: user.phoneNumber,
-          language: user.language || 'en',
+          language: clientLanguage || user.language || 'en',
           emailVerified: user.emailVerified,
           otpVerified: skipOtp, // true if trusted browser, false until OTP verified
         },
@@ -1574,6 +1623,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Invitations sent to this user's email (e.g. a company invited them before
+  // they even signed up). Surfaced on the "Join a Company" onboarding step so
+  // the user can accept without needing the emailed link.
+  app.get("/api/onboarding/pending-invitations", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = await storage.getUser(req.auth!.userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const invites = await storage.getPendingTeamInvitationsForEmail(user.email);
+
+      // Drop invites for companies the user already belongs to.
+      const result = [];
+      for (const inv of invites) {
+        const role = await storage.getUserRoleInCompany(user.id, inv.companyId);
+        if (role) continue;
+        result.push({
+          token: inv.token,
+          role: inv.role,
+          companyId: inv.companyId,
+          companyName: inv.company.name,
+          companySlug: inv.company.slug,
+          inviterName: inv.inviter.name,
+          expiresAt: inv.expiresAt,
+        });
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Pending invitations error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Free-text company search for the "request to join any company" flow — lets
+  // a user find a company by name (not just their email domain) and request access.
+  app.get("/api/companies/search", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const q = String(req.query.q || "").trim();
+      if (q.length < 2) return res.json([]);
+
+      const user = await storage.getUser(req.auth!.userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const matches = await storage.searchCompaniesByName(q, 8);
+      const annotated = await Promise.all(matches.map(async (c) => {
+        const [role, pending] = await Promise.all([
+          storage.getUserRoleInCompany(user.id, c.id),
+          storage.getPendingMembershipRequest(c.id, user.id),
+        ]);
+        return { ...c, alreadyMember: !!role, alreadyRequested: !!pending };
+      }));
+
+      res.json(annotated);
+    } catch (error) {
+      console.error('Company search error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Create a membership request — user asks to join a workspace.
   // Rate-limited to 3 outstanding requests per user.
   app.post("/api/companies/:companyId/membership-requests", authenticateToken, async (req: AuthRequest, res) => {
@@ -1849,6 +1957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const company = await storage.createCompany({
         ...companyData,
         slug,
+        joinCode: await uniqueJoinCode(),
         verificationStatus: initialVerificationStatus,
         onboardingState: 'draft',
         ...(companyData.accountType !== 'company' && { ownerUserId: req.auth!.userId }),
@@ -2531,8 +2640,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Join a company/team instantly via its reusable join code, then switch into it.
+  app.post("/api/companies/join-by-code", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const code = String(req.body.code || '').trim().toUpperCase();
+      if (!code) return res.status(400).json({ message: "Join code is required" });
+
+      const company = await storage.getCompanyByJoinCode(code);
+      if (!company) return res.status(404).json({ code: 'INVALID_CODE', message: "That join code isn't valid." });
+      if (company.accountType === 'individual') {
+        return res.status(400).json({ message: "This code can't be used to join a workspace." });
+      }
+
+      let role = await storage.getUserRoleInCompany(req.auth!.userId, company.id);
+      if (!role) {
+        await storage.addUserToCompany({
+          userId: req.auth!.userId,
+          companyId: company.id,
+          roleInCompany: 'member',
+          invitedBy: null,
+        });
+        await storage.logMemberActivity({
+          companyId: company.id,
+          actorUserId: req.auth!.userId,
+          action: 'member.joined',
+          targetType: 'member',
+          targetId: req.auth!.userId,
+          summary: 'Joined via join code',
+          metadata: { method: 'join_code' },
+        });
+        role = 'member';
+      }
+
+      const profile = await storage.getCompanyProfile(company.id);
+      const token = generateToken({
+        userId: req.auth!.userId,
+        activeCompanyId: company.id,
+        roleInCompany: role,
+        isAdmin: req.auth!.isAdmin,
+      });
+
+      res.json({
+        token,
+        activeCompany: {
+          id: company.id,
+          name: company.name,
+          slug: company.slug,
+          verificationStatus: company.verificationStatus,
+          onboardingState: company.onboardingState,
+          rejectionReason: company.rejectionReason || null,
+          accountType: company.accountType,
+          nationalIdNumber: company.nationalIdNumber || null,
+          role,
+          profile: profile || null,
+        },
+      });
+    } catch (error) {
+      console.error('Join by code error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // View the active workspace's join code + shareable link (admins only).
+  app.get("/api/company/join-code", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const roleInCompany = req.auth!.roleInCompany;
+      if (roleInCompany !== 'owner' && roleInCompany !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const company = await storage.getCompany(req.auth!.activeCompanyId!);
+      if (!company) return res.status(404).json({ message: "Company not found" });
+      let code = company.joinCode;
+      if (!code) {
+        code = await uniqueJoinCode();
+        await storage.updateCompany(company.id, { joinCode: code });
+      }
+      res.json({ code, link: `/join/${code}` });
+    } catch (error) {
+      console.error('Get join code error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Regenerate the join code (admins only) — invalidates the old one.
+  app.post("/api/company/join-code/regenerate", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const roleInCompany = req.auth!.roleInCompany;
+      if (roleInCompany !== 'owner' && roleInCompany !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const code = await uniqueJoinCode();
+      await storage.updateCompany(req.auth!.activeCompanyId!, { joinCode: code });
+      res.json({ code, link: `/join/${code}` });
+    } catch (error) {
+      console.error('Regenerate join code error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Get company profile by slug (public read)
-  app.get("/api/companies/by-slug/:slug/profile", async (req: AuthRequest, res) => {
+  app.get("/api/companies/by-slug/:slug/profile", optionalAuth, async (req: AuthRequest, res) => {
     try {
       const { slug } = req.params;
 
@@ -2553,6 +2760,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ].filter(Boolean) as string[])
         : [];
 
+      // Gate the WhatsApp number by its visibility setting. 'public' → shown to
+      // everyone; 'requesters' → only the profile owner and requesters whose
+      // tenders this individual has applied to. Otherwise it's withheld and the
+      // client shows a "unlocks when they apply to your tender" state.
+      const safeProfile = await gateWhatsapp(profile, company.id, req);
+
       res.json({
         company: {
           id: company.id,
@@ -2570,7 +2783,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verifiedAt: company.verifiedAt,
           verifiedDocuments,
         },
-        profile: profile || null
+        profile: safeProfile,
       });
     } catch (error) {
       console.error('Get company profile by slug error:', error);
@@ -2578,8 +2791,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get company profile (public read)
-  app.get("/api/companies/:companyId/profile", async (req: AuthRequest, res) => {
+  // Get company profile (public read; WhatsApp number gated by visibility)
+  app.get("/api/companies/:companyId/profile", optionalAuth, async (req: AuthRequest, res) => {
     try {
       const { companyId } = req.params;
 
@@ -2600,6 +2813,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ].filter(Boolean) as string[])
         : [];
 
+      const safeProfile = await gateWhatsapp(profile, company.id, req);
+
       res.json({
         company: {
           id: company.id,
@@ -2608,6 +2823,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           legalName: company.legalName,
           category: company.category,
           city: company.city,
+          accountType: company.accountType,
           verificationStatus: company.verificationStatus,
           certifications: company.certifications || [],
           crNumber: company.crNumber,
@@ -2616,7 +2832,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verifiedAt: company.verifiedAt,
           verifiedDocuments,
         },
-        profile: profile || null
+        profile: safeProfile,
       });
     } catch (error) {
       console.error('Get company profile error:', error);
@@ -2637,7 +2853,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Access denied" });
         }
 
-        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio, yearFounded, serviceAreas, languages, industriesServed, availabilityStatus, availabilityNote, introVideoUrl, stats, certifications: profileCertifications, insurancePolicies } = req.body;
+        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio, yearFounded, serviceAreas, languages, industriesServed, availabilityStatus, availabilityNote, introVideoUrl, stats, certifications: profileCertifications, insurancePolicies, whatsappNumber, whatsappVisibility, slug } = req.body;
 
         // Get current company
         const company = await storage.getCompany(companyId);
@@ -2673,6 +2889,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (city) companyUpdates.city = city;
         if (category) companyUpdates.category = category;
 
+        // Username (@handle) — stored as the company slug, drives /company/:slug.
+        if (slug !== undefined && typeof slug === 'string') {
+          const sanitized = slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+          if (sanitized !== company.slug) {
+            if (sanitized.length < 3 || sanitized.length > 40) {
+              return res.status(400).json({ message: "Username must be 3–40 characters (letters, numbers, dashes)" });
+            }
+            const existing = await storage.getCompanyBySlug(sanitized);
+            if (existing && existing.id !== companyId) {
+              return res.status(400).json({ message: "That username is already taken" });
+            }
+            companyUpdates.slug = sanitized;
+          }
+        }
+
         // Mark onboarding as completed if it was draft
         if (company.onboardingState === 'draft') {
           companyUpdates.onboardingState = 'completed';
@@ -2706,6 +2937,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (bio !== undefined) profileUpdates.bio = bio;
         if (logoUrl !== undefined) profileUpdates.logoUrl = logoUrl;
         if (socialLinks !== undefined) profileUpdates.socialLinks = socialLinks;
+        if (whatsappNumber !== undefined) {
+          profileUpdates.whatsappNumber = typeof whatsappNumber === 'string' && whatsappNumber.trim()
+            ? whatsappNumber.trim().slice(0, 30)
+            : null;
+        }
+        if (whatsappVisibility !== undefined) {
+          if (!['requesters', 'public'].includes(whatsappVisibility)) {
+            return res.status(400).json({ message: "Invalid whatsappVisibility" });
+          }
+          profileUpdates.whatsappVisibility = whatsappVisibility;
+        }
+
+        // WhatsApp is mandatory for individual profiles.
+        if (company.accountType === 'individual') {
+          const finalNumber = whatsappNumber !== undefined
+            ? (typeof whatsappNumber === 'string' ? whatsappNumber.trim() : '')
+            : existingProfile.whatsappNumber;
+          if (!finalNumber) {
+            return res.status(400).json({ message: "A WhatsApp number is required for individual profiles" });
+          }
+        }
         if (tractionTheme !== undefined) profileUpdates.tractionTheme = tractionTheme;
         if (tags !== undefined) profileUpdates.tags = tags;
         if (companySize !== undefined) profileUpdates.companySize = companySize;
@@ -2901,7 +3153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const isFreelancer = company.accountType === 'individual';
           storage.createAdminNotification({
             type: isFreelancer ? 'freelancer_verification' : 'company_verification',
-            title: `${isFreelancer ? 'Freelancer' : 'Company'} awaiting verification: ${company.name}`,
+            title: `${isFreelancer ? 'Individual' : 'Company'} awaiting verification: ${company.name}`,
             body: `${company.name} uploaded verification documents and is now awaiting review.`,
             severity: 'info',
             link: isFreelancer ? '/admin/freelancers' : '/admin/vendors',
@@ -3049,6 +3301,184 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json(tendersWithCounts);
       } catch (error) {
         console.error('Get tenders error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  // Invite an individual to one of the caller company's tenders. Companies only.
+  // If the tender's audience doesn't include individuals, the client must
+  // confirm adding that audience (addAudience=true); otherwise we return
+  // AUDIENCE_MISMATCH so it can prompt the requester.
+  app.post("/api/tenders/:id/invite-individual",
+    authenticateToken,
+    requireCompanyContext,
+    requireCompanyRole('admin'),
+    async (req: AuthRequest, res) => {
+      try {
+        const tenderId = req.params.id;
+        const { individualCompanyId, addAudience } = req.body;
+        if (!individualCompanyId) {
+          return res.status(400).json({ message: "individualCompanyId is required" });
+        }
+
+        // Only company accounts may invite individuals.
+        const requester = await storage.getCompany(req.auth!.activeCompanyId!);
+        if (!requester || requester.accountType !== 'company') {
+          return res.status(403).json({ message: "Only companies can invite individuals" });
+        }
+
+        const tender = await storage.getTender(tenderId);
+        if (!tender) return res.status(404).json({ message: "Tender not found" });
+        if (tender.companyId !== requester.id) {
+          return res.status(403).json({ message: "You can only invite to your own tenders" });
+        }
+
+        const individual = await storage.getCompany(individualCompanyId);
+        if (!individual || individual.accountType !== 'individual') {
+          return res.status(404).json({ message: "Individual not found" });
+        }
+
+        // Audience gate — confirm before widening the tender's audience.
+        const audience: string[] = Array.isArray(tender.targetAudienceTypes)
+          ? (tender.targetAudienceTypes as string[])
+          : [];
+        if (!audience.includes('individual')) {
+          if (!addAudience) {
+            return res.status(409).json({
+              code: 'AUDIENCE_MISMATCH',
+              message: "This tender isn't open to individuals yet.",
+            });
+          }
+          await storage.updateTender(tenderId, { targetAudienceTypes: [...audience, 'individual'] } as any);
+        }
+
+        // Don't invite the same individual twice.
+        const existing = await storage.getInvitationsByTender(tenderId);
+        if (existing.some((inv) => inv.companyId === individualCompanyId)) {
+          return res.status(409).json({ code: 'ALREADY_INVITED', message: "This individual is already invited." });
+        }
+
+        const invitation = await storage.createInvitation({
+          tenderId,
+          companyId: individualCompanyId,
+          invitationToken: crypto.randomUUID(),
+          status: 'pending',
+        } as any);
+
+        res.status(201).json({ id: invitation.id, tenderId, status: invitation.status });
+      } catch (error) {
+        console.error('Invite individual error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  // Tenders the active workspace has been invited to (the "Invited" list).
+  app.get("/api/my-invitations", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+    try {
+      const invites = await storage.getInvitationsByCompany(req.auth!.activeCompanyId!);
+      res.json(invites.map((inv) => ({
+        id: inv.id,
+        status: inv.status,
+        invitedAt: inv.invitedAt,
+        tender: {
+          id: inv.tender.id,
+          title: inv.tender.title,
+          category: inv.tender.category,
+          deadline: inv.tender.deadline,
+          tenderType: inv.tender.tenderType,
+          invitationToken: inv.tender.invitationToken,
+        },
+        requester: { id: inv.requester.id, name: inv.requester.name, slug: inv.requester.slug },
+      })));
+    } catch (error) {
+      console.error('Get my invitations error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Suggested individuals to invite to a tender — matched by field/category,
+  // verification, availability and city. Only returns results when the tender
+  // is already open to individuals (audience includes 'individual').
+  app.get("/api/tenders/:id/suggested-individuals",
+    authenticateToken,
+    requireCompanyContext,
+    requireAccountType('company'),
+    async (req: AuthRequest, res) => {
+      try {
+        const tender = await storage.getTender(req.params.id);
+        if (!tender) return res.status(404).json({ message: "Tender not found" });
+        if (tender.companyId !== req.auth!.activeCompanyId) {
+          return res.status(403).json({ message: "Not your tender" });
+        }
+
+        const audience: string[] = Array.isArray(tender.targetAudienceTypes)
+          ? (tender.targetAudienceTypes as string[]) : [];
+        if (!audience.includes('individual')) {
+          // Tender isn't open to individuals — nothing to suggest here.
+          return res.json({ suggestions: [], openToIndividuals: false });
+        }
+
+        const requester = await storage.getCompany(req.auth!.activeCompanyId!);
+        const invited = await storage.getInvitationsByTender(tender.id);
+        const exclude = [
+          req.auth!.activeCompanyId!,
+          ...invited.map((i) => i.companyId).filter((x): x is string => !!x),
+        ];
+
+        const rows = await storage.getSuggestedIndividualsForTender({
+          category: tender.category,
+          city: requester?.city || null,
+          excludeCompanyIds: exclude,
+          limit: 10,
+        });
+
+        const suggestions = rows.map((c) => ({
+          companyId: c.id,
+          slug: c.slug,
+          name: c.profile?.displayName || c.name,
+          logoUrl: c.profile?.logoUrl || null,
+          category: c.category || null,
+          city: c.city || null,
+          availabilityStatus: c.profile?.availabilityStatus || null,
+          verificationStatus: c.verificationStatus,
+        }));
+
+        res.json({ suggestions, openToIndividuals: true });
+      } catch (error) {
+        console.error('Suggested individuals error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  // Recommended tenders for an individual — individual-eligible marketplace
+  // tenders matched to their field/category.
+  app.get("/api/individuals/recommended-tenders",
+    authenticateToken,
+    requireCompanyContext,
+    requireAccountType('individual'),
+    async (req: AuthRequest, res) => {
+      try {
+        const me = await storage.getCompany(req.auth!.activeCompanyId!);
+        const result = await storage.getMarketplaceTenders({
+          category: me?.category || undefined,
+          audienceType: 'individual',
+          limit: 6,
+        });
+        res.json({
+          tenders: result.tenders.map((t) => ({
+            id: t.id,
+            title: t.title,
+            category: t.category,
+            deadline: t.deadline,
+            invitationToken: t.invitationToken,
+            requesterName: t.company?.name,
+          })),
+        });
+      } catch (error) {
+        console.error('Recommended tenders error:', error);
         res.status(500).json({ message: "Server error" });
       }
     }
@@ -4883,6 +5313,96 @@ Respond with ONLY a JSON object. Example:
     }
   );
 
+  // Directory of individuals for companies to discover and add to their base
+  // (the "Discover" tab in Vendors Base). Companies only.
+  app.get("/api/individuals/directory",
+    authenticateToken,
+    requireCompanyContext,
+    requireAccountType('company'),
+    async (req: AuthRequest, res) => {
+      try {
+        const { search, city, category, page, limit } = req.query;
+        const lim = limit ? Math.min(parseInt(limit as string), 30) : 12;
+        const pg = page ? Math.max(parseInt(page as string), 1) : 1;
+
+        const { rows, total } = await storage.searchIndividuals({
+          search: search as string,
+          city: city as string,
+          category: category as string,
+          limit: lim,
+          offset: (pg - 1) * lim,
+        });
+
+        const requesterId = req.auth!.activeCompanyId!;
+        const individuals = await Promise.all(rows.map(async (c) => ({
+          companyId: c.id,
+          slug: c.slug,
+          name: c.profile?.displayName || c.name,
+          logoUrl: c.profile?.logoUrl || null,
+          bio: c.profile?.bio || null,
+          category: c.category || null,
+          city: c.city || null,
+          availabilityStatus: c.profile?.availabilityStatus || null,
+          verificationStatus: c.verificationStatus,
+          inBase: await storage.isVendorInBase(requesterId, c.id),
+        })));
+
+        res.json({ individuals, total });
+      } catch (error) {
+        console.error('Individuals directory error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  // Add an individual (or vendor) to the caller company's vendors base — the
+  // one-click "connect" from the directory. Companies only.
+  app.post("/api/vendors-base",
+    authenticateToken,
+    requireCompanyContext,
+    requireAccountType('company'),
+    requireCompanyRole('admin'),
+    async (req: AuthRequest, res) => {
+      try {
+        const { vendorCompanyId } = req.body;
+        if (!vendorCompanyId) return res.status(400).json({ message: "vendorCompanyId is required" });
+
+        const requesterId = req.auth!.activeCompanyId!;
+        if (vendorCompanyId === requesterId) {
+          return res.status(400).json({ message: "You can't add yourself" });
+        }
+
+        const vendor = await storage.getCompany(vendorCompanyId);
+        if (!vendor || vendor.deletedAt) {
+          return res.status(404).json({ message: "Vendor not found" });
+        }
+
+        if (await storage.isVendorInBase(requesterId, vendorCompanyId)) {
+          return res.status(409).json({ code: 'ALREADY_IN_BASE', message: "Already in your vendors base." });
+        }
+
+        const row = await storage.addVendorToBase({
+          requesterCompanyId: requesterId,
+          vendorCompanyId,
+          joinMethod: 'directory',
+          addedBy: req.auth!.userId,
+        } as any);
+
+        await storage.logProductEvent({
+          eventType: 'vendor_added_to_base',
+          companyId: requesterId,
+          userId: req.auth!.userId,
+          metadata: { vendorCompanyId, method: 'directory' },
+        }).catch(() => {});
+
+        res.status(201).json({ id: row.id });
+      } catch (error) {
+        console.error('Add vendor to base error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
   // ==========================================================================
   // TENDER SAVINGS ROUTES
   // ==========================================================================
@@ -6558,12 +7078,16 @@ Respond with ONLY a JSON object. Example:
     try {
       const { search, category, city, tenderType, sort, page, limit } = req.query;
 
-      // If caller has an active workspace, filter tenders to those targeting their account type.
+      // If caller has an active workspace, note their account type.
       let callerAccountType: string | undefined;
       if (req.auth?.activeCompanyId) {
         const activeCompany = await storage.getCompany(req.auth.activeCompanyId);
         callerAccountType = activeCompany?.accountType ?? undefined;
       }
+
+      // Individuals only see tenders open to individual applicants (their
+      // dedicated marketplace section). Companies/teams keep the full view.
+      const audienceType = marketplaceAudienceFor(callerAccountType);
 
       const result = await storage.getMarketplaceTenders({
         search: search as string,
@@ -6574,6 +7098,7 @@ Respond with ONLY a JSON object. Example:
         page: page ? parseInt(page as string) : 1,
         limit: limit ? parseInt(limit as string) : 6,
         callerAccountType,
+        audienceType,
       });
       res.json(result);
     } catch (error) {

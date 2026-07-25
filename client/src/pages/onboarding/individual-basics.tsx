@@ -10,43 +10,33 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { VENDOR_CATEGORIES } from "@shared/schema";
-import { ArrowRight, ArrowLeft, User, Loader2, Info } from "lucide-react";
+import { ArrowRight, ArrowLeft, User, Loader2 } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
-import { useI18n } from "@/lib/i18n";
 
-const getPostOnboardingRedirect = () => {
-  const redirect = localStorage.getItem('postOnboardingRedirect');
-  if (redirect) {
-    localStorage.removeItem('postOnboardingRedirect');
-    return redirect;
-  }
-  return '/dashboard';
-};
+const individualBasicsSchema = z.object({
+  displayName: z.string().min(2, "Display name is required"),
+  specialization: z.string().min(1, "Please select a specialization"),
+});
+
+type IndividualBasicsForm = z.infer<typeof individualBasicsSchema>;
 
 export default function IndividualBasics() {
   const [, setLocation] = useLocation();
   const { user, checkAuth } = useAuthStore();
-  const { toast } = useToast();
   const { t, isRtl } = useI18n();
+  const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const BackArrow = isRtl ? ArrowRight : ArrowLeft;
   const ForwardArrow = isRtl ? ArrowLeft : ArrowRight;
-
-  const individualBasicsSchema = z.object({
-    displayName: z.string().min(2, t('onboardingIndividualBasics.displayNameRequired')),
-    specialization: z.string().min(1, t('onboardingIndividualBasics.selectSpecializationRequired')),
-    nationalIdNumber: z.string().optional(),
-  });
-  type IndividualBasicsForm = z.infer<typeof individualBasicsSchema>;
 
   const form = useForm<IndividualBasicsForm>({
     resolver: zodResolver(individualBasicsSchema),
     defaultValues: {
       displayName: user?.name || "",
       specialization: "",
-      nationalIdNumber: "",
     },
   });
 
@@ -62,24 +52,32 @@ export default function IndividualBasics() {
         name: data.displayName,
         category: data.specialization,
         accountType: 'individual',
-        nationalIdNumber: data.nationalIdNumber?.trim() || undefined,
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || t('onboardingIndividualBasics.createProfileFailedDesc'));
+        throw new Error(error.message || t('indBasics.couldntCreate'));
       }
       const result = await response.json();
       localStorage.setItem('token', result.token);
       await checkAuth();
       toast({
-        title: t('onboardingIndividualBasics.profileReadyTitle'),
-        description: t('onboardingIndividualBasics.profileReadyDesc'),
+        title: t('indBasics.accountCreated'),
+        description: t('indBasics.letsSetup'),
       });
-      setLocation(getPostOnboardingRedirect());
+      // Individuals must set up their public profile before reaching the
+      // dashboard. Honour an invite redirect if one is pending, otherwise send
+      // them straight to the profile-creation step.
+      const pending = localStorage.getItem('postOnboardingRedirect');
+      if (pending) {
+        localStorage.removeItem('postOnboardingRedirect');
+        setLocation(pending);
+      } else {
+        setLocation('/onboarding/individual-profile');
+      }
     } catch (error: any) {
       toast({
-        title: t('onboardingIndividualBasics.couldNotCreateProfileTitle'),
-        description: error.message || t('onboardingIndividualBasics.tryAgain'),
+        title: t('indBasics.couldntCreate'),
+        description: error.message || t('profEditor.tryAgain'),
         variant: "destructive",
       });
     } finally {
@@ -98,8 +96,8 @@ export default function IndividualBasics() {
               <User className="w-5 h-5 text-violet-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">{t('onboardingIndividualBasics.heading')}</h2>
-              <p className="text-sm text-neutral-500">{t('onboardingIndividualBasics.subheading')}</p>
+              <h2 className="text-xl font-bold text-neutral-900">{t('indBasics.heading')}</h2>
+              <p className="text-sm text-neutral-500">{t('indBasics.subtitle')}</p>
             </div>
           </div>
 
@@ -110,11 +108,11 @@ export default function IndividualBasics() {
                 name="displayName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('onboardingIndividualBasics.displayNameLabel')}</FormLabel>
+                    <FormLabel>{t('indBasics.displayName')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('onboardingIndividualBasics.displayNamePlaceholder')} {...field} data-testid="input-display-name" />
+                      <Input placeholder={t('indBasics.displayNamePlaceholder')} {...field} data-testid="input-display-name" />
                     </FormControl>
-                    <FormDescription>{t('onboardingIndividualBasics.displayNameDesc')}</FormDescription>
+                    <FormDescription>{t('indBasics.displayNameHelp')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -125,11 +123,11 @@ export default function IndividualBasics() {
                 name="specialization"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('onboardingIndividualBasics.specializationLabel')}</FormLabel>
+                    <FormLabel>{t('indBasics.specialization')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-specialization">
-                          <SelectValue placeholder={t('onboardingIndividualBasics.specializationPlaceholder')} />
+                          <SelectValue placeholder={t('indBasics.selectExpertise')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -145,24 +143,6 @@ export default function IndividualBasics() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="nationalIdNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('onboardingIndividualBasics.nationalIdLabel')}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={t('onboardingIndividualBasics.nationalIdPlaceholder')} {...field} data-testid="input-national-id" />
-                    </FormControl>
-                    <FormDescription className="flex items-start gap-1.5">
-                      <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" />
-                      <span>{t('onboardingIndividualBasics.nationalIdDesc')}</span>
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <div className="flex justify-between pt-4">
                 <Button
                   type="button"
@@ -171,7 +151,7 @@ export default function IndividualBasics() {
                   disabled={submitting}
                 >
                   <BackArrow className="mr-2 h-4 w-4" />
-                  {t('common.back')}
+                  {t('indBasics.back')}
                 </Button>
                 <Button
                   type="submit"
@@ -182,11 +162,11 @@ export default function IndividualBasics() {
                   {submitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t('onboardingIndividualBasics.creatingProfile')}
+                      {t('indBasics.creating')}
                     </>
                   ) : (
                     <>
-                      {t('onboardingIndividualBasics.goToDashboard')}
+                      {t('indBasics.goToDashboard')}
                       <ForwardArrow className="ml-2 h-4 w-4" />
                     </>
                   )}

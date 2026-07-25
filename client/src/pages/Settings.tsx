@@ -1,6 +1,7 @@
 import { useAuthStore } from "@/lib/auth";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import JoinCodeCard from "@/components/JoinCodeCard";
 import { Button } from "@/components/ui/button";
 import { BackPillButton } from "@/components/ui/back-pill-button";
 import { Input } from "@/components/ui/input";
@@ -1018,7 +1019,7 @@ export default function Settings() {
 
   const workspaceTabLabel =
     workspaceKind === 'team' ? 'Team Settings' :
-    workspaceKind === 'individual' ? 'Freelancer Settings' :
+    workspaceKind === 'individual' ? 'Profile Settings' :
     'Company Settings';
 
   const sidebarItems = [
@@ -1556,6 +1557,9 @@ export default function Settings() {
               {canManageCompany && !isIndividual && (
                 <MembershipRequestsSection companyId={activeCompany.id} />
               )}
+
+              {/* Join code + invite link (owners/admins only, not for individual) */}
+              {canManageCompany && !isIndividual && <JoinCodeCard />}
 
               {/* Invite Team Members (owners/admins only, not for individual) */}
               {canManageCompany && !isIndividual && (

@@ -119,7 +119,15 @@ const Landing = () => {
   const toggleLang = () => {
     const next = lang === "en" ? "ar" : "en";
     setLang(next);
-    try { localStorage.setItem("landing-lang", next); } catch {}
+    try {
+      localStorage.setItem("landing-lang", next);
+      // Keep the app-wide language (read by login/register/OTP requests, and by
+      // every other page's i18n) in sync with what's shown here — otherwise the
+      // language a visitor sees on the homepage has no bearing on the language
+      // their account and verification emails end up using.
+      localStorage.setItem("language", next);
+      window.dispatchEvent(new CustomEvent("bid:language-sync", { detail: next }));
+    } catch {}
   };
 
   const handleCreate = () => setShowModal(true);

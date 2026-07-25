@@ -43,6 +43,8 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import CreateTeamDialog from "@/components/CreateTeamDialog";
+import IndividualsDirectory from "@/components/IndividualsDirectory";
 import { useToast } from "@/hooks/use-toast";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import VendorProfileDrawer from "@/components/VendorProfileDrawer";
@@ -517,6 +519,7 @@ export default function Dashboard() {
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
   const [profileDrawerOpen, setProfileDrawerOpen] = useState(false);
   const [profileJoinRequestId, setProfileJoinRequestId] = useState<string | null>(null);
+  const [createTeamOpen, setCreateTeamOpen] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState<IncomingOffer | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<VendorProfile | null>(null);
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
@@ -621,6 +624,9 @@ export default function Dashboard() {
   const isIndividual = workspaceKind === 'individual';
   const isTeam = workspaceKind === 'team';
   const canCreateTenders = isBuyerAccount;
+  // A user can spin up a personal individual workspace unless they already have one.
+  const hasIndividualWorkspace = companies.some((c: any) => c.accountType === 'individual');
+  const canActivateIndividual = !hasIndividualWorkspace;
   const hasProfileComplete = !!(activeCompany.profile?.bio && activeCompany.profile?.logoUrl);
 
   function handleCreateTender() {
@@ -979,7 +985,7 @@ export default function Dashboard() {
         <SidebarHeader className="border-b px-4 py-4">
           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
             <SidebarLogoToggle />
-            {companies.length > 1 ? (
+            {companies.length > 1 || canActivateIndividual ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className={`flex-1 min-w-0 group-data-[collapsible=icon]:hidden flex items-center gap-1 hover:bg-muted/50 rounded-md px-2 py-1 -mx-2 transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}>
@@ -1021,6 +1027,24 @@ export default function Dashboard() {
                       {company.id === activeCompany.id && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
                     </DropdownMenuItem>
                   ))}
+                  {canActivateIndividual && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => setLocation('/onboarding/individual-basics')}
+                        className="flex items-center gap-3 py-2"
+                        data-testid="menu-activate-individual"
+                      >
+                        <div className="h-8 w-8 rounded-md bg-[var(--state-won)]/10 flex items-center justify-center text-[var(--state-won)] flex-shrink-0">
+                          <Plus className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{t('activateIndividual.label')}</p>
+                          <p className="text-xs text-muted-foreground truncate">{t('activateIndividual.sublabel')}</p>
+                        </div>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -1071,7 +1095,7 @@ export default function Dashboard() {
                 {isIndividual && (
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => setLocation('/onboarding/team-basics')}
+                      onClick={() => setCreateTeamOpen(true)}
                       tooltip={t('dashboard.createTeam')}
                       data-testid="sidebar-create-team"
                       className="py-3 text-base rounded-xl bg-[#FE3C01] text-white hover:bg-[#1A1613] hover:text-white shadow-[0_10px_24px_-8px_rgba(254,60,1,0.55)] transition-all"
@@ -2775,12 +2799,16 @@ export default function Dashboard() {
               </Card>
 
               <Tabs value={vendorsSubTab} onValueChange={(v) => { setVendorsSubTab(v); localStorage.setItem('dashboard-vendors-tab', v); }} className="space-y-4">
-                <TabsList className={`grid w-full max-w-md grid-cols-2 ${BRAND_TABSLIST}`} data-tour="vendors-tabs">
-                  <TabsTrigger value="vendors-list" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-vendors-list">
+                <TabsList className={`flex w-full max-w-2xl overflow-x-auto sm:grid sm:grid-cols-3 ${BRAND_TABSLIST}`} data-tour="vendors-tabs">
+                  <TabsTrigger value="vendors-list" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-vendors-list">
                     <Users className="h-4 w-4" />
                     {t('dashboard.vendorsBase')} ({vendors.length})
                   </TabsTrigger>
-                  <TabsTrigger value="join-requests" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-join-requests" data-tour="vendors-requests-tab">
+                  <TabsTrigger value="discover" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-discover-individuals">
+                    <Search className="h-4 w-4" />
+                    {t('directory.title')}
+                  </TabsTrigger>
+                  <TabsTrigger value="join-requests" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-join-requests" data-tour="vendors-requests-tab">
                     <UserPlus className="h-4 w-4" />
                     {t('dashboard.pendingRequests')}
                     {pendingRequests.length > 0 && (
@@ -2790,6 +2818,16 @@ export default function Dashboard() {
                     )}
                   </TabsTrigger>
                 </TabsList>
+
+                {/* Discover individuals Sub-Tab */}
+                <TabsContent value="discover" className="space-y-4">
+                  <div className="max-w-[52ch]">
+                    <p className="text-sm text-muted-foreground">
+                      {t('directory.intro')}
+                    </p>
+                  </div>
+                  <IndividualsDirectory />
+                </TabsContent>
 
                 {/* Vendors List Sub-Tab */}
                 <TabsContent value="vendors-list" className="space-y-4">
@@ -3958,6 +3996,8 @@ export default function Dashboard() {
     {tourOverlay}
     {/* Vendors tab tour overlay */}
     {vendorsTourOverlay}
+    {/* Create-team dialog (individuals) */}
+    <CreateTeamDialog open={createTeamOpen} onOpenChange={setCreateTeamOpen} />
     </>
   );
 }

@@ -197,7 +197,8 @@ function FilterDropdown({
 export default function Marketplace() {
   const { t, language, isRtl } = useI18n();
   const [, setLocation] = useLocation();
-  const { user } = useAuthStore();
+  const { user, activeCompany } = useAuthStore();
+  const isIndividual = (activeCompany as any)?.accountType === 'individual';
   const isSubdomain = isMarketplaceSubdomain();
   const marketplaceHome = isSubdomain ? "/" : "/marketplace";
 
@@ -236,10 +237,41 @@ export default function Marketplace() {
       if (sort && sort !== "newest") params.set("sort", sort);
       params.set("page", String(page));
       params.set("limit", String(perPage));
-      const res = await fetch(`/api/marketplace/tenders?${params.toString()}`);
+      // Send the token so the server can scope tenders to the caller's account
+      // type (individuals only see tenders open to individual applicants).
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/marketplace/tenders?${params.toString()}`,
+        token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
+  });
+
+  // Individuals: tenders they've been personally invited to.
+  const { data: myInvitations = [] } = useQuery<any[]>({
+    queryKey: ["/api/my-invitations"],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/my-invitations",
+        token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: isIndividual,
+  });
+
+  // Individuals: tenders recommended to them (field-matched).
+  const { data: recommendedTenders = [] } = useQuery<any[]>({
+    queryKey: ["/api/individuals/recommended-tenders"],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/individuals/recommended-tenders",
+        token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+      if (!res.ok) return [];
+      const j = await res.json();
+      return j.tenders || [];
+    },
+    enabled: isIndividual,
   });
 
   const tenders = tendersData?.tenders || [];
@@ -376,7 +408,7 @@ export default function Marketplace() {
             className="inline-block text-[13px] font-semibold px-3.5 py-1.5 rounded-full mb-4"
             style={{ color: "#FE3C01", background: "#FFE4D7" }}
           >
-            {t("marketplace.browseLabel")}
+            {isIndividual ? t("marketplaceInd.forIndividuals") : t("marketplace.browseLabel")}
           </div>
           <h2
             className="font-display font-bold leading-[0.95]"
@@ -390,7 +422,73 @@ export default function Marketplace() {
             {t("marketplace.liveOpportunities")}
             <span style={{ color: "#FE3C01" }}>.</span>
           </h2>
+          {isIndividual && (
+            <p className="mt-3 text-base max-w-[52ch]" style={{ color: "#8A8078" }}>
+              {t('marketplaceInd.forIndividualsSub')}
+            </p>
+          )}
         </div>
+
+        {/* Recommended for you (individuals) */}
+        {isIndividual && recommendedTenders.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[13px] font-semibold px-3 py-1 rounded-full" style={{ color: "#FE3C01", background: "#FFE4D7" }}>
+                {t('marketplaceInd.recommended')}
+              </span>
+              <span className="text-sm" style={{ color: "#8A8078" }}>{t('marketplaceInd.recommendedSub')}</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {recommendedTenders.map((rec) => (
+                <Link
+                  key={rec.id}
+                  href={user ? `/invite/${rec.invitationToken}` : "/login"}
+                  className="block rounded-2xl border border-border bg-card p-4 hover:shadow-sm transition-shadow"
+                  data-testid={`recommended-tender-${rec.id}`}
+                >
+                  <p className="text-sm font-semibold text-[#0B0907] line-clamp-2">{rec.title}</p>
+                  <p className="text-xs mt-1" style={{ color: "#8A8078" }}>
+                    {rec.requesterName || t('marketplaceInd.byCompany')}
+                    {rec.category ? ` · ${rec.category}` : ""}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Invited to you (individuals) */}
+        {isIndividual && myInvitations.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[13px] font-semibold px-3 py-1 rounded-full" style={{ color: "#0B0907", background: "#FFE4D7" }}>
+                {t('marketplaceInd.invited')}
+              </span>
+              <span className="text-sm" style={{ color: "#8A8078" }}>
+                {myInvitations.length === 1
+                  ? t('marketplaceInd.invitationOne', { count: myInvitations.length })
+                  : t('marketplaceInd.invitationMany', { count: myInvitations.length })}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {myInvitations.map((inv) => (
+                <Link
+                  key={inv.id}
+                  href={user ? `/invite/${inv.tender.invitationToken}` : "/login"}
+                  className="block rounded-2xl border p-4 hover:shadow-sm transition-shadow"
+                  style={{ borderColor: "#F0C9B8", background: "#FFF8F4" }}
+                  data-testid={`invited-tender-${inv.tender.id}`}
+                >
+                  <p className="text-sm font-semibold text-[#0B0907] line-clamp-2">{inv.tender.title}</p>
+                  <p className="text-xs mt-1" style={{ color: "#8A8078" }}>
+                    {t('marketplaceInd.invitedBy', { name: inv.requester.name })}
+                    {inv.tender.category ? ` · ${inv.tender.category}` : ""}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── FILTER BAR ── */}
         {/* Mobile: stacks into a rounded card — pills scroll horizontally, search

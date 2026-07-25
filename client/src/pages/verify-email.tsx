@@ -25,7 +25,7 @@ export default function VerifyEmail() {
   const [, setLocation] = useLocation();
   const { user, token, checkAuth } = useAuthStore();
   const { toast } = useToast();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -78,7 +78,7 @@ export default function VerifyEmail() {
 
   const sendOTP = async () => {
     try {
-      await apiRequest('POST', '/api/auth/send-otp', {});
+      await apiRequest('POST', '/api/auth/send-otp', { language });
       setResendCooldown(60);
       toast({
         title: t('onboardingPanel.codeSentTitle'),
@@ -121,7 +121,7 @@ export default function VerifyEmail() {
     }
     setChangingEmail(true);
     try {
-      await apiRequest('POST', '/api/auth/change-email', { email: trimmed });
+      await apiRequest('POST', '/api/auth/change-email', { email: trimmed, language });
       sessionStorage.removeItem('otp_sent_by_login');
       await checkAuth();
       setCode(["", "", "", "", "", ""]);
@@ -276,13 +276,14 @@ export default function VerifyEmail() {
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex gap-2 justify-center mb-6">
+            <div className="flex gap-2 justify-center mb-6" dir="ltr">
               {code.map((digit, index) => (
                 <Input
                   key={index}
                   ref={(el) => { inputRefs.current[index] = el; }}
                   type="text"
                   inputMode="numeric"
+                  dir="ltr"
                   maxLength={6}
                   value={digit}
                   onChange={(e) => handleInput(index, e.target.value)}

@@ -3,11 +3,13 @@ import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Building2, User, Users, UsersRound, ArrowRight, ChevronDown, Loader2, Clock } from "lucide-react";
+import { Building2, User, Users, ArrowRight, ChevronDown, Loader2, Clock, Mail, KeyRound } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 interface DomainMatchWorkspace {
@@ -24,15 +26,38 @@ interface DomainMatchResponse {
   workspaces: DomainMatchWorkspace[];
 }
 
+interface PendingInvite {
+  token: string;
+  role: string;
+  companyId: string;
+  companyName: string;
+  companySlug: string;
+  inviterName: string;
+  expiresAt: string;
+}
+
 export default function OnboardingChoice() {
   const [, setLocation] = useLocation();
   const { user, activeCompany } = useAuthStore();
+  const { t } = useI18n();
   const { toast } = useToast();
 
   const [joinExpanded, setJoinExpanded] = useState(false);
   const [requestingId, setRequestingId] = useState<string | null>(null);
   const [requestMessage, setRequestMessage] = useState("");
   const [acknowledgedRequests, setAcknowledgedRequests] = useState<Record<string, true>>({});
+  const [acceptingToken, setAcceptingToken] = useState<string | null>(null);
+  const [joinCode, setJoinCode] = useState("");
+
+  // Prefill a join code arriving from an invite link (/join/:code stashes it).
+  useEffect(() => {
+    const pending = localStorage.getItem("pendingJoinCode");
+    if (pending) {
+      setJoinCode(pending);
+      setJoinExpanded(true);
+      localStorage.removeItem("pendingJoinCode");
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) { setLocation("/signup"); return; }
@@ -74,14 +99,80 @@ export default function OnboardingChoice() {
       setRequestMessage("");
       refetchDomainMatch();
       toast({
-        title: "Request sent",
-        description: "Your join request was sent to the workspace admins. You'll get an email once they decide.",
+        title: t('onbJoin.requestSent'),
+        description: t('onbJoin.requestSentDesc'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Couldn't send request",
-        description: error.message || "Please try again.",
+        title: t('onbJoin.couldntJoin'),
+        description: error.message || t('profEditor.tryAgain'),
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Invitations already sent to this user's email (e.g. before they signed up).
+  const { data: pendingInvites = [] } = useQuery<PendingInvite[]>({
+    queryKey: ["/api/onboarding/pending-invitations"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/onboarding/pending-invitations");
+      if (!res.ok) throw new Error("Failed to load invitations");
+      return res.json();
+    },
+    enabled: !!user?.otpVerified && !activeCompany,
+  });
+
+  // Join a company/team instantly with its code.
+  const joinByCodeMutation = useMutation({
+    mutationFn: async (code: string) => {
+      const res = await apiRequest("POST", "/api/companies/join-by-code", { code: code.trim() });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const err = new Error(body.message || "Failed to join");
+        (err as any).code = body.code;
+        throw err;
+      }
+      return body;
+    },
+    onSuccess: async (data) => {
+      if (data?.token) localStorage.setItem("token", data.token);
+      await useAuthStore.getState().checkAuth();
+      toast({ title: t('onbJoin.joinedTitle'), description: t('onbJoin.joinedDesc', { name: data.activeCompany?.name || "" }) });
+      setLocation("/dashboard");
+    },
+    onError: (err: any) => {
+      toast({
+        title: t('onbJoin.couldntJoin'),
+        description: err.message || t('onbJoin.checkCode'),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const acceptInviteMutation = useMutation({
+    mutationFn: async (token: string) => {
+      const res = await apiRequest("POST", `/api/team-invitations/${token}/accept`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to accept invitation");
+      }
+      return res.json();
+    },
+    onSuccess: async (data) => {
+      if (data?.token) localStorage.setItem("token", data.token);
+      await useAuthStore.getState().checkAuth();
+      toast({
+        title: t('onbJoin.joinedTitle'),
+        description: t('onbJoin.inviteAcceptedDesc'),
+      });
+      setLocation("/dashboard");
+    },
+    onError: (error: any) => {
+      setAcceptingToken(null);
+      toast({
+        title: t('onbJoin.couldntJoin'),
+        description: error.message || t('profEditor.tryAgain'),
         variant: "destructive",
       });
     },
@@ -96,8 +187,8 @@ export default function OnboardingChoice() {
     {
       key: "company",
       icon: Building2,
-      title: "I'm a Company",
-      description: "Registered business looking to post tenders, manage vendors, and evaluate proposals.",
+      title: t('onbJoin.createCompany'),
+      description: t('onbJoin.createCompanyDesc'),
       onClick: () => setLocation("/onboarding/company-basics"),
       color: "text-[#FE3C01]",
       iconBg: "bg-[#FE3C01]/10",
@@ -105,47 +196,114 @@ export default function OnboardingChoice() {
       hoverBorder: "hover:border-[#FE3C01]/40",
     },
     {
-      key: "freelancer",
+      key: "join",
+      icon: Users,
+      title: t('onbJoin.joinCompany'),
+      description: t('onbJoin.joinCompanyDesc'),
+      onClick: () => setJoinExpanded((v) => !v),
+      color: "text-blue-600",
+      iconBg: "bg-blue-50",
+      activeBorder: "border-blue-300",
+      hoverBorder: "hover:border-blue-300",
+    },
+    {
+      key: "individual",
       icon: User,
-      title: "I'm a Freelancer",
-      description: "Solo professional. Build your profile, showcase your work, and respond to opportunities.",
+      title: t('onbJoin.individual'),
+      description: t('onbJoin.individualDesc'),
       onClick: () => setLocation("/onboarding/individual-basics"),
       color: "text-[#FE3C01]",
       iconBg: "bg-[#FE3C01]/10",
       activeBorder: "border-[#FE3C01]/40",
       hoverBorder: "hover:border-[#FE3C01]/40",
     },
-    {
-      key: "team",
-      icon: UsersRound,
-      title: "Create a Team",
-      description: "Pool skills with others, apply to tenders together, and build a shared reputation.",
-      onClick: () => setLocation("/onboarding/team-basics"),
-      color: "text-[#FE3C01]",
-      iconBg: "bg-[#FE3C01]/10",
-      activeBorder: "border-[#FE3C01]/40",
-      hoverBorder: "hover:border-[#FE3C01]/40",
-    },
-    ...(hasMatches ? [{
-      key: "join",
-      icon: Users,
-      title: "Join a company",
-      description: "Your company is already on Bid. Find your team's workspace and request access.",
-      onClick: () => setJoinExpanded((v) => !v),
-      color: "text-blue-600",
-      iconBg: "bg-blue-50",
-      activeBorder: "border-blue-300",
-      hoverBorder: "hover:border-blue-300",
-    }] : []),
   ] as const;
+
+  const joinBadgeCount = pendingInvites.length + (hasMatches ? matches.length : 0);
+
+  // Shared card for "request to join" targets (domain matches + search results).
+  const renderRequestCard = (
+    w: { id: string; name: string; slug: string; memberCount: number; alreadyRequested: boolean; alreadyMember?: boolean },
+    subtitle: string,
+  ) => {
+    const isPending = w.alreadyRequested || acknowledgedRequests[w.id];
+    return (
+      <Card key={w.id} className="border-blue-200 bg-blue-50/40">
+        <CardContent className="pt-4 pb-4 px-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-semibold text-foreground truncate">{w.name}</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
+            </div>
+            {w.alreadyMember ? (
+              <div className="flex items-center gap-1.5 text-sm font-medium text-[var(--state-won)] whitespace-nowrap">
+                {t('onbJoin.alreadyMember')}
+              </div>
+            ) : isPending ? (
+              <div className="flex items-center gap-1.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-md whitespace-nowrap">
+                <Clock className="w-3.5 h-3.5" />
+                {t('onbJoin.requestPending')}
+              </div>
+            ) : requestingId === w.id ? null : (
+              <Button
+                size="sm"
+                onClick={() => { setRequestingId(w.id); setRequestMessage(""); }}
+                className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
+                data-testid={`button-request-join-${w.slug}`}
+              >
+                {t('onbJoin.requestToJoin')}
+              </Button>
+            )}
+          </div>
+          {requestingId === w.id && (
+            <div className="mt-3 space-y-2 border-t border-blue-200 pt-3">
+              <Textarea
+                value={requestMessage}
+                onChange={(e) => setRequestMessage(e.target.value.slice(0, 500))}
+                placeholder={t('onbJoin.requestPlaceholder', { name: w.name })}
+                rows={2}
+                className="text-sm"
+                disabled={requestJoinMutation.isPending}
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setRequestingId(null)}
+                  disabled={requestJoinMutation.isPending}
+                >
+                  {t('onbJoin.cancel')}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => requestJoinMutation.mutate({ companyId: w.id, message: requestMessage })}
+                  disabled={requestJoinMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {requestJoinMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                      {t('onbJoin.sending')}
+                    </>
+                  ) : (
+                    t('onbJoin.sendRequest')
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <OnboardingLayout>
       <div className="text-center mb-8">
         <h1 className="font-display font-black text-3xl text-foreground mb-2 tracking-[-0.04em]">
-          Welcome, {user.name.split(" ")[0]}!
+          {t('onbJoin.welcome', { name: user.name.split(" ")[0] })}
         </h1>
-        <p className="text-muted-foreground text-base">How are you joining Bid?</p>
+        <p className="text-muted-foreground text-base">{t('onbJoin.howJoining')}</p>
       </div>
 
       <div className="space-y-3">
@@ -167,9 +325,9 @@ export default function OnboardingChoice() {
                   <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 ${iconBg} rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform relative`}>
                       <Icon className={`w-6 h-6 ${color}`} />
-                      {isJoin && hasMatches && (
+                      {isJoin && joinBadgeCount > 0 && (
                         <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                          {matches.length}
+                          {joinBadgeCount}
                         </div>
                       )}
                     </div>
@@ -190,93 +348,105 @@ export default function OnboardingChoice() {
 
               {/* Inline join expansion */}
               {isJoin && joinExpanded && (
-                <div className="mt-2 space-y-2">
-                  {hasMatches ? (
-                    <>
+                <div className="mt-2 space-y-5">
+                  {/* 1. Invitations already waiting for this user */}
+                  {pendingInvites.length > 0 && (
+                    <div className="space-y-2">
                       <p className="text-sm text-muted-foreground px-1 flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                        We found{" "}
-                        <span className="font-semibold text-foreground">
-                          {matches.length} {matches.length === 1 ? "workspace" : "workspaces"}
-                        </span>{" "}
-                        from <span className="font-semibold text-foreground">{domainMatch?.domain}</span>
+                        <Mail className="w-3.5 h-3.5 text-[var(--state-won)] flex-shrink-0" />
+                        {pendingInvites.length === 1
+                          ? t('onbJoin.invitedHeading', { count: pendingInvites.length })
+                          : t('onbJoin.invitedHeadingPlural', { count: pendingInvites.length })}
                       </p>
-                      {matches.map((w) => {
-                        const isPending = w.alreadyRequested || acknowledgedRequests[w.id];
+                      {pendingInvites.map((inv) => {
+                        const isAccepting = acceptingToken === inv.token && acceptInviteMutation.isPending;
                         return (
-                          <Card key={w.id} className="border-blue-200 bg-blue-50/40">
+                          <Card key={inv.token} className="border-[var(--state-won)]/30 bg-[var(--state-won)]/[0.06]">
                             <CardContent className="pt-4 pb-4 px-5">
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="text-base font-semibold text-foreground truncate">{w.name}</h3>
+                                  <h3 className="text-base font-semibold text-foreground truncate">{inv.companyName}</h3>
                                   <p className="text-xs text-muted-foreground mt-0.5">
-                                    {w.memberCount}{" "}
-                                    {w.memberCount === 1 ? "colleague" : "colleagues"} from your domain
+                                    {t('onbJoin.invitedBy', { inviter: inv.inviterName, role: inv.role })}
                                   </p>
                                 </div>
-                                {isPending ? (
-                                  <div className="flex items-center gap-1.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-md whitespace-nowrap">
-                                    <Clock className="w-3.5 h-3.5" />
-                                    Request pending
-                                  </div>
-                                ) : requestingId === w.id ? null : (
-                                  <Button
-                                    size="sm"
-                                    onClick={() => { setRequestingId(w.id); setRequestMessage(""); }}
-                                    className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
-                                    data-testid={`button-request-join-${w.slug}`}
-                                  >
-                                    Request to join
-                                  </Button>
-                                )}
+                                <Button
+                                  size="sm"
+                                  onClick={() => { setAcceptingToken(inv.token); acceptInviteMutation.mutate(inv.token); }}
+                                  disabled={acceptInviteMutation.isPending}
+                                  className="bg-[var(--state-won)] hover:opacity-90 text-white whitespace-nowrap"
+                                  data-testid={`button-accept-invite-${inv.companySlug}`}
+                                >
+                                  {isAccepting ? (
+                                    <>
+                                      <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                                      {t('onbJoin.joining')}
+                                    </>
+                                  ) : (
+                                    t('onbJoin.acceptJoin')
+                                  )}
+                                </Button>
                               </div>
-                              {requestingId === w.id && (
-                                <div className="mt-3 space-y-2 border-t border-blue-200 pt-3">
-                                  <Textarea
-                                    value={requestMessage}
-                                    onChange={(e) => setRequestMessage(e.target.value.slice(0, 500))}
-                                    placeholder={`Optional: tell the admins of ${w.name} who you are`}
-                                    rows={2}
-                                    className="text-sm"
-                                    disabled={requestJoinMutation.isPending}
-                                  />
-                                  <div className="flex justify-end gap-2">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => setRequestingId(null)}
-                                      disabled={requestJoinMutation.isPending}
-                                    >
-                                      Cancel
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      onClick={() => requestJoinMutation.mutate({ companyId: w.id, message: requestMessage })}
-                                      disabled={requestJoinMutation.isPending}
-                                      className="bg-blue-600 hover:bg-blue-700"
-                                    >
-                                      {requestJoinMutation.isPending ? (
-                                        <>
-                                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                                          Sending…
-                                        </>
-                                      ) : (
-                                        "Send request"
-                                      )}
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
                             </CardContent>
                           </Card>
                         );
                       })}
-                    </>
-                  ) : (
-                    <div className="text-sm text-muted-foreground text-center py-5 px-4 bg-muted rounded-xl border border-border">
-                      No workspaces found matching your email domain.
-                      <br />
-                      Ask your company admin to invite you directly from their settings.
+                    </div>
+                  )}
+
+                  {/* 2. Companies matching the user's email domain */}
+                  {hasMatches && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground px-1 flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                        {t('onbJoin.fromDomain')}{" "}
+                        <span className="font-semibold text-foreground">{domainMatch?.domain}</span>
+                      </p>
+                      {matches.map((w) =>
+                        renderRequestCard(
+                          w,
+                          w.memberCount === 1
+                            ? t('onbJoin.colleague', { count: w.memberCount })
+                            : t('onbJoin.colleagues', { count: w.memberCount }),
+                        ),
+                      )}
+                    </div>
+                  )}
+
+                  {/* 3. Join with a code (or invite link) */}
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground px-1 flex items-center gap-1.5">
+                      <KeyRound className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                      {t('onbJoin.haveCode')}
+                    </p>
+                    <div className="flex gap-2">
+                      <Input
+                        value={joinCode}
+                        onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 16))}
+                        placeholder={t('onbJoin.codePlaceholder')}
+                        className="uppercase tracking-widest font-mono"
+                        dir="ltr"
+                        data-testid="input-join-code"
+                        onKeyDown={(e) => { if (e.key === "Enter" && joinCode.trim()) joinByCodeMutation.mutate(joinCode); }}
+                      />
+                      <Button
+                        onClick={() => joinCode.trim() && joinByCodeMutation.mutate(joinCode)}
+                        disabled={!joinCode.trim() || joinByCodeMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
+                        data-testid="button-join-code"
+                      >
+                        {joinByCodeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('onbJoin.join')}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground px-1">
+                      {t('onbJoin.askAdmin')}
+                    </p>
+                  </div>
+
+                  {/* Fallback when nothing is waiting for them */}
+                  {pendingInvites.length === 0 && !hasMatches && (
+                    <div className="text-xs text-muted-foreground text-center px-4">
+                      {t('onbJoin.noInvites')}
                     </div>
                   )}
                 </div>

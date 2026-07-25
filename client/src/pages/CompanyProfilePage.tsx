@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
 import { StatusBadge } from "@/components/brand/StatusDot";
 import { verificationStatusToState } from "@/components/brand/statusMap";
+import IndividualProfilePage from "@/pages/IndividualProfilePage";
 
 interface CompanyStats {
   yearsInBusiness?: number;
@@ -191,6 +192,11 @@ export default function CompanyProfilePage() {
   });
 
   if (isLoading) return <ProfileSkeleton />;
+
+  // Individuals get a dedicated, minimal, social-style profile.
+  if (data && data.company.accountType === 'individual') {
+    return <IndividualProfilePage data={data as any} />;
+  }
 
   if (error || !data) {
     return (

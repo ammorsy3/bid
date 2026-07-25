@@ -85,8 +85,15 @@ function syncLanguageFromUser(user: User | null, token: string | null) {
   const localLang = localStorage.getItem('language') as 'en' | 'ar' | null;
 
   if (user.language === 'ar' || user.language === 'en') {
-    // DB has a value — use it as source of truth
-    localStorage.setItem('language', user.language);
+    // DB has a value — use it as source of truth. Writing to localStorage alone
+    // is not enough: I18nProvider's React state only reads localStorage once on
+    // mount, so a background sync (e.g. from checkAuth on every page load) would
+    // otherwise leave the displayed UI language silently out of sync with what
+    // localStorage — and therefore what auth/OTP requests — actually use.
+    if (user.language !== localLang) {
+      localStorage.setItem('language', user.language);
+      window.dispatchEvent(new CustomEvent('bid:language-sync', { detail: user.language }));
+    }
   } else if ((localLang === 'ar' || localLang === 'en') && token) {
     // DB has no value but localStorage does — push to DB
     fetch('/api/user/profile', {
@@ -113,7 +120,11 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string, trustedBrowserToken?: string) => {
         set({ isLoading: true });
         try {
-          const response = await apiRequest('POST', '/api/auth/login', { email, password, trustedBrowserToken });
+          const currentLanguage = localStorage.getItem('language');
+          const response = await apiRequest('POST', '/api/auth/login', {
+            email, password, trustedBrowserToken,
+            language: currentLanguage === 'ar' || currentLanguage === 'en' ? currentLanguage : undefined,
+          });
           const data = await response.json();
           
           set({
@@ -136,7 +147,11 @@ export const useAuthStore = create<AuthState>()(
       register: async (userData: any) => {
         set({ isLoading: true });
         try {
-          const response = await apiRequest('POST', '/api/auth/register', userData);
+          const currentLanguage = localStorage.getItem('language');
+          const response = await apiRequest('POST', '/api/auth/register', {
+            ...userData,
+            language: currentLanguage === 'ar' || currentLanguage === 'en' ? currentLanguage : undefined,
+          });
           const data = await response.json();
 
           set({

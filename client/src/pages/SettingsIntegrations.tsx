@@ -60,6 +60,7 @@ export default function SettingsIntegrations() {
   const { t } = useI18n();
   const user = useAuthStore((s) => s.user);
   const activeCompany = useAuthStore((s) => s.activeCompany);
+  const isIndividual = (activeCompany as any)?.accountType === "individual";
 
   const [createKeyOpen, setCreateKeyOpen] = useState(false);
   const [createIntegrationOpen, setCreateIntegrationOpen] = useState(false);
@@ -72,6 +73,13 @@ export default function SettingsIntegrations() {
 
   if (!user) {
     setLocation("/login");
+    return null;
+  }
+
+  // Individuals have no API access (they can't create tenders or use the AI
+  // copilot) — bounce them out if they reach this URL directly.
+  if (isIndividual) {
+    setLocation("/settings");
     return null;
   }
 

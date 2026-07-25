@@ -17,11 +17,14 @@ interface MiddlewareDeps {
   authenticateToken: RequestHandler;
   requireCompanyContext: RequestHandler;
   requireCompanyRole: (minRole: "owner" | "admin" | "member" | "viewer") => RequestHandler;
+  requireAccountType: (...types: ("company" | "team" | "individual")[]) => RequestHandler;
 }
 
 export function registerIntegrationsAdminRoutes(app: Express, deps: MiddlewareDeps): void {
-  const { authenticateToken, requireCompanyContext, requireCompanyRole } = deps;
-  const adminGate = [authenticateToken, requireCompanyContext, requireCompanyRole("admin")];
+  const { authenticateToken, requireCompanyContext, requireCompanyRole, requireAccountType } = deps;
+  // API keys & integrations are a buyer/collaboration feature. Individuals can't
+  // create tenders or use the AI copilot, so they get no API access either.
+  const adminGate = [authenticateToken, requireCompanyContext, requireAccountType("company", "team"), requireCompanyRole("admin")];
 
   const r = Router();
 

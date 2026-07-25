@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { UsersRound, Loader2 } from "lucide-react";
@@ -55,6 +56,7 @@ interface CreateTeamDialogProps {
 export default function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialogProps) {
   const [, setLocation] = useLocation();
   const { checkAuth } = useAuthStore();
+  const { t } = useI18n();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
 
@@ -80,8 +82,8 @@ export default function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialo
       if (result.token) localStorage.setItem("token", result.token);
       await checkAuth();
       toast({
-        title: "Team created",
-        description: "You're now in your team workspace. Invite teammates to collaborate.",
+        title: t('createTeamDialog.createdTitle'),
+        description: t('createTeamDialog.createdDesc'),
       });
       form.reset();
       onOpenChange(false);
@@ -89,8 +91,8 @@ export default function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialo
       setLocation("/dashboard");
     } catch (error: any) {
       toast({
-        title: "Couldn't create team",
-        description: error.message || "Please try again.",
+        title: t('createTeamDialog.couldntCreate'),
+        description: error.message || t('createTeamDialog.tryAgain'),
         variant: "destructive",
       });
     } finally {
@@ -107,9 +109,9 @@ export default function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialo
               <UsersRound className="w-5 h-5 text-sky-600" />
             </div>
             <div>
-              <DialogTitle>Create a team</DialogTitle>
+              <DialogTitle>{t('createTeamDialog.title')}</DialogTitle>
               <DialogDescription>
-                Set up a shared team workspace to apply to tenders together.
+                {t('createTeamDialog.subtitle')}
               </DialogDescription>
             </div>
           </div>
@@ -122,16 +124,16 @@ export default function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialo
               name="teamName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Team Name *</FormLabel>
+                  <FormLabel>{t('createTeamDialog.teamName')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g. Alpha Consulting Group"
+                      placeholder={t('createTeamDialog.teamNamePlaceholder')}
                       {...field}
                       data-testid="input-team-name"
                     />
                   </FormControl>
                   <FormDescription>
-                    This is the name other users see when your team applies to tenders.
+                    {t('createTeamDialog.teamNameHelp')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -143,11 +145,11 @@ export default function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialo
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Team Category *</FormLabel>
+                  <FormLabel>{t('createTeamDialog.teamCategory')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-team-category">
-                        <SelectValue placeholder="Select your team's main area of work" />
+                        <SelectValue placeholder={t('createTeamDialog.selectCategory')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -164,8 +166,7 @@ export default function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialo
             />
 
             <div className="rounded-lg bg-sky-50 border border-sky-200 p-3 text-xs text-sky-700">
-              After creating the team, you can invite teammates and assign them roles.
-              Your individual workspace stays available in the workspace switcher.
+              {t('createTeamDialog.note')}
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -175,7 +176,7 @@ export default function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialo
                 onClick={() => onOpenChange(false)}
                 disabled={submitting}
               >
-                Cancel
+                {t('createTeamDialog.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -186,10 +187,10 @@ export default function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialo
                 {submitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating team…
+                    {t('createTeamDialog.creating')}
                   </>
                 ) : (
-                  "Create team"
+                  t('createTeamDialog.create')
                 )}
               </Button>
             </div>

@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuthStore } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,7 @@ interface ProfileResponse {
 export default function IndividualProfileEditor() {
   const [location, navigate] = useLocation();
   const isOnboarding = location.startsWith("/onboarding");
+  const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
@@ -116,7 +118,7 @@ export default function IndividualProfileEditor() {
       const { url } = await uploadImage("/api/company/logo", file);
       setAvatarUrl(url);
     } catch {
-      toast({ title: "Upload failed", description: "Could not upload your photo.", variant: "destructive" });
+      toast({ title: t('profEditor.uploadFailed'), description: t('profEditor.uploadPhotoFailed'), variant: "destructive" });
     } finally {
       setUploading(null);
     }
@@ -128,7 +130,7 @@ export default function IndividualProfileEditor() {
       const { url } = await uploadImage("/api/company/header", file);
       setHeaderUrl(url);
     } catch {
-      toast({ title: "Upload failed", description: "Could not upload your header.", variant: "destructive" });
+      toast({ title: t('profEditor.uploadFailed'), description: t('profEditor.uploadHeaderFailed'), variant: "destructive" });
     } finally {
       setUploading(null);
     }
@@ -158,29 +160,29 @@ export default function IndividualProfileEditor() {
       queryClient.invalidateQueries({ queryKey: ["/api/companies", activeCompanyId, "profile"] });
       if (isOnboarding) {
         // First-time setup → next comes identity verification.
-        toast({ title: "Profile created", description: "One last step — verify your identity." });
+        toast({ title: t('profEditor.createdTitle'), description: t('profEditor.createdDesc') });
         navigate("/onboarding/individual-verify");
       } else {
-        toast({ title: "Profile saved", description: "Your profile has been updated." });
+        toast({ title: t('profEditor.savedTitle'), description: t('profEditor.savedDesc') });
         navigate("/dashboard");
       }
     },
     onError: (e: any) => {
-      toast({ title: "Couldn't save", description: e.message || "Please try again.", variant: "destructive" });
+      toast({ title: t('profEditor.couldntSave'), description: e.message || t('profEditor.tryAgain'), variant: "destructive" });
     },
   });
 
   const handleSave = () => {
     if (!displayName.trim()) {
-      toast({ title: "Display name required", variant: "destructive" });
+      toast({ title: t('profEditor.errName'), variant: "destructive" });
       return;
     }
     if (username.trim().length < 3) {
-      toast({ title: "Username too short", description: "Use at least 3 characters.", variant: "destructive" });
+      toast({ title: t('profEditor.errUsername'), description: t('profEditor.errUsernameDesc'), variant: "destructive" });
       return;
     }
     if (!whatsappNumber.trim()) {
-      toast({ title: "WhatsApp number required", description: "Add a WhatsApp number so requesters can reach you.", variant: "destructive" });
+      toast({ title: t('profEditor.errWhatsapp'), description: t('profEditor.errWhatsappDesc'), variant: "destructive" });
       return;
     }
     saveMutation.mutate();
@@ -205,14 +207,14 @@ export default function IndividualProfileEditor() {
             className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t('profEditor.back')}
           </button>
         )}
         <Button onClick={handleSave} disabled={saveMutation.isPending} data-testid="button-save-profile" className="bg-[#FE3C01] hover:bg-[#1A1613] text-white">
           {saveMutation.isPending ? (
-            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</>
+            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{isOnboarding ? t('indBasics.creating') : t('profEditor.save')}</>
           ) : (
-            <><Check className="h-4 w-4 mr-2" />{isOnboarding ? "Create profile" : "Save"}</>
+            <><Check className="h-4 w-4 mr-2" />{isOnboarding ? t('profEditor.createProfile') : t('profEditor.save')}</>
           )}
         </Button>
       </nav>
@@ -221,10 +223,10 @@ export default function IndividualProfileEditor() {
         {isOnboarding && (
           <div className="text-center pt-2 pb-1">
             <h1 className="font-display font-black text-2xl sm:text-3xl tracking-[-0.03em] text-foreground">
-              Create your profile
+              {t('profEditor.createHeading')}
             </h1>
             <p className="text-sm text-muted-foreground mt-1.5">
-              This is how requesters and companies will see you on Bid. You can refine it anytime.
+              {t('profEditor.createSubtitle')}
             </p>
           </div>
         )}
@@ -242,7 +244,7 @@ export default function IndividualProfileEditor() {
               data-testid="button-upload-header"
             >
               {uploading === "header" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
-              Header
+              {t('profEditor.header')}
             </button>
             <input ref={headerInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPickHeader(f); e.currentTarget.value = ""; }} />
           </div>
@@ -270,11 +272,11 @@ export default function IndividualProfileEditor() {
         {/* Identity */}
         <div className="bg-card rounded-3xl border border-border p-5 space-y-4">
           <div>
-            <Label htmlFor="displayName">Display name</Label>
-            <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="mt-1.5" data-testid="input-display-name" />
+            <Label htmlFor="displayName">{t('profEditor.displayName')}</Label>
+            <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={t('profEditor.displayNamePlaceholder')} className="mt-1.5" data-testid="input-display-name" />
           </div>
           <div>
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">{t('profEditor.username')}</Label>
             <div className="mt-1.5 flex items-center rounded-md border border-input bg-background focus-within:ring-1 focus-within:ring-ring overflow-hidden">
               <span className="pl-3 pr-1 text-sm text-muted-foreground select-none">@</span>
               <input
@@ -283,16 +285,17 @@ export default function IndividualProfileEditor() {
                 onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
                 placeholder="your-handle"
                 className="flex-1 bg-transparent py-2 pr-3 text-sm outline-none"
+                dir="ltr"
                 data-testid="input-username"
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Your public profile lives at /company/{username || "your-handle"}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('profEditor.usernameHelp', { handle: username || "your-handle" })}</p>
           </div>
           <div>
-            <Label>Field / Industry</Label>
+            <Label>{t('profEditor.fieldIndustry')}</Label>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger className="mt-1.5" data-testid="select-category">
-                <SelectValue placeholder="Select your field" />
+                <SelectValue placeholder={t('profEditor.selectField')} />
               </SelectTrigger>
               <SelectContent>
                 {VENDOR_CATEGORIES.map((c) => (
@@ -302,15 +305,15 @@ export default function IndividualProfileEditor() {
             </Select>
           </div>
           <div>
-            <Label htmlFor="bio">Short bio</Label>
-            <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value.slice(0, 400))} placeholder="A short, professional introduction." rows={3} className="mt-1.5" data-testid="input-bio" />
+            <Label htmlFor="bio">{t('profEditor.shortBio')}</Label>
+            <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value.slice(0, 400))} placeholder={t('profEditor.bioPlaceholder')} rows={3} className="mt-1.5" data-testid="input-bio" />
             <p className="text-xs text-muted-foreground mt-1">{bio.length}/400</p>
           </div>
         </div>
 
         {/* External links */}
         <div className="bg-card rounded-3xl border border-border p-5 space-y-3">
-          <h2 className="text-sm font-semibold text-foreground">External links</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t('profEditor.externalLinks')}</h2>
           {SOCIAL_FIELDS.map(({ key, label, Icon, placeholder }) => (
             <div key={key} className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
@@ -332,39 +335,40 @@ export default function IndividualProfileEditor() {
         {/* WhatsApp */}
         <div className="bg-card rounded-3xl border border-border p-5 space-y-4">
           <div>
-            <h2 className="text-sm font-semibold text-foreground">WhatsApp contact <span className="text-[#FE3C01]">*</span></h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Required. Include country code, e.g. +9665XXXXXXXX.</p>
+            <h2 className="text-sm font-semibold text-foreground">{t('profEditor.whatsappContact')} <span className="text-[#FE3C01]">*</span></h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{t('profEditor.whatsappRequired')}</p>
           </div>
           <Input
             value={whatsappNumber}
             onChange={(e) => setWhatsappNumber(e.target.value)}
             placeholder="+966 5X XXX XXXX"
+            dir="ltr"
             data-testid="input-whatsapp"
           />
           <div className="space-y-2">
-            <Label>Who can see it</Label>
+            <Label>{t('profEditor.whoCanSee')}</Label>
             <button
               type="button"
               onClick={() => setWhatsappVisibility("requesters")}
-              className={`w-full flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${whatsappVisibility === "requesters" ? "border-[#FE3C01] bg-[#FE3C01]/[0.04]" : "border-border hover:border-foreground/20"}`}
+              className={`w-full flex items-start gap-3 rounded-xl border p-3 text-start transition-colors ${whatsappVisibility === "requesters" ? "border-[#FE3C01] bg-[#FE3C01]/[0.04]" : "border-border hover:border-foreground/20"}`}
               data-testid="whatsapp-vis-requesters"
             >
               <Users className={`h-4 w-4 mt-0.5 ${whatsappVisibility === "requesters" ? "text-[#FE3C01]" : "text-muted-foreground"}`} />
               <div>
-                <p className="text-sm font-medium text-foreground">Requesters I apply to</p>
-                <p className="text-xs text-muted-foreground">Only companies whose tenders you apply to can see your number.</p>
+                <p className="text-sm font-medium text-foreground">{t('profEditor.visRequesters')}</p>
+                <p className="text-xs text-muted-foreground">{t('profEditor.visRequestersDesc')}</p>
               </div>
             </button>
             <button
               type="button"
               onClick={() => setWhatsappVisibility("public")}
-              className={`w-full flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${whatsappVisibility === "public" ? "border-[#FE3C01] bg-[#FE3C01]/[0.04]" : "border-border hover:border-foreground/20"}`}
+              className={`w-full flex items-start gap-3 rounded-xl border p-3 text-start transition-colors ${whatsappVisibility === "public" ? "border-[#FE3C01] bg-[#FE3C01]/[0.04]" : "border-border hover:border-foreground/20"}`}
               data-testid="whatsapp-vis-public"
             >
               <Eye className={`h-4 w-4 mt-0.5 ${whatsappVisibility === "public" ? "text-[#FE3C01]" : "text-muted-foreground"}`} />
               <div>
-                <p className="text-sm font-medium text-foreground">Everyone</p>
-                <p className="text-xs text-muted-foreground">Shown publicly on your profile as a contact link.</p>
+                <p className="text-sm font-medium text-foreground">{t('profEditor.visEveryone')}</p>
+                <p className="text-xs text-muted-foreground">{t('profEditor.visEveryoneDesc')}</p>
               </div>
             </button>
           </div>

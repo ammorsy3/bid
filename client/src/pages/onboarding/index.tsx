@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Building2, User, Users, ArrowRight, ChevronDown, Loader2, Clock, Mail, KeyRound } from "lucide-react";
@@ -38,6 +39,7 @@ interface PendingInvite {
 export default function OnboardingChoice() {
   const [, setLocation] = useLocation();
   const { user, activeCompany } = useAuthStore();
+  const { t } = useI18n();
   const { toast } = useToast();
 
   const [joinExpanded, setJoinExpanded] = useState(false);
@@ -97,14 +99,14 @@ export default function OnboardingChoice() {
       setRequestMessage("");
       refetchDomainMatch();
       toast({
-        title: "Request sent",
-        description: "Your join request was sent to the workspace admins. You'll get an email once they decide.",
+        title: t('onbJoin.requestSent'),
+        description: t('onbJoin.requestSentDesc'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Couldn't send request",
-        description: error.message || "Please try again.",
+        title: t('onbJoin.couldntJoin'),
+        description: error.message || t('profEditor.tryAgain'),
         variant: "destructive",
       });
     },
@@ -136,13 +138,13 @@ export default function OnboardingChoice() {
     onSuccess: async (data) => {
       if (data?.token) localStorage.setItem("token", data.token);
       await useAuthStore.getState().checkAuth();
-      toast({ title: "You're in!", description: `Joined ${data.activeCompany?.name || "the workspace"}.` });
+      toast({ title: t('onbJoin.joinedTitle'), description: t('onbJoin.joinedDesc', { name: data.activeCompany?.name || "" }) });
       setLocation("/dashboard");
     },
     onError: (err: any) => {
       toast({
-        title: "Couldn't join",
-        description: err.message || "Check the code and try again.",
+        title: t('onbJoin.couldntJoin'),
+        description: err.message || t('onbJoin.checkCode'),
         variant: "destructive",
       });
     },
@@ -161,16 +163,16 @@ export default function OnboardingChoice() {
       if (data?.token) localStorage.setItem("token", data.token);
       await useAuthStore.getState().checkAuth();
       toast({
-        title: "You're in!",
-        description: "Invitation accepted. Welcome to the team.",
+        title: t('onbJoin.joinedTitle'),
+        description: t('onbJoin.inviteAcceptedDesc'),
       });
       setLocation("/dashboard");
     },
     onError: (error: any) => {
       setAcceptingToken(null);
       toast({
-        title: "Couldn't accept invitation",
-        description: error.message || "Please try again.",
+        title: t('onbJoin.couldntJoin'),
+        description: error.message || t('profEditor.tryAgain'),
         variant: "destructive",
       });
     },
@@ -185,8 +187,8 @@ export default function OnboardingChoice() {
     {
       key: "company",
       icon: Building2,
-      title: "Create a Company",
-      description: "Registered business looking to post tenders, manage vendors, and evaluate proposals.",
+      title: t('onbJoin.createCompany'),
+      description: t('onbJoin.createCompanyDesc'),
       onClick: () => setLocation("/onboarding/company-basics"),
       color: "text-[#FE3C01]",
       iconBg: "bg-[#FE3C01]/10",
@@ -196,8 +198,8 @@ export default function OnboardingChoice() {
     {
       key: "join",
       icon: Users,
-      title: "Join a Company",
-      description: "Your company is already on Bid. Find your company's workspace and request access.",
+      title: t('onbJoin.joinCompany'),
+      description: t('onbJoin.joinCompanyDesc'),
       onClick: () => setJoinExpanded((v) => !v),
       color: "text-blue-600",
       iconBg: "bg-blue-50",
@@ -207,8 +209,8 @@ export default function OnboardingChoice() {
     {
       key: "individual",
       icon: User,
-      title: "Individual",
-      description: "Solo professional. Build your profile, showcase your work, and respond to opportunities.",
+      title: t('onbJoin.individual'),
+      description: t('onbJoin.individualDesc'),
       onClick: () => setLocation("/onboarding/individual-basics"),
       color: "text-[var(--state-won)]",
       iconBg: "bg-[var(--state-won)]/10",
@@ -235,12 +237,12 @@ export default function OnboardingChoice() {
             </div>
             {w.alreadyMember ? (
               <div className="flex items-center gap-1.5 text-sm font-medium text-[var(--state-won)] whitespace-nowrap">
-                Already a member
+                {t('onbJoin.alreadyMember')}
               </div>
             ) : isPending ? (
               <div className="flex items-center gap-1.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-md whitespace-nowrap">
                 <Clock className="w-3.5 h-3.5" />
-                Request pending
+                {t('onbJoin.requestPending')}
               </div>
             ) : requestingId === w.id ? null : (
               <Button
@@ -249,7 +251,7 @@ export default function OnboardingChoice() {
                 className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
                 data-testid={`button-request-join-${w.slug}`}
               >
-                Request to join
+                {t('onbJoin.requestToJoin')}
               </Button>
             )}
           </div>
@@ -258,7 +260,7 @@ export default function OnboardingChoice() {
               <Textarea
                 value={requestMessage}
                 onChange={(e) => setRequestMessage(e.target.value.slice(0, 500))}
-                placeholder={`Optional: tell the admins of ${w.name} who you are`}
+                placeholder={t('onbJoin.requestPlaceholder', { name: w.name })}
                 rows={2}
                 className="text-sm"
                 disabled={requestJoinMutation.isPending}
@@ -270,7 +272,7 @@ export default function OnboardingChoice() {
                   onClick={() => setRequestingId(null)}
                   disabled={requestJoinMutation.isPending}
                 >
-                  Cancel
+                  {t('onbJoin.cancel')}
                 </Button>
                 <Button
                   size="sm"
@@ -281,10 +283,10 @@ export default function OnboardingChoice() {
                   {requestJoinMutation.isPending ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                      Sending…
+                      {t('onbJoin.sending')}
                     </>
                   ) : (
-                    "Send request"
+                    t('onbJoin.sendRequest')
                   )}
                 </Button>
               </div>
@@ -299,9 +301,9 @@ export default function OnboardingChoice() {
     <OnboardingLayout>
       <div className="text-center mb-8">
         <h1 className="font-display font-black text-3xl text-foreground mb-2 tracking-[-0.04em]">
-          Welcome, {user.name.split(" ")[0]}!
+          {t('onbJoin.welcome', { name: user.name.split(" ")[0] })}
         </h1>
-        <p className="text-muted-foreground text-base">How are you joining Bid?</p>
+        <p className="text-muted-foreground text-base">{t('onbJoin.howJoining')}</p>
       </div>
 
       <div className="space-y-3">
@@ -352,10 +354,9 @@ export default function OnboardingChoice() {
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground px-1 flex items-center gap-1.5">
                         <Mail className="w-3.5 h-3.5 text-[var(--state-won)] flex-shrink-0" />
-                        You've been invited to{" "}
-                        <span className="font-semibold text-foreground">
-                          {pendingInvites.length} {pendingInvites.length === 1 ? "company" : "companies"}
-                        </span>
+                        {pendingInvites.length === 1
+                          ? t('onbJoin.invitedHeading', { count: pendingInvites.length })
+                          : t('onbJoin.invitedHeadingPlural', { count: pendingInvites.length })}
                       </p>
                       {pendingInvites.map((inv) => {
                         const isAccepting = acceptingToken === inv.token && acceptInviteMutation.isPending;
@@ -366,7 +367,7 @@ export default function OnboardingChoice() {
                                 <div className="flex-1 min-w-0">
                                   <h3 className="text-base font-semibold text-foreground truncate">{inv.companyName}</h3>
                                   <p className="text-xs text-muted-foreground mt-0.5">
-                                    Invited by {inv.inviterName} as {inv.role}
+                                    {t('onbJoin.invitedBy', { inviter: inv.inviterName, role: inv.role })}
                                   </p>
                                 </div>
                                 <Button
@@ -379,10 +380,10 @@ export default function OnboardingChoice() {
                                   {isAccepting ? (
                                     <>
                                       <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                                      Joining…
+                                      {t('onbJoin.joining')}
                                     </>
                                   ) : (
-                                    "Accept & join"
+                                    t('onbJoin.acceptJoin')
                                   )}
                                 </Button>
                               </div>
@@ -398,13 +399,15 @@ export default function OnboardingChoice() {
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground px-1 flex items-center gap-1.5">
                         <Users className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                        From your email domain{" "}
+                        {t('onbJoin.fromDomain')}{" "}
                         <span className="font-semibold text-foreground">{domainMatch?.domain}</span>
                       </p>
                       {matches.map((w) =>
                         renderRequestCard(
                           w,
-                          `${w.memberCount} ${w.memberCount === 1 ? "colleague" : "colleagues"} from your domain`,
+                          w.memberCount === 1
+                            ? t('onbJoin.colleague', { count: w.memberCount })
+                            : t('onbJoin.colleagues', { count: w.memberCount }),
                         ),
                       )}
                     </div>
@@ -414,14 +417,15 @@ export default function OnboardingChoice() {
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground px-1 flex items-center gap-1.5">
                       <KeyRound className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                      Have a join code?
+                      {t('onbJoin.haveCode')}
                     </p>
                     <div className="flex gap-2">
                       <Input
                         value={joinCode}
                         onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 16))}
-                        placeholder="Enter code, e.g. AB12CD34"
+                        placeholder={t('onbJoin.codePlaceholder')}
                         className="uppercase tracking-widest font-mono"
+                        dir="ltr"
                         data-testid="input-join-code"
                         onKeyDown={(e) => { if (e.key === "Enter" && joinCode.trim()) joinByCodeMutation.mutate(joinCode); }}
                       />
@@ -431,18 +435,18 @@ export default function OnboardingChoice() {
                         className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
                         data-testid="button-join-code"
                       >
-                        {joinByCodeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Join"}
+                        {joinByCodeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('onbJoin.join')}
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground px-1">
-                      Ask a company admin for its join code or invite link.
+                      {t('onbJoin.askAdmin')}
                     </p>
                   </div>
 
                   {/* Fallback when nothing is waiting for them */}
                   {pendingInvites.length === 0 && !hasMatches && (
                     <div className="text-xs text-muted-foreground text-center px-4">
-                      No invitations found for your email — use a join code above, or ask an admin to invite you.
+                      {t('onbJoin.noInvites')}
                     </div>
                   )}
                 </div>

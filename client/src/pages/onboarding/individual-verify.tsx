@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { ShieldCheck, Loader2, ArrowRight, Clock } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
@@ -24,6 +25,7 @@ type FormValues = z.infer<typeof schema>;
 export default function IndividualVerify() {
   const [, setLocation] = useLocation();
   const { user, activeCompany, checkAuth } = useAuthStore();
+  const { t } = useI18n();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
 
@@ -57,14 +59,14 @@ export default function IndividualVerify() {
       // before we navigate — otherwise the dashboard gate bounces us back here.
       await checkAuth();
       toast({
-        title: "Verification submitted",
-        description: "Your National ID is under review. We'll notify you once it's approved.",
+        title: t('indVerify.submittedTitle'),
+        description: t('indVerify.submittedDesc'),
       });
       setLocation("/dashboard");
     } catch (error: any) {
       toast({
-        title: "Couldn't submit verification",
-        description: error.message || "Please try again.",
+        title: t('indVerify.failedTitle'),
+        description: error.message || t('indVerify.failedDesc'),
         variant: "destructive",
       });
     } finally {
@@ -84,10 +86,10 @@ export default function IndividualVerify() {
             </div>
             <div>
               <h2 className="font-display font-black text-2xl text-foreground tracking-[-0.03em]">
-                Verify your identity
+                {t('indVerify.heading')}
               </h2>
               <p className="text-sm text-muted-foreground">
-                Required to respond to RFPs and receive payments.
+                {t('indVerify.subtitle')}
               </p>
             </div>
           </div>
@@ -99,18 +101,19 @@ export default function IndividualVerify() {
                 name="nationalIdNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>National ID Number *</FormLabel>
+                    <FormLabel>{t('indVerify.nationalId')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="10-digit ID number"
+                        placeholder={t('indVerify.nationalIdPlaceholder')}
                         maxLength={10}
                         inputMode="numeric"
+                        dir="ltr"
                         {...field}
                         autoFocus
                       />
                     </FormControl>
                     <FormDescription>
-                      Your Saudi National ID (هوية وطنية) — 10 digits starting with 1 or 2.
+                      {t('indVerify.nationalIdHelp')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -120,8 +123,7 @@ export default function IndividualVerify() {
               <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 flex items-start gap-2 text-xs text-amber-800">
                 <Clock className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                 <span>
-                  Verification is reviewed manually and usually takes 1–2 business days.
-                  You can still browse and explore Bid while it's pending.
+                  {t('indVerify.reviewNote')}
                 </span>
               </div>
 
@@ -135,12 +137,12 @@ export default function IndividualVerify() {
                   {submitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting…
+                      {t('indVerify.submitting')}
                     </>
                   ) : (
                     <>
-                      Submit for review
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      {t('indVerify.submit')}
+                      <ArrowRight className="ml-2 h-4 w-4 rtl:rotate-180" />
                     </>
                   )}
                 </Button>

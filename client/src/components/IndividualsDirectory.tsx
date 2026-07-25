@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,10 +26,10 @@ interface DirectoryIndividual {
   inBase: boolean;
 }
 
-const AVAILABILITY: Record<string, { label: string; cls: string }> = {
-  accepting: { label: "Open to work", cls: "text-[var(--state-won)]" },
-  limited: { label: "Limited availability", cls: "text-amber-600" },
-  booked: { label: "Booked", cls: "text-muted-foreground" },
+const AVAILABILITY: Record<string, { labelKey: string; cls: string }> = {
+  accepting: { labelKey: "directory.openToWork", cls: "text-[var(--state-won)]" },
+  limited: { labelKey: "directory.limited", cls: "text-amber-600" },
+  booked: { labelKey: "directory.booked", cls: "text-muted-foreground" },
 };
 
 function initialsOf(name: string): string {
@@ -36,6 +37,7 @@ function initialsOf(name: string): string {
 }
 
 export default function IndividualsDirectory() {
+  const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -45,8 +47,8 @@ export default function IndividualsDirectory() {
   const [added, setAdded] = useState<Record<string, true>>({});
 
   useEffect(() => {
-    const t = setTimeout(() => setDebounced(search.trim()), 300);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setDebounced(search.trim()), 300);
+    return () => clearTimeout(timer);
   }, [search]);
 
   const { data, isFetching } = useQuery<{ individuals: DirectoryIndividual[]; total: number }>({
@@ -70,10 +72,10 @@ export default function IndividualsDirectory() {
     onSuccess: (_b, vendorCompanyId) => {
       setAdded((s) => ({ ...s, [vendorCompanyId]: true }));
       queryClient.invalidateQueries({ queryKey: ["/api/vendors-base"] });
-      toast({ title: "Added to your vendors base", description: "You can now invite them to tenders." });
+      toast({ title: t('directory.addedTitle'), description: t('directory.addedDesc') });
     },
     onError: (e: any) => {
-      toast({ title: "Couldn't add", description: e.message || "Please try again.", variant: "destructive" });
+      toast({ title: t('directory.couldntAdd'), description: e.message || t('directory.tryAgain'), variant: "destructive" });
     },
   });
 
@@ -84,23 +86,23 @@ export default function IndividualsDirectory() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 rtl:right-3 rtl:left-auto top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search individuals by name or bio…"
+            placeholder={t('directory.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 rtl:pr-9 rtl:pl-3"
             data-testid="input-directory-search"
           />
         </div>
         <div className="w-full sm:w-44">
-          <Input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} data-testid="input-directory-city" />
+          <Input placeholder={t('directory.city')} value={city} onChange={(e) => setCity(e.target.value)} data-testid="input-directory-city" />
         </div>
         <div className="w-full sm:w-56">
           <Select value={category || "all"} onValueChange={(v) => setCategory(v === "all" ? "" : v)}>
-            <SelectTrigger data-testid="select-directory-category"><SelectValue placeholder="Field" /></SelectTrigger>
+            <SelectTrigger data-testid="select-directory-category"><SelectValue placeholder={t('directory.field')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All fields</SelectItem>
+              <SelectItem value="all">{t('directory.allFields')}</SelectItem>
               {VENDOR_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -115,8 +117,8 @@ export default function IndividualsDirectory() {
       ) : individuals.length === 0 ? (
         <div className="text-center py-16 px-4 bg-muted rounded-2xl border border-border">
           <Users className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-          <p className="text-sm font-medium text-foreground">No individuals found</p>
-          <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filters.</p>
+          <p className="text-sm font-medium text-foreground">{t('directory.noneTitle')}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t('directory.noneDesc')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -147,7 +149,7 @@ export default function IndividualsDirectory() {
                           <MapPin className="h-3 w-3" />{ind.city}
                         </span>
                       )}
-                      {avail && <span className={`text-[11px] font-medium ${avail.cls}`}>{avail.label}</span>}
+                      {avail && <span className={`text-[11px] font-medium ${avail.cls}`}>{t(avail.labelKey)}</span>}
                     </div>
                   </div>
                 </div>
@@ -157,7 +159,7 @@ export default function IndividualsDirectory() {
                 <div className="flex items-center gap-2 mt-4">
                   {isAdded ? (
                     <Button variant="outline" size="sm" disabled className="flex-1">
-                      <Check className="h-3.5 w-3.5 mr-1.5" />In your base
+                      <Check className="h-3.5 w-3.5 mr-1.5" />{t('directory.inBase')}
                     </Button>
                   ) : (
                     <Button
@@ -170,7 +172,7 @@ export default function IndividualsDirectory() {
                       {addMutation.isPending && addMutation.variables === ind.companyId ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
-                        <><UserPlus className="h-3.5 w-3.5 mr-1.5" />Add to base</>
+                        <><UserPlus className="h-3.5 w-3.5 mr-1.5" />{t('directory.addToBase')}</>
                       )}
                     </Button>
                   )}
@@ -179,7 +181,7 @@ export default function IndividualsDirectory() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center h-9 w-9 rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                    aria-label="View profile"
+                    aria-label={t('directory.viewProfile')}
                     data-testid={`button-view-${ind.slug}`}
                   >
                     <ExternalLink className="h-4 w-4" />

@@ -1058,8 +1058,8 @@ export default function Dashboard() {
                           <Plus className="h-4 w-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">Activate individual account</p>
-                          <p className="text-xs text-muted-foreground truncate">Set up your personal profile</p>
+                          <p className="text-sm font-medium truncate">{t('activateIndividual.label')}</p>
+                          <p className="text-xs text-muted-foreground truncate">{t('activateIndividual.sublabel')}</p>
                         </div>
                       </DropdownMenuItem>
                     </>
@@ -2815,7 +2815,7 @@ export default function Dashboard() {
                   </TabsTrigger>
                   <TabsTrigger value="discover" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-discover-individuals">
                     <Search className="h-4 w-4" />
-                    Discover
+                    {t('directory.title')}
                   </TabsTrigger>
                   <TabsTrigger value="join-requests" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-join-requests" data-tour="vendors-requests-tab">
                     <UserPlus className="h-4 w-4" />
@@ -2832,7 +2832,7 @@ export default function Dashboard() {
                 <TabsContent value="discover" className="space-y-4">
                   <div className="max-w-[52ch]">
                     <p className="text-sm text-muted-foreground">
-                      Find individuals across Bid and add them to your vendors base with one click — then invite them to your tenders.
+                      {t('directory.intro')}
                     </p>
                   </div>
                   <IndividualsDirectory />

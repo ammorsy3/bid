@@ -3,6 +3,7 @@ import { useRoute, useLocation } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
 import { Loader2 } from "lucide-react";
 
 // Handles an invite link (/join/:code). Logged-in users join instantly and
@@ -13,6 +14,7 @@ export default function JoinByCode() {
   const code = (params?.code || "").toUpperCase();
   const [, setLocation] = useLocation();
   const { user } = useAuthStore();
+  const { t } = useI18n();
   const { toast } = useToast();
   const ran = useRef(false);
 
@@ -32,10 +34,10 @@ export default function JoinByCode() {
         if (!res.ok) throw new Error(body.message || "That invite link isn't valid.");
         if (body.token) localStorage.setItem("token", body.token);
         await useAuthStore.getState().checkAuth();
-        toast({ title: "You're in!", description: `Joined ${body.activeCompany?.name || "the workspace"}.` });
+        toast({ title: t('onbJoin.joinedTitle'), description: t('onbJoin.joinedDesc', { name: body.activeCompany?.name || "" }) });
         setLocation("/dashboard");
       } catch (e: any) {
-        toast({ title: "Couldn't join", description: e.message, variant: "destructive" });
+        toast({ title: t('onbJoin.couldntJoin'), description: e.message, variant: "destructive" });
         setLocation("/dashboard");
       }
     })();
@@ -45,7 +47,7 @@ export default function JoinByCode() {
     <div className="min-h-screen flex items-center justify-center bg-muted">
       <div className="flex items-center gap-2 text-muted-foreground">
         <Loader2 className="h-5 w-5 animate-spin" />
-        Joining…
+        {t('onbJoin.joining')}
       </div>
     </div>
   );

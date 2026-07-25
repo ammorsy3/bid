@@ -407,7 +407,7 @@ export default function Marketplace() {
             className="inline-block text-[13px] font-semibold px-3.5 py-1.5 rounded-full mb-4"
             style={{ color: "#FE3C01", background: "#FFE4D7" }}
           >
-            {isIndividual ? "For individuals" : t("marketplace.browseLabel")}
+            {isIndividual ? t("marketplaceInd.forIndividuals") : t("marketplace.browseLabel")}
           </div>
           <h2
             className="font-display font-bold leading-[0.95]"
@@ -423,7 +423,7 @@ export default function Marketplace() {
           </h2>
           {isIndividual && (
             <p className="mt-3 text-base max-w-[52ch]" style={{ color: "#8A8078" }}>
-              Opportunities open to individual applicants — tenders where companies accept individual proposals.
+              {t('marketplaceInd.forIndividualsSub')}
             </p>
           )}
         </div>
@@ -433,9 +433,9 @@ export default function Marketplace() {
           <div className="mb-10">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-[13px] font-semibold px-3 py-1 rounded-full" style={{ color: "#FE3C01", background: "#FFE4D7" }}>
-                Recommended for you
+                {t('marketplaceInd.recommended')}
               </span>
-              <span className="text-sm" style={{ color: "#8A8078" }}>Matched to your field</span>
+              <span className="text-sm" style={{ color: "#8A8078" }}>{t('marketplaceInd.recommendedSub')}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {recommendedTenders.map((rec) => (
@@ -447,7 +447,7 @@ export default function Marketplace() {
                 >
                   <p className="text-sm font-semibold text-[#0B0907] line-clamp-2">{rec.title}</p>
                   <p className="text-xs mt-1" style={{ color: "#8A8078" }}>
-                    {rec.requesterName || "A company"}
+                    {rec.requesterName || t('marketplaceInd.byCompany')}
                     {rec.category ? ` · ${rec.category}` : ""}
                   </p>
                 </Link>
@@ -461,10 +461,12 @@ export default function Marketplace() {
           <div className="mb-10">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-[13px] font-semibold px-3 py-1 rounded-full" style={{ color: "#0B0907", background: "#FFE4D7" }}>
-                Invited to you
+                {t('marketplaceInd.invited')}
               </span>
               <span className="text-sm" style={{ color: "#8A8078" }}>
-                {myInvitations.length} {myInvitations.length === 1 ? "invitation" : "invitations"}
+                {myInvitations.length === 1
+                  ? t('marketplaceInd.invitationOne', { count: myInvitations.length })
+                  : t('marketplaceInd.invitationMany', { count: myInvitations.length })}
               </span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -478,7 +480,7 @@ export default function Marketplace() {
                 >
                   <p className="text-sm font-semibold text-[#0B0907] line-clamp-2">{inv.tender.title}</p>
                   <p className="text-xs mt-1" style={{ color: "#8A8078" }}>
-                    Invited by {inv.requester.name}
+                    {t('marketplaceInd.invitedBy', { name: inv.requester.name })}
                     {inv.tender.category ? ` · ${inv.tender.category}` : ""}
                   </p>
                 </Link>

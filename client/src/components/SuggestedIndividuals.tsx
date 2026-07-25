@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { BadgeCheck, Check, UserPlus, Loader2, Sparkles, ExternalLink } from "lucide-react";
 
@@ -23,6 +24,7 @@ function initialsOf(name: string): string {
 // Owner-facing strip on a tender: field-matched individuals to invite in one
 // click. Only renders when the tender is open to individuals and has matches.
 export default function SuggestedIndividuals({ tenderId }: { tenderId: string }) {
+  const { t } = useI18n();
   const { toast } = useToast();
   const [invited, setInvited] = useState<Record<string, true>>({});
 
@@ -40,10 +42,10 @@ export default function SuggestedIndividuals({ tenderId }: { tenderId: string })
     },
     onSuccess: (_b, individualCompanyId) => {
       setInvited((s) => ({ ...s, [individualCompanyId]: true }));
-      toast({ title: "Invitation sent", description: "They'll see it in their invitations." });
+      toast({ title: t('suggested.sentTitle'), description: t('suggested.sentDesc') });
     },
     onError: (e: any) => {
-      toast({ title: "Couldn't invite", description: e.message || "Please try again.", variant: "destructive" });
+      toast({ title: t('suggested.couldntInvite'), description: e.message || t('suggested.tryAgain'), variant: "destructive" });
     },
   });
 
@@ -54,10 +56,10 @@ export default function SuggestedIndividuals({ tenderId }: { tenderId: string })
     <div className="bg-card rounded-2xl border border-border p-5">
       <div className="flex items-center gap-2 mb-1">
         <Sparkles className="h-4 w-4 text-[#FE3C01]" />
-        <h3 className="text-sm font-semibold text-foreground">Suggested individuals</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t('suggested.title')}</h3>
       </div>
       <p className="text-xs text-muted-foreground mb-4">
-        Matched to this tender's field. Invite them in one click.
+        {t('suggested.subtitle')}
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -80,12 +82,12 @@ export default function SuggestedIndividuals({ tenderId }: { tenderId: string })
                   {s.verificationStatus === "verified" && <BadgeCheck className="h-3.5 w-3.5 text-[#FE3C01] flex-shrink-0" />}
                 </div>
                 <p className="text-xs text-muted-foreground truncate">
-                  {[s.category, s.city].filter(Boolean).join(" · ") || "Individual"}
+                  {[s.category, s.city].filter(Boolean).join(" · ") || t('suggested.individual')}
                 </p>
               </div>
               {isInvited ? (
                 <Button variant="outline" size="sm" disabled>
-                  <Check className="h-3.5 w-3.5 mr-1.5" />Invited
+                  <Check className="h-3.5 w-3.5 mr-1.5" />{t('suggested.invited')}
                 </Button>
               ) : (
                 <Button
@@ -98,7 +100,7 @@ export default function SuggestedIndividuals({ tenderId }: { tenderId: string })
                   {inviteMutation.isPending && inviteMutation.variables === s.companyId ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : (
-                    <><UserPlus className="h-3.5 w-3.5 mr-1.5" />Invite</>
+                    <><UserPlus className="h-3.5 w-3.5 mr-1.5" />{t('suggested.invite')}</>
                   )}
                 </Button>
               )}

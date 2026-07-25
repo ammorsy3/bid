@@ -5,6 +5,7 @@ import {
   MessageCircle, Lock, Pencil, X, LayoutDashboard, Send,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { BidLogo } from "@/components/brand/BidLogo";
 import InviteToTenderModal from "@/components/InviteToTenderModal";
 
@@ -110,6 +111,7 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
 
 export default function IndividualProfilePage({ data }: { data: IndividualProfileData }) {
   const { user, activeCompany } = useAuthStore();
+  const { t } = useI18n();
   const { company, profile } = data;
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -151,7 +153,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
                 data-testid="link-edit-profile"
               >
                 <Pencil className="h-3.5 w-3.5" />
-                Edit profile
+                {t('indProfile.editProfile')}
               </a>
             ) : isLoggedIn ? (
               <Link
@@ -160,7 +162,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
                 data-testid="link-dashboard"
               >
                 <LayoutDashboard className="h-3.5 w-3.5" />
-                Dashboard
+                {t('indProfile.dashboard')}
               </Link>
             ) : (
               <>
@@ -169,14 +171,14 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
                   className="inline-flex items-center text-sm font-medium text-foreground rounded-full px-3.5 py-1.5 hover:bg-muted transition-colors"
                   data-testid="link-login"
                 >
-                  Log in
+                  {t('indProfile.login')}
                 </Link>
                 <Link
                   href="/signup"
                   className="inline-flex items-center text-sm font-medium text-white bg-[#FE3C01] hover:bg-[#1A1613] rounded-full px-4 py-1.5 transition-colors"
                   data-testid="link-signup"
                 >
-                  Sign up
+                  {t('indProfile.signup')}
                 </Link>
               </>
             )}
@@ -209,7 +211,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
                 type="button"
                 onClick={() => profile?.logoUrl && setLightbox(profile.logoUrl)}
                 className={`w-28 h-28 rounded-full ring-4 ring-card bg-muted overflow-hidden shadow-sm flex items-center justify-center ${profile?.logoUrl ? "cursor-zoom-in hover:opacity-95 transition-opacity" : "cursor-default"}`}
-                aria-label={profile?.logoUrl ? "View photo" : undefined}
+                aria-label={profile?.logoUrl ? t('indProfile.viewPhoto') : undefined}
                 data-testid="profile-avatar"
               >
                 {profile?.logoUrl ? (
@@ -229,7 +231,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
                   {displayName}
                 </h1>
                 {isVerified && (
-                  <BadgeCheck className="h-5 w-5 text-[#FE3C01] flex-shrink-0" aria-label="Verified" />
+                  <BadgeCheck className="h-5 w-5 text-[#FE3C01] flex-shrink-0" aria-label={t('indProfile.verified')} />
                 )}
               </div>
               <p className="text-sm text-muted-foreground mt-0.5">@{company.slug}</p>
@@ -259,7 +261,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
                   data-testid="button-invite-to-tender"
                 >
                   <Send className="h-4 w-4" />
-                  Invite to Tender
+                  {t('inviteTender.button')}
                 </button>
               </div>
             )}
@@ -302,7 +304,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
                     data-testid="link-whatsapp"
                   >
                     <MessageCircle className="h-4 w-4" />
-                    Message on WhatsApp
+                    {t('indProfile.messageWhatsapp')}
                   </a>
                 ) : (
                   <div
@@ -310,21 +312,21 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
                     data-testid="whatsapp-locked"
                   >
                     <Lock className="h-3.5 w-3.5" />
-                    WhatsApp shared once they apply to your tender
+                    {t('indProfile.whatsappLocked')}
                   </div>
                 )}
                 {isOwner && whatsappNumber && (
                   <p className="mt-2.5 text-xs text-muted-foreground">
                     {profile?.whatsappVisibility === "public"
-                      ? "Visible to everyone on your profile."
-                      : "Shared only with requesters whose tenders you apply to."}
+                      ? t('indProfile.whatsappPublicNote')
+                      : t('indProfile.whatsappRequestersNote')}
                   </p>
                 )}
               </div>
             )}
 
             {memberSince && (
-              <p className="mt-6 text-xs text-muted-foreground">On Bid since {memberSince}</p>
+              <p className="mt-6 text-xs text-muted-foreground">{t('indProfile.onBidSince', { date: memberSince })}</p>
             )}
           </div>
         </div>
@@ -333,9 +335,9 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
         {!isLoggedIn && (
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Want a profile like this?{" "}
+              {t('indProfile.wantProfile')}{" "}
               <Link href="/signup" className="font-medium text-[#FE3C01] hover:underline">
-                Join Bid
+                {t('indProfile.joinBid')}
               </Link>
             </p>
           </div>
@@ -347,11 +349,11 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <BidLogo variant="orange" size={18} />
-            <span>· Sourcing, redefined.</span>
+            <span>· {t('indProfile.tagline')}</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors">{t('indProfile.privacy')}</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">{t('indProfile.terms')}</Link>
           </div>
         </div>
       </footer>

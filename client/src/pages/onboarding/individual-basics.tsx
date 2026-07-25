@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { ArrowRight, ArrowLeft, User, Loader2 } from "lucide-react";
@@ -25,6 +26,7 @@ type IndividualBasicsForm = z.infer<typeof individualBasicsSchema>;
 export default function IndividualBasics() {
   const [, setLocation] = useLocation();
   const { user, checkAuth } = useAuthStore();
+  const { t } = useI18n();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
 
@@ -57,8 +59,8 @@ export default function IndividualBasics() {
       localStorage.setItem('token', result.token);
       await checkAuth();
       toast({
-        title: "Account created",
-        description: "Let's set up your profile.",
+        title: t('indBasics.accountCreated'),
+        description: t('indBasics.letsSetup'),
       });
       // Individuals must set up their public profile before reaching the
       // dashboard. Honour an invite redirect if one is pending, otherwise send
@@ -72,8 +74,8 @@ export default function IndividualBasics() {
       }
     } catch (error: any) {
       toast({
-        title: "Couldn't create profile",
-        description: error.message || "Please try again.",
+        title: t('indBasics.couldntCreate'),
+        description: error.message || t('profEditor.tryAgain'),
         variant: "destructive",
       });
     } finally {
@@ -92,8 +94,8 @@ export default function IndividualBasics() {
               <User className="w-5 h-5 text-violet-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">Set up your individual profile</h2>
-              <p className="text-sm text-neutral-500">Tell us who you are. You can fill out the rest later.</p>
+              <h2 className="text-xl font-bold text-neutral-900">{t('indBasics.heading')}</h2>
+              <p className="text-sm text-neutral-500">{t('indBasics.subtitle')}</p>
             </div>
           </div>
 
@@ -104,11 +106,11 @@ export default function IndividualBasics() {
                 name="displayName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Display Name *</FormLabel>
+                    <FormLabel>{t('indBasics.displayName')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your full name or professional alias" {...field} data-testid="input-display-name" />
+                      <Input placeholder={t('indBasics.displayNamePlaceholder')} {...field} data-testid="input-display-name" />
                     </FormControl>
-                    <FormDescription>This is what others will see when you apply to tenders.</FormDescription>
+                    <FormDescription>{t('indBasics.displayNameHelp')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -119,11 +121,11 @@ export default function IndividualBasics() {
                 name="specialization"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Specialization *</FormLabel>
+                    <FormLabel>{t('indBasics.specialization')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-specialization">
-                          <SelectValue placeholder="Select your main area of expertise" />
+                          <SelectValue placeholder={t('indBasics.selectExpertise')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -146,8 +148,8 @@ export default function IndividualBasics() {
                   onClick={() => setLocation("/onboarding")}
                   disabled={submitting}
                 >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  <ArrowLeft className="mr-2 h-4 w-4 rtl:rotate-180" />
+                  {t('indBasics.back')}
                 </Button>
                 <Button
                   type="submit"
@@ -158,12 +160,12 @@ export default function IndividualBasics() {
                   {submitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating profile…
+                      {t('indBasics.creating')}
                     </>
                   ) : (
                     <>
-                      Go to dashboard
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      {t('indBasics.goToDashboard')}
+                      <ArrowRight className="ml-2 h-4 w-4 rtl:rotate-180" />
                     </>
                   )}
                 </Button>

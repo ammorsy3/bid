@@ -6776,7 +6776,7 @@ Respond with ONLY a JSON object. Example:
   registerCopilotV1Routes(app);
   registerWebhookAdapter(app);
   registerMcpAdapter(app);
-  registerIntegrationsAdminRoutes(app, { authenticateToken, requireCompanyContext, requireCompanyRole });
+  registerIntegrationsAdminRoutes(app, { authenticateToken, requireCompanyContext, requireCompanyRole, requireAccountType });
 
   // ============================================================================
   // AI CHAT HISTORY

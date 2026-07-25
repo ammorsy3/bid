@@ -1069,14 +1069,16 @@ export default function Settings() {
               {item.label}
             </button>
           ))}
-          <button
-            onClick={() => setLocation("/settings/integrations")}
-            className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap text-muted-foreground hover:bg-muted transition-colors"
-            data-testid="sidebar-integrations"
-          >
-            <Plug className="h-4 w-4 flex-shrink-0" />
-            {t('settings.intNavLabel')}
-          </button>
+          {!isIndividual && (
+            <button
+              onClick={() => setLocation("/settings/integrations")}
+              className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap text-muted-foreground hover:bg-muted transition-colors"
+              data-testid="sidebar-integrations"
+            >
+              <Plug className="h-4 w-4 flex-shrink-0" />
+              {t('settings.intNavLabel')}
+            </button>
+          )}
         </nav>
 
         {/* Desktop: vertical sidebar nav */}
@@ -1111,19 +1113,21 @@ export default function Settings() {
           ))}
 
           {/* External links (navigate away, don't switch tab state) */}
-          <div className="mt-4 pt-4 border-t border-border dark:border-border">
-            <button
-              onClick={() => setLocation("/settings/integrations")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted dark:hover:bg-gray-700 ${isRtl ? 'text-right' : 'text-left'}`}
-              data-testid="sidebar-integrations"
-            >
-              <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                <Plug className="h-3 w-3" />
-              </div>
-              <span className="text-sm font-medium truncate flex-1">{t('settings.intNavLabel')}</span>
-              <ChevronRight className="h-3 w-3 text-muted-foreground" />
-            </button>
-          </div>
+          {!isIndividual && (
+            <div className="mt-4 pt-4 border-t border-border dark:border-border">
+              <button
+                onClick={() => setLocation("/settings/integrations")}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted dark:hover:bg-gray-700 ${isRtl ? 'text-right' : 'text-left'}`}
+                data-testid="sidebar-integrations"
+              >
+                <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                  <Plug className="h-3 w-3" />
+                </div>
+                <span className="text-sm font-medium truncate flex-1">{t('settings.intNavLabel')}</span>
+                <ChevronRight className="h-3 w-3 text-muted-foreground" />
+              </button>
+            </div>
+          )}
         </nav>
       </div>
 

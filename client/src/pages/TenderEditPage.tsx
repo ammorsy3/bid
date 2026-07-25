@@ -141,21 +141,20 @@ function SectionCard({
   icon,
   title,
   description,
-  color,
   children,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
-  color: string;
   children: React.ReactNode;
 }) {
   return (
-    <Card className="overflow-hidden">
-      <div className={`h-1 ${color}`} />
+    <Card className="overflow-hidden border-border">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          {icon}
+        <CardTitle className="flex items-center gap-2.5 text-base">
+          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-muted">
+            {icon}
+          </span>
           {title}
         </CardTitle>
         <p className="text-sm text-muted-foreground">{description}</p>
@@ -554,7 +553,7 @@ export default function TenderEditPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background" dir={isEditRtl ? "rtl" : "ltr"}>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28">
         <Button variant="ghost" onClick={() => navigate(`/tenders/${tenderId}`)} className="mb-6 -ml-2">
           <ArrowLeft className="h-4 w-4 mr-2" />
           {t('tenderFlow.backToTender')}
@@ -578,7 +577,6 @@ export default function TenderEditPage() {
               icon={<FileText className="h-4 w-4 text-[#FE3C01]" />}
               title={t('tenderFlow.editSectionBasicsTitle')}
               description={t('tenderFlow.editSectionBasicsDesc')}
-              color="bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]"
             >
               <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem>
@@ -596,7 +594,9 @@ export default function TenderEditPage() {
                     <FormControl><Textarea rows={5} placeholder={t('tenderFlow.editDescriptionPlaceholder')} {...field} /></FormControl>
                     <div className="flex justify-end">
                       <span className={`text-xs ${wc < 50 ? "text-amber-600" : "text-green-600"}`}>
-                        {wc < 50 ? t('tenderFlow.editWordsMoreNeeded', { n: 50 - wc }) : "✓"} {t('tenderFlow.editWordsMinCount', { wc })}
+                        {wc < 50
+                          ? <>{t('tenderFlow.editWordsMoreNeeded', { n: 50 - wc })} {t('tenderFlow.editWordsMinCount', { wc })}</>
+                          : <>✓ {t('tenderFlow.editWordsCountSatisfied', { wc })}</>}
                       </span>
                     </div>
                     <FormMessage />
@@ -611,7 +611,6 @@ export default function TenderEditPage() {
               icon={<Calendar className="h-4 w-4 text-[var(--bid-orange)]" />}
               title={t('tenderFlow.editSectionTimelineTitle')}
               description={t('tenderFlow.editSectionTimelineDesc')}
-              color="bg-gradient-to-r from-blue-500 to-blue-400"
             >
               <FormField control={form.control} name="deadline" render={({ field }) => {
                 const dateVal = field.value ? field.value.slice(0, 10) : "";
@@ -734,7 +733,6 @@ export default function TenderEditPage() {
               icon={<DollarSign className="h-4 w-4 text-green-600" />}
               title={t('tenderFlow.editSectionBudgetTitle')}
               description={t('tenderFlow.editSectionBudgetDesc')}
-              color="bg-gradient-to-r from-green-500 to-emerald-400"
             >
               <div className="flex gap-2">
                 {["exact", "range"].map((type) => (
@@ -810,7 +808,6 @@ export default function TenderEditPage() {
               icon={<ClipboardList className="h-4 w-4 text-[var(--bid-orange)]" />}
               title={t('tenderFlow.editSubmissionsTitle')}
               description={t('tenderFlow.editSectionSubmHowDesc')}
-              color="bg-gradient-to-r from-purple-500 to-purple-400"
             >
               <FormField control={form.control} name="submissionType" render={({ field }) => (
                 <FormItem>
@@ -883,7 +880,6 @@ export default function TenderEditPage() {
               icon={<MessageSquare className="h-4 w-4 text-green-600" />}
               title={t('tenderFlow.editSectionQaTitle')}
               description={t('tenderFlow.editSectionQaDesc')}
-              color="bg-gradient-to-r from-green-500 to-teal-400"
             >
               <FormField control={form.control} name="inquiryType" render={({ field }) => (
                 <FormItem>
@@ -927,7 +923,6 @@ export default function TenderEditPage() {
               icon={<Scale className="h-4 w-4 text-amber-600" />}
               title={t('tenderFlow.editSectionEvalTitle')}
               description={t('tenderFlow.editSectionEvalDesc')}
-              color="bg-gradient-to-r from-amber-500 to-orange-400"
             >
               {/* Weight indicator */}
               <div className={`flex items-center gap-3 p-3 rounded-xl border ${totalWeight === 100 ? "bg-green-50 border-green-200" : totalWeight > 100 ? "bg-red-50 border-red-200" : "bg-amber-50 border-amber-200"}`}>
@@ -1073,7 +1068,6 @@ export default function TenderEditPage() {
               icon={<Shield className="h-4 w-4 text-[var(--bid-orange)]" />}
               title={t('tenderFlow.editSubmissionsTitle')}
               description={t('tenderFlow.editSectionEligDesc')}
-              color="bg-gradient-to-r from-blue-500 to-indigo-400"
             >
               <VendorRequirementsEditor
                 value={vendorRequirements}
@@ -1088,7 +1082,6 @@ export default function TenderEditPage() {
               icon={<Flag className="h-4 w-4 text-violet-600" />}
               title={t('tenderFlow.milestones')}
               description={t('tenderFlow.editSectionMilestonesDesc')}
-              color="bg-gradient-to-r from-violet-500 to-purple-400"
             >
               {milestones.length > 0 && (
                 <div className="space-y-2">
@@ -1176,7 +1169,6 @@ export default function TenderEditPage() {
               icon={<ListChecks className="h-4 w-4 text-indigo-600" />}
               title={t('tenderFlow.editSectionDeliverablesTitle')}
               description={t('tenderFlow.editSectionDeliverablesDesc')}
-              color="bg-gradient-to-r from-indigo-500 to-indigo-400"
             >
               {deliverables.length > 0 && (
                 <div className="space-y-3">
@@ -1212,7 +1204,6 @@ export default function TenderEditPage() {
               icon={<Paperclip className="h-4 w-4 text-sky-600" />}
               title={t('tenderFlow.editSectionDocsTitle')}
               description={t('tenderFlow.editSectionDocsDesc')}
-              color="bg-gradient-to-r from-sky-500 to-cyan-400"
             >
               {attachments.length > 0 && (
                 <div className="space-y-2">
@@ -1277,7 +1268,6 @@ export default function TenderEditPage() {
                 icon={<ClipboardList className="h-4 w-4 text-violet-600" />}
                 title={t('tenderFlow.editSectionCustomFieldsTitle')}
                 description={t('tenderFlow.editSectionCustomFieldsDesc')}
-                color="bg-gradient-to-r from-violet-500 to-violet-400"
               >
                 {formCards.map((card) => (
                   <div key={card.id} className="space-y-1">
@@ -1324,8 +1314,8 @@ export default function TenderEditPage() {
               </SectionCard>
             )}
 
-            {/* Actions */}
-            <div className="flex flex-col gap-3 pt-2">
+            {/* Actions — sticky footer so Save/Cancel stay reachable on a long form */}
+            <div className="sticky bottom-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 mt-8 flex flex-col gap-3 border-t border-border bg-gray-50/95 dark:bg-background/95 px-4 py-4 backdrop-blur-sm sm:px-6 lg:px-8">
               {(selectedRequirements.length > 0 || customCriteria.length > 0) && totalWeight !== 100 && (
                 <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:text-red-300">
                   <span className="mt-0.5 flex-shrink-0">⚠</span>

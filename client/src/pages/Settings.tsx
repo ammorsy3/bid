@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import JoinCodeCard from "@/components/JoinCodeCard";
 import { Button } from "@/components/ui/button";
+import { BackPillButton } from "@/components/ui/back-pill-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -502,7 +503,7 @@ export default function Settings() {
     userId: user?.id ?? '',
     steps: getSteps(SETTINGS_TOUR_STEPS, language),
     isRtl,
-    autoStart: !!user,
+    autoStart: false, // opt-in only (was auto-launch)
     autoStartDelay: 900,
   });
 
@@ -882,10 +883,10 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompany?.id, 'verify-info'] });
-      toast({ title: 'Saved', description: 'Verification info updated.' });
+      toast({ title: t('settings.verifyInfoSavedTitle'), description: t('settings.verifyInfoSavedDesc') });
     },
     onError: (error: Error) => {
-      toast({ title: "Couldn't save", description: error.message, variant: 'destructive' });
+      toast({ title: t('settings.couldNotSaveTitle'), description: error.message, variant: 'destructive' });
     },
   });
 
@@ -902,10 +903,10 @@ export default function Settings() {
     },
     onSuccess: () => {
       checkAuth();
-      toast({ title: 'Saved', description: 'National ID number updated.' });
+      toast({ title: t('settings.nationalIdSavedTitle'), description: t('settings.nationalIdSavedDesc') });
     },
     onError: (error: Error) => {
-      toast({ title: "Couldn't save", description: error.message, variant: 'destructive' });
+      toast({ title: t('settings.couldNotSaveTitle'), description: error.message, variant: 'destructive' });
     },
   });
 
@@ -1035,23 +1036,10 @@ export default function Settings() {
         <div className="p-4 border-b">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-sm text-muted-foreground">{t('settings.accountSettings')}</h2>
-            <Button
-              className="group relative overflow-hidden h-8"
+            <BackPillButton
               onClick={() => setLocation('/dashboard')}
               data-testid="button-close-settings"
-            >
-              <span className="w-12 translate-x-2 transition-opacity duration-500 group-hover:opacity-0 text-sm">
-                {t('common.back')}
-              </span>
-              <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">
-                <ArrowLeft
-                  className="opacity-60"
-                  size={16}
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
-              </i>
-            </Button>
+            />
           </div>
         </div>
 
@@ -1909,12 +1897,12 @@ export default function Settings() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="legalName">Legal name *</Label>
+                      <Label htmlFor="legalName">{t('settings.legalNameFieldLabel')}</Label>
                       <Input
                         id="legalName"
                         value={legalName}
                         onChange={(e) => setLegalName(e.target.value)}
-                        placeholder="Registered legal entity name"
+                        placeholder={t('settings.legalNameFieldPlaceholder')}
                         disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
                         data-testid="input-legal-name"
                       />
@@ -1922,25 +1910,25 @@ export default function Settings() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="crNumber">CR number *</Label>
+                        <Label htmlFor="crNumber">{t('settings.crNumberFieldLabel')}</Label>
                         <Input
                           id="crNumber"
                           value={crNumber}
                           inputMode="numeric"
                           maxLength={10}
                           onChange={(e) => setCrNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                          placeholder="10-digit CR"
+                          placeholder={t('settings.crNumberFieldPlaceholder')}
                           disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
                           data-testid="input-cr"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="vatNumber">VAT number</Label>
+                        <Label htmlFor="vatNumber">{t('settings.vatNumberFieldLabel')}</Label>
                         <Input
                           id="vatNumber"
                           value={vatNumberField}
                           onChange={(e) => setVatNumberField(e.target.value)}
-                          placeholder="Optional"
+                          placeholder={t('settings.vatNumberFieldPlaceholder')}
                           disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
                           data-testid="input-vat"
                         />

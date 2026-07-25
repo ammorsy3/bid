@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { Search, ChevronDown, ChevronLeft, ChevronRight, MapPin, LayoutList, LayoutGrid } from "lucide-react";
+import { Search, ChevronDown, ChevronLeft, ChevronRight, MapPin, LayoutList, LayoutGrid, PackageOpen, ArrowRight } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useI18n } from "@/lib/i18n";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
@@ -490,12 +491,15 @@ export default function Marketplace() {
         )}
 
         {/* ── FILTER BAR ── */}
+        {/* Mobile: stacks into a rounded card — pills scroll horizontally, search
+            full-width below. Desktop (sm+): single pill row. Prevents the pills
+            and the fixed-width search from overlapping at narrow widths. */}
         <div
-          className="flex items-center gap-2 flex-wrap p-2 rounded-full mb-4 shadow-[0_8px_24px_-16px_rgba(11,9,7,0.08)]"
+          className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-2xl sm:rounded-full mb-4 shadow-[0_8px_24px_-16px_rgba(11,9,7,0.08)]"
           style={{ background: "white", border: "1px solid rgba(11,9,7,0.08)" }}
         >
-          {/* Left: filter pills */}
-          <div className="flex items-center gap-1.5 flex-1 flex-wrap min-w-0">
+          {/* Left: filter pills — horizontal scroll rail on mobile, wraps on desktop */}
+          <div className="flex items-center gap-1.5 flex-1 flex-nowrap sm:flex-wrap min-w-0 overflow-x-auto no-scrollbar">
 
             {/* All pill */}
             <button
@@ -559,11 +563,11 @@ export default function Marketplace() {
             />
           </div>
 
-          {/* Right: search + sort */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          {/* Right: search + sort — full width on mobile, natural on desktop */}
+          <div className="flex items-center gap-1.5 w-full sm:w-auto sm:flex-shrink-0">
             {/* Search */}
             <div
-              className="relative flex items-center rounded-full min-w-[180px] sm:min-w-[240px]"
+              className="relative flex items-center rounded-full flex-1 min-w-0 sm:min-w-[240px]"
               style={{ background: "#F4EDE1" }}
             >
               <Search
@@ -732,17 +736,19 @@ export default function Marketplace() {
             ))}
           </div>
         ) : tenders.length === 0 ? (
-          <div className="text-center py-24">
-            <h3
-              className="font-display font-black text-2xl tracking-[-0.03em]"
-              style={{ color: "#8A8078" }}
-            >
-              {t("marketplace.noTenders")}
-            </h3>
-            <p className="text-sm mt-2" style={{ color: "#C9C1B6" }}>
-              {t("marketplace.checkBackLater")}
-            </p>
-          </div>
+          <EmptyState
+            icon={<PackageOpen className="h-6 w-6" />}
+            title={t("marketplace.noTenders").replace(/\.$/, "")}
+            description={t("marketplace.checkBackLater")}
+            action={
+              <Link href={user ? "/tenders/new" : "/signup"}>
+                <button className="inline-flex items-center gap-2 rounded-full bg-[var(--bid-orange)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#E33600]">
+                  {t("marketplace.postTender")}
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </Link>
+            }
+          />
         ) : (
           <div className={viewMode === "list" ? "flex flex-col gap-3" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"}>
             {tenders.map((tender) => {

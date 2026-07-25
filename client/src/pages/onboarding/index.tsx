@@ -212,10 +212,10 @@ export default function OnboardingChoice() {
       title: t('onbJoin.individual'),
       description: t('onbJoin.individualDesc'),
       onClick: () => setLocation("/onboarding/individual-basics"),
-      color: "text-[var(--state-won)]",
-      iconBg: "bg-[var(--state-won)]/10",
-      activeBorder: "border-[var(--state-won)]/40",
-      hoverBorder: "hover:border-[var(--state-won)]/40",
+      color: "text-[#FE3C01]",
+      iconBg: "bg-[#FE3C01]/10",
+      activeBorder: "border-[#FE3C01]/40",
+      hoverBorder: "hover:border-[#FE3C01]/40",
     },
   ] as const;
 

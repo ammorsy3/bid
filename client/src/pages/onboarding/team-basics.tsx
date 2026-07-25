@@ -14,19 +14,22 @@ import { apiRequest } from "@/lib/queryClient";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { ArrowRight, ArrowLeft, UsersRound, Loader2 } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
-
-const teamBasicsSchema = z.object({
-  teamName: z.string().min(2, "Team name is required"),
-  category: z.string().min(1, "Please select a category"),
-});
-
-type TeamBasicsForm = z.infer<typeof teamBasicsSchema>;
+import { useI18n } from "@/lib/i18n";
 
 export default function TeamBasics() {
   const [, setLocation] = useLocation();
   const { user, checkAuth } = useAuthStore();
   const { toast } = useToast();
+  const { t, isRtl } = useI18n();
   const [submitting, setSubmitting] = useState(false);
+  const BackArrow = isRtl ? ArrowRight : ArrowLeft;
+  const ForwardArrow = isRtl ? ArrowLeft : ArrowRight;
+
+  const teamBasicsSchema = z.object({
+    teamName: z.string().min(2, t('onboardingTeamBasics.teamNameRequired')),
+    category: z.string().min(1, t('onboardingTeamBasics.selectCategoryRequired')),
+  });
+  type TeamBasicsForm = z.infer<typeof teamBasicsSchema>;
 
   const form = useForm<TeamBasicsForm>({
     resolver: zodResolver(teamBasicsSchema),
@@ -51,20 +54,20 @@ export default function TeamBasics() {
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to create team");
+        throw new Error(error.message || t('onboardingTeamBasics.createFailedDesc'));
       }
       const result = await response.json();
       localStorage.setItem('token', result.token);
       await checkAuth();
       toast({
-        title: "Team workspace created",
-        description: "Now invite your teammates to join.",
+        title: t('onboardingTeamBasics.teamCreatedTitle'),
+        description: t('onboardingTeamBasics.teamCreatedDesc'),
       });
       setLocation('/onboarding/team-invite');
     } catch (error: any) {
       toast({
-        title: "Couldn't create team",
-        description: error.message || "Please try again.",
+        title: t('onboardingTeamBasics.couldNotCreateTitle'),
+        description: error.message || t('onboardingTeamBasics.tryAgain'),
         variant: "destructive",
       });
     } finally {
@@ -83,8 +86,8 @@ export default function TeamBasics() {
               <UsersRound className="w-5 h-5 text-sky-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">Create your team workspace</h2>
-              <p className="text-sm text-neutral-500">Set up your team's shared profile to apply to tenders together.</p>
+              <h2 className="text-xl font-bold text-neutral-900">{t('onboardingTeamBasics.heading')}</h2>
+              <p className="text-sm text-neutral-500">{t('onboardingTeamBasics.subheading')}</p>
             </div>
           </div>
 
@@ -95,11 +98,11 @@ export default function TeamBasics() {
                 name="teamName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Team Name *</FormLabel>
+                    <FormLabel>{t('onboardingTeamBasics.teamNameLabel')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Alpha Consulting Group" {...field} data-testid="input-team-name" />
+                      <Input placeholder={t('onboardingTeamBasics.teamNamePlaceholder')} {...field} data-testid="input-team-name" />
                     </FormControl>
-                    <FormDescription>This is the name other users will see when your team applies to tenders.</FormDescription>
+                    <FormDescription>{t('onboardingTeamBasics.teamNameDesc')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -110,11 +113,11 @@ export default function TeamBasics() {
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Team Category *</FormLabel>
+                    <FormLabel>{t('onboardingTeamBasics.teamCategoryLabel')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-team-category">
-                          <SelectValue placeholder="Select your team's main area of work" />
+                          <SelectValue placeholder={t('onboardingTeamBasics.teamCategoryPlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -131,7 +134,7 @@ export default function TeamBasics() {
               />
 
               <div className="rounded-lg bg-sky-50 border border-sky-200 p-3 text-xs text-sky-700">
-                After creating the team workspace, you'll be able to invite teammates and assign them roles.
+                {t('onboardingTeamBasics.inviteNote')}
               </div>
 
               <div className="flex justify-between pt-4">
@@ -141,8 +144,8 @@ export default function TeamBasics() {
                   onClick={() => setLocation("/onboarding")}
                   disabled={submitting}
                 >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  <BackArrow className="mr-2 h-4 w-4" />
+                  {t('common.back')}
                 </Button>
                 <Button
                   type="submit"
@@ -153,12 +156,12 @@ export default function TeamBasics() {
                   {submitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating team…
+                      {t('onboardingTeamBasics.creating')}
                     </>
                   ) : (
                     <>
-                      Continue
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      {t('onboardingTeamBasics.continue')}
+                      <ForwardArrow className="ml-2 h-4 w-4" />
                     </>
                   )}
                 </Button>

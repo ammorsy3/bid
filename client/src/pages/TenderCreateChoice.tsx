@@ -1,30 +1,27 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Sparkles, ShieldAlert, Clock, XCircle, Upload, CheckCircle2 } from "lucide-react";
-import { AILoader } from "@/components/ui/ai-loader";
+import { ShieldAlert, Clock, XCircle, Upload, CheckCircle2 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useI18n } from "@/lib/i18n";
-import { usePageTour } from "@/lib/tour";
-import { TENDER_CREATE_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import type { UploadResult } from "@/components/ObjectUploader";
 
 export default function TenderCreateChoice() {
   const [, setLocation] = useLocation();
-  const { user, activeCompany } = useAuthStore();
-  const { t, isRtl, language } = useI18n();
+  const { activeCompany } = useAuthStore();
+  const { t } = useI18n();
 
   const DOCUMENT_SLOTS = [
-    { type: 'cr_certificate', label: t('onboarding.docCrLabel'), description: t('onboarding.docCrDesc'), required: true },
-    { type: 'vat_certificate', label: t('onboarding.docVatLabel'), description: t('onboarding.docVatDesc'), required: false },
-    { type: 'gosi_certificate', label: t('onboarding.docGosiLabel'), description: t('onboarding.docGosiDesc'), required: false },
-    { type: 'national_address_certificate', label: t('onboarding.docNationalAddressLabel'), description: t('onboarding.docNationalAddressDesc'), required: false },
+    { type: 'cr_certificate', label: t('onboardingPanel.docCrLabel'), description: t('onboardingPanel.docCrDesc'), required: true },
+    { type: 'vat_certificate', label: t('onboardingPanel.docVatLabel'), description: t('onboardingPanel.docVatDesc'), required: false },
+    { type: 'gosi_certificate', label: t('onboardingPanel.docGosiLabel'), description: t('onboardingPanel.docGosiDesc'), required: false },
+    { type: 'national_address_certificate', label: t('onboardingPanel.docNationalAddressLabel'), description: t('onboardingPanel.docNationalAddressDesc'), required: false },
   ];
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -32,16 +29,19 @@ export default function TenderCreateChoice() {
 
   const verificationStatus = activeCompany?.verificationStatus;
   const activeCompanyId = activeCompany?.id;
-  const firstName = user?.name?.split(' ')[0] || user?.username || 'there';
 
-  const { overlay: tourOverlay } = usePageTour({
-    tourId: 'tender-create',
-    userId: user?.id ?? '',
-    steps: getSteps(TENDER_CREATE_TOUR_STEPS, language),
-    isRtl,
-    autoStart: !!user && verificationStatus === 'verified',
-    autoStartDelay: 800,
-  });
+  // The old create-choice screen offered "AI" vs "manual". With AI removed there
+  // is only one path, so a verified company skips this page entirely and lands
+  // straight in the wizard. This page now exists solely to host the verification
+  // gate below for companies that aren't verified yet (RequireVerified bounces
+  // unverified users back here). Only redirect when actually verified — never on
+  // an undefined status — so we can't ping-pong with RequireVerified.
+  const isVerified = verificationStatus === 'verified';
+  useEffect(() => {
+    if (isVerified) {
+      setLocation('/tenders/new/manual', { replace: true });
+    }
+  }, [isVerified, setLocation]);
 
   const { data: existingDocs = [] } = useQuery<{ id: string; documentType: string; originalName: string | null }[]>({
     queryKey: ['/api/companies', activeCompanyId, 'documents'],
@@ -126,18 +126,18 @@ export default function TenderCreateChoice() {
 
               <h2 className="font-display font-black text-2xl text-foreground mb-2 tracking-[-0.03em]">
                 {isRejected
-                  ? t('onboarding.verificationRejectedTitle')
+                  ? t('onboardingPanel.verificationRejectedTitle')
                   : isUnderReview
-                  ? t('onboarding.verificationInProgressTitle')
-                  : t('onboarding.verifyToContinueTitle')}
+                  ? t('onboardingPanel.verificationInProgressTitle')
+                  : t('onboardingPanel.verifyToContinueTitle')}
               </h2>
 
               <p className="text-muted-foreground text-sm">
                 {isRejected
-                  ? t('onboarding.verificationRejectedDesc')
+                  ? t('onboardingPanel.verificationRejectedDesc')
                   : isUnderReview
-                  ? t('onboarding.verificationInProgressDesc')
-                  : t('onboarding.verifyToContinueDesc')}
+                  ? t('onboardingPanel.verificationInProgressDesc')
+                  : t('onboardingPanel.verifyToContinueDesc')}
               </p>
             </div>
 
@@ -160,7 +160,7 @@ export default function TenderCreateChoice() {
                             <span className="text-sm font-medium text-foreground">{slot.label}</span>
                             {slot.required && !isUploaded && (
                               <span className="text-xs font-medium text-[#FE3C01] bg-[#FE3C01]/10 px-1.5 py-0.5 rounded">
-                                {t('onboarding.requiredBadge')}
+                                {t('onboardingPanel.requiredBadge')}
                               </span>
                             )}
                           </div>
@@ -168,7 +168,7 @@ export default function TenderCreateChoice() {
                           {isUploaded && (
                             <p className="text-xs text-green-600 flex items-center gap-1 mt-1.5">
                               <CheckCircle2 className="h-3.5 w-3.5" />
-                              {existingDoc?.originalName || t('onboarding.uploadedLabel')}
+                              {existingDoc?.originalName || t('onboardingPanel.uploadedLabel')}
                             </p>
                           )}
                         </div>
@@ -183,7 +183,7 @@ export default function TenderCreateChoice() {
                         >
                           <div className="flex items-center gap-1.5 text-sm">
                             <Upload className="h-3.5 w-3.5" />
-                            {isUploaded ? t('onboarding.replaceBtn') : t('onboarding.uploadBtn')}
+                            {isUploaded ? t('onboardingPanel.replaceBtn') : t('onboardingPanel.uploadBtn')}
                           </div>
                         </ObjectUploader>
                       </div>
@@ -198,7 +198,7 @@ export default function TenderCreateChoice() {
               onClick={() => setLocation('/dashboard')}
               className="w-full h-11 border-border text-muted-foreground text-sm font-medium rounded-lg"
             >
-              {t('onboarding.backToDashboard')}
+              {t('onboardingPanel.backToDashboard')}
             </Button>
           </div>
         </div>
@@ -206,73 +206,7 @@ export default function TenderCreateChoice() {
     );
   }
 
-  return (
-    <>
-    <div className="relative min-h-screen bg-card flex flex-col overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <FlickeringGrid
-          className="size-full"
-          squareSize={4}
-          gridGap={6}
-          color="rgb(226, 94, 69)"
-          maxOpacity={0.15}
-          flickerChance={0.1}
-        />
-      </div>
-
-      <div className="relative z-10">
-        <header className="pt-12 pb-8">
-          <button
-            onClick={() => setLocation('/dashboard')}
-            className="w-full flex justify-center cursor-pointer"
-            data-testid="button-logo-bid"
-          >
-            <BidLogo variant="orange" size={48} className="hover:opacity-80 transition-opacity" />
-          </button>
-        </header>
-
-        <main className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-16">
-          <div className="mb-8">
-            <AILoader size={100} />
-          </div>
-
-          <div className="text-center max-w-md">
-            <h2 className="font-display font-black text-2xl sm:text-3xl text-foreground mb-2 drop-shadow-lg tracking-[-0.04em]">
-              {t('tenderFlow.welcome')} {firstName}!
-            </h2>
-            <p className="text-lg text-muted-foreground mb-2 drop-shadow-md">
-              {t('tenderFlow.letsCreateRfp')}
-            </p>
-            <p className="text-sm text-muted-foreground mb-10 drop-shadow-md">
-              {t('tenderFlow.postRfpDesc')}
-            </p>
-
-            <div className="space-y-3 max-w-sm mx-auto">
-              <Button
-                onClick={() => setLocation("/tenders/new/ai")}
-                className="w-full h-12 bg-[#FE3C01] hover:bg-[#d54d35] text-white text-base font-medium rounded-lg"
-                data-testid="button-create-with-ai"
-                data-tour="ai-choice"
-              >
-                <Sparkles className="h-5 w-5 mr-2" />
-                {t('tenderFlow.getStartedWithAI')}
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={() => setLocation("/tenders/new/manual")}
-                className="w-full h-12 border-border text-muted-foreground hover:bg-muted text-base font-medium rounded-lg"
-                data-testid="button-create-manually"
-                data-tour="manual-choice"
-              >
-                {t('tenderFlow.createMyself')}
-              </Button>
-            </div>
-          </div>
-        </main>
-      </div>
-    </div>
-    {tourOverlay}
-    </>
-  );
+  // Verified: the effect above is redirecting to the wizard — render nothing so
+  // the removed choice screen never flashes.
+  return null;
 }

@@ -1,5 +1,6 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient, QueryFunction, MutationCache } from "@tanstack/react-query";
 import { reportError } from "./errorLogger";
+import { toast } from "@/hooks/use-toast";
 
 export class ApiError extends Error {
   code?: string;
@@ -21,7 +22,8 @@ async function throwIfResNotOk(res: Response) {
         localStorage.removeItem('user');
         localStorage.removeItem('auth-storage');
         window.location.href = '/login';
-        throw new Error('Session expired. Please log in again.');
+        const lang = localStorage.getItem('language') === 'ar' ? 'ar' : 'en';
+        throw new Error(lang === 'ar' ? 'انتهت الجلسة. يُرجى تسجيل الدخول مرة أخرى.' : 'Session expired. Please log in again.');
       }
     }
 
@@ -105,7 +107,30 @@ export const getQueryFn: <T>(options: {
     return await res.json();
   };
 
+// Safety net: any mutation that does NOT define its own onError still surfaces
+// a visible error toast, so a failed write can never fail silently. Mutations
+// with their own onError keep full control of their UX (no double toast).
+// Runs outside React, so it reads the language from localStorage directly.
+const globalErrorFallback = {
+  en: { title: "Something went wrong", desc: "The action couldn't be completed. Please try again." },
+  ar: { title: "حدث خطأ ما", desc: "تعذّر إكمال العملية. يُرجى المحاولة مرة أخرى." },
+};
+
+const mutationCache = new MutationCache({
+  onError: (error, _variables, _context, mutation) => {
+    if (mutation.options.onError) return; // the mutation handles its own errors
+    const lang = localStorage.getItem('language') === 'ar' ? 'ar' : 'en';
+    const fallback = globalErrorFallback[lang];
+    toast({
+      title: fallback.title,
+      description: error instanceof Error && error.message ? error.message : fallback.desc,
+      variant: "destructive",
+    });
+  },
+});
+
 export const queryClient = new QueryClient({
+  mutationCache,
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),

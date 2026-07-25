@@ -177,11 +177,11 @@ export default function CreateTender() {
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
       const inviteLink = `${window.location.origin}/invite/${tender.invitationToken}`;
       toast({
-        title: "Success!",
-        description: "Tender created successfully",
+        title: t('createTender.successTitle'),
+        description: t('createTender.tenderCreatedDesc'),
         action: (
-          <ToastAction altText="Copy invitation link" onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: "Link copied!" }); }}>
-            <Copy className="h-3 w-3 mr-1" /> Copy Link
+          <ToastAction altText={t('createTender.copyLinkAltText')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('createTender.linkCopiedTitle') }); }}>
+            <Copy className="h-3 w-3 mr-1" /> {t('createTender.copyLinkBtn')}
           </ToastAction>
         ),
         duration: 10000,
@@ -190,19 +190,19 @@ export default function CreateTender() {
     onError: (error: any) => {
       if (error?.requiresProfile) {
         const profileDesc = activeCompany?.accountType === 'team'
-          ? "Please complete your team profile before creating tenders"
+          ? t('createTender.profileRequiredTeamDesc')
           : activeCompany?.accountType === 'individual'
-            ? "Please complete your profile before creating tenders"
-            : "Please complete your company profile before creating tenders";
+            ? t('createTender.profileRequiredIndividualDesc')
+            : t('createTender.profileRequiredCompanyDesc');
         toast({
-          title: "Profile Required",
+          title: t('createTender.profileRequiredTitle'),
           description: profileDesc,
         });
         navigate('/company-onboarding');
       } else {
         toast({
-          title: "Error",
-          description: error?.message || "Failed to create tender",
+          title: t('createTender.errorTitle'),
+          description: error?.message || t('createTender.createTenderFailedDesc'),
           variant: "destructive",
         });
       }
@@ -230,8 +230,8 @@ export default function CreateTender() {
       form.reset(draft.data);
       setShowDraftPrompt(false);
       toast({
-        title: "Draft loaded",
-        description: "Your previous work has been restored",
+        title: t('createTender.draftLoadedTitle'),
+        description: t('createTender.draftLoadedDesc'),
       });
     }
   };
@@ -244,8 +244,8 @@ export default function CreateTender() {
       setInvitationCopied(true);
       setTimeout(() => setInvitationCopied(false), 2000);
       toast({
-        title: "Copied!",
-        description: "Invitation link copied to clipboard",
+        title: t('createTender.invitationLinkCopiedTitle'),
+        description: t('createTender.invitationLinkCopiedDesc'),
       });
     } catch (error) {
       toast({
@@ -609,7 +609,7 @@ export default function CreateTender() {
                   <div>
                     <h3 className="text-sm font-semibold text-gray-900 dark:text-foreground mb-4 flex items-center gap-2">
                       <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[#FE3C01] text-white text-xs font-bold">1</span>
-                      The Basics
+                      {t('createTender.theBasics')}
                     </h3>
                     <FormField
                       control={form.control}
@@ -619,7 +619,7 @@ export default function CreateTender() {
                           <FormLabel className="text-base font-semibold">{t('createTender.whatProjectAbout')}</FormLabel>
                           <FormControl>
                             <SmartInput 
-                              placeholder="E.g., Website Development for E-commerce Platform" 
+                              placeholder={t('createTender.titlePlaceholder')} 
                               error={form.formState.errors.title}
                               isDirty={form.formState.dirtyFields.title}
                               constraints={getConstraints('title', field.value)}
@@ -642,7 +642,7 @@ export default function CreateTender() {
                             <SmartTextarea 
                               rows={5}
                               maxLength={1000}
-                              placeholder="Describe your project requirements, specifications, and expectations..." 
+                              placeholder={t('createTender.descriptionPlaceholder')} 
                               error={form.formState.errors.description}
                               isDirty={form.formState.dirtyFields.description}
                               data-testid="input-description"
@@ -660,7 +660,7 @@ export default function CreateTender() {
                 <div className="space-y-6 p-6 bg-gray-50 dark:bg-card/50 rounded-lg border border-border dark:border-border">
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-foreground flex items-center gap-2">
                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[#FE3C01] text-white text-xs font-bold">2</span>
-                    Key Details
+                    {t('createTender.keyDetails')}
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -702,7 +702,7 @@ export default function CreateTender() {
                                     data-testid="input-deadline"
                                   >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {dateValue ? format(dateValue, "PPP HH:mm:ss", { locale: dateLocale }) : <span>Pick a date</span>}
+                                    {dateValue ? format(dateValue, "PPP HH:mm:ss", { locale: dateLocale }) : <span>{t('createTender.pickDatePlaceholder')}</span>}
                                   </Button>
                                 </FormControl>
                               </PopoverTrigger>
@@ -726,7 +726,7 @@ export default function CreateTender() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-budget">
-                                <SelectValue placeholder="Select budget" />
+                                <SelectValue placeholder={t('createTender.selectBudgetPlaceholder')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -750,7 +750,7 @@ export default function CreateTender() {
                         <FormLabel className="text-sm font-semibold">{t('tenderFlow.projectTimeline')}</FormLabel>
                         <FormControl>
                           <SmartInput 
-                            placeholder="E.g., 3 months, Q1 2025, or 6-8 weeks" 
+                            placeholder={t('createTender.projectTimelinePlaceholder')} 
                             error={form.formState.errors.projectTimeline}
                             isDirty={form.formState.dirtyFields.projectTimeline}
                             data-testid="input-project-timeline"

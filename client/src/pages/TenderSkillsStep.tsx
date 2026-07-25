@@ -474,7 +474,7 @@ export default function TenderSkillsStep() {
                         />
                         <Button
                           onClick={handleAddCustomSkill}
-                          className="bg-[#FE3C01] hover:bg-[#d54d35]"
+                          className="bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
                           data-testid="button-add-custom"
                         >
                           {t('tenderSteps.addBtn')}
@@ -497,7 +497,7 @@ export default function TenderSkillsStep() {
                     <Button
                       onClick={handleNext}
                       disabled={!isFormValid}
-                      className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
+                      className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
                       data-testid="button-next"
                     >
                       {t('tenderSteps.next')}

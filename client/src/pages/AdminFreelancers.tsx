@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AdminLayout from "@/components/AdminLayout";
 import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
+import { useI18n } from "@/lib/i18n";
 
 interface FreelancerEntry {
   id: string;
@@ -27,6 +28,7 @@ interface FreelancerEntry {
 }
 
 export default function AdminFreelancers() {
+  const { t } = useI18n();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selected, setSelected] = useState<FreelancerEntry | null>(null);
@@ -61,11 +63,11 @@ export default function AdminFreelancers() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/freelancers/pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/metrics"] });
-      toast({ title: "Individual verified", description: "National ID has been approved." });
+      toast({ title: t('admin.freelancerVerified'), description: t('admin.freelancerVerifiedDesc') });
       handleClose();
     },
     onError: () => {
-      toast({ title: "Error", description: "Could not verify individual.", variant: "destructive" });
+      toast({ title: t('admin.error'), description: t('admin.couldNotVerifyFreelancer'), variant: "destructive" });
     },
   });
 
@@ -75,11 +77,11 @@ export default function AdminFreelancers() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/freelancers/pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/metrics"] });
-      toast({ title: "Individual rejected", description: "Verification has been declined." });
+      toast({ title: t('admin.freelancerRejected'), description: t('admin.freelancerRejectedDesc') });
       handleClose();
     },
     onError: () => {
-      toast({ title: "Error", description: "Could not reject individual.", variant: "destructive" });
+      toast({ title: t('admin.error'), description: t('admin.couldNotRejectFreelancer'), variant: "destructive" });
     },
   });
 
@@ -93,17 +95,17 @@ export default function AdminFreelancers() {
     <AdminLayout>
       <AdminPage width="narrow">
         <AdminHeader
-          eyebrow="Verification"
+          eyebrow={t('admin.freelancerVerificationEyebrow')}
           eyebrowIcon={UserCheck}
-          title="Individual Verification Queue"
-          subtitle="Review pending individual identity (National ID) submissions."
+          title={t('admin.freelancerVerificationQueue')}
+          subtitle={t('admin.freelancerVerificationQueueDesc')}
         />
 
         <div className="mb-6">
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search by name, National ID, or email…"
+              placeholder={t('admin.searchFreelancersPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 rounded-xl"
@@ -116,7 +118,7 @@ export default function AdminFreelancers() {
         ) : filteredFreelancers.length === 0 ? (
           <AdminEmpty
             icon={ShieldCheck}
-            title={searchQuery ? `No individuals match "${searchQuery}"` : "No pending individual verifications."}
+            title={searchQuery ? t('admin.noFreelancersMatch', { query: searchQuery }) : t('admin.noPendingFreelancerVerifications')}
             tone="positive"
           />
         ) : (
@@ -143,12 +145,12 @@ export default function AdminFreelancers() {
                         )}
                         <span className="flex items-center gap-1">
                           <User className="h-3.5 w-3.5" />
-                          National ID:{" "}
+                          {t('admin.nationalIdLabel')}{" "}
                           <span className="font-mono font-semibold text-gray-700 dark:text-gray-300 tracking-wider">
-                            {f.nationalIdNumber || <em className="text-red-400 not-italic">Not provided</em>}
+                            {f.nationalIdNumber || <em className="text-red-400 not-italic">{t('admin.notProvided')}</em>}
                           </span>
                         </span>
-                        <span>Submitted {format(new Date(f.createdAt), "PP")}</span>
+                        <span>{t('admin.submittedOn', { date: format(new Date(f.createdAt), "PP") })}</span>
                       </div>
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
@@ -159,7 +161,7 @@ export default function AdminFreelancers() {
                         onClick={() => { setSelected(f); setActionType("reject"); }}
                       >
                         <XCircle className="h-4 w-4 mr-1.5" />
-                        Reject
+                        {t('admin.reject')}
                       </Button>
                       <Button
                         size="sm"
@@ -167,7 +169,7 @@ export default function AdminFreelancers() {
                         onClick={() => { setSelected(f); setActionType("approve"); }}
                       >
                         <CheckCircle className="h-4 w-4 mr-1.5" />
-                        Verify
+                        {t('admin.verify')}
                       </Button>
                     </div>
                   </div>
@@ -182,32 +184,31 @@ export default function AdminFreelancers() {
       <Dialog open={actionType === "approve"} onOpenChange={handleClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Verify Individual</DialogTitle>
+            <DialogTitle>{t('admin.verifyFreelancer')}</DialogTitle>
             <DialogDescription>
-              Approve National ID{" "}
-              <span className="font-mono font-semibold">
-                {selected?.nationalIdNumber}
-              </span>{" "}
-              for {selected?.owner?.name || selected?.name}.
+              {t('admin.verifyFreelancerDesc', {
+                id: selected?.nationalIdNumber || '',
+                name: selected?.owner?.name || selected?.name || '',
+              })}
             </DialogDescription>
           </DialogHeader>
           <div>
-            <label className="text-sm font-medium">Notes (optional)</label>
+            <label className="text-sm font-medium">{t('admin.notesOptional')}</label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add any verification notes…"
+              placeholder={t('admin.addVerificationNotes')}
               className="mt-2"
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={handleClose}>Cancel</Button>
+            <Button variant="outline" onClick={handleClose}>{t('admin.cancel')}</Button>
             <Button
               className="bg-emerald-600 hover:bg-emerald-700"
               disabled={approveMutation.isPending}
               onClick={() => selected && approveMutation.mutate(selected.id)}
             >
-              {approveMutation.isPending ? "Verifying…" : "Verify"}
+              {approveMutation.isPending ? t('admin.verifying') : t('admin.verify')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -217,29 +218,29 @@ export default function AdminFreelancers() {
       <Dialog open={actionType === "reject"} onOpenChange={handleClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reject Individual</DialogTitle>
+            <DialogTitle>{t('admin.rejectFreelancer')}</DialogTitle>
             <DialogDescription>
-              Decline verification for {selected?.owner?.name || selected?.name}. A reason is required.
+              {t('admin.rejectFreelancerDesc', { name: selected?.owner?.name || selected?.name || '' })}
             </DialogDescription>
           </DialogHeader>
           <div>
-            <label className="text-sm font-medium">Rejection reason *</label>
+            <label className="text-sm font-medium">{t('admin.rejectionReasonRequired')}</label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Explain why the verification is being rejected…"
+              placeholder={t('admin.explainRejectionPh')}
               className="mt-2"
               required
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={handleClose}>Cancel</Button>
+            <Button variant="outline" onClick={handleClose}>{t('admin.cancel')}</Button>
             <Button
               variant="destructive"
               disabled={!notes.trim() || rejectMutation.isPending}
               onClick={() => selected && rejectMutation.mutate(selected.id)}
             >
-              {rejectMutation.isPending ? "Rejecting…" : "Reject"}
+              {rejectMutation.isPending ? t('admin.rejecting') : t('admin.reject')}
             </Button>
           </DialogFooter>
         </DialogContent>

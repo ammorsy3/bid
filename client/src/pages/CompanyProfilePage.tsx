@@ -203,7 +203,7 @@ export default function CompanyProfilePage() {
       <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto">
-            <Building2 className="h-8 w-8 text-gray-400" />
+            <Building2 className="h-8 w-8 text-muted-foreground" />
           </div>
           <h1 className="text-xl font-bold text-foreground">{t('companyProfile.notFound')}</h1>
           <p className="text-sm text-muted-foreground max-w-sm">
@@ -260,7 +260,7 @@ export default function CompanyProfilePage() {
             <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline">{t('companyProfile.navBack')}</span>
           </button>
-          <div className="h-5 w-px bg-gray-200" />
+          <div className="h-5 w-px bg-border" />
           <span className="text-sm font-semibold text-foreground">
             {company.accountType === 'individual'
               ? t('companyProfile.navTitleIndividual')
@@ -281,7 +281,7 @@ export default function CompanyProfilePage() {
               {profile?.logoUrl ? (
                 <img src={profile.logoUrl} alt={displayName} className="w-16 h-16 rounded-2xl object-cover border-2 border-white/80 shadow-lg flex-shrink-0 bg-card" />
               ) : (
-                <div className="w-16 h-16 rounded-2xl border-2 border-white/80 shadow-lg flex-shrink-0 bg-card flex items-center justify-center text-xl font-extrabold text-gray-400">{initials}</div>
+                <div className="w-16 h-16 rounded-2xl border-2 border-white/80 shadow-lg flex-shrink-0 bg-card flex items-center justify-center text-xl font-extrabold text-muted-foreground">{initials}</div>
               )}
               <div>
                 <h1 className="font-display font-black text-xl md:text-2xl text-white tracking-[-0.03em] drop-shadow">{displayName}</h1>
@@ -302,14 +302,14 @@ export default function CompanyProfilePage() {
           </div>
         </div>
       ) : (
-        <div className="h-52 md:h-64 w-full relative" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+        <div className="h-52 md:h-64 w-full relative" style={{ background: 'linear-gradient(135deg, #1A1613 0%, #3A1B12 50%, #C23000 100%)' }}>
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 max-w-[900px] mx-auto px-4 sm:px-6 pb-5">
             <div className="flex items-end gap-4">
               {profile?.logoUrl ? (
                 <img src={profile.logoUrl} alt={displayName} className="w-16 h-16 rounded-2xl object-cover border-2 border-white/80 shadow-lg flex-shrink-0 bg-card" />
               ) : (
-                <div className="w-16 h-16 rounded-2xl border-2 border-white/80 shadow-lg flex-shrink-0 bg-card flex items-center justify-center text-xl font-extrabold text-gray-400">{initials}</div>
+                <div className="w-16 h-16 rounded-2xl border-2 border-white/80 shadow-lg flex-shrink-0 bg-card flex items-center justify-center text-xl font-extrabold text-muted-foreground">{initials}</div>
               )}
               <div>
                 <h1 className="font-display font-black text-xl md:text-2xl text-white tracking-[-0.03em] drop-shadow">{displayName}</h1>
@@ -379,30 +379,30 @@ export default function CompanyProfilePage() {
           <div className="bg-card rounded-2xl border border-border px-5 py-4 flex flex-wrap gap-x-8 gap-y-3">
             {yearFounded && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">{t('companyProfile.factsFoundedLabel')}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsFoundedLabel')}</p>
                 <p className="text-sm font-bold text-foreground">
                   {yearFounded}
                   {yearsInBusiness !== null && yearsInBusiness > 0 && (
-                    <span className="text-[11px] font-medium text-gray-400 ml-1">· {yearsInBusiness} yr{yearsInBusiness === 1 ? '' : 's'}</span>
+                    <span className="text-[11px] font-medium text-muted-foreground ml-1">· {yearsInBusiness} yr{yearsInBusiness === 1 ? '' : 's'}</span>
                   )}
                 </p>
               </div>
             )}
             {sizeLabel && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">{t('companyProfile.factsTeamLabel')}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsTeamLabel')}</p>
                 <p className="text-sm font-bold text-foreground">{sizeLabel}</p>
               </div>
             )}
             {company.city && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">{t('companyProfile.factsHqLabel')}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsHqLabel')}</p>
                 <p className="text-sm font-bold text-foreground">{company.city}</p>
               </div>
             )}
             {company.category && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-0.5">{t('companyProfile.factsCategoryLabel')}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsCategoryLabel')}</p>
                 <p className="text-sm font-bold text-foreground">{company.category}</p>
               </div>
             )}
@@ -414,7 +414,7 @@ export default function CompanyProfilePage() {
       {visibleStats.length > 0 && (
         <div className="max-w-[900px] mx-auto px-4 sm:px-6 pt-6">
           <div className="bg-card rounded-2xl border border-border px-6 py-5">
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-4">
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-4">
               {t('companyProfile.sectionTrackRecord')}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
@@ -423,7 +423,7 @@ export default function CompanyProfilePage() {
                   <p className="text-2xl md:text-3xl font-extrabold text-foreground tracking-[-0.02em]">
                     {(stats[key] as number).toLocaleString()}{suffix || ''}
                   </p>
-                  <p className="text-[11px] font-medium text-gray-400 mt-0.5">{t(`companyProfile.${labelKey}`)}</p>
+                  <p className="text-[11px] font-medium text-muted-foreground mt-0.5">{t(`companyProfile.${labelKey}`)}</p>
                 </div>
               ))}
             </div>
@@ -473,7 +473,7 @@ export default function CompanyProfilePage() {
 
             {/* About */}
             <div className="bg-card rounded-2xl border border-border p-6">
-              <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-3">
+              <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
                 {t('companyProfile.sectionAbout')}
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
@@ -484,7 +484,7 @@ export default function CompanyProfilePage() {
             {/* Intro Video */}
             {videoEmbed && (
               <div className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-4">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-4">
                   {t('companyProfile.sectionIntroVideo')}
                 </h2>
                 <div className="relative w-full rounded-xl overflow-hidden bg-black" style={{ paddingTop: '56.25%' }}>
@@ -502,7 +502,7 @@ export default function CompanyProfilePage() {
             {/* Capabilities / Tags */}
             {hasTags && (
               <div className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-3">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
                   {t('companyProfile.sectionCapabilities')}
                 </h2>
                 <div className="flex gap-2 flex-wrap">
@@ -521,12 +521,12 @@ export default function CompanyProfilePage() {
             {/* Markets & Reach */}
             {hasReach && (
               <div className="bg-card rounded-2xl border border-border p-6 space-y-4">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
                   {t('companyProfile.sectionMarketsReach')}
                 </h2>
                 {industriesServed.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">{t('companyProfile.industriesServedLabel')}</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('companyProfile.industriesServedLabel')}</p>
                     <div className="flex gap-2 flex-wrap">
                       {industriesServed.map((ind, i) => (
                         <span key={i} className="text-xs font-semibold rounded-full px-3 py-1 bg-orange-50 text-[var(--bid-orange)] border border-orange-100">
@@ -538,11 +538,11 @@ export default function CompanyProfilePage() {
                 )}
                 {serviceAreas.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">{t('companyProfile.serviceAreasLabel')}</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('companyProfile.serviceAreasLabel')}</p>
                     <div className="flex gap-2 flex-wrap">
                       {serviceAreas.map((area, i) => (
                         <span key={i} className="inline-flex items-center gap-1 text-xs font-semibold rounded-full px-3 py-1 bg-muted text-muted-foreground border border-border">
-                          <MapPin className="h-3 w-3 text-gray-400" />
+                          <MapPin className="h-3 w-3 text-muted-foreground" />
                           {area}
                         </span>
                       ))}
@@ -551,7 +551,7 @@ export default function CompanyProfilePage() {
                 )}
                 {languages.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">{t('companyProfile.languagesLabel')}</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('companyProfile.languagesLabel')}</p>
                     <div className="flex gap-2 flex-wrap">
                       {languages.map((lang, i) => (
                         <span key={i} className="text-xs font-semibold rounded-full px-3 py-1 bg-muted text-muted-foreground border border-border">
@@ -567,7 +567,7 @@ export default function CompanyProfilePage() {
             {/* Structured Credentials (certifications + insurance) */}
             {hasStructuredCredentials && (
               <div className="bg-card rounded-2xl border border-border p-6 space-y-5">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
                   {t('companyProfile.sectionCredentials')}
                 </h2>
 
@@ -588,7 +588,7 @@ export default function CompanyProfilePage() {
                                 <span className="text-[11px] text-muted-foreground">{t('companyProfile.certIssuedBy', { issuer: cert.issuer })}</span>
                               )}
                               {cert.expiryDate && (
-                                <span className="text-[11px] text-gray-400">{t('companyProfile.certValidUntil', { date: cert.expiryDate })}</span>
+                                <span className="text-[11px] text-muted-foreground">{t('companyProfile.certValidUntil', { date: cert.expiryDate })}</span>
                               )}
                             </div>
                           </div>
@@ -623,10 +623,10 @@ export default function CompanyProfilePage() {
                             <div className="flex items-center gap-2 flex-wrap mt-0.5">
                               <span className="text-[11px] text-muted-foreground">{pol.provider}</span>
                               {pol.coverageAmount && (
-                                <span className="text-[11px] text-gray-400">· {pol.coverageAmount.toLocaleString()} {pol.currency || ''}</span>
+                                <span className="text-[11px] text-muted-foreground">· {pol.coverageAmount.toLocaleString()} {pol.currency || ''}</span>
                               )}
                               {pol.expiryDate && (
-                                <span className="text-[11px] text-gray-400">{t('companyProfile.certValidUntil', { date: pol.expiryDate })}</span>
+                                <span className="text-[11px] text-muted-foreground">{t('companyProfile.certValidUntil', { date: pol.expiryDate })}</span>
                               )}
                             </div>
                           </div>
@@ -651,7 +651,7 @@ export default function CompanyProfilePage() {
             {/* Certifications (legacy plain list — only shown if no structured credentials exist) */}
             {!hasStructuredCredentials && hasCertifications && (
               <div className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-3">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
                   {t('companyProfile.sectionCertifications')}
                 </h2>
                 <div className="flex gap-2 flex-wrap">
@@ -671,7 +671,7 @@ export default function CompanyProfilePage() {
             {/* Portfolio */}
             {hasPortfolio && (
               <div className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-4">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-4">
                   {company.accountType === 'individual' || company.accountType === 'team'
                     ? t('companyProfile.sectionPreviousWorks')
                     : t('companyProfile.sectionPortfolio')}
@@ -713,7 +713,7 @@ export default function CompanyProfilePage() {
             {/* Company Brochure */}
             {profile?.brochureUrl && (
               <div className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-3">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
                   {t('companyProfile.sectionBrochure')}
                 </h2>
                 <a
@@ -724,7 +724,7 @@ export default function CompanyProfilePage() {
                 >
                   <FileText className="h-4 w-4" />
                   {t('companyProfile.viewCompanyProfile')}
-                  <ExternalLink className="h-3 w-3 text-gray-400" />
+                  <ExternalLink className="h-3 w-3 text-muted-foreground" />
                 </a>
               </div>
             )}
@@ -739,14 +739,14 @@ export default function CompanyProfilePage() {
                 {profile?.logoUrl ? (
                   <img src={profile.logoUrl} alt="" className="w-10 h-10 rounded-xl object-cover border border-border" />
                 ) : (
-                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-xs font-bold text-gray-400">
+                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
                     {initials}
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold text-foreground truncate">{displayName}</p>
                   {company.legalName && company.legalName !== displayName && (
-                    <p className="text-[11px] text-gray-400 truncate">{company.legalName}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{company.legalName}</p>
                   )}
                 </div>
               </div>
@@ -754,38 +754,40 @@ export default function CompanyProfilePage() {
               <div className="space-y-2.5">
                 {company.category && (
                   <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-                    <Briefcase className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                    <Briefcase className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                     <span>{company.category}</span>
                   </div>
                 )}
                 {company.city && (
                   <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                    <MapPin className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                     <span>{company.city}</span>
                   </div>
                 )}
                 {sizeLabel && (
                   <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-                    <Users className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                    <Users className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                     <span>{sizeLabel}</span>
                   </div>
                 )}
 
                 <div className="h-px bg-muted my-1" />
 
-                <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-                  <FileText className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                  <span className="font-mono text-[11px] tracking-tight">CR {company.crNumber}</span>
-                </div>
+                {company.crNumber && (
+                  <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+                    <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    <span className="font-mono text-[11px] tracking-tight">CR {company.crNumber}</span>
+                  </div>
+                )}
                 {company.vatNumber && (
                   <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-                    <FileText className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                    <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                     <span className="font-mono text-[11px] tracking-tight">VAT {company.vatNumber}</span>
                   </div>
                 )}
                 {formatMemberSince(company.createdAt) && (
                   <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                     <span>{t('companyProfile.memberSince', { date: formatMemberSince(company.createdAt)! })}</span>
                   </div>
                 )}
@@ -795,7 +797,7 @@ export default function CompanyProfilePage() {
             {/* Social Links Card */}
             {hasSocialLinks && (
               <div className="bg-card rounded-2xl border border-border p-5">
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-300 mb-3">
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
                   {t('companyProfile.sectionConnect')}
                 </h3>
                 <div className="space-y-2">
@@ -839,8 +841,8 @@ export default function CompanyProfilePage() {
       {/* ══════════════════════ FOOTER ══════════════════════ */}
       <div className="border-t border-border py-6 px-4 sm:px-6">
         <div className="max-w-[900px] mx-auto flex items-center justify-between">
-          <span className="text-xs text-gray-300">
-            Powered by <strong className="text-gray-400">Bid</strong>
+          <span className="text-xs text-muted-foreground">
+            Powered by <strong className="text-muted-foreground">Bid</strong>
           </span>
         </div>
       </div>

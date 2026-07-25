@@ -457,7 +457,7 @@ export default function TenderDetails() {
     // isn't guaranteed to resolve within autoStartDelay, so starting on `tender` alone
     // could evaluate the filter above against a still-empty `offers` default and wrongly
     // drop steps that the real (in-flight) data would have included.
-    autoStart: !!user && !!tender && isOwner && !loadingOffers,
+    autoStart: false, // opt-in only (was auto-launch)
     autoStartDelay: 1500,
   });
 
@@ -1034,7 +1034,7 @@ export default function TenderDetails() {
                         <Clock className="h-3.5 w-3.5 text-[#FE3C01]" />
                         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{t('tenderFlow.projectDurationLabel')}</p>
                       </div>
-                      <div className="bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-2xl p-5">
+                      <div className="bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/30 dark:to-card border border-blue-100 dark:border-blue-900/40 rounded-2xl p-5">
                         <div className="text-center mb-4">
                           <span className="text-xl font-bold text-foreground">{durationDisplay}</span>
                         </div>
@@ -1777,7 +1777,7 @@ export default function TenderDetails() {
                                   {/* Submission type chips */}
                                   <div className="flex flex-wrap gap-1.5 mt-3">
                                     {offer.combinedFileUrl && (
-                                      <span className="inline-flex items-center gap-1 text-xs bg-[var(--bid-orange)]/5 text-[var(--bid-orange)] border border-blue-100 px-2 py-1 rounded-md font-medium">
+                                      <span className="inline-flex items-center gap-1 text-xs bg-[var(--bid-orange)]/5 text-[var(--bid-orange)] border border-blue-100 dark:border-blue-900/40 px-2 py-1 rounded-md font-medium">
                                         <FileText className="h-3 w-3" /> {t('tenderFlow.combinedProposal')}
                                       </span>
                                     )}
@@ -2270,7 +2270,7 @@ export default function TenderDetails() {
                         {selectedOffer.combinedFileUrl && (
                           <button
                             onClick={() => viewAuthenticatedFile(selectedOffer.combinedFileUrl!)}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-blue-100 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-left"
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-blue-100 dark:border-blue-900/40 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-left"
                             data-testid="button-modal-combined-file"
                           >
                             <FileText className="h-4 w-4 text-[var(--bid-orange)] flex-shrink-0" />
@@ -2461,7 +2461,7 @@ export default function TenderDetails() {
                   {drawerAnalysis.executiveSummary && (
                     <div>
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t('tenderFlow.executiveSummary')}</p>
-                      <p className="text-sm text-muted-foreground font-medium leading-relaxed bg-[var(--bid-orange)]/5 rounded-lg p-3 border border-blue-100">
+                      <p className="text-sm text-muted-foreground font-medium leading-relaxed bg-[var(--bid-orange)]/5 rounded-lg p-3 border border-blue-100 dark:border-blue-900/40">
                         {drawerAnalysis.executiveSummary}
                       </p>
                     </div>

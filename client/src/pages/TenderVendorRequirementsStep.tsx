@@ -84,7 +84,7 @@ export default function TenderVendorRequirementsStep() {
           {/* Left: Title + explanation */}
           <div>
             <div className="space-y-4 max-sm:space-y-2">
-              <div className="text-sm font-medium text-muted-foreground">6 / 7</div>
+              <div className="text-sm font-medium text-muted-foreground" dir="ltr">6 / 7</div>
               <h1 className="font-display font-black text-5xl max-sm:text-3xl text-foreground leading-[0.92] tracking-[-0.045em]">
                 {t('tenderSteps.submissionRequirements')}
               </h1>
@@ -137,7 +137,7 @@ export default function TenderVendorRequirementsStep() {
                   </Button>
                   <Button
                     onClick={handleNext}
-                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
+                    className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] dark:disabled:bg-muted disabled:text-[var(--bid-stone)] dark:disabled:text-muted-foreground disabled:shadow-none"
                     data-testid="button-next"
                   >
                     {selected.length > 0

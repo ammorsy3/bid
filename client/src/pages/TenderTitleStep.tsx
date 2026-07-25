@@ -88,7 +88,7 @@ export default function TenderTitleStep() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-sm:gap-5">
             <div>
               <div className="space-y-3 max-sm:space-y-2">
-                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400" dir="ltr">
                   1 / 5
                 </div>
                 <h1 className="font-display font-black text-5xl max-sm:text-3xl text-gray-900 dark:text-foreground leading-[0.92] tracking-[-0.045em]">
@@ -140,7 +140,7 @@ export default function TenderTitleStep() {
                     <Button
                       onClick={handleNext}
                       disabled={!isFormValid}
-                      className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
+                      className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
                       data-testid="button-next"
                     >
                       {t('tenderFlow.next')}

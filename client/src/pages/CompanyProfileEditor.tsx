@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import ImageCropDialog from "@/components/ImageCropDialog";
+import { BackPillButton } from "@/components/ui/back-pill-button";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import {
@@ -815,14 +816,13 @@ export default function CompanyProfileEditor() {
           <div className="h-0.5 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F]" />
 
           <div className="p-4 border-b border-border dark:border-border">
-            <button
+            <BackPillButton
               onClick={handleBack}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors mb-3"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              {t('companyProfileEditor.backToSettings')}
-            </button>
-            <h2 className="text-sm font-semibold text-foreground">{isIndividual ? 'Edit My Profile' : isTeam ? 'Edit Team Profile' : t('companyProfileEditor.editCompanyProfile')}</h2>
+              label={t('companyProfileEditor.backToSettings')}
+              className="mb-3"
+              data-testid="button-back-to-settings"
+            />
+            <h2 className="text-sm font-semibold text-foreground">{isIndividual ? t('companyProfileEditor.editMyProfile') : isTeam ? t('companyProfileEditor.editTeamProfile') : t('companyProfileEditor.editCompanyProfile')}</h2>
             <p className="text-xs text-muted-foreground mt-0.5 truncate">{company.name}</p>
           </div>
 

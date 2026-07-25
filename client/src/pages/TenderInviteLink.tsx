@@ -992,7 +992,7 @@ export default function TenderInviteLink() {
                         <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
                           <Clock className="h-4 w-4" /> {t('tenderFlow.projectDurationLabel')}
                         </h3>
-                        <div className="bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-2xl p-5">
+                        <div className="bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/30 dark:to-card border border-blue-100 dark:border-blue-900/40 rounded-2xl p-5">
                           <div className="text-center mb-4">
                             <span className="text-xl font-bold text-foreground">{durationDisplay}</span>
                           </div>

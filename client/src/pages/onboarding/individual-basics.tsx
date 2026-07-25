@@ -26,9 +26,11 @@ type IndividualBasicsForm = z.infer<typeof individualBasicsSchema>;
 export default function IndividualBasics() {
   const [, setLocation] = useLocation();
   const { user, checkAuth } = useAuthStore();
-  const { t } = useI18n();
+  const { t, isRtl } = useI18n();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
+  const BackArrow = isRtl ? ArrowRight : ArrowLeft;
+  const ForwardArrow = isRtl ? ArrowLeft : ArrowRight;
 
   const form = useForm<IndividualBasicsForm>({
     resolver: zodResolver(individualBasicsSchema),
@@ -53,7 +55,7 @@ export default function IndividualBasics() {
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to create profile");
+        throw new Error(error.message || t('indBasics.couldntCreate'));
       }
       const result = await response.json();
       localStorage.setItem('token', result.token);
@@ -148,7 +150,7 @@ export default function IndividualBasics() {
                   onClick={() => setLocation("/onboarding")}
                   disabled={submitting}
                 >
-                  <ArrowLeft className="mr-2 h-4 w-4 rtl:rotate-180" />
+                  <BackArrow className="mr-2 h-4 w-4" />
                   {t('indBasics.back')}
                 </Button>
                 <Button
@@ -165,7 +167,7 @@ export default function IndividualBasics() {
                   ) : (
                     <>
                       {t('indBasics.goToDashboard')}
-                      <ArrowRight className="ml-2 h-4 w-4 rtl:rotate-180" />
+                      <ForwardArrow className="ml-2 h-4 w-4" />
                     </>
                   )}
                 </Button>

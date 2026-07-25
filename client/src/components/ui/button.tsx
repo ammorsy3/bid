@@ -20,10 +20,12 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
+        // max-md bumps give every button a ≥44px touch target on phones
+        // without changing desktop metrics.
+        default: "h-10 px-4 py-2 max-md:h-11",
+        sm: "h-9 rounded-md px-3 max-md:h-10",
         lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        icon: "h-10 w-10 max-md:h-11 max-md:w-11",
       },
     },
     defaultVariants: {

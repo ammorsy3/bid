@@ -331,7 +331,7 @@ interface ActivityLogItem {
 
 // Activity type icons and colors
 const activityTypeConfig = {
-  thinking: { icon: Target, color: "text-purple-500", bg: "bg-[var(--bid-orange)]/10" },
+  thinking: { icon: Target, color: "text-[var(--bid-orange)]", bg: "bg-[var(--bid-orange)]/10" },
   extracting: { icon: Zap, color: "text-blue-500", bg: "bg-[var(--bid-orange)]/10" },
   generating: { icon: FileText, color: "text-orange-500", bg: "bg-orange-500/10" },
   updating: { icon: CheckCircle2, color: "text-green-500", bg: "bg-green-500/10" },
@@ -484,7 +484,7 @@ export default function TenderAICopilot() {
     userId: user?.id ?? '',
     steps: getSteps(AI_COPILOT_TOUR_STEPS, _lang),
     isRtl: _isRtl,
-    autoStart: !!user,
+    autoStart: false, // opt-in only (was auto-launch)
     autoStartDelay: 1500,
   });
   const isMobile = useIsMobile();
@@ -503,7 +503,7 @@ export default function TenderAICopilot() {
     userId: user?.id ?? '',
     steps: getSteps(AI_COPILOT_PREVIEW_TOUR_STEPS, _lang),
     isRtl: _isRtl,
-    autoStart: !!user && hasPreviewContent && !introTourActive,
+    autoStart: false, // opt-in only (was auto-launch)
     autoStartDelay: 600,
   });
   const [showPreview, setShowPreview] = useState(true);
@@ -1131,7 +1131,7 @@ export default function TenderAICopilot() {
             <span className="text-sm font-medium text-gray-900 dark:text-foreground">
               {t('copilot.aiAgent')}
             </span>
-            <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 border border-violet-200">
+            <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full" style={{ background: 'rgba(240,168,0,0.14)', color: '#9A6D00' }}>
               {t('copilot.beta')}
             </span>
           </div>

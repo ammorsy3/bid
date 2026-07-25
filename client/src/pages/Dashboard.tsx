@@ -61,6 +61,7 @@ import { BidLogo } from "@/components/brand/BidLogo";
 import { StatusBadge, type BidState } from "@/components/brand/StatusDot";
 import { tenderStatusToState, proposalStatusToState } from "@/components/brand/statusMap";
 import { SkeletonList } from "@/components/skeletons";
+import { PageHeader } from "@/components/ui/page-header";
 
 interface VendorProfile {
   id: string;
@@ -116,7 +117,6 @@ const SUBMISSION_TYPE_LABELS_DASH: Record<string, string> = {
 // belong to the same family (cold #FFF on cream reads as two unrelated colors).
 const BRAND_CARD_CLASS =
   "rounded-2xl border border-[#FE3C01]/10 dark:border-border [background:var(--spotlight-card-bg)] shadow-[0_4px_16px_-8px_rgba(11,9,7,0.12)]";
-const BRAND_CARD_GRADIENT = "linear-gradient(180deg, #FFF3EA 0%, #FCE9DC 100%)";
 
 // Branded segmented control (sub-tab navigation): a quiet warm-paper track with
 // an orange active pill — the active state earns the accent, the rest stays calm.
@@ -142,50 +142,6 @@ function brandSpotlightProps(extraClass = "") {
   };
 }
 
-// Signature landing-page section heading: numbered eyebrow chip + big display
-// title with the orange "dot-end" period (the BId brand mark) + subtitle.
-// Mirrors the Overview tab heading and the landing's `.sec-head`.
-function BrandSectionHeading({
-  num,
-  title,
-  description,
-  isRtl,
-  action,
-  titleTestId,
-  descTestId,
-}: {
-  num: string;
-  title: string;
-  description?: string;
-  isRtl: boolean;
-  action?: React.ReactNode;
-  titleTestId?: string;
-  descTestId?: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`flex items-end justify-between gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}
-    >
-      <div className={isRtl ? 'text-right' : ''}>
-        <span className="inline-block text-xs font-semibold text-[#FE3C01] bg-[#FFE4D7] dark:bg-[#FE3C01]/15 px-3 py-1.5 rounded-full mb-4 tracking-wide tabular-nums">
-          {num}
-        </span>
-        <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#1A1613] dark:text-foreground tracking-[-0.04em] leading-[1.05]" data-testid={titleTestId}>
-          {title}<span className="text-[#FE3C01]">.</span>
-        </h2>
-        {description && (
-          <p className="text-sm sm:text-base text-[#8A8078] dark:text-muted-foreground mt-3 max-w-xl leading-relaxed" data-testid={descTestId}>
-            {description}
-          </p>
-        )}
-      </div>
-      {action && <div className="flex-shrink-0">{action}</div>}
-    </motion.div>
-  );
-}
 
 interface TenderWithCounts {
   id: string;
@@ -538,9 +494,26 @@ function SidebarSearchButton({
   );
 }
 
+// B-7: RFPs/Proposals/Vendors are real, shareable routes rather than pure
+// client-side tab state, while still rendering inside this single component
+// (splitting their ~1100 lines of tightly-coupled queries/mutations/tour
+// hooks into separate files was judged too high-risk to do unsupervised).
+const TAB_TO_ROUTE: Record<string, string> = {
+  overview: '/dashboard',
+  tenders: '/rfps',
+  proposals: '/proposals',
+  vendors: '/vendors',
+};
+const ROUTE_TO_TAB: Record<string, string> = {
+  '/dashboard': 'overview',
+  '/rfps': 'tenders',
+  '/proposals': 'proposals',
+  '/vendors': 'vendors',
+};
+
 export default function Dashboard() {
   const { user, activeCompany, companies, switchCompany } = useAuthStore();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { t, isRtl, language, setLanguage } = useI18n();
     const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
@@ -550,8 +523,21 @@ export default function Dashboard() {
   const [selectedProposal, setSelectedProposal] = useState<IncomingOffer | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<VendorProfile | null>(null);
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTabState] = useState(() => ROUTE_TO_TAB[location] ?? "overview");
   const mainRef = useRef<HTMLElement>(null);
+
+  // Keep the URL in sync with the active tab so /rfps, /proposals, and
+  // /vendors are real, shareable, back-button-friendly routes (B-7) instead
+  // of pure client-side tab state.
+  const setActiveTab = (value: string) => {
+    setActiveTabState(value);
+    const route = TAB_TO_ROUTE[value];
+    if (route && route !== location) setLocation(route);
+  };
+  useEffect(() => {
+    const tabForRoute = ROUTE_TO_TAB[location];
+    if (tabForRoute && tabForRoute !== activeTab) setActiveTabState(tabForRoute);
+  }, [location]);
   const [proposalsSubTab, setProposalsSubTab] = useState(() => localStorage.getItem('dashboard-proposals-tab') || 'submitted');
   const [vendorsSubTab, setVendorsSubTab] = useState(() => localStorage.getItem('dashboard-vendors-tab') || 'vendors-list');
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
@@ -576,7 +562,7 @@ export default function Dashboard() {
     userId: user?.id ?? '',
     steps: getSteps(DASHBOARD_TOUR_STEPS, language),
     isRtl,
-    autoStart: !!user,
+    autoStart: false, // opt-in only (was auto-launch)
   });
 
   // "Take a tour" is meant to re-arm every guide across the app, not just this page's —
@@ -602,7 +588,7 @@ export default function Dashboard() {
     userId: user?.id ?? '',
     steps: getSteps(VENDORS_BASE_TOUR_STEPS, language),
     isRtl,
-    autoStart: !!user && activeTab === 'vendors',
+    autoStart: false, // opt-in only (was auto-launch)
     autoStartDelay: 800,
   });
 
@@ -612,11 +598,6 @@ export default function Dashboard() {
   useEffect(() => {
     if (vendorsTourActive) setVendorsSubTab('vendors-list');
   }, [vendorsTourActive]);
-
-  // Bid grid texture — low-opacity Stone on light, low-opacity Cream on Ink (dark mode).
-  const dotColor = currentTheme === 'dark'
-    ? 'rgba(244, 237, 225, 0.10)'
-    : 'rgba(138, 128, 120, 0.22)';
 
   if (!user) {
     setLocation("/login");
@@ -1650,7 +1631,7 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      <SidebarInset className="bg-[#F4EDE1] dark:bg-background">
+      <SidebarInset className="bg-[#F6F4F1] dark:bg-background">
         {/* Mobile top bar — only way to reach navigation on phones */}
         <header className="md:hidden sticky top-0 z-30 flex items-center gap-3 h-14 px-4 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
           <SidebarTrigger className="h-9 w-9 -ms-1.5" aria-label="Open menu" />
@@ -1659,14 +1640,20 @@ export default function Dashboard() {
         {/* Main Content */}
         <main
           ref={mainRef}
-          className="flex-1 overflow-auto p-4 sm:p-6"
+          className="flex-1 overflow-auto p-4 sm:p-6 max-md:pb-28"
           style={currentTheme !== 'dark' ? {
-            backgroundColor: '#F4EDE1',
-            backgroundImage: 'radial-gradient(circle, rgba(254, 60, 1, 0.06) 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
+            // Porcelain canvas with two soft blooms — orange top-right, ink
+            // bottom-left — replacing the old flat cream + dot grid.
+            backgroundColor: '#F6F4F1',
+            backgroundImage: [
+              'radial-gradient(1100px 520px at 88% -8%, rgba(254,60,1,0.07), transparent 62%)',
+              'radial-gradient(900px 480px at -12% 112%, rgba(26,22,19,0.06), transparent 60%)',
+            ].join(', '),
           } : {
-            backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
-            backgroundSize: '20px 20px',
+            backgroundImage: [
+              'radial-gradient(1100px 520px at 88% -8%, rgba(254,60,1,0.08), transparent 62%)',
+              'radial-gradient(900px 480px at -12% 112%, rgba(0,0,0,0.35), transparent 60%)',
+            ].join(', '),
           }}
         >
           {/* Dashboard Content */}
@@ -1675,101 +1662,106 @@ export default function Dashboard() {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-10 w-full pt-2 px-1 sm:px-2">
 
-            {/* ── Overview Section Heading ────────────────────────────── */}
-            <motion.div
+            {/* ── Signal desk — heading + live stats fused into one ink panel ── */}
+            <motion.section
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
-              className={isRtl ? 'text-right' : ''}
+              className={`bid-grain relative overflow-hidden rounded-[28px] bg-[#171310] px-6 sm:px-9 pt-8 sm:pt-10 ${canManage ? 'pb-7 sm:pb-9' : 'pb-8'} ${isRtl ? 'text-right' : ''}`}
             >
-              {canManage && (
-                <span className="inline-block text-xs font-semibold text-[#FE3C01] bg-[#FFE4D7] dark:bg-[#FE3C01]/15 px-3 py-1.5 rounded-full mb-4 tracking-wide">
-                  01
-                </span>
-              )}
-              <h1 className="font-display font-bold text-4xl sm:text-5xl text-[#1A1613] dark:text-foreground tracking-[-0.04em] leading-[0.95]">
-                {t('dashboard.overview')}<span className="text-[#FE3C01]">.</span>
-              </h1>
-              {canManage && (
-                <p className="text-sm sm:text-base text-[#8A8078] dark:text-muted-foreground mt-3 max-w-xl leading-relaxed">
-                  {t('dashboard.getStartedDesc')}
-                </p>
-              )}
-            </motion.div>
+              {/* Orange blooms — the signal glowing off the desk */}
+              <div aria-hidden className="pointer-events-none absolute -top-36 -right-28 h-96 w-96 rounded-full bg-[#FE3C01]/25 blur-[110px]" />
+              <div aria-hidden className="pointer-events-none absolute -bottom-44 -left-24 h-80 w-80 rounded-full bg-[#FE3C01]/[0.08] blur-[100px]" />
 
-            {/* ── Stat Cards Row ──────────────────────────────────────── */}
-            {canManage && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5" data-tour="dashboard-tabs">
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0, duration: 0.35, ease: "easeOut" }}
-                  whileHover={{ y: -3 }}
-                  className="rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)]"
-                  style={currentTheme !== 'dark' ? {
-                    background: BRAND_CARD_GRADIENT,
-                  } : undefined}
-                >
-                  <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <div className="h-11 w-11 rounded-2xl bg-[#FE3C01] text-white flex items-center justify-center flex-shrink-0 shadow-[0_8px_18px_-6px_rgba(254,60,1,0.45)]">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                    <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
-                      <p className="font-display font-bold text-5xl text-[#1A1613] dark:text-foreground tracking-[-0.04em] leading-[1] tabular-nums">
-                        {tenders.filter(tender => tender.status === 'published').length}
-                      </p>
-                      <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-2 font-medium">{t('dashboard.activeRfps')}</p>
-                    </div>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05, duration: 0.35, ease: "easeOut" }}
-                  whileHover={{ y: -3 }}
-                  className="rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)]"
-                  style={currentTheme !== 'dark' ? {
-                    background: BRAND_CARD_GRADIENT,
-                  } : undefined}
-                >
-                  <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <div className="h-11 w-11 rounded-2xl [background:var(--spotlight-card-bg)] dark:bg-gray-700 text-[#1A1613] dark:text-gray-300 flex items-center justify-center flex-shrink-0 border border-[#FE3C01]/10 shadow-sm">
-                      <Inbox className="h-5 w-5" />
-                    </div>
-                    <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
-                      <p className="font-display font-bold text-5xl text-[#1A1613] dark:text-foreground tracking-[-0.04em] leading-[1] tabular-nums">
-                        {incomingOffers.filter(o => o.status === 'pending').length}
-                      </p>
-                      <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-2 font-medium">{t('dashboard.pendingProposals')}</p>
-                    </div>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1, duration: 0.35, ease: "easeOut" }}
-                  whileHover={{ y: -3 }}
-                  className="rounded-3xl border border-[#FE3C01]/10 dark:border-border p-6 sm:p-7 dark:bg-card transition-shadow hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.18)]"
-                  style={currentTheme !== 'dark' ? {
-                    background: BRAND_CARD_GRADIENT,
-                  } : undefined}
-                >
-                  <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                    <div className="h-11 w-11 rounded-2xl [background:var(--spotlight-card-bg)] dark:bg-gray-700 text-[#1A1613] dark:text-gray-300 flex items-center justify-center flex-shrink-0 border border-[#FE3C01]/10 shadow-sm">
-                      <Users className="h-5 w-5" />
-                    </div>
-                    <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
-                      <p className="font-display font-bold text-5xl text-[#1A1613] dark:text-foreground tracking-[-0.04em] leading-[1] tabular-nums">
-                        {vendors.length}
-                      </p>
-                      <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-2 font-medium">{t('dashboard.vendorsInBase')}</p>
-                    </div>
-                  </div>
-                </motion.div>
+              <div className="relative">
+                {canManage && (
+                  <span className="inline-block text-xs font-semibold text-[#FF6A3C] bg-[#FE3C01]/15 px-3 py-1.5 rounded-full mb-4 tracking-wide">
+                    01
+                  </span>
+                )}
+                <h1 className="font-display font-bold text-4xl sm:text-5xl text-[#F4EDE1] tracking-[-0.04em] leading-[0.95]">
+                  {t('dashboard.overview')}<span className="text-[#FE3C01]">.</span>
+                </h1>
+                {canManage && (
+                  <p className="text-sm sm:text-base text-[#B9AFA5] mt-3 max-w-xl leading-relaxed">
+                    {t('dashboard.getStartedDesc')}
+                  </p>
+                )}
               </div>
-            )}
+
+              {canManage && (
+                <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-8" data-tour="dashboard-tabs">
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0, duration: 0.35, ease: "easeOut" }}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setActiveTab('tenders')}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('tenders'); } }}
+                    className="group cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 transition-colors hover:bg-white/[0.07] hover:border-[#FE3C01]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01]"
+                  >
+                    <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className="h-11 w-11 rounded-xl bg-[#FE3C01] text-white flex items-center justify-center flex-shrink-0 shadow-[0_8px_18px_-6px_rgba(254,60,1,0.5)]">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
+                        <p className="font-display font-bold text-5xl text-[#F4EDE1] tracking-[-0.04em] leading-[1] tabular-nums">
+                          {tenders.filter(tender => tender.status === 'published').length}
+                        </p>
+                        <p className="text-sm text-[#B9AFA5] mt-2 font-medium">{t('dashboard.activeRfps')}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05, duration: 0.35, ease: "easeOut" }}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setActiveTab('proposals')}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('proposals'); } }}
+                    className="group cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 transition-colors hover:bg-white/[0.07] hover:border-[#FE3C01]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01]"
+                  >
+                    <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className="h-11 w-11 rounded-xl bg-white/10 text-[#F4EDE1] flex items-center justify-center flex-shrink-0 border border-white/10">
+                        <Inbox className="h-5 w-5" />
+                      </div>
+                      <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
+                        <p className="font-display font-bold text-5xl text-[#F4EDE1] tracking-[-0.04em] leading-[1] tabular-nums">
+                          {incomingOffers.filter(o => o.status === 'pending').length}
+                        </p>
+                        <p className="text-sm text-[#B9AFA5] mt-2 font-medium">{t('dashboard.pendingProposals')}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1, duration: 0.35, ease: "easeOut" }}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setActiveTab('vendors')}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('vendors'); } }}
+                    className="group cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 transition-colors hover:bg-white/[0.07] hover:border-[#FE3C01]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01]"
+                  >
+                    <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className="h-11 w-11 rounded-xl bg-white/10 text-[#F4EDE1] flex items-center justify-center flex-shrink-0 border border-white/10">
+                        <Users className="h-5 w-5" />
+                      </div>
+                      <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
+                        <p className="font-display font-bold text-5xl text-[#F4EDE1] tracking-[-0.04em] leading-[1] tabular-nums">
+                          {vendors.length}
+                        </p>
+                        <p className="text-sm text-[#B9AFA5] mt-2 font-medium">{t('dashboard.vendorsInBase')}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+            </motion.section>
 
             {/* ── Ready to Negotiate Banner ───────────────────────────── */}
             {canManage && tendersReadyToNegotiate.length > 0 && (
@@ -1777,10 +1769,7 @@ export default function Dashboard() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.12, duration: 0.35, ease: "easeOut" }}
-                className="rounded-3xl overflow-hidden border border-[#FE3C01]/15 dark:border-border dark:bg-card"
-                style={currentTheme !== 'dark' ? {
-                  background: BRAND_CARD_GRADIENT,
-                } : undefined}
+                className="rounded-3xl overflow-hidden border border-[#FE3C01]/15 dark:border-border bg-white dark:bg-card shadow-[0_18px_44px_-32px_rgba(26,22,19,0.25)]"
               >
                 <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
                 <div className="p-6 sm:p-7">
@@ -1826,28 +1815,27 @@ export default function Dashboard() {
               </motion.div>
             )}
 
-            {/* ── Demo Banner ─────────────────────────────────────────── */}
+            {/* ── Demo Banner — demoted to a quiet card; the ink hero owns the
+                   dark weight now (plan B-5) ─────────────────────────────── */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.35, ease: "easeOut" }}
-              className="rounded-3xl overflow-hidden border border-[#1A1613]/10 dark:border-border dark:bg-card"
-              style={currentTheme !== 'dark' ? {
-                background: '#1A1613',
-              } : undefined}
+              className="rounded-2xl border border-[#1A1613]/10 dark:border-border bg-white dark:bg-card"
             >
-              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-7 ${isRtl ? 'sm:flex-row-reverse' : ''}`}>
-                <div className={`flex items-center gap-4 min-w-0 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                  <div className="h-11 w-11 rounded-2xl bg-[#FE3C01] flex items-center justify-center flex-shrink-0">
-                    <Play className="h-5 w-5 text-white fill-white" />
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 sm:px-6 ${isRtl ? 'sm:flex-row-reverse' : ''}`}>
+                <div className={`flex items-center gap-3.5 min-w-0 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  <div className="h-9 w-9 rounded-xl bg-[#FE3C01]/10 flex items-center justify-center flex-shrink-0">
+                    <Play className="h-4 w-4 text-[#FE3C01] fill-[#FE3C01]" />
                   </div>
                   <div className={`min-w-0 ${isRtl ? 'text-right' : ''}`}>
-                    <h3 className="font-display font-bold text-lg sm:text-xl text-[#F4EDE1] dark:text-foreground tracking-[-0.02em]">{t('dashboard.bookDemoTitle')}</h3>
-                    <p className="text-sm text-[#F4EDE1]/60 dark:text-muted-foreground mt-0.5">{t('dashboard.bookDemoDesc')}</p>
+                    <h3 className="font-display font-bold text-base text-[#1A1613] dark:text-foreground tracking-[-0.02em]">{t('dashboard.bookDemoTitle')}</h3>
+                    <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-0.5">{t('dashboard.bookDemoDesc')}</p>
                   </div>
                 </div>
                 <Button
-                  className="bg-[#FE3C01] hover:bg-[#F4EDE1] hover:text-[#1A1613] text-white rounded-full px-5 flex-shrink-0 transition-colors"
+                  variant="outline"
+                  className="rounded-full px-5 flex-shrink-0 border-[#1A1613]/20 text-[#1A1613] dark:text-foreground hover:bg-[#FE3C01] hover:text-white hover:border-[#FE3C01] transition-colors"
                   data-testid="button-book-demo"
                 >
                   {t('dashboard.bookDemo')}
@@ -1860,10 +1848,7 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.35, ease: "easeOut" }}
-              className="rounded-3xl border border-[#FE3C01]/10 dark:border-border overflow-hidden dark:bg-card"
-              style={currentTheme !== 'dark' ? {
-                background: BRAND_CARD_GRADIENT,
-              } : undefined}
+              className="rounded-3xl border border-[#1A1613]/10 dark:border-border overflow-hidden bg-white dark:bg-card shadow-[0_18px_44px_-32px_rgba(26,22,19,0.25)]"
               data-tour="onboarding-tasks"
             >
               <div className="px-6 sm:px-8 pt-7 pb-6 sm:pt-8 sm:pb-8">
@@ -2161,7 +2146,8 @@ export default function Dashboard() {
           {canManage && (
             <TabsContent value="tenders" className="space-y-6">
               {/* Header */}
-              <BrandSectionHeading
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>
+<PageHeader
                 num="02"
                 title={t('dashboard.tendersTitle')}
                 description={t('dashboard.tendersDesc')}
@@ -2181,6 +2167,7 @@ export default function Dashboard() {
                   </ParticleButton>
                 }
               />
+              </motion.div>
 
               {/* Filters */}
               <Card {...brandCardProps()}>
@@ -2391,7 +2378,8 @@ export default function Dashboard() {
 
           {/* Proposals Tab */}
           <TabsContent value="proposals" className="space-y-6">
-            <BrandSectionHeading
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>
+<PageHeader
               num="03"
               title={t('dashboard.proposalsTitle')}
               description={t('dashboard.proposalsDesc')}
@@ -2399,6 +2387,7 @@ export default function Dashboard() {
               titleTestId="text-proposals-title"
               descTestId="text-proposals-description"
             />
+            </motion.div>
 
             <Tabs value={(isIndividual || isTeam) ? 'submitted' : proposalsSubTab} onValueChange={(v) => { setProposalsSubTab(v); localStorage.setItem('dashboard-proposals-tab', v); }} className="space-y-4">
               {!isIndividual && !isTeam && (
@@ -2747,7 +2736,8 @@ export default function Dashboard() {
           {/* Vendors Base Tab */}
           {canManage && (
             <TabsContent value="vendors" className="space-y-6">
-              <BrandSectionHeading
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>
+<PageHeader
                 num="04"
                 title={t('dashboard.vendorsBaseTitle')}
                 description={t('dashboard.vendorsBaseDesc')}
@@ -2755,6 +2745,7 @@ export default function Dashboard() {
                 titleTestId="text-vendors-title"
                 descTestId="text-vendors-description"
               />
+              </motion.div>
 
               {/* Traction Link Card */}
               <Card {...brandCardProps('border-dashed')}>
@@ -3318,7 +3309,8 @@ export default function Dashboard() {
 
             return (
               <TabsContent value="profile-link" className="space-y-6">
-                <BrandSectionHeading
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>
+<PageHeader
                   num="05"
                   title={isIndividual ? t('dashboard.profileLinkTitleFreelancer') : t('dashboard.profileLinkTitleTeam')}
                   description={isIndividual ? t('dashboard.profileLinkDescFreelancer') : t('dashboard.profileLinkDescTeam')}
@@ -3326,6 +3318,7 @@ export default function Dashboard() {
                   titleTestId="text-profile-link-title"
                   descTestId="text-profile-link-description"
                 />
+                </motion.div>
 
                 {/* ─── Profile Link Card ─── */}
                 <Card {...brandCardProps()}>
@@ -3901,6 +3894,39 @@ export default function Dashboard() {
       </Dialog>
       </SidebarInset>
     </SidebarProvider>
+
+    {/* ── Mobile bottom tab bar — primary navigation on phones. Replaces the
+           hamburger→drawer as the way to move between dashboard sections;
+           the drawer stays available for secondary items (marketplace,
+           profile, settings). Safe-area aware. ── */}
+    <nav
+      className="md:hidden fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      aria-label="Primary"
+    >
+      <div className={`flex items-stretch ${isRtl ? 'flex-row-reverse' : ''}`}>
+        {sidebarItems.filter(i => i.show).slice(0, 4).map((item) => {
+          const ActiveIcon = item.icon;
+          const active = activeTab === item.value;
+          return (
+            <button
+              key={item.value}
+              type="button"
+              onClick={() => { setActiveTab(item.value); mainRef.current?.scrollTo({ top: 0 }); }}
+              aria-current={active ? 'page' : undefined}
+              data-testid={`bottomnav-${item.value}`}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] px-1 text-[11px] font-medium transition-colors ${
+                active ? 'text-[#FE3C01]' : 'text-muted-foreground'
+              }`}
+            >
+              <ActiveIcon className="h-5 w-5" aria-hidden />
+              <span className="truncate max-w-full leading-none">{item.label}</span>
+              <span className={`h-1 w-1 rounded-full ${active ? 'bg-[#FE3C01]' : 'bg-transparent'}`} aria-hidden />
+            </button>
+          );
+        })}
+      </div>
+    </nav>
 
     {/* Verification required dialog */}
     <Dialog open={showUnverifiedDialog} onOpenChange={setShowUnverifiedDialog}>

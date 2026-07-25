@@ -525,8 +525,8 @@ export default function TenderStartMethodStep() {
             {/* Illustration Area */}
             <div className={`w-full h-[150px] sm:h-[220px] rounded-xl flex items-center justify-center mb-6 max-sm:mb-4 transition-all duration-300 ease-in-out overflow-hidden ${
               startMethod === "template"
-                ? "bg-[#F7F7F7]"
-                : "bg-[#F7F7F7] group-hover:bg-[#FEF7F6]"
+                ? "bg-[#F7F7F7] dark:bg-muted"
+                : "bg-[#F7F7F7] dark:bg-muted group-hover:bg-[#FEF7F6] dark:group-hover:bg-muted/70"
             }`}>
               <TemplateIllustration
                 isSelected={startMethod === "template"}
@@ -585,8 +585,8 @@ export default function TenderStartMethodStep() {
             {/* Illustration Area */}
             <div className={`w-full h-[150px] sm:h-[220px] rounded-xl flex items-center justify-center mb-6 max-sm:mb-4 transition-all duration-300 ease-in-out overflow-hidden ${
               startMethod === "scratch"
-                ? "bg-[#F7F7F7]"
-                : "bg-[#F7F7F7] group-hover:bg-[#FEF7F6]"
+                ? "bg-[#F7F7F7] dark:bg-muted"
+                : "bg-[#F7F7F7] dark:bg-muted group-hover:bg-[#FEF7F6] dark:group-hover:bg-muted/70"
             }`}>
               <ScratchIllustration
                 isSelected={startMethod === "scratch"}

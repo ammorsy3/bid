@@ -261,7 +261,7 @@ export default function TenderFormBuilder() {
                 {t('tenderFlow.formBuilderTitle')}
               </span>
             </div>
-            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full" dir="ltr">
               1 / 3
             </span>
           </div>

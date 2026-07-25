@@ -1,8 +1,12 @@
 import { Link } from "wouter";
 import { BidLogo } from "@/components/brand/BidLogo";
-import { ArrowLeft, Building2, FileText, Users, CheckCircle, Send, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2, FileText, Users, CheckCircle, Send, Search } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export default function GettingStarted() {
+  const { t, isRtl } = useI18n();
+  const BackArrow = isRtl ? ArrowRight : ArrowLeft;
+
   return (
     <div className="min-h-screen bg-card">
       <header className="border-b border-border">
@@ -11,16 +15,16 @@ export default function GettingStarted() {
             <BidLogo variant="orange" size={28} />
           </Link>
           <Link href="/dashboard" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" data-testid="link-dashboard">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Dashboard
+            <BackArrow className="h-4 w-4" />
+            {t('gettingStarted.backToDashboard')}
           </Link>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold mb-2">Getting Started with Bid</h1>
+        <h1 className="text-3xl font-bold mb-2">{t('gettingStarted.pageTitle')}</h1>
         <p className="text-muted-foreground mb-10">
-          Bid is a private procurement platform for the Saudi market. Here's everything you need to know to get up and running.
+          {t('gettingStarted.pageSubtitle')}
         </p>
 
         <section className="space-y-10 text-sm leading-relaxed text-foreground">
@@ -33,14 +37,14 @@ export default function GettingStarted() {
               </div>
             </div>
             <div>
-              <h2 className="text-lg font-semibold mb-2">1. Set Up Your Company Profile</h2>
+              <h2 className="text-lg font-semibold mb-2">{t('gettingStarted.step1Title')}</h2>
               <p className="text-muted-foreground mb-3">
-                Your company profile is the first thing vendors and partners see. A complete profile builds trust and increases response rates.
+                {t('gettingStarted.step1Desc')}
               </p>
               <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
-                <li>Go to <strong className="text-foreground">Settings → Company Profile</strong> to add your company name, bio, and logo.</li>
-                <li>Upload your company documents (CR, VAT certificate) under <strong className="text-foreground">Company Documents</strong> during onboarding.</li>
-                <li>Your company slug creates a public profile page vendors can view.</li>
+                <li>{t('gettingStarted.step1Li1Pre')}<strong className="text-foreground">{t('gettingStarted.step1Li1Strong')}</strong>{t('gettingStarted.step1Li1Post')}</li>
+                <li>{t('gettingStarted.step1Li2Pre')}<strong className="text-foreground">{t('gettingStarted.step1Li2Strong')}</strong>{t('gettingStarted.step1Li2Post')}</li>
+                <li>{t('gettingStarted.step1Li3')}</li>
               </ul>
             </div>
           </div>
@@ -53,14 +57,14 @@ export default function GettingStarted() {
               </div>
             </div>
             <div>
-              <h2 className="text-lg font-semibold mb-2">2. Invite Your Team</h2>
+              <h2 className="text-lg font-semibold mb-2">{t('gettingStarted.step2Title')}</h2>
               <p className="text-muted-foreground mb-3">
-                Collaborate with colleagues by inviting them to your company workspace.
+                {t('gettingStarted.step2Desc')}
               </p>
               <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
-                <li>From your Dashboard, open the <strong className="text-foreground">Invite Team</strong> section.</li>
-                <li>Enter your colleague's email address — they'll receive an invitation link.</li>
-                <li>Team members share the same company profile and can manage tenders together.</li>
+                <li>{t('gettingStarted.step2Li1Pre')}<strong className="text-foreground">{t('gettingStarted.step2Li1Strong')}</strong>{t('gettingStarted.step2Li1Post')}</li>
+                <li>{t('gettingStarted.step2Li2')}</li>
+                <li>{t('gettingStarted.step2Li3')}</li>
               </ul>
             </div>
           </div>
@@ -73,16 +77,16 @@ export default function GettingStarted() {
               </div>
             </div>
             <div>
-              <h2 className="text-lg font-semibold mb-2">3. Create an RFP (Requesters)</h2>
+              <h2 className="text-lg font-semibold mb-2">{t('gettingStarted.step3Title')}</h2>
               <p className="text-muted-foreground mb-3">
-                If you're procuring goods or services, RFPs let you collect structured proposals from vendors.
+                {t('gettingStarted.step3Desc')}
               </p>
               <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
-                <li>Click <strong className="text-foreground">New RFP</strong> from your Dashboard and choose Manual or AI-assisted creation.</li>
-                <li>Fill in the title, scope, budget, deadline, and evaluation criteria.</li>
-                <li>Optionally attach a voice note or video link to give vendors more context.</li>
-                <li>Build a custom form to collect exactly the information you need from bidders.</li>
-                <li>Once ready, publish and generate an invite link to share with your vendor network.</li>
+                <li>{t('gettingStarted.step3Li1Pre')}<strong className="text-foreground">{t('gettingStarted.step3Li1Strong')}</strong>{t('gettingStarted.step3Li1Post')}</li>
+                <li>{t('gettingStarted.step3Li2')}</li>
+                <li>{t('gettingStarted.step3Li3')}</li>
+                <li>{t('gettingStarted.step3Li4')}</li>
+                <li>{t('gettingStarted.step3Li5')}</li>
               </ul>
             </div>
           </div>
@@ -95,15 +99,15 @@ export default function GettingStarted() {
               </div>
             </div>
             <div>
-              <h2 className="text-lg font-semibold mb-2">4. Browse & Apply to Tenders (Vendors)</h2>
+              <h2 className="text-lg font-semibold mb-2">{t('gettingStarted.step4Title')}</h2>
               <p className="text-muted-foreground mb-3">
-                If you're a vendor, you can browse open opportunities and submit bids.
+                {t('gettingStarted.step4Desc')}
               </p>
               <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
-                <li>Visit the <strong className="text-foreground">Marketplace</strong> to discover published tenders that match your expertise.</li>
-                <li>Use filters (category, budget, deadline) to narrow results.</li>
-                <li>Open a tender to read the full brief, then click <strong className="text-foreground">Submit Bid</strong> to apply.</li>
-                <li>If a company sends you a private invite link, open it and log in to access the tender directly.</li>
+                <li>{t('gettingStarted.step4Li1Pre')}<strong className="text-foreground">{t('gettingStarted.step4Li1Strong')}</strong>{t('gettingStarted.step4Li1Post')}</li>
+                <li>{t('gettingStarted.step4Li2')}</li>
+                <li>{t('gettingStarted.step4Li3Pre')}<strong className="text-foreground">{t('gettingStarted.step4Li3Strong')}</strong>{t('gettingStarted.step4Li3Post')}</li>
+                <li>{t('gettingStarted.step4Li4')}</li>
               </ul>
             </div>
           </div>
@@ -116,14 +120,14 @@ export default function GettingStarted() {
               </div>
             </div>
             <div>
-              <h2 className="text-lg font-semibold mb-2">5. Manage Submissions & Awards</h2>
+              <h2 className="text-lg font-semibold mb-2">{t('gettingStarted.step5Title')}</h2>
               <p className="text-muted-foreground mb-3">
-                Once bids are in, evaluate them and select a winner.
+                {t('gettingStarted.step5Desc')}
               </p>
               <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
-                <li>Open any tender from your Dashboard to see all incoming submissions.</li>
-                <li>Review each bid against your evaluation criteria.</li>
-                <li>Award the tender to the winning vendor — they'll be notified automatically.</li>
+                <li>{t('gettingStarted.step5Li1')}</li>
+                <li>{t('gettingStarted.step5Li2')}</li>
+                <li>{t('gettingStarted.step5Li3')}</li>
               </ul>
             </div>
           </div>
@@ -136,14 +140,14 @@ export default function GettingStarted() {
               </div>
             </div>
             <div>
-              <h2 className="text-lg font-semibold mb-2">6. Get Verified</h2>
+              <h2 className="text-lg font-semibold mb-2">{t('gettingStarted.step6Title')}</h2>
               <p className="text-muted-foreground mb-3">
-                Verification increases your credibility with counterparties on the platform.
+                {t('gettingStarted.step6Desc')}
               </p>
               <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
-                <li>Upload your Commercial Registration and VAT documents during onboarding.</li>
-                <li>Our team reviews submissions and grants a verified badge to your profile.</li>
-                <li>Verified companies appear more prominently in search results.</li>
+                <li>{t('gettingStarted.step6Li1')}</li>
+                <li>{t('gettingStarted.step6Li2')}</li>
+                <li>{t('gettingStarted.step6Li3')}</li>
               </ul>
             </div>
           </div>
@@ -151,14 +155,14 @@ export default function GettingStarted() {
           {/* Support CTA */}
           <div className="border-t border-border pt-8">
             <p className="text-muted-foreground">
-              Still have questions?{" "}
+              {t('gettingStarted.supportText')}{" "}
               <a
                 href="mailto:info@bid.sa"
                 className="text-primary hover:underline font-medium"
               >
-                Contact our support team
+                {t('gettingStarted.contactSupportLink')}
               </a>{" "}
-              at info@bid.sa — we're happy to help.
+              {t('gettingStarted.supportSuffix')}
             </p>
           </div>
         </section>

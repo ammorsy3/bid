@@ -44,26 +44,26 @@ export default function CompanyDocuments() {
   const DOCUMENT_SLOTS: DocumentSlot[] = [
     {
       type: 'cr_certificate',
-      label: t('onboarding.docCrLabel'),
-      description: t('onboarding.docCrDesc'),
+      label: t('onboardingPanel.docCrLabel'),
+      description: t('onboardingPanel.docCrDesc'),
       required: true,
     },
     {
       type: 'vat_certificate',
-      label: t('onboarding.docVatLabel'),
-      description: t('onboarding.docVatDesc'),
+      label: t('onboardingPanel.docVatLabel'),
+      description: t('onboardingPanel.docVatDesc'),
       required: false,
     },
     {
       type: 'gosi_certificate',
-      label: t('onboarding.docGosiLabel'),
-      description: t('onboarding.docGosiDesc'),
+      label: t('onboardingPanel.docGosiLabel'),
+      description: t('onboardingPanel.docGosiDesc'),
       required: false,
     },
     {
       type: 'national_address_certificate',
-      label: t('onboarding.docNatLabel'),
-      description: t('onboarding.docNatDesc'),
+      label: t('onboardingPanel.docNatLabel'),
+      description: t('onboardingPanel.docNatDesc'),
       required: false,
     },
   ];
@@ -103,7 +103,7 @@ export default function CompanyDocuments() {
         return next;
       });
     } catch {
-      toast({ title: t('onboarding.uploadFailed'), description: t('onboarding.uploadFailedDesc'), variant: "destructive" });
+      toast({ title: t('onboardingPanel.uploadFailed'), description: t('onboardingPanel.uploadFailedDesc'), variant: "destructive" });
     }
   };
 
@@ -125,17 +125,17 @@ export default function CompanyDocuments() {
               <FileCheck2 className="w-5 h-5 text-[var(--bid-orange)]" />
             </div>
             <div>
-              <h2 className="font-display font-black text-2xl text-foreground tracking-[-0.03em]">{t('onboarding.verificationDocsTitle')}</h2>
-              <p className="text-sm text-muted-foreground">{t('onboarding.verificationDocsOptional')}</p>
+              <h2 className="font-display font-black text-2xl text-foreground tracking-[-0.03em]">{t('onboardingPanel.verificationDocsTitle')}</h2>
+              <p className="text-sm text-muted-foreground">{t('onboardingPanel.verificationDocsOptional')}</p>
             </div>
           </div>
 
           <div className="bg-muted border border-border rounded-xl p-4 mb-6">
             <p className="text-sm text-muted-foreground mb-2">
-              {t('onboarding.skipNote1')}
+              {t('onboardingPanel.skipNote1')}
             </p>
             <p className="text-sm text-muted-foreground">
-              {t('onboarding.skipNote2')}
+              {t('onboardingPanel.skipNote2')}
             </p>
           </div>
 
@@ -155,7 +155,7 @@ export default function CompanyDocuments() {
                         <span className="text-sm font-medium text-foreground">{slot.label}</span>
                         {slot.required && (
                           <span className="text-xs font-medium text-[var(--bid-orange)] bg-[var(--bid-orange)]/5 px-1.5 py-0.5 rounded">
-                            {t('onboarding.neededForVerification')}
+                            {t('onboardingPanel.neededForVerification')}
                           </span>
                         )}
                       </div>
@@ -163,7 +163,7 @@ export default function CompanyDocuments() {
                       {isUploaded && (
                         <p className="text-xs text-green-600 flex items-center gap-1 mt-1.5">
                           <CheckCircle2 className="h-3.5 w-3.5" />
-                          {fileNames[slot.type] || t('onboarding.uploadedStatus')}
+                          {fileNames[slot.type] || t('onboardingPanel.uploadedStatus')}
                         </p>
                       )}
                     </div>
@@ -178,7 +178,7 @@ export default function CompanyDocuments() {
                     >
                       <div className="flex items-center gap-1.5 text-sm">
                         <Upload className="h-3.5 w-3.5" />
-                        {isUploaded ? t('onboarding.replaceBtn') : t('onboarding.uploadBtn')}
+                        {isUploaded ? t('onboardingPanel.replaceBtn') : t('onboardingPanel.uploadBtn')}
                       </div>
                     </ObjectUploader>
                   </div>
@@ -194,7 +194,7 @@ export default function CompanyDocuments() {
               onClick={() => setLocation("/onboarding/company-basics")}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {t('onboarding.backBtn')}
+              {t('onboardingPanel.backBtn')}
             </Button>
             {Object.keys(uploaded).length === 0 ? (
               <Button
@@ -204,7 +204,7 @@ export default function CompanyDocuments() {
                 className="text-muted-foreground"
               >
                 <SkipForward className="mr-2 h-4 w-4" />
-                {t('onboarding.skipForNow')}
+                {t('onboardingPanel.skipForNow')}
               </Button>
             ) : (
               <Button
@@ -212,7 +212,7 @@ export default function CompanyDocuments() {
                 size="lg"
                 className="bg-[#FE3C01] hover:bg-[#E83501]"
               >
-                {t('onboarding.continueBtn')}
+                {t('onboardingPanel.continueBtn')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             )}

@@ -429,7 +429,9 @@ export function usePageTour({
   userId,
   steps,
   isRtl,
-  autoStart = true,
+  // Tours are opt-in: they no longer auto-launch on first visit (that stacked
+  // 4+ interrupting tours across the app). Users start one via "Take a tour".
+  autoStart = false,
   autoStartDelay = 1200,
 }: UsePageTourOptions) {
   const [isActive, setIsActive] = useState(false);

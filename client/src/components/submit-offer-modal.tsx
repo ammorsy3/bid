@@ -334,9 +334,11 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   const hasExistingOffer = existingOffers && existingOffers.length > 0;
 
   const verificationStatus = activeCompany?.verificationStatus || 'not_verified';
-  // Backend (`POST /api/tenders/:id/offers`) requires strictly 'verified'.
-  // Keep this gate aligned to avoid users filling out the form just to be 403'd on submit.
-  const canSubmitOffer = verificationStatus === 'verified';
+  // Mirrors `requireVerifiedCompany` on the backend: CR/VAT verification only
+  // applies to company workspaces. Individuals and teams are exempt there, so
+  // gating them here would block a submission the server would have accepted.
+  const isCompanyWorkspace = ((activeCompany as any)?.accountType ?? 'company') === 'company';
+  const canSubmitOffer = !isCompanyWorkspace || verificationStatus === 'verified';
 
   const requiredFields = useMemo(() => getRequiredFields(tender.submissionType, uploadMode), [tender.submissionType, uploadMode]);
 

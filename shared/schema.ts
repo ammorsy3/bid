@@ -75,11 +75,14 @@ export const companies = pgTable("companies", {
   legalName: text("legal_name"),
   crNumber: text("cr_number").unique(),
   vatNumber: text("vat_number").unique(),
-  // National ID — required for team admins verifying a team workspace (10-digit).
-  // Individuals are never asked for this.
+  // National ID — required for individual accounts and team admins (10-digit)
   nationalIdNumber: text("national_id_number").unique(),
   city: text("city"),
   category: text("category"),
+  // Workspace type: 'company' | 'individual' | 'team'
+  accountType: text("account_type").notNull().default("company"),
+  // National ID for individual (freelancer) workspaces — required before offer submission
+  nationalIdNumber: text("national_id_number"),
   certifications: jsonb("certifications").$type<string[]>().default([]),
   documents: jsonb("documents").$type<{
     vatCertificate?: string;

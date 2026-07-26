@@ -1951,12 +1951,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         slugSuffix++;
       }
 
-      // Individuals are never asked for identity documents (no National ID
-      // requirement) — they're verified immediately instead of entering the
-      // CR/National-ID review queue that companies and teams go through.
-      const initialVerificationStatus = companyData.accountType === 'individual'
-        ? 'verified'
-        : (inputDocuments.length > 0 ? 'under_review' : 'not_verified');
+      const initialVerificationStatus = inputDocuments.length > 0 ? 'under_review' : 'not_verified';
 
       // Create company
       const company = await storage.createCompany({

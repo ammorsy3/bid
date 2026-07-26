@@ -818,7 +818,7 @@ function ProjectDescriptionInput({
             value={val.text}
             onChange={(e) => update({ text: e.target.value })}
             maxLength={5000}
-            rows={7}
+            rows={6}
             className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none"
           />
           <div className="flex justify-between items-center text-xs">

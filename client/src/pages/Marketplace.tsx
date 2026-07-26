@@ -322,14 +322,16 @@ export default function Marketplace() {
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                <Link href="/tenders/new">
-                  <button
-                    className="text-sm font-medium px-[18px] py-[11px] rounded-full transition-colors hover:bg-white"
-                    style={{ color: "#0B0907" }}
-                  >
-                    {t("marketplace.postTender")}
-                  </button>
-                </Link>
+                {!isIndividual && (
+                  <Link href="/tenders/new">
+                    <button
+                      className="text-sm font-medium px-[18px] py-[11px] rounded-full transition-colors hover:bg-white"
+                      style={{ color: "#0B0907" }}
+                    >
+                      {t("marketplace.postTender")}
+                    </button>
+                  </Link>
+                )}
                 <Link href="/dashboard">
                   <button
                     className="text-sm font-medium px-[18px] py-[11px] rounded-full transition-colors"
@@ -741,12 +743,14 @@ export default function Marketplace() {
             title={t("marketplace.noTenders").replace(/\.$/, "")}
             description={t("marketplace.checkBackLater")}
             action={
-              <Link href={user ? "/tenders/new" : "/signup"}>
-                <button className="inline-flex items-center gap-2 rounded-full bg-[var(--bid-orange)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#E33600]">
-                  {t("marketplace.postTender")}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </Link>
+              isIndividual ? undefined : (
+                <Link href={user ? "/tenders/new" : "/signup"}>
+                  <button className="inline-flex items-center gap-2 rounded-full bg-[var(--bid-orange)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#E33600]">
+                    {t("marketplace.postTender")}
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </Link>
+              )
             }
           />
         ) : (
@@ -974,39 +978,41 @@ export default function Marketplace() {
       </div>
 
       {/* ── CTA STRIP ── */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-14 mb-16">
-        <div
-          className="grid grid-cols-1 sm:grid-cols-[1.3fr_1fr] gap-8 sm:gap-12 items-center p-8 sm:p-14 rounded-[24px] sm:rounded-[32px] relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg,#FE3C01 0%,#FF6535 100%)" }}
-        >
+      {!isIndividual && (
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-14 mb-16">
           <div
-            className="absolute inset-0 opacity-50"
-            style={{
-              backgroundImage: "radial-gradient(circle at center,rgba(255,255,255,.15) 1.5px,transparent 2px)",
-              backgroundSize: "24px 24px",
-            }}
-          />
-          <h2
-            className="relative z-10 font-display font-bold text-white"
-            style={{ fontSize: "clamp(28px,4vw,44px)", letterSpacing: "-0.03em", lineHeight: 1 }}
+            className="grid grid-cols-1 sm:grid-cols-[1.3fr_1fr] gap-8 sm:gap-12 items-center p-8 sm:p-14 rounded-[24px] sm:rounded-[32px] relative overflow-hidden"
+            style={{ background: "linear-gradient(135deg,#FE3C01 0%,#FF6535 100%)" }}
           >
-            {t("marketplace.ctaTitle")}
-          </h2>
-          <div className="relative z-10">
-            <p className="text-white opacity-95 text-[15px] leading-[1.55] mb-6 max-w-[36ch]">
-              {t("marketplace.ctaDesc")}
-            </p>
-            <Link href={user ? "/tenders/new" : "/signup"}>
-              <button
-                className="font-semibold text-sm px-5 py-3.5 rounded-full transition-colors hover:bg-[#F4EDE1]"
-                style={{ background: "white", color: "#FE3C01" }}
-              >
-                {t("marketplace.ctaButton")} {arrow}
-              </button>
-            </Link>
+            <div
+              className="absolute inset-0 opacity-50"
+              style={{
+                backgroundImage: "radial-gradient(circle at center,rgba(255,255,255,.15) 1.5px,transparent 2px)",
+                backgroundSize: "24px 24px",
+              }}
+            />
+            <h2
+              className="relative z-10 font-display font-bold text-white"
+              style={{ fontSize: "clamp(28px,4vw,44px)", letterSpacing: "-0.03em", lineHeight: 1 }}
+            >
+              {t("marketplace.ctaTitle")}
+            </h2>
+            <div className="relative z-10">
+              <p className="text-white opacity-95 text-[15px] leading-[1.55] mb-6 max-w-[36ch]">
+                {t("marketplace.ctaDesc")}
+              </p>
+              <Link href={user ? "/tenders/new" : "/signup"}>
+                <button
+                  className="font-semibold text-sm px-5 py-3.5 rounded-full transition-colors hover:bg-[#F4EDE1]"
+                  style={{ background: "white", color: "#FE3C01" }}
+                >
+                  {t("marketplace.ctaButton")} {arrow}
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ── FOOTER ── */}
       <footer className="border-t" style={{ borderColor: "rgba(11,9,7,0.08)" }}>

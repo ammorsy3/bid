@@ -994,7 +994,7 @@ export default function Dashboard() {
                         {activeCompany.profile?.displayName || activeCompany.name}
                       </h2>
                       <p className="text-xs text-muted-foreground truncate">
-                        {userRole.charAt(0).toUpperCase() + userRole.slice(1)} • {activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                        {userRole.charAt(0).toUpperCase() + userRole.slice(1)}{!isIndividual && ` • ${activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`}
                       </p>
                     </div>
                     <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
@@ -1053,7 +1053,7 @@ export default function Dashboard() {
                   {activeCompany.profile?.displayName || activeCompany.name}
                 </h2>
                 <p className="text-xs text-muted-foreground truncate">
-                  {userRole.charAt(0).toUpperCase() + userRole.slice(1)} • {activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                  {userRole.charAt(0).toUpperCase() + userRole.slice(1)}{!isIndividual && ` • ${activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`}
                 </p>
               </div>
             )}
@@ -1206,8 +1206,10 @@ export default function Dashboard() {
         </SidebarContent>
 
         <SidebarFooter className="border-t px-4 py-4">
-          {/* Verification banner — shown for unverified/pending/rejected companies */}
-          {activeCompany.verificationStatus === 'not_verified' && (
+          {/* Verification banner — companies and teams only. Individuals are
+              never asked to verify an identity, so these prompts (and the
+              company-only settings tab they link to) don't apply to them. */}
+          {!isIndividual && activeCompany.verificationStatus === 'not_verified' && (
             <div className="mb-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
               <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-0.5">{isTeam ? t('settings.teamNotVerified') : t('settings.companyNotVerified')}</p>
               <p className="text-xs text-amber-700 dark:text-amber-400 mb-1.5 leading-snug">{isTeam ? t('settings.teamNotVerifiedDesc') : t('settings.companyNotVerifiedDesc')}</p>
@@ -1219,13 +1221,13 @@ export default function Dashboard() {
               </button>
             </div>
           )}
-          {activeCompany.verificationStatus === 'under_review' && (
+          {!isIndividual && activeCompany.verificationStatus === 'under_review' && (
             <div className="mb-3 rounded-lg bg-[var(--bid-orange)]/5 dark:bg-blue-950/40 border border-[var(--bid-orange)]/20 dark:border-blue-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
               <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 mb-0.5">{t('settings.verificationInProgress')}</p>
               <p className="text-xs text-[var(--bid-orange)] dark:text-blue-400 leading-snug">{t('settings.verificationInProgressDesc')}</p>
             </div>
           )}
-          {activeCompany.verificationStatus === 'rejected' && (
+          {!isIndividual && activeCompany.verificationStatus === 'rejected' && (
             <div className="mb-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
               <p className="text-xs font-semibold text-red-800 dark:text-red-300 mb-0.5">{t('settings.verificationRejected')}</p>
               {activeCompany.rejectionReason ? (
@@ -1259,7 +1261,9 @@ export default function Dashboard() {
                       {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
                     </div>
                   )}
-                  {activeCompany.verificationStatus === 'verified' ? (
+                  {/* Individuals have no verification state to show — they're
+                      never asked to verify an identity. */}
+                  {!isIndividual && (activeCompany.verificationStatus === 'verified' ? (
                     <div
                       className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-[var(--bid-orange)] flex items-center justify-center border-2 border-white dark:border-border"
                       title={t('dashboard.verified')}
@@ -1287,7 +1291,7 @@ export default function Dashboard() {
                     >
                       <X className="h-2.5 w-2.5 text-white" />
                     </div>
-                  )}
+                  ))}
                 </div>
                 <span className="text-sm font-medium truncate group-data-[collapsible=icon]:hidden">
                   {user.name || user.username}

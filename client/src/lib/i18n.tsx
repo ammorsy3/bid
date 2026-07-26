@@ -4167,6 +4167,13 @@ const translations = {
       invitationMany: "{count} invitations",
       byCompany: "A company",
     },
+    desktopRecommendation: {
+      title: "Better Experience on Desktop",
+      body: "You can use Bid on mobile, but desktop offers a smoother experience.",
+      continueOnMobile: "Continue on Mobile",
+      openOnDesktop: "Open on Desktop",
+      linkCopied: "Link copied — open it on your desktop",
+    },
   },
   ar: {
     settings: {
@@ -8319,6 +8326,13 @@ const translations = {
       invitationOne: "{count} دعوة",
       invitationMany: "{count} دعوات",
       byCompany: "شركة",
+    },
+    desktopRecommendation: {
+      title: "تجربة أفضل على الكمبيوتر",
+      body: "بد يشتغل على الجوال، لكن التجربة أفضل على الكمبيوتر.",
+      continueOnMobile: "كمل على الجوال",
+      openOnDesktop: "افتح على الكمبيوتر",
+      linkCopied: "تم نسخ الرابط — افتحه على جهاز الكمبيوتر",
     },
   }
 };

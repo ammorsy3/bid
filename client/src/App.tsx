@@ -7,6 +7,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Toaster } from "@/components/ui/toaster";
 import { NavigationProgress } from "@/components/ui/navigation-progress";
+import { DesktopRecommendationModal } from "@/components/desktop-recommendation-modal";
 import { RequireVerified } from "@/components/RequireVerified";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/lib/auth";
@@ -99,6 +100,7 @@ export default function App() {
           <AriaLocaleProvider>
             <Router>
               <NavigationProgress />
+              <DesktopRecommendationModal />
               <Switch>
                 <Route path="/" component={Marketplace} />
                 <Route path="/invite/:id" component={TenderInviteLink} />
@@ -126,6 +128,7 @@ export default function App() {
         <AriaLocaleProvider>
           <Router>
             <NavigationProgress />
+            <DesktopRecommendationModal />
             <Switch>
               <Route path="/" component={Landing} />
               <Route path="/login" component={Login} />

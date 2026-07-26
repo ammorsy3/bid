@@ -4139,6 +4139,15 @@ const translations = {
       openOnDesktop: "Open on Desktop",
       linkCopied: "Link copied — open it on your desktop",
     },
+    support: {
+      heading: "Support",
+      needHelp: "Need help?",
+      description: "Talk to our team directly — we usually reply within a few minutes.",
+      callUs: "Call us",
+      whatsapp: "WhatsApp",
+      phoneAria: "Call Bid support",
+      whatsappAria: "Message Bid support on WhatsApp",
+    },
   },
   ar: {
     settings: {
@@ -8264,6 +8273,15 @@ const translations = {
       openOnDesktop: "افتح على الكمبيوتر",
       linkCopied: "تم نسخ الرابط — افتحه على جهاز الكمبيوتر",
     },
+    support: {
+      heading: "الدعم",
+      needHelp: "تحتاج مساعدة؟",
+      description: "تواصل مع فريقنا مباشرة — نرد عادةً خلال دقائق.",
+      callUs: "اتصل بنا",
+      whatsapp: "واتساب",
+      phoneAria: "اتصل بدعم بد",
+      whatsappAria: "راسل دعم بد على واتساب",
+    },
   }
 };
 
@@ -8281,6 +8299,32 @@ if (!_g.__i18nContext) {
   _g.__i18nContext = createContext<I18nContextType | null>(null);
 }
 const I18nContext = _g.__i18nContext as React.Context<I18nContextType | null>;
+
+/**
+ * Look a key up in the central dictionary for an explicit language.
+ *
+ * `useI18n().t` is the normal way to translate; this exists for the few places
+ * that track their own language state outside the provider (the landing page
+ * has its own AR/EN toggle) and so can't rely on the provider's language.
+ */
+export function translate(
+  lang: Language,
+  key: string,
+  vars?: Record<string, string | number>,
+): string {
+  const keys = key.split('.');
+  let value: any = translations[lang];
+  for (const k of keys) {
+    value = value?.[k];
+  }
+  let result = typeof value === 'string' ? value : key;
+  if (vars) {
+    for (const [k, v] of Object.entries(vars)) {
+      result = result.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+    }
+  }
+  return result;
+}
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
@@ -8326,20 +8370,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
   }, [language]);
 
-  const t = (key: string, vars?: Record<string, string | number>): string => {
-    const keys = key.split('.');
-    let value: any = translations[language];
-    for (const k of keys) {
-      value = value?.[k];
-    }
-    let result = typeof value === 'string' ? value : key;
-    if (vars) {
-      for (const [k, v] of Object.entries(vars)) {
-        result = result.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
-      }
-    }
-    return result;
-  };
+  const t = (key: string, vars?: Record<string, string | number>): string =>
+    translate(language, key, vars);
 
   const isRtl = language === 'ar';
 

@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import "./landing.css";
 import { BidLogo, BidMonogram } from "@/components/brand/BidLogo";
 import { useAuthStore } from "@/lib/auth";
+import { SupportContactLinks } from "@/components/support-contact";
 
 type Lang = "en" | "ar";
 
@@ -43,7 +44,7 @@ const copy = {
     ftReq: "FOR REQUESTERS", ftVen: "FOR VENDORS", ftCo: "COMPANY",
     ftRFP: "RFP Crafting", ftMkt: "Marketplace", ftTrac: "Traction Link",
     ftBriefs: "Receive briefs", ftTenders: "Explore tenders", ftConnect: "Connect with clients",
-    ftContact: "Contact", ftTerms: "Terms", ftPrivacy: "Privacy",
+    ftContact: "Contact", ftTerms: "Terms", ftPrivacy: "Privacy", ftSupport: "SUPPORT",
     ftCopy: "© 2026 Bid, Sourcing Redefined.", ftCookies: "Cookies",
   },
   ar: {
@@ -82,7 +83,7 @@ const copy = {
     ftReq: "للمشترين", ftVen: "للموردين", ftCo: "Bid",
     ftRFP: "تجهيز الـRFP", ftMkt: "السوق", ftTrac: "رابط الإنضمام",
     ftBriefs: "استلام البريفات", ftTenders: "استكشف المناقصات", ftConnect: "تواصل مع العملاء",
-    ftContact: "تواصل معنا", ftTerms: "الشروط", ftPrivacy: "الخصوصية",
+    ftContact: "تواصل معنا", ftTerms: "الشروط", ftPrivacy: "الخصوصية", ftSupport: "الدعم",
     ftCopy: "© 2026 Bid، التوريد بشكل جديد.", ftCookies: "الكوكيز",
   },
 } as const;
@@ -582,6 +583,12 @@ const Landing = () => {
               <a href="mailto:hello@bid.sa">{c.ftContact}</a>
               <Link href="/terms">{c.ftTerms}</Link>
               <Link href="/privacy">{c.ftPrivacy}</Link>
+            </div>
+            <div>
+              <h5>{c.ftSupport}</h5>
+              {/* Landing tracks its own AR/EN toggle, so pass it explicitly
+                  rather than letting the component read the app language. */}
+              <SupportContactLinks lang={lang} className="footer-support" />
             </div>
           </div>
           <div className="footer-bot">

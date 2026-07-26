@@ -27,6 +27,7 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase, BookmarkPlus, Bookmark, User, Code2, CheckCircle2 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { SupportContactLinks } from "@/components/support-contact";
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -1201,6 +1202,30 @@ export default function Dashboard() {
               </SidebarGroupContent>
             </SidebarGroup>
           )}
+
+          {/* Support — direct line to the team, same details as the landing footer */}
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <div className="px-2 group-data-[collapsible=icon]:px-0">
+                <div className="w-full rounded-xl border border-border bg-muted/40 px-3 py-3 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:rounded-lg">
+                  <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center">
+                    <div className="h-8 w-8 rounded-lg bg-[#FE3C01]/10 flex items-center justify-center flex-shrink-0">
+                      <HelpCircle className="h-4 w-4 text-[#FE3C01]" />
+                    </div>
+                    <div className="flex-1 min-w-0 text-start group-data-[collapsible=icon]:hidden">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-foreground">{t('support.heading')}</p>
+                      <p className="text-[11px] text-muted-foreground leading-tight">{t('support.needHelp')}</p>
+                    </div>
+                  </div>
+                  <SupportContactLinks
+                    className="mt-2.5 flex flex-col gap-1 group-data-[collapsible=icon]:hidden"
+                    linkClassName="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                    iconClassName="h-3.5 w-3.5 text-[#FE3C01] flex-shrink-0"
+                  />
+                </div>
+              </div>
+            </SidebarGroupContent>
+          </SidebarGroup>
 
           <ChatHistorySidebar />
         </SidebarContent>

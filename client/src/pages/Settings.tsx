@@ -1803,8 +1803,8 @@ export default function Settings() {
               </div>
               )}
 
-              {/* National ID — individual and team workspaces */}
-              {(isIndividualWorkspace || isTeamWorkspace) && (
+              {/* National ID — team workspaces only (individuals are never asked for it) */}
+              {isTeamWorkspace && (
               <div id="national-id-verification">
                 <Card>
                   <CardHeader className="pb-4">
@@ -1815,9 +1815,7 @@ export default function Settings() {
                       <div>
                         <CardTitle className="text-base">National ID Verification</CardTitle>
                         <CardDescription className="text-xs">
-                          {isTeamWorkspace
-                            ? 'As the team owner, submit your National ID to verify this team and unlock offer submissions.'
-                            : 'Required before you can submit offers on tenders. Enter your National ID number to unlock offer submissions.'}
+                          As the team owner, submit your National ID to verify this team and unlock offer submissions.
                         </CardDescription>
                       </div>
                     </div>

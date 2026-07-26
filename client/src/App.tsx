@@ -25,7 +25,6 @@ import CompanyProfile from "@/pages/onboarding/company-profile";
 import InviteTeam from "@/pages/onboarding/invite-team";
 import CompanyDocuments from "@/pages/onboarding/company-documents";
 import IndividualBasics from "@/pages/onboarding/individual-basics";
-import IndividualVerify from "@/pages/onboarding/individual-verify";
 import TeamBasics from "@/pages/onboarding/team-basics";
 import TeamInviteOnboarding from "@/pages/onboarding/team-invite";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -147,7 +146,6 @@ export default function App() {
               <Route path="/onboarding/company-documents" component={CompanyDocuments} />
               <Route path="/onboarding/individual-basics" component={IndividualBasics} />
               <Route path="/onboarding/individual-profile" component={IndividualProfileEditor} />
-              <Route path="/onboarding/individual-verify" component={IndividualVerify} />
               <Route path="/onboarding/team-basics" component={TeamBasics} />
               <Route path="/onboarding/team-invite" component={TeamInviteOnboarding} />
               <Route path="/dashboard" component={DashboardGuard} />

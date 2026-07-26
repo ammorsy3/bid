@@ -13,17 +13,9 @@ export default function DashboardGuard() {
   const [, setLocation] = useLocation();
 
   const isIndividual = (activeCompany as any)?.accountType === "individual";
-  // Individuals must (1) finish their profile, then (2) submit ID verification
-  // before reaching the dashboard. After submitting, they enter as "under review".
   const needsProfileSetup = isIndividual && (activeCompany as any)?.onboardingState !== "completed";
-  const needsVerification =
-    isIndividual && !needsProfileSetup && (activeCompany as any)?.verificationStatus === "not_verified";
 
-  const redirectTo = needsProfileSetup
-    ? "/onboarding/individual-profile"
-    : needsVerification
-      ? "/onboarding/individual-verify"
-      : null;
+  const redirectTo = needsProfileSetup ? "/onboarding/individual-profile" : null;
 
   useEffect(() => {
     if (redirectTo) setLocation(redirectTo);

@@ -1893,10 +1893,10 @@ export default function Dashboard() {
                     </div>
 
                     {/* Tasks */}
-                    <Accordion type="single" collapsible defaultValue={canManage ? "task-1" : "task-4"} className="space-y-3">
+                    <Accordion type="single" collapsible defaultValue={canManage && !isIndividual ? "task-1" : "task-4"} className="space-y-3">
 
-                      {/* Task 1: Get Verified (admins/owners only) */}
-                      {canManage && (
+                      {/* Task 1: Get Verified (admins/owners only — individuals are auto-verified and never need this) */}
+                      {canManage && !isIndividual && (
                       <AccordionItem value="task-1" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${isCompanyVerified ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>

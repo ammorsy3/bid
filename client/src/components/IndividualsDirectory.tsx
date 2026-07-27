@@ -137,7 +137,7 @@ export default function IndividualsDirectory() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1">
-                      <a href={`/company/${ind.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-foreground hover:underline truncate">
+                      <a href={`/people/${ind.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-foreground hover:underline truncate">
                         {ind.name}
                       </a>
                       {ind.verificationStatus === "verified" && <BadgeCheck className="h-3.5 w-3.5 text-[#FE3C01] flex-shrink-0" />}
@@ -177,7 +177,7 @@ export default function IndividualsDirectory() {
                     </Button>
                   )}
                   <a
-                    href={`/company/${ind.slug}`}
+                    href={`/people/${ind.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center h-9 w-9 rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"

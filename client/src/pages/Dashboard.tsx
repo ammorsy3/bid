@@ -47,6 +47,7 @@ import CreateTeamDialog from "@/components/CreateTeamDialog";
 import IndividualsDirectory from "@/components/IndividualsDirectory";
 import { useToast } from "@/hooks/use-toast";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
+import { profilePath } from "@/lib/profile-url";
 import VendorProfileDrawer from "@/components/VendorProfileDrawer";
 import {
   GetVerifiedVisual,
@@ -622,6 +623,8 @@ export default function Dashboard() {
   const workspaceKind = (activeCompany.accountType ?? 'company') as 'company' | 'team' | 'individual';
   const isBuyerAccount = workspaceKind === 'company';
   const isIndividual = workspaceKind === 'individual';
+  const roleLabel = isIndividual ? t('dashboard.roleIndividual') : userRole.charAt(0).toUpperCase() + userRole.slice(1);
+  const myProfilePath = activeCompany?.slug ? profilePath({ slug: activeCompany.slug, accountType: workspaceKind }) : null;
   const isTeam = workspaceKind === 'team';
   const canCreateTenders = isBuyerAccount;
   // A user can spin up a personal individual workspace unless they already have one.
@@ -994,7 +997,7 @@ export default function Dashboard() {
                         {activeCompany.profile?.displayName || activeCompany.name}
                       </h2>
                       <p className="text-xs text-muted-foreground truncate">
-                        {userRole.charAt(0).toUpperCase() + userRole.slice(1)} • {activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                        {roleLabel} • {activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                       </p>
                     </div>
                     <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
@@ -1022,7 +1025,9 @@ export default function Dashboard() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{company.profile?.displayName || company.name}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{company.role}</p>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {company.accountType === 'individual' ? t('dashboard.roleIndividual') : company.role}
+                        </p>
                       </div>
                       {company.id === activeCompany.id && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
                     </DropdownMenuItem>
@@ -1057,10 +1062,10 @@ export default function Dashboard() {
                 </p>
               </div>
             )}
-            {activeCompany?.slug && (
+            {myProfilePath && (
               <button
                 type="button"
-                onClick={() => window.open(`/company/${activeCompany.slug}`, '_blank', 'noopener,noreferrer')}
+                onClick={() => window.open(myProfilePath, '_blank', 'noopener,noreferrer')}
                 title={t('settings.viewPublicProfile')}
                 aria-label={t('settings.viewPublicProfile')}
                 className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-[#FE3C01] hover:bg-[#FE3C01]/10 transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden"
@@ -1108,8 +1113,8 @@ export default function Dashboard() {
                 {isIndividual && (
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => activeCompany.slug
-                        ? window.open(`/company/${activeCompany.slug}`, '_blank')
+                      onClick={() => myProfilePath
+                        ? window.open(myProfilePath, '_blank')
                         : setLocation('/company/edit')}
                       tooltip={t('dashboard.myPublicProfile')}
                       data-testid="sidebar-profile-link"
@@ -3252,18 +3257,16 @@ export default function Dashboard() {
 
           {/* ══════════════════════ MY PROFILE LINK TAB (freelancers & teams only) ══════════════════════ */}
           {(isIndividual || isTeam) && (() => {
-            const profileUrl = `${window.location.origin}/company/${activeCompany.slug}`;
+            const profileRelativePath = profilePath({ slug: activeCompany.slug, accountType: workspaceKind });
+            const profileUrl = `${window.location.origin}${profileRelativePath}`;
             const pl = profileLinkData?.profile;
 
             // Completion items — labels/descriptions adapt to account type
             const completionItems = isIndividual ? [
-              { section: 'basics',       label: t('dashboard.completionBasicsFreelancer'),       description: t('dashboard.completionBasicsFreelancerDesc'),       complete: !!(pl?.bio && pl.bio.length > 0) },
-              { section: 'media',        label: t('dashboard.completionPhotoFreelancer'),        description: t('dashboard.completionPhotoFreelancerDesc'),         complete: !!(pl?.logoUrl) },
-              { section: 'availability', label: t('dashboard.completionAvailabilityFreelancer'), description: t('dashboard.completionAvailabilityFreelancerDesc'),  complete: !!(pl?.availabilityStatus) },
-              { section: 'capabilities', label: t('dashboard.completionSkillsFreelancer'),       description: t('dashboard.completionSkillsFreelancerDesc'),         complete: !!(pl?.tags?.length) },
-              { section: 'facts',        label: t('dashboard.completionReachFreelancer'),        description: t('dashboard.completionReachFreelancerDesc'),          complete: !!(pl?.serviceAreas?.length || pl?.languages?.length) },
-              { section: 'credentials', label: t('dashboard.completionCredentialsFreelancer'),   description: t('dashboard.completionCredentialsFreelancerDesc'),    complete: !!(pl?.certifications?.length || pl?.insurancePolicies?.length) },
-              { section: 'links',        label: t('dashboard.completionLinksFreelancer'),        description: t('dashboard.completionLinksFreelancerDesc'),          complete: !!(pl?.socialLinks?.website || pl?.socialLinks?.linkedin) },
+              { section: 'basics', label: t('dashboard.completionBasicsFreelancer'), description: t('dashboard.completionBasicsFreelancerDesc'), complete: !!(pl?.bio && pl.bio.length > 0) },
+              { section: 'media',  label: t('dashboard.completionPhotoFreelancer'),  description: t('dashboard.completionPhotoFreelancerDesc'),  complete: !!(pl?.logoUrl) },
+              { section: 'field',  label: t('dashboard.completionFieldFreelancer'),  description: t('dashboard.completionFieldFreelancerDesc'),  complete: !!(profileLinkData?.company.category) },
+              { section: 'links',  label: t('dashboard.completionLinksFreelancer'),  description: t('dashboard.completionLinksFreelancerDesc'),  complete: !!(pl?.socialLinks && Object.values(pl.socialLinks).some((v) => !!v)) },
             ] : [
               { section: 'basics',       label: t('dashboard.completionBasicsTeam'),       description: t('dashboard.completionBasicsTeamDesc'),       complete: !!(pl?.bio && pl.bio.length > 0) },
               { section: 'media',        label: t('dashboard.completionPhotoTeam'),        description: t('dashboard.completionPhotoTeamDesc'),         complete: !!(pl?.logoUrl) },
@@ -3333,7 +3336,7 @@ export default function Dashboard() {
                           {profileLinkCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                           {profileLinkCopied ? t('dashboard.copied') : t('dashboard.copyLink')}
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => window.open(`/company/${activeCompany.slug}`, '_blank')} className="flex-shrink-0 gap-1.5">
+                        <Button variant="outline" size="sm" onClick={() => window.open(profileRelativePath, '_blank')} className="flex-shrink-0 gap-1.5">
                           <ExternalLink className="h-3.5 w-3.5" />
                           {t('dashboard.viewProfile')}
                         </Button>

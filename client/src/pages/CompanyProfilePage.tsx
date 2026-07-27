@@ -1,4 +1,5 @@
-import { useRoute } from "wouter";
+import { useEffect } from "react";
+import { useRoute, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
@@ -181,8 +182,10 @@ function ProfileSkeleton() {
 // ═══════════════════════════════════════════════════════════════════
 
 export default function CompanyProfilePage() {
-  const [, params] = useRoute("/company/:slug");
-  const slug = params?.slug;
+  const [, setLocation] = useLocation();
+  const [matchedCompanyRoute, companyParams] = useRoute("/company/:slug");
+  const [matchedIndividualRoute, individualParams] = useRoute("/people/:slug");
+  const slug = companyParams?.slug ?? individualParams?.slug;
   const { t } = useI18n();
 
   const { data, isLoading, error } = useQuery<CompanyProfileData>({
@@ -190,6 +193,15 @@ export default function CompanyProfilePage() {
     queryFn: () => apiRequest('GET', `/api/companies/by-slug/${slug}/profile`).then(r => r.json()),
     enabled: !!slug,
   });
+
+  // Individuals live at /people/:slug (not /company/:slug — they aren't companies).
+  // Canonicalize either direction so old/shared links keep working.
+  useEffect(() => {
+    if (!data || !slug) return;
+    const isIndividual = data.company.accountType === 'individual';
+    if (isIndividual && matchedCompanyRoute) setLocation(`/people/${slug}`, { replace: true });
+    else if (!isIndividual && matchedIndividualRoute) setLocation(`/company/${slug}`, { replace: true });
+  }, [data, slug, matchedCompanyRoute, matchedIndividualRoute, setLocation]);
 
   if (isLoading) return <ProfileSkeleton />;
 

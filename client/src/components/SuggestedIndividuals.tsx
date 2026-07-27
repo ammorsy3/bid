@@ -76,7 +76,7 @@ export default function SuggestedIndividuals({ tenderId }: { tenderId: string })
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1">
-                  <a href={`/company/${s.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-foreground hover:underline truncate">
+                  <a href={`/people/${s.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-foreground hover:underline truncate">
                     {s.name}
                   </a>
                   {s.verificationStatus === "verified" && <BadgeCheck className="h-3.5 w-3.5 text-[#FE3C01] flex-shrink-0" />}

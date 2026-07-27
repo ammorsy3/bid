@@ -70,6 +70,7 @@ import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import GettingStarted from "@/pages/GettingStarted";
 import FAQ from "@/pages/FAQ";
+import NotFound from "@/pages/not-found";
 
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
 
@@ -174,6 +175,7 @@ export default function App() {
               <Route path="/tenders/:id" component={TenderDetails} />
               <Route path="/company/edit" component={ProfileEditorRouter} />
               <Route path="/company/:slug" component={CompanyProfilePage} />
+              <Route path="/people/:slug" component={CompanyProfilePage} />
               <Route path="/traction/:slug/edit" component={TractionLinkEditor} />
               <Route path="/traction/:slug" component={TractionLink} />
               <Route path="/marketplace" component={Marketplace} />
@@ -190,6 +192,7 @@ export default function App() {
               <Route path="/faq" component={FAQ} />
               <Route path="/terms" component={Terms} />
               <Route path="/privacy" component={Privacy} />
+              <Route component={NotFound} />
             </Switch>
             <Toaster />
             <Analytics />

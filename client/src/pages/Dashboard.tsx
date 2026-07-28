@@ -27,6 +27,7 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase, BookmarkPlus, Bookmark, User, Code2, CheckCircle2 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { SupportContactLinks } from "@/components/support-contact";
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -997,7 +998,7 @@ export default function Dashboard() {
                         {activeCompany.profile?.displayName || activeCompany.name}
                       </h2>
                       <p className="text-xs text-muted-foreground truncate">
-                        {roleLabel} • {activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                        {roleLabel}{!isIndividual && ` • ${activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`}
                       </p>
                     </div>
                     <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
@@ -1058,7 +1059,7 @@ export default function Dashboard() {
                   {activeCompany.profile?.displayName || activeCompany.name}
                 </h2>
                 <p className="text-xs text-muted-foreground truncate">
-                  {userRole.charAt(0).toUpperCase() + userRole.slice(1)} • {activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                  {roleLabel}{!isIndividual && ` • ${activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`}
                 </p>
               </div>
             )}
@@ -1207,12 +1208,38 @@ export default function Dashboard() {
             </SidebarGroup>
           )}
 
+          {/* Support — direct line to the team, same details as the landing footer */}
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <div className="px-2 group-data-[collapsible=icon]:px-0">
+                <div className="w-full rounded-xl border border-border bg-muted/40 px-3 py-3 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:rounded-lg">
+                  <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center">
+                    <div className="h-8 w-8 rounded-lg bg-[#FE3C01]/10 flex items-center justify-center flex-shrink-0">
+                      <HelpCircle className="h-4 w-4 text-[#FE3C01]" />
+                    </div>
+                    <div className="flex-1 min-w-0 text-start group-data-[collapsible=icon]:hidden">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-foreground">{t('support.heading')}</p>
+                      <p className="text-[11px] text-muted-foreground leading-tight">{t('support.needHelp')}</p>
+                    </div>
+                  </div>
+                  <SupportContactLinks
+                    className="mt-2.5 flex flex-col gap-1 group-data-[collapsible=icon]:hidden"
+                    linkClassName="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                    iconClassName="h-3.5 w-3.5 text-[#FE3C01] flex-shrink-0"
+                  />
+                </div>
+              </div>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
           <ChatHistorySidebar />
         </SidebarContent>
 
         <SidebarFooter className="border-t px-4 py-4">
-          {/* Verification banner — shown for unverified/pending/rejected companies */}
-          {activeCompany.verificationStatus === 'not_verified' && (
+          {/* Verification banner — companies and teams only. Individuals are
+              never asked to verify an identity, so these prompts (and the
+              company-only settings tab they link to) don't apply to them. */}
+          {!isIndividual && activeCompany.verificationStatus === 'not_verified' && (
             <div className="mb-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
               <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-0.5">{isTeam ? t('settings.teamNotVerified') : t('settings.companyNotVerified')}</p>
               <p className="text-xs text-amber-700 dark:text-amber-400 mb-1.5 leading-snug">{isTeam ? t('settings.teamNotVerifiedDesc') : t('settings.companyNotVerifiedDesc')}</p>
@@ -1224,13 +1251,13 @@ export default function Dashboard() {
               </button>
             </div>
           )}
-          {activeCompany.verificationStatus === 'under_review' && (
+          {!isIndividual && activeCompany.verificationStatus === 'under_review' && (
             <div className="mb-3 rounded-lg bg-[var(--bid-orange)]/5 dark:bg-blue-950/40 border border-[var(--bid-orange)]/20 dark:border-blue-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
               <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 mb-0.5">{t('settings.verificationInProgress')}</p>
               <p className="text-xs text-[var(--bid-orange)] dark:text-blue-400 leading-snug">{t('settings.verificationInProgressDesc')}</p>
             </div>
           )}
-          {activeCompany.verificationStatus === 'rejected' && (
+          {!isIndividual && activeCompany.verificationStatus === 'rejected' && (
             <div className="mb-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
               <p className="text-xs font-semibold text-red-800 dark:text-red-300 mb-0.5">{t('settings.verificationRejected')}</p>
               {activeCompany.rejectionReason ? (
@@ -1264,7 +1291,9 @@ export default function Dashboard() {
                       {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
                     </div>
                   )}
-                  {activeCompany.verificationStatus === 'verified' ? (
+                  {/* Individuals have no verification state to show — they're
+                      never asked to verify an identity. */}
+                  {!isIndividual && (activeCompany.verificationStatus === 'verified' ? (
                     <div
                       className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-[var(--bid-orange)] flex items-center justify-center border-2 border-white dark:border-border"
                       title={t('dashboard.verified')}
@@ -1292,7 +1321,7 @@ export default function Dashboard() {
                     >
                       <X className="h-2.5 w-2.5 text-white" />
                     </div>
-                  )}
+                  ))}
                 </div>
                 <span className="text-sm font-medium truncate group-data-[collapsible=icon]:hidden">
                   {user.name || user.username}
@@ -1898,10 +1927,10 @@ export default function Dashboard() {
                     </div>
 
                     {/* Tasks */}
-                    <Accordion type="single" collapsible defaultValue={canManage ? "task-1" : "task-4"} className="space-y-3">
+                    <Accordion type="single" collapsible defaultValue={canManage && !isIndividual ? "task-1" : "task-4"} className="space-y-3">
 
-                      {/* Task 1: Get Verified (admins/owners only) */}
-                      {canManage && (
+                      {/* Task 1: Get Verified (admins/owners only — individuals are auto-verified and never need this) */}
+                      {canManage && !isIndividual && (
                       <AccordionItem value="task-1" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${isCompanyVerified ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>

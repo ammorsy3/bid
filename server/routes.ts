@@ -2178,7 +2178,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  // Submit National ID verification info for individual / team accounts.
+  // Submit National ID verification info for team accounts (the team owner
+  // verifies the team). Individuals are never asked for a National ID.
   // Mirror of PATCH /api/companies/:companyId/verify-info (the CR path).
   app.patch("/api/companies/:companyId/verify-national-id",
     authenticateToken,
@@ -2196,6 +2197,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (company.accountType === 'company') {
           return res.status(400).json({
             message: 'Company accounts use CR verification. Use /verify-info instead.',
+          });
+        }
+        if (company.accountType === 'individual') {
+          return res.status(400).json({
+            message: 'Individual accounts do not require National ID verification.',
           });
         }
 
@@ -4879,14 +4885,6 @@ Respond with ONLY a JSON object. Example:
         const company = await storage.getCompany(req.auth!.activeCompanyId!);
         if (!company) {
           return res.status(404).json({ message: "Company not found" });
-        }
-
-        // Freelancers must have National ID on file before submitting
-        if (company.accountType === 'individual' && !company.nationalIdNumber) {
-          return res.status(403).json({
-            message: 'Complete your National ID verification before submitting an offer.',
-            code: 'NATIONAL_ID_REQUIRED',
-          });
         }
 
         // Check if tender exists and get deadline

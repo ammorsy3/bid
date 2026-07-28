@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { Loader2 } from "lucide-react";
 import { HAS_CLERK } from "@/lib/clerkConfig";
+import { markJustSignedIn } from "@/components/desktop-recommendation-modal";
 
 function ClerkCallbackInner() {
   const [, setLocation] = useLocation();
@@ -100,6 +101,7 @@ function ClerkCallbackInner() {
         toast({ title: "Signed in", description: `Welcome, ${data.user.name}!` });
 
         // 4. Hard navigate — full page reload picks up the pre-written state
+        markJustSignedIn();
         const dest = data.activeCompany ? "/dashboard" : "/onboarding";
         window.location.assign(dest);
       } catch (err: any) {

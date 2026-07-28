@@ -562,7 +562,7 @@
   /* ============ FOOTER ============ */
   .landing-page footer{padding:64px 0 48px}
   .footer-row{
-    display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:40px;
+    display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1fr;gap:40px;
     padding-bottom:40px;border-bottom:1px solid var(--line);
   }
   .footer-row .brand img{height:40px;margin-bottom:20px}
@@ -570,6 +570,10 @@
   .footer-row h5{font-size:11px;font-weight:600;color:var(--ink);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
   .footer-row a{display:block;font-size:14px;color:var(--stone);padding:5px 0;transition:color .2s}
   .footer-row a:hover{color:var(--orange)}
+  /* Support links pair an icon with the value, so they opt out of the
+     display:block used by the plain text links above. */
+  .footer-support a{display:inline-flex;align-items:center;gap:8px}
+  .footer-support svg{width:15px;height:15px;flex-shrink:0}
   .footer-bot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;padding-top:28px;font-size:13px;color:var(--stone);gap:16px 24px}
   .footer-partner{display:inline-flex;align-items:center}
   .footer-partner img{height:48px;width:auto;display:block}
@@ -695,6 +699,9 @@
   .landing-rtl .takeaway{flex-direction:row}
   .landing-rtl .takeaway .stat{text-align:left}
   .landing-rtl .cta-strip{direction:rtl}
+  /* text-align alone can't move an inline-flex link, so flip direction to pull
+     the support links (and their icons) to the right edge. */
+  .landing-rtl .footer-support{direction:rtl;text-align:right}
   .landing-rtl .footer-bot{direction:rtl}
   .landing-rtl .modal-card{text-align:right}
   .landing-rtl .modal-icon{justify-content:flex-end}
@@ -710,6 +717,9 @@
     .stages.s4{grid-template-columns:1fr 1fr}
     .topbar-nav-desktop{gap:18px}
     .topbar-nav-desktop a{font-size:13px}
+    /* Five columns get too tight here — drop the link lists to a 2x2 under
+       the brand blurb before the single-column mobile layout takes over. */
+    .footer-row{grid-template-columns:1fr 1fr;gap:32px}
   }
 
   /* ============ MOBILE (≤ 640px) ============ */

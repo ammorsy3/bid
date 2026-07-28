@@ -18,6 +18,7 @@ import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
 import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
 import { useForceLightMode } from "@/hooks/useForceLightMode";
 import { FullscreenLoader } from "@/components/ui/fullscreen-loader";
+import { markJustSignedIn } from "@/components/desktop-recommendation-modal";
 
 type LoginForm = { email: string; password: string };
 type ForgotForm = { email: string };
@@ -73,6 +74,7 @@ export default function Login() {
     // Hold a branded loading veil for a beat before routing on, so signing in
     // lands with a deliberate "preparing your workspace" moment rather than an
     // instant jump. The redirect itself is unchanged — just delayed ~700ms.
+    markJustSignedIn();
     setTransitioning(true);
     const timer = setTimeout(() => {
       if (isMarketplaceSubdomain()) {

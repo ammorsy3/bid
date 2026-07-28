@@ -159,9 +159,9 @@ export default function IndividualProfileEditor() {
       await checkAuth(); // slug may have changed → refresh workspace
       queryClient.invalidateQueries({ queryKey: ["/api/companies", activeCompanyId, "profile"] });
       if (isOnboarding) {
-        // First-time setup → next comes identity verification.
+        // First-time setup complete — individuals go straight to the dashboard.
         toast({ title: t('profEditor.createdTitle'), description: t('profEditor.createdDesc') });
-        navigate("/onboarding/individual-verify");
+        navigate("/dashboard");
       } else {
         toast({ title: t('profEditor.savedTitle'), description: t('profEditor.savedDesc') });
         navigate("/dashboard");

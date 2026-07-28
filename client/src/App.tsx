@@ -7,6 +7,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Toaster } from "@/components/ui/toaster";
 import { NavigationProgress } from "@/components/ui/navigation-progress";
+import { DesktopRecommendationModal } from "@/components/desktop-recommendation-modal";
 import { RequireVerified } from "@/components/RequireVerified";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/lib/auth";
@@ -24,7 +25,6 @@ import CompanyProfile from "@/pages/onboarding/company-profile";
 import InviteTeam from "@/pages/onboarding/invite-team";
 import CompanyDocuments from "@/pages/onboarding/company-documents";
 import IndividualBasics from "@/pages/onboarding/individual-basics";
-import IndividualVerify from "@/pages/onboarding/individual-verify";
 import TeamBasics from "@/pages/onboarding/team-basics";
 import TeamInviteOnboarding from "@/pages/onboarding/team-invite";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -100,6 +100,7 @@ export default function App() {
           <AriaLocaleProvider>
             <Router>
               <NavigationProgress />
+              <DesktopRecommendationModal />
               <Switch>
                 <Route path="/" component={Marketplace} />
                 <Route path="/invite/:id" component={TenderInviteLink} />
@@ -127,6 +128,7 @@ export default function App() {
         <AriaLocaleProvider>
           <Router>
             <NavigationProgress />
+            <DesktopRecommendationModal />
             <Switch>
               <Route path="/" component={Landing} />
               <Route path="/login" component={Login} />
@@ -145,7 +147,6 @@ export default function App() {
               <Route path="/onboarding/company-documents" component={CompanyDocuments} />
               <Route path="/onboarding/individual-basics" component={IndividualBasics} />
               <Route path="/onboarding/individual-profile" component={IndividualProfileEditor} />
-              <Route path="/onboarding/individual-verify" component={IndividualVerify} />
               <Route path="/onboarding/team-basics" component={TeamBasics} />
               <Route path="/onboarding/team-invite" component={TeamInviteOnboarding} />
               <Route path="/dashboard" component={DashboardGuard} />

@@ -2498,27 +2498,6 @@ const translations = {
       creating: "Creating team…",
       continue: "Continue",
     },
-    onboardingIndividualBasics: {
-      displayNameRequired: "Display name is required",
-      selectSpecializationRequired: "Please select a specialization",
-      createProfileFailedDesc: "Failed to create profile",
-      profileReadyTitle: "Individual profile ready",
-      profileReadyDesc: "Browse tenders and apply. Add your National ID in Settings to start submitting.",
-      couldNotCreateProfileTitle: "Couldn't create profile",
-      tryAgain: "Please try again.",
-      heading: "Set up your individual profile",
-      subheading: "Tell us who you are. You can fill out the rest later.",
-      displayNameLabel: "Display Name *",
-      displayNamePlaceholder: "Your full name or professional alias",
-      displayNameDesc: "This is what others will see when you apply to tenders.",
-      specializationLabel: "Specialization *",
-      specializationPlaceholder: "Select your main area of expertise",
-      nationalIdLabel: "National ID Number",
-      nationalIdPlaceholder: "e.g. 1234567890",
-      nationalIdDesc: "Required before you can submit offers. You can add it now or later from Settings.",
-      creatingProfile: "Creating profile…",
-      goToDashboard: "Go to dashboard",
-    },
     formBuilder: {
       // Sidebar
       cardLibrary: "Card Library",
@@ -3997,7 +3976,7 @@ const translations = {
       savedTitle: "Profile saved",
       savedDesc: "Your profile has been updated.",
       createdTitle: "Profile created",
-      createdDesc: "One last step — verify your identity.",
+      createdDesc: "Your profile is ready. Welcome to Bid.",
       errName: "Display name required",
       errUsername: "Username too short",
       errUsernameDesc: "Use at least 3 characters.",
@@ -4023,20 +4002,6 @@ const translations = {
       accountCreated: "Account created",
       letsSetup: "Let's set up your profile.",
       couldntCreate: "Couldn't create profile",
-    },
-    indVerify: {
-      heading: "Verify your identity",
-      subtitle: "Required to respond to RFPs and receive payments.",
-      nationalId: "National ID Number *",
-      nationalIdPlaceholder: "10-digit ID number",
-      nationalIdHelp: "Your Saudi National ID (هوية وطنية) — 10 digits starting with 1 or 2.",
-      reviewNote: "Verification is reviewed manually and usually takes 1–2 business days. You can still browse and explore Bid while it's pending.",
-      submit: "Submit for review",
-      submitting: "Submitting…",
-      submittedTitle: "Verification submitted",
-      submittedDesc: "Your National ID is under review. We'll notify you once it's approved.",
-      failedTitle: "Couldn't submit verification",
-      failedDesc: "Please try again.",
     },
     onbJoin: {
       welcome: "Welcome, {name}!",
@@ -4165,6 +4130,22 @@ const translations = {
       invitationOne: "{count} invitation",
       invitationMany: "{count} invitations",
       byCompany: "A company",
+    },
+    desktopRecommendation: {
+      title: "Better Experience on Desktop",
+      body: "You can use Bid on mobile, but desktop offers a smoother experience.",
+      continueOnMobile: "Continue on Mobile",
+      openOnDesktop: "Open on Desktop",
+      linkCopied: "Link copied — open it on your desktop",
+    },
+    support: {
+      heading: "Support",
+      needHelp: "Need help?",
+      description: "Talk to our team directly — we usually reply within a few minutes.",
+      callUs: "Call us",
+      whatsapp: "WhatsApp",
+      phoneAria: "Call Bid support",
+      whatsappAria: "Message Bid support on WhatsApp",
     },
   },
   ar: {
@@ -6660,27 +6641,6 @@ const translations = {
       creating: "جاري إنشاء الفريق…",
       continue: "متابعة",
     },
-    onboardingIndividualBasics: {
-      displayNameRequired: "الاسم المعروض مطلوب",
-      selectSpecializationRequired: "اختر تخصصا",
-      createProfileFailedDesc: "تعذر إنشاء الملف الشخصي",
-      profileReadyTitle: "ملف المستقل جاهز",
-      profileReadyDesc: "تصفح طلبات العروض (RFP) وقدم عروضك. أضف هويتك الوطنية من الإعدادات للبدء بالتقديم.",
-      couldNotCreateProfileTitle: "تعذر إنشاء الملف الشخصي",
-      tryAgain: "حاول مرة أخرى.",
-      heading: "أعد ملفك كمستقل",
-      subheading: "أخبرنا من أنت. يمكنك إكمال الباقي لاحقا.",
-      displayNameLabel: "الاسم المعروض *",
-      displayNamePlaceholder: "اسمك الكامل أو اسمك المهني",
-      displayNameDesc: "هذا ما سيراه الآخرون عندما تتقدم لطلبات العروض (RFP).",
-      specializationLabel: "التخصص *",
-      specializationPlaceholder: "اختر مجال خبرتك الرئيسي",
-      nationalIdLabel: "رقم الهوية الوطنية",
-      nationalIdPlaceholder: "مثال: 1234567890",
-      nationalIdDesc: "مطلوب قبل أن تتمكن من تقديم العروض. يمكنك إضافته الآن أو لاحقا من الإعدادات.",
-      creatingProfile: "جاري إنشاء الملف الشخصي…",
-      goToDashboard: "الذهاب إلى لوحة التحكم",
-    },
     formBuilder: {
       cardLibrary: "مكتبة البطاقات",
       cardLibrarySubtitle: "اسحب البطاقات على اللوحة لبناء نموذجك",
@@ -8149,7 +8109,7 @@ const translations = {
       savedTitle: "تم حفظ الملف",
       savedDesc: "تم تحديث ملفك الشخصي.",
       createdTitle: "تم إنشاء الملف",
-      createdDesc: "خطوة أخيرة — وثّق هويتك.",
+      createdDesc: "ملفك جاهز. أهلاً بك في بد.",
       errName: "الاسم الظاهر مطلوب",
       errUsername: "اسم المستخدم قصير جداً",
       errUsernameDesc: "استخدم 3 أحرف على الأقل.",
@@ -8175,20 +8135,6 @@ const translations = {
       accountCreated: "تم إنشاء الحساب",
       letsSetup: "لنُعدّ ملفك الشخصي.",
       couldntCreate: "تعذّر إنشاء الملف",
-    },
-    indVerify: {
-      heading: "وثّق هويتك",
-      subtitle: "مطلوب للتقدّم للمناقصات واستلام المدفوعات.",
-      nationalId: "رقم الهوية الوطنية *",
-      nationalIdPlaceholder: "رقم هوية من 10 أرقام",
-      nationalIdHelp: "هويتك الوطنية السعودية — 10 أرقام تبدأ بـ 1 أو 2.",
-      reviewNote: "تتم مراجعة التوثيق يدوياً وعادةً خلال يوم إلى يومَي عمل. يمكنك تصفّح Bid واستكشافه أثناء المراجعة.",
-      submit: "إرسال للمراجعة",
-      submitting: "جارٍ الإرسال…",
-      submittedTitle: "تم إرسال التوثيق",
-      submittedDesc: "هويتك الوطنية قيد المراجعة. سنُعلمك عند الموافقة.",
-      failedTitle: "تعذّر إرسال التوثيق",
-      failedDesc: "يرجى المحاولة مرة أخرى.",
     },
     onbJoin: {
       welcome: "أهلاً، {name}!",
@@ -8318,6 +8264,22 @@ const translations = {
       invitationMany: "{count} دعوات",
       byCompany: "شركة",
     },
+    desktopRecommendation: {
+      title: "تجربة أفضل على الكمبيوتر",
+      body: "بد يشتغل على الجوال، لكن التجربة أفضل على الكمبيوتر.",
+      continueOnMobile: "كمل على الجوال",
+      openOnDesktop: "افتح على الكمبيوتر",
+      linkCopied: "تم نسخ الرابط — افتحه على جهاز الكمبيوتر",
+    },
+    support: {
+      heading: "الدعم",
+      needHelp: "تحتاج مساعدة؟",
+      description: "تواصل مع فريقنا مباشرة — نرد عادةً خلال دقائق.",
+      callUs: "اتصل بنا",
+      whatsapp: "واتساب",
+      phoneAria: "اتصل بدعم بد",
+      whatsappAria: "راسل دعم بد على واتساب",
+    },
   }
 };
 
@@ -8335,6 +8297,32 @@ if (!_g.__i18nContext) {
   _g.__i18nContext = createContext<I18nContextType | null>(null);
 }
 const I18nContext = _g.__i18nContext as React.Context<I18nContextType | null>;
+
+/**
+ * Look a key up in the central dictionary for an explicit language.
+ *
+ * `useI18n().t` is the normal way to translate; this exists for the few places
+ * that track their own language state outside the provider (the landing page
+ * has its own AR/EN toggle) and so can't rely on the provider's language.
+ */
+export function translate(
+  lang: Language,
+  key: string,
+  vars?: Record<string, string | number>,
+): string {
+  const keys = key.split('.');
+  let value: any = translations[lang];
+  for (const k of keys) {
+    value = value?.[k];
+  }
+  let result = typeof value === 'string' ? value : key;
+  if (vars) {
+    for (const [k, v] of Object.entries(vars)) {
+      result = result.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+    }
+  }
+  return result;
+}
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
@@ -8380,20 +8368,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
   }, [language]);
 
-  const t = (key: string, vars?: Record<string, string | number>): string => {
-    const keys = key.split('.');
-    let value: any = translations[language];
-    for (const k of keys) {
-      value = value?.[k];
-    }
-    let result = typeof value === 'string' ? value : key;
-    if (vars) {
-      for (const [k, v] of Object.entries(vars)) {
-        result = result.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
-      }
-    }
-    return result;
-  };
+  const t = (key: string, vars?: Record<string, string | number>): string =>
+    translate(language, key, vars);
 
   const isRtl = language === 'ar';
 

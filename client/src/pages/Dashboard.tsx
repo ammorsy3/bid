@@ -1871,6 +1871,7 @@ export default function Dashboard() {
                   variant="outline"
                   className="rounded-full px-5 flex-shrink-0 border-[#1A1613]/20 text-[#1A1613] dark:text-foreground hover:bg-[#FE3C01] hover:text-white hover:border-[#FE3C01] transition-colors"
                   data-testid="button-book-demo"
+                  onClick={() => window.open('https://cal.com/abdulrahman-alsaleh-bid/15min', '_blank', 'noopener,noreferrer')}
                 >
                   {t('dashboard.bookDemo')}
                 </Button>

@@ -42,6 +42,13 @@ export const users = pgTable("users", {
   otpSendCount: integer("otp_send_count").default(0).notNull(),
   otpSendWindowStart: timestamp("otp_send_window_start"),
 
+  // Activity tracking — drives the Discovery "active in last 30 days" cutoff
+  // for individual profiles. Updated (throttled) on authenticated requests.
+  lastLoginAt: timestamp("last_login_at"),
+  // Set when the inactivity-warning email has been sent for the current
+  // inactive streak; cleared the next time the user is seen active again.
+  inactivityWarningSentAt: timestamp("inactivity_warning_sent_at"),
+
   // Legacy columns (preserved from old role-based schema)
   role: text("role"),
   company: text("company"),

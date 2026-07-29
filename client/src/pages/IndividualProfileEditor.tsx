@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -44,6 +45,7 @@ interface ProfileResponse {
     socialLinks: Record<string, string | undefined> | null;
     whatsappNumber: string | null;
     whatsappVisibility?: string;
+    isPublic?: boolean;
   } | null;
 }
 
@@ -69,7 +71,10 @@ export default function IndividualProfileEditor() {
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [whatsappVisibility, setWhatsappVisibility] = useState<"requesters" | "public">("requesters");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarBroken, setAvatarBroken] = useState(false);
   const [headerUrl, setHeaderUrl] = useState<string | null>(null);
+  const [headerBroken, setHeaderBroken] = useState(false);
+  const [showInDiscovery, setShowInDiscovery] = useState(true);
   const [uploading, setUploading] = useState<null | "avatar" | "header">(null);
 
   useEffect(() => {
@@ -97,6 +102,7 @@ export default function IndividualProfileEditor() {
       setWhatsappVisibility((data.profile?.whatsappVisibility as any) === "public" ? "public" : "requesters");
       setAvatarUrl(data.profile?.logoUrl || null);
       setHeaderUrl(data.profile?.headerUrl || null);
+      setShowInDiscovery(data.profile?.isPublic !== false);
     }
   }, [data]);
 
@@ -117,6 +123,7 @@ export default function IndividualProfileEditor() {
     try {
       const { url } = await uploadImage("/api/company/logo", file);
       setAvatarUrl(url);
+      setAvatarBroken(false);
     } catch {
       toast({ title: t('profEditor.uploadFailed'), description: t('profEditor.uploadPhotoFailed'), variant: "destructive" });
     } finally {
@@ -129,6 +136,7 @@ export default function IndividualProfileEditor() {
     try {
       const { url } = await uploadImage("/api/company/header", file);
       setHeaderUrl(url);
+      setHeaderBroken(false);
     } catch {
       toast({ title: t('profEditor.uploadFailed'), description: t('profEditor.uploadHeaderFailed'), variant: "destructive" });
     } finally {
@@ -148,6 +156,7 @@ export default function IndividualProfileEditor() {
         ),
         whatsappNumber: whatsappNumber.trim(),
         whatsappVisibility,
+        isPublic: showInDiscovery,
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -233,8 +242,8 @@ export default function IndividualProfileEditor() {
         {/* Media */}
         <div className="bg-card rounded-3xl border border-border overflow-hidden">
           <div className="relative h-40 sm:h-48 bg-muted">
-            {headerUrl ? (
-              <img src={headerUrl} alt="" className="w-full h-full object-cover" />
+            {headerUrl && !headerBroken ? (
+              <img src={headerUrl} alt="" className="w-full h-full object-cover" onError={() => setHeaderBroken(true)} />
             ) : (
               <div className="w-full h-full" style={{ background: "radial-gradient(120% 120% at 20% 10%, #FCE9DC 0%, #F4EDE1 55%, #EFE7DA 100%)" }} />
             )}
@@ -251,8 +260,8 @@ export default function IndividualProfileEditor() {
           <div className="px-5 pb-5">
             <div className="-mt-10 relative w-20 h-20">
               <div className="w-20 h-20 rounded-full ring-4 ring-card bg-muted overflow-hidden flex items-center justify-center">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                {avatarUrl && !avatarBroken ? (
+                  <img src={avatarUrl} alt="" className="w-full h-full object-cover" onError={() => setAvatarBroken(true)} />
                 ) : (
                   <Camera className="h-6 w-6 text-muted-foreground" />
                 )}
@@ -371,6 +380,25 @@ export default function IndividualProfileEditor() {
                 <p className="text-xs text-muted-foreground">{t('profEditor.visEveryoneDesc')}</p>
               </div>
             </button>
+          </div>
+        </div>
+
+        {/* Discovery visibility */}
+        <div className="bg-card rounded-3xl border border-border p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">{t('profEditor.discoveryVisibility')}</h2>
+              <Label htmlFor="show-in-discovery" className="block text-sm font-medium text-foreground mt-2 cursor-pointer">
+                {t('profEditor.showInDiscovery')}
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">{t('profEditor.showInDiscoveryDesc')}</p>
+            </div>
+            <Switch
+              id="show-in-discovery"
+              checked={showInDiscovery}
+              onCheckedChange={setShowInDiscovery}
+              data-testid="switch-show-in-discovery"
+            />
           </div>
         </div>
       </div>

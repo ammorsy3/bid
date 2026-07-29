@@ -48,6 +48,7 @@ import {
   sendVerificationOTP,
   sendTeamInviteEmail,
   sendPasswordResetEmail,
+  sendInactivityWarningEmail,
 } from "./email";
 import {
   getOpenAIConfig,
@@ -117,6 +118,16 @@ const authenticateToken = async (req: AuthRequest, res: Response, next: Function
       roleInCompany: payload.roleInCompany,
       isAdmin: user.isAdmin
     };
+
+    // Track activity for the Discovery "active in last 30 days" cutoff.
+    // Throttled to once per hour per user to avoid a write on every request.
+    const ONE_HOUR_MS = 60 * 60 * 1000;
+    if (!user.lastLoginAt || Date.now() - new Date(user.lastLoginAt).getTime() > ONE_HOUR_MS) {
+      storage.updateUser(user.id, {
+        lastLoginAt: new Date(),
+        inactivityWarningSentAt: null,
+      }).catch((err) => console.error('[Activity] Failed to update lastLoginAt:', err));
+    }
 
     next();
   } catch (error) {
@@ -2859,7 +2870,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Access denied" });
         }
 
-        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio, yearFounded, serviceAreas, languages, industriesServed, availabilityStatus, availabilityNote, introVideoUrl, stats, certifications: profileCertifications, insurancePolicies, whatsappNumber, whatsappVisibility, slug } = req.body;
+        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio, yearFounded, serviceAreas, languages, industriesServed, availabilityStatus, availabilityNote, introVideoUrl, stats, certifications: profileCertifications, insurancePolicies, whatsappNumber, whatsappVisibility, slug, isPublic } = req.body;
 
         // Get current company
         const company = await storage.getCompany(companyId);
@@ -2953,6 +2964,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.status(400).json({ message: "Invalid whatsappVisibility" });
           }
           profileUpdates.whatsappVisibility = whatsappVisibility;
+        }
+        if (isPublic !== undefined) {
+          if (typeof isPublic !== 'boolean') {
+            return res.status(400).json({ message: "Invalid isPublic" });
+          }
+          profileUpdates.isPublic = isPublic;
         }
 
         // WhatsApp is mandatory for individual profiles.
@@ -7367,6 +7384,45 @@ Respond with ONLY a JSON object. Example:
       res.json(pos);
     } catch (error) {
       console.error("Error fetching purchase orders:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ==========================================================================
+  // CRON: Individual Discovery inactivity check
+  // ==========================================================================
+  // Runs daily (see vercel.json). Warns individual-account owners who are
+  // approaching the 30-day "active in Discovery" cutoff (server/storage.ts
+  // getIndividualsNearingInactivityCutoff / searchIndividuals) so they can log
+  // in and stay visible before their profile is auto-hidden.
+  app.post("/api/cron/check-inactive-individuals", async (req, res) => {
+    const cronSecret = process.env.CRON_SECRET;
+    if (cronSecret && req.headers['authorization'] !== `Bearer ${cronSecret}`) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    try {
+      const candidates = await storage.getIndividualsNearingInactivityCutoff({
+        cutoffDays: 30,
+        warnBeforeDays: 7,
+      });
+
+      for (const candidate of candidates) {
+        try {
+          await sendInactivityWarningEmail({
+            email: candidate.email,
+            recipientName: candidate.name,
+            daysUntilHidden: 7,
+            language: (candidate.language as 'en' | 'ar') || 'en',
+          });
+          await storage.updateUser(candidate.userId, { inactivityWarningSentAt: new Date() });
+        } catch (err) {
+          console.error(`[Cron] Failed to warn user ${candidate.userId} of inactivity:`, err);
+        }
+      }
+
+      res.json({ warned: candidates.length });
+    } catch (error) {
+      console.error("Error running inactivity cron:", error);
       res.status(500).json({ message: "Server error" });
     }
   });

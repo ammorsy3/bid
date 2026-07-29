@@ -115,6 +115,8 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
   const { company, profile } = data;
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [headerBroken, setHeaderBroken] = useState(false);
+  const [avatarBroken, setAvatarBroken] = useState(false);
 
   const isOwner = activeCompany?.id === company.id;
   const isLoggedIn = !!user;
@@ -191,11 +193,11 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
         <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
           {/* Header banner */}
           <div
-            className={`h-44 sm:h-56 w-full ${profile?.headerUrl ? "cursor-zoom-in" : ""}`}
-            onClick={() => profile?.headerUrl && setLightbox(profile.headerUrl)}
+            className={`h-44 sm:h-56 w-full ${profile?.headerUrl && !headerBroken ? "cursor-zoom-in" : ""}`}
+            onClick={() => profile?.headerUrl && !headerBroken && setLightbox(profile.headerUrl)}
           >
-            {profile?.headerUrl ? (
-              <img src={profile.headerUrl} alt="" className="w-full h-full object-cover" />
+            {profile?.headerUrl && !headerBroken ? (
+              <img src={profile.headerUrl} alt="" className="w-full h-full object-cover" onError={() => setHeaderBroken(true)} />
             ) : (
               <div
                 className="w-full h-full"
@@ -209,13 +211,13 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
             <div className="-mt-14 relative inline-block">
               <button
                 type="button"
-                onClick={() => profile?.logoUrl && setLightbox(profile.logoUrl)}
-                className={`w-28 h-28 rounded-full ring-4 ring-card bg-muted overflow-hidden shadow-sm flex items-center justify-center ${profile?.logoUrl ? "cursor-zoom-in hover:opacity-95 transition-opacity" : "cursor-default"}`}
-                aria-label={profile?.logoUrl ? t('indProfile.viewPhoto') : undefined}
+                onClick={() => profile?.logoUrl && !avatarBroken && setLightbox(profile.logoUrl)}
+                className={`w-28 h-28 rounded-full ring-4 ring-card bg-muted overflow-hidden shadow-sm flex items-center justify-center ${profile?.logoUrl && !avatarBroken ? "cursor-zoom-in hover:opacity-95 transition-opacity" : "cursor-default"}`}
+                aria-label={profile?.logoUrl && !avatarBroken ? t('indProfile.viewPhoto') : undefined}
                 data-testid="profile-avatar"
               >
-                {profile?.logoUrl ? (
-                  <img src={profile.logoUrl} alt={displayName} className="w-full h-full object-cover" />
+                {profile?.logoUrl && !avatarBroken ? (
+                  <img src={profile.logoUrl} alt={displayName} className="w-full h-full object-cover" onError={() => setAvatarBroken(true)} />
                 ) : (
                   <span className="text-3xl font-bold text-muted-foreground select-none">
                     {initialsOf(displayName)}

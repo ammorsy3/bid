@@ -16,6 +16,24 @@ import { VENDOR_CATEGORIES } from "@shared/schema";
 import { ArrowRight, ArrowLeft, User, Loader2 } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
+const VENDOR_CATEGORY_LABELS_AR: Record<(typeof VENDOR_CATEGORIES)[number], string> = {
+  "Construction & Infrastructure": "الإنشاءات والبنية التحتية",
+  "Information Technology": "تقنية المعلومات",
+  "Healthcare & Medical Supplies": "الرعاية الصحية والمستلزمات الطبية",
+  "Transportation & Logistics": "النقل واللوجستيات",
+  "Professional Services": "الخدمات المهنية",
+  "Manufacturing & Production": "التصنيع والإنتاج",
+  "Food & Beverage": "الأغذية والمشروبات",
+  "Energy & Utilities": "الطاقة والمرافق",
+  "Education & Training": "التعليم والتدريب",
+  "Telecommunications": "الاتصالات",
+  "Facility Management": "إدارة المرافق",
+  "Security Services": "الخدمات الأمنية",
+  "Marketing & Advertising": "التسويق والإعلان",
+  "Legal Services": "الخدمات القانونية",
+  "Financial Services": "الخدمات المالية",
+};
+
 const individualBasicsSchema = z.object({
   displayName: z.string().min(2, "Display name is required"),
   specialization: z.string().min(1, "Please select a specialization"),
@@ -133,7 +151,7 @@ export default function IndividualBasics() {
                       <SelectContent>
                         {VENDOR_CATEGORIES.map((category) => (
                           <SelectItem key={category} value={category}>
-                            {category}
+                            {isRtl ? VENDOR_CATEGORY_LABELS_AR[category] : category}
                           </SelectItem>
                         ))}
                       </SelectContent>

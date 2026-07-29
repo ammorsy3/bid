@@ -45,6 +45,7 @@ export default function IndividualsDirectory() {
   const [city, setCity] = useState("");
   const [category, setCategory] = useState("");
   const [added, setAdded] = useState<Record<string, true>>({});
+  const [brokenLogos, setBrokenLogos] = useState<Record<string, true>>({});
 
   useEffect(() => {
     const timer = setTimeout(() => setDebounced(search.trim()), 300);
@@ -129,8 +130,13 @@ export default function IndividualsDirectory() {
               <div key={ind.companyId} className="rounded-2xl border border-border bg-card p-4 flex flex-col" data-testid={`directory-card-${ind.slug}`}>
                 <div className="flex items-start gap-3">
                   <div className="w-12 h-12 rounded-full bg-muted overflow-hidden flex items-center justify-center flex-shrink-0">
-                    {ind.logoUrl ? (
-                      <img src={ind.logoUrl} alt={ind.name} className="w-full h-full object-cover" />
+                    {ind.logoUrl && !brokenLogos[ind.companyId] ? (
+                      <img
+                        src={ind.logoUrl}
+                        alt={ind.name}
+                        className="w-full h-full object-cover"
+                        onError={() => setBrokenLogos((b) => ({ ...b, [ind.companyId]: true }))}
+                      />
                     ) : (
                       <span className="text-sm font-bold text-muted-foreground">{initialsOf(ind.name)}</span>
                     )}

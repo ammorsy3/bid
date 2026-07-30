@@ -1899,8 +1899,9 @@ export default function Dashboard() {
                     <div className="mb-6">
                       {(() => {
                         const adminFlags = canManage && !isIndividual ? [isCompanyVerified, onboardingTasks?.hasCompletedProfile, onboardingTasks?.hasVendors] : [];
+                        const isDiscoverableFlag = isCompanyVerified && activeCompany.profile?.discoverable !== false;
                         const memberFlags = isIndividual
-                          ? [hasProfileComplete, onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace]
+                          ? [hasProfileComplete, isDiscoverableFlag, onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace]
                           : [onboardingTasks?.hasTender, onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace];
                         const allFlags = [...adminFlags, ...memberFlags];
                         const localCount = allFlags.filter(Boolean).length;
@@ -2102,6 +2103,48 @@ export default function Dashboard() {
                           </div>
                         </AccordionContent>
                       </AccordionItem>}
+
+                      {/* Task 4c: Get discovered (individual only) */}
+                      {isIndividual && (() => {
+                        const isDiscoverable = isCompanyVerified && activeCompany.profile?.discoverable !== false;
+                        return (
+                        <AccordionItem value="task-4c" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${isDiscoverable ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                          <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                              <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isDiscoverable ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                                {isDiscoverable ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </div>
+                              <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${isDiscoverable ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4cTitle')}</span>
+                              {isDiscoverable ? (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                  <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
+                                </span>
+                              ) : !isCompanyVerified && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 flex-shrink-0">
+                                  {t('dashboard.task4cLocked')}
+                                </span>
+                              )}
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="pb-4">
+                            <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                              <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
+                                <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">
+                                  {isCompanyVerified ? t('dashboard.task4cDesc') : t('dashboard.task4cDescLocked')}
+                                </p>
+                                <Button
+                                  className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
+                                  onClick={() => setLocation('/company/edit')}
+                                  data-testid="button-task-discovery"
+                                >
+                                  {isCompanyVerified ? t('dashboard.task4cAction') : t('dashboard.task4cActionLocked')}
+                                </Button>
+                              </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                        );
+                      })()}
 
                       {/* Task 5: Submit your First Proposal */}
                       <AccordionItem value="task-5" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>

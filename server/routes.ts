@@ -2870,7 +2870,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Access denied" });
         }
 
-        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio, yearFounded, serviceAreas, languages, industriesServed, availabilityStatus, availabilityNote, introVideoUrl, stats, certifications: profileCertifications, insurancePolicies, whatsappNumber, whatsappVisibility, slug, isPublic } = req.body;
+        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio, yearFounded, serviceAreas, languages, industriesServed, availabilityStatus, availabilityNote, introVideoUrl, stats, certifications: profileCertifications, insurancePolicies, whatsappNumber, whatsappVisibility, slug, discoverable } = req.body;
 
         // Get current company
         const company = await storage.getCompany(companyId);
@@ -2965,11 +2965,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           profileUpdates.whatsappVisibility = whatsappVisibility;
         }
-        if (isPublic !== undefined) {
-          if (typeof isPublic !== 'boolean') {
-            return res.status(400).json({ message: "Invalid isPublic" });
+        if (discoverable !== undefined) {
+          if (typeof discoverable !== 'boolean') {
+            return res.status(400).json({ message: "Invalid discoverable" });
           }
-          profileUpdates.isPublic = isPublic;
+          if (discoverable && company.accountType === 'individual' && company.verificationStatus !== 'verified') {
+            return res.status(403).json({
+              message: "Verify your account before turning on Discovery visibility.",
+              requiresVerification: true,
+            });
+          }
+          profileUpdates.discoverable = discoverable;
         }
 
         // WhatsApp is mandatory for individual profiles.

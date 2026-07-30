@@ -1557,8 +1557,10 @@ export class DatabaseStorage implements IStorage {
       eq(companies.accountType, 'individual'),
       isNull(companies.deletedAt),
       eq(companies.onboardingState, 'completed'),
+      // Only verified individuals show up in Discovery.
+      eq(companies.verificationStatus, 'verified'),
       // Opted-in to Discovery (defaults to true; individuals can turn it off).
-      or(isNull(companyProfiles.isPublic), eq(companyProfiles.isPublic, true))!,
+      or(isNull(companyProfiles.discoverable), eq(companyProfiles.discoverable, true))!,
       // Only surface individuals active within the last 30 days. New accounts
       // that have never had lastLoginAt recorded yet fall back to createdAt.
       or(
@@ -1621,7 +1623,9 @@ export class DatabaseStorage implements IStorage {
         eq(companies.accountType, 'individual'),
         isNull(companies.deletedAt),
         eq(companies.onboardingState, 'completed'),
-        or(isNull(companyProfiles.isPublic), eq(companyProfiles.isPublic, true))!,
+        // Only warn users who'd otherwise actually be visible in Discovery.
+        eq(companies.verificationStatus, 'verified'),
+        or(isNull(companyProfiles.discoverable), eq(companyProfiles.discoverable, true))!,
         isNull(users.inactivityWarningSentAt),
         sql`coalesce(${users.lastLoginAt}, ${users.createdAt}) < ${warnAt}`,
         sql`coalesce(${users.lastLoginAt}, ${users.createdAt}) >= ${cutoff}`,
@@ -1644,7 +1648,8 @@ export class DatabaseStorage implements IStorage {
       eq(companies.accountType, 'individual'),
       isNull(companies.deletedAt),
       eq(companies.onboardingState, 'completed'),
-      or(isNull(companyProfiles.isPublic), eq(companyProfiles.isPublic, true))!,
+      eq(companies.verificationStatus, 'verified'),
+      or(isNull(companyProfiles.discoverable), eq(companyProfiles.discoverable, true))!,
       or(
         gte(users.lastLoginAt, thirtyDaysAgo),
         and(isNull(users.lastLoginAt), gte(companies.createdAt, thirtyDaysAgo)),

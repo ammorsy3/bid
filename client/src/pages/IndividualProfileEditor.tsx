@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Loader2, Camera, ImageIcon, Globe, Linkedin, Twitter,
-  Instagram, Link2, Check, Users, Eye,
+  Instagram, Link2, Check, Users, Eye, ShieldAlert,
 } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 
@@ -36,7 +36,7 @@ const SOCIAL_FIELDS: { key: string; label: string; Icon: any; placeholder: strin
 ];
 
 interface ProfileResponse {
-  company: { id: string; slug: string; category: string | null; accountType: string };
+  company: { id: string; slug: string; category: string | null; accountType: string; verificationStatus: string };
   profile: {
     displayName: string;
     bio: string | null;
@@ -45,7 +45,7 @@ interface ProfileResponse {
     socialLinks: Record<string, string | undefined> | null;
     whatsappNumber: string | null;
     whatsappVisibility?: string;
-    isPublic?: boolean;
+    discoverable?: boolean;
   } | null;
 }
 
@@ -75,6 +75,7 @@ export default function IndividualProfileEditor() {
   const [headerUrl, setHeaderUrl] = useState<string | null>(null);
   const [headerBroken, setHeaderBroken] = useState(false);
   const [showInDiscovery, setShowInDiscovery] = useState(true);
+  const [isVerified, setIsVerified] = useState(false);
   const [uploading, setUploading] = useState<null | "avatar" | "header">(null);
 
   useEffect(() => {
@@ -102,7 +103,8 @@ export default function IndividualProfileEditor() {
       setWhatsappVisibility((data.profile?.whatsappVisibility as any) === "public" ? "public" : "requesters");
       setAvatarUrl(data.profile?.logoUrl || null);
       setHeaderUrl(data.profile?.headerUrl || null);
-      setShowInDiscovery(data.profile?.isPublic !== false);
+      setIsVerified(data.company.verificationStatus === "verified");
+      setShowInDiscovery(data.company.verificationStatus === "verified" && data.profile?.discoverable !== false);
     }
   }, [data]);
 
@@ -156,7 +158,7 @@ export default function IndividualProfileEditor() {
         ),
         whatsappNumber: whatsappNumber.trim(),
         whatsappVisibility,
-        isPublic: showInDiscovery,
+        discoverable: isVerified ? showInDiscovery : false,
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -384,11 +386,11 @@ export default function IndividualProfileEditor() {
         </div>
 
         {/* Discovery visibility */}
-        <div className="bg-card rounded-3xl border border-border p-5">
+        <div className="bg-card rounded-3xl border border-border p-5" data-testid="card-discovery-visibility">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-sm font-semibold text-foreground">{t('profEditor.discoveryVisibility')}</h2>
-              <Label htmlFor="show-in-discovery" className="block text-sm font-medium text-foreground mt-2 cursor-pointer">
+              <Label htmlFor="show-in-discovery" className={`block text-sm font-medium mt-2 ${isVerified ? "text-foreground cursor-pointer" : "text-muted-foreground"}`}>
                 {t('profEditor.showInDiscovery')}
               </Label>
               <p className="text-xs text-muted-foreground mt-0.5">{t('profEditor.showInDiscoveryDesc')}</p>
@@ -397,9 +399,16 @@ export default function IndividualProfileEditor() {
               id="show-in-discovery"
               checked={showInDiscovery}
               onCheckedChange={setShowInDiscovery}
+              disabled={!isVerified}
               data-testid="switch-show-in-discovery"
             />
           </div>
+          {!isVerified && (
+            <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 p-3">
+              <ShieldAlert className="h-4 w-4 mt-0.5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
+              <p className="text-xs text-amber-800 dark:text-amber-400">{t('profEditor.discoveryVerifyRequired')}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

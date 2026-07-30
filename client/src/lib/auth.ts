@@ -31,6 +31,7 @@ interface CompanyProfile {
   brochureUrl: string | null;
   socialLinks: Record<string, string> | null;
   isPublic: boolean;
+  discoverable: boolean;
   tractionSlug: string | null;
   tractionTheme: {
     themeId: string;

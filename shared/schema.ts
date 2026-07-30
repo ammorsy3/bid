@@ -195,8 +195,12 @@ export const companyProfiles = pgTable("company_profiles", {
   whatsappNumber: text("whatsapp_number"),
   whatsappVisibility: text("whatsapp_visibility").notNull().default("requesters"), // 'requesters' | 'public'
 
-  // Visibility
+  // Visibility (traction/storefront page — unrelated to Discovery)
   isPublic: boolean("is_public").default(true).notNull(),
+  // Individual's opt-in for the Discovery tab. Actual visibility also
+  // requires the account to be verified and active within 30 days — see
+  // storage.searchIndividuals / getSuggestedIndividualsForTender.
+  discoverable: boolean("discoverable").default(true).notNull(),
   
   // Vendors Base (for requesters)
   tractionSlug: text("traction_slug").unique(),

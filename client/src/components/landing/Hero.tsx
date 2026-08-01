@@ -9,7 +9,7 @@ export const Hero = () => {
       <div className="absolute inset-0 bg-gradient-to-b from-purple-50/50 to-white -z-10"></div>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="text-center lg:text-left">
+          <div className="text-center lg:text-start">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight">
               A New Way to Manage Sourcing and RFX
             </h1>

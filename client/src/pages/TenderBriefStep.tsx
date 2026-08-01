@@ -203,7 +203,7 @@ export default function TenderBriefStep() {
         description: t('tenderFlow.rfpPublishedDesc'),
         action: (
           <ToastAction altText={t('tenderFlow.copyInviteLink')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderFlow.linkCopied') }); }}>
-            <Copy className="h-3 w-3 mr-1" /> {t('common.copyLink')}
+            <Copy className="h-3 w-3 me-1" /> {t('common.copyLink')}
           </ToastAction>
         ),
         duration: 10000,
@@ -351,7 +351,7 @@ export default function TenderBriefStep() {
             disabled={submitTender.isPending}
             data-testid="button-back"
           >
-            <ArrowLeft className="h-4 w-4 mr-1.5" />
+            <ArrowLeft className="h-4 w-4 me-1.5" />
             {t('tenderFlow.backToEdit')}
           </Button>
         </div>
@@ -494,7 +494,7 @@ export default function TenderBriefStep() {
                           <button
                             type="button"
                             onClick={() => hasDetails && toggleDeliverable(index)}
-                            className={`w-full p-4 flex items-center justify-between gap-4 text-left ${hasDetails ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
+                            className={`w-full p-4 flex items-center justify-between gap-4 text-start ${hasDetails ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
                               <span className="flex-shrink-0 h-6 w-6 rounded-full bg-[var(--state-won)]/10 text-[var(--state-won)] flex items-center justify-center text-xs font-bold">{index + 1}</span>
@@ -514,7 +514,7 @@ export default function TenderBriefStep() {
                           <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                             <div className="overflow-hidden">
                               {deliverable.description && (
-                                <div className="px-4 pb-4 pt-0 ml-12">
+                                <div className="px-4 pb-4 pt-0 ms-12">
                                   <p className="text-sm text-muted-foreground leading-relaxed">{deliverable.description}</p>
                                 </div>
                               )}
@@ -585,7 +585,7 @@ export default function TenderBriefStep() {
                               <button
                                 type="button"
                                 onClick={() => toggleCriteria(`arr-${index}`)}
-                                className="w-full p-3 flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-muted transition-colors"
+                                className="w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
                               >
                                 <div className="flex items-center gap-3">
                                   <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs font-bold">{index + 1}</span>
@@ -595,7 +595,7 @@ export default function TenderBriefStep() {
                               </button>
                               <div className={`grid transition-all duration-200 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                                 <div className="overflow-hidden">
-                                  <div className="px-4 pb-3 ml-12">
+                                  <div className="px-4 pb-3 ms-12">
                                     <p className="text-sm text-muted-foreground">{t('tenderFlow.criterionEvalDesc')}</p>
                                   </div>
                                 </div>
@@ -610,7 +610,7 @@ export default function TenderBriefStep() {
                               <button
                                 type="button"
                                 onClick={() => toggleCriteria(`arr-${index}`)}
-                                className="w-full p-3 flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-muted transition-colors"
+                                className="w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
                               >
                                 <div className="flex items-center gap-3">
                                   <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs font-bold">{index + 1}</span>
@@ -624,7 +624,7 @@ export default function TenderBriefStep() {
                               <div className={`grid transition-all duration-200 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                                 <div className="overflow-hidden">
                                   {criteria.description && (
-                                    <div className="px-4 pb-3 ml-12">
+                                    <div className="px-4 pb-3 ms-12">
                                       <p className="text-sm text-muted-foreground leading-relaxed">{criteria.description}</p>
                                     </div>
                                   )}
@@ -652,7 +652,7 @@ export default function TenderBriefStep() {
                                 <button
                                   type="button"
                                   onClick={() => hasContent && toggleCriteria(w.categoryId)}
-                                  className={`w-full p-3 flex items-center justify-between gap-3 text-left ${hasContent ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
+                                  className={`w-full p-3 flex items-center justify-between gap-3 text-start ${hasContent ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
                                 >
                                   <span className="text-sm font-medium text-foreground">{cat}</span>
                                   <div className="flex items-center gap-2 flex-shrink-0">
@@ -711,7 +711,7 @@ export default function TenderBriefStep() {
                               <button
                                 type="button"
                                 onClick={() => toggleCriteria(`custom-${c.id}`)}
-                                className="w-full p-3 flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-muted transition-colors"
+                                className="w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
                               >
                                 <span className="text-sm text-foreground">{c.text}</span>
                                 <div className="flex items-center gap-2 flex-shrink-0">
@@ -863,12 +863,12 @@ export default function TenderBriefStep() {
                   >
                     {uploadingAttachment ? (
                       <>
-                        <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                        <Loader2 className="h-3.5 w-3.5 me-1.5 animate-spin" />
                         {t('tenderFlow.uploading') || 'Uploading...'}
                       </>
                     ) : (
                       <>
-                        <Upload className="h-3.5 w-3.5 mr-1.5" />
+                        <Upload className="h-3.5 w-3.5 me-1.5" />
                         {t('tenderFlow.uploadDocuments') || 'Upload supporting documents'}
                       </>
                     )}
@@ -1072,7 +1072,7 @@ export default function TenderBriefStep() {
                             : 'border-border text-muted-foreground hover:border-border'
                         }`}
                       >
-                        English
+                        {t('companyProfileEditor.langEnglish')}
                       </button>
                       <button
                         type="button"
@@ -1083,7 +1083,7 @@ export default function TenderBriefStep() {
                             : 'border-border text-muted-foreground hover:border-border'
                         }`}
                       >
-                        العربية
+                        {t('companyProfileEditor.langArabic')}
                       </button>
                     </div>
                   </div>
@@ -1127,12 +1127,12 @@ export default function TenderBriefStep() {
                   >
                     {submitTender.isPending ? (
                       <>
-                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        <Loader2 className="h-5 w-5 me-2 animate-spin" />
                         {t('tenderFlow.publishingRfp')}
                       </>
                     ) : (
                       <>
-                        <Check className="h-5 w-5 mr-2" />
+                        <Check className="h-5 w-5 me-2" />
                         {t('tenderFlow.publishRfp')}
                       </>
                     )}
@@ -1144,7 +1144,7 @@ export default function TenderBriefStep() {
                     className="w-full"
                     data-testid="button-back-edit"
                   >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <ArrowLeft className="h-4 w-4 me-2" />
                     {t('tenderFlow.goBackEdit')}
                   </Button>
                 </div>
@@ -1171,12 +1171,12 @@ export default function TenderBriefStep() {
           >
             {submitTender.isPending ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 me-2 animate-spin" />
                 {t('tenderFlow.publishingRfp')}
               </>
             ) : (
               <>
-                <Check className="h-4 w-4 mr-2" />
+                <Check className="h-4 w-4 me-2" />
                 {t('tenderFlow.publishRfp')}
               </>
             )}

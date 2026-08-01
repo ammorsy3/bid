@@ -48,40 +48,40 @@ const copy = {
     ftCopy: "© 2026 Bid, Sourcing Redefined.", ftCookies: "Cookies",
   },
   ar: {
-    navAbout: "عن Bid", navMarketplace: "سوق Bid", navTraction: "روابط الإنضمام", navVendors: "للموردين",
+    navAbout: "عن Bid", navMarketplace: "سوق Bid", navTraction: "روابط الانضمام", navVendors: "للموردين",
     btnSignIn: "دخول", btnCreateAccount: "سجّل حساب\u00a0←", btnDashboard: "لوحة التحكم",
-    heroBadge: "الإطلاق التجريبي", heroLine1: "أنشئ الـ(RFP) في دقائق،", heroLine2: "اطرح مشروعك، واستقبل العروض.",
-    heroSub: "اكتب بريف، أرسل للموردين، استلم العروض، رسّ المشروع.",
+    heroBadge: "الإطلاق التجريبي", heroLine1: "أنشئ الـ(RFP)", heroLine2: "اطرح مشروعك",
+    heroSub: "اكتب البريف، وادعُ الموردين، واستقبل العروض، ثم رسِّ المشروع.",
     heroCta: "جرّب Bid\u00a0←", heroSignIn: "دخول",
-    awarded: "Awarded", aiDrafted: "AI drafted",
-    modalHeadline: "اكتشف أفضل الموردين. اكسب أفضل العملاء.", modalLogin: "دخول", modalSignUp: "سجّل حساب",
+    awarded: "تمت الترسية", aiDrafted: "مسودة بالذكاء الاصطناعي",
+    modalHeadline: "اكتشف أفضل الموردين. واكسب أفضل العملاء.", modalLogin: "دخول", modalSignUp: "سجّل حساب",
     forRequesters: "لأصحاب الطلبات",
-    feat01Num: "01", feat01Title: "إنشاء الـRFP",
-    feat01S1: "اكتب البريف.", feat01S2: "ادعِ الموردين.", feat01S3: "استلم العروض.",
-    feat01Quote: "بريف واحد واضح. بدون اجتماعات.", feat01Accent: "توقعات موحَّدة عروض متعددة.",
+    feat01Num: "01", feat01Title: "إنشاء طلب العروض (RFP)",
+    feat01S1: "اكتب البريف.", feat01S2: "ادعُ مورّديك.", feat01S3: "استقبل العروض مرتّبة.",
+    feat01Quote: "بريف واحد واضح. بدون اجتماعات.", feat01Accent: "متطلبات موحّدة وعروض متعددة.",
     feat01Stat: "72 ساعة", feat01StatK: "من البريف للعروض",
-    feat02Num: "02", feat02Title: "سوق مناقصات Bid.",
-    feat02S1: "جهّز الـRFP.", feat02S2: "ارفق أمر الشراء.", feat02S3: "انشره في السوق.", feat02S4: "استلم العروض.",
-    feat02Quote: "مشاريع مُلزمة الترسية. موردين جادّين.", feat02Accent: "عروض من الأفضل.",
+    feat02Num: "02", feat02Title: "سوق مناقصات Bid",
+    feat02S1: "جهّز طلب العروض (RFP).", feat02S2: "أرفق أمر الشراء.", feat02S3: "انشره في السوق.", feat02S4: "استقبل العروض مرتّبة.",
+    feat02Quote: "مشاريع ملزمة بالترسية. ومورّدون جادّون.", feat02Accent: "عروض من الأفضل.",
     feat02Stat: "~14", feat02StatK: "مورد جديد لكل مناقصة",
-    feat03Num: "03", feat03Title: '"سوشلة" التوريد',
-    feat03S1: "انشئ رابط انضمام لقاعدة موردين.", feat03S2: "استغل قنواتك وسّع شبكتك.", feat03S3: "ادعِهم للمشاريع القادمة.",
-    feat03Quote: "استغل قنواتك. وسّع شبكتك. ووفّر وقتك ومالك.", feat03Accent: "", feat03Suffix: "",
-    feat03Stat: "+100 مورد شهريا", feat03StatK: "من الـtraffic الحالي على موقعك",
+    feat03Num: "03", feat03Title: "رابط الانضمام",
+    feat03S1: "أنشئ رابطًا لقاعدة مورّديك.", feat03S2: "استفد من قنواتك ووسّع شبكتك.", feat03S3: "ادعُهم لمشاريعك القادمة.",
+    feat03Quote: "استفد من قنواتك. وسّع شبكتك. ووفّر وقتك وتكلفتك.", feat03Accent: "", feat03Suffix: "",
+    feat03Stat: "+100 مورد شهريًا", feat03StatK: "من زوّار موقعك الحاليين",
     forVendors: "للموردين",
-    vc1Title: "استلم بريفات واضحة.", vc1Body: "RFPات بصفحة واحدة تقدر تفهمك تفاصيل المشروع دون Back-and-Forth.",
-    vc2Title: "قدّم في سوق مناقصات Bid.", vc2Body: "كل المشاريع في سوق مناقصات Bid مشاريع موثّقة بـ أمر شراء مسبق = مشاريع ملزمة الترسية لأحد العروض في Bid.",
-    vc3Title: "أنضم لقواعد موردين عملاء جدد.", vc3Body: "اطلب الانضمام لقاعدة موردينهم عبر روابط الإنضمام. وسّع قاعدة عملائك بدون ما رسائل وإيميلات باردة.",
+    vc1Title: "استقبل بريفات واضحة.", vc1Body: "طلبات عروض (RFP) مختصرة وواضحة، تجمع كل تفاصيل المشروع في صفحة واحدة وبدون مراسلات متكررة.",
+    vc2Title: "قدّم في سوق مناقصات Bid.", vc2Body: "المشاريع المنشورة في السوق مدعومة بأمر شراء مسبق وملزمة بترسية أحد العروض المقدمة عبر Bid.",
+    vc3Title: "انضم إلى قواعد مورّدي عملاء جدد.", vc3Body: "اطلب الانضمام إلى قاعدة مورّدي العميل من رابط الانضمام، ووسّع قاعدة عملائك بدون رسائل تسويقية باردة.",
     moreTitle: "وغيرها كثير",
-    mc1Title: "توثيق الموردين", mc1l1: "الهوية والسجل التجاري والتسجيل الضريبي", mc1l2: "أعمال سابقة موثّقة", mc1l3: "توثيق مسبق داخل المنصة، بدون الحاجة الـRFIs.",
-    mc2Title: "الذكاء الاصطناعي في كل خطوة", mc2l1: "ذكاء اصطناعي يبني معك RFPs", mc2l2: "يلخّص لك الـProposals.", mc2l3: "يطابق لك الموردين المناسبين لمشروعك.",
-    mc3Title: "تخصيص لامتناهي", mc3l1: "تخصص تصميم بروفايل شركتك", mc3l2: "تخصص تصميم روابط الإنضمام", mc3l3: "تخصص تصميم الـRFPs",
+    mc1Title: "توثيق الموردين", mc1l1: "السجل التجاري والتسجيل الضريبي للشركات", mc1l2: "أعمال سابقة موثّقة", mc1l3: "توثيق مسبق داخل المنصة، بدون طلب معلومات متكرر.",
+    mc2Title: "الذكاء الاصطناعي في كل خطوة", mc2l1: "يبني معك طلب العروض (RFP)", mc2l2: "يلخّص لك العروض المقدمة.", mc2l3: "يرشّح لك الموردين الأنسب لمشروعك.",
+    mc3Title: "تخصيص كامل", mc3l1: "خصّص ملف شركتك", mc3l2: "خصّص روابط الانضمام", mc3l3: "خصّص طلبات العروض (RFP)",
     ctaTitle: "جرّب Bid",
-    ctaBody: "بدون عروض توضيحية بدون مكالمات مبيعات. انشئ RFP، إستقبل عروض.",
+    ctaBody: "بدون عرض توضيحي أو مكالمات مبيعات. أنشئ طلب العروض (RFP)، واستقبل العروض.",
     ctaBtn: "ابدأ الحين ←",
-    ftBrand: "Bid. أول منصّة سعودية تعيد هندسة التوريد.",
+    ftBrand: "Bid يرتّب لك رحلة التوريد: أنشئ طلب العروض (RFP)، وادعُ الموردين المناسبين، واستقبل عروضهم بصيغة موحّدة.",
     ftReq: "للمشترين", ftVen: "للموردين", ftCo: "Bid",
-    ftRFP: "تجهيز الـRFP", ftMkt: "السوق", ftTrac: "رابط الإنضمام",
+    ftRFP: "تجهيز طلب العروض (RFP)", ftMkt: "السوق", ftTrac: "رابط الانضمام",
     ftBriefs: "استلام البريفات", ftTenders: "استكشف المناقصات", ftConnect: "تواصل مع العملاء",
     ftContact: "تواصل معنا", ftTerms: "الشروط", ftPrivacy: "الخصوصية", ftSupport: "الدعم",
     ftCopy: "© 2026 Bid، التوريد بشكل جديد.", ftCookies: "الكوكيز",
@@ -116,6 +116,7 @@ const Landing = () => {
   const { user } = useAuthStore();
   const c = copy[lang];
   const isRtl = lang === "ar";
+  const label = (en: string, ar: string) => isRtl ? ar : en;
 
   const toggleLang = () => {
     const next = lang === "en" ? "ar" : "en";
@@ -209,9 +210,17 @@ const Landing = () => {
         <section className="hero" id="hero">
           <span className="badge"><span className="d"></span>{c.heroBadge}</span>
           <h1>
-            {isRtl ? <>أنشئ الـ<span dir="ltr" className="latin-token">(RFP)</span> في دقائق،</> : c.heroLine1}
-            <br />
-            {c.heroLine2}{!isRtl && <span className="accent" style={{ color: "var(--orange)" }}>.</span>}
+            {isRtl ? (
+              <>
+                أنشئ الـ<span dir="ltr" className="latin-token">(RFP)</span>
+                <br />
+                اطرح مشروعك
+                <br />
+                واستقبل العروض.
+              </>
+            ) : (
+              <>{c.heroLine1}<br />{c.heroLine2}<span className="accent" style={{ color: "var(--orange)" }}>.</span></>
+            )}
           </h1>
           <p className="sub">{c.heroSub}</p>
           <div className="ctas">
@@ -229,7 +238,7 @@ const Landing = () => {
                 </div>
                 <div style={{ height: 5, width: "80%", background: "linear-gradient(90deg,var(--peach-deep),var(--peach))", borderRadius: 3 }}></div>
                 <div style={{ height: 5, width: "60%", background: "linear-gradient(90deg,var(--peach-deep),var(--peach))", borderRadius: 3 }}></div>
-                <div style={{ alignSelf: "flex-end", background: "var(--orange)", color: "white", fontSize: 9, fontWeight: 600, padding: "4px 9px", borderRadius: 5, marginTop: 2 }}>Publish</div>
+                <div style={{ alignSelf: "flex-end", background: "var(--orange)", color: "white", fontSize: 9, fontWeight: 600, padding: "4px 9px", borderRadius: 5, marginTop: 2 }}>{label("Publish", "انشر")}</div>
               </div>
             </div>
             <div className="piece p2" style={{ "--r": "5deg" } as React.CSSProperties}>
@@ -250,7 +259,7 @@ const Landing = () => {
             </div>
             <div className="piece p4" style={{ "--r": "-12deg" } as React.CSSProperties}>
               <div style={{ width: 88, height: 88, borderRadius: "50%", background: "var(--orange)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, textAlign: "center", lineHeight: 1.1, letterSpacing: ".04em", textTransform: "uppercase", boxShadow: "0 14px 28px -10px rgba(254,60,1,.5)" }}>
-                Pre‑<br />Awarded<br />PO
+                {isRtl ? <>أمر شراء<br />مسبق</> : <>Pre‑<br />Awarded<br />PO</>}
               </div>
             </div>
             <div className="piece p5" style={{ "--r": "6deg" } as React.CSSProperties}>
@@ -283,18 +292,18 @@ const Landing = () => {
           <div className="stages s3">
             <div className="stage">
               <div className="visual">
-                <span className="ico" style={{ top: 4, left: "6%", "--r": "-6deg", transform: "rotate(-6deg)" } as React.CSSProperties}><span className="dot" style={{ background: "var(--orange)" }}>AI</span>AI assist</span>
+                <span className="ico" style={{ top: 4, left: "6%", "--r": "-6deg", transform: "rotate(-6deg)" } as React.CSSProperties}><span className="dot" style={{ background: "var(--orange)" }}>AI</span>{label("AI assist", "مساعدة ذكية")}</span>
                 <span className="ico solid" style={{ top: 0, right: "4%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".4s" } as React.CSSProperties}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L13 9L20 10L13 11L12 18L11 11L4 10L11 9Z" /></svg>
-                  In seconds
+                  {label("In seconds", "خلال ثوانٍ")}
                 </span>
                 <span className="ico" style={{ bottom: 6, left: "10%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: ".8s" } as React.CSSProperties}>
-                  <span className="dot" style={{ background: "var(--ink)" }}><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><rect x="9" y="2" width="6" height="14" rx="3" /><path d="M5 11v1a7 7 0 0014 0v-1" stroke="white" strokeWidth="2" fill="none" /></svg></span>Voice brief
+                  <span className="dot" style={{ background: "var(--ink)" }}><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><rect x="9" y="2" width="6" height="14" rx="3" /><path d="M5 11v1a7 7 0 0014 0v-1" stroke="white" strokeWidth="2" fill="none" /></svg></span>{label("Voice brief", "بريف صوتي")}
                 </span>
                 <div className="mock-brief" style={{ marginTop: 30 }}>
                   <div className="top"><div className="title-bar"></div><div className="badge">RFP</div></div>
                   <div className="line w70"></div><div className="line w55"></div><div className="line w40"></div>
-                  <div className="bottom"><div className="gray"></div><div className="btn-mini">Publish</div></div>
+                  <div className="bottom"><div className="gray"></div><div className="btn-mini">{label("Publish", "انشر")}</div></div>
                   <div className="sparkle"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2 8 8 2-8 2-2 8-2-8-8-2 8-2z" /><circle cx="20" cy="4" r="1.5" /><circle cx="4" cy="20" r="1" /></svg></div>
                 </div>
               </div>
@@ -304,8 +313,8 @@ const Landing = () => {
               <div className="visual">
                 <span className="ico" style={{ top: 0, left: "4%", "--r": "-7deg", transform: "rotate(-7deg)", animationDelay: ".2s" } as React.CSSProperties}><span className="dot" style={{ background: "#25D366" }}>W</span>WhatsApp</span>
                 <span className="ico" style={{ top: 8, right: "2%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".6s" } as React.CSSProperties}><span className="dot" style={{ background: "#EA4335" }}>G</span>Gmail</span>
-                <span className="ico solid" style={{ bottom: 8, left: "8%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1s" } as React.CSSProperties}>One click</span>
-                <span className="ico orange" style={{ bottom: 0, right: "8%", "--r": "4deg", transform: "rotate(4deg)", animationDelay: "1.4s" } as React.CSSProperties}>Vendors base</span>
+                <span className="ico solid" style={{ bottom: 8, left: "8%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1s" } as React.CSSProperties}>{label("One click", "بضغطة واحدة")}</span>
+                <span className="ico orange" style={{ bottom: 0, right: "8%", "--r": "4deg", transform: "rotate(4deg)", animationDelay: "1.4s" } as React.CSSProperties}>{label("Vendors base", "قاعدة الموردين")}</span>
                 <div className="mock-invite" style={{ marginTop: 34 }}>
                   <div className="avatars">
                     {["o", "y", "b"].map((cls, i) => (
@@ -323,9 +332,9 @@ const Landing = () => {
             </div>
             <div className="stage">
               <div className="visual">
-                <span className="ico orange" style={{ top: 0, left: "6%", "--r": "-4deg", transform: "rotate(-4deg)", animationDelay: ".3s" } as React.CSSProperties}>From the best</span>
-                <span className="ico" style={{ top: 10, right: "4%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".7s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--green)" }}>✓</span>Verified</span>
-                <span className="ico solid" style={{ bottom: 4, left: "10%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1.1s" } as React.CSSProperties}>Ranked</span>
+                <span className="ico orange" style={{ top: 0, left: "6%", "--r": "-4deg", transform: "rotate(-4deg)", animationDelay: ".3s" } as React.CSSProperties}>{label("From the best", "من الأفضل")}</span>
+                <span className="ico" style={{ top: 10, right: "4%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".7s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--green)" }}>✓</span>{label("Verified", "موثّق")}</span>
+                <span className="ico solid" style={{ bottom: 4, left: "10%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1.1s" } as React.CSSProperties}>{label("Ranked", "مرتّبة")}</span>
                 <div className="mock-proposals" style={{ marginTop: 36 }}>
                   {[{ cls: "a", color: "var(--orange)", price: "$48k" }, { cls: "b", color: "var(--blue)", price: "$52k" }, { cls: "c", color: "var(--yellow)", price: "$44k" }].map((p) => (
                     <div key={p.cls} className={`pcard ${p.cls}`}>
@@ -352,11 +361,11 @@ const Landing = () => {
           <div className="stages s4">
             <div className="stage">
               <div className="visual">
-                <span className="ico" style={{ top: 0, left: "6%", "--r": "-6deg", transform: "rotate(-6deg)" } as React.CSSProperties}><span className="dot" style={{ background: "var(--orange)" }}>⚙</span>Customisable</span>
-                <span className="ico solid" style={{ top: 8, right: "2%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".5s" } as React.CSSProperties}>Depth slider</span>
-                <span className="ico orange" style={{ bottom: 6, left: "8%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1s" } as React.CSSProperties}>Public mode</span>
+                <span className="ico" style={{ top: 0, left: "6%", "--r": "-6deg", transform: "rotate(-6deg)" } as React.CSSProperties}><span className="dot" style={{ background: "var(--orange)" }}>⚙</span>{label("Customisable", "قابل للتخصيص")}</span>
+                <span className="ico solid" style={{ top: 8, right: "2%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".5s" } as React.CSSProperties}>{label("Depth slider", "مستوى التفاصيل")}</span>
+                <span className="ico orange" style={{ bottom: 6, left: "8%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1s" } as React.CSSProperties}>{label("Public mode", "وضع عام")}</span>
                 <div className="mock-rfpform" style={{ marginTop: 34 }}>
-                  <div className="row"><div className="label-tab">DEPTH</div><div className="toggle"><div className="t on"></div><div className="t on"></div><div className="t on"></div><div className="t"></div></div></div>
+                  <div className="row"><div className="label-tab">{label("DEPTH", "التفاصيل")}</div><div className="toggle"><div className="t on"></div><div className="t on"></div><div className="t on"></div><div className="t"></div></div></div>
                   <div className="slider"><span></span><em></em></div>
                   <div className="line" style={{ width: "80%" }}></div><div className="line" style={{ width: "55%" }}></div>
                 </div>
@@ -365,23 +374,23 @@ const Landing = () => {
             </div>
             <div className="stage">
               <div className="visual">
-                <span className="ico orange" style={{ top: 4, left: "4%", "--r": "-5deg", transform: "rotate(-5deg)", animationDelay: ".3s" } as React.CSSProperties}>Pre‑awarding</span>
-                <span className="ico" style={{ top: 0, right: "6%", "--r": "6deg", transform: "rotate(6deg)", animationDelay: ".7s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--green)" }}>✓</span>Budgeted</span>
-                <span className="ico solid" style={{ bottom: 4, left: "14%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1.1s" } as React.CSSProperties}>Gain trust</span>
+                <span className="ico orange" style={{ top: 4, left: "4%", "--r": "-5deg", transform: "rotate(-5deg)", animationDelay: ".3s" } as React.CSSProperties}>{label("Pre‑awarding", "ترسية مسبقة")}</span>
+                <span className="ico" style={{ top: 0, right: "6%", "--r": "6deg", transform: "rotate(6deg)", animationDelay: ".7s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--green)" }}>✓</span>{label("Budgeted", "بميزانية معتمدة")}</span>
+                <span className="ico solid" style={{ bottom: 4, left: "14%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1.1s" } as React.CSSProperties}>{label("Gain trust", "يبني الثقة")}</span>
                 <div className="mock-po" style={{ marginTop: 36 }}>
-                  <div className="head"><div className="l">PURCHASE ORDER<br />PO‑0084</div></div>
+                  <div className="head"><div className="l">{label("PURCHASE ORDER", "أمر شراء")}<br />PO‑0084</div></div>
                   <div className="amount">$120,000</div>
                   <div className="lines"><div className="l"></div><div className="l" style={{ width: "70%" }}></div></div>
-                  <div className="stamp">Pre‑<br />Awarded</div>
+                  <div className="stamp">{isRtl ? <>ترسية<br />مسبقة</> : <>Pre‑<br />Awarded</>}</div>
                 </div>
               </div>
               <div className="footer"><h3>{c.feat02S2}</h3><div className="arrow-pill">{arrowRight}</div></div>
             </div>
             <div className="stage">
               <div className="visual">
-                <span className="ico" style={{ top: 0, left: "6%", "--r": "-5deg", transform: "rotate(-5deg)", animationDelay: ".4s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--orange)" }}>📡</span>Reach new</span>
-                <span className="ico solid" style={{ top: 8, right: "4%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".8s" } as React.CSSProperties}>Discoverable</span>
-                <span className="ico orange" style={{ bottom: 6, left: "12%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1.2s" } as React.CSSProperties}>Category match</span>
+                <span className="ico" style={{ top: 0, left: "6%", "--r": "-5deg", transform: "rotate(-5deg)", animationDelay: ".4s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--orange)" }}>📡</span>{label("Reach new", "وصول أوسع")}</span>
+                <span className="ico solid" style={{ top: 8, right: "4%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".8s" } as React.CSSProperties}>{label("Discoverable", "ظهور أكبر")}</span>
+                <span className="ico orange" style={{ bottom: 6, left: "12%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1.2s" } as React.CSSProperties}>{label("Category match", "مطابقة حسب القطاع")}</span>
                 <div className="mock-feed" style={{ marginTop: 36 }}>
                   {[0, 1, 2, 3].map((i) => (<div key={i} className="item"><div className="swatch"></div><div className="l"></div><div className="l short"></div></div>))}
                 </div>
@@ -390,9 +399,9 @@ const Landing = () => {
             </div>
             <div className="stage">
               <div className="visual">
-                <span className="ico orange" style={{ top: 0, left: "6%", "--r": "-4deg", transform: "rotate(-4deg)", animationDelay: ".5s" } as React.CSSProperties}>From the best</span>
-                <span className="ico" style={{ top: 10, right: "4%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".9s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--green)" }}>✓</span>Verified</span>
-                <span className="ico solid" style={{ bottom: 4, left: "10%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1.3s" } as React.CSSProperties}>Ranked</span>
+                <span className="ico orange" style={{ top: 0, left: "6%", "--r": "-4deg", transform: "rotate(-4deg)", animationDelay: ".5s" } as React.CSSProperties}>{label("From the best", "من الأفضل")}</span>
+                <span className="ico" style={{ top: 10, right: "4%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".9s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--green)" }}>✓</span>{label("Verified", "موثّق")}</span>
+                <span className="ico solid" style={{ bottom: 4, left: "10%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1.3s" } as React.CSSProperties}>{label("Ranked", "مرتّبة")}</span>
                 <div className="mock-rank" style={{ marginTop: 36 }}>
                   {[{ rk: "01", color: "var(--orange)", pct: "96%" }, { rk: "02", color: "var(--blue)", pct: "88%" }, { rk: "03", color: "var(--yellow)", pct: "82%" }].map((r) => (
                     <div key={r.rk} className="row">
@@ -421,40 +430,40 @@ const Landing = () => {
           <div className="stages s3">
             <div className="stage">
               <div className="visual">
-                <span className="ico" style={{ top: 0, left: "8%", "--r": "-5deg", transform: "rotate(-5deg)", animationDelay: ".2s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--orange)" }}>🔗</span>Your link</span>
-                <span className="ico solid" style={{ top: 10, right: "4%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".6s" } as React.CSSProperties}>Website</span>
-                <span className="ico orange" style={{ bottom: 6, left: "10%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1s" } as React.CSSProperties}>Bio · Email</span>
+                <span className="ico" style={{ top: 0, left: "8%", "--r": "-5deg", transform: "rotate(-5deg)", animationDelay: ".2s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--orange)" }}>🔗</span>{label("Your link", "رابطك")}</span>
+                <span className="ico solid" style={{ top: 10, right: "4%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".6s" } as React.CSSProperties}>{label("Website", "موقعك")}</span>
+                <span className="ico orange" style={{ bottom: 6, left: "10%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1s" } as React.CSSProperties}>{label("Bio · Email", "نبذة · بريد")}</span>
                 <div className="mock-tlink" style={{ marginTop: 36 }}>
                   <div className="url-pill">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10 14l4-4m-3-3l1-1a4 4 0 015 5l-1 1m-6 6l-1 1a4 4 0 01-5-5l1-1" /></svg>
                     bidapp.sa/yourbrand
-                    <span className="copy">COPY</span>
+                    <span className="copy">{label("COPY", "نسخ")}</span>
                   </div>
-                  <div className="row-mini"><div className="label">Requests this week</div><div className="stat">+12</div></div>
+                  <div className="row-mini"><div className="label">{label("Requests this week", "طلبات هذا الأسبوع")}</div><div className="stat">+12</div></div>
                 </div>
               </div>
               <div className="footer"><h3>{c.feat03S1}</h3><div className="arrow-pill">{arrowRight}</div></div>
             </div>
             <div className="stage">
               <div className="visual">
-                <span className="ico" style={{ top: 0, left: "8%", "--r": "-5deg", transform: "rotate(-5deg)", animationDelay: ".3s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--green)" }}>+</span>Approved</span>
-                <span className="ico solid" style={{ top: 12, right: "6%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".7s" } as React.CSSProperties}>Tagged</span>
-                <span className="ico orange" style={{ bottom: 0, left: "6%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1.1s" } as React.CSSProperties}>Category</span>
+                <span className="ico" style={{ top: 0, left: "8%", "--r": "-5deg", transform: "rotate(-5deg)", animationDelay: ".3s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--green)" }}>+</span>{label("Approved", "مقبول")}</span>
+                <span className="ico solid" style={{ top: 12, right: "6%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".7s" } as React.CSSProperties}>{label("Tagged", "مصنّف")}</span>
+                <span className="ico orange" style={{ bottom: 0, left: "6%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1.1s" } as React.CSSProperties}>{label("Category", "القطاع")}</span>
                 <div className="mock-grow" style={{ marginTop: 38 }}>
                   <div className="ring row-a">{[0,1,2].map(i=><div key={i} className="av"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-8 2-8 6v2h16v-2c0-4-4-6-8-6z"/></svg></div>)}</div>
                   <div className="ring row-b">{[0,1,2,3,4].map(i=><div key={i} className="av"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-8 2-8 6v2h16v-2c0-4-4-6-8-6z"/></svg></div>)}</div>
-                  <span className="badge-pill"><span className="d"></span>Network +27</span>
+                  <span className="badge-pill"><span className="d"></span>{label("Network +27", "الشبكة +27")}</span>
                 </div>
               </div>
               <div className="footer"><h3>{c.feat03S2}</h3><div className="arrow-pill">{arrowRight}</div></div>
             </div>
             <div className="stage">
               <div className="visual">
-                <span className="ico" style={{ top: 0, left: "6%", "--r": "-5deg", transform: "rotate(-5deg)", animationDelay: ".4s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--ink)" }}>↗</span>Next RFP</span>
-                <span className="ico orange" style={{ top: 10, right: "6%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".8s" } as React.CSSProperties}>Right vendors</span>
-                <span className="ico solid" style={{ bottom: 6, left: "10%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1.2s" } as React.CSSProperties}>One click</span>
+                <span className="ico" style={{ top: 0, left: "6%", "--r": "-5deg", transform: "rotate(-5deg)", animationDelay: ".4s" } as React.CSSProperties}><span className="dot" style={{ background: "var(--ink)" }}>↗</span>{label("Next RFP", "الطلب القادم")}</span>
+                <span className="ico orange" style={{ top: 10, right: "6%", "--r": "5deg", transform: "rotate(5deg)", animationDelay: ".8s" } as React.CSSProperties}>{label("Right vendors", "الموردون الأنسب")}</span>
+                <span className="ico solid" style={{ bottom: 6, left: "10%", "--r": "-3deg", transform: "rotate(-3deg)", animationDelay: "1.2s" } as React.CSSProperties}>{label("One click", "بضغطة واحدة")}</span>
                 <div className="mock-rfpcheck" style={{ marginTop: 36 }}>
-                  <div className="head">Invite to RFP‑0019</div>
+                  <div className="head">{label("Invite to RFP‑0019", "دعوة إلى RFP‑0019")}</div>
                   {[true,true,true,false].map((on,i)=>(
                     <div key={i} className="check-row"><div className={`cb ${on?"on":"off"}`}>{on?"✓":""}</div><div className={`nm${i===0?" dark":""}`}></div></div>
                   ))}
@@ -481,7 +490,7 @@ const Landing = () => {
                 <div className="mock-vbrief">
                   <div className="head"><div className="l" style={{ width: "50%", background: "var(--ink)" }}></div><div className="badge">RFP</div></div>
                   <div className="l w70"></div><div className="l w50"></div><div className="l" style={{ width: "80%" }}></div>
-                  <div className="send">Submit →</div>
+                  <div className="send">{label("Submit →", "قدّم ←")}</div>
                 </div>
               </div>
               <h3>{c.vc1Title}</h3>

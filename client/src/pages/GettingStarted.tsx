@@ -41,7 +41,7 @@ export default function GettingStarted() {
               <p className="text-muted-foreground mb-3">
                 {t('gettingStarted.step1Desc')}
               </p>
-              <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
+              <ul className="list-disc ps-5 space-y-1.5 text-muted-foreground">
                 <li>{t('gettingStarted.step1Li1Pre')}<strong className="text-foreground">{t('gettingStarted.step1Li1Strong')}</strong>{t('gettingStarted.step1Li1Post')}</li>
                 <li>{t('gettingStarted.step1Li2Pre')}<strong className="text-foreground">{t('gettingStarted.step1Li2Strong')}</strong>{t('gettingStarted.step1Li2Post')}</li>
                 <li>{t('gettingStarted.step1Li3')}</li>
@@ -61,7 +61,7 @@ export default function GettingStarted() {
               <p className="text-muted-foreground mb-3">
                 {t('gettingStarted.step2Desc')}
               </p>
-              <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
+              <ul className="list-disc ps-5 space-y-1.5 text-muted-foreground">
                 <li>{t('gettingStarted.step2Li1Pre')}<strong className="text-foreground">{t('gettingStarted.step2Li1Strong')}</strong>{t('gettingStarted.step2Li1Post')}</li>
                 <li>{t('gettingStarted.step2Li2')}</li>
                 <li>{t('gettingStarted.step2Li3')}</li>
@@ -81,7 +81,7 @@ export default function GettingStarted() {
               <p className="text-muted-foreground mb-3">
                 {t('gettingStarted.step3Desc')}
               </p>
-              <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
+              <ul className="list-disc ps-5 space-y-1.5 text-muted-foreground">
                 <li>{t('gettingStarted.step3Li1Pre')}<strong className="text-foreground">{t('gettingStarted.step3Li1Strong')}</strong>{t('gettingStarted.step3Li1Post')}</li>
                 <li>{t('gettingStarted.step3Li2')}</li>
                 <li>{t('gettingStarted.step3Li3')}</li>
@@ -103,7 +103,7 @@ export default function GettingStarted() {
               <p className="text-muted-foreground mb-3">
                 {t('gettingStarted.step4Desc')}
               </p>
-              <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
+              <ul className="list-disc ps-5 space-y-1.5 text-muted-foreground">
                 <li>{t('gettingStarted.step4Li1Pre')}<strong className="text-foreground">{t('gettingStarted.step4Li1Strong')}</strong>{t('gettingStarted.step4Li1Post')}</li>
                 <li>{t('gettingStarted.step4Li2')}</li>
                 <li>{t('gettingStarted.step4Li3Pre')}<strong className="text-foreground">{t('gettingStarted.step4Li3Strong')}</strong>{t('gettingStarted.step4Li3Post')}</li>
@@ -124,7 +124,7 @@ export default function GettingStarted() {
               <p className="text-muted-foreground mb-3">
                 {t('gettingStarted.step5Desc')}
               </p>
-              <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
+              <ul className="list-disc ps-5 space-y-1.5 text-muted-foreground">
                 <li>{t('gettingStarted.step5Li1')}</li>
                 <li>{t('gettingStarted.step5Li2')}</li>
                 <li>{t('gettingStarted.step5Li3')}</li>
@@ -144,7 +144,7 @@ export default function GettingStarted() {
               <p className="text-muted-foreground mb-3">
                 {t('gettingStarted.step6Desc')}
               </p>
-              <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
+              <ul className="list-disc ps-5 space-y-1.5 text-muted-foreground">
                 <li>{t('gettingStarted.step6Li1')}</li>
                 <li>{t('gettingStarted.step6Li2')}</li>
                 <li>{t('gettingStarted.step6Li3')}</li>

@@ -81,7 +81,7 @@ export function DocsLayout({
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => setMobileOpen((v) => !v)}
-              className="lg:hidden p-1.5 -ml-1 rounded-md"
+              className="lg:hidden p-1.5 -ms-1 rounded-md"
               style={{ color: "var(--docs-fg-muted)" }}
               aria-label="Toggle nav"
             >
@@ -90,7 +90,7 @@ export function DocsLayout({
             <Link href="/" className="flex items-center gap-2.5 min-w-0">
               <BidLogo variant="orange" size={24} />
               <span
-                className="hidden sm:block text-[13px] font-medium pl-2.5 ml-1 truncate"
+                className="hidden sm:block text-[13px] font-medium ps-2.5 ms-1 truncate"
                 style={{ color: "var(--docs-fg-faint)", borderLeft: "1px solid var(--docs-border)" }}
               >
                 API reference
@@ -106,7 +106,7 @@ export function DocsLayout({
               onClick={() => document.getElementById("docs-search-input")?.focus()}
             >
               <Search size={14} />
-              <span className="flex-1 text-left">Search docs…</span>
+              <span className="flex-1 text-start">Search docs…</span>
               <kbd
                 className="text-[10px] px-1.5 py-0.5 rounded font-sans"
                 style={{
@@ -187,7 +187,7 @@ export function DocsLayout({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Filter…"
-                className="w-full pl-7 pr-2 py-1.5 text-[13px] rounded-md outline-none"
+                className="w-full ps-7 pe-2 py-1.5 text-[13px] rounded-md outline-none"
                 style={{
                   background: "var(--docs-bg-subtle)",
                   border: "1px solid var(--docs-border)",

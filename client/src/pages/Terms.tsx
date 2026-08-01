@@ -41,7 +41,7 @@ export default function Terms() {
           <div>
             <h2 className="text-lg font-semibold mb-2">{t('terms.s4Title')}</h2>
             <p>{t('terms.s4Intro')}</p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
+            <ul className="list-disc ps-6 mt-2 space-y-1">
               <li>{t('terms.s4Li1')}</li>
               <li>{t('terms.s4Li2')}</li>
               <li>{t('terms.s4Li3')}</li>

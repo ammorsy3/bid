@@ -48,7 +48,7 @@ export default function InviteTeam() {
   const [, setLocation] = useLocation();
   const { user, token, checkAuth } = useAuthStore();
   const { toast } = useToast();
-  const { t } = useI18n();
+  const { t, isRtl } = useI18n();
   const [loading, setLoading] = useState(false);
   const draft = getDraft();
   const initialInvitations = useMemo<Invitation[]>(() => {
@@ -253,7 +253,7 @@ export default function InviteTeam() {
                     )}
                   </div>
                   {invalid && (
-                    <p className="text-xs text-red-600 mt-1 ml-1">Enter a valid email address</p>
+                    <p className="text-xs text-red-600 mt-1 ms-1">{t('onboardingPanel.invalidTeamEmail')}</p>
                   )}
                 </div>
               );
@@ -269,8 +269,8 @@ export default function InviteTeam() {
               disabled={loading}
               className="mb-6"
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Add another
+              <Plus className="me-2 h-4 w-4" />
+              {t('onboardingPanel.addAnotherInvite')}
             </Button>
           )}
 
@@ -290,8 +290,8 @@ export default function InviteTeam() {
               onClick={() => setLocation("/onboarding/company-profile")}
               disabled={loading}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
+              <ArrowLeft className={`me-2 h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
+              {t('onboardingPanel.backBtn')}
             </Button>
             <div className="flex items-center gap-3">
               <button
@@ -300,7 +300,7 @@ export default function InviteTeam() {
                 disabled={loading}
                 className="text-sm text-neutral-400 hover:text-muted-foreground transition-colors disabled:opacity-50"
               >
-                Skip, I'll do this later
+                {t('onboardingPanel.skipForNow')}
               </button>
               <Button
                 onClick={handleSubmitWithInvites}
@@ -310,13 +310,13 @@ export default function InviteTeam() {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Setting up...
+                    <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                    {t('onboardingPanel.setupInProgress')}
                   </>
                 ) : (
                   <>
-                    Complete Setup
-                    <Rocket className="ml-2 h-4 w-4" />
+                    {t('onboardingPanel.completeSetup')}
+                    <Rocket className="ms-2 h-4 w-4" />
                   </>
                 )}
               </Button>

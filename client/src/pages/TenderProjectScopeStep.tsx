@@ -497,7 +497,7 @@ export default function TenderProjectScopeStep() {
                       className="bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
                       data-testid="button-add-deliverable"
                     >
-                      <Plus className="h-4 w-4 mr-1" />
+                      <Plus className="h-4 w-4 me-1" />
                       {t('tenderFlow.addDeliverable')}
                     </Button>
                   </div>
@@ -696,11 +696,11 @@ export default function TenderProjectScopeStep() {
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal overflow-hidden",
+                              "w-full justify-start text-start font-normal overflow-hidden",
                               !startDate && "text-muted-foreground"
                             )}
                           >
-                            <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                            <CalendarIcon className="me-2 h-4 w-4 shrink-0" />
                             <span className="truncate">{startDate ? format(startDate, "PPP", { locale: dateLocale }) : t('tenderFlow.selectDate')}</span>
                           </Button>
                         </PopoverTrigger>
@@ -724,11 +724,11 @@ export default function TenderProjectScopeStep() {
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal overflow-hidden",
+                              "w-full justify-start text-start font-normal overflow-hidden",
                               !endDate && "text-muted-foreground"
                             )}
                           >
-                            <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                            <CalendarIcon className="me-2 h-4 w-4 shrink-0" />
                             <span className="truncate">{endDate ? format(endDate, "PPP", { locale: dateLocale }) : t('tenderFlow.selectDate')}</span>
                           </Button>
                         </PopoverTrigger>
@@ -1041,7 +1041,7 @@ export default function TenderProjectScopeStep() {
                     data-testid="button-next"
                   >
                     {t('tenderFlow.next')}
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                    <ArrowRight className="h-4 w-4 ms-2" />
                   </Button>
                 </div>
               </div>

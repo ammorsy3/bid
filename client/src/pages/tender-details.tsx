@@ -182,7 +182,7 @@ function AudioPlayer({ src }: { src: string }) {
         className="h-10 w-10 rounded-full bg-[#FE3C01] text-white hover:bg-[#d54d35]"
         data-testid="button-audio-play"
       >
-        {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
+        {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ms-0.5" />}
       </Button>
       <div className="flex-1">
         <div
@@ -496,7 +496,7 @@ export default function TenderDetails() {
           description: t('tenderFlow.publishedToastDesc'),
           action: (
             <ToastAction altText={t('tenderFlow.copyLinkAlt')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderFlow.linkCopiedToast') }); }}>
-              <Copy className="h-3 w-3 mr-1" /> {t('tenderFlow.copyLink')}
+              <Copy className="h-3 w-3 me-1" /> {t('tenderFlow.copyLink')}
             </ToastAction>
           ),
           duration: 10000,
@@ -791,7 +791,7 @@ export default function TenderDetails() {
                 {t('tenderFlow.tenderNotFoundMessage')}
               </p>
               <Button onClick={() => setLocation('/dashboard')}>
-                <ArrowLeft className={`h-4 w-4 ${isRtl ? 'ml-2 rotate-180' : 'mr-2'}`} />
+                <ArrowLeft className={`h-4 w-4 me-2 ${isRtl ? 'rotate-180' : ''}`} />
                 {t('tenderFlow.backToDashboard')}
               </Button>
             </CardContent>
@@ -850,10 +850,10 @@ export default function TenderDetails() {
           <Button
             variant="ghost"
             onClick={() => setLocation('/dashboard')}
-            className="mb-6 -ml-2 text-muted-foreground hover:text-foreground hover:bg-card/80"
+            className="mb-6 -ms-2 text-muted-foreground hover:text-foreground hover:bg-card/80"
             data-testid="button-back"
           >
-            <ArrowLeft className={`h-4 w-4 ${isRtl ? 'ml-2 rotate-180' : 'mr-2'}`} />
+            <ArrowLeft className={`h-4 w-4 me-2 ${isRtl ? 'rotate-180' : ''}`} />
             {t('tenderFlow.backToDashboard')}
           </Button>
 
@@ -891,7 +891,7 @@ export default function TenderDetails() {
                   )}
                   {(tender.status === 'draft' || tender.status === 'published') && (
                     <Button variant="outline" className="bg-card/80 flex-1 sm:flex-none" onClick={() => setLocation(`/tenders/${tender.id}/edit`)} data-testid="button-edit">
-                      <Edit className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> {t('tenderFlow.editBtn')}
+                      <Edit className={`h-4 w-4 me-1.5`} /> {t('tenderFlow.editBtn')}
                     </Button>
                   )}
                   {tender.status === 'published' && (
@@ -904,19 +904,19 @@ export default function TenderDetails() {
                     <Button variant="outline" className="bg-card/80 border-[#FE3C01]/30 text-[#FE3C01] hover:bg-[#FE3C01]/10 flex-1 sm:flex-none"
                       onClick={() => setShowMarketplaceDialog(true)}
                       disabled={marketplaceSubmit.isPending} data-testid="button-marketplace">
-                      {marketplaceSubmit.isPending ? <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> : <Store className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />}
+                      {marketplaceSubmit.isPending ? <Loader2 className={`h-4 w-4 animate-spin me-1.5`} /> : <Store className={`h-4 w-4 me-1.5`} />}
                       {t('marketplace.publishToMarketplace') || 'Publish to Marketplace'}
                     </Button>
                   )}
                   {tender.isMarketplace && tender.marketplaceStatus === 'pending' && (
                     <Badge className="bg-amber-100 text-amber-800 dark:text-amber-300 text-xs px-3 py-1.5">
-                      <Clock className="h-3.5 w-3.5 mr-1" />
+                      <Clock className="h-3.5 w-3.5 me-1" />
                       {t('marketplace.pendingReview') || 'Marketplace Review Pending'}
                     </Badge>
                   )}
                   {tender.isMarketplace && tender.marketplaceStatus === 'approved' && (
                     <Badge className="bg-green-100 text-green-800 dark:text-green-300 text-xs px-3 py-1.5">
-                      <Store className="h-3.5 w-3.5 mr-1" />
+                      <Store className="h-3.5 w-3.5 me-1" />
                       {t('marketplace.liveOnMarketplace') || 'Live on Marketplace'}
                     </Badge>
                   )}
@@ -963,7 +963,7 @@ export default function TenderDetails() {
               </div>
             )}
             {isOwner && (
-              <div className={`flex items-center gap-1.5 text-xs font-semibold text-[#FE3C01] ${isRtl ? 'mr-auto' : 'ml-auto'}`}>
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#FE3C01] ms-auto">
                 <Users className="h-3 w-3" /><span>{offers.length} {offers.length !== 1 ? t('tenderFlow.proposalsReceived') : t('tenderFlow.proposalReceived')}</span>
               </div>
             )}
@@ -1066,7 +1066,7 @@ export default function TenderDetails() {
                         <Target className="h-3.5 w-3.5 text-[#FE3C01]" />
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('tenderFlow.projectObjectiveTitle')}</p>
                       </div>
-                      <div className="pl-4 border-l-2 border-[#FE3C01]/30 py-0.5">
+                      <div className="ps-4 border-s-2 border-[#FE3C01]/30 py-0.5">
                         <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-[15px]">{String(tender.objective)}</p>
                       </div>
                     </div>
@@ -1213,7 +1213,7 @@ export default function TenderDetails() {
                                   toast({ title: t('tenderFlow.downloadFailed'), description: t('tenderFlow.downloadFailedDesc'), variant: "destructive" });
                                 }
                               }}
-                              className="w-full flex items-center gap-3 p-4 bg-muted rounded-xl border border-border hover:border-border hover:bg-muted transition-colors group text-left"
+                              className="w-full flex items-center gap-3 p-4 bg-muted rounded-xl border border-border hover:border-border hover:bg-muted transition-colors group text-start"
                             >
                               {icon}
                               <div className="flex-1 min-w-0">
@@ -1415,7 +1415,7 @@ export default function TenderDetails() {
                                   <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${SCORE_DOT_COLORS[i % SCORE_DOT_COLORS.length]}`} />
                                   <span className="text-sm text-muted-foreground">
                                     {catInfo?.name || w.categoryId}
-                                    <span className={`font-bold ml-1.5 ${SCORE_TEXT_COLORS[i % SCORE_TEXT_COLORS.length]}`}>{w.weight}%</span>
+                                    <span className={`font-bold ms-1.5 ${SCORE_TEXT_COLORS[i % SCORE_TEXT_COLORS.length]}`}>{w.weight}%</span>
                                   </span>
                                 </div>
                               );
@@ -1427,7 +1427,7 @@ export default function TenderDetails() {
                                   <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${SCORE_DOT_COLORS[i % SCORE_DOT_COLORS.length]}`} />
                                   <span className="text-sm text-muted-foreground">
                                     {c.text}
-                                    <span className={`font-bold ml-1.5 ${SCORE_TEXT_COLORS[i % SCORE_TEXT_COLORS.length]}`}>{c.weight}%</span>
+                                    <span className={`font-bold ms-1.5 ${SCORE_TEXT_COLORS[i % SCORE_TEXT_COLORS.length]}`}>{c.weight}%</span>
                                   </span>
                                 </div>
                               );
@@ -1444,7 +1444,7 @@ export default function TenderDetails() {
                             <button
                               type="button"
                               onClick={() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] }))}
-                              className="w-full flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100/60 dark:hover:bg-amber-900/20 transition-colors text-left"
+                              className="w-full flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100/60 dark:hover:bg-amber-900/20 transition-colors text-start"
                             >
                               <ChevronRight className={`h-4 w-4 text-amber-600 dark:text-amber-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                               <div className="flex-1 min-w-0">
@@ -1571,7 +1571,7 @@ export default function TenderDetails() {
                                     <p className="text-xs text-gray-400 mt-1">
                                       {t('tenderFlow.askedLabel')} {new Date(q.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'short', day: 'numeric' })}
                                       {q.askedByCompany?.category && (
-                                        <span className={`${isRtl ? 'mr-1' : 'ml-1'} text-muted-foreground`}>· {q.askedByCompany.category}</span>
+                                        <span className="ms-1 text-muted-foreground">· {q.askedByCompany.category}</span>
                                       )}
                                     </p>
                                   </div>
@@ -1603,7 +1603,7 @@ export default function TenderDetails() {
                                       disabled={!answerText[q.id]?.trim() || answerQuestion.isPending}
                                       className="bg-green-600 hover:bg-green-700"
                                     >
-                                      {answerQuestion.isPending ? <Loader2 className={`h-3 w-3 animate-spin ${isRtl ? 'ml-1' : 'mr-1'}`} /> : <Send className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />}
+                                      {answerQuestion.isPending ? <Loader2 className={`h-3 w-3 animate-spin me-1`} /> : <Send className={`h-3 w-3 me-1`} />}
                                       {t('tenderFlow.answerBtn')}
                                     </Button>
                                   </div>
@@ -1799,29 +1799,29 @@ export default function TenderDetails() {
                               {/* Action row */}
                               <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-border">
                                 <Button variant="outline" size="sm" onClick={() => window.open(`/company/${offer.company.slug}`, '_blank')} className="text-xs font-medium h-8" data-testid={`button-view-${offer.id}`}>
-                                  <Eye className={`h-3.5 w-3.5 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> {t('tenderFlow.viewProfile')}
+                                  <Eye className={`h-3.5 w-3.5 me-1.5`} /> {t('tenderFlow.viewProfile')}
                                 </Button>
                                 {offer.combinedFileUrl && (
                                   <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)} className="text-xs h-8" data-testid={`button-combined-${offer.id}`}>
-                                    <FileText className={`h-3.5 w-3.5 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> {t('tenderFlow.proposalLabel')}
+                                    <FileText className={`h-3.5 w-3.5 me-1.5`} /> {t('tenderFlow.proposalLabel')}
                                   </Button>
                                 )}
                                 {offer.technicalFileUrl && (
                                   <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)} className="text-xs h-8" data-testid={`button-tech-${offer.id}`}>
-                                    <FileText className={`h-3.5 w-3.5 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> {t('tenderFlow.technicalLabel')}
+                                    <FileText className={`h-3.5 w-3.5 me-1.5`} /> {t('tenderFlow.technicalLabel')}
                                   </Button>
                                 )}
                                 {offer.financialFileUrl && (
                                   <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)} className="text-xs h-8" data-testid={`button-fin-${offer.id}`}>
-                                    <DollarSign className={`h-3.5 w-3.5 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> {t('tenderFlow.financialFileLabel')}
+                                    <DollarSign className={`h-3.5 w-3.5 me-1.5`} /> {t('tenderFlow.financialFileLabel')}
                                   </Button>
                                 )}
                                 {offer.videoUrl && (
                                   <Button variant="outline" size="sm" onClick={() => window.open(offer.videoUrl!, '_blank')} className="text-xs h-8" data-testid={`button-video-${offer.id}`}>
-                                    <Video className={`h-3.5 w-3.5 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> {t('tenderFlow.videoLabel')}
+                                    <Video className={`h-3.5 w-3.5 me-1.5`} /> {t('tenderFlow.videoLabel')}
                                   </Button>
                                 )}
-                                <div className={isRtl ? 'mr-auto' : 'ml-auto'}>
+                                <div className="ms-auto">
                                   {analysis && analysis.status === 'completed' ? (
                                     <Button
                                       variant="outline"
@@ -1830,7 +1830,7 @@ export default function TenderDetails() {
                                       className="text-xs text-[var(--bid-orange)] border-[var(--bid-orange)]/20 hover:bg-[var(--bid-orange)]/5 h-8"
                                       data-testid={`button-ai-view-${offer.id}`}
                                     >
-                                      <Sparkles className={`h-3.5 w-3.5 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                      <Sparkles className={`h-3.5 w-3.5 me-1.5`} />
                                       {t('tenderFlow.viewAISummary')}
                                     </Button>
                                   ) : (
@@ -1843,9 +1843,9 @@ export default function TenderDetails() {
                                       data-testid={`button-ai-${offer.id}`}
                                     >
                                       {analyzeOffer.isPending && analyzeOffer.variables === offer.id ? (
-                                        <Loader2 className={`h-3.5 w-3.5 animate-spin ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                        <Loader2 className={`h-3.5 w-3.5 animate-spin me-1.5`} />
                                       ) : (
-                                        <Sparkles className={`h-3.5 w-3.5 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                                        <Sparkles className={`h-3.5 w-3.5 me-1.5`} />
                                       )}
                                       {t('tenderFlow.summarizeWithAI')}
                                     </Button>
@@ -1892,7 +1892,7 @@ export default function TenderDetails() {
                         className="bg-[#FE3C01] hover:bg-[#d54d35] text-white px-6 h-10 text-sm font-semibold shadow-lg"
                         data-testid="button-negotiate"
                       >
-                        <Handshake className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                        <Handshake className={`h-4 w-4 me-2`} />
                         {t('tenderFlow.startNegotiation')}
                       </Button>
                     </div>
@@ -2025,7 +2025,7 @@ export default function TenderDetails() {
                       </div>
                       <div className="flex gap-2">
                         <Button onClick={copyInvitationLink} size="sm" className="flex-1 text-xs bg-[#FE3C01] hover:bg-[#d54d35] text-white" data-testid="button-copy-link">
-                          {copiedLink ? <><Check className={`h-3.5 w-3.5 ${isRtl ? 'ml-1' : 'mr-1'}`} /> {t('tenderFlow.copied')}</> : <><Copy className={`h-3.5 w-3.5 ${isRtl ? 'ml-1' : 'mr-1'}`} /> {t('tenderFlow.copyLink')}</>}
+                          {copiedLink ? <><Check className={`h-3.5 w-3.5 me-1`} /> {t('tenderFlow.copied')}</> : <><Copy className={`h-3.5 w-3.5 me-1`} /> {t('tenderFlow.copyLink')}</>}
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => window.open(invitationLink, '_blank')} data-testid="button-open-link">
                           <ExternalLink className="h-3.5 w-3.5" />
@@ -2089,7 +2089,7 @@ export default function TenderDetails() {
                             onClick={() => setIsSubmitOfferModalOpen(true)}
                             data-testid="button-submit-offer"
                           >
-                            <Send className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} /> {t('tenderFlow.submitProposal')}
+                            <Send className={`h-4 w-4 me-2`} /> {t('tenderFlow.submitProposal')}
                           </Button>
                         </div>
                       </div>
@@ -2261,7 +2261,7 @@ export default function TenderDetails() {
                         {selectedOffer.combinedFileUrl && (
                           <button
                             onClick={() => viewAuthenticatedFile(selectedOffer.combinedFileUrl!)}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-blue-100 dark:border-blue-900/40 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-left"
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-blue-100 dark:border-blue-900/40 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-start"
                             data-testid="button-modal-combined-file"
                           >
                             <FileText className="h-4 w-4 text-[var(--bid-orange)] flex-shrink-0" />
@@ -2271,7 +2271,7 @@ export default function TenderDetails() {
                         {selectedOffer.technicalFileUrl && (
                           <button
                             onClick={() => viewAuthenticatedFile(selectedOffer.technicalFileUrl!)}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-purple-100 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-left"
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-purple-100 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-start"
                             data-testid="button-modal-tech-file"
                           >
                             <FileText className="h-4 w-4 text-[var(--bid-orange)] flex-shrink-0" />
@@ -2281,7 +2281,7 @@ export default function TenderDetails() {
                         {selectedOffer.financialFileUrl && (
                           <button
                             onClick={() => viewAuthenticatedFile(selectedOffer.financialFileUrl!)}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-emerald-100 bg-[var(--state-won)]/5 hover:bg-[var(--state-won)]/10 transition-colors text-left"
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-emerald-100 bg-[var(--state-won)]/5 hover:bg-[var(--state-won)]/10 transition-colors text-start"
                             data-testid="button-modal-fin-file"
                           >
                             <DollarSign className="h-4 w-4 text-[var(--state-won)] flex-shrink-0" />
@@ -2291,7 +2291,7 @@ export default function TenderDetails() {
                         {selectedOffer.videoUrl && (
                           <button
                             onClick={() => window.open(selectedOffer.videoUrl!, '_blank')}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-orange-100 bg-orange-50 hover:bg-orange-100 transition-colors text-left"
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-orange-100 bg-orange-50 hover:bg-orange-100 transition-colors text-start"
                           >
                             <Video className="h-4 w-4 text-orange-600 flex-shrink-0" />
                             <span className="text-xs font-medium text-orange-700 dark:text-orange-300">{t('tenderFlow.videoPitchLabel')}</span>
@@ -2440,9 +2440,9 @@ export default function TenderDetails() {
                       className="text-xs"
                     >
                       {analyzeOffer.isPending && analyzeOffer.variables === drawerOffer.id ? (
-                        <Loader2 className={`h-3 w-3 animate-spin ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                        <Loader2 className={`h-3 w-3 animate-spin me-1`} />
                       ) : (
-                        <Sparkles className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                        <Sparkles className={`h-3 w-3 me-1`} />
                       )}
                       {t('tenderFlow.reAnalyze')}
                     </Button>
@@ -2618,7 +2618,7 @@ export default function TenderDetails() {
                 });
               }}
             >
-              {(updateStatus.isPending || marketplaceSubmit.isPending) && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
+              {(updateStatus.isPending || marketplaceSubmit.isPending) && <Loader2 className="h-4 w-4 animate-spin me-1.5" />}
               {t('tenderFlow.publishBtn')}
             </Button>
           </div>
@@ -2696,7 +2696,7 @@ export default function TenderDetails() {
                 </div>
               </div>
 
-              <div className={`flex gap-2 px-6 pb-5 pt-2 ${isRtl ? 'flex-row-reverse' : 'justify-end'}`}>
+              <div className={`flex gap-2 px-6 pb-5 pt-2 ${isRtl ? '' : 'justify-end'}`}>
                 <Button variant="outline" onClick={() => {
                   setShowMarketplaceDialog(false);
                   setMarketplaceStep('intro');
@@ -2708,7 +2708,7 @@ export default function TenderDetails() {
                   onClick={() => setMarketplaceStep('guide')}
                 >
                   {t('marketplace.introContinue') || 'Continue'}
-                  {isRtl ? <ArrowLeft className="h-4 w-4 mr-1.5" /> : <ArrowRight className="h-4 w-4 ml-1.5" />}
+                  {isRtl ? <ArrowLeft className="h-4 w-4 me-1.5" /> : <ArrowRight className="h-4 w-4 ms-1.5" />}
                 </Button>
               </div>
             </>
@@ -2804,11 +2804,11 @@ export default function TenderDetails() {
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full h-9 justify-start text-left font-normal",
+                              "w-full h-9 justify-start text-start font-normal",
                               !marketplaceInquiryDeadline && "text-muted-foreground"
                             )}
                           >
-                            <Calendar className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                            <Calendar className={`h-4 w-4 me-2`} />
                             {marketplaceInquiryDeadline
                               ? format(new Date(marketplaceInquiryDeadline), "PPP", { locale: language === 'ar' ? arLocale : undefined })
                               : t('marketplace.selectInquiryDeadline') || 'Select a date'}
@@ -2871,7 +2871,7 @@ export default function TenderDetails() {
                         disabled={uploadPO.isPending}
                         onClick={() => document.getElementById('marketplace-po-upload')?.click()}
                       >
-                        {uploadPO.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Upload className="h-4 w-4 mr-1.5" />}
+                        {uploadPO.isPending ? <Loader2 className="h-4 w-4 animate-spin me-1.5" /> : <Upload className="h-4 w-4 me-1.5" />}
                         {uploadPO.isPending ? (t('marketplace.uploading') || 'Uploading...') : purchaseOrders.length > 0 ? (t('marketplace.uploadAnother') || 'Upload another') : (t('marketplace.uploadPo') || 'Upload PO Document')}
                       </Button>
                       <input
@@ -2914,7 +2914,7 @@ export default function TenderDetails() {
               </div>
 
               {/* Footer */}
-              <div className={`flex items-center justify-between px-6 pb-5 pt-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+              <div className={`flex items-center justify-between px-6 pb-5 pt-3`}>
                 <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => {
                   setShowMarketplaceDialog(false);
                   setMarketplaceStep('intro');
@@ -2945,8 +2945,8 @@ export default function TenderDetails() {
                     });
                   }}
                 >
-                  {marketplaceSubmit.isPending && <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />}
-                  <Store className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                  {marketplaceSubmit.isPending && <Loader2 className={`h-4 w-4 animate-spin me-1.5`} />}
+                  <Store className={`h-4 w-4 me-1.5`} />
                   {t('marketplace.submitForReview') || 'Submit for Review'}
                 </Button>
               </div>

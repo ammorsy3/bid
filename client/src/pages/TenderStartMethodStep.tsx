@@ -658,7 +658,7 @@ export default function TenderStartMethodStep() {
                       role="radio"
                       aria-checked={selectedTemplate === template.id}
                       onClick={() => setSelectedTemplate(template.id)}
-                      className={`w-full flex items-start gap-4 p-5 max-sm:p-4 rounded-xl border-2 transition-all duration-300 ease-in-out text-left ${
+                      className={`w-full flex items-start gap-4 p-5 max-sm:p-4 rounded-xl border-2 transition-all duration-300 ease-in-out text-start ${
                         selectedTemplate === template.id
                           ? "border-[#FE3C01] bg-[#FE3C01]/5 shadow-md"
                           : "border-gray-200 dark:border-gray-600 hover:border-[#FE3C01]/50 hover:shadow-md"
@@ -729,7 +729,7 @@ export default function TenderStartMethodStep() {
                           role="radio"
                           aria-checked={selectedTemplate === template.id}
                           onClick={() => setSelectedTemplate(template.id)}
-                          className={`w-full flex items-start gap-4 p-5 rounded-xl border-2 transition-all duration-300 ease-in-out text-left ${
+                          className={`w-full flex items-start gap-4 p-5 rounded-xl border-2 transition-all duration-300 ease-in-out text-start ${
                             selectedTemplate === template.id
                               ? "border-[#FE3C01] bg-[#FE3C01]/5 shadow-md"
                               : "border-gray-200 dark:border-gray-600 hover:border-[#FE3C01]/50 hover:shadow-md"
@@ -803,7 +803,7 @@ export default function TenderStartMethodStep() {
             data-testid="button-next"
           >
             {t('tenderFlow.continue')}
-            <ArrowRight className="h-5 w-5 ml-2" />
+            <ArrowRight className="h-5 w-5 ms-2" />
           </Button>
         </div>
         </motion.div>

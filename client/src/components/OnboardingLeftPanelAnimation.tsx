@@ -1,4 +1,5 @@
 import { BidMonogram } from "@/components/brand/BidLogo";
+import { useI18n } from "@/lib/i18n";
 
 const STYLE = `
 @keyframes ob-drift-a { 0%,100%{transform:translate(-12%,-10%) scale(1)}   50%{transform:translate(14%,12%) scale(1.3)} }
@@ -15,6 +16,8 @@ const STYLE = `
 `;
 
 export function OnboardingLeftPanelAnimation() {
+  const { isRtl } = useI18n();
+
   return (
     <>
       <style>{STYLE}</style>
@@ -32,11 +35,15 @@ export function OnboardingLeftPanelAnimation() {
             <div style={{ width: 58, height: 58, borderRadius: 18, background: "#F7F1E6", display: "inline-flex", alignItems: "center", justifyContent: "center", boxShadow: "0 14px 30px -10px rgba(11,9,7,.25)", marginBottom: 18 }}>
               <BidMonogram variant="orange" size={32} />
             </div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-.03em", color: "#0B0907", lineHeight: 1.1, marginBottom: 8 }}>Welcome to Bid</h2>
-            <p style={{ fontSize: 13.5, color: "#6B625A", lineHeight: 1.5, marginBottom: 18 }}>Sourcing, redefined. Let's get your <br />workspace set up.</p>
+            <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-.03em", color: "#0B0907", lineHeight: 1.1, marginBottom: 8 }}>
+              {isRtl ? "أهلًا بك في Bid" : "Welcome to Bid"}
+            </h2>
+            <p style={{ fontSize: 13.5, color: "#6B625A", lineHeight: 1.5, marginBottom: 18 }}>
+              {isRtl ? <>رتّب مشترياتك ومشاريعك<br />من مساحة عمل واحدة.</> : <>Sourcing, redefined. Let's get your <br />workspace set up.</>}
+            </p>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,.55)", border: "1px solid rgba(11,9,7,.06)", borderRadius: 999, padding: "6px 14px" }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#0B0907", animation: "ob-dot 2.4s ease-in-out infinite" }} />
-              <span style={{ fontSize: 11.5, fontWeight: 600, color: "#0B0907" }}>Now live</span>
+              <span style={{ fontSize: 11.5, fontWeight: 600, color: "#0B0907" }}>{isRtl ? "متاح الآن" : "Now live"}</span>
             </div>
           </div>
         </div>

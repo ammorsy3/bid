@@ -440,7 +440,7 @@ export default function TenderBudgetStep() {
                     data-testid="button-next"
                   >
                     {t('tenderSteps.next')}
-                    <ArrowRight className={`h-4 w-4 ${isRtl ? 'mr-2 rotate-180' : 'ml-2'}`} />
+                    <ArrowRight className={`h-4 w-4 ms-2 ${isRtl ? 'rotate-180' : ''}`} />
                   </Button>
                 </div>
               </div>

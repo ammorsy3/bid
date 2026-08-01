@@ -577,7 +577,7 @@ function DeliverablesInput({
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none text-sm"
         />
         <Button onClick={handleAdd} className="w-full bg-[#FE3C01] hover:bg-[#d54d35]">
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 me-2" />
           {t('tenderFlow.addDeliverable')}
         </Button>
       </div>
@@ -677,7 +677,7 @@ function MilestonesInput({
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none text-sm"
         />
         <Button onClick={handleAdd} className="w-full bg-[#FE3C01] hover:bg-[#d54d35]">
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 me-2" />
           {t('tenderFlow.addMilestone')}
         </Button>
       </div>
@@ -789,7 +789,7 @@ function ProjectDescriptionInput({
           <Mic className="h-3.5 w-3.5" />
           {t('formBuilder.voiceNoteTab')}
           {val.voiceNoteUrl && (
-            <span className="w-1.5 h-1.5 rounded-full bg-pink-500 ml-0.5" />
+            <span className="w-1.5 h-1.5 rounded-full bg-pink-500 ms-0.5" />
           )}
         </button>
       </div>
@@ -897,11 +897,11 @@ function DatePickerInput({
         <Button
           variant="outline"
           className={cn(
-            "w-full justify-start text-left font-normal",
+            "w-full justify-start text-start font-normal",
             !date && "text-muted-foreground"
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
+          <CalendarIcon className="me-2 h-4 w-4" />
           {date ? format(date, "PPP", { locale: dateLocale }) : label || t('tenderFlow.selectDate')}
         </Button>
       </PopoverTrigger>

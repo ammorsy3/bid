@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
+import { arSA, enUS } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -49,10 +50,10 @@ type ThemeOption = "light" | "dark" | "system";
 type SettingsTab = "account" | "company" | "notifications";
 
 const VERIFICATION_DOCUMENT_SLOTS = [
-  { type: 'cr_certificate', label: 'Commercial Registration (CR)', description: 'Saudi CR certificate issued by the Ministry of Commerce', required: true },
-  { type: 'vat_certificate', label: 'VAT Certificate', description: 'VAT registration certificate from ZATCA', required: false },
-  { type: 'gosi_certificate', label: 'GOSI Certificate', description: 'General Organization for Social Insurance certificate', required: false },
-  { type: 'national_address_certificate', label: 'National Address Certificate', description: 'Registered national address from Saudi Post', required: false },
+  { type: 'cr_certificate', labelKey: 'docCrLabel', descriptionKey: 'docCrDesc', required: true },
+  { type: 'vat_certificate', labelKey: 'docVatLabel', descriptionKey: 'docVatDesc', required: false },
+  { type: 'gosi_certificate', labelKey: 'docGosiLabel', descriptionKey: 'docGosiDesc', required: false },
+  { type: 'national_address_certificate', labelKey: 'docNationalAddressLabel', descriptionKey: 'docNationalAddressDesc', required: false },
 ];
 
 interface TeamMember {
@@ -133,7 +134,7 @@ function MemberActivityDialog({
         ) : entries.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-10">{t('settings.noRecordedActivity')}</p>
         ) : (
-          <ScrollArea className="max-h-[60vh] pr-3">
+          <ScrollArea className="max-h-[60vh] pe-3">
             <ul className="space-y-3">
               {entries.map((entry) => {
                 const Icon = activityIcon(entry.action);
@@ -251,7 +252,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl, worksp
           ) : (
             <div className="space-y-3">
               {members.map((member) => (
-                <div key={member.userId} className={`flex items-center gap-3 p-3 rounded-lg border ${member.userId === currentUserId ? 'bg-primary/5 border-primary/20' : 'hover:bg-muted/50'} ${isRtl ? 'flex-row-reverse' : ''}`}>
+                <div key={member.userId} className={`flex items-center gap-3 p-3 rounded-lg border ${member.userId === currentUserId ? 'bg-primary/5 border-primary/20' : 'hover:bg-muted/50'}`}>
                   {member.profilePictureUrl ? (
                     <img src={member.profilePictureUrl} alt={member.name} className="h-10 w-10 rounded-full object-cover flex-shrink-0" />
                   ) : (
@@ -267,7 +268,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl, worksp
                     <p className="text-xs text-muted-foreground truncate">{member.email}</p>
                   </div>
                   <Badge className={`${roleColors[member.role] || roleColors.member} flex-shrink-0`}>
-                    {member.role === 'owner' && <Crown className="h-3 w-3 mr-1" />}
+                    {member.role === 'owner' && <Crown className="h-3 w-3 me-1" />}
                     {displayRoleName(member.role, workspaceKind)}
                   </Badge>
                   {canManage && (() => {
@@ -281,7 +282,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl, worksp
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align={isRtl ? 'start' : 'end'}>
                           <DropdownMenuItem onClick={() => setActivityFor(member)}>
-                            <History className="h-4 w-4 mr-2" />
+                            <History className="h-4 w-4 me-2" />
                             {t('settings.viewActivity')}
                           </DropdownMenuItem>
                           {canModify && (
@@ -292,7 +293,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl, worksp
                                   key={role}
                                   onClick={() => updateRoleMutation.mutate({ userId: member.userId, role })}
                                 >
-                                  <Shield className="h-4 w-4 mr-2" />
+                                  <Shield className="h-4 w-4 me-2" />
                                   {t('settings.makeRole', { role: role.charAt(0).toUpperCase() + role.slice(1) })}
                                 </DropdownMenuItem>
                               ))}
@@ -301,7 +302,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl, worksp
                                 className="text-destructive"
                                 onClick={() => removeMemberMutation.mutate(member.userId)}
                               >
-                                <Trash2 className="h-4 w-4 mr-2" />
+                                <Trash2 className="h-4 w-4 me-2" />
                                 {t('settings.removeMemberBtn')}
                               </DropdownMenuItem>
                             </>
@@ -335,6 +336,7 @@ interface MembershipRequest {
 
 function MembershipRequestsSection({ companyId }: { companyId: string }) {
   const { toast } = useToast();
+  const { t, isRtl } = useI18n();
   const [decidingId, setDecidingId] = useState<string | null>(null);
   const [denyReasonFor, setDenyReasonFor] = useState<string | null>(null);
   const [denyReason, setDenyReason] = useState("");
@@ -368,14 +370,14 @@ function MembershipRequestsSection({ companyId }: { companyId: string }) {
       setDenyReasonFor(null);
       setDenyReason("");
       toast({
-        title: vars.decision === 'approved' ? 'Member added' : 'Request denied',
+        title: vars.decision === 'approved' ? t('settings.joinMemberAdded') : t('settings.joinRequestDenied'),
         description: vars.decision === 'approved'
-          ? 'They now have access to the workspace.'
-          : 'The user has been notified.',
+          ? t('settings.joinMemberAddedDesc')
+          : t('settings.joinRequestDeniedDesc'),
       });
     },
     onError: (error: Error) => {
-      toast({ title: 'Action failed', description: error.message, variant: 'destructive' });
+      toast({ title: t('settings.joinActionFailed'), description: error.message, variant: 'destructive' });
       setDecidingId(null);
     },
   });
@@ -391,12 +393,12 @@ function MembershipRequestsSection({ companyId }: { companyId: string }) {
               <UserPlus className="h-4 w-4 text-[var(--state-won)]" />
             </div>
             <div>
-              <CardTitle className="text-base">Pending join requests</CardTitle>
+              <CardTitle className="text-base">{t('settings.pendingJoinRequests')}</CardTitle>
               <CardDescription className="text-xs">
-                People asking to join this workspace. Approving adds them as a member.
+                {t('settings.pendingJoinRequestsDesc')}
               </CardDescription>
             </div>
-            <Badge variant="secondary" className="ml-auto">{requests.length}</Badge>
+            <Badge variant="secondary" className="ms-auto">{requests.length}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -410,13 +412,13 @@ function MembershipRequestsSection({ companyId }: { companyId: string }) {
                     <p className="text-sm font-medium text-foreground truncate">{req.requester.name}</p>
                     <p className="text-xs text-muted-foreground truncate">{req.requester.email}</p>
                     {req.message && (
-                      <p className="text-xs text-muted-foreground mt-2 italic border-l-2 border-border pl-2">
+                      <p className="text-xs text-muted-foreground mt-2 italic border-s-2 border-border ps-2">
                         "{req.message}"
                       </p>
                     )}
                   </div>
                   <p className="text-xs text-neutral-400 whitespace-nowrap">
-                    {formatDistanceToNow(new Date(req.createdAt), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(req.createdAt), { addSuffix: true, locale: isRtl ? arSA : enUS })}
                   </p>
                 </div>
 
@@ -425,7 +427,7 @@ function MembershipRequestsSection({ companyId }: { companyId: string }) {
                     <Textarea
                       value={denyReason}
                       onChange={(e) => setDenyReason(e.target.value.slice(0, 500))}
-                      placeholder="Optional: explain why (the user will see this)"
+                      placeholder={t('settings.denyReasonPlaceholder')}
                       rows={2}
                       className="text-sm"
                       disabled={isThisDeciding}
@@ -437,7 +439,7 @@ function MembershipRequestsSection({ companyId }: { companyId: string }) {
                         onClick={() => { setDenyReasonFor(null); setDenyReason(""); }}
                         disabled={isThisDeciding}
                       >
-                        Cancel
+                        {t('common.cancel')}
                       </Button>
                       <Button
                         size="sm"
@@ -445,7 +447,7 @@ function MembershipRequestsSection({ companyId }: { companyId: string }) {
                         onClick={() => { setDecidingId(req.id); decideMutation.mutate({ id: req.id, decision: 'denied', reason: denyReason }); }}
                         disabled={isThisDeciding}
                       >
-                        {isThisDeciding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Confirm deny'}
+                        {isThisDeciding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : t('settings.confirmDeny')}
                       </Button>
                     </div>
                   </div>
@@ -458,7 +460,7 @@ function MembershipRequestsSection({ companyId }: { companyId: string }) {
                       disabled={isThisDeciding}
                       data-testid={`button-deny-${req.id}`}
                     >
-                      Deny
+                      {t('settings.deny')}
                     </Button>
                     <Button
                       size="sm"
@@ -467,7 +469,7 @@ function MembershipRequestsSection({ companyId }: { companyId: string }) {
                       className="bg-[var(--state-won)] hover:bg-[var(--state-won)]/90"
                       data-testid={`button-approve-${req.id}`}
                     >
-                      {isThisDeciding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Approve'}
+                      {isThisDeciding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : t('dashboard.approve')}
                     </Button>
                   </div>
                 )}
@@ -1009,7 +1011,7 @@ export default function Settings() {
 
   return (
     <>
-    <div className={`min-h-screen bg-gray-50 dark:bg-background flex flex-col ${isRtl ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
+    <div className={`min-h-screen bg-gray-50 dark:bg-background flex flex-col md:flex-row`}>
       {/* Sidebar - horizontal scroll tab bar on mobile, vertical panel on desktop */}
       <div className={`w-full bg-white dark:bg-card flex flex-col md:w-64 ${isRtl ? 'border-b md:border-b-0 md:border-l' : 'border-b md:border-b-0 md:border-r'}`}>
         <div className="p-4 border-b">
@@ -1066,7 +1068,7 @@ export default function Settings() {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${isRtl ? 'text-right' : 'text-left'} ${
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${isRtl ? 'text-right' : 'text-start'} ${
                 activeTab === item.id
                   ? 'bg-[#FE3C01]/10 text-[#FE3C01]'
                   : 'hover:bg-muted dark:hover:bg-gray-700'
@@ -1096,7 +1098,7 @@ export default function Settings() {
             <div className="mt-4 pt-4 border-t border-border dark:border-border">
               <button
                 onClick={() => setLocation("/settings/integrations")}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted dark:hover:bg-gray-700 ${isRtl ? 'text-right' : 'text-left'}`}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted dark:hover:bg-gray-700 ${isRtl ? 'text-right' : 'text-start'}`}
                 data-testid="sidebar-integrations"
               >
                 <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
@@ -1123,7 +1125,7 @@ export default function Settings() {
               {/* Profile Picture */}
               <Card>
                 <CardContent className="pt-6">
-                  <div className={`flex items-center gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  <div className={`flex items-center gap-6`}>
                     <div className="relative">
                       {profilePicturePreview ? (
                         <img 
@@ -1157,7 +1159,7 @@ export default function Settings() {
                         disabled={uploadProfilePictureMutation.isPending}
                         data-testid="button-upload-picture"
                       >
-                        <Upload className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                        <Upload className={`h-4 w-4 me-2`} />
                         {t('settings.uploadPicture')}
                       </Button>
                       <p className="text-xs text-muted-foreground mt-2">
@@ -1281,7 +1283,7 @@ export default function Settings() {
                 <h2 className="font-display font-black text-xl tracking-[-0.02em]">{t('settings.appearance')}</h2>
                 <Card>
                   <CardContent className="pt-6 space-y-6">
-                    <div className={`flex items-start justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <div className={`flex items-start justify-between`}>
                       <div className={isRtl ? 'text-right' : ''}>
                         <Label>{t('settings.theme')}</Label>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -1350,7 +1352,7 @@ export default function Settings() {
                       </div>
                     </div>
 
-                    <div className={`flex items-start justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <div className={`flex items-start justify-between`}>
                       <div className={isRtl ? 'text-right' : ''}>
                         <Label>{t('settings.language')}</Label>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -1379,7 +1381,7 @@ export default function Settings() {
                 <h2 className="font-display font-black text-xl tracking-[-0.02em]">{t('settings.gdpr')}</h2>
                 <Card>
                   <CardContent className="pt-6">
-                    <div className={`flex items-start gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <div className={`flex items-start gap-3`}>
                       <Checkbox 
                         id="gdpr" 
                         checked={gdprCompliant}
@@ -1423,7 +1425,7 @@ export default function Settings() {
               {/* Company Logo */}
               <Card>
                 <CardContent className="pt-6">
-                  <div className={`flex items-center gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  <div className={`flex items-center gap-6`}>
                     <div className="relative">
                       {companyLogoPreview ? (
                         <img 
@@ -1457,7 +1459,7 @@ export default function Settings() {
                         disabled={uploadCompanyLogoMutation.isPending || !canManageCompany}
                         data-testid="button-upload-logo"
                       >
-                        <Upload className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                        <Upload className={`h-4 w-4 me-2`} />
                         {isIndividual ? 'Profile Photo' : t('settings.companyLogo')}
                       </Button>
                       <p className="text-xs text-muted-foreground mt-2">
@@ -1588,7 +1590,7 @@ export default function Settings() {
                             <SelectContent>
                               <SelectItem value="admin">{t('settings.roleAdmin')}</SelectItem>
                               {isTeamWorkspace ? (
-                                <SelectItem value="business_developer">Business Developer</SelectItem>
+                                <SelectItem value="business_developer">{t('settings.roleBusinessDeveloper')}</SelectItem>
                               ) : null}
                               <SelectItem value="member">{t('settings.roleMember')}</SelectItem>
                               {!isTeamWorkspace && (
@@ -1619,7 +1621,7 @@ export default function Settings() {
                         onClick={() => setInviteRows([...inviteRows, { email: '', role: 'member' }])}
                         data-testid="button-add-invite-row"
                       >
-                        <UserPlus className="h-4 w-4 mr-2" />
+                        <UserPlus className="h-4 w-4 me-2" />
                         {t('settings.addAnother')}
                       </Button>
                     )}
@@ -1656,12 +1658,12 @@ export default function Settings() {
                     >
                       {inviteTeamMutation.isPending ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <Loader2 className="h-4 w-4 me-2 animate-spin" />
                           {t('settings.sending')}
                         </>
                       ) : (
                         <>
-                          <Mail className="h-4 w-4 mr-2" />
+                          <Mail className="h-4 w-4 me-2" />
                           {t('settings.sendInvitations')}
                         </>
                       )}
@@ -1688,7 +1690,7 @@ export default function Settings() {
                     <div className="flex items-center gap-3">
                       <a href="/company/edit">
                         <Button style={{ background: '#FE3C01' }} className="text-white">
-                          <Palette className="h-4 w-4 mr-2" />
+                          <Palette className="h-4 w-4 me-2" />
                           {t('settings.customizeProfilePage')}
                         </Button>
                       </a>
@@ -1715,18 +1717,18 @@ export default function Settings() {
               <div className="space-y-4">
                 <h2 className="font-display font-black text-xl tracking-[-0.02em] flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  My Profile
+                  {t('settings.myProfile')}
                 </h2>
                 <Card>
                   <CardContent className="pt-6 space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Customize how you appear to requesters and potential clients. Add a photo, bio, and portfolio to stand out.
+                      {t('settings.myProfileDesc')}
                     </p>
                     <div className="flex items-center gap-3">
                       <a href="/company/edit">
                         <Button style={{ background: '#FE3C01' }} className="text-white">
-                          <Palette className="h-4 w-4 mr-2" />
-                          Edit My Profile
+                          <Palette className="h-4 w-4 me-2" />
+                          {t('companyProfileEditor.editMyProfile')}
                         </Button>
                       </a>
                       {activeCompany?.profile?.tractionSlug && (
@@ -1737,7 +1739,7 @@ export default function Settings() {
                           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
                         >
                           <Eye className="h-4 w-4" />
-                          Preview
+                          {t('settings.preview')}
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
@@ -1762,7 +1764,7 @@ export default function Settings() {
                     <div className="flex items-center gap-3">
                       <a href={`/traction/${activeCompany.profile?.tractionSlug}/edit`}>
                         <Button style={{ background: '#FE3C01' }} className="text-white">
-                          <Palette className="h-4 w-4 mr-2" />
+                          <Palette className="h-4 w-4 me-2" />
                           {t('settings.customizeTractionPage')}
                         </Button>
                       </a>
@@ -1791,9 +1793,9 @@ export default function Settings() {
                         <Shield className="h-4 w-4 text-amber-600" />
                       </div>
                       <div>
-                        <CardTitle className="text-base">Legal information</CardTitle>
+                        <CardTitle className="text-base">{t('settings.legalInformation')}</CardTitle>
                         <CardDescription className="text-xs">
-                          Required to get your workspace verified — unlocks creating tenders and submitting offers.
+                          {t('settings.legalInformationDesc')}
                         </CardDescription>
                       </div>
                     </div>
@@ -1839,12 +1841,12 @@ export default function Settings() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="city">City *</Label>
+                      <Label htmlFor="city">{t('settings.cityFieldLabel')}</Label>
                       <Input
                         id="city"
                         value={cityField}
                         onChange={(e) => setCityField(e.target.value)}
-                        placeholder="e.g. Riyadh, Jeddah"
+                        placeholder={t('settings.cityFieldPlaceholder')}
                         disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
                         data-testid="input-city"
                       />
@@ -1859,11 +1861,11 @@ export default function Settings() {
                         >
                           {saveVerifyInfoMutation.isPending ? (
                             <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Saving…
+                              <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                              {t('settings.saving')}
                             </>
                           ) : (
-                            'Save legal info'
+                            t('settings.saveLegalInfo')
                           )}
                         </Button>
                       </div>
@@ -1906,14 +1908,14 @@ export default function Settings() {
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-0.5">
-                                <span className="text-sm font-medium text-foreground">{slot.label}</span>
+                                <span className="text-sm font-medium text-foreground">{t(`onboardingPanel.${slot.labelKey}`)}</span>
                                 {slot.required && !isUploaded && (
                                   <span className="text-xs font-medium text-[#FE3C01] bg-[#FE3C01]/10 px-1.5 py-0.5 rounded">
                                     {t('settings.requiredForTenders')}
                                   </span>
                                 )}
                               </div>
-                              <p className="text-xs text-neutral-400">{slot.description}</p>
+                              <p className="text-xs text-neutral-400">{t(`onboardingPanel.${slot.descriptionKey}`)}</p>
                               {isUploaded && (
                                 <p className="text-xs text-green-600 flex items-center gap-1 mt-1.5">
                                   <CheckCircle2 className="h-3.5 w-3.5" />

@@ -382,7 +382,7 @@ export function SmartUnitDropdown({
             value={otherValue}
             onChange={handleOtherChange}
             placeholder={t('tenderFlow.enterCustomUnit')}
-            className={`w-full px-3 py-2 pr-8 text-sm border rounded-lg bg-white dark:bg-background text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
+            className={`w-full px-3 py-2 pe-8 text-sm border rounded-lg bg-white dark:bg-background text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
               error || isOverLimit ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
             }`}
             data-testid={dataTestId}
@@ -426,7 +426,7 @@ export function SmartUnitDropdown({
         <button
           type="button"
           onClick={handleOtherSelect}
-          className="w-full px-3 py-2 text-sm text-left hover:bg-[#FE3C01]/10 rounded-md flex items-center gap-2 text-[#FE3C01] font-medium"
+          className="w-full px-3 py-2 text-sm text-start hover:bg-[#FE3C01]/10 rounded-md flex items-center gap-2 text-[#FE3C01] font-medium"
         >
           <span className="text-lg leading-none">+</span>
           {t('tenderFlow.addCustomUnit')}
@@ -443,7 +443,7 @@ export function SmartUnitDropdown({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={t('tenderFlow.searchUnits')}
-            className="w-full pl-8 pr-3 py-1.5 text-sm border border-border dark:border-border rounded-md bg-gray-50 dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#FE3C01]"
+            className="w-full ps-8 pe-3 py-1.5 text-sm border border-border dark:border-border rounded-md bg-gray-50 dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#FE3C01]"
           />
         </div>
       </div>
@@ -462,7 +462,7 @@ export function SmartUnitDropdown({
                 key={`suggested-${unit}`}
                 type="button"
                 onClick={() => handleSelect(unit)}
-                className={`w-full px-3 py-2 text-sm text-left hover:bg-[#FE3C01]/10 flex items-center gap-2 ${
+                className={`w-full px-3 py-2 text-sm text-start hover:bg-[#FE3C01]/10 flex items-center gap-2 ${
                   value === unit ? 'bg-[#FE3C01]/5 text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'
                 }`}
               >
@@ -492,7 +492,7 @@ export function SmartUnitDropdown({
                     key={unit}
                     type="button"
                     onClick={() => handleSelect(unit)}
-                    className={`w-full px-3 py-2 text-sm text-left hover:bg-[#FE3C01]/10 ${
+                    className={`w-full px-3 py-2 text-sm text-start hover:bg-[#FE3C01]/10 ${
                       value === unit ? 'bg-[#FE3C01]/5 text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'
                     }`}
                   >
@@ -515,7 +515,7 @@ export function SmartUnitDropdown({
         ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-background text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
+        className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-background text-start flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
           error ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
         }`}
         data-testid={dataTestId}

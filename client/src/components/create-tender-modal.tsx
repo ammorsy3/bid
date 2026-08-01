@@ -338,9 +338,9 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                     data-testid="button-copy-link"
                   >
                     {invitationCopied ? (
-                      <><Check className="h-4 w-4 mr-2" />{t('tenderFlow.copied')}</>
+                      <><Check className="h-4 w-4 me-2" />{t('tenderFlow.copied')}</>
                     ) : (
-                      <><Copy className="h-4 w-4 mr-2" />{t('tenderFlow.copyLink')}</>
+                      <><Copy className="h-4 w-4 me-2" />{t('tenderFlow.copyLink')}</>
                     )}
                   </Button>
                   <Button
@@ -350,7 +350,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                     className="flex-1"
                     data-testid="button-copy-message"
                   >
-                    <Mail className="h-4 w-4 mr-2" />{t('tenderFlow.copyMessage')}
+                    <Mail className="h-4 w-4 me-2" />{t('common.copyMessage')}
                   </Button>
                 </div>
               </CardContent>
@@ -379,7 +379,7 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                 className="flex-1 bg-primary-600 hover:bg-primary-700"
                 data-testid="button-view-tender"
               >
-                <ExternalLink className="h-4 w-4 mr-2" />
+                <ExternalLink className="h-4 w-4 me-2" />
                 View Tender Details
               </Button>
             </div>
@@ -523,12 +523,12 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
                             <Button
                               variant="outline"
                               className={cn(
-                                "w-full justify-start text-left font-normal",
+                                "w-full justify-start text-start font-normal",
                                 !dateValue && "text-muted-foreground"
                               )}
                               data-testid="input-deadline"
                             >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              <CalendarIcon className="me-2 h-4 w-4" />
                               {dateValue ? format(dateValue, "PPP HH:mm:ss", { locale: dateLocale }) : <span>Pick a date</span>}
                             </Button>
                           </FormControl>

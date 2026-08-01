@@ -247,7 +247,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
 
   return (
     <div className="space-y-3">
-      <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+      <div className={`flex items-center gap-2`}>
         <div className="w-8 h-8 rounded-lg bg-[#FE3C01]/10 flex items-center justify-center">
           <Link2 className="h-4 w-4 text-[#FE3C01]" />
         </div>
@@ -258,7 +258,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
       </div>
       {isEditing ? (
         <div className="space-y-2">
-          <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+          <div className={`flex items-center gap-2`}>
             <span className="text-sm text-muted-foreground whitespace-nowrap">/traction/</span>
             <Input
               value={slug}
@@ -273,7 +273,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
             />
           </div>
           {slugTaken && (
-            <div className={`flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 ${isRtl ? 'flex-row-reverse text-right' : ''}`}>
+            <div className={`flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 ${isRtl ? 'text-right' : ''}`}>
               <HelpCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
               <div>
                 <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">"{slug}" {t('dashboard.slugTaken')}</p>
@@ -284,7 +284,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
               </div>
             </div>
           )}
-          <div className={`flex gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+          <div className={`flex gap-2`}>
             <Button
               size="sm"
               onClick={() => createSlugMutation.mutate(slug)}
@@ -305,7 +305,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
           className="border-[#FE3C01]/30 text-[#FE3C01] hover:bg-[#FE3C01]/5"
           data-testid="button-setup-traction"
         >
-          <Plus className={`h-4 w-4 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+          <Plus className={`h-4 w-4 me-1`} />
           {t('dashboard.setupTractionLink')}
         </Button>
       )}
@@ -985,12 +985,12 @@ export default function Dashboard() {
         {/* Brand accent strip */}
         <div className="h-0.5 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F] flex-shrink-0" />
         <SidebarHeader className="border-b px-4 py-4">
-          <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+          <div className={`flex items-center gap-3`}>
             <SidebarLogoToggle />
             {companies.length > 1 || canActivateIndividual ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className={`flex-1 min-w-0 group-data-[collapsible=icon]:hidden flex items-center gap-1 hover:bg-muted/50 rounded-md px-2 py-1 -mx-2 transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}>
+                  <button className={`flex-1 min-w-0 group-data-[collapsible=icon]:hidden flex items-center gap-1 hover:bg-muted/50 rounded-md px-2 py-1 -mx-2 transition-colors ${isRtl ? 'text-right' : ''}`}>
                     <div className="flex-1 min-w-0">
                       <h2 className="font-semibold text-sm truncate">
                         {activeCompany.profile?.displayName || activeCompany.name}
@@ -1073,7 +1073,7 @@ export default function Dashboard() {
                 <ExternalLink className="h-3.5 w-3.5" />
               </button>
             )}
-            <SidebarTrigger className={`${isRtl ? 'mr-auto' : 'ml-auto'} flex-shrink-0 group-data-[collapsible=icon]:hidden`} />
+            <SidebarTrigger className="ms-auto flex-shrink-0 group-data-[collapsible=icon]:hidden" />
           </div>
         </SidebarHeader>
         
@@ -1261,7 +1261,7 @@ export default function Dashboard() {
 
           <Popover>
             <PopoverTrigger asChild>
-              <button className={`flex items-center gap-3 w-full hover:bg-accent rounded-md p-1 -m-1 transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`} data-testid="button-user-menu" data-tour="user-menu">
+              <button className={`flex items-center gap-3 w-full hover:bg-accent rounded-md p-1 -m-1 transition-colors ${isRtl ? 'text-right' : ''}`} data-testid="button-user-menu" data-tour="user-menu">
                 <div className="relative flex-shrink-0">
                   {user.profilePictureUrl ? (
                     <img
@@ -1338,7 +1338,7 @@ export default function Dashboard() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button 
-                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                       data-testid="menu-notifications"
                     >
                       <div className="relative">
@@ -1349,7 +1349,7 @@ export default function Dashboard() {
                           </span>
                         )}
                       </div>
-                      <span className="text-sm text-left flex-1">{t('settings.notifications')}</span>
+                      <span className="text-sm text-start flex-1">{t('settings.notifications')}</span>
                       <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </button>
                   </PopoverTrigger>
@@ -1373,7 +1373,7 @@ export default function Dashboard() {
                                 markOfferViewed.mutate(offer.id);
                               }
                             }}
-                            className={`w-full flex items-start gap-3 p-3 transition-colors text-left border-b last:border-b-0 ${
+                            className={`w-full flex items-start gap-3 p-3 transition-colors text-start border-b last:border-b-0 ${
                               offer.isViewed 
                                 ? 'hover:bg-accent opacity-60' 
                                 : 'bg-[var(--bid-orange)]/5 dark:bg-blue-900/20 hover:bg-[var(--bid-orange)]/10 dark:hover:bg-blue-900/30 font-medium'
@@ -1413,11 +1413,11 @@ export default function Dashboard() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button 
-                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                       data-testid="menu-help"
                     >
                       <HelpCircle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                      <span className="text-sm text-left flex-1">{t('settings.helpCenter')}</span>
+                      <span className="text-sm text-start flex-1">{t('settings.helpCenter')}</span>
                       <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </button>
                   </PopoverTrigger>
@@ -1437,12 +1437,14 @@ export default function Dashboard() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button 
-                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                       data-testid="menu-language"
                     >
                       <Globe className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                      <span className="text-sm text-left flex-1">{t('settings.language')}</span>
-                      <span className="text-xs text-muted-foreground">{language === 'en' ? 'English' : 'العربية'}</span>
+                      <span className="text-sm text-start flex-1">{t('settings.language')}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {language === 'en' ? t('companyProfileEditor.langEnglish') : t('companyProfileEditor.langArabic')}
+                      </span>
                       <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </button>
                   </PopoverTrigger>
@@ -1455,7 +1457,7 @@ export default function Dashboard() {
                       data-testid="lang-english"
                     >
                       {language === 'en' && <Check className="h-4 w-4" />}
-                      <span className={language !== 'en' ? 'ml-6' : ''}>English</span>
+                      <span className={language !== 'en' ? 'ms-6' : ''}>{t('companyProfileEditor.langEnglish')}</span>
                     </button>
                     <button
                       onClick={() => setLanguage('ar')}
@@ -1465,7 +1467,7 @@ export default function Dashboard() {
                       data-testid="lang-arabic"
                     >
                       {language === 'ar' && <Check className="h-4 w-4" />}
-                      <span className={language !== 'ar' ? 'ml-6' : ''}>العربية</span>
+                      <span className={language !== 'ar' ? 'ms-6' : ''}>{t('companyProfileEditor.langArabic')}</span>
                     </button>
                   </PopoverContent>
                 </Popover>
@@ -1536,7 +1538,7 @@ export default function Dashboard() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button
-                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                       data-testid="menu-add-account"
                     >
                       <Plus className="h-5 w-5 text-muted-foreground" />
@@ -1547,7 +1549,7 @@ export default function Dashboard() {
                   <PopoverContent side={isRtl ? "left" : "right"} align="end" className="w-56 p-1">
                     <button
                       onClick={() => setLocation('/onboarding/company-basics?addAccount=1')}
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent ${isRtl ? 'text-right' : ''}`}
                       data-testid="menu-create-organization"
                     >
                       <Building2 className="h-4 w-4" />
@@ -1555,7 +1557,7 @@ export default function Dashboard() {
                     </button>
                     <button
                       onClick={() => setLocation('/company-onboarding?addAccount=1')}
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent ${isRtl ? 'text-right' : ''}`}
                       data-testid="menu-join-organization"
                     >
                       <UserPlus className="h-4 w-4" />
@@ -1567,7 +1569,7 @@ export default function Dashboard() {
                 {!isIndividual && (
                 <button
                   onClick={() => setLocation('/company/edit')}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                   data-testid="menu-company-profile"
                 >
                   <Building2 className="h-5 w-5 text-muted-foreground" />
@@ -1577,7 +1579,7 @@ export default function Dashboard() {
 
                 <button
                   onClick={() => setLocation('/settings')}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                   data-testid="menu-settings"
                 >
                   <Settings className="h-5 w-5 text-muted-foreground" />
@@ -1586,7 +1588,7 @@ export default function Dashboard() {
 
                 <button 
                   onClick={handleLogout}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                   data-testid="button-logout"
                 >
                   <LogOut className="h-5 w-5 text-muted-foreground" />
@@ -1600,7 +1602,7 @@ export default function Dashboard() {
           {tourDismissed && (
             <button
               onClick={handleRetakeTour}
-              className={`mt-3 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full px-1 group-data-[collapsible=icon]:hidden ${isRtl ? 'flex-row-reverse' : ''}`}
+              className={`mt-3 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full px-1 group-data-[collapsible=icon]:hidden`}
               data-testid="button-retake-tour"
             >
               <HelpCircle className="h-3.5 w-3.5 flex-shrink-0" />
@@ -1634,7 +1636,7 @@ export default function Dashboard() {
                       setTenderSearchQuery("");
                       setLocation(`/tenders/${tender.id}`);
                     }}
-                    className="w-full text-left p-6 hover:bg-muted dark:hover:bg-gray-800 transition-colors group"
+                    className="w-full text-start p-6 hover:bg-muted dark:hover:bg-gray-800 transition-colors group"
                     data-testid={`search-tender-result-${tender.id}`}
                   >
                     <div className="flex items-start justify-between gap-4 mb-2">
@@ -1749,7 +1751,7 @@ export default function Dashboard() {
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('tenders'); } }}
                     className="group cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 transition-colors hover:bg-white/[0.07] hover:border-[#FE3C01]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01]"
                   >
-                    <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <div className={`flex items-start gap-4`}>
                       <div className="h-11 w-11 rounded-xl bg-[#FE3C01] text-white flex items-center justify-center flex-shrink-0 shadow-[0_8px_18px_-6px_rgba(254,60,1,0.5)]">
                         <FileText className="h-5 w-5" />
                       </div>
@@ -1772,7 +1774,7 @@ export default function Dashboard() {
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('proposals'); } }}
                     className="group cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 transition-colors hover:bg-white/[0.07] hover:border-[#FE3C01]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01]"
                   >
-                    <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <div className={`flex items-start gap-4`}>
                       <div className="h-11 w-11 rounded-xl bg-white/10 text-[#F4EDE1] flex items-center justify-center flex-shrink-0 border border-white/10">
                         <Inbox className="h-5 w-5" />
                       </div>
@@ -1795,7 +1797,7 @@ export default function Dashboard() {
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('vendors'); } }}
                     className="group cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 transition-colors hover:bg-white/[0.07] hover:border-[#FE3C01]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01]"
                   >
-                    <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <div className={`flex items-start gap-4`}>
                       <div className="h-11 w-11 rounded-xl bg-white/10 text-[#F4EDE1] flex items-center justify-center flex-shrink-0 border border-white/10">
                         <Users className="h-5 w-5" />
                       </div>
@@ -1821,7 +1823,7 @@ export default function Dashboard() {
               >
                 <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
                 <div className="p-6 sm:p-7">
-                  <div className={`flex items-center gap-4 mb-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  <div className={`flex items-center gap-4 mb-5`}>
                     <div className="h-11 w-11 rounded-2xl bg-[#FE3C01] flex items-center justify-center flex-shrink-0 shadow-[0_8px_18px_-6px_rgba(254,60,1,0.45)]">
                       <Handshake className="h-5 w-5 text-white" />
                     </div>
@@ -1834,7 +1836,7 @@ export default function Dashboard() {
                   </div>
                   <div className="space-y-2.5">
                     {tendersReadyToNegotiate.slice(0, 3).map(tender => (
-                      <div key={tender.id} className={`[background:var(--spotlight-card-bg)] rounded-2xl border border-[#FE3C01]/10 px-4 py-3 flex items-center justify-between shadow-[0_8px_20px_-12px_rgba(11,9,7,0.12)] ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div key={tender.id} className={`[background:var(--spotlight-card-bg)] rounded-2xl border border-[#FE3C01]/10 px-4 py-3 flex items-center justify-between shadow-[0_8px_20px_-12px_rgba(11,9,7,0.12)]`}>
                         <div className={isRtl ? 'text-right' : ''}>
                           <p className="font-semibold text-sm text-[#1A1613] dark:text-foreground">{tender.title}</p>
                           <p className="text-xs text-[#8A8078] dark:text-muted-foreground mt-0.5">
@@ -1846,16 +1848,16 @@ export default function Dashboard() {
                           className="bg-[#1A1613] hover:bg-[#FE3C01] text-[#F4EDE1] rounded-full px-4 flex-shrink-0 transition-colors"
                           onClick={() => setLocation(`/tenders/${tender.id}`)}
                         >
-                          {t('dashboard.negotiateNowBtn')} →
+                          {t('dashboard.negotiateNowBtn')} {isRtl ? '←' : '→'}
                         </Button>
                       </div>
                     ))}
                     {tendersReadyToNegotiate.length > 3 && (
                       <p
-                        className={`text-xs text-[#FE3C01] cursor-pointer hover:underline font-medium ${isRtl ? 'text-right' : 'text-left'} px-1 pt-1`}
+                        className={`text-xs text-[#FE3C01] cursor-pointer hover:underline font-medium ${isRtl ? 'text-right' : 'text-start'} px-1 pt-1`}
                         onClick={() => setActiveTab('tenders')}
                       >
-                        and {tendersReadyToNegotiate.length - 3} more →
+                        {t('dashboard.moreTenders', { count: tendersReadyToNegotiate.length - 3 })} {isRtl ? '←' : '→'}
                       </p>
                     )}
                   </div>
@@ -1871,8 +1873,8 @@ export default function Dashboard() {
               transition={{ delay: 0.15, duration: 0.35, ease: "easeOut" }}
               className="rounded-2xl border border-[#1A1613]/10 dark:border-border bg-white dark:bg-card"
             >
-              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 sm:px-6 ${isRtl ? 'sm:flex-row-reverse' : ''}`}>
-                <div className={`flex items-center gap-3.5 min-w-0 ${isRtl ? 'flex-row-reverse' : ''}`}>
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 sm:px-6`}>
+                <div className={`flex items-center gap-3.5 min-w-0`}>
                   <div className="h-9 w-9 rounded-xl bg-[#FE3C01]/10 flex items-center justify-center flex-shrink-0">
                     <Play className="h-4 w-4 text-[#FE3C01] fill-[#FE3C01]" />
                   </div>
@@ -1924,7 +1926,7 @@ export default function Dashboard() {
                         const pct = total > 0 ? Math.round((localCount / total) * 100) : 0;
                         return (
                           <>
-                            <div className={`flex items-center justify-between mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex items-center justify-between mb-2`}>
                               <span className="text-sm text-[#8A8078] dark:text-muted-foreground font-medium">
                                 {localCount} {t('tenderFlow.ofLabel')} {total} {t('dashboard.tasksComplete')}
                               </span>
@@ -1949,12 +1951,12 @@ export default function Dashboard() {
                       {/* Task 1: Get Verified (admins/owners only — individuals are auto-verified and never need this) */}
                       {canManage && requiresLegalVerification && (
                       <AccordionItem value="task-1" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${isCompanyVerified ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                          <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3`}>
+                          <div className={`flex items-center gap-3`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isCompanyVerified ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {isCompanyVerified ? <Check className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${isCompanyVerified ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task1Title')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${isCompanyVerified ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task1Title')}</span>
                             {isCompanyVerified && (
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
@@ -1963,9 +1965,9 @@ export default function Dashboard() {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pb-4">
-                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                          <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{isTeam ? t('dashboard.task1DescTeam') : t('dashboard.task1Desc')}</p>
+                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task1Desc')}</p>
                               <Button
                                 className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setLocation('/settings?tab=company&highlight=verification')}
@@ -1985,12 +1987,12 @@ export default function Dashboard() {
                       {/* Task 2: Complete Company Profile (only for owners/admins) */}
                       {canManage && (isBuyerAccount || isTeam) && (
                       <AccordionItem value="task-2" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                          <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3`}>
+                          <div className={`flex items-center gap-3`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasCompletedProfile ? <Check className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasCompletedProfile ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{isTeam ? t('dashboard.task2TitleTeam') : t('dashboard.task2Title')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${onboardingTasks?.hasCompletedProfile ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{isTeam ? t('dashboard.task2TitleTeam') : t('dashboard.task2Title')}</span>
                             {onboardingTasks?.hasCompletedProfile && (
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
@@ -1999,7 +2001,7 @@ export default function Dashboard() {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pb-4">
-                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                          <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
                               <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{isTeam ? t('dashboard.task2DescTeam') : t('dashboard.task2Desc')}</p>
                               <Button
@@ -2021,12 +2023,12 @@ export default function Dashboard() {
                       {/* Task 3: Set Your Vendors Base (admins/owners only) */}
                       {canManage && isBuyerAccount && (
                       <AccordionItem value="task-3" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                          <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3`}>
+                          <div className={`flex items-center gap-3`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasVendors ? <Check className="h-4 w-4" /> : <Users className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasVendors ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task3Title')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${onboardingTasks?.hasVendors ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task3Title')}</span>
                             {onboardingTasks?.hasVendors && (
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
@@ -2035,7 +2037,7 @@ export default function Dashboard() {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pb-4">
-                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                          <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
                               <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task3Desc')}</p>
                               <Button
@@ -2056,12 +2058,12 @@ export default function Dashboard() {
 
                       {/* Task 4: Create your First RFP (company/team only) */}
                       {isBuyerAccount && <AccordionItem value="task-4" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                          <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3`}>
+                          <div className={`flex items-center gap-3`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasTender ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasTender ? <Check className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasTender ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4Title')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${onboardingTasks?.hasTender ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4Title')}</span>
                             {onboardingTasks?.hasTender && (
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
@@ -2070,7 +2072,7 @@ export default function Dashboard() {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pb-4">
-                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                          <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
                               <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task4Desc')}</p>
                               <Button
@@ -2090,12 +2092,12 @@ export default function Dashboard() {
 
                       {/* Task 4b: Complete your profile (individual only) */}
                       {isIndividual && <AccordionItem value="task-4b" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${hasProfileComplete ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                          <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3`}>
+                          <div className={`flex items-center gap-3`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${hasProfileComplete ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {hasProfileComplete ? <Check className="h-4 w-4" /> : <User className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${hasProfileComplete ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4bTitle')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${hasProfileComplete ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4bTitle')}</span>
                             {hasProfileComplete && (
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
@@ -2104,7 +2106,7 @@ export default function Dashboard() {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pb-4">
-                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                          <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
                               <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task4bDesc')}</p>
                               <Button
@@ -2121,12 +2123,12 @@ export default function Dashboard() {
 
                       {/* Task 5: Submit your First Proposal */}
                       <AccordionItem value="task-5" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                          <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3`}>
+                          <div className={`flex items-center gap-3`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasReviewedProposal ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasReviewedProposal ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{isIndividual ? t('dashboard.task5TitleIndividual') : t('dashboard.task5Title')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${onboardingTasks?.hasReviewedProposal ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{isIndividual ? t('dashboard.task5TitleIndividual') : t('dashboard.task5Title')}</span>
                             {onboardingTasks?.hasReviewedProposal && (
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
@@ -2135,7 +2137,7 @@ export default function Dashboard() {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pb-4">
-                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                          <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
                               <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{isIndividual ? t('dashboard.task5DescIndividual') : t('dashboard.task5Desc')}</p>
                               <Button
@@ -2155,12 +2157,12 @@ export default function Dashboard() {
 
                       {/* Task 6: Explore Tenders Marketplace */}
                       <AccordionItem value="task-6" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                          <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3`}>
+                          <div className={`flex items-center gap-3`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasExploredMarketplace ? <Check className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasExploredMarketplace ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task6Title')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${onboardingTasks?.hasExploredMarketplace ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task6Title')}</span>
                             {onboardingTasks?.hasExploredMarketplace && (
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
@@ -2169,7 +2171,7 @@ export default function Dashboard() {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pb-4">
-                          <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                          <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
                               <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task6Desc')}</p>
                               <Button
@@ -2213,7 +2215,7 @@ export default function Dashboard() {
                     className="bg-[#FE3C01] hover:bg-[#1A1613] text-white rounded-full shadow-[0_10px_24px_-8px_rgba(254,60,1,0.5)] transition-colors"
                     data-testid="button-create-tender-header"
                   >
-                    <Plus className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                    <Plus className={`h-4 w-4 me-2`} />
                     {t('dashboard.newTender')}
                   </ParticleButton>
                 }
@@ -2223,14 +2225,14 @@ export default function Dashboard() {
               {/* Filters */}
               <Card {...brandCardProps()}>
                 <CardContent className="pt-6">
-                  <div className={`flex flex-col sm:flex-row gap-4 ${isRtl ? 'sm:flex-row-reverse' : ''}`}>
+                  <div className={`flex flex-col sm:flex-row gap-4`}>
                     <div className="relative flex-1">
                       <Search className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground`} />
                       <Input
                         placeholder={t('dashboard.searchTenders')}
                         value={tenderSearchQuery}
                         onChange={(e) => setTenderSearchQuery(e.target.value)}
-                        className={isRtl ? 'pr-10 text-right' : 'pl-10'}
+                        className="ps-10 text-start"
                         data-testid="input-tender-search"
                       />
                     </div>
@@ -2290,7 +2292,7 @@ export default function Dashboard() {
                         className="bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90 text-white"
                         data-testid="button-create-first-tender"
                       >
-                        <Plus className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                        <Plus className={`h-4 w-4 me-2`} />
                         {t('dashboard.createTender')}
                       </Button>
                     )}
@@ -2350,38 +2352,38 @@ export default function Dashboard() {
                               </div>
                               
                               <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
-                                <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                   <Calendar className="h-4 w-4" />
                                   <span className={`font-mono ${isDeadlineSoon ? 'text-[var(--state-lost)] font-semibold' : ''}`}>
                                     {formatDate(tender.deadline)}
                                   </span>
                                 </div>
-                                <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                   <Send className="h-4 w-4" />
                                   <span data-testid={`text-proposals-count-${tender.id}`}>
                                     <span className="font-mono">{tender.offersCount}</span> {t('dashboard.offers')}
                                   </span>
                                 </div>
                                 {tender.submissionType && (
-                                <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                   <FileText className="h-4 w-4" />
                                   <span>{SUBMISSION_TYPE_LABELS_DASH[tender.submissionType] || tender.submissionType}</span>
                                 </div>
                                 )}
-                                <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                   <FileText className="h-4 w-4" />
                                   <span>{tender.budgetRange || tender.budget || t('dashboard.budget')}</span>
                                 </div>
                               </div>
                               
-                              <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                              <div className={`flex flex-wrap gap-2`}>
                                 <Button 
                                   variant="outline" 
                                   size="sm"
                                   onClick={() => setLocation(`/tenders/${tender.id}`)}
                                   data-testid={`button-view-${tender.id}`}
                                 >
-                                  <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  <Eye className={`h-4 w-4 me-2`} />
                                   {t('dashboard.view')}
                                 </Button>
                                 <AnimatedCopyButton
@@ -2398,7 +2400,7 @@ export default function Dashboard() {
                                     onClick={() => setLocation(`/tenders/${tender.id}/edit`)}
                                     data-testid={`button-edit-${tender.id}`}
                                   >
-                                    <Edit className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                    <Edit className={`h-4 w-4 me-2`} />
                                     {t('dashboard.edit')}
                                   </Button>
                                 )}
@@ -2414,7 +2416,7 @@ export default function Dashboard() {
                                   disabled={deleteTender.isPending}
                                   data-testid={`button-delete-${tender.id}`}
                                 >
-                                  <Trash2 className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  <Trash2 className={`h-4 w-4 me-2`} />
                                   {t('dashboard.delete')}
                                 </Button>
                               </div>
@@ -2520,7 +2522,7 @@ export default function Dashboard() {
                             </div>
 
                             <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
-                              <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                              <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                 <Calendar className="h-4 w-4" />
                                 <span>
                                   {t('dashboard.submitted')} {new Date(offer.submittedAt).toLocaleDateString('en-US', {
@@ -2530,28 +2532,28 @@ export default function Dashboard() {
                                   })}
                                 </span>
                               </div>
-                              <div className={`flex items-center gap-2 font-medium ${isRtl ? 'flex-row-reverse' : ''} ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>
+                              <div className={`flex items-center gap-2 font-medium ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>
                                 <Clock className="h-4 w-4" />
                                 <span>
                                   {isExpired ? t('dashboard.deadlinePassed') : `${daysRemaining} ${t('dashboard.daysLeft')}`}
                                 </span>
                               </div>
                               {offer.notes && (
-                                <div className={`flex items-center gap-2 text-muted-foreground font-medium col-span-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium col-span-2`}>
                                   <FileText className="h-4 w-4" />
                                   <span className="italic line-clamp-1">"{offer.notes}"</span>
                                 </div>
                               )}
                             </div>
 
-                            <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex flex-wrap gap-2`}>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
                                 data-testid={`button-view-tender-${offer.id}`}
                               >
-                                <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                <Eye className={`h-4 w-4 me-2`} />
                                 {t('dashboard.viewTender')}
                               </Button>
                               {offer.combinedFileUrl && (
@@ -2561,7 +2563,7 @@ export default function Dashboard() {
                                   onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)}
                                   title={t('dashboard.combinedProposal')}
                                 >
-                                  <FileText className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  <FileText className={`h-4 w-4 me-2`} />
                                   {t('dashboard.proposalLabel')}
                                 </Button>
                               )}
@@ -2572,7 +2574,7 @@ export default function Dashboard() {
                                   onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
                                   title={t('dashboard.technicalProposal')}
                                 >
-                                  <FileText className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  <FileText className={`h-4 w-4 me-2`} />
                                 </Button>
                               )}
                               {offer.financialFileUrl && (
@@ -2582,7 +2584,7 @@ export default function Dashboard() {
                                   onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
                                   title={t('dashboard.financialProposal')}
                                 >
-                                  <DollarSign className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  <DollarSign className={`h-4 w-4 me-2`} />
                                 </Button>
                               )}
                               {offer.videoUrl && (
@@ -2592,7 +2594,7 @@ export default function Dashboard() {
                                   onClick={() => window.open(offer.videoUrl!, '_blank')}
                                   title={t('dashboard.videoPitchLabel')}
                                 >
-                                  <Video className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  <Video className={`h-4 w-4 me-2`} />
                                 </Button>
                               )}
                             </div>
@@ -2645,19 +2647,19 @@ export default function Dashboard() {
                                   )}
                                   {offer.status === 'accepted' && (
                                     <Badge className="bg-green-100 text-green-800 dark:text-green-300 text-xs">
-                                      <CheckCircle className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                      <CheckCircle className={`h-3 w-3 me-1`} />
                                       {t('dashboard.accepted')}
                                     </Badge>
                                   )}
                                   {offer.status === 'rejected' && (
                                     <Badge className="bg-muted text-muted-foreground text-xs">
-                                      <XCircle className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                      <XCircle className={`h-3 w-3 me-1`} />
                                       {t('dashboard.rejected')}
                                     </Badge>
                                   )}
                                   {offer.status === 'shortlisted' && (
                                     <Badge className="bg-[#FE3C01]/10 text-[#FE3C01] dark:text-[#FE3C01] text-xs">
-                                      <Bookmark className={`h-3 w-3 ${isRtl ? 'ml-1' : 'mr-1'}`} />
+                                      <Bookmark className={`h-3 w-3 me-1`} />
                                       {t('dashboard.shortlisted')}
                                     </Badge>
                                   )}
@@ -2674,7 +2676,7 @@ export default function Dashboard() {
                             </div>
 
                             <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
-                              <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                              <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                 <Calendar className="h-4 w-4" />
                                 <span>
                                   {t('dashboard.received')} {new Date(offer.submittedAt).toLocaleDateString('en-US', {
@@ -2684,20 +2686,20 @@ export default function Dashboard() {
                                   })}
                                 </span>
                               </div>
-                              <div className={`flex items-center gap-2 font-medium ${isRtl ? 'flex-row-reverse' : ''} ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>
+                              <div className={`flex items-center gap-2 font-medium ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>
                                 <Clock className="h-4 w-4" />
                                 <span>
                                   {isExpired ? t('dashboard.deadlinePassed') : `${daysRemaining} ${t('dashboard.daysLeft')}`}
                                 </span>
                               </div>
                               {offer.company.category && (
-                                <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                   <Building2 className="h-4 w-4" />
                                   <span>{offer.company.category}</span>
                                 </div>
                               )}
                               {offer.quotePrice && (
-                                <div className={`flex items-center gap-2 font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 font-medium`}>
                                   <DollarSign className="h-4 w-4 text-[var(--state-won)]" />
                                   <span className="text-[var(--state-won)]">SAR {offer.quotePrice.toLocaleString()}</span>
                                 </div>
@@ -2708,7 +2710,7 @@ export default function Dashboard() {
                               <p className="text-sm mb-4 text-muted-foreground italic">"{offer.notes}"</p>
                             )}
 
-                            <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex flex-wrap gap-2`}>
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -2720,7 +2722,7 @@ export default function Dashboard() {
                                 disabled={!offer.company?.slug}
                                 data-testid={`button-view-offer-${offer.id}`}
                               >
-                                <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                <Eye className={`h-4 w-4 me-2`} />
                                 {t('dashboard.view')}
                               </Button>
                               {offer.combinedFileUrl && (
@@ -2730,7 +2732,7 @@ export default function Dashboard() {
                                   onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)}
                                   title={t('dashboard.combinedProposalLabel')}
                                 >
-                                  <FileText className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  <FileText className={`h-4 w-4 me-2`} />
                                   {t('dashboard.proposalLabel')}
                                 </Button>
                               )}
@@ -2741,7 +2743,7 @@ export default function Dashboard() {
                                   onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)}
                                   title={t('dashboard.technicalProposal')}
                                 >
-                                  <FileText className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  <FileText className={`h-4 w-4 me-2`} />
                                 </Button>
                               )}
                               {offer.financialFileUrl && (
@@ -2751,7 +2753,7 @@ export default function Dashboard() {
                                   onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}
                                   title={t('dashboard.financialProposal')}
                                 >
-                                  <DollarSign className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  <DollarSign className={`h-4 w-4 me-2`} />
                                 </Button>
                               )}
                               {offer.videoUrl && (
@@ -2761,7 +2763,7 @@ export default function Dashboard() {
                                   onClick={() => window.open(offer.videoUrl!, '_blank')}
                                   title={t('dashboard.videoPitchLabel')}
                                 >
-                                  <Video className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                  <Video className={`h-4 w-4 me-2`} />
                                 </Button>
                               )}
                               <Button
@@ -2770,7 +2772,7 @@ export default function Dashboard() {
                                 onClick={() => setLocation(`/tenders/${offer.tender.id}`)}
                                 data-testid={`button-review-tender-${offer.id}`}
                               >
-                                <ExternalLink className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                <ExternalLink className={`h-4 w-4 me-2`} />
                                 {t('dashboard.viewTender')}
                               </Button>
                             </div>
@@ -2803,7 +2805,7 @@ export default function Dashboard() {
                 <CardContent className="pt-6">
                   {activeCompany?.profile?.tractionSlug ? (
                     <div className="space-y-3">
-                      <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className={`flex items-center gap-2`}>
                         <div className="w-8 h-8 rounded-lg bg-[#FE3C01]/10 flex items-center justify-center">
                           <Link2 className="h-4 w-4 text-[#FE3C01]" />
                         </div>
@@ -2812,7 +2814,7 @@ export default function Dashboard() {
                           <p className="text-xs text-muted-foreground">{t('dashboard.shareLinkWithVendors')}</p>
                         </div>
                       </div>
-                      <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className={`flex items-center gap-2`}>
                         <div className="flex-1 bg-muted rounded-lg px-3 py-2 text-sm font-mono truncate">
                           {window.location.origin}/traction/{activeCompany.profile.tractionSlug}
                         </div>
@@ -2859,7 +2861,7 @@ export default function Dashboard() {
                     <UserPlus className="h-4 w-4" />
                     {t('dashboard.pendingRequests')}
                     {pendingRequests.length > 0 && (
-                      <Badge variant="destructive" className={isRtl ? 'mr-2' : 'ml-2'} data-testid="badge-pending-count">
+                      <Badge variant="destructive" className="ms-2" data-testid="badge-pending-count">
                         {pendingRequests.length}
                       </Badge>
                     )}
@@ -2877,7 +2879,7 @@ export default function Dashboard() {
                           placeholder={t('dashboard.searchVendors')}
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className={isRtl ? 'pr-10 text-right' : 'pl-10'}
+                          className="ps-10 text-start"
                           data-testid="input-vendor-search"
                         />
                       </div>
@@ -2933,7 +2935,7 @@ export default function Dashboard() {
                         }}
                         data-testid="button-clear-filters"
                       >
-                        <X className="h-3.5 w-3.5 mr-1" />
+                        <X className="h-3.5 w-3.5 me-1" />
                         {t('dashboard.clearFilters')}
                       </Button>
                     )}
@@ -2954,11 +2956,11 @@ export default function Dashboard() {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
                           >
-                            <Badge variant="secondary" className="gap-1 pr-1">
+                            <Badge variant="secondary" className="gap-1 pe-1">
                               {t('dashboard.filterByCategory')}: {categoryFilter}
                               <button
                                 onClick={() => setCategoryFilter('all')}
-                                className="ml-1 rounded-full hover:bg-muted p-0.5"
+                                className="ms-1 rounded-full hover:bg-muted p-0.5"
                                 data-testid="badge-remove-category"
                               >
                                 <X className="h-3 w-3" />
@@ -2972,11 +2974,11 @@ export default function Dashboard() {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
                           >
-                            <Badge variant="secondary" className="gap-1 pr-1">
+                            <Badge variant="secondary" className="gap-1 pe-1">
                               {t('dashboard.filterByCity')}: {cityFilter}
                               <button
                                 onClick={() => setCityFilter('all')}
-                                className="ml-1 rounded-full hover:bg-muted p-0.5"
+                                className="ms-1 rounded-full hover:bg-muted p-0.5"
                                 data-testid="badge-remove-city"
                               >
                                 <X className="h-3 w-3" />
@@ -2990,11 +2992,11 @@ export default function Dashboard() {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
                           >
-                            <Badge variant="secondary" className="gap-1 pr-1">
+                            <Badge variant="secondary" className="gap-1 pe-1">
                               {t('dashboard.filterByStatus')}: {t(`dashboard.${verificationFilter}`)}
                               <button
                                 onClick={() => setVerificationFilter('all')}
-                                className="ml-1 rounded-full hover:bg-muted p-0.5"
+                                className="ms-1 rounded-full hover:bg-muted p-0.5"
                                 data-testid="badge-remove-verification"
                               >
                                 <X className="h-3 w-3" />
@@ -3066,14 +3068,14 @@ export default function Dashboard() {
 
                             <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
                               {vendor.city && (
-                                <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                   <Building2 className="h-4 w-4" />
                                   <span>{vendor.city}</span>
                                 </div>
                               )}
                             </div>
 
-                            <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex flex-wrap gap-2`}>
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -3085,7 +3087,7 @@ export default function Dashboard() {
                                 disabled={!vendor.slug}
                                 data-testid={`button-view-vendor-${vendor.id}`}
                               >
-                                <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                <Eye className={`h-4 w-4 me-2`} />
                                 {t('dashboard.view')}
                               </Button>
                               <Button
@@ -3095,7 +3097,7 @@ export default function Dashboard() {
                                 onClick={() => setVendorToRemove({ id: vendor.id, companyId: vendor.companyId, name: vendor.company })}
                                 data-testid={`button-remove-vendor-${vendor.id}`}
                               >
-                                <Trash2 className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                <Trash2 className={`h-4 w-4 me-2`} />
                                 {t('dashboard.remove')}
                               </Button>
                             </div>
@@ -3122,7 +3124,7 @@ export default function Dashboard() {
                   ) : (
                     <div className="space-y-4">
                       <div className={isRtl ? 'text-right' : ''}>
-                        <h3 className={`text-lg font-semibold flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`} data-testid="text-pending-title">
+                        <h3 className={`text-lg font-semibold flex items-center gap-2`} data-testid="text-pending-title">
                           <UserPlus className="h-5 w-5" />
                           {t('dashboard.pendingRequests')} ({pendingRequests.length})
                         </h3>
@@ -3143,8 +3145,8 @@ export default function Dashboard() {
                               data-testid={`card-request-${request.id}`}
                             >
                               <div className="p-6">
-                                <div className={`flex items-start justify-between mb-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                                  <div className={`flex items-start gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex items-start justify-between mb-4`}>
+                                  <div className={`flex items-start gap-4`}>
                                     {request.vendor?.logoUrl ? (
                                       <img
                                         src={request.vendor.logoUrl}
@@ -3157,7 +3159,7 @@ export default function Dashboard() {
                                       </div>
                                     )}
                                     <div className="flex-1 min-w-0">
-                                      <div className={`flex items-center gap-3 mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                      <div className={`flex items-center gap-3 mb-2`}>
                                         <h3 className="text-xl font-bold text-foreground truncate" data-testid={`text-request-company-${request.id}`}>
                                           {request.vendor?.company || t('dashboard.unknownVendor')}
                                         </h3>
@@ -3172,8 +3174,8 @@ export default function Dashboard() {
                                           }
                                           data-testid={`badge-request-status-${request.id}`}
                                         >
-                                          {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 mr-1" />}
-                                          {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 mr-1" />}
+                                          {request.vendor?.verificationStatus === 'verified' && <ShieldCheck className="h-3 w-3 me-1" />}
+                                          {request.vendor?.verificationStatus === 'under_review' && <Clock className="h-3 w-3 me-1" />}
                                           {request.vendor?.verificationStatus === 'verified' ? t('dashboard.verifiedStatus') :
                                            request.vendor?.verificationStatus === 'under_review' ? t('dashboard.underReviewStatus') :
                                            t('dashboard.notVerifiedStatus')}
@@ -3191,13 +3193,13 @@ export default function Dashboard() {
 
                                 <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
                                   {request.vendor?.expertise && (
-                                    <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`} data-testid={`text-request-category-${request.id}`}>
+                                    <div className={`flex items-center gap-2 text-muted-foreground font-medium`} data-testid={`text-request-category-${request.id}`}>
                                       <Briefcase className="h-4 w-4" />
                                       <span>{request.vendor.expertise}</span>
                                     </div>
                                   )}
                                   {request.vendor?.websiteUrl && (
-                                    <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                    <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                       <Globe className="h-4 w-4" />
                                       <a
                                         href={request.vendor.websiteUrl}
@@ -3210,14 +3212,14 @@ export default function Dashboard() {
                                     </div>
                                   )}
                                   {timeAgo && (
-                                    <div className={`flex items-center gap-2 text-muted-foreground font-medium ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                    <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                       <Calendar className="h-4 w-4" />
                                       <span>{timeAgo}</span>
                                     </div>
                                   )}
                                 </div>
 
-                                <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                                <div className={`flex flex-wrap gap-2`}>
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -3229,7 +3231,7 @@ export default function Dashboard() {
                                     disabled={!request.vendor?.slug}
                                     data-testid={`button-view-profile-${request.id}`}
                                   >
-                                    <Eye className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                    <Eye className={`h-4 w-4 me-2`} />
                                     {t('dashboard.view')}
                                   </Button>
                                   <Button
@@ -3240,7 +3242,7 @@ export default function Dashboard() {
                                     disabled={rejectRequest.isPending}
                                     data-testid={`button-reject-${request.id}`}
                                   >
-                                    <XCircle className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                    <XCircle className={`h-4 w-4 me-2`} />
                                     {t('dashboard.reject')}
                                   </Button>
                                   <Button
@@ -3251,9 +3253,9 @@ export default function Dashboard() {
                                     data-testid={`button-approve-${request.id}`}
                                   >
                                     {approveRequest.isPending ? (
-                                      <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                      <Loader2 className={`h-4 w-4 animate-spin me-2`} />
                                     ) : (
-                                      <CheckCircle className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                                      <CheckCircle className={`h-4 w-4 me-2`} />
                                     )}
                                     {t('dashboard.approve')}
                                   </Button>
@@ -3360,7 +3362,7 @@ export default function Dashboard() {
                   <CardContent className="pt-6 space-y-4">
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground mb-2">{t('dashboard.yourProfileLink')}</p>
-                      <div className={`flex items-center gap-2 flex-wrap ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className={`flex items-center gap-2 flex-wrap`}>
                         <div className="flex-1 min-w-0 bg-muted rounded-lg px-3 py-2 text-sm font-mono truncate">
                           {profileUrl}
                         </div>
@@ -3428,7 +3430,7 @@ export default function Dashboard() {
                 <Card {...brandCardProps()}>
                   <CardContent className="pt-6 space-y-5">
                     <div>
-                      <div className={`flex items-center justify-between mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <div className={`flex items-center justify-between mb-2`}>
                         <h3 className="text-sm font-semibold text-foreground">{t('dashboard.profileCompletion')}</h3>
                         <span className="text-sm font-bold" style={{ color: '#FE3C01' }}>
                           {profileLinkData ? `${completedCount}/${totalSections}` : '—'}
@@ -3458,7 +3460,7 @@ export default function Dashboard() {
                                 : 'border-border bg-muted/30'
                             }`}
                           >
-                            <div className={`flex items-center gap-3 min-w-0 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex items-center gap-3 min-w-0`}>
                               {item.complete
                                 ? <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
                                 : <div className="h-4 w-4 rounded-full border-2 border-gray-300 flex-shrink-0" />
@@ -3596,7 +3598,7 @@ export default function Dashboard() {
                       onClick={() => viewAuthenticatedFile(selectedProposal.combinedFileUrl!)}
                       data-testid="button-modal-combined-file"
                     >
-                      <FileText className="h-4 w-4 mr-2" />
+                      <FileText className="h-4 w-4 me-2" />
                       {t('dashboard.combinedProposal')}
                     </Button>
                   )}
@@ -3608,7 +3610,7 @@ export default function Dashboard() {
                       onClick={() => viewAuthenticatedFile(selectedProposal.technicalFileUrl!)}
                       data-testid="button-modal-tech-file"
                     >
-                      <FileText className="h-4 w-4 mr-2" />
+                      <FileText className="h-4 w-4 me-2" />
                       {t('dashboard.technicalProposal')}
                     </Button>
                   )}
@@ -3620,7 +3622,7 @@ export default function Dashboard() {
                       onClick={() => viewAuthenticatedFile(selectedProposal.financialFileUrl!)}
                       data-testid="button-modal-fin-file"
                     >
-                      <DollarSign className="h-4 w-4 mr-2" />
+                      <DollarSign className="h-4 w-4 me-2" />
                       {t('dashboard.financialProposal')}
                     </Button>
                   )}
@@ -3632,7 +3634,7 @@ export default function Dashboard() {
                       onClick={() => window.open(selectedProposal.videoUrl!, '_blank')}
                       data-testid="button-modal-video"
                     >
-                      <Video className="h-4 w-4 mr-2" />
+                      <Video className="h-4 w-4 me-2" />
                       {t('dashboard.videoPitchLabel')}
                     </Button>
                   )}
@@ -3654,7 +3656,7 @@ export default function Dashboard() {
                       setSelectedProposal(null);
                     }}
                   >
-                    <Check className="h-4 w-4 mr-2" />
+                    <Check className="h-4 w-4 me-2" />
                     {t('dashboard.accept')}
                   </Button>
                   {selectedProposal.status === 'pending' && (
@@ -3667,7 +3669,7 @@ export default function Dashboard() {
                         setSelectedProposal(null);
                       }}
                     >
-                      <BookmarkPlus className="h-4 w-4 mr-2" />
+                      <BookmarkPlus className="h-4 w-4 me-2" />
                       {t('dashboard.shortlist')}
                     </Button>
                   )}
@@ -3680,7 +3682,7 @@ export default function Dashboard() {
                       setSelectedProposal(null);
                     }}
                   >
-                    <X className="h-4 w-4 mr-2" />
+                    <X className="h-4 w-4 me-2" />
                     {t('dashboard.ignore')}
                   </Button>
                 </div>
@@ -3731,12 +3733,12 @@ export default function Dashboard() {
               <div className="flex items-center gap-2">
                 {selectedVendor.verificationStatus === 'verified' ? (
                   <Badge className="bg-green-100 text-green-800 dark:text-green-300">
-                    <CheckCircle className="h-3 w-3 mr-1" />
+                    <CheckCircle className="h-3 w-3 me-1" />
                     {t('dashboard.verifiedCompany')}
                   </Badge>
                 ) : (
                   <Badge variant="secondary">
-                    <Clock className="h-3 w-3 mr-1" />
+                    <Clock className="h-3 w-3 me-1" />
                     {t('dashboard.underReviewStatus')}
                   </Badge>
                 )}
@@ -3825,12 +3827,12 @@ export default function Dashboard() {
             <div className="flex items-center gap-2">
               {activeCompany.verificationStatus === 'verified' ? (
                 <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                  <ShieldCheck className="h-3 w-3 mr-1" />
+                  <ShieldCheck className="h-3 w-3 me-1" />
                   {t('dashboard.verified')}
                 </Badge>
               ) : (
                 <Badge variant="secondary">
-                  <Clock className="h-3 w-3 mr-1" />
+                  <Clock className="h-3 w-3 me-1" />
                   {t('dashboard.underReviewStatus')}
                 </Badge>
               )}
@@ -3839,7 +3841,7 @@ export default function Dashboard() {
               </Badge>
               {activeCompany.onboardingState === 'completed' && (
                 <Badge className="bg-[var(--bid-orange)]/10 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
-                  <CheckCircle className="h-3 w-3 mr-1" />
+                  <CheckCircle className="h-3 w-3 me-1" />
                   {t('dashboard.profileComplete')}
                 </Badge>
               )}
@@ -3908,7 +3910,7 @@ export default function Dashboard() {
                   setLocation('/company-onboarding');
                 }}
               >
-                <Edit className="h-4 w-4 mr-2" />
+                <Edit className="h-4 w-4 me-2" />
                 {t('dashboard.edit')}
               </Button>
               )}
@@ -3920,7 +3922,7 @@ export default function Dashboard() {
                   setLocation('/settings');
                 }}
               >
-                <Settings className="h-4 w-4 mr-2" />
+                <Settings className="h-4 w-4 me-2" />
                 {t('settings.settings')}
               </Button>
             </div>
@@ -3939,7 +3941,7 @@ export default function Dashboard() {
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label="Primary"
     >
-      <div className={`flex items-stretch ${isRtl ? 'flex-row-reverse' : ''}`}>
+      <div className={`flex items-stretch`}>
         {sidebarItems.filter(i => i.show).slice(0, 4).map((item) => {
           const ActiveIcon = item.icon;
           const active = activeTab === item.value;

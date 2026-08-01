@@ -695,9 +695,9 @@
   .landing-rtl .hero h1{font-family:'Tajawal','Inter',sans-serif;font-size:clamp(38px,5vw,76px);max-width:26ch;line-height:1.16;letter-spacing:-.02em}
   .landing-rtl .topbar-nav-desktop a,.landing-rtl .footer-row a,.landing-rtl .footer-row h5{text-align:right}
   .landing-rtl .hero{text-align:center}
-  .landing-rtl .sec-head .summary{text-align:left}
+  .landing-rtl .sec-head .summary{text-align:right}
   .landing-rtl .takeaway{flex-direction:row}
-  .landing-rtl .takeaway .stat{text-align:left}
+  .landing-rtl .takeaway .stat{text-align:right}
   .landing-rtl .cta-strip{direction:rtl}
   /* text-align alone can't move an inline-flex link, so flip direction to pull
      the support links (and their icons) to the right edge. */
@@ -705,7 +705,6 @@
   .landing-rtl .footer-bot{direction:rtl}
   .landing-rtl .modal-card{text-align:right}
   .landing-rtl .modal-icon{justify-content:flex-end}
-  .landing-rtl .stage .footer{flex-direction:row-reverse}
   .landing-rtl .vcard h3,.landing-rtl .vcard p{text-align:right}
   /* .mcard uses logical properties (text-align:start, padding-inline-start),
      so it mirrors automatically under dir="rtl" — no overrides needed. */

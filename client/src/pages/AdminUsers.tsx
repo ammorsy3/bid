@@ -157,7 +157,7 @@ function UsersTab({ users, isLoading, searchQuery, setSearchQuery, promoteMutati
             placeholder={t('admin.searchUsersPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="ps-9"
           />
         </div>
       </div>
@@ -198,7 +198,7 @@ function UsersTab({ users, isLoading, searchQuery, setSearchQuery, promoteMutati
                         <p className="text-sm font-medium text-gray-900 dark:text-foreground truncate">{user.name || user.username}</p>
                         {user.isAdmin && (
                           <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-[10px] px-1.5 py-0">
-                            <Crown className="h-2.5 w-2.5 mr-0.5" />
+                            <Crown className="h-2.5 w-2.5 me-0.5" />
                             {t('admin.adminBadge')}
                           </Badge>
                         )}
@@ -219,7 +219,7 @@ function UsersTab({ users, isLoading, searchQuery, setSearchQuery, promoteMutati
                         onClick={() => promoteMutation.mutate(user.id)}
                         disabled={promoteMutation.isPending}
                       >
-                        <UserPlus className="h-3.5 w-3.5 mr-1" />
+                        <UserPlus className="h-3.5 w-3.5 me-1" />
                         {t('admin.promoteBtn')}
                       </Button>
                     )}
@@ -270,7 +270,6 @@ function AnalyticsTab({ analytics, isLoading, t }: {
     { label: t("adminAnalytics.vatCertificate"), value: analytics.documentTypes.vatCertificate },
     { label: t("adminAnalytics.gosiCertificate"), value: analytics.documentTypes.gosiCertificate },
     { label: t("adminAnalytics.nationalAddress"), value: analytics.documentTypes.nationalAddressCertificate },
-    { label: t("adminAnalytics.nationalIdCard"), value: analytics.documentTypes.nationalIdCard },
     { label: t("adminAnalytics.other"), value: analytics.documentTypes.other },
   ];
   const docMax = Math.max(1, analytics.totalWorkspaces);

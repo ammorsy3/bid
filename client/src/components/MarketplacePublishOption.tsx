@@ -201,11 +201,11 @@ export function MarketplacePublishOption({
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full h-9 justify-start text-left font-normal",
+                    "w-full h-9 justify-start text-start font-normal",
                     !value.inquiryDeadline && "text-muted-foreground"
                   )}
                 >
-                  <Calendar className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                  <Calendar className={`h-4 w-4 me-2`} />
                   {value.inquiryDeadline
                     ? format(new Date(value.inquiryDeadline), "PPP", { locale: language === 'ar' ? arLocale : undefined })
                     : t('marketplace.selectInquiryDeadline') || 'Select a date'}
@@ -249,7 +249,7 @@ export function MarketplacePublishOption({
                       type="button"
                       onClick={() => removePoFile(idx)}
                       className="text-gray-400 hover:text-muted-foreground flex-shrink-0"
-                      aria-label={t('marketplace.remove') || 'Remove'}
+                      aria-label={t('dashboard.remove')}
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -266,7 +266,7 @@ export function MarketplacePublishOption({
               disabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
             >
-              {isUploading ? <Loader2 className={`h-4 w-4 animate-spin ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} /> : <Upload className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />}
+              {isUploading ? <Loader2 className={`h-4 w-4 animate-spin me-1.5`} /> : <Upload className={`h-4 w-4 me-1.5`} />}
               {isUploading
                 ? (t('marketplace.uploading') || 'Uploading...')
                 : value.poFiles.length > 0

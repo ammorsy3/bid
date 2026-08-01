@@ -23,7 +23,7 @@ async function throwIfResNotOk(res: Response) {
         localStorage.removeItem('auth-storage');
         window.location.href = '/login';
         const lang = localStorage.getItem('language') === 'ar' ? 'ar' : 'en';
-        throw new Error(lang === 'ar' ? 'انتهت الجلسة. يُرجى تسجيل الدخول مرة أخرى.' : 'Session expired. Please log in again.');
+        throw new Error(lang === 'ar' ? 'انتهت الجلسة. سجّل دخولك مرة ثانية.' : 'Session expired. Please log in again.');
       }
     }
 
@@ -113,7 +113,7 @@ export const getQueryFn: <T>(options: {
 // Runs outside React, so it reads the language from localStorage directly.
 const globalErrorFallback = {
   en: { title: "Something went wrong", desc: "The action couldn't be completed. Please try again." },
-  ar: { title: "حدث خطأ ما", desc: "تعذّر إكمال العملية. يُرجى المحاولة مرة أخرى." },
+  ar: { title: "صار خطأ", desc: "ما قدرنا نكمل العملية. حاول مرة ثانية." },
 };
 
 const mutationCache = new MutationCache({

@@ -283,7 +283,7 @@ export default function TractionLinkEditor() {
         <div className="text-center">
           <p className="text-muted-foreground mb-4">{t('tractionPage.editorLoginRequired')}</p>
           <Button variant="outline" onClick={() => navigate(`/traction/${slug}`)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />{t('tractionPage.editorViewPage')}
+            <ArrowLeft className="h-4 w-4 me-2" />{t('tractionPage.editorViewPage')}
           </Button>
         </div>
       </div>
@@ -304,7 +304,7 @@ export default function TractionLinkEditor() {
         <div className="text-center">
           <p className="text-muted-foreground mb-4">{t('tractionPage.pageNotFound')}</p>
           <Button variant="outline" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />{t('tractionPage.editorBackToDashboard')}
+            <ArrowLeft className="h-4 w-4 me-2" />{t('tractionPage.editorBackToDashboard')}
           </Button>
         </div>
       </div>
@@ -391,8 +391,8 @@ export default function TractionLinkEditor() {
             style={{ background: theme.primaryColor }}
           >
             {saveThemeMutation.isPending
-              ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />{t('tractionPage.editorSaving')}</>
-              : <><Save className="h-3.5 w-3.5 mr-1.5" />{t('tractionPage.editorSaveChanges')}</>
+              ? <><Loader2 className="h-3.5 w-3.5 me-1.5 animate-spin" />{t('tractionPage.editorSaving')}</>
+              : <><Save className="h-3.5 w-3.5 me-1.5" />{t('tractionPage.editorSaveChanges')}</>
             }
           </Button>
         </div>
@@ -626,7 +626,7 @@ export default function TractionLinkEditor() {
                   <button
                     key={preset.id}
                     onClick={() => updateTheme({ themeId: preset.id, headerStyle: preset.headerStyle })}
-                    className={`rounded-xl p-2.5 text-left transition-all ${
+                    className={`rounded-xl p-2.5 text-start transition-all ${
                       theme.themeId === preset.id
                         ? 'ring-2 ring-offset-1 bg-card'
                         : 'bg-card border border-border hover:border-border'
@@ -775,9 +775,9 @@ function BidTraction_open(e){
                     onClick={copyEmbed}
                   >
                     {copiedEmbed ? (
-                      <><Check className="h-3.5 w-3.5 mr-1.5" />{t('tractionPage.editorEmbedCopied') || 'Copied!'}</>
+                      <><Check className="h-3.5 w-3.5 me-1.5" />{t('tractionPage.editorEmbedCopied') || 'Copied!'}</>
                     ) : (
-                      <><Copy className="h-3.5 w-3.5 mr-1.5" />{t('tractionPage.editorCopyEmbed') || 'Copy embed code'}</>
+                      <><Copy className="h-3.5 w-3.5 me-1.5" />{t('tractionPage.editorCopyEmbed') || 'Copy embed code'}</>
                     )}
                   </Button>
                 </section>

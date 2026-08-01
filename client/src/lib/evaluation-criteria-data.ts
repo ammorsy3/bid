@@ -22,19 +22,19 @@ export const CRITERIA_TRANSLATIONS_AR: Record<string, {
 }> = {
   experience: {
     name: "الخبرة ذات الصلة",
-    description: "تقييم السجل الحافل في مشاريع مماثلة",
+    description: "تقييم الخبرة والأعمال السابقة في مشاريع مشابهة",
   },
   financial: {
     name: "التقييم المالي",
-    description: "التنافسية السعرية والقيمة مقابل المال",
+    description: "تنافسية السعر والقيمة مقابل التكلفة",
   },
   technical: {
     name: "القدرة التقنية",
-    description: "المنهجية التقنية وقدرة التسليم",
+    description: "المنهجية التقنية والقدرة على التنفيذ والتسليم",
   },
   years_in_market: {
     label: "الحد الأدنى لسنوات العمل في السوق",
-    description: "كم عاماً يجب أن تكون الشركة تعمل؟",
+    description: "حدّد أقل عدد لسنوات عمل الشركة.",
     options: {
       "1": "+1 سنة",
       "3": "+3 سنوات",
@@ -44,7 +44,7 @@ export const CRITERIA_TRANSLATIONS_AR: Record<string, {
   },
   similar_projects_count: {
     label: "الحد الأدنى للمشاريع المماثلة المنجزة",
-    description: "عدد المشاريع المماثلة التي تم تسليمها",
+    description: "حدّد أقل عدد من المشاريع المشابهة المنجزة.",
     options: {
       "1": "مشروع واحد على الأقل",
       "3": "3 مشاريع على الأقل",
@@ -54,7 +54,7 @@ export const CRITERIA_TRANSLATIONS_AR: Record<string, {
   },
   min_project_value: {
     label: "الحد الأدنى لقيمة المشاريع السابقة",
-    description: "أكبر عقد مماثل تم تسليمه (ريال سعودي)",
+    description: "حدّد أقل قيمة لمشروع مشابه سبق تنفيذه بالريال السعودي.",
     options: {
       "50000": "+50,000 ريال",
       "100000": "+100,000 ريال",
@@ -65,27 +65,27 @@ export const CRITERIA_TRANSLATIONS_AR: Record<string, {
   },
   client_references: {
     label: "مراجع العملاء المطلوبة",
-    description: "طلب مراجع عملاء موثقة",
+    description: "اطلب مراجع موثّقة من عملاء سابقين.",
   },
   financial_statements: {
     label: "البيانات المالية المطلوبة",
-    description: "طلب بيانات مالية مدققة",
+    description: "اطلب قوائم مالية مدققة.",
   },
   bank_guarantee: {
     label: "القدرة على تقديم ضمان بنكي",
-    description: "يجب أن تكون قادراً على تقديم ضمان بنكي إذا طُلب",
+    description: "يشترط القدرة على تقديم ضمان بنكي عند الطلب.",
   },
   methodology: {
     label: "المنهجية التفصيلية المطلوبة",
-    description: "يجب تقديم منهجية تفصيلية للمشروع",
+    description: "يشترط تقديم منهجية تفصيلية للمشروع.",
   },
   timeline: {
     label: "الجدول الزمني للمشروع",
-    description: "يجب تقديم جدول زمني تفصيلي للمشروع",
+    description: "يشترط تقديم جدول زمني تفصيلي للمشروع.",
   },
   team_cvs: {
     label: "السيرة الذاتية للفريق مطلوبة",
-    description: "يجب تقديم السير الذاتية لأعضاء الفريق الرئيسيين",
+    description: "يشترط تقديم السير الذاتية لأعضاء الفريق الرئيسيين.",
   },
   industry_certifications: {
     label: "الشهادات المهنية المتخصصة",

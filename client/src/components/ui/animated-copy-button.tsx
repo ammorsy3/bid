@@ -49,10 +49,10 @@ export const AnimatedCopyButton: React.FC<AnimatedCopyButtonProps> = ({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className={`flex items-center gap-2 ${isRtl ? "flex-row-reverse" : ""}`}
+            className="flex items-center gap-2"
           >
-            <Check className={`h-4 w-4 ${isRtl ? "ml-2" : "mr-2"}`} />
-            Copied!
+            <Check className="h-4 w-4 me-2" />
+            {isRtl ? "تم النسخ" : "Copied!"}
           </motion.div>
         ) : (
           <motion.div
@@ -61,10 +61,10 @@ export const AnimatedCopyButton: React.FC<AnimatedCopyButtonProps> = ({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className={`flex items-center gap-2 ${isRtl ? "flex-row-reverse" : ""}`}
+            className="flex items-center gap-2"
           >
-            <Copy className={`h-4 w-4 ${isRtl ? "ml-2" : "mr-2"}`} />
-            {children || "Copy Link"}
+            <Copy className="h-4 w-4 me-2" />
+            {children || (isRtl ? "نسخ الرابط" : "Copy Link")}
           </motion.div>
         )}
       </AnimatePresence>

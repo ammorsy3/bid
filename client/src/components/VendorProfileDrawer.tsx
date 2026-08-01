@@ -10,6 +10,7 @@ import {
   ShieldCheck, Clock, XCircle, Briefcase, CheckCircle,
 } from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
+import { useI18n } from "@/lib/i18n";
 
 interface VendorProfileData {
   vendor: {
@@ -43,24 +44,24 @@ interface VendorProfileDrawerProps {
   isDeclining?: boolean;
 }
 
-const getStatusConfig = (status: string) => {
+const getStatusConfig = (status: string, isRtl: boolean) => {
   switch (status) {
     case 'verified':
       return {
         icon: <ShieldCheck className="h-3.5 w-3.5" />,
-        label: 'Verified',
+        label: isRtl ? 'موثّق' : 'Verified',
         classes: 'bg-[var(--state-won)]/5 text-[var(--state-won)] border-emerald-200',
       };
     case 'under_review':
       return {
         icon: <Clock className="h-3.5 w-3.5" />,
-        label: 'Under Review',
+        label: isRtl ? 'قيد المراجعة' : 'Under Review',
         classes: 'bg-amber-50 text-amber-700 dark:text-amber-300 border-amber-200',
       };
     default:
       return {
         icon: <XCircle className="h-3.5 w-3.5" />,
-        label: 'Not Verified',
+        label: isRtl ? 'غير موثّق' : 'Not Verified',
         classes: 'bg-muted text-muted-foreground border-border',
       };
   }
@@ -70,13 +71,14 @@ export default function VendorProfileDrawer({
   open, onClose, joinRequestId,
   showActions, onApprove, onDecline, isApproving, isDeclining
 }: VendorProfileDrawerProps) {
+  const { isRtl } = useI18n();
   const { data, isLoading } = useQuery<VendorProfileData>({
     queryKey: [`/api/join-requests/${joinRequestId}/profile`],
     enabled: open && !!joinRequestId,
   });
 
-  const statusConfig = data ? getStatusConfig(data.vendor.verificationStatus) : null;
-  const displayName = data?.profile?.displayName || data?.vendor.company || 'Unknown';
+  const statusConfig = data ? getStatusConfig(data.vendor.verificationStatus, isRtl) : null;
+  const displayName = data?.profile?.displayName || data?.vendor.company || (isRtl ? 'مورد غير معروف' : 'Unknown');
   const initials = displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   const hasSocialLinks = data?.profile?.websiteUrl || data?.profile?.linkedinUrl || data?.profile?.xUrl;
 
@@ -152,7 +154,7 @@ export default function VendorProfileDrawer({
               {/* About */}
               {data.profile?.bio && (
                 <div>
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">About</h3>
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{isRtl ? 'نبذة' : 'About'}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed" data-testid="text-profile-bio">
                     {data.profile.bio}
                   </p>
@@ -162,18 +164,18 @@ export default function VendorProfileDrawer({
               {/* Company Brochure */}
               {data.profile?.profileFileUrl && (
                 <div>
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Documents</h3>
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{isRtl ? 'المستندات' : 'Documents'}</h3>
                   <button
                     onClick={() => window.open(data.profile!.profileFileUrl!, '_blank')}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg border border-border hover:border-border hover:bg-muted transition-colors text-left"
+                    className="w-full flex items-center gap-3 p-3 rounded-lg border border-border hover:border-border hover:bg-muted transition-colors text-start"
                     data-testid="button-download-brochure"
                   >
                     <div className="w-9 h-9 rounded-lg bg-[var(--bid-orange)]/5 flex items-center justify-center flex-shrink-0">
                       <FileText className="h-4 w-4 text-blue-500" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-muted-foreground">Company Brochure</p>
-                      <p className="text-xs text-gray-400">View document</p>
+                      <p className="text-sm font-medium text-muted-foreground">{isRtl ? 'ملف الشركة' : 'Company Brochure'}</p>
+                      <p className="text-xs text-gray-400">{isRtl ? 'عرض المستند' : 'View document'}</p>
                     </div>
                     <ExternalLink className="h-4 w-4 text-gray-300" />
                   </button>
@@ -183,7 +185,7 @@ export default function VendorProfileDrawer({
               {/* Links */}
               {hasSocialLinks && (
                 <div>
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Links</h3>
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{isRtl ? 'الروابط' : 'Links'}</h3>
                   <div className="flex flex-wrap gap-2">
                     {data.profile?.websiteUrl && (
                       <Button
@@ -194,7 +196,7 @@ export default function VendorProfileDrawer({
                         data-testid="link-website"
                       >
                         <Globe className="h-3.5 w-3.5" />
-                        Website
+                        {isRtl ? 'الموقع' : 'Website'}
                       </Button>
                     )}
                     {data.profile?.linkedinUrl && (
@@ -230,7 +232,7 @@ export default function VendorProfileDrawer({
                 <div className="flex items-center gap-3 p-4 rounded-lg bg-amber-50 border border-amber-100">
                   <Clock className="h-5 w-5 text-amber-400 flex-shrink-0" />
                   <p className="text-sm text-amber-700 dark:text-amber-300">
-                    This vendor hasn't completed their full profile yet.
+                    {isRtl ? 'المورد ما كمّل ملفه حتى الآن.' : "This vendor hasn't completed their full profile yet."}
                   </p>
                 </div>
               )}
@@ -247,11 +249,11 @@ export default function VendorProfileDrawer({
                   data-testid="button-drawer-decline"
                 >
                   {isDeclining ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 me-2 animate-spin" />
                   ) : (
-                    <XCircle className="h-4 w-4 mr-2" />
+                    <XCircle className="h-4 w-4 me-2" />
                   )}
-                  Decline
+                  {isRtl ? 'رفض' : 'Decline'}
                 </Button>
                 <Button
                   className="flex-1 bg-[var(--state-won)] hover:bg-[var(--state-won)]/90 text-white"
@@ -260,11 +262,11 @@ export default function VendorProfileDrawer({
                   data-testid="button-drawer-approve"
                 >
                   {isApproving ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 me-2 animate-spin" />
                   ) : (
-                    <CheckCircle className="h-4 w-4 mr-2" />
+                    <CheckCircle className="h-4 w-4 me-2" />
                   )}
-                  Approve
+                  {isRtl ? 'موافقة' : 'Approve'}
                 </Button>
               </div>
             )}
@@ -272,7 +274,7 @@ export default function VendorProfileDrawer({
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-2">
             <Building2 className="h-10 w-10 text-gray-200" />
-            <p className="text-sm text-muted-foreground">Profile not found</p>
+            <p className="text-sm text-muted-foreground">{isRtl ? 'الملف غير موجود' : 'Profile not found'}</p>
           </div>
         )}
       </SheetContent>

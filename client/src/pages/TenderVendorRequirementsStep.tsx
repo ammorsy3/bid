@@ -74,7 +74,7 @@ export default function TenderVendorRequirementsStep() {
         <div className="flex items-center justify-between mb-8 max-sm:mb-5">
           <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity max-sm:w-10 max-sm:h-10" onClick={() => navigate("/dashboard")} />
           <Button variant="outline" onClick={handleBack} data-testid="button-back" className="max-sm:hidden">
-            <ArrowLeft className={`h-4 w-4 ${isRtl ? 'ml-2 rotate-180' : 'mr-2'}`} />
+            <ArrowLeft className={`h-4 w-4 me-2 ${isRtl ? 'rotate-180' : ''}`} />
             {t('tenderSteps.back')}
           </Button>
         </div>
@@ -145,7 +145,7 @@ export default function TenderVendorRequirementsStep() {
                           ? t('tenderSteps.continueWithRequirements', { count: selected.length })
                           : t('tenderSteps.continueWithRequirementsPlural', { count: selected.length }))
                       : t('tenderSteps.continueBtn')}
-                    <ArrowRight className={`h-4 w-4 ${isRtl ? 'mr-2 rotate-180' : 'ml-2'}`} />
+                    <ArrowRight className={`h-4 w-4 ms-2 ${isRtl ? 'rotate-180' : ''}`} />
                   </Button>
                 </div>
 

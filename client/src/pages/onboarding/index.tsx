@@ -48,6 +48,7 @@ export default function OnboardingChoice() {
   const [acknowledgedRequests, setAcknowledgedRequests] = useState<Record<string, true>>({});
   const [acceptingToken, setAcceptingToken] = useState<string | null>(null);
   const [joinCode, setJoinCode] = useState("");
+  const addAccountMode = new URLSearchParams(window.location.search).get("addAccount") === "1";
 
   // Prefill a join code arriving from an invite link (/join/:code stashes it).
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function OnboardingChoice() {
   useEffect(() => {
     if (!user) { setLocation("/signup"); return; }
     if (!user.otpVerified) { setLocation("/verify-email"); return; }
-    if (activeCompany) { setLocation("/dashboard"); return; }
+    if (activeCompany && !addAccountMode) { setLocation("/dashboard"); return; }
     const redirect = localStorage.getItem("postOnboardingRedirect");
     if (redirect && redirect.startsWith("/invite/")) {
       setLocation(redirect);
@@ -77,7 +78,7 @@ export default function OnboardingChoice() {
       if (!res.ok) throw new Error("Failed to load domain match");
       return res.json();
     },
-    enabled: !!user?.otpVerified && !activeCompany,
+    enabled: !!user?.otpVerified,
   });
 
   const requestJoinMutation = useMutation({
@@ -120,7 +121,7 @@ export default function OnboardingChoice() {
       if (!res.ok) throw new Error("Failed to load invitations");
       return res.json();
     },
-    enabled: !!user?.otpVerified && !activeCompany,
+    enabled: !!user?.otpVerified,
   });
 
   // Join a company/team instantly with its code.
@@ -189,7 +190,7 @@ export default function OnboardingChoice() {
       icon: Building2,
       title: t('onbJoin.createCompany'),
       description: t('onbJoin.createCompanyDesc'),
-      onClick: () => setLocation("/onboarding/company-basics"),
+      onClick: () => setLocation("/onboarding/company-basics?addAccount=1"),
       color: "text-[#FE3C01]",
       iconBg: "bg-[#FE3C01]/10",
       activeBorder: "border-[#FE3C01]/40",
@@ -307,7 +308,7 @@ export default function OnboardingChoice() {
       </div>
 
       <div className="space-y-3">
-        {CHOICES.map(({ key, icon: Icon, title, description, onClick, color, iconBg, activeBorder, hoverBorder }) => {
+        {CHOICES.filter(({ key }) => !addAccountMode || key !== "individual").map(({ key, icon: Icon, title, description, onClick, color, iconBg, activeBorder, hoverBorder }) => {
           const isJoin = key === "join";
           const isActive = isJoin && joinExpanded;
 

@@ -13,8 +13,5 @@
     { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/objects/(.*)", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "crons": [
-    { "path": "/api/cron/check-inactive-individuals", "schedule": "0 6 * * *" }
   ]
 }

@@ -50,7 +50,7 @@ const copy = {
   ar: {
     navAbout: "عن Bid", navMarketplace: "سوق Bid", navTraction: "روابط الإنضمام", navVendors: "للموردين",
     btnSignIn: "دخول", btnCreateAccount: "سجّل حساب\u00a0←", btnDashboard: "لوحة التحكم",
-    heroBadge: "الإطلاق التجريبي", heroLine1: "إدارة البريفات والمنافسات", heroLine2: "في مكان واحد",
+    heroBadge: "الإطلاق التجريبي", heroLine1: "أنشئ الـ(RFP) في دقائق،", heroLine2: "اطرح مشروعك، واستقبل العروض.",
     heroSub: "اكتب بريف، أرسل للموردين، استلم العروض، رسّ المشروع.",
     heroCta: "جرّب Bid\u00a0←", heroSignIn: "دخول",
     awarded: "Awarded", aiDrafted: "AI drafted",
@@ -208,7 +208,11 @@ const Landing = () => {
         {/* ===== HERO ===== */}
         <section className="hero" id="hero">
           <span className="badge"><span className="d"></span>{c.heroBadge}</span>
-          <h1>{c.heroLine1}<br />{c.heroLine2}<span className="accent" style={{ color: "var(--orange)" }}>.</span></h1>
+          <h1>
+            {isRtl ? <>أنشئ الـ<span dir="ltr" className="latin-token">(RFP)</span> في دقائق،</> : c.heroLine1}
+            <br />
+            {c.heroLine2}{!isRtl && <span className="accent" style={{ color: "var(--orange)" }}>.</span>}
+          </h1>
           <p className="sub">{c.heroSub}</p>
           <div className="ctas">
             <button className="btn btn-primary" onClick={handleCreate}>{c.heroCta}</button>

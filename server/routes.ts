@@ -48,7 +48,6 @@ import {
   sendVerificationOTP,
   sendTeamInviteEmail,
   sendPasswordResetEmail,
-  sendInactivityWarningEmail,
 } from "./email";
 import {
   getOpenAIConfig,
@@ -150,8 +149,7 @@ const requireCompanyContext = (req: AuthRequest, res: Response, next: Function) 
 // Used to gate actions that need legal verification (creating tenders,
 // submitting offers). Frontend should route the user to the verification
 // form on receiving `requiresVerification: true`.
-// Individual/freelancer workspaces bypass this check — their verification
-// is the nationalIdNumber field, enforced per-route.
+// Individual and team workspaces bypass legal verification entirely.
 const requireVerifiedCompany = async (req: AuthRequest, res: Response, next: Function) => {
   if (!req.auth?.activeCompanyId) {
     return res.status(400).json({
@@ -1962,7 +1960,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         slugSuffix++;
       }
 
-      const initialVerificationStatus = inputDocuments.length > 0 ? 'under_review' : 'not_verified';
+      const initialVerificationStatus = companyData.accountType === 'company'
+        ? (inputDocuments.length > 0 ? 'under_review' : 'not_verified')
+        : 'verified';
 
       // Create company
       const company = await storage.createCompany({
@@ -2185,80 +2185,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         res.status(500).json({ message: error?.message || "Failed to update verification info" });
-      }
-    }
-  );
-
-  // Submit National ID verification info for team accounts (the team owner
-  // verifies the team). Individuals are never asked for a National ID.
-  // Mirror of PATCH /api/companies/:companyId/verify-info (the CR path).
-  app.patch("/api/companies/:companyId/verify-national-id",
-    authenticateToken,
-    requireCompanyContext,
-    requireCompanyRole('admin'),
-    async (req: AuthRequest, res) => {
-      try {
-        const { companyId } = req.params;
-        if (companyId !== req.auth!.activeCompanyId) {
-          return res.status(403).json({ message: 'Cannot update a different company' });
-        }
-
-        const company = await storage.getCompany(companyId);
-        if (!company) return res.status(404).json({ message: 'Company not found' });
-        if (company.accountType === 'company') {
-          return res.status(400).json({
-            message: 'Company accounts use CR verification. Use /verify-info instead.',
-          });
-        }
-        if (company.accountType === 'individual') {
-          return res.status(400).json({
-            message: 'Individual accounts do not require National ID verification.',
-          });
-        }
-
-        const { z } = await import('zod');
-        const schema = z.object({
-          nationalIdNumber: z.string().regex(/^\d{10}$/, 'National ID must be exactly 10 digits'),
-        });
-        const data = schema.parse(req.body);
-
-        // Uniqueness check (excluding this company)
-        const existing = await storage.getCompanyByNationalId(data.nationalIdNumber);
-        if (existing && existing.id !== companyId) {
-          return res.status(409).json({
-            code: 'NATIONAL_ID_TAKEN',
-            message: 'This National ID is already registered to another account on Bid.',
-          });
-        }
-
-        const updated = await storage.updateCompany(companyId, {
-          nationalIdNumber: data.nationalIdNumber,
-          verificationStatus: 'under_review',
-        });
-
-        res.json({
-          company: {
-            id: updated.id,
-            nationalIdNumber: updated.nationalIdNumber,
-            verificationStatus: updated.verificationStatus,
-          },
-        });
-      } catch (error: any) {
-        console.error('Verify national ID error:', error);
-        if (error?.name === 'ZodError') {
-          const firstIssue = error.errors?.[0];
-          return res.status(400).json({
-            message: firstIssue ? `${firstIssue.path.join('.')}: ${firstIssue.message}` : 'Invalid data',
-            errors: error.errors,
-          });
-        }
-        if (error?.code === '23505' && error?.constraint?.includes('national_id_number')) {
-          return res.status(409).json({
-            code: 'NATIONAL_ID_TAKEN',
-            message: 'This National ID is already registered to another account.',
-          });
-        }
-        res.status(500).json({ message: error?.message || 'Server error' });
       }
     }
   );
@@ -2969,13 +2895,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (typeof discoverable !== 'boolean') {
             return res.status(400).json({ message: "Invalid discoverable" });
           }
-          if (discoverable && company.accountType === 'individual' && company.verificationStatus !== 'verified') {
-            return res.status(403).json({
-              message: "Verify your account before turning on Discovery visibility.",
-              requiresVerification: true,
-            });
-          }
-          profileUpdates.discoverable = discoverable;
+          profileUpdates.discoverable = company.accountType === 'individual' ? false : discoverable;
         }
 
         // WhatsApp is mandatory for individual profiles.
@@ -3427,58 +3347,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Suggested individuals to invite to a tender — matched by field/category,
-  // verification, availability and city. Only returns results when the tender
-  // is already open to individuals (audience includes 'individual').
+  // Discovery and automatic individual suggestions are temporarily disabled.
   app.get("/api/tenders/:id/suggested-individuals",
     authenticateToken,
     requireCompanyContext,
     requireAccountType('company'),
     async (req: AuthRequest, res) => {
-      try {
-        const tender = await storage.getTender(req.params.id);
-        if (!tender) return res.status(404).json({ message: "Tender not found" });
-        if (tender.companyId !== req.auth!.activeCompanyId) {
-          return res.status(403).json({ message: "Not your tender" });
-        }
-
-        const audience: string[] = Array.isArray(tender.targetAudienceTypes)
-          ? (tender.targetAudienceTypes as string[]) : [];
-        if (!audience.includes('individual')) {
-          // Tender isn't open to individuals — nothing to suggest here.
-          return res.json({ suggestions: [], openToIndividuals: false });
-        }
-
-        const requester = await storage.getCompany(req.auth!.activeCompanyId!);
-        const invited = await storage.getInvitationsByTender(tender.id);
-        const exclude = [
-          req.auth!.activeCompanyId!,
-          ...invited.map((i) => i.companyId).filter((x): x is string => !!x),
-        ];
-
-        const rows = await storage.getSuggestedIndividualsForTender({
-          category: tender.category,
-          city: requester?.city || null,
-          excludeCompanyIds: exclude,
-          limit: 10,
-        });
-
-        const suggestions = rows.map((c) => ({
-          companyId: c.id,
-          slug: c.slug,
-          name: c.profile?.displayName || c.name,
-          logoUrl: c.profile?.logoUrl || null,
-          category: c.category || null,
-          city: c.city || null,
-          availabilityStatus: c.profile?.availabilityStatus || null,
-          verificationStatus: c.verificationStatus,
-        }));
-
-        res.json({ suggestions, openToIndividuals: true });
-      } catch (error) {
-        console.error('Suggested individuals error:', error);
-        res.status(500).json({ message: "Server error" });
-      }
+      res.status(404).json({ message: "Individual suggestions are not available." });
     }
   );
 
@@ -5334,45 +5209,13 @@ Respond with ONLY a JSON object. Example:
     }
   );
 
-  // Directory of individuals for companies to discover and add to their base
-  // (the "Discover" tab in Vendors Base). Companies only.
+  // Individual directory is temporarily disabled.
   app.get("/api/individuals/directory",
     authenticateToken,
     requireCompanyContext,
     requireAccountType('company'),
     async (req: AuthRequest, res) => {
-      try {
-        const { search, city, category, page, limit } = req.query;
-        const lim = limit ? Math.min(parseInt(limit as string), 30) : 12;
-        const pg = page ? Math.max(parseInt(page as string), 1) : 1;
-
-        const { rows, total } = await storage.searchIndividuals({
-          search: search as string,
-          city: city as string,
-          category: category as string,
-          limit: lim,
-          offset: (pg - 1) * lim,
-        });
-
-        const requesterId = req.auth!.activeCompanyId!;
-        const individuals = await Promise.all(rows.map(async (c) => ({
-          companyId: c.id,
-          slug: c.slug,
-          name: c.profile?.displayName || c.name,
-          logoUrl: c.profile?.logoUrl || null,
-          bio: c.profile?.bio || null,
-          category: c.category || null,
-          city: c.city || null,
-          availabilityStatus: c.profile?.availabilityStatus || null,
-          verificationStatus: c.verificationStatus,
-          inBase: await storage.isVendorInBase(requesterId, c.id),
-        })));
-
-        res.json({ individuals, total });
-      } catch (error) {
-        console.error('Individuals directory error:', error);
-        res.status(500).json({ message: "Server error" });
-      }
+      res.status(404).json({ message: "Individual discovery is not available." });
     }
   );
 
@@ -7390,45 +7233,6 @@ Respond with ONLY a JSON object. Example:
       res.json(pos);
     } catch (error) {
       console.error("Error fetching purchase orders:", error);
-      res.status(500).json({ message: "Server error" });
-    }
-  });
-
-  // ==========================================================================
-  // CRON: Individual Discovery inactivity check
-  // ==========================================================================
-  // Runs daily (see vercel.json). Warns individual-account owners who are
-  // approaching the 30-day "active in Discovery" cutoff (server/storage.ts
-  // getIndividualsNearingInactivityCutoff / searchIndividuals) so they can log
-  // in and stay visible before their profile is auto-hidden.
-  app.post("/api/cron/check-inactive-individuals", async (req, res) => {
-    const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret && req.headers['authorization'] !== `Bearer ${cronSecret}`) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    try {
-      const candidates = await storage.getIndividualsNearingInactivityCutoff({
-        cutoffDays: 30,
-        warnBeforeDays: 7,
-      });
-
-      for (const candidate of candidates) {
-        try {
-          await sendInactivityWarningEmail({
-            email: candidate.email,
-            recipientName: candidate.name,
-            daysUntilHidden: 7,
-            language: (candidate.language as 'en' | 'ar') || 'en',
-          });
-          await storage.updateUser(candidate.userId, { inactivityWarningSentAt: new Date() });
-        } catch (err) {
-          console.error(`[Cron] Failed to warn user ${candidate.userId} of inactivity:`, err);
-        }
-      }
-
-      res.json({ warned: candidates.length });
-    } catch (error) {
-      console.error("Error running inactivity cron:", error);
       res.status(500).json({ message: "Server error" });
     }
   });

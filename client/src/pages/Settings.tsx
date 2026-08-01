@@ -857,7 +857,6 @@ export default function Settings() {
   const [crNumber, setCrNumber] = useState('');
   const [vatNumberField, setVatNumberField] = useState('');
   const [cityField, setCityField] = useState('');
-  const [nationalIdNumber, setNationalIdNumber] = useState((activeCompany as any)?.nationalIdNumber || '');
 
   useEffect(() => {
     if (!verifyInfo) return;
@@ -884,26 +883,6 @@ export default function Settings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompany?.id, 'verify-info'] });
       toast({ title: t('settings.verifyInfoSavedTitle'), description: t('settings.verifyInfoSavedDesc') });
-    },
-    onError: (error: Error) => {
-      toast({ title: t('settings.couldNotSaveTitle'), description: error.message, variant: 'destructive' });
-    },
-  });
-
-  const saveNationalIdMutation = useMutation({
-    mutationFn: async (value: string) => {
-      const res = await apiRequest('PATCH', `/api/companies/${activeCompany!.id}/national-id`, {
-        nationalIdNumber: value.trim() || null,
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || 'Failed to save National ID');
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      checkAuth();
-      toast({ title: t('settings.nationalIdSavedTitle'), description: t('settings.nationalIdSavedDesc') });
     },
     onError: (error: Error) => {
       toast({ title: t('settings.couldNotSaveTitle'), description: error.message, variant: 'destructive' });
@@ -1797,84 +1776,6 @@ export default function Settings() {
                         {t('dashboard.tractionPreviewPage')}
                         <ExternalLink className="h-3 w-3" />
                       </a>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              )}
-
-              {/* National ID — team workspaces only (individuals are never asked for it) */}
-              {isTeamWorkspace && (
-              <div id="national-id-verification">
-                <Card>
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-violet-50 rounded-xl flex items-center justify-center">
-                        <Shield className="h-4 w-4 text-violet-600" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">National ID Verification</CardTitle>
-                        <CardDescription className="text-xs">
-                          As the team owner, submit your National ID to verify this team and unlock offer submissions.
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {(activeCompany as any)?.verificationStatus === 'verified' && (
-                      <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                        <p className="text-sm text-green-700">National ID verified — you can submit offers.</p>
-                      </div>
-                    )}
-                    {(activeCompany as any)?.nationalIdNumber && (activeCompany as any)?.verificationStatus === 'under_review' && (
-                      <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                        <CheckCircle2 className="h-4 w-4 text-amber-500 flex-shrink-0" />
-                        <p className="text-sm text-amber-700">National ID submitted — pending admin review.</p>
-                      </div>
-                    )}
-                    {(activeCompany as any)?.verificationStatus === 'rejected' && (
-                      <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <CheckCircle2 className="h-4 w-4 text-red-500 flex-shrink-0" />
-                        <div>
-                          <p className="text-sm text-red-700 font-medium">Verification rejected.</p>
-                          {(activeCompany as any)?.rejectionReason && (
-                            <p className="text-xs text-red-600 mt-0.5">{(activeCompany as any).rejectionReason}</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    <div className="space-y-2">
-                      <Label htmlFor="nationalIdNumber">National ID Number *</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Your Saudi National ID number (10 digits starting with 1 or 2).
-                      </p>
-                      <Input
-                        id="nationalIdNumber"
-                        value={nationalIdNumber}
-                        onChange={(e) => setNationalIdNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                        placeholder="10-digit National ID"
-                        inputMode="numeric"
-                        maxLength={10}
-                        disabled={saveNationalIdMutation.isPending}
-                        data-testid="input-national-id"
-                      />
-                    </div>
-                    <div className="flex justify-end">
-                      <Button
-                        onClick={() => saveNationalIdMutation.mutate(nationalIdNumber)}
-                        disabled={!nationalIdNumber.trim() || nationalIdNumber.trim().length < 10 || saveNationalIdMutation.isPending}
-                        data-testid="button-save-national-id"
-                      >
-                        {saveNationalIdMutation.isPending ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Saving…
-                          </>
-                        ) : (
-                          'Save National ID'
-                        )}
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>

@@ -409,7 +409,7 @@ export default function TenderEditPage() {
           description: t('tenderFlow.publishedToastDesc'),
           action: (
             <ToastAction altText={t('tenderFlow.copyLinkAlt')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderFlow.linkCopiedToast') }); }}>
-              <Copy className="h-3 w-3 mr-1" /> {t('tenderFlow.editCopyLink')}
+              <Copy className="h-3 w-3 me-1" /> {t('tenderFlow.editCopyLink')}
             </ToastAction>
           ),
           duration: 10000,
@@ -554,8 +554,8 @@ export default function TenderEditPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background" dir={isEditRtl ? "rtl" : "ltr"}>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28">
-        <Button variant="ghost" onClick={() => navigate(`/tenders/${tenderId}`)} className="mb-6 -ml-2">
-          <ArrowLeft className="h-4 w-4 mr-2" />
+        <Button variant="ghost" onClick={() => navigate(`/tenders/${tenderId}`)} className="mb-6 -ms-2">
+          <ArrowLeft className="h-4 w-4 me-2" />
           {t('tenderFlow.backToTender')}
         </Button>
 
@@ -623,7 +623,7 @@ export default function TenderEditPage() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <button type="button" className={cn(
-                              "flex-1 flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background text-sm text-left hover:bg-accent transition-colors",
+                              "flex-1 flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
                               !dateVal && "text-muted-foreground"
                             )}>
                               <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
@@ -665,7 +665,7 @@ export default function TenderEditPage() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <button type="button" className={cn(
-                              "w-full flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background text-sm text-left hover:bg-accent transition-colors",
+                              "w-full flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
                               !field.value && "text-muted-foreground"
                             )}>
                               <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
@@ -693,7 +693,7 @@ export default function TenderEditPage() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <button type="button" className={cn(
-                              "w-full flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background text-sm text-left hover:bg-accent transition-colors",
+                              "w-full flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
                               !field.value && "text-muted-foreground"
                             )}>
                               <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
@@ -758,7 +758,7 @@ export default function TenderEditPage() {
                     <FormControl>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">SAR</span>
-                        <Input className="pl-12" placeholder={t('tenderFlow.editBudgetAmountPlaceholder')} {...field} />
+                        <Input className="ps-12" placeholder={t('tenderFlow.editBudgetAmountPlaceholder')} {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -867,7 +867,7 @@ export default function TenderEditPage() {
                       size="sm"
                       onClick={() => field.onChange("")}
                     >
-                      Remove voice note
+                      {t('tenderFlow.removeVoiceNote')}
                     </Button>
                   )}
                   <FormMessage />
@@ -1195,7 +1195,7 @@ export default function TenderEditPage() {
                 </div>
               )}
               <Button type="button" variant="outline" className="w-full" onClick={addDeliverable}>
-                <Plus className="h-4 w-4 mr-2" />{t('tenderFlow.addDeliverable')}
+                <Plus className="h-4 w-4 me-2" />{t('tenderFlow.addDeliverable')}
               </Button>
             </SectionCard>
 
@@ -1255,9 +1255,9 @@ export default function TenderEditPage() {
                 disabled={uploadingAttachment}
               >
                 {uploadingAttachment ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('tenderFlow.uploading')}</>
+                  <><Loader2 className="h-4 w-4 me-2 animate-spin" />{t('tenderFlow.uploading')}</>
                 ) : (
-                  <><Upload className="h-4 w-4 mr-2" />{attachments.length > 0 ? "Upload another" : "Upload document"}</>
+                  <><Upload className="h-4 w-4 me-2" />{attachments.length > 0 ? t('marketplace.uploadAnother') : t('tenderFlow.uploadDocuments')}</>
                 )}
               </Button>
             </SectionCard>
@@ -1273,7 +1273,7 @@ export default function TenderEditPage() {
                   <div key={card.id} className="space-y-1">
                     <Label>
                       {card.label}
-                      {card.isRequired && <span className="text-red-500 ml-1">*</span>}
+                      {card.isRequired && <span className="text-red-500 ms-1">*</span>}
                     </Label>
                     {card.type === 'custom-textarea' ? (
                       <Textarea
@@ -1336,14 +1336,14 @@ export default function TenderEditPage() {
                   className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] text-white disabled:opacity-50"
                   disabled={updateTenderMutation.isPending || ((selectedRequirements.length > 0 || customCriteria.length > 0) && totalWeight !== 100)}
                 >
-                  {updateTenderMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('tenderFlow.editSaving')}</> : <><Save className="h-4 w-4 mr-2" />{t('tenderFlow.editSaveChanges')}</>}
+                  {updateTenderMutation.isPending ? <><Loader2 className="h-4 w-4 me-2 animate-spin" />{t('tenderFlow.editSaving')}</> : <><Save className="h-4 w-4 me-2" />{t('tenderFlow.editSaveChanges')}</>}
                 </Button>
               </div>
 
               {isDraft && (
                 <>
                   <Button type="button" onClick={() => publishMutation.mutate()} className="w-full bg-green-600 hover:bg-green-700 text-white" disabled={publishMutation.isPending}>
-                    {publishMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('tenderFlow.editPublishing')}</> : <><Send className="h-4 w-4 mr-2" />{t('tenderFlow.editPublishTender')}</>}
+                    {publishMutation.isPending ? <><Loader2 className="h-4 w-4 me-2 animate-spin" />{t('tenderFlow.editPublishing')}</> : <><Send className="h-4 w-4 me-2" />{t('tenderFlow.editPublishTender')}</>}
                   </Button>
                   <p className="text-xs text-muted-foreground text-center">{t('tenderFlow.editPublishHint')}</p>
                 </>
@@ -1352,7 +1352,7 @@ export default function TenderEditPage() {
               {isPublished && (
                 <>
                   <Button type="button" onClick={() => revertMutation.mutate()} variant="outline" className="w-full border-amber-500 text-amber-600 hover:bg-amber-50" disabled={revertMutation.isPending}>
-                    {revertMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('tenderFlow.editReverting')}</> : <><RotateCcw className="h-4 w-4 mr-2" />{t('tenderFlow.editRevertToDraft')}</>}
+                    {revertMutation.isPending ? <><Loader2 className="h-4 w-4 me-2 animate-spin" />{t('tenderFlow.editReverting')}</> : <><RotateCcw className="h-4 w-4 me-2" />{t('tenderFlow.editRevertToDraft')}</>}
                   </Button>
                   <p className="text-xs text-muted-foreground text-center">{t('tenderFlow.editRevertHint')}</p>
                 </>

@@ -199,7 +199,7 @@ const AttachmentsPanel: React.FC<{
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full px-4 py-3 flex items-center justify-between text-left"
+        className="w-full px-4 py-3 flex items-center justify-between text-start"
       >
         <div className="flex items-center gap-2">
           <Paperclip className="h-4 w-4 text-muted-foreground" />
@@ -245,7 +245,7 @@ const AttachmentsPanel: React.FC<{
               disabled={uploadingCount > 0}
               className="h-9"
             >
-              <Paperclip className="h-3.5 w-3.5 mr-1.5" />
+              <Paperclip className="h-3.5 w-3.5 me-1.5" />
               {uploadingCount > 0
                 ? t('copilot.uploading', { n: uploadingCount })
                 : t('copilot.addFiles')}
@@ -364,7 +364,7 @@ const InlineActivity: React.FC<{
           aria-expanded={isExpanded}
           aria-label={isExpanded ? t('copilot.a11yCollapseActivity') : t('copilot.a11yExpandActivity')}
           className={cn(
-            "w-full flex items-start gap-3 px-4 py-3 rounded-xl text-left transition-all",
+            "w-full flex items-start gap-3 px-4 py-3 rounded-xl text-start transition-all",
             "bg-white/80 dark:bg-card/80 backdrop-blur-sm border border-border/50 dark:border-border/50",
             "hover:bg-muted/80 dark:hover:bg-gray-700/80 shadow-sm"
           )}
@@ -419,7 +419,7 @@ const InlineActivity: React.FC<{
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-2 ml-4 pl-4 border-l-2 border-border/50 dark:border-border/50 space-y-2 max-h-72 overflow-y-auto"
+              className="mt-2 ms-4 ps-4 border-s-2 border-border/50 dark:border-border/50 space-y-2 max-h-72 overflow-y-auto"
             >
               {activities.slice(1).map((activity) => {
                 const actConfig = activityTypeConfig[activity.type];
@@ -1016,7 +1016,7 @@ export default function TenderAICopilot() {
           description: t('copilot.publishedDesc'),
           action: (
             <ToastAction altText={t('copilot.copyInvitationLink')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('copilot.linkCopied') }); }}>
-              <Copy className="h-3 w-3 mr-1" /> {t('copilot.copyLink')}
+              <Copy className="h-3 w-3 me-1" /> {t('copilot.copyLink')}
             </ToastAction>
           ),
           duration: 10000,
@@ -1145,7 +1145,7 @@ export default function TenderAICopilot() {
               onClick={handleReset}
               className="text-muted-foreground hover:text-muted-foreground"
             >
-              <RotateCcw className="h-4 w-4 mr-1" />
+              <RotateCcw className="h-4 w-4 me-1" />
               {t('copilot.startOver')}
             </Button>
           )}
@@ -1245,7 +1245,7 @@ export default function TenderAICopilot() {
                       >
                         <action.icon className="h-5 w-5" />
                         <span className="font-medium text-sm">{t(`copilot.${action.key}Label`)}</span>
-                        <ArrowRight className="h-4 w-4 ml-auto opacity-50" />
+                        <ArrowRight className="h-4 w-4 ms-auto opacity-50" />
                       </motion.button>
                     ))}
                   </motion.div>
@@ -1362,7 +1362,7 @@ export default function TenderAICopilot() {
                           {message.isStreaming && (
                             <motion.span
                               aria-hidden="true"
-                              className="inline-block w-0.5 h-4 bg-[#FE3C01] ml-0.5"
+                              className="inline-block w-0.5 h-4 bg-[#FE3C01] ms-0.5"
                               animate={{ opacity: [1, 0, 1] }}
                               transition={{ duration: 0.8, repeat: Infinity }}
                             />
@@ -1448,9 +1448,10 @@ export default function TenderAICopilot() {
                     >
                       <Shield className="h-3.5 w-3.5" />
                       <span>
-                        {tenderDraft.vendorRequirements.filter((r: any) => r.type === 'mandatory').length} mandatory
-                        {' · '}
-                        {tenderDraft.vendorRequirements.filter((r: any) => r.type === 'preferred').length} preferred vendor requirements detected
+                        {t('copilot.vendorRequirementsDetected', {
+                          mandatory: tenderDraft.vendorRequirements.filter((r: any) => r.type === 'mandatory').length,
+                          preferred: tenderDraft.vendorRequirements.filter((r: any) => r.type === 'preferred').length,
+                        })}
                       </span>
                     </div>
                   )}
@@ -1496,7 +1497,7 @@ export default function TenderAICopilot() {
                         : t('copilot.placeholderActive')
                     }
                     disabled={isLoading}
-                    className="pr-24 h-12 text-[15px] border-border dark:border-border rounded-xl bg-white dark:bg-card focus-visible:ring-[#FE3C01] shadow-sm"
+                    className="pe-24 h-12 text-[15px] border-border dark:border-border rounded-xl bg-white dark:bg-card focus-visible:ring-[#FE3C01] shadow-sm"
                   />
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                     <Button
@@ -1593,7 +1594,7 @@ export default function TenderAICopilot() {
     <Sheet open={isMobile && showPreview && (hasPreviewContent || messages.length > 0)} onOpenChange={(open) => !open && setShowPreview(false)}>
       <SheetContent side="bottom" className="md:hidden h-[85vh] overflow-y-auto rounded-t-2xl px-4 pb-8">
         <SheetHeader className="mb-4">
-          <SheetTitle className="text-left text-sm font-semibold">{t('copilot.previewTitle') || 'Tender Preview'}</SheetTitle>
+          <SheetTitle className="text-start text-sm font-semibold">{t('copilot.previewTitle') || 'Tender Preview'}</SheetTitle>
         </SheetHeader>
         {hasPreviewContent ? (
           <div className="space-y-4">

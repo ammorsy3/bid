@@ -179,7 +179,7 @@ function AudioPlayer({ src }: { src: string }) {
         onClick={togglePlay}
         className="h-10 w-10 rounded-full bg-[#FE3C01] text-white hover:bg-[#d54d35]"
       >
-        {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
+        {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ms-0.5" />}
       </Button>
       <div className="flex-1">
         <div
@@ -1128,7 +1128,7 @@ export default function TenderInviteLink() {
                                     toast({ title: t('tenderFlow.downloadFailed'), description: t('tenderFlow.downloadFailedDesc'), variant: "destructive" });
                                   }
                                 }}
-                                className="w-full flex items-center gap-3 p-4 bg-muted rounded-xl border border-border hover:border-border hover:bg-muted transition-colors group text-left"
+                                className="w-full flex items-center gap-3 p-4 bg-muted rounded-xl border border-border hover:border-border hover:bg-muted transition-colors group text-start"
                               >
                                 {icon}
                                 <div className="flex-1 min-w-0">
@@ -1233,7 +1233,7 @@ export default function TenderInviteLink() {
                                     {tx(`card_label_${cardIdx}`, card.label)}
                                   </span>
                                   {card.isRequired && (
-                                    <span className="ml-auto text-[10px] font-bold text-red-400 uppercase tracking-wider">{t('tenderFlow.requiredBadge')}</span>
+                                    <span className="ms-auto text-[10px] font-bold text-red-400 uppercase tracking-wider">{t('tenderFlow.requiredBadge')}</span>
                                   )}
                                 </div>
                                 <div className="px-4 py-3 bg-card">
@@ -1307,7 +1307,7 @@ export default function TenderInviteLink() {
                                       <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${CATEGORY_DOT_COLORS[i % CATEGORY_DOT_COLORS.length]}`} />
                                       <span className="text-sm text-muted-foreground">
                                         {catInfo?.name || w.categoryId}
-                                        <span className={`font-bold ml-1.5 ${CATEGORY_TEXT_COLORS[i % CATEGORY_TEXT_COLORS.length]}`}>{w.weight}%</span>
+                                        <span className={`font-bold ms-1.5 ${CATEGORY_TEXT_COLORS[i % CATEGORY_TEXT_COLORS.length]}`}>{w.weight}%</span>
                                       </span>
                                     </div>
                                   );
@@ -1319,7 +1319,7 @@ export default function TenderInviteLink() {
                                       <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${CATEGORY_DOT_COLORS[i % CATEGORY_DOT_COLORS.length]}`} />
                                       <span className="text-sm text-muted-foreground">
                                         {c.text}
-                                        <span className={`font-bold ml-1.5 ${CATEGORY_TEXT_COLORS[i % CATEGORY_TEXT_COLORS.length]}`}>{c.weight}%</span>
+                                        <span className={`font-bold ms-1.5 ${CATEGORY_TEXT_COLORS[i % CATEGORY_TEXT_COLORS.length]}`}>{c.weight}%</span>
                                       </span>
                                     </div>
                                   );
@@ -1339,7 +1339,7 @@ export default function TenderInviteLink() {
                                     <button
                                       type="button"
                                       onClick={() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] }))}
-                                      className="w-full flex items-center gap-3 px-5 py-4 bg-muted hover:bg-muted/80 transition-colors text-left"
+                                      className="w-full flex items-center gap-3 px-5 py-4 bg-muted hover:bg-muted/80 transition-colors text-start"
                                     >
                                       <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 flex-shrink-0 ${isExpanded ? 'rotate-90' : ''}`} />
                                       <div className="flex-1 min-w-0">
@@ -1470,7 +1470,7 @@ export default function TenderInviteLink() {
                               </div>
                               <span className={`text-sm font-bold ${isDeadlinePassed ? 'text-red-600' : isDeadlineToday ? 'text-orange-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-foreground'}`}>
                                 {formatDate(tender.deadline)}
-                                {deadlineSubtext() && <span className="ml-2 font-normal text-xs">({deadlineSubtext()})</span>}
+                                {deadlineSubtext() && <span className="ms-2 font-normal text-xs">({deadlineSubtext()})</span>}
                               </span>
                             </div>
                           </div>
@@ -1695,7 +1695,7 @@ export default function TenderInviteLink() {
                     disabled={isDeadlinePassed}
                     data-testid="button-submit-offer"
                   >
-                    <Send className="h-4 w-4 mr-2" />
+                    <Send className="h-4 w-4 me-2" />
                     {t('tenderFlow.submitProposal')}
                   </Button>
                   {!user && (
@@ -1744,7 +1744,7 @@ export default function TenderInviteLink() {
                           {remainingReqCount > 0 && (
                             <button
                               onClick={() => scrollToSection('submission')}
-                              className="text-xs text-[#FE3C01] hover:underline pl-6"
+                              className="text-xs text-[#FE3C01] hover:underline ps-6"
                             >
                               +{remainingReqCount} {remainingReqCount !== 1 ? t('tenderFlow.moreRequirements') : t('tenderFlow.moreRequirement')} →
                             </button>
@@ -1803,7 +1803,7 @@ export default function TenderInviteLink() {
                           </div>
                         </div>
                         {qa.answer ? (
-                          <div className="mt-3 ml-10 p-3 bg-[var(--state-won)]/5 rounded-xl border border-emerald-100">
+                          <div className="mt-3 ms-10 p-3 bg-[var(--state-won)]/5 rounded-xl border border-emerald-100">
                             <p className="text-sm text-muted-foreground">{qa.answer}</p>
                             {qa.answeredAt && (
                               <p className="text-xs text-[var(--state-won)] mt-1 font-medium">
@@ -1812,7 +1812,7 @@ export default function TenderInviteLink() {
                             )}
                           </div>
                         ) : (
-                          <div className="mt-3 ml-10">
+                          <div className="mt-3 ms-10">
                             <span className="text-xs text-gray-400 italic">{t('tenderFlow.awaitingResponse')}</span>
                           </div>
                         )}
@@ -1849,7 +1849,7 @@ export default function TenderInviteLink() {
                       disabled={askQuestion.isPending || !newQuestion.trim()}
                       data-testid="button-ask"
                     >
-                      {askQuestion.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+                      {askQuestion.isPending ? <Loader2 className="h-4 w-4 animate-spin me-2" /> : <Send className="h-4 w-4 me-2" />}
                       {t('tenderFlow.submitQuestion')}
                     </Button>
                   </div>
@@ -1890,7 +1890,7 @@ export default function TenderInviteLink() {
           disabled={isDeadlinePassed}
           data-testid="button-submit-offer-mobile"
         >
-          <Send className="h-5 w-5 mr-2" />
+          <Send className="h-5 w-5 me-2" />
           {t('tenderFlow.submitProposal')}
         </Button>
       </div>

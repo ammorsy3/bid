@@ -181,11 +181,11 @@ const modalStrings: Record<string, Record<string, string>> = {
     pressToSubmit: "اضغط",
     toSubmit: "للتقديم",
     toClose: "للإغلاق",
-    unsavedDraft: "لديك مسودة غير محفوظة من قبل",
+    unsavedDraft: "عندك مسودة غير محفوظة",
     discard: "تجاهل",
     loadDraft: "تحميل المسودة",
-    alreadySubmitted: "تم التقديم مسبقاً",
-    alreadySubmittedDesc: "تم تقديم عرضك لهذا المناقصة بالفعل. لا يمكنك تقديم عروض متعددة لنفس المناقصة.",
+    alreadySubmitted: "قدّمت عرضك من قبل",
+    alreadySubmittedDesc: "سبق وقدّمت عرضك لهذه المناقصة، وما تقدر تقدّم أكثر من عرض على المناقصة نفسها.",
     close: "إغلاق",
     submissionType: "نوع التقديم:",
     videoRequired: "(الفيديو مطلوب)",
@@ -197,8 +197,8 @@ const modalStrings: Record<string, Record<string, string>> = {
     tenderBudget: "ميزانية المناقصة:",
     priceCompetitively: "قدّم سعراً تنافسياً",
     verificationRequired: "التحقق مطلوب",
-    completePreQual: "أكمل التأهيل المسبق لتقديم العروض.",
-    completeProfile: "تحقّق الآن",
+    completePreQual: "أكمل ملف شركتك وتوثيقها قبل تقديم العروض.",
+    completeProfile: "أكمل التوثيق",
     viewDashboard: "عرض لوحة التحكم",
     errorTitle: "خطأ",
     failedToSubmit: "فشل تقديم العرض",
@@ -214,7 +214,7 @@ const modalStrings: Record<string, Record<string, string>> = {
     separateFiles: "ملفات منفصلة",
     separateFilesDesc: "رفع العرض الفني والمالي بشكل منفصل",
     combinedLabel: "العرض المدمج (فني + مالي) *",
-    uploadCombined: "ارفع العرض المدمج",
+    uploadCombined: "ارفع العرض الكامل",
     combinedHint: "ملف واحد يحتوي على القسمين الفني والمالي \u2022 PDF, DOC, DOCX \u2022 حد أقصى 50 ميغابايت",
     technicalLabel: "العرض الفني *",
     uploadTechnical: "ارفع العرض الفني",
@@ -231,9 +231,9 @@ const modalStrings: Record<string, Record<string, string>> = {
     uploadFormat: "صيغة الرفع:",
     singleCombined: "ملف واحد مدمج",
     separateTechFin: "ملفات فنية ومالية منفصلة",
-    warning: "بعد التقديم، لا يمكنك تعديل عرضك. يرجى مراجعة جميع المستندات بعناية.",
+    warning: "بعد التقديم ما تقدر تعدّل عرضك، فتأكد من السعر والمستندات قبل الإرسال.",
     cancel: "إلغاء",
-    submitting: "جاري التقديم...",
+    submitting: "جاري إرسال العرض...",
     submitProposalBtn: "تقديم العرض",
     draftLoaded: "تم تحميل المسودة",
     draftLoadedDesc: "تم استعادة عملك السابق",
@@ -242,8 +242,8 @@ const modalStrings: Record<string, Record<string, string>> = {
     uploadedTech: "تم رفع العرض الفني بنجاح",
     uploadedFin: "تم رفع العرض المالي بنجاح",
     uploadedCombined: "تم رفع ملف العرض بنجاح",
-    uploaded: "تم الرفع!",
-    success: "تم بنجاح!",
+    uploaded: "تم الرفع",
+    success: "تم",
     offerSubmitted: "تم تقديم العرض بنجاح",
   },
 };
@@ -537,8 +537,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className={`max-w-3xl max-h-[90vh] overflow-y-auto ${isRtl ? 'text-right' : ''}`} dir={isRtl ? 'rtl' : 'ltr'}>
         <DialogHeader>
-          <div className={`flex items-center justify-between ${isRtl ? 'flex-row-reverse' : ''}`}>
-            <DialogTitle className={`font-display font-black text-2xl text-foreground flex items-center gap-2 tracking-[-0.03em] ${isRtl ? 'flex-row-reverse' : ''}`}>
+          <div className={`flex items-center justify-between`}>
+            <DialogTitle className={`font-display font-black text-2xl text-foreground flex items-center gap-2 tracking-[-0.03em]`}>
               <ClipboardList className="h-6 w-6 text-[#FE3C01]" />
               {s('submitProposal')}
             </DialogTitle>
@@ -550,7 +550,9 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               language={language}
             />
           </div>
-          <p className="text-muted-foreground mt-2">{tender.title} - {requester.company || requester.name}</p>
+          <p className="text-muted-foreground mt-2">
+            <bdi>{tender.title}</bdi> <span aria-hidden="true">·</span> <bdi>{requester.company || requester.name}</bdi>
+          </p>
           <p className="text-sm text-muted-foreground mt-1">
             {s('pressToSubmit')} <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs">Ctrl+Enter</kbd> {s('toSubmit')} • <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs">Esc</kbd> {s('toClose')}
           </p>
@@ -605,7 +607,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                   <strong className="text-blue-900 dark:text-blue-200">{s('submissionType')}</strong>{' '}
                   <span className="text-blue-800 dark:text-blue-300">{stLabel(tender.submissionType)}</span>
                   {tender.videoRequired && tender.submissionType === 'tech_fin_with_video' && (
-                    <span className={`text-orange-600 ${isRtl ? 'mr-2' : 'ml-2'}`}>{s('videoRequired')}</span>
+                    <span className="text-orange-600 ms-2">{s('videoRequired')}</span>
                   )}
                 </AlertDescription>
               </Alert>
@@ -696,7 +698,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                         <input
                           type="number"
                           placeholder={s('enterPrice')}
-                          className={`w-full ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 bg-background text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
+                          className="w-full ps-10 pe-4 py-3 bg-background text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           dir="ltr"
                           value={field.value ?? ''}
                           onChange={(e) => {
@@ -734,7 +736,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                           type="url"
                           placeholder={s('videoPlaceholder')}
                           dir="ltr"
-                          className={`w-full ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 bg-background text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
+                          className="w-full ps-10 pe-4 py-3 bg-background text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           data-testid="input-video-url"
                           {...field}
                         />
@@ -757,7 +759,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                     <button
                       type="button"
                       onClick={() => handleUploadModeChange('combined')}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
+                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-start ${
                         uploadMode === 'combined'
                           ? 'border-[#FE3C01] bg-[#FE3C01]/5'
                           : 'border-border hover:border-border'
@@ -774,7 +776,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                     <button
                       type="button"
                       onClick={() => handleUploadModeChange('separate')}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
+                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-start ${
                         uploadMode === 'separate'
                           ? 'border-[#FE3C01] bg-[#FE3C01]/5'
                           : 'border-border hover:border-border'
@@ -967,7 +969,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                   <ShieldAlert className="h-4 w-4 text-orange-600 flex-shrink-0" />
                   <p className="text-sm font-medium text-orange-800 dark:text-orange-300">
                     {language === 'ar'
-                      ? 'يجب عليك تأكيد استيفاء المتطلبات الإلزامية التالية قبل التقديم:'
+                      ? 'أكد استيفاء المتطلبات الإلزامية التالية قبل التقديم:'
                       : 'You must confirm you meet the following mandatory requirements before submitting:'}
                   </p>
                 </div>

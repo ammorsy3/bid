@@ -37,7 +37,6 @@ export function PageHeader({
     <div
       className={cn(
         "flex items-end justify-between gap-6",
-        isRtl && "flex-row-reverse",
         className,
       )}
     >

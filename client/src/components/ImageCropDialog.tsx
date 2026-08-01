@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2, RotateCcw, Sun, Contrast, Droplets } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 // ═══════════════════════════════════════════════════════════════════
 // Types
@@ -138,6 +139,7 @@ export default function ImageCropDialog({
   onComplete,
   saving = false,
 }: ImageCropDialogProps) {
+  const { t } = useI18n();
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -195,7 +197,7 @@ export default function ImageCropDialog({
         <div className="px-5 py-4 space-y-3 border-t border-border">
           {/* Zoom */}
           <div className="flex items-center gap-3">
-            <Label className="text-xs text-muted-foreground w-16 flex-shrink-0">Zoom</Label>
+            <Label className="text-xs text-muted-foreground w-16 flex-shrink-0">{t('common.zoom')}</Label>
             <input
               type="range"
               min={1}
@@ -210,25 +212,25 @@ export default function ImageCropDialog({
 
           {/* Filters */}
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Filters</span>
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{t('common.filters')}</span>
             <button
               onClick={resetFilters}
               className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-muted-foreground transition-colors"
             >
-              <RotateCcw className="h-3 w-3" /> Reset
+              <RotateCcw className="h-3 w-3" /> {t('common.reset')}
             </button>
           </div>
-          <FilterSlider icon={Sun} label="Brightness" value={filters.brightness} min={20} max={200} step={5} onChange={(v) => updateFilter('brightness', v)} />
-          <FilterSlider icon={Contrast} label="Contrast" value={filters.contrast} min={20} max={200} step={5} onChange={(v) => updateFilter('contrast', v)} />
-          <FilterSlider icon={Droplets} label="Blur" value={filters.blur} min={0} max={10} step={0.5} onChange={(v) => updateFilter('blur', v)} />
+          <FilterSlider icon={Sun} label={t('common.brightness')} value={filters.brightness} min={20} max={200} step={5} onChange={(v) => updateFilter('brightness', v)} />
+          <FilterSlider icon={Contrast} label={t('common.contrast')} value={filters.contrast} min={20} max={200} step={5} onChange={(v) => updateFilter('contrast', v)} />
+          <FilterSlider icon={Droplets} label={t('common.blur')} value={filters.blur} min={0} max={10} step={0.5} onChange={(v) => updateFilter('blur', v)} />
         </div>
 
         <DialogFooter className="px-5 pb-5 pt-2">
           <Button variant="outline" onClick={onClose} disabled={saving}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleApply} disabled={saving || !croppedAreaPixels}>
-            {saving ? <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Saving...</> : 'Apply'}
+            {saving ? <><Loader2 className="h-4 w-4 me-1.5 animate-spin" /> {t('common.saving')}</> : t('common.apply')}
           </Button>
         </DialogFooter>
       </DialogContent>

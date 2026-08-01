@@ -854,7 +854,7 @@ export default function CompanyProfileEditor() {
                   key={s.id}
                   onClick={() => changeSection(s.id)}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-left mb-0.5",
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-start mb-0.5",
                     active
                       ? "bg-[#FE3C01]/10 text-[#FE3C01]"
                       : "hover:bg-muted dark:hover:bg-gray-700 text-muted-foreground dark:text-muted-foreground"
@@ -905,7 +905,7 @@ export default function CompanyProfileEditor() {
               <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                 <SaveStatus status={saveStatus} savedAgoLabel={savedAgoLabel} t={t} />
                 <Button variant="outline" size="sm" onClick={openPreview} className="h-9">
-                  <Eye className="h-3.5 w-3.5 sm:mr-1.5" />
+                  <Eye className="h-3.5 w-3.5 sm:me-1.5" />
                   <span className="hidden sm:inline">{t('companyProfileEditor.preview')}</span>
                 </Button>
               </div>
@@ -967,7 +967,7 @@ export default function CompanyProfileEditor() {
                               onClick={() => handleEditExisting('logo')}
                               disabled={uploadLogoMutation.isPending}
                             >
-                              <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
+                              <ImageIcon className="h-3.5 w-3.5 me-1.5" />
                               {t('companyProfileEditor.editCrop')}
                             </Button>
                           )}
@@ -984,7 +984,7 @@ export default function CompanyProfileEditor() {
                             />
                             <Button type="button" variant="outline" size="sm" asChild>
                               <span className="cursor-pointer">
-                                <Upload className="h-3.5 w-3.5 mr-1.5" />
+                                <Upload className="h-3.5 w-3.5 me-1.5" />
                                 {uploadLogoMutation.isPending ? t('companyProfileEditor.uploading') : currentLogoUrl ? t('companyProfileEditor.replace') : t('companyProfileEditor.uploadLogo')}
                               </span>
                             </Button>
@@ -1144,9 +1144,9 @@ export default function CompanyProfileEditor() {
                       {editState.industriesServed.length > 0 && (
                         <div className="flex gap-1.5 flex-wrap">
                           {editState.industriesServed.map((ind, i) => (
-                            <Badge key={i} variant="secondary" className="gap-1 pl-2.5">
+                            <Badge key={i} variant="secondary" className="gap-1 ps-2.5">
                               {ind}
-                              <button onClick={() => removeIndustry(i)} aria-label={`Remove ${ind}`} className="ml-0.5 hover:text-red-500"><X className="h-3 w-3" /></button>
+                              <button onClick={() => removeIndustry(i)} aria-label={`Remove ${ind}`} className="ms-0.5 hover:text-red-500"><X className="h-3 w-3" /></button>
                             </Badge>
                           ))}
                         </div>
@@ -1178,10 +1178,10 @@ export default function CompanyProfileEditor() {
                       {editState.serviceAreas.length > 0 && (
                         <div className="flex gap-1.5 flex-wrap">
                           {editState.serviceAreas.map((area, i) => (
-                            <Badge key={i} variant="secondary" className="gap-1 pl-2">
+                            <Badge key={i} variant="secondary" className="gap-1 ps-2">
                               <MapPin className="h-3 w-3" />
                               {area}
-                              <button onClick={() => removeServiceArea(i)} aria-label={`Remove ${area}`} className="ml-0.5 hover:text-red-500"><X className="h-3 w-3" /></button>
+                              <button onClick={() => removeServiceArea(i)} aria-label={`Remove ${area}`} className="ms-0.5 hover:text-red-500"><X className="h-3 w-3" /></button>
                             </Badge>
                           ))}
                         </div>
@@ -1251,9 +1251,9 @@ export default function CompanyProfileEditor() {
                       {editState.tags.length > 0 && (
                         <div className="flex gap-1.5 flex-wrap">
                           {editState.tags.map((tag, i) => (
-                            <Badge key={i} variant="secondary" className="gap-1 pl-2.5">
+                            <Badge key={i} variant="secondary" className="gap-1 ps-2.5">
                               {tag}
-                              <button onClick={() => removeTag(i)} aria-label={`Remove ${tag}`} className="ml-0.5 hover:text-red-500"><X className="h-3 w-3" /></button>
+                              <button onClick={() => removeTag(i)} aria-label={`Remove ${tag}`} className="ms-0.5 hover:text-red-500"><X className="h-3 w-3" /></button>
                             </Badge>
                           ))}
                         </div>
@@ -1534,7 +1534,7 @@ export default function CompanyProfileEditor() {
                             disabled={!newCert.name.trim()}
                             className="w-full"
                           >
-                            <Plus className="h-4 w-4 mr-1.5" /> {t('companyProfileEditor.addCertification')}
+                            <Plus className="h-4 w-4 me-1.5" /> {t('companyProfileEditor.addCertification')}
                           </Button>
                         </div>
                       )}
@@ -1662,7 +1662,7 @@ export default function CompanyProfileEditor() {
                             disabled={!newInsurance.provider.trim()}
                             className="w-full"
                           >
-                            <Plus className="h-4 w-4 mr-1.5" /> {t('companyProfileEditor.addPolicy')}
+                            <Plus className="h-4 w-4 me-1.5" /> {t('companyProfileEditor.addPolicy')}
                           </Button>
                         </div>
                       )}
@@ -1696,7 +1696,7 @@ export default function CompanyProfileEditor() {
                               disabled={uploadHeaderMutation.isPending}
                               className="bg-card/10 border-white/40 text-white hover:bg-card/20 hover:text-white"
                             >
-                              <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
+                              <ImageIcon className="h-3.5 w-3.5 me-1.5" />
                               {t('companyProfileEditor.editCrop')}
                             </Button>
                             <label>
@@ -1712,7 +1712,7 @@ export default function CompanyProfileEditor() {
                               />
                               <Button type="button" variant="outline" size="sm" asChild className="bg-card/10 border-white/40 text-white hover:bg-card/20 hover:text-white">
                                 <span className="cursor-pointer">
-                                  <Upload className="h-3.5 w-3.5 mr-1.5" />
+                                  <Upload className="h-3.5 w-3.5 me-1.5" />
                                   {uploadHeaderMutation.isPending ? t('companyProfileEditor.uploading') : t('companyProfileEditor.replace')}
                                 </span>
                               </Button>
@@ -1862,16 +1862,16 @@ function DatePickerField({ value, onChange, placeholder }: { value: string; onCh
         <Button
           type="button"
           variant="outline"
-          className={cn("w-full justify-start text-left font-normal", !isValid && "text-muted-foreground")}
+          className={cn("w-full justify-start text-start font-normal", !isValid && "text-muted-foreground")}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
+          <CalendarIcon className="me-2 h-4 w-4" />
           {isValid ? format(dateValue!, "PPP") : <span>{ph}</span>}
           {isValid && (
             <span
               role="button"
               aria-label={t('companyProfileEditor.clearDate')}
               onClick={(e) => { e.stopPropagation(); e.preventDefault(); onChange(''); }}
-              className="ml-auto text-muted-foreground hover:text-foreground"
+              className="ms-auto text-muted-foreground hover:text-foreground"
             >
               <X className="h-3.5 w-3.5" />
             </span>

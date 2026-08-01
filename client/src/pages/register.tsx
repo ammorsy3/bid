@@ -234,7 +234,7 @@ export default function Register() {
                               data-testid="input-password"
                               type={showPassword ? "text" : "password"}
                               placeholder={t('auth.passwordCreatePlaceholder')}
-                              className="bg-card pr-10"
+                              className="bg-card pe-10"
                               {...field}
                               onFocus={() => setPasswordFocused(true)}
                               onBlur={(e) => { field.onBlur(); setPasswordFocused(false); }}
@@ -305,7 +305,7 @@ export default function Register() {
                               data-testid="input-confirm-password"
                               type={showConfirm ? "text" : "password"}
                               placeholder={t('authPanel.reenterPassword')}
-                              className="bg-card pr-10"
+                              className="bg-card pe-10"
                               {...field}
                             />
                             <button
@@ -340,10 +340,10 @@ export default function Register() {
                   </Link>
                 </p>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  By creating an account you agree to our{" "}
-                  <Link href="/terms" className="underline hover:text-foreground" data-testid="link-terms">Terms of Service</Link>
-                  {" "}and{" "}
-                  <Link href="/privacy" className="underline hover:text-foreground" data-testid="link-privacy">Privacy Policy</Link>.
+                  {t('auth.accountAgreementPrefix')}{" "}
+                  <Link href="/terms" className="underline hover:text-foreground" data-testid="link-terms">{t('terms.pageTitle')}</Link>
+                  {" "}{t('auth.accountAgreementAnd')}{" "}
+                  <Link href="/privacy" className="underline hover:text-foreground" data-testid="link-privacy">{t('privacy.pageTitle')}</Link>.
                 </p>
               </div>
             </div>

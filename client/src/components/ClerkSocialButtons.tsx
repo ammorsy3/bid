@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { HAS_CLERK } from "@/lib/clerkConfig";
 import { SiGoogle, SiLinkedin, SiSlack } from "react-icons/si";
+import { useI18n } from "@/lib/i18n";
 
 type Provider = "oauth_google" | "oauth_linkedin_oidc" | "oauth_slack";
 
@@ -34,6 +35,7 @@ function ClerkSocialButtonsInner({ mode = "signin", redirectPath = "/auth/clerk-
   const { isSignedIn } = useAuth();
   const { signOut } = useClerk();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [busy, setBusy] = useState<Provider | null>(null);
 
   const isLoaded = mode === "signup" ? signUpLoaded : signInLoaded;
@@ -72,8 +74,8 @@ function ClerkSocialButtonsInner({ mode = "signin", redirectPath = "/auth/clerk-
     } catch (err: any) {
       console.error("[Clerk] OAuth error:", err);
       toast({
-        title: mode === "signup" ? "Sign-up failed" : "Sign-in failed",
-        description: err?.errors?.[0]?.longMessage || err?.message || "Please try again.",
+        title: mode === "signup" ? t('auth.socialSignUpFailed') : t('auth.socialSignInFailed'),
+        description: err?.errors?.[0]?.longMessage || err?.message || t('auth.tryAgain'),
         variant: "destructive",
       });
       setBusy(null);
@@ -81,15 +83,15 @@ function ClerkSocialButtonsInner({ mode = "signin", redirectPath = "/auth/clerk-
   };
 
   const labels: Record<Provider, string> = {
-    oauth_google: "Continue with Google",
-    oauth_linkedin_oidc: "Continue with LinkedIn",
-    oauth_slack: "Continue with Slack",
+    oauth_google: t('auth.continueWithGoogle'),
+    oauth_linkedin_oidc: t('auth.continueWithLinkedIn'),
+    oauth_slack: t('auth.continueWithSlack'),
   };
 
   const busyLabels: Record<Provider, string> = {
-    oauth_google: "Connecting…",
-    oauth_linkedin_oidc: "Connecting…",
-    oauth_slack: "Connecting…",
+    oauth_google: t('auth.connecting'),
+    oauth_linkedin_oidc: t('auth.connecting'),
+    oauth_slack: t('auth.connecting'),
   };
 
   return (
@@ -99,7 +101,7 @@ function ClerkSocialButtonsInner({ mode = "signin", redirectPath = "/auth/clerk-
           <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 text-muted-foreground">or</span>
+          <span className="bg-card px-2 text-muted-foreground">{t('auth.or')}</span>
         </div>
       </div>
 

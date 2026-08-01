@@ -46,7 +46,7 @@ function saveDraft(data: Partial<CompanyProfileForm>) {
 export default function CompanyProfile() {
   const [, setLocation] = useLocation();
   const { user } = useAuthStore();
-  const { t } = useI18n();
+  const { t, isRtl } = useI18n();
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
 
   const draft = getDraft();
@@ -157,7 +157,7 @@ export default function CompanyProfile() {
                           {logoPreviewUrl ? (
                             <img
                               src={logoPreviewUrl}
-                              alt="Company logo"
+                              alt={t('onboarding.companyLogoLabel')}
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -178,10 +178,10 @@ export default function CompanyProfile() {
                           >
                             <div className="flex items-center gap-2">
                               <Upload className="h-4 w-4" />
-                              <span>{logoPreviewUrl ? "Change Logo" : "Upload Logo"}</span>
+                              <span>{logoPreviewUrl ? t('onboardingPanel.replaceBtn') : t('companyProfileEditor.uploadLogo')}</span>
                             </div>
                           </ObjectUploader>
-                          <p className="text-xs text-neutral-400">JPG or PNG, max 10MB</p>
+                          <p className="text-xs text-neutral-400">{t('onboardingPanel.logoFileHint')}</p>
                         </div>
                       </div>
                     </FormControl>
@@ -251,8 +251,8 @@ export default function CompanyProfile() {
                   variant="ghost"
                   onClick={() => setLocation("/onboarding/company-documents")}
                 >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  <ArrowLeft className={`me-2 h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
+                  {t('onboardingPanel.backBtn')}
                 </Button>
                 <div className="flex items-center gap-3">
                   <button
@@ -260,11 +260,11 @@ export default function CompanyProfile() {
                     onClick={handleSkip}
                     className="text-sm text-neutral-400 hover:text-muted-foreground transition-colors"
                   >
-                    Skip for now
+                    {t('onboardingPanel.skipForNow')}
                   </button>
                   <Button type="submit" size="lg" className="bg-[#FE3C01] hover:bg-[#E83501]">
-                    Next
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    {t('onboardingPanel.nextBtn')}
+                    <ArrowRight className={`ms-2 h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
                   </Button>
                 </div>
               </div>

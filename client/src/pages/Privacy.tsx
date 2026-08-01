@@ -30,7 +30,7 @@ export default function Privacy() {
 
           <div>
             <h2 className="text-lg font-semibold mb-2">{t('privacy.s2Title')}</h2>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
+            <ul className="list-disc ps-6 mt-2 space-y-1">
               <li><strong>{t('privacy.s2Li1Strong')}</strong> {t('privacy.s2Li1')}</li>
               <li><strong>{t('privacy.s2Li2Strong')}</strong> {t('privacy.s2Li2')}</li>
               <li><strong>{t('privacy.s2Li3Strong')}</strong> {t('privacy.s2Li3')}</li>
@@ -41,7 +41,7 @@ export default function Privacy() {
 
           <div>
             <h2 className="text-lg font-semibold mb-2">{t('privacy.s3Title')}</h2>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
+            <ul className="list-disc ps-6 mt-2 space-y-1">
               <li>{t('privacy.s3Li1')}</li>
               <li>{t('privacy.s3Li2')}</li>
               <li>{t('privacy.s3Li3')}</li>
@@ -53,7 +53,7 @@ export default function Privacy() {
           <div>
             <h2 className="text-lg font-semibold mb-2">{t('privacy.s4Title')}</h2>
             <p>{t('privacy.s4Intro')}</p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
+            <ul className="list-disc ps-6 mt-2 space-y-1">
               <li><strong>{t('privacy.s4Li1Strong')}</strong> {t('privacy.s4Li1')}</li>
               <li><strong>{t('privacy.s4Li2Strong')}</strong> {t('privacy.s4Li2')}</li>
               <li><strong>{t('privacy.s4Li3Strong')}</strong> {t('privacy.s4Li3')}</li>

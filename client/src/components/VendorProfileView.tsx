@@ -6,6 +6,7 @@ import { SiLinkedin } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
 import { StatusBadge } from "@/components/brand/StatusDot";
 import { verificationStatusToState } from "@/components/brand/statusMap";
+import { useI18n } from "@/lib/i18n";
 
 interface VendorProfile {
   id: string;
@@ -27,18 +28,19 @@ interface VendorProfileViewProps {
 }
 
 export default function VendorProfileView({ profile, compact = false }: VendorProfileViewProps) {
+  const { t } = useI18n();
   const getStatusBadge = () => {
     const labelMap: Record<string, string> = {
-      verified: "Verified",
-      under_review: "Under Review",
-      rejected: "Rejected",
-      not_verified: "Not Verified",
+      verified: t('dashboard.verifiedStatus'),
+      under_review: t('dashboard.underReviewStatus'),
+      rejected: t('dashboard.rejected'),
+      not_verified: t('dashboard.notVerifiedStatus'),
     };
     const status = profile.verificationStatus ?? "not_verified";
     return (
       <StatusBadge
         state={verificationStatusToState(status)}
-        label={labelMap[status] ?? "Not Verified"}
+        label={labelMap[status] ?? t('dashboard.notVerifiedStatus')}
         data-testid={`status-${status.replace(/_/g, "-")}`}
       />
     );
@@ -160,7 +162,7 @@ export default function VendorProfileView({ profile, compact = false }: VendorPr
         {/* About Section */}
         {profile.bio && (
           <div className="mb-8">
-            <h3 className="text-sm font-semibold text-foreground mb-3 uppercase tracking-wide">About</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3 uppercase tracking-wide">{t('companyProfile.sectionAbout')}</h3>
             <p className="text-muted-foreground leading-relaxed" data-testid="text-bio">
               {profile.bio}
             </p>
@@ -176,9 +178,9 @@ export default function VendorProfileView({ profile, compact = false }: VendorPr
               onClick={() => window.open(profile.profileFileUrl, '_blank')}
               data-testid="button-view-brochure"
             >
-              <FileText className="h-4 w-4 mr-2" />
-              View Company Profile
-              <ExternalLink className="h-4 w-4 ml-2" />
+              <FileText className="h-4 w-4 me-2" />
+              {t('companyProfile.viewCompanyProfile')}
+              <ExternalLink className="h-4 w-4 ms-2" />
             </Button>
           </div>
         )}
@@ -186,7 +188,7 @@ export default function VendorProfileView({ profile, compact = false }: VendorPr
         {/* Social Links - Icon based */}
         {(profile.linkedinUrl || profile.xUrl || profile.websiteUrl) && (
           <div>
-            <h3 className="text-sm font-semibold text-foreground mb-3 uppercase tracking-wide">Connect</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3 uppercase tracking-wide">{t('companyProfile.sectionConnect')}</h3>
             <div className="flex gap-2 flex-wrap">
               {profile.linkedinUrl && (
                 <Button
@@ -221,7 +223,7 @@ export default function VendorProfileView({ profile, compact = false }: VendorPr
                   className="h-10 w-10 rounded-full hover:bg-primary-50 hover:border-primary-600 hover:text-primary-600 transition-all"
                   onClick={() => window.open(profile.websiteUrl, '_blank')}
                   data-testid="link-website"
-                  title="Website"
+                  title={t('companyProfile.socialWebsite')}
                 >
                   <Globe className="h-5 w-5" />
                 </Button>

@@ -29,7 +29,6 @@ import TeamBasics from "@/pages/onboarding/team-basics";
 import TeamInviteOnboarding from "@/pages/onboarding/team-invite";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminVendors from "@/pages/AdminVendors";
-import AdminFreelancers from "@/pages/AdminFreelancers";
 import TenderDetails from "@/pages/tender-details";
 import TenderEditPage from "@/pages/TenderEditPage";
 import TenderCreateChoice from "@/pages/TenderCreateChoice";
@@ -156,7 +155,6 @@ export default function App() {
               <Route path="/admin/dashboard" component={AdminDashboard} />
               <Route path="/admin/notifications" component={AdminNotifications} />
               <Route path="/admin/vendors" component={AdminVendors} />
-              <Route path="/admin/freelancers" component={AdminFreelancers} />
               <Route path="/tenders/new" component={TenderCreateChoice} />
               <Route path="/tenders/new/ai">{() => <RequireVerified><TenderAICopilot /></RequireVerified>}</Route>
               <Route path="/tenders/new/manual">{() => <RequireVerified><TenderStartMethodStep /></RequireVerified>}</Route>

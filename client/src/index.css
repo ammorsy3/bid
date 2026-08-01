@@ -501,7 +501,7 @@
 .docs-scope .docs-codeblock-lang {
   position: absolute;
   top: 0.5rem;
-  left: 0.875rem;
+  inset-inline-start: 0.875rem;
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -521,8 +521,8 @@
   font-size: 0.875rem;
   color: var(--docs-fg-muted);
   transition: all 120ms;
-  border-left: 2px solid transparent;
-  margin-left: -2px;
+  border-inline-start: 2px solid transparent;
+  margin-inline-start: -2px;
 }
 
 .docs-nav-link:hover {
@@ -533,7 +533,7 @@
 .docs-nav-link[data-active="true"] {
   color: var(--docs-primary);
   font-weight: 600;
-  border-left-color: var(--docs-primary);
+  border-inline-start-color: var(--docs-primary);
   background: var(--docs-primary-soft);
 }
 
@@ -601,9 +601,9 @@
   padding: 0.25rem 0;
   font-size: 0.8125rem;
   color: var(--docs-fg-muted);
-  border-left: 2px solid transparent;
-  padding-left: 0.75rem;
-  margin-left: -2px;
+  border-inline-start: 2px solid transparent;
+  padding-inline-start: 0.75rem;
+  margin-inline-start: -2px;
   transition: color 120ms, border-color 120ms;
 }
 
@@ -613,7 +613,7 @@
 
 .docs-toc-link[data-active="true"] {
   color: var(--docs-primary);
-  border-left-color: var(--docs-primary);
+  border-inline-start-color: var(--docs-primary);
   font-weight: 500;
 }
 

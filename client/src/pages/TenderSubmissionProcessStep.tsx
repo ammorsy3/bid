@@ -316,12 +316,12 @@ export default function TenderSubmissionProcessStep() {
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full justify-start text-left font-normal h-12 border-2",
+                          "w-full justify-start text-start font-normal h-12 border-2",
                           !submissionDeadline && "text-muted-foreground"
                         )}
                         data-testid="input-submission-deadline"
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        <CalendarIcon className="me-2 h-4 w-4" />
                         {submissionDeadline ? format(submissionDeadline, "PPP", { locale: dateLocale }) : t('tenderFlow.selectSubmissionDeadline')}
                       </Button>
                     </PopoverTrigger>
@@ -348,16 +348,16 @@ export default function TenderSubmissionProcessStep() {
 
                 <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
                   <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                    Who can apply?
+                    {t('tenderFlow.audienceHeading')}
                   </label>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Select which workspace types are eligible to submit offers.
+                    {t('tenderFlow.audienceDesc')}
                   </p>
                   <div className="space-y-2">
                     {([
-                      { value: 'company' as const, label: 'Companies' },
-                      { value: 'team' as const, label: 'Teams' },
-                      { value: 'individual' as const, label: 'Individuals' },
+                      { value: 'company' as const, label: t('tenderFlow.audienceCompanies') },
+                      { value: 'team' as const, label: t('tenderFlow.audienceTeams') },
+                      { value: 'individual' as const, label: t('tenderFlow.audienceIndividuals') },
                     ] as const).map((opt) => (
                       <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -378,7 +378,7 @@ export default function TenderSubmissionProcessStep() {
                     ))}
                   </div>
                   {targetAudienceTypes.length === 0 && (
-                    <p className="text-xs text-red-500">At least one audience type must be selected.</p>
+                    <p className="text-xs text-red-500">{t('tenderFlow.audienceRequired')}</p>
                   )}
                 </div>
 
@@ -402,7 +402,7 @@ export default function TenderSubmissionProcessStep() {
                             setVideoRequired(false);
                           }
                         }}
-                        className={`flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all text-left ${
+                        className={`flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all text-start ${
                           isSelected
                             ? "border-[#FE3C01] bg-[#FE3C01]/5"
                             : "border-border dark:border-border hover:border-border dark:hover:border-gray-600"
@@ -492,7 +492,7 @@ export default function TenderSubmissionProcessStep() {
                             onClick={() => {
                               setInquiryType(option.type);
                             }}
-                            className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all text-left ${
+                            className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all text-start ${
                               isSelected
                                 ? "border-[#FE3C01] bg-[#FE3C01]/5"
                                 : "border-border dark:border-border hover:border-border dark:hover:border-gray-600"
@@ -560,7 +560,7 @@ export default function TenderSubmissionProcessStep() {
                           </div>
 
                           {!useAccountEmail && (
-                            <div className="space-y-2 ml-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div className="space-y-2 ms-6 animate-in fade-in slide-in-from-top-2 duration-300">
                               <input
                                 type="email"
                                 placeholder="custom@email.com"
@@ -624,7 +624,7 @@ export default function TenderSubmissionProcessStep() {
                               <button
                                 type="button"
                                 className={cn(
-                                  "w-full flex items-center gap-2 px-3 py-2 text-sm border rounded-lg bg-white dark:bg-card text-left",
+                                  "w-full flex items-center gap-2 px-3 py-2 text-sm border rounded-lg bg-white dark:bg-card text-start",
                                   inquiryDeadline
                                     ? "border-gray-300 dark:border-gray-600 text-gray-900 dark:text-foreground"
                                     : "border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500"
@@ -676,7 +676,7 @@ export default function TenderSubmissionProcessStep() {
                     data-testid="button-next"
                   >
                     {t('tenderFlow.next')}
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                    <ArrowRight className="h-4 w-4 ms-2" />
                   </Button>
                 </div>
               </div>

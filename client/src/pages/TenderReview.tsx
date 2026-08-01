@@ -399,7 +399,7 @@ export default function TenderReview() {
         description: t('tenderFlow.rfpCreatedSuccess'),
         action: (
           <ToastAction altText={t('tenderFlow.copyInviteLink')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderFlow.linkCopied') }); }}>
-            <Copy className="h-3 w-3 mr-1" /> {t('tenderFlow.copyLink')}
+            <Copy className="h-3 w-3 me-1" /> {t('tenderFlow.copyLink')}
           </ToastAction>
         ),
         duration: 10000,
@@ -600,7 +600,7 @@ export default function TenderReview() {
                     : 'border-gray-200 dark:border-gray-600 text-muted-foreground dark:text-muted-foreground hover:border-gray-300'
                 }`}
               >
-                English
+                {t('companyProfileEditor.langEnglish')}
               </button>
               <button
                 type="button"
@@ -611,7 +611,7 @@ export default function TenderReview() {
                     : 'border-gray-200 dark:border-gray-600 text-muted-foreground dark:text-muted-foreground hover:border-gray-300'
                 }`}
               >
-                العربية
+                {t('companyProfileEditor.langArabic')}
               </button>
             </div>
           </div>
@@ -776,7 +776,7 @@ export default function TenderReview() {
 
                   {/* Value display */}
                   <div
-                    className={`ml-[3.25rem] text-sm leading-relaxed whitespace-pre-wrap ${
+                    className={`ms-[3.25rem] text-sm leading-relaxed whitespace-pre-wrap ${
                       hasValue
                         ? "text-muted-foreground dark:text-muted-foreground"
                         : "text-gray-400 dark:text-gray-500 italic"
@@ -803,7 +803,7 @@ export default function TenderReview() {
               <div className="p-3 rounded-xl bg-[#FE3C01]/10 flex-shrink-0">
                 <Save className="h-6 w-6 text-[#FE3C01]" />
               </div>
-              <div className="text-left">
+              <div className="text-start">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-foreground">
                   {t('tenderFlow.saveAsTemplate')}
                 </h3>
@@ -894,18 +894,18 @@ export default function TenderReview() {
             <Users2 className="h-5 w-5 text-[#FE3C01]" />
             <div>
               <h3 className="text-base font-bold text-gray-900 dark:text-foreground">
-                Who can respond? <span className="text-red-500">*</span>
+                {t('tenderFlow.audienceHeading')} <span className="text-red-500">*</span>
               </h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Select the account types allowed to submit proposals for this RFP.
+                {t('tenderFlow.audienceDesc')}
               </p>
             </div>
           </div>
           <div className="flex gap-3 flex-wrap">
             {([
-              { value: 'company', label: 'Companies' },
-              { value: 'team',    label: 'Teams'     },
-              { value: 'individual', label: 'Individuals' },
+              { value: 'company', label: t('tenderFlow.audienceCompanies') },
+              { value: 'team',    label: t('tenderFlow.audienceTeams') },
+              { value: 'individual', label: t('tenderFlow.audienceIndividuals') },
             ] as const).map(({ value, label }) => {
               const selected = targetAudienceTypes.includes(value);
               return (
@@ -925,7 +925,7 @@ export default function TenderReview() {
             })}
           </div>
           {targetAudienceTypes.length === 0 && (
-            <p className="text-xs text-red-500 mt-2">Select at least one audience type.</p>
+            <p className="text-xs text-red-500 mt-2">{t('tenderFlow.audienceRequired')}</p>
           )}
         </div>
 
@@ -963,7 +963,7 @@ export default function TenderReview() {
                   onClick={handleBackToEdit}
                   className="w-full sm:min-w-[160px] sm:w-auto h-12 text-base"
                 >
-                  <ArrowLeft className="h-5 w-5 mr-2" />
+                  <ArrowLeft className="h-5 w-5 me-2" />
                   {t('tenderFlow.backToEdit')}
                 </Button>
                 <Button
@@ -977,7 +977,7 @@ export default function TenderReview() {
                   }
                 >
                   {isSubmitting ? t('tenderFlow.launching') : t('tenderFlow.launchRfp')}
-                  <Rocket className="h-5 w-5 ml-2" />
+                  <Rocket className="h-5 w-5 ms-2" />
                 </Button>
               </motion.div>
             )}

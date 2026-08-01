@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Progress } from "@/components/ui/progress";
 import { CloudUpload, File, X, CheckCircle2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
 export type UploadResult = {
   successful: Array<{ uploadURL: string; name: string }>;
@@ -33,6 +34,7 @@ export function ObjectUploader({
   buttonVariant = "default",
   children,
 }: ObjectUploaderProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<UploadState>("idle");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -46,7 +48,7 @@ export function ObjectUploader({
 
   const validateFile = (file: File): string | null => {
     if (file.size > maxFileSize) {
-      return `File is too large. Maximum size is ${(maxFileSize / 1024 / 1024).toFixed(0)}MB.`;
+      return t('common.fileTooLarge', { size: (maxFileSize / 1024 / 1024).toFixed(0) });
     }
     if (allowedFileTypes && allowedFileTypes.length > 0) {
       const allowed = allowedFileTypes.some((type) => {
@@ -55,7 +57,7 @@ export function ObjectUploader({
         return file.type === type;
       });
       if (!allowed) {
-        return `File type not supported. Accepted: ${allowedFileTypes.join(", ")}`;
+        return t('common.fileTypeUnsupported', { types: allowedFileTypes.join(", ") });
       }
     }
     return null;
@@ -105,14 +107,14 @@ export function ObjectUploader({
               resolve();
             } else {
               const err: { message: string; status: number } = {
-                message: `Upload failed: ${xhr.status}`,
+                message: `${t('common.uploadFile')}: ${xhr.status}`,
                 status: xhr.status,
               };
               reject(err);
             }
           });
           xhr.addEventListener("error", () => reject({ message: "Network error" }));
-          xhr.addEventListener("timeout", () => reject({ message: "Upload timed out" }));
+          xhr.addEventListener("timeout", () => reject({ message: t('common.uploadTimedOut') }));
           xhr.open("PUT", url);
           xhr.setRequestHeader("Content-Type", selectedFile.type || "application/octet-stream");
           xhr.send(selectedFile);
@@ -137,8 +139,8 @@ export function ObjectUploader({
     } else {
       setErrorMsg(
         lastError?.status && lastError.status >= 400 && lastError.status < 500
-          ? "Server rejected the upload. Please check the file and try again."
-          : `Upload failed after ${MAX_ATTEMPTS} attempts. Please check your connection and try again.`,
+          ? t('common.serverRejectedUpload')
+          : t('common.uploadFailedAttempts', { count: MAX_ATTEMPTS }),
       );
       setState("error");
     }
@@ -191,7 +193,7 @@ export function ObjectUploader({
         <DialogContent className="sm:max-w-md p-0 overflow-hidden gap-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
             <DialogTitle className="text-base font-semibold text-foreground">
-              Upload File
+              {t('common.uploadFile')}
             </DialogTitle>
           </DialogHeader>
 
@@ -226,19 +228,19 @@ export function ObjectUploader({
 
                 <div className="text-center space-y-1">
                   <p className="text-sm font-medium text-foreground">
-                    Drop your file here
+                    {t('common.dropFileHere')}
                   </p>
                   <p className="text-xs text-neutral-400">
-                    or{" "}
+                    {t('common.or')}{" "}
                     <span className="text-[#FE3C01] font-medium underline underline-offset-2">
-                      browse files
+                      {t('common.browseFiles')}
                     </span>
                   </p>
                 </div>
 
                 {(typeHint || maxFileSize) && (
                   <p className="text-[11px] text-neutral-400 bg-muted rounded-full px-3 py-1">
-                    {[typeHint, `Max ${fileSizeMB.toFixed(0)}MB`].filter(Boolean).join(" · ")}
+                    {[typeHint, t('common.maxFileSize', { size: fileSizeMB.toFixed(0) })].filter(Boolean).join(" · ")}
                   </p>
                 )}
 
@@ -283,7 +285,7 @@ export function ObjectUploader({
                   onClick={handleUpload}
                   className="w-full bg-[#FE3C01] hover:bg-[#E83501] h-10 rounded-xl font-medium"
                 >
-                  Upload File
+                  {t('common.uploadFile')}
                 </Button>
               </div>
             )}
@@ -301,8 +303,8 @@ export function ObjectUploader({
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {attemptNum > 1
-                        ? `Retrying… (attempt ${attemptNum} of ${MAX_ATTEMPTS}) — ${progress}%`
-                        : `Uploading… ${progress}%`}
+                        ? t('common.retryingUpload', { attempt: attemptNum, total: MAX_ATTEMPTS, progress })
+                        : t('common.uploadingProgress', { progress })}
                     </p>
                   </div>
                 </div>
@@ -317,7 +319,7 @@ export function ObjectUploader({
                   <CheckCircle2 className="w-7 h-7 text-green-500" />
                 </div>
                 <div className="text-center space-y-1">
-                  <p className="text-sm font-semibold text-foreground">Upload complete</p>
+                  <p className="text-sm font-semibold text-foreground">{t('common.uploadComplete')}</p>
                   <p className="text-xs text-neutral-400">{selectedFile?.name}</p>
                 </div>
               </div>

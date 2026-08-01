@@ -132,7 +132,7 @@ export default function InvitationLinks() {
                       variant="outline"
                       size="sm"
                       onClick={() => copyToClipboard(`${window.location.origin}/invite/${tender.id}`, tender.id)}
-                      className="flex items-center space-x-2 flex-1"
+                      className="flex items-center gap-2 flex-1"
                       data-testid="button-copy-link"
                     >
                       {copiedLinks.has(tender.id) ? (
@@ -173,7 +173,7 @@ export default function InvitationLinks() {
                       {t('invitationLinks.inviteSubject', { title: tender.title })}<br /><br />
                       {t('invitationLinks.inviteTenderDetails')}<br />
                       {t('invitationLinks.inviteBudget', { budget: tender.budget || t('invitationLinks.notSpecified') })}<br />
-                      - Deadline: {tender.deadline}<br />
+                      {t('invitationLinks.inviteDeadline', { deadline: tender.deadline })}<br />
                       {t('invitationLinks.inviteDuration', { duration: tender.duration || t('invitationLinks.notSpecified') })}<br /><br />
                       {t('invitationLinks.inviteClickHere')}<br />
                       {`${window.location.origin}/invite/${tender.id}`}

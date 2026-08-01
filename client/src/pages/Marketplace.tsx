@@ -827,7 +827,7 @@ export default function Marketplace() {
                           className="inline-flex items-center gap-1 w-fit text-[11px] font-bold uppercase tracking-[0.06em] px-2.5 py-1 rounded-full transition-all"
                           style={{ background: "#FFF3EA", color: "#FE3C01", border: "1px solid rgba(254,60,1,0.18)" }}
                         >
-                          Read more →
+                          {t("marketplace.readMore")} {arrow}
                         </span>
                       </div>
                     )}

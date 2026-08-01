@@ -395,7 +395,7 @@ export default function CompanyProfilePage() {
                 <p className="text-sm font-bold text-foreground">
                   {yearFounded}
                   {yearsInBusiness !== null && yearsInBusiness > 0 && (
-                    <span className="text-[11px] font-medium text-muted-foreground ml-1">· {yearsInBusiness} yr{yearsInBusiness === 1 ? '' : 's'}</span>
+                    <span className="text-[11px] font-medium text-muted-foreground ms-1">· {yearsInBusiness} yr{yearsInBusiness === 1 ? '' : 's'}</span>
                   )}
                 </p>
               </div>
@@ -854,7 +854,7 @@ export default function CompanyProfilePage() {
       <div className="border-t border-border py-6 px-4 sm:px-6">
         <div className="max-w-[900px] mx-auto flex items-center justify-between">
           <span className="text-xs text-muted-foreground">
-            Powered by <strong className="text-muted-foreground">Bid</strong>
+            {t('tractionPage.poweredBy')} <strong className="text-muted-foreground">Bid</strong>
           </span>
         </div>
       </div>

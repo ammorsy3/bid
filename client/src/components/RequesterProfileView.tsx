@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Building2, Users, Globe, Mail, Phone, User } from "lucide-react";
 import { SiLinkedin } from "react-icons/si";
+import { useI18n } from "@/lib/i18n";
 
 interface RequesterProfile {
   id: string;
@@ -24,6 +25,7 @@ interface RequesterProfileViewProps {
 }
 
 export default function RequesterProfileView({ profile, compact = false }: RequesterProfileViewProps) {
+  const { t } = useI18n();
   if (compact) {
     return (
       <Card className="p-4 hover:shadow-md transition-shadow">
@@ -60,7 +62,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
                   className="text-xs bg-muted border-border text-muted-foreground"
                   data-testid="tag-company-size"
                 >
-                  <Users className="h-3 w-3 mr-1" />
+                  <Users className="h-3 w-3 me-1" />
                   {profile.companySize}
                 </Badge>
               )}
@@ -131,7 +133,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
                   className="bg-muted border-border text-muted-foreground px-3 py-1"
                   data-testid="tag-company-size"
                 >
-                  <Users className="h-4 w-4 mr-1.5" />
+                  <Users className="h-4 w-4 me-1.5" />
                   {profile.companySize}
                 </Badge>
               )}
@@ -142,7 +144,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
         {/* About Section */}
         {profile.bio && (
           <div className="mb-8">
-            <h3 className="text-sm font-semibold text-foreground mb-3 uppercase tracking-wide">About</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3 uppercase tracking-wide">{t('companyProfile.sectionAbout')}</h3>
             <p className="text-muted-foreground leading-relaxed" data-testid="text-bio">
               {profile.bio}
             </p>
@@ -151,14 +153,14 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
 
         {/* Contact Information */}
         <div className="mb-8">
-          <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">Contact Information</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">{t('requesterProfile.contactInformation')}</h3>
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-sm">
               <div className="w-9 h-9 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
                 <User className="h-4 w-4 text-primary-600" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">Contact Person</p>
+                <p className="text-xs text-muted-foreground font-medium">{t('requesterProfile.contactPersonLabel').replace(' *', '')}</p>
                 <p className="text-foreground font-medium">{profile.contactPerson}</p>
               </div>
             </div>
@@ -168,7 +170,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
                 <Mail className="h-4 w-4 text-primary-600" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">Email</p>
+                <p className="text-xs text-muted-foreground font-medium">{t('auth.email')}</p>
                 <p className="text-foreground font-medium">{profile.contactEmail}</p>
               </div>
             </div>
@@ -179,7 +181,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
                   <Phone className="h-4 w-4 text-primary-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium">Phone</p>
+                  <p className="text-xs text-muted-foreground font-medium">{t('settings.phoneNumber')}</p>
                   <p className="text-foreground font-medium">{profile.contactPhone}</p>
                 </div>
               </div>
@@ -190,7 +192,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
         {/* Social Links - Icon based */}
         {(profile.linkedinUrl || profile.websiteUrl) && (
           <div>
-            <h3 className="text-sm font-semibold text-foreground mb-3 uppercase tracking-wide">Connect</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3 uppercase tracking-wide">{t('companyProfile.sectionConnect')}</h3>
             <div className="flex gap-2 flex-wrap">
               {profile.linkedinUrl && (
                 <Button
@@ -212,7 +214,7 @@ export default function RequesterProfileView({ profile, compact = false }: Reque
                   className="h-10 w-10 rounded-full hover:bg-primary-50 hover:border-primary-600 hover:text-primary-600 transition-all"
                   onClick={() => window.open(profile.websiteUrl!, '_blank')}
                   data-testid="link-website"
-                  title="Website"
+                  title={t('companyProfile.socialWebsite')}
                 >
                   <Globe className="h-5 w-5" />
                 </Button>

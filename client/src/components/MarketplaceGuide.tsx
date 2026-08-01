@@ -442,11 +442,11 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
       </div>
 
       {/* Footer */}
-      <div className={`flex items-center justify-between px-6 pb-5 pt-1 ${isRtl ? 'flex-row-reverse' : ''}`}>
+      <div className={`flex items-center justify-between px-6 pb-5 pt-1`}>
         <Button variant="ghost" size="sm" onClick={onCancel} className="text-muted-foreground">
           {t('marketplace.cancel') || 'Cancel'}
         </Button>
-        <div className={`flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+        <div className={`flex items-center gap-2`}>
           {currentSlide > 0 && (
             <Button variant="outline" size="sm" onClick={back}>
               {isRtl ? <ArrowRight className="h-3.5 w-3.5 me-1" /> : <ArrowLeft className="h-3.5 w-3.5 me-1" />}
@@ -459,7 +459,7 @@ export default function MarketplaceGuide({ tender, activeCompany, onContinue, on
           >
             {isLastSlide ? (
               <>
-                <Store className={`h-4 w-4 ${isRtl ? 'ml-1.5' : 'mr-1.5'}`} />
+                <Store className={`h-4 w-4 me-1.5`} />
                 {t('marketplace.introContinue') || 'Continue'}
               </>
             ) : (

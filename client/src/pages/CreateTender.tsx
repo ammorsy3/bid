@@ -181,7 +181,7 @@ export default function CreateTender() {
         description: t('createTender.tenderCreatedDesc'),
         action: (
           <ToastAction altText={t('createTender.copyLinkAltText')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('createTender.linkCopiedTitle') }); }}>
-            <Copy className="h-3 w-3 mr-1" /> {t('createTender.copyLinkBtn')}
+            <Copy className="h-3 w-3 me-1" /> {t('createTender.copyLinkBtn')}
           </ToastAction>
         ),
         duration: 10000,
@@ -307,9 +307,9 @@ export default function CreateTender() {
                         data-testid="button-copy-link"
                       >
                         {invitationCopied ? (
-                          <><Check className="h-4 w-4 mr-2" />{t('tenderFlow.copied')}</>
+                          <><Check className="h-4 w-4 me-2" />{t('tenderFlow.copied')}</>
                         ) : (
-                          <><Copy className="h-4 w-4 mr-2" />{t('tenderFlow.copyLink')}</>
+                          <><Copy className="h-4 w-4 me-2" />{t('tenderFlow.copyLink')}</>
                         )}
                       </Button>
                       <Button
@@ -319,7 +319,7 @@ export default function CreateTender() {
                         className="flex-1"
                         data-testid="button-view-tender"
                       >
-                        <ExternalLink className="h-4 w-4 mr-2" />
+                        <ExternalLink className="h-4 w-4 me-2" />
                         View Details
                       </Button>
                     </div>
@@ -333,7 +333,7 @@ export default function CreateTender() {
                     className="flex-1"
                     data-testid="button-back-dashboard"
                   >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <ArrowLeft className="h-4 w-4 me-2" />
                     Back to Dashboard
                   </Button>
                 </div>
@@ -421,13 +421,13 @@ export default function CreateTender() {
                       <div className="flex flex-wrap gap-2">
                         {reviewData.voiceNoteUrl && (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FE3C01]/10 text-[#FE3C01]">
-                            <Sparkles className="h-3 w-3 mr-1" />
+                            <Sparkles className="h-3 w-3 me-1" />
                             Voice Note
                           </span>
                         )}
                         {reviewData.videoUrl && (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] dark:bg-blue-900/30 dark:text-blue-400">
-                            <Video className="h-3 w-3 mr-1" />
+                            <Video className="h-3 w-3 me-1" />
                             Video Link
                           </span>
                         )}
@@ -455,7 +455,7 @@ export default function CreateTender() {
                   className="flex-1"
                   data-testid="button-back-edit"
                 >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <ArrowLeft className="h-4 w-4 me-2" />
                   Go Back & Edit
                 </Button>
                 <Button 
@@ -468,7 +468,7 @@ export default function CreateTender() {
                     <>{t('tenderFlow.publishingRfp')}</>
                   ) : (
                     <>
-                      <Check className="h-4 w-4 mr-2" />
+                      <Check className="h-4 w-4 me-2" />
                       Publish Tender
                     </>
                   )}
@@ -520,7 +520,7 @@ export default function CreateTender() {
                 className="w-full bg-[#FE3C01] hover:bg-[#d54d35] text-white font-semibold text-base py-6"
                 data-testid="button-get-started-ai"
               >
-                <Sparkles className="h-5 w-5 mr-2" />
+                <Sparkles className="h-5 w-5 me-2" />
                 Get Started using AI
               </Button>
               <Button 
@@ -698,10 +698,10 @@ export default function CreateTender() {
                                 <FormControl>
                                   <Button
                                     variant="outline"
-                                    className={cn("justify-start text-left font-normal", !dateValue && "text-muted-foreground")}
+                                    className={cn("justify-start text-start font-normal", !dateValue && "text-muted-foreground")}
                                     data-testid="input-deadline"
                                   >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    <CalendarIcon className="me-2 h-4 w-4" />
                                     {dateValue ? format(dateValue, "PPP HH:mm:ss", { locale: dateLocale }) : <span>{t('createTender.pickDatePlaceholder')}</span>}
                                   </Button>
                                 </FormControl>
@@ -835,7 +835,7 @@ export default function CreateTender() {
                     className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35]"
                     data-testid="button-submit"
                   >
-                    <Check className="h-4 w-4 mr-2" />
+                    <Check className="h-4 w-4 me-2" />
                     Review & Publish
                   </Button>
                 </div>

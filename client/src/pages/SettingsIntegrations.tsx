@@ -192,7 +192,7 @@ export default function SettingsIntegrations() {
             </p>
           </div>
           <Button onClick={() => setCreateKeyOpen(true)} data-testid="button-create-api-key">
-            <Plus size={16} className="mr-1" />
+            <Plus size={16} className="me-1" />
             {t('settings.intCreateApiKey')}
           </Button>
         </div>
@@ -202,7 +202,7 @@ export default function SettingsIntegrations() {
             <div className="p-6 text-sm text-muted-foreground">{t('settings.intLoading')}</div>
           ) : keysQuery.data && keysQuery.data.length > 0 ? (
             <table className="w-full text-sm">
-              <thead className="bg-muted text-muted-foreground text-left">
+              <thead className="bg-muted text-muted-foreground text-start">
                 <tr>
                   <th className="px-4 py-2 font-medium">{t('settings.intColName')}</th>
                   <th className="px-4 py-2 font-medium">{t('settings.intColPrefix')}</th>
@@ -269,7 +269,7 @@ export default function SettingsIntegrations() {
             </p>
           </div>
           <Button onClick={() => setCreateIntegrationOpen(true)} data-testid="button-create-integration">
-            <Plus size={16} className="mr-1" />
+            <Plus size={16} className="me-1" />
             {t('settings.intCreateIntegration')}
           </Button>
         </div>

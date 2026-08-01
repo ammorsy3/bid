@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Mic, Play, Pause, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
 interface VoiceRecorderProps {
   onRecordingComplete: (url: string) => void;
@@ -18,6 +19,7 @@ export default function VoiceRecorder({
   maxDurationSeconds = 300, // 5 minutes default
 }: VoiceRecorderProps) {
   const { toast } = useToast();
+  const { t } = useI18n();
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -96,8 +98,8 @@ export default function VoiceRecorder({
           if (prev >= maxDurationSeconds - 1) {
             stopRecording();
             toast({
-              title: "Maximum duration reached",
-              description: `Recording stopped at ${formatTime(maxDurationSeconds)}`,
+              title: t('voiceRecorder.maxDurationReachedTitle'),
+              description: t('voiceRecorder.maxDurationReachedDesc', { duration: formatTime(maxDurationSeconds) }),
             });
             return prev;
           }
@@ -107,8 +109,8 @@ export default function VoiceRecorder({
     } catch (error) {
       console.error('Error accessing microphone:', error);
       toast({
-        title: "Microphone access denied",
-        description: "Please allow microphone access to record a voice note",
+        title: t('voiceRecorder.micAccessDeniedTitle'),
+        description: t('voiceRecorder.micAccessDeniedDesc'),
         variant: "destructive",
       });
     }
@@ -207,14 +209,14 @@ export default function VoiceRecorder({
       onRecordingComplete(objectPath);
       
       toast({
-        title: "Voice note saved",
-        description: "Your recording has been uploaded",
+        title: t('voiceRecorder.voiceNoteSavedTitle'),
+        description: t('voiceRecorder.voiceNoteSavedDesc'),
       });
     } catch (error) {
       console.error('Upload error:', error);
       toast({
-        title: "Upload failed",
-        description: "Failed to upload voice note. Please try again.",
+        title: t('voiceRecorder.uploadFailedTitle'),
+        description: t('voiceRecorder.uploadFailedDesc'),
         variant: "destructive",
       });
     } finally {
@@ -295,7 +297,7 @@ export default function VoiceRecorder({
             </div>
 
             <p className="h-4 text-xs text-black/70 dark:text-foreground/70">
-              {isRecording ? "Recording... Click to stop" : "Click to speak"}
+              {isRecording ? t('voiceRecorder.recordingClickToStop') : t('voiceRecorder.clickToSpeak')}
             </p>
           </div>
         </div>
@@ -306,15 +308,15 @@ export default function VoiceRecorder({
         <div className="space-y-3 p-4 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              Voice Note ({formatTime(recordingTime)})
+              {t('voiceRecorder.voiceNoteLabel')} ({formatTime(recordingTime)})
             </span>
             {isUploading ? (
               <span className="text-xs text-primary-600 flex items-center gap-1">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                Uploading...
+                {t('voiceRecorder.uploading')}
               </span>
             ) : (
-              <span className="text-xs text-green-600">✓ Saved</span>
+              <span className="text-xs text-green-600">{t('voiceRecorder.saved')}</span>
             )}
           </div>
 
@@ -330,13 +332,13 @@ export default function VoiceRecorder({
             >
               {isPlaying ? (
                 <>
-                  <Pause className="h-4 w-4 mr-1" />
-                  Pause
+                  <Pause className="h-4 w-4 me-1" />
+                  {t('voiceRecorder.pauseBtn')}
                 </>
               ) : (
                 <>
-                  <Play className="h-4 w-4 mr-1" />
-                  Play
+                  <Play className="h-4 w-4 me-1" />
+                  {t('voiceRecorder.playBtn')}
                 </>
               )}
             </Button>
@@ -348,6 +350,7 @@ export default function VoiceRecorder({
               disabled={isUploading}
               className="text-red-600 hover:text-red-700 dark:text-red-300"
               data-testid="button-delete-recording"
+              aria-label={t('voiceRecorder.deleteAria')}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -356,7 +359,7 @@ export default function VoiceRecorder({
       )}
 
       <p className="text-xs text-muted-foreground text-center">
-        Maximum recording duration: {formatTime(maxDurationSeconds)}
+        {t('voiceRecorder.maxDurationLabel', { duration: formatTime(maxDurationSeconds) })}
       </p>
     </div>
   );

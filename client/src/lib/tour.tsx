@@ -343,7 +343,7 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
             </div>
 
             <div className="p-5">
-              <div className={`flex items-center justify-between mb-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+              <div className={`flex items-center justify-between mb-2`}>
                 <p className="text-[11px] font-bold text-[#FE3C01] uppercase tracking-widest">
                   {isRtl ? `خطوة ${currentStep + 1} من ${steps.length}` : `Step ${currentStep + 1} of ${steps.length}`}
                 </p>
@@ -364,7 +364,7 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
                 {step.body}
               </p>
 
-              <div className={`flex items-center gap-3 mt-5 ${isRtl ? 'flex-row-reverse' : ''}`}>
+              <div className={`flex items-center gap-3 mt-5`}>
                 {!isFirst && (
                   <button
                     onClick={onPrev}
@@ -378,7 +378,7 @@ export function TourOverlay({ steps, currentStep, isRtl, onNext, onPrev, onDismi
                 <div className="flex-1" />
 
                 {/* Dot indicators */}
-                <div className={`flex items-center gap-1 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                <div className={`flex items-center gap-1`}>
                   {steps.map((_, i) => (
                     <div
                       key={i}
@@ -553,7 +553,7 @@ export function TourBanner({ tourId, userId, title, body, isRtl = false }: TourB
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.2 }}
-        className={`flex items-start gap-3 px-4 py-3 mb-5 rounded-xl border border-[#FE3C01]/20 bg-[#FFF8F6] dark:bg-[#FE3C01]/10 dark:border-[#FE3C01]/25 ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+        className={`flex items-start gap-3 px-4 py-3 mb-5 rounded-xl border border-[#FE3C01]/20 bg-[#FFF8F6] dark:bg-[#FE3C01]/10 dark:border-[#FE3C01]/25 ${isRtl ? 'text-right' : ''}`}
       >
         <div className="flex-shrink-0 mt-0.5">
           <Lightbulb className="h-4 w-4 text-[#FE3C01]" />

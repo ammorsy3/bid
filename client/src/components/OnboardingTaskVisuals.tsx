@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Building2, Calendar, Camera, Check, Link2, Play, Plus, Search, Send, ShieldCheck, Sparkles, Trophy, User, Globe } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 const CORAL = "#FE3C01";
 
@@ -31,6 +32,7 @@ function Shimmer({ className = "", delay = 0 }: { className?: string; delay?: nu
 
 /* ─── Task 1: Create Tender ──────────────────────────────────── */
 export function CreateTenderVisual() {
+  const { isRtl } = useI18n();
   return (
     <Frame>
       <motion.div
@@ -49,7 +51,7 @@ export function CreateTenderVisual() {
         <div className="pt-1.5 flex items-center justify-between">
           <div className="h-1 w-10 rounded-full bg-gray-200" />
           <div className="h-4 px-2 rounded text-[7px] font-semibold text-white bg-[#FE3C01] flex items-center">
-            Publish
+            {isRtl ? 'انشر' : 'Publish'}
           </div>
         </div>
       </motion.div>
@@ -67,6 +69,7 @@ export function CreateTenderVisual() {
 
 /* ─── Task 2: Company Profile ────────────────────────────────── */
 export function CompanyProfileVisual() {
+  const { isRtl } = useI18n();
   return (
     <Frame>
       <div className="flex items-center gap-3">
@@ -88,7 +91,7 @@ export function CompanyProfileVisual() {
             className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-100 border border-green-200"
           >
             <Check className="h-2 w-2 text-green-600" />
-            <span className="text-[7px] font-semibold text-green-700 dark:text-green-300">Verified</span>
+            <span className="text-[7px] font-semibold text-green-700 dark:text-green-300">{isRtl ? 'موثّق' : 'Verified'}</span>
           </motion.div>
         </div>
       </div>
@@ -139,7 +142,7 @@ export function InviteVendorsVisual() {
               initial={{ opacity: 0, scale: 0.5, x: -8 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
               transition={{ duration: 0.3, delay: i * 0.08, ease: "easeOut" }}
-              className={`h-8 w-8 rounded-full ${a.bg} border-2 border-white shadow flex items-center justify-center ${i > 0 ? "-ml-2" : ""}`}
+              className={`h-8 w-8 rounded-full ${a.bg} border-2 border-white shadow flex items-center justify-center ${i > 0 ? "-ms-2" : ""}`}
             >
               {a.icon}
             </motion.div>
@@ -148,7 +151,7 @@ export function InviteVendorsVisual() {
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: 0.3, ease: "easeOut" }}
-            className="h-8 w-8 rounded-full bg-card border-2 border-dashed border-[#FE3C01] flex items-center justify-center -ml-2"
+            className="h-8 w-8 rounded-full bg-card border-2 border-dashed border-[#FE3C01] flex items-center justify-center -ms-2"
           >
             <Plus className="h-3.5 w-3.5 text-[#FE3C01]" />
           </motion.div>
@@ -208,6 +211,7 @@ export function BookDemoVisual() {
 
 /* ─── Task 1: Get Verified ───────────────────────────────────── */
 export function GetVerifiedVisual() {
+  const { isRtl } = useI18n();
   return (
     <Frame>
       <div className="flex items-center gap-3">
@@ -239,7 +243,7 @@ export function GetVerifiedVisual() {
             className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-100 border border-green-200"
           >
             <Check className="h-2 w-2 text-green-600" />
-            <span className="text-[7px] font-semibold text-green-700 dark:text-green-300">Verified</span>
+            <span className="text-[7px] font-semibold text-green-700 dark:text-green-300">{isRtl ? 'موثّق' : 'Verified'}</span>
           </motion.div>
         </div>
       </div>
@@ -282,6 +286,7 @@ export function VendorsBaseVisual() {
 
 /* ─── Task 5: Submit Proposal ────────────────────────────────── */
 export function SubmitProposalVisual() {
+  const { isRtl } = useI18n();
   return (
     <Frame>
       <div className="relative">
@@ -293,7 +298,7 @@ export function SubmitProposalVisual() {
         >
           <div className="flex items-center justify-between">
             <div className="h-1.5 w-14 rounded-full bg-gray-800" />
-            <div className="px-1.5 py-0.5 rounded text-[7px] font-bold text-white bg-blue-500">Proposal</div>
+            <div className="px-1.5 py-0.5 rounded text-[7px] font-bold text-white bg-blue-500">{isRtl ? 'عرض' : 'Proposal'}</div>
           </div>
           <Shimmer className="h-1.5 w-full" />
           <Shimmer className="h-1.5 w-4/5" delay={0.15} />
@@ -301,7 +306,7 @@ export function SubmitProposalVisual() {
           <div className="pt-1.5 flex items-center justify-end">
             <div className="h-4 px-2 rounded text-[7px] font-semibold text-white bg-[#FE3C01] flex items-center gap-1">
               <Send className="h-2 w-2" />
-              Submit
+              {isRtl ? 'قدّم' : 'Submit'}
             </div>
           </div>
         </motion.div>

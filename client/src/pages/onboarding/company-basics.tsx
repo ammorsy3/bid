@@ -18,12 +18,10 @@ import OnboardingLayout from "@/components/onboarding-layout";
 
 const DRAFT_KEY = "onboarding-draft";
 
-const companyBasicsSchema = z.object({
-  name: z.string().min(2, "Company name is required"),
-  category: z.string().min(1, "Please select a category"),
-});
-
-type CompanyBasicsForm = z.infer<typeof companyBasicsSchema>;
+type CompanyBasicsForm = {
+  name: string;
+  category: string;
+};
 
 function getDraft(): Record<string, any> {
   try {
@@ -49,6 +47,11 @@ export default function CompanyBasics() {
   const { t } = useI18n();
   const [submitting, setSubmitting] = useState(false);
 
+  const companyBasicsSchema = z.object({
+    name: z.string().min(2, t('validation.companyNameRequired')),
+    category: z.string().min(1, t('validation.categoryRequired')),
+  });
+
   const draft = getDraft();
 
   const form = useForm<CompanyBasicsForm>({
@@ -73,21 +76,21 @@ export default function CompanyBasics() {
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to create workspace");
+        throw new Error(error.message || t('onboardingPanel.workspaceCreateError'));
       }
       const result = await response.json();
       localStorage.setItem('token', result.token);
       localStorage.removeItem(DRAFT_KEY);
       await checkAuth();
       toast({
-        title: "Workspace ready",
-        description: "You can verify your company anytime to unlock tenders and offers.",
+        title: t('onboardingPanel.workspaceReadyTitle'),
+        description: t('onboardingPanel.workspaceReadyDesc'),
       });
       setLocation(getPostOnboardingRedirect());
     } catch (error: any) {
       toast({
-        title: "Couldn't create workspace",
-        description: error.message || "Please try again.",
+        title: t('onboardingPanel.workspaceCreateError'),
+        description: error.message || t('onboardingPanel.workspaceCreateErrorDesc'),
         variant: "destructive",
       });
     } finally {
@@ -107,7 +110,7 @@ export default function CompanyBasics() {
             </div>
             <div>
               <h2 className="font-display font-black text-2xl text-foreground tracking-[-0.03em]">{t('onboardingPanel.companyDetailsTitle')}</h2>
-              <p className="text-sm text-muted-foreground">Tell us the basics. You can verify your company later from settings.</p>
+              <p className="text-sm text-muted-foreground">{t('onboardingPanel.companyBasicsDesc')}</p>
             </div>
           </div>
 
@@ -118,11 +121,11 @@ export default function CompanyBasics() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company Display Name *</FormLabel>
+                    <FormLabel>{t('onboardingPanel.companyDisplayNameLabel')}</FormLabel>
                     <FormControl>
                       <Input placeholder={t('onboardingPanel.companyNamePh')} {...field} data-testid="input-company-name" />
                     </FormControl>
-                    <FormDescription>This is what other users will see on Bid.</FormDescription>
+                    <FormDescription>{t('onboardingPanel.companyDisplayNameDesc')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -133,7 +136,7 @@ export default function CompanyBasics() {
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Industry Category *</FormLabel>
+                    <FormLabel>{t('onboardingPanel.companyCategoryLabel')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-category">
@@ -148,14 +151,14 @@ export default function CompanyBasics() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormDescription>Helps us recommend relevant tenders.</FormDescription>
+                    <FormDescription>{t('onboardingPanel.companyCategoryDesc')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
               <div className="rounded-lg bg-muted border border-border p-3 text-xs text-muted-foreground">
-                Legal info (CR number, legal name, VAT) and verification documents are collected later from <span className="font-medium text-muted-foreground">Settings → Company</span> when you're ready. You can browse Bid and explore right after this step.
+                {t('onboardingPanel.companyLegalInfoNote')}
               </div>
 
               <div className="flex justify-between pt-4">
@@ -165,8 +168,8 @@ export default function CompanyBasics() {
                   onClick={() => setLocation("/company-onboarding?addAccount=1")}
                   disabled={submitting}
                 >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  <ArrowLeft className="me-2 h-4 w-4" />
+                  {t('onboardingPanel.backBtn')}
                 </Button>
                 <Button
                   type="submit"
@@ -176,13 +179,13 @@ export default function CompanyBasics() {
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating workspace…
+                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                      {t('onboardingPanel.creatingWorkspace')}
                     </>
                   ) : (
                     <>
-                      Go to dashboard
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      {t('onboardingPanel.goToDashboard')}
+                      <ArrowRight className="ms-2 h-4 w-4" />
                     </>
                   )}
                 </Button>

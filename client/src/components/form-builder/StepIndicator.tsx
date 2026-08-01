@@ -1,5 +1,6 @@
 import React from "react";
 import { CheckCircle2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface StepIndicatorProps {
   steps: Array<{ label: string }>;
@@ -7,6 +8,7 @@ interface StepIndicatorProps {
 }
 
 export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
+  const { t } = useI18n();
   return (
     <>
       <div className="hidden md:flex items-center gap-2 text-xs">
@@ -58,7 +60,7 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
         })}
       </div>
       <div className="md:hidden text-sm font-semibold text-gray-900 dark:text-foreground">
-        Step <span className="font-mono">{currentStep}</span> of <span className="font-mono">{steps.length}</span>
+        {t('common.stepOf', { current: currentStep, total: steps.length })}
       </div>
     </>
   );

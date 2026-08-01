@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, AlertTriangle, FileText,
-  Shield, LogOut, ArrowLeft, Store, Bug, UserCheck, Bell
+  Shield, LogOut, ArrowLeft, Store, Bug, Bell
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { useLogout } from "@/hooks/use-logout";
@@ -33,7 +33,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   // Fetch metrics for badge counts
   const { data: metrics } = useQuery<{
     pendingVerifications: number;
-    pendingFreelancers: number;
     pendingJoinRequests: number;
     proposalsLast24h: number;
     blockedAwards: number;
@@ -70,12 +69,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           label: t('admin.navCompanyVerification'),
           icon: Users,
           count: metrics?.pendingVerifications || 0,
-        },
-        {
-          href: "/admin/freelancers",
-          label: t('admin.navFreelancerVerification'),
-          icon: UserCheck,
-          count: metrics?.pendingFreelancers || 0,
         },
         {
           href: "/admin/marketplace",
@@ -161,7 +154,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                      className={`relative flex items-center gap-3 ps-4 pe-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                         isActive
                           ? "bg-gradient-to-r from-[var(--bid-orange)]/[0.12] to-[var(--bid-orange)]/[0.02] text-[var(--bid-orange)] shadow-[inset_0_0_0_1px_rgba(254,60,1,0.12)]"
                           : "text-gray-600 dark:text-gray-400 hover:bg-muted dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-200"

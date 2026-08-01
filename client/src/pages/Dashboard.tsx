@@ -1556,7 +1556,7 @@ export default function Dashboard() {
                       {t('settings.createOrganization')}
                     </button>
                     <button
-                      onClick={() => setLocation('/company-onboarding?addAccount=1')}
+                      onClick={() => setLocation('/onboarding?addAccount=1&join=1')}
                       className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent ${isRtl ? 'text-right' : ''}`}
                       data-testid="menu-join-organization"
                     >
@@ -1914,13 +1914,20 @@ export default function Dashboard() {
                     {/* Animated progress bar */}
                     <div className="mb-6">
                       {(() => {
-                        const adminFlags = canManage && isBuyerAccount ? [isCompanyVerified, onboardingTasks?.hasCompletedProfile, onboardingTasks?.hasVendors] : [];
-                        const memberFlags = isIndividual
-                          ? [hasProfileComplete, onboardingTasks?.hasExploredMarketplace]
-                          : isTeam
-                            ? [onboardingTasks?.hasCompletedProfile, onboardingTasks?.hasExploredMarketplace]
-                            : [onboardingTasks?.hasTender, onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace];
-                        const allFlags = [...adminFlags, ...memberFlags];
+                        // One entry per task below, gated by the *same* condition
+                        // that renders it. Keep these in step with the
+                        // AccordionItems — a hand-kept parallel list drifts, and
+                        // then the progress text counts tasks nobody can see (or
+                        // misses ones they can).
+                        const allFlags = [
+                          ...(canManage && requiresLegalVerification ? [isCompanyVerified] : []),          // task-1
+                          ...(canManage && (isBuyerAccount || isTeam) ? [onboardingTasks?.hasCompletedProfile] : []), // task-2
+                          ...(canManage && isBuyerAccount ? [onboardingTasks?.hasVendors] : []),           // task-3
+                          ...(isBuyerAccount ? [onboardingTasks?.hasTender] : []),                         // task-4
+                          ...(isIndividual ? [hasProfileComplete] : []),                                   // task-4b
+                          onboardingTasks?.hasReviewedProposal,                                            // task-5
+                          onboardingTasks?.hasExploredMarketplace,                                         // task-6
+                        ];
                         const localCount = allFlags.filter(Boolean).length;
                         const total = allFlags.length;
                         const pct = total > 0 ? Math.round((localCount / total) * 100) : 0;

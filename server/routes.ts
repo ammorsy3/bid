@@ -3288,6 +3288,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Individual not found" });
         }
 
+        // A finished tender stays finished. Widening the audience is a change to
+        // who may bid, so it's only meaningful while the tender can still take
+        // offers — draft (not yet out) or published (live). Once it's closed or
+        // cancelled, neither the invite nor the audience change is allowed.
+        if (tender.status === 'closed' || tender.status === 'cancelled') {
+          return res.status(400).json({
+            code: 'TENDER_NOT_OPEN',
+            message: "This tender is no longer open, so individuals can't be added to it.",
+          });
+        }
+
         // Audience gate — confirm before widening the tender's audience.
         const audience: string[] = Array.isArray(tender.targetAudienceTypes)
           ? (tender.targetAudienceTypes as string[])

@@ -42,6 +42,12 @@ const getPostOnboardingRedirect = () => {
 
 export default function CompanyBasics() {
   const [, setLocation] = useLocation();
+  // Where "Back" belongs depends on how the user got here. Adding a workspace
+  // from the dashboard account menu (?addAccount=1) means backing out is a
+  // cancel — return to the dashboard. During first-run signup there's no
+  // dashboard yet, so back means the account-type choice screen.
+  const addAccountMode = new URLSearchParams(window.location.search).get("addAccount") === "1";
+  const backTarget = addAccountMode ? "/dashboard" : "/onboarding";
   const { user, checkAuth } = useAuthStore();
   const { toast } = useToast();
   const { t } = useI18n();
@@ -165,7 +171,7 @@ export default function CompanyBasics() {
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setLocation("/company-onboarding?addAccount=1")}
+                  onClick={() => setLocation(backTarget)}
                   disabled={submitting}
                 >
                   <ArrowLeft className="me-2 h-4 w-4" />

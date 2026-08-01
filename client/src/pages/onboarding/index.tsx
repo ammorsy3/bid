@@ -9,7 +9,7 @@ import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Building2, User, Users, ArrowRight, ChevronDown, Loader2, Clock, Mail, KeyRound } from "lucide-react";
+import { Building2, User, Users, ArrowRight, ArrowLeft, ChevronDown, Loader2, Clock, Mail, KeyRound } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 interface DomainMatchWorkspace {
@@ -42,7 +42,12 @@ export default function OnboardingChoice() {
   const { t } = useI18n();
   const { toast } = useToast();
 
-  const [joinExpanded, setJoinExpanded] = useState(false);
+  // ?join=1 means the user already chose "Join organization" (from the
+  // dashboard account menu). They aren't picking an account type — they're
+  // joining an existing workspace — so this page drops the signup framing and
+  // the other choices, and shows only the join options, already open.
+  const joinOnlyMode = new URLSearchParams(window.location.search).get("join") === "1";
+  const [joinExpanded, setJoinExpanded] = useState(joinOnlyMode);
   const [requestingId, setRequestingId] = useState<string | null>(null);
   const [requestMessage, setRequestMessage] = useState("");
   const [acknowledgedRequests, setAcknowledgedRequests] = useState<Record<string, true>>({});
@@ -301,19 +306,26 @@ export default function OnboardingChoice() {
   return (
     <OnboardingLayout>
       <div className="text-center mb-8">
-        <h1 className="font-display font-black text-3xl text-foreground mb-2 tracking-[-0.04em]">
-          {t('onbJoin.welcome', { name: user.name.split(" ")[0] })}
+        <h1 className="font-display font-black text-2xl sm:text-3xl text-foreground mb-2 tracking-[-0.04em]">
+          {joinOnlyMode
+            ? t('settings.joinOrganization')
+            : t('onbJoin.welcome', { name: user.name.split(" ")[0] })}
         </h1>
-        <p className="text-muted-foreground text-base">{t('onbJoin.howJoining')}</p>
+        <p className="text-muted-foreground text-base">
+          {joinOnlyMode ? t('onbJoin.joinCompanyDesc') : t('onbJoin.howJoining')}
+        </p>
       </div>
 
       <div className="space-y-3">
-        {CHOICES.filter(({ key }) => !addAccountMode || key !== "individual").map(({ key, icon: Icon, title, description, onClick, color, iconBg, activeBorder, hoverBorder }) => {
+        {CHOICES.filter(({ key }) => joinOnlyMode ? key === "join" : (!addAccountMode || key !== "individual")).map(({ key, icon: Icon, title, description, onClick, color, iconBg, activeBorder, hoverBorder }) => {
           const isJoin = key === "join";
           const isActive = isJoin && joinExpanded;
 
           return (
             <div key={key}>
+              {/* In join-only mode the page heading already says this, and the
+                  card would collapse the one section on screen — so skip it. */}
+              {!joinOnlyMode && (
               <Card
                 className={`cursor-pointer group transition-all duration-200 border-2 ${
                   isActive
@@ -346,6 +358,7 @@ export default function OnboardingChoice() {
                   </div>
                 </CardContent>
               </Card>
+              )}
 
               {/* Inline join expansion */}
               {isJoin && joinExpanded && (
@@ -420,12 +433,14 @@ export default function OnboardingChoice() {
                       <KeyRound className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
                       {t('onbJoin.haveCode')}
                     </p>
-                    <div className="flex gap-2">
+                    {/* Stacks on phones: a 16-char widely-tracked code needs the
+                        full width, and the button shouldn't squeeze it. */}
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Input
                         value={joinCode}
                         onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 16))}
                         placeholder={t('onbJoin.codePlaceholder')}
-                        className="uppercase tracking-widest font-mono"
+                        className="uppercase tracking-widest font-mono min-w-0 flex-1"
                         dir="ltr"
                         data-testid="input-join-code"
                         onKeyDown={(e) => { if (e.key === "Enter" && joinCode.trim()) joinByCodeMutation.mutate(joinCode); }}
@@ -433,7 +448,7 @@ export default function OnboardingChoice() {
                       <Button
                         onClick={() => joinCode.trim() && joinByCodeMutation.mutate(joinCode)}
                         disabled={!joinCode.trim() || joinByCodeMutation.isPending}
-                        className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
+                        className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap w-full sm:w-auto"
                         data-testid="button-join-code"
                       >
                         {joinByCodeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('onbJoin.join')}
@@ -455,6 +470,23 @@ export default function OnboardingChoice() {
             </div>
           );
         })}
+
+        {/* Same placement and styling as the Back button on the other
+            onboarding steps. Join-only mode is entered from the dashboard, so
+            that's where Back returns; first-run signup has no dashboard yet. */}
+        {joinOnlyMode && (
+          <div className="flex justify-between pt-4">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setLocation("/dashboard")}
+              data-testid="button-join-back"
+            >
+              <ArrowLeft className="me-2 h-4 w-4" />
+              {t('onboardingPanel.backBtn')}
+            </Button>
+          </div>
+        )}
       </div>
     </OnboardingLayout>
   );

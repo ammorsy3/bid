@@ -3,7 +3,6 @@ import { useParams, useLocation } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import SuggestedIndividuals from "@/components/SuggestedIndividuals";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ArrowRight, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, FileCheck, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, Handshake, Store, Upload, Globe, Paperclip } from "lucide-react";
@@ -1677,14 +1676,6 @@ export default function TenderDetails() {
 
               </div>
               {/* end continuous document */}
-
-              {/* Suggested individuals to invite (owner only; self-hides if the
-                  tender isn't open to individuals or has no matches) */}
-              {isOwner && (tender.status === 'draft' || tender.status === 'published') && (
-                <div className="mt-6">
-                  <SuggestedIndividuals tenderId={tender.id} />
-                </div>
-              )}
 
               {/* Proposals (owner only) */}
               {isOwner && (

@@ -162,7 +162,7 @@ export default function CompanyBasics() {
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setLocation("/onboarding")}
+                  onClick={() => setLocation("/company-onboarding?addAccount=1")}
                   disabled={submitting}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />

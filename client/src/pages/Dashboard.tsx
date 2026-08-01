@@ -44,8 +44,6 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import CreateTeamDialog from "@/components/CreateTeamDialog";
-import IndividualsDirectory from "@/components/IndividualsDirectory";
 import { useToast } from "@/hooks/use-toast";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import { profilePath } from "@/lib/profile-url";
@@ -521,7 +519,6 @@ export default function Dashboard() {
   const [selectedRequest, setSelectedRequest] = useState<JoinRequest | null>(null);
   const [profileDrawerOpen, setProfileDrawerOpen] = useState(false);
   const [profileJoinRequestId, setProfileJoinRequestId] = useState<string | null>(null);
-  const [createTeamOpen, setCreateTeamOpen] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState<IncomingOffer | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<VendorProfile | null>(null);
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
@@ -623,6 +620,7 @@ export default function Dashboard() {
   const isCompanyVerified = activeCompany.verificationStatus === 'verified';
   const workspaceKind = (activeCompany.accountType ?? 'company') as 'company' | 'team' | 'individual';
   const isBuyerAccount = workspaceKind === 'company';
+  const requiresLegalVerification = workspaceKind === 'company';
   const isIndividual = workspaceKind === 'individual';
   const roleLabel = isIndividual ? t('dashboard.roleIndividual') : userRole.charAt(0).toUpperCase() + userRole.slice(1);
   const myProfilePath = activeCompany?.slug ? profilePath({ slug: activeCompany.slug, accountType: workspaceKind }) : null;
@@ -998,7 +996,7 @@ export default function Dashboard() {
                         {activeCompany.profile?.displayName || activeCompany.name}
                       </h2>
                       <p className="text-xs text-muted-foreground truncate">
-                        {roleLabel}{!isIndividual && ` • ${activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`}
+                        {roleLabel}{requiresLegalVerification && ` • ${activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`}
                       </p>
                     </div>
                     <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
@@ -1059,7 +1057,7 @@ export default function Dashboard() {
                   {activeCompany.profile?.displayName || activeCompany.name}
                 </h2>
                 <p className="text-xs text-muted-foreground truncate">
-                  {roleLabel}{!isIndividual && ` • ${activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`}
+                  {roleLabel}{requiresLegalVerification && ` • ${activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`}
                 </p>
               </div>
             )}
@@ -1095,19 +1093,6 @@ export default function Dashboard() {
                     >
                       <Plus className="h-5 w-5 text-white" />
                       <span className="text-base font-medium group-data-[collapsible=icon]:hidden text-white">{t('dashboard.createTender')}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
-                {isIndividual && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      onClick={() => setCreateTeamOpen(true)}
-                      tooltip={t('dashboard.createTeam')}
-                      data-testid="sidebar-create-team"
-                      className="py-3 text-base rounded-xl bg-[#FE3C01] text-white hover:bg-[#1A1613] hover:text-white shadow-[0_10px_24px_-8px_rgba(254,60,1,0.55)] transition-all"
-                    >
-                      <Plus className="h-5 w-5 text-white" />
-                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden text-white">{t('dashboard.createTeam')}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}
@@ -1236,13 +1221,11 @@ export default function Dashboard() {
         </SidebarContent>
 
         <SidebarFooter className="border-t px-4 py-4">
-          {/* Verification banner — companies and teams only. Individuals are
-              never asked to verify an identity, so these prompts (and the
-              company-only settings tab they link to) don't apply to them. */}
-          {!isIndividual && activeCompany.verificationStatus === 'not_verified' && (
+          {/* Legal verification belongs to company workspaces only. */}
+          {requiresLegalVerification && activeCompany.verificationStatus === 'not_verified' && (
             <div className="mb-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
-              <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-0.5">{isTeam ? t('settings.teamNotVerified') : t('settings.companyNotVerified')}</p>
-              <p className="text-xs text-amber-700 dark:text-amber-400 mb-1.5 leading-snug">{isTeam ? t('settings.teamNotVerifiedDesc') : t('settings.companyNotVerifiedDesc')}</p>
+              <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-0.5">{t('settings.companyNotVerified')}</p>
+              <p className="text-xs text-amber-700 dark:text-amber-400 mb-1.5 leading-snug">{t('settings.companyNotVerifiedDesc')}</p>
               <button
                 onClick={() => setLocation('/settings?tab=company')}
                 className="text-xs font-semibold text-amber-800 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900"
@@ -1251,13 +1234,13 @@ export default function Dashboard() {
               </button>
             </div>
           )}
-          {!isIndividual && activeCompany.verificationStatus === 'under_review' && (
+          {requiresLegalVerification && activeCompany.verificationStatus === 'under_review' && (
             <div className="mb-3 rounded-lg bg-[var(--bid-orange)]/5 dark:bg-blue-950/40 border border-[var(--bid-orange)]/20 dark:border-blue-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
               <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 mb-0.5">{t('settings.verificationInProgress')}</p>
               <p className="text-xs text-[var(--bid-orange)] dark:text-blue-400 leading-snug">{t('settings.verificationInProgressDesc')}</p>
             </div>
           )}
-          {!isIndividual && activeCompany.verificationStatus === 'rejected' && (
+          {requiresLegalVerification && activeCompany.verificationStatus === 'rejected' && (
             <div className="mb-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
               <p className="text-xs font-semibold text-red-800 dark:text-red-300 mb-0.5">{t('settings.verificationRejected')}</p>
               {activeCompany.rejectionReason ? (
@@ -1293,7 +1276,7 @@ export default function Dashboard() {
                   )}
                   {/* Individuals have no verification state to show — they're
                       never asked to verify an identity. */}
-                  {!isIndividual && (activeCompany.verificationStatus === 'verified' ? (
+                  {requiresLegalVerification && (activeCompany.verificationStatus === 'verified' ? (
                     <div
                       className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-[var(--bid-orange)] flex items-center justify-center border-2 border-white dark:border-border"
                       title={t('dashboard.verified')}
@@ -1550,6 +1533,37 @@ export default function Dashboard() {
 
               {/* Footer Actions */}
               <div className="py-2 border-t">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                      data-testid="menu-add-account"
+                    >
+                      <Plus className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm flex-1">{t('settings.addAccount')}</span>
+                      <ChevronRight className={`h-4 w-4 text-muted-foreground ${isRtl ? 'rotate-180' : ''}`} />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side={isRtl ? "left" : "right"} align="end" className="w-56 p-1">
+                    <button
+                      onClick={() => setLocation('/onboarding/company-basics?addAccount=1')}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                      data-testid="menu-create-organization"
+                    >
+                      <Building2 className="h-4 w-4" />
+                      {t('settings.createOrganization')}
+                    </button>
+                    <button
+                      onClick={() => setLocation('/company-onboarding?addAccount=1')}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent ${isRtl ? 'flex-row-reverse text-right' : ''}`}
+                      data-testid="menu-join-organization"
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      {t('settings.joinOrganization')}
+                    </button>
+                  </PopoverContent>
+                </Popover>
+
                 {!isIndividual && (
                 <button
                   onClick={() => setLocation('/company/edit')}
@@ -1898,11 +1912,12 @@ export default function Dashboard() {
                     {/* Animated progress bar */}
                     <div className="mb-6">
                       {(() => {
-                        const adminFlags = canManage && !isIndividual ? [isCompanyVerified, onboardingTasks?.hasCompletedProfile, onboardingTasks?.hasVendors] : [];
-                        const isDiscoverableFlag = isCompanyVerified && activeCompany.profile?.discoverable !== false;
+                        const adminFlags = canManage && isBuyerAccount ? [isCompanyVerified, onboardingTasks?.hasCompletedProfile, onboardingTasks?.hasVendors] : [];
                         const memberFlags = isIndividual
-                          ? [hasProfileComplete, isDiscoverableFlag, onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace]
-                          : [onboardingTasks?.hasTender, onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace];
+                          ? [hasProfileComplete, onboardingTasks?.hasExploredMarketplace]
+                          : isTeam
+                            ? [onboardingTasks?.hasCompletedProfile, onboardingTasks?.hasExploredMarketplace]
+                            : [onboardingTasks?.hasTender, onboardingTasks?.hasReviewedProposal, onboardingTasks?.hasExploredMarketplace];
                         const allFlags = [...adminFlags, ...memberFlags];
                         const localCount = allFlags.filter(Boolean).length;
                         const total = allFlags.length;
@@ -1932,7 +1947,7 @@ export default function Dashboard() {
                     <Accordion type="single" collapsible defaultValue={canManage && !isIndividual ? "task-1" : "task-4"} className="space-y-3">
 
                       {/* Task 1: Get Verified (admins/owners only — individuals are auto-verified and never need this) */}
-                      {canManage && !isIndividual && (
+                      {canManage && requiresLegalVerification && (
                       <AccordionItem value="task-1" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${isCompanyVerified ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -1968,7 +1983,7 @@ export default function Dashboard() {
                       )}
 
                       {/* Task 2: Complete Company Profile (only for owners/admins) */}
-                      {canManage && (
+                      {canManage && (isBuyerAccount || isTeam) && (
                       <AccordionItem value="task-2" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -2004,7 +2019,7 @@ export default function Dashboard() {
                       )}
 
                       {/* Task 3: Set Your Vendors Base (admins/owners only) */}
-                      {canManage && (
+                      {canManage && isBuyerAccount && (
                       <AccordionItem value="task-3" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -2040,7 +2055,7 @@ export default function Dashboard() {
                       )}
 
                       {/* Task 4: Create your First RFP (company/team only) */}
-                      {!isIndividual && <AccordionItem value="task-4" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                      {isBuyerAccount && <AccordionItem value="task-4" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasTender ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
@@ -2104,48 +2119,6 @@ export default function Dashboard() {
                         </AccordionContent>
                       </AccordionItem>}
 
-                      {/* Task 4c: Get discovered (individual only) */}
-                      {isIndividual && (() => {
-                        const isDiscoverable = isCompanyVerified && activeCompany.profile?.discoverable !== false;
-                        return (
-                        <AccordionItem value="task-4c" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${isDiscoverable ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                          <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                            <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                              <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isDiscoverable ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
-                                {isDiscoverable ? <Check className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                              </div>
-                              <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${isDiscoverable ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4cTitle')}</span>
-                              {isDiscoverable ? (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                  <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
-                                </span>
-                              ) : !isCompanyVerified && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 flex-shrink-0">
-                                  {t('dashboard.task4cLocked')}
-                                </span>
-                              )}
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent className="pb-4">
-                            <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                              <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                                <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">
-                                  {isCompanyVerified ? t('dashboard.task4cDesc') : t('dashboard.task4cDescLocked')}
-                                </p>
-                                <Button
-                                  className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
-                                  onClick={() => setLocation('/company/edit')}
-                                  data-testid="button-task-discovery"
-                                >
-                                  {isCompanyVerified ? t('dashboard.task4cAction') : t('dashboard.task4cActionLocked')}
-                                </Button>
-                              </div>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                        );
-                      })()}
-
                       {/* Task 5: Submit your First Proposal */}
                       <AccordionItem value="task-5" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
                         <AccordionTrigger className={`hover:no-underline py-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -2153,7 +2126,7 @@ export default function Dashboard() {
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasReviewedProposal ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />}
                             </div>
-                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasReviewedProposal ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task5Title')}</span>
+                            <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-left'} ${onboardingTasks?.hasReviewedProposal ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{isIndividual ? t('dashboard.task5TitleIndividual') : t('dashboard.task5Title')}</span>
                             {onboardingTasks?.hasReviewedProposal && (
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
                                 <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
@@ -2164,7 +2137,7 @@ export default function Dashboard() {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task5Desc')}</p>
+                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{isIndividual ? t('dashboard.task5DescIndividual') : t('dashboard.task5Desc')}</p>
                               <Button
                                 className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
                                 onClick={() => setActiveTab('proposals')}
@@ -2877,14 +2850,10 @@ export default function Dashboard() {
               </Card>
 
               <Tabs value={vendorsSubTab} onValueChange={(v) => { setVendorsSubTab(v); localStorage.setItem('dashboard-vendors-tab', v); }} className="space-y-4">
-                <TabsList className={`flex w-full max-w-2xl overflow-x-auto sm:grid sm:grid-cols-3 ${BRAND_TABSLIST}`} data-tour="vendors-tabs">
+                <TabsList className={`flex w-full max-w-2xl overflow-x-auto sm:grid sm:grid-cols-2 ${BRAND_TABSLIST}`} data-tour="vendors-tabs">
                   <TabsTrigger value="vendors-list" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-vendors-list">
                     <Users className="h-4 w-4" />
                     {t('dashboard.vendorsBase')} ({vendors.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="discover" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-discover-individuals">
-                    <Search className="h-4 w-4" />
-                    {t('directory.title')}
                   </TabsTrigger>
                   <TabsTrigger value="join-requests" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-join-requests" data-tour="vendors-requests-tab">
                     <UserPlus className="h-4 w-4" />
@@ -2896,16 +2865,6 @@ export default function Dashboard() {
                     )}
                   </TabsTrigger>
                 </TabsList>
-
-                {/* Discover individuals Sub-Tab */}
-                <TabsContent value="discover" className="space-y-4">
-                  <div className="max-w-[52ch]">
-                    <p className="text-sm text-muted-foreground">
-                      {t('directory.intro')}
-                    </p>
-                  </div>
-                  <IndividualsDirectory />
-                </TabsContent>
 
                 {/* Vendors List Sub-Tab */}
                 <TabsContent value="vendors-list" className="space-y-4">
@@ -4014,7 +3973,7 @@ export default function Dashboard() {
               ? t('dashboard.verificationPending')
               : activeCompany.verificationStatus === 'rejected'
                 ? t('dashboard.verificationRejected')
-                : isTeam ? t('dashboard.teamVerificationRequired') : t('dashboard.verificationRequired')}
+                : t('dashboard.verificationRequired')}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
@@ -4027,7 +3986,7 @@ export default function Dashboard() {
                 <>
                   <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mb-1">{t('dashboard.verificationPending')}</p>
                   <p className="text-sm text-amber-700 dark:text-amber-300">
-                    {isTeam ? t('dashboard.teamVerificationUnderReviewDesc') : t('dashboard.verificationUnderReviewDesc')}
+                    {t('dashboard.verificationUnderReviewDesc')}
                   </p>
                 </>
               ) : activeCompany.verificationStatus === 'rejected' ? (
@@ -4039,9 +3998,9 @@ export default function Dashboard() {
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mb-1">{isTeam ? t('dashboard.teamVerificationRequired') : t('dashboard.verificationRequired')}</p>
+                  <p className="text-sm font-medium text-amber-900 dark:text-amber-200 mb-1">{t('dashboard.verificationRequired')}</p>
                   <p className="text-sm text-amber-700 dark:text-amber-300">
-                    {isTeam ? t('dashboard.teamVerificationNotVerifiedDesc') : t('dashboard.verificationNotVerifiedDesc')}
+                    {t('dashboard.verificationNotVerifiedDesc')}
                   </p>
                 </>
               )}
@@ -4072,8 +4031,6 @@ export default function Dashboard() {
     {tourOverlay}
     {/* Vendors tab tour overlay */}
     {vendorsTourOverlay}
-    {/* Create-team dialog (individuals) */}
-    <CreateTeamDialog open={createTeamOpen} onOpenChange={setCreateTeamOpen} />
     </>
   );
 }

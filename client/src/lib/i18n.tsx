@@ -7,6 +7,9 @@ export type Language = 'en' | 'ar';
 const translations = {
   en: {
     settings: {
+      addAccount: "Add account",
+      createOrganization: "Create organization",
+      joinOrganization: "Join organization",
       accountSettings: "Account settings",
       personalInfo: "Personal information",
       teamSettings: "Team settings",
@@ -456,6 +459,8 @@ const translations = {
       task4cActionLocked: "Learn more",
       task4cLocked: "Verification required",
       task5Title: "Submit your First Proposal",
+      task5TitleIndividual: "Submit your first proposal",
+      task5DescIndividual: "Browse opportunities that accept individuals and submit your first proposal.",
       task5Desc: "Review incoming vendor proposals and take action — accept or reject — to complete your first procurement cycle.",
       task5Action: "View Proposals",
       task5Tip: "Compare fairly",
@@ -4160,6 +4165,9 @@ const translations = {
   },
   ar: {
     settings: {
+      addAccount: "إضافة حساب",
+      createOrganization: "إنشاء منظمة",
+      joinOrganization: "الانضمام إلى منظمة",
       accountSettings: "إعدادات الحساب",
       personalInfo: "المعلومات الشخصية",
       teamSettings: "إعدادات الفريق",
@@ -4609,6 +4617,8 @@ const translations = {
       task4cActionLocked: "معرفة المزيد",
       task4cLocked: "يتطلب التوثيق",
       task5Title: "قدم أول عرضك",
+      task5TitleIndividual: "قدّم عرضك الأول",
+      task5DescIndividual: "استعرض المشاريع المتاحة للأفراد، وقدّم عرضك الأول.",
       task5Desc: "راجع العروض الواردة واختر المورد المناسب",
       task5Action: "عرض العروض",
       task5Tip: "قارن بعدالة",

@@ -1707,7 +1707,7 @@ export default function Dashboard() {
           }}
         >
           {/* Dashboard Content */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Tabs dir={isRtl ? 'rtl' : 'ltr'} value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-10 w-full pt-2 px-1 sm:px-2">
@@ -1717,7 +1717,8 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
-              className={`bid-grain relative overflow-hidden rounded-[28px] bg-[#171310] px-6 sm:px-9 pt-8 sm:pt-10 ${canManage ? 'pb-7 sm:pb-9' : 'pb-8'} ${isRtl ? 'text-right' : ''}`}
+              dir={isRtl ? 'rtl' : 'ltr'}
+              className={`bid-grain relative overflow-hidden rounded-[28px] bg-[#171310] px-6 sm:px-9 pt-8 sm:pt-10 ${canManage ? 'pb-7 sm:pb-9' : 'pb-8'} text-start`}
             >
               {/* Orange blooms — the signal glowing off the desk */}
               <div aria-hidden className="pointer-events-none absolute -top-36 -right-28 h-96 w-96 rounded-full bg-[#FE3C01]/25 blur-[110px]" />
@@ -1733,7 +1734,7 @@ export default function Dashboard() {
                   {t('dashboard.overview')}<span className="text-[#FE3C01]">.</span>
                 </h1>
                 {canManage && (
-                  <p className="text-sm sm:text-base text-[#B9AFA5] mt-3 max-w-xl leading-relaxed">
+                  <p className="text-sm sm:text-base text-[#B9AFA5] mt-3 max-w-xl leading-relaxed [unicode-bidi:plaintext]">
                     {t('dashboard.getStartedDesc')}
                   </p>
                 )}
@@ -1759,7 +1760,7 @@ export default function Dashboard() {
                         <p className="font-display font-bold text-5xl text-[#F4EDE1] tracking-[-0.04em] leading-[1] tabular-nums">
                           {tenders.filter(tender => tender.status === 'published').length}
                         </p>
-                        <p className="text-sm text-[#B9AFA5] mt-2 font-medium">{t('dashboard.activeRfps')}</p>
+                        <p className="text-sm text-[#B9AFA5] mt-2 font-medium [unicode-bidi:plaintext]">{t('dashboard.activeRfps')}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -2243,7 +2244,7 @@ export default function Dashboard() {
                         data-testid="input-tender-search"
                       />
                     </div>
-                    <Tabs value={tenderFilter} onValueChange={(v) => setTenderFilter(v as any)} className="w-full sm:w-auto">
+                    <Tabs dir={isRtl ? 'rtl' : 'ltr'} value={tenderFilter} onValueChange={(v) => setTenderFilter(v as any)} className="w-full sm:w-auto">
                       <TabsList className="grid grid-cols-4 w-full sm:w-auto">
                         <TabsTrigger value="all" data-testid="filter-all">{t('dashboard.all')}</TabsTrigger>
                         <TabsTrigger value="published" data-testid="filter-published">{t('dashboard.published')}</TabsTrigger>
@@ -2449,7 +2450,7 @@ export default function Dashboard() {
             />
             </motion.div>
 
-            <Tabs value={(isIndividual || isTeam) ? 'submitted' : proposalsSubTab} onValueChange={(v) => { setProposalsSubTab(v); localStorage.setItem('dashboard-proposals-tab', v); }} className="space-y-4">
+            <Tabs dir={isRtl ? 'rtl' : 'ltr'} value={(isIndividual || isTeam) ? 'submitted' : proposalsSubTab} onValueChange={(v) => { setProposalsSubTab(v); localStorage.setItem('dashboard-proposals-tab', v); }} className="space-y-4">
               {!isIndividual && !isTeam && (
               <TabsList className={`grid w-full max-w-md grid-cols-2 ${BRAND_TABSLIST}`}>
                 <TabsTrigger value="submitted" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-submitted-proposals">
@@ -2858,7 +2859,7 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              <Tabs value={vendorsSubTab} onValueChange={(v) => { setVendorsSubTab(v); localStorage.setItem('dashboard-vendors-tab', v); }} className="space-y-4">
+              <Tabs dir={isRtl ? 'rtl' : 'ltr'} value={vendorsSubTab} onValueChange={(v) => { setVendorsSubTab(v); localStorage.setItem('dashboard-vendors-tab', v); }} className="space-y-4">
                 <TabsList className={`flex w-full max-w-2xl overflow-x-auto sm:grid sm:grid-cols-2 ${BRAND_TABSLIST}`} data-tour="vendors-tabs">
                   <TabsTrigger value="vendors-list" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-vendors-list">
                     <Users className="h-4 w-4" />

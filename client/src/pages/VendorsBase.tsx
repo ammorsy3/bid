@@ -54,7 +54,7 @@ interface JoinRequest {
 
 export default function VendorsBase() {
   const { toast } = useToast();
-  const { t } = useI18n();
+  const { t, isRtl } = useI18n();
   const [searchQuery, setSearchQuery] = useState("");
   const [profileDrawerOpen, setProfileDrawerOpen] = useState(false);
   const [profileJoinRequestId, setProfileJoinRequestId] = useState<string | null>(null);
@@ -148,7 +148,7 @@ export default function VendorsBase() {
         </p>
       </div>
 
-      <Tabs defaultValue="vendors" className="space-y-6">
+      <Tabs dir={isRtl ? 'rtl' : 'ltr'} defaultValue="vendors" className="space-y-6">
         <TabsList className="grid w-full max-w-md grid-cols-2" data-tour="vendors-tabs">
           <TabsTrigger value="vendors" className="gap-2" data-testid="tab-vendors">
             <Users className="h-4 w-4" />

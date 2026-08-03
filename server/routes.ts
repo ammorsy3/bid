@@ -7396,6 +7396,72 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
+  // ── TEMPORARY DIAGNOSTIC — remove once the pooler question is settled ──────
+  //
+  // Production runs on Supabase's SESSION pooler (port 5432). It should run on
+  // the TRANSACTION pooler (6543): serverless spawns many short-lived instances,
+  // and in session mode each one holds its connection until it dies, so they
+  // pile up against a 60-connection ceiling. server/db.ts already warns about
+  // this on every request.
+  //
+  // Switching to 6543 was tried on 2026-08-03 and every login failed with
+  // "Connection terminated due to connection timeout" — the connection never
+  // established. It was reverted. The same 6543 string connects fine from a
+  // laptop with psql, so the failure is specific to Vercel, and guessing past
+  // that point is how you break production twice.
+  //
+  // This endpoint makes the failure talk: it opens ONE connection to whatever
+  // DATABASE_URL_TXPOOL holds, from inside a Vercel function, and reports the
+  // real driver error. It does not touch the app's own pool, so production
+  // stays on 5432 while we find out.
+  //
+  // Guarded by CRON_SECRET so it isn't a public probe. Never returns the
+  // connection string or password — only host, port, and the error.
+  app.get("/api/_dbcheck", async (req, res) => {
+    const secret = process.env.CRON_SECRET;
+    const provided = (req.headers['x-diag-secret'] as string) || (req.query.secret as string) || '';
+    if (!secret || provided !== secret) {
+      return res.status(404).json({ message: "Not found" });
+    }
+
+    const target = process.env.DATABASE_URL_TXPOOL;
+    if (!target) {
+      return res.json({ ok: false, reason: "DATABASE_URL_TXPOOL is not set in this environment" });
+    }
+
+    // Describe the target without ever echoing credentials.
+    let host = 'unparsed', port = 'unparsed';
+    try {
+      const u = new URL(target);
+      host = u.hostname; port = u.port || '(default)';
+    } catch { /* leave as unparsed */ }
+
+    const started = Date.now();
+    const { Client } = await import('pg');
+    const client = new Client({
+      connectionString: target,
+      connectionTimeoutMillis: 8000,
+      ssl: { rejectUnauthorized: false },
+    });
+    try {
+      await client.connect();
+      const r = await client.query('select 1 as ok');
+      await client.end();
+      return res.json({
+        ok: true, host, port, ms: Date.now() - started,
+        query: r.rows[0],
+        note: "Transaction pooler reachable from Vercel. Safe to point DATABASE_URL at this.",
+      });
+    } catch (e: any) {
+      try { await client.end(); } catch { /* already closed */ }
+      return res.json({
+        ok: false, host, port, ms: Date.now() - started,
+        error: { name: e?.name, message: e?.message, code: e?.code,
+                 cause: e?.cause?.message, severity: e?.severity, routine: e?.routine },
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

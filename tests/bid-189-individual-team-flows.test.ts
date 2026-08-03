@@ -16,65 +16,84 @@ import { createCompanySchema } from "../shared/schema";
 import type { WorkspaceKind } from "../client/src/lib/useWorkspaceKind";
 
 // ─── displayRoleName ──────────────────────────────────────────────────────────
+//
+// displayRoleName now returns a TRANSLATED name: it takes a `t` and looks up an
+// i18n key rather than returning a hardcoded English string. Arabic users were
+// seeing "Owner"/"Admin"/"Business Dev" untranslated in the members list and the
+// workspace switcher.
+//
+// These tests pass an identity `t` so they assert the KEY each role maps to.
+// That checks the mapping — which is the logic worth protecting — without
+// pinning the tests to English copy that translators may reword.
 
-describe("displayRoleName — company workspace (unchanged regression)", () => {
+const tKey = (k: string) => k;
+
+describe("displayRoleName — company workspace", () => {
   const kind: WorkspaceKind = "company";
 
-  it("maps owner → 'Owner'", () => {
-    expect(displayRoleName("owner", kind)).toBe("Owner");
+  it("maps owner → the owner key", () => {
+    expect(displayRoleName("owner", kind, tKey)).toBe("dashboard.roleOwner");
   });
 
-  it("maps admin → 'Admin'", () => {
-    expect(displayRoleName("admin", kind)).toBe("Admin");
+  it("maps admin → the admin key", () => {
+    expect(displayRoleName("admin", kind, tKey)).toBe("dashboard.roleAdmin");
   });
 
-  it("maps member → 'Member'", () => {
-    expect(displayRoleName("member", kind)).toBe("Member");
+  it("maps member → the member key", () => {
+    expect(displayRoleName("member", kind, tKey)).toBe("dashboard.roleMember");
   });
 
-  it("maps viewer → 'Viewer'", () => {
-    expect(displayRoleName("viewer", kind)).toBe("Viewer");
+  it("maps viewer → the viewer key", () => {
+    expect(displayRoleName("viewer", kind, tKey)).toBe("dashboard.roleViewer");
   });
 
-  it("falls back to raw role for unknown DB roles", () => {
-    expect(displayRoleName("superadmin", kind)).toBe("superadmin");
+  it("maps business_developer → the business developer key", () => {
+    expect(displayRoleName("business_developer", kind, tKey)).toBe("settings.roleBusinessDeveloper");
+  });
+
+  it("falls back to the raw role for unknown DB roles", () => {
+    expect(displayRoleName("superadmin", kind, tKey)).toBe("superadmin");
   });
 });
 
 describe("displayRoleName — team workspace", () => {
   const kind: WorkspaceKind = "team";
 
-  it("maps owner → 'Admin' (team admins appear as Admin)", () => {
-    expect(displayRoleName("owner", kind)).toBe("Admin");
+  it("maps owner → the admin key (team owners appear as Admin)", () => {
+    expect(displayRoleName("owner", kind, tKey)).toBe("dashboard.roleAdmin");
   });
 
-  it("maps admin → 'Admin'", () => {
-    expect(displayRoleName("admin", kind)).toBe("Admin");
+  it("maps admin → the admin key", () => {
+    expect(displayRoleName("admin", kind, tKey)).toBe("dashboard.roleAdmin");
   });
 
-  it("maps member (BD) → 'Business Dev'", () => {
-    expect(displayRoleName("member", kind)).toBe("Business Dev");
+  it("maps business_developer → the business developer key", () => {
+    expect(displayRoleName("business_developer", kind, tKey)).toBe("settings.roleBusinessDeveloper");
   });
 
-  it("maps viewer → 'Member' (read-only team member)", () => {
-    expect(displayRoleName("viewer", kind)).toBe("Member");
+  it("still maps legacy member → business developer (pre-existing alias, see Q-018)", () => {
+    expect(displayRoleName("member", kind, tKey)).toBe("settings.roleBusinessDeveloper");
   });
 
-  it("falls back to raw role for unknown DB roles", () => {
-    expect(displayRoleName("wizard", kind)).toBe("wizard");
+  it("maps viewer → the member key (read-only team member)", () => {
+    expect(displayRoleName("viewer", kind, tKey)).toBe("dashboard.roleMember");
+  });
+
+  it("falls back to the raw role for unknown DB roles", () => {
+    expect(displayRoleName("wizard", kind, tKey)).toBe("wizard");
   });
 });
 
 describe("displayRoleName — individual workspace", () => {
   const kind: WorkspaceKind = "individual";
 
-  it("maps owner → 'Owner' (sole account holder)", () => {
-    expect(displayRoleName("owner", kind)).toBe("Owner");
+  it("maps owner → the owner key (sole account holder)", () => {
+    expect(displayRoleName("owner", kind, tKey)).toBe("dashboard.roleOwner");
   });
 
-  it("returns raw role for any other DB role (individuals have no teammates)", () => {
-    expect(displayRoleName("member", kind)).toBe("member");
-    expect(displayRoleName("viewer", kind)).toBe("viewer");
+  it("returns the raw role for any other DB role (individuals have no teammates)", () => {
+    expect(displayRoleName("member", kind, tKey)).toBe("member");
+    expect(displayRoleName("viewer", kind, tKey)).toBe("viewer");
   });
 });
 

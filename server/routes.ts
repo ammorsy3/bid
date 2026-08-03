@@ -47,6 +47,7 @@ import {
   sendMembershipDecisionNotification,
   sendVerificationOTP,
   sendTeamInviteEmail,
+  sendTenderInvitationEmail,
   sendPasswordResetEmail,
 } from "./email";
 import {
@@ -3379,6 +3380,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           invitationToken: crypto.randomUUID(),
           status: 'pending',
         } as any);
+
+        // Tell the invitee. Without this the invitation existed only as a row:
+        // they were never emailed, and would find it only by chance in the
+        // "Invited to you" strip on the marketplace.
+        //
+        // The tender's own invitationToken is used, not the invitation row's —
+        // /invite/:id resolves the tender by that token, so it is the link that
+        // actually opens the RFP.
+        //
+        // Deliberately not awaited and wrapped in its own catch: a mail failure
+        // must not roll back or 500 an invitation that was created successfully.
+        (async () => {
+          try {
+            const members = await storage.getCompanyMembers(individualCompanyId);
+            const recipients = members
+              .filter(m => m.user?.email)
+              .map(m => ({ email: m.user.email, name: m.user.name, language: (m.user.language as any) || 'en' }));
+            if (recipients.length === 0) return;
+            await sendTenderInvitationEmail({
+              recipients,
+              requesterName: requester.name,
+              tenderTitle: tender.title,
+              tenderCategory: tender.category,
+              deadline: tender.deadline ?? null,
+              invitationToken: tender.invitationToken,
+            });
+          } catch (err) {
+            console.error('[Invite] Failed to notify invited workspace:', err);
+          }
+        })();
 
         res.status(201).json({ id: invitation.id, tenderId, status: invitation.status });
       } catch (error) {

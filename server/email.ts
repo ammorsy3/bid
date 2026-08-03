@@ -1330,6 +1330,74 @@ export async function sendTeamInviteEmail(params: {
 }
 
 // =============================================================================
+// TENDER INVITATION — company invites an individual/team to bid
+// =============================================================================
+
+/**
+ * Sent when a company invites an individual (or team) to one of its published
+ * RFPs. Before this existed the invitation was written to the database and the
+ * invitee was told nothing at all — they would only discover it by happening to
+ * open the marketplace and notice a new entry in "Invited to you".
+ */
+export async function sendTenderInvitationEmail(params: {
+  recipients: { email: string; name?: string; language?: Lang }[];
+  requesterName: string;
+  tenderTitle: string;
+  tenderCategory?: string | null;
+  deadline?: string | null;
+  invitationToken: string;
+  appBaseUrl?: string;
+}): Promise<void> {
+  const { recipients, requesterName, tenderTitle, tenderCategory, deadline, invitationToken, appBaseUrl } = params;
+  if (recipients.length === 0) return;
+
+  const baseUrl = getBaseUrl(appBaseUrl);
+  const tenderUrl = `${baseUrl}/invite/${invitationToken}`;
+
+  for (const r of recipients) {
+    const isAr = r.language === 'ar';
+
+    const subject = isAr
+      ? `${requesterName} دعاك لتقديم عرض على "${tenderTitle}"`
+      : `${requesterName} invited you to bid on "${tenderTitle}"`;
+
+    const details: { iconEmoji: string; iconBg: string; label: string; value: string }[] = [
+      { iconEmoji: "&#127970;", iconBg: "#EFF6FF", label: isAr ? "الجهة الطالبة" : "Requester", value: requesterName },
+    ];
+    if (tenderCategory) {
+      details.push({ iconEmoji: "&#127991;", iconBg: "#F0FDF4", label: isAr ? "التصنيف" : "Category", value: tenderCategory });
+    }
+    if (deadline) {
+      details.push({ iconEmoji: "&#9200;", iconBg: "#FFF7ED", label: isAr ? "آخر موعد للتقديم" : "Submission deadline", value: deadline });
+    }
+
+    const html = buildEmailHtml({
+      iconEmoji: "&#128233;",
+      iconBg: "#FFF1EE",
+      headline: isAr ? "لقد تمت دعوتك لتقديم عرض" : "You've been invited to bid",
+      subheadline: isAr
+        ? `${requesterName} يدعوك لتقديم عرض على طلب عروض`
+        : `${requesterName} would like a proposal from you`,
+      bodyText: isAr
+        ? `تمت دعوتك لتقديم عرض على <strong>${tenderTitle}</strong>. اطّلع على التفاصيل الكاملة وقدّم عرضك من خلال الرابط أدناه.`
+        : `You've been invited to submit a proposal for <strong>${tenderTitle}</strong>. Review the full details and submit your bid using the link below.`,
+      details,
+      ctaLabel: isAr ? "عرض طلب العروض" : "View the RFP",
+      ctaUrl: tenderUrl,
+      ctaColor: "#FE3C01",
+      reasonText: isAr
+        ? `لقد تلقيت هذا البريد لأن ${requesterName} دعاك لتقديم عرض على منصة Bid.`
+        : `You received this email because ${requesterName} invited you to bid on Bid.`,
+      language: r.language || 'en',
+    });
+
+    // Fire and forget: an invitation must not fail because its email did.
+    sendEmail(r.email, subject, html).catch(err =>
+      console.error(`[Email] Failed to send tender invitation to ${r.email}:`, err));
+  }
+}
+
+// =============================================================================
 // MEMBERSHIP REQUESTS — user → workspace
 // =============================================================================
 

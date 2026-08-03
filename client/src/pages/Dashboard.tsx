@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/lib/auth";
+import { displayRoleName } from "@/lib/roles";
 import { useLogout } from "@/hooks/use-logout";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,11 +102,14 @@ interface JoinRequest {
   };
 }
 
-const SUBMISSION_TYPE_LABELS_DASH: Record<string, string> = {
-  quote_only: "Price Quote Only",
-  tech_fin_proposal: "Technical & Financial",
-  video_only: "Video Only",
-  tech_fin_with_video: "Tech & Fin + Video",
+// i18n KEYS, not literal strings — these rendered untranslated on /rfps for
+// Arabic users. A module-level constant can't call t(), so the values are keys
+// and the caller resolves them. The translations already existed.
+const SUBMISSION_TYPE_LABEL_KEYS: Record<string, string> = {
+  quote_only: "tenderFlow.editSubmTypeQuoteOnly",
+  tech_fin_proposal: "tenderFlow.editSubmTypeTechFin",
+  video_only: "tenderFlow.editSubmTypeVideoOnly",
+  tech_fin_with_video: "tenderFlow.editSubmTypeTechFinVideo",
 };
 
 // ── Brand surfaces ───────────────────────────────────────────────────────────
@@ -861,10 +865,10 @@ export default function Dashboard() {
     }
     const state = tenderStatusToState(status);
     switch (status) {
-      case 'published': return { state, label: 'Published' };
-      case 'draft':     return { state, label: 'Draft' };
-      case 'closed':    return { state, label: 'Closed' };
-      case 'cancelled': return { state, label: 'Cancelled' };
+      case 'published': return { state, label: t('dashboard.published') };
+      case 'draft':     return { state, label: t('dashboard.draft') };
+      case 'closed':    return { state, label: t('dashboard.closedLabel') };
+      case 'cancelled': return { state, label: t('tenderCard.cancelled') };
       default:          return { state, label: status };
     }
   };
@@ -1027,7 +1031,9 @@ export default function Dashboard() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{company.profile?.displayName || company.name}</p>
                         <p className="text-xs text-muted-foreground capitalize">
-                          {company.accountType === 'individual' ? t('dashboard.roleIndividual') : company.role}
+                          {company.accountType === 'individual'
+                            ? t('dashboard.roleIndividual')
+                            : displayRoleName(company.role, (company.accountType ?? 'company') as any, t)}
                         </p>
                       </div>
                       {company.id === activeCompany.id && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
@@ -2267,8 +2273,8 @@ export default function Dashboard() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">{t('dashboard.allTypes')}</SelectItem>
-                        {Object.entries(SUBMISSION_TYPE_LABELS_DASH).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>{label}</SelectItem>
+                        {Object.entries(SUBMISSION_TYPE_LABEL_KEYS).map(([value, labelKey]) => (
+                          <SelectItem key={value} value={value}>{t(labelKey)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -2358,7 +2364,9 @@ export default function Dashboard() {
                                     )}
                                     {tender.targetAudienceTypes && tender.targetAudienceTypes.length > 0 && tender.targetAudienceTypes.map((type: string) => (
                                       <span key={type} className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border border-border text-muted-foreground bg-muted">
-                                        {type === 'company' ? 'Companies' : type === 'team' ? 'Teams' : 'Individuals'}
+                                        {type === 'company' ? t('tenderFlow.audienceCompanies')
+                                          : type === 'team' ? t('tenderFlow.audienceTeams')
+                                          : t('tenderFlow.audienceIndividuals')}
                                       </span>
                                     ))}
                                   </div>
@@ -2384,7 +2392,7 @@ export default function Dashboard() {
                                 {tender.submissionType && (
                                 <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                   <FileText className="h-4 w-4" />
-                                  <span>{SUBMISSION_TYPE_LABELS_DASH[tender.submissionType] || tender.submissionType}</span>
+                                  <span>{tender.submissionType && SUBMISSION_TYPE_LABEL_KEYS[tender.submissionType] ? t(SUBMISSION_TYPE_LABEL_KEYS[tender.submissionType]) : tender.submissionType}</span>
                                 </div>
                                 )}
                                 <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>

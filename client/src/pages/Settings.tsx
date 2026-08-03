@@ -269,7 +269,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl, worksp
                   </div>
                   <Badge className={`${roleColors[member.role] || roleColors.member} flex-shrink-0`}>
                     {member.role === 'owner' && <Crown className="h-3 w-3 me-1" />}
-                    {displayRoleName(member.role, workspaceKind)}
+                    {displayRoleName(member.role, workspaceKind, t)}
                   </Badge>
                   {canManage && (() => {
                     const canModify = member.userId !== currentUserId && member.role !== 'owner';

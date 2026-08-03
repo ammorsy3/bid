@@ -913,6 +913,27 @@ export default function TenderBriefStep() {
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t('tenderFlow.quickSummary')}</h3>
                   <div className="space-y-4">
+                    {/* Who can bid. It was missing from this summary even though
+                        it is one of the most consequential choices in the wizard
+                        and is already in the draft — a requester could reach the
+                        brief without ever seeing it echoed back. */}
+                    {Array.isArray(draft.targetAudienceTypes) && draft.targetAudienceTypes.length > 0 && (
+                      <div className="flex items-start gap-3">
+                        <Users className="h-4 w-4 text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.audienceHeading')}</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {draft.targetAudienceTypes
+                              .map((type: string) =>
+                                type === 'company' ? t('tenderFlow.audienceCompanies')
+                                  : type === 'team' ? t('tenderFlow.audienceTeams')
+                                  : t('tenderFlow.audienceIndividuals'))
+                              .join(' · ')}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {draft.projectSize && (
                       <div className="flex items-start gap-3">
                         <BarChart className="h-4 w-4 text-gray-400 mt-0.5" />

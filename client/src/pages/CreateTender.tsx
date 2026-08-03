@@ -198,7 +198,9 @@ export default function CreateTender() {
           title: t('createTender.profileRequiredTitle'),
           description: profileDesc,
         });
-        navigate('/company-onboarding');
+        navigate(activeCompany?.accountType === 'individual'
+          ? '/onboarding/individual-profile'
+          : '/settings?tab=company');
       } else {
         toast({
           title: t('createTender.errorTitle'),

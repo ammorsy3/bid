@@ -177,6 +177,19 @@ export default function TractionLinkEditor() {
   const queryClient = useQueryClient();
   const checkAuth = useAuthStore((s) => s.checkAuth);
 
+  // Traction pages are company-only (Q-034). Individuals still get a traction
+  // slug auto-generated at signup, so this URL resolves for them — send them to
+  // their own profile rather than an editor for a page they should not have.
+  const isCompanyWorkspace = (activeCompany?.accountType ?? 'company') === 'company';
+  useEffect(() => {
+    if (activeCompany && !isCompanyWorkspace) {
+      navigate(activeCompany.accountType === 'individual'
+        ? `/people/${activeCompany.slug}`
+        : `/company/${activeCompany.slug}`, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCompany, isCompanyWorkspace]);
+
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
 
   // Fetch current traction data

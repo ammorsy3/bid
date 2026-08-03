@@ -133,43 +133,29 @@ describe("createCompanySchema — individual account type", () => {
     expect(result.name).toBe("Ahmed Al-Mansouri");
   });
 
-  it("accepts an individual with a National ID number", () => {
+  // National ID is no longer collected anywhere: the field was found to be
+  // unlawful for us to hold, and migration 0006_drop_national_id.sql removes
+  // the column, its unique constraint and the zod validator that used to guard
+  // it. These cases previously asserted that validator's 10-digit rule; they
+  // now assert the opposite — that supplying the field has no effect and is
+  // never persisted. See Q-028.
+  it("silently ignores a nationalIdNumber if one is supplied", () => {
     const result = createCompanySchema.parse({
       name: "Sara K.",
       accountType: "individual",
       nationalIdNumber: "1234567890",
-    });
-    expect(result.nationalIdNumber).toBe("1234567890");
+    } as Record<string, unknown>);
+    expect((result as Record<string, unknown>).nationalIdNumber).toBeUndefined();
   });
 
-  it("rejects National ID shorter than 10 digits", () => {
-    expect(() =>
-      createCompanySchema.parse({
-        name: "Sara K.",
-        accountType: "individual",
-        nationalIdNumber: "12345",
-      })
-    ).toThrow();
-  });
-
-  it("rejects National ID longer than 10 digits", () => {
-    expect(() =>
-      createCompanySchema.parse({
-        name: "Sara K.",
-        accountType: "individual",
-        nationalIdNumber: "12345678901",
-      })
-    ).toThrow();
-  });
-
-  it("rejects National ID with non-digit characters", () => {
+  it("does not reject a malformed nationalIdNumber — the field no longer exists", () => {
     expect(() =>
       createCompanySchema.parse({
         name: "Sara K.",
         accountType: "individual",
         nationalIdNumber: "123456789X",
-      })
-    ).toThrow();
+      } as Record<string, unknown>)
+    ).not.toThrow();
   });
 });
 

@@ -32,12 +32,19 @@ export function isValidJoinCode(code: string): boolean {
 // ── Marketplace audience scope ───────────────────────────────────────────────
 
 /**
- * Which audience a marketplace request should be scoped to. Individuals only
- * see individual-eligible tenders; companies/teams (and anonymous callers) keep
- * the full view. Returns undefined for "no audience filter".
+ * Which audience a marketplace request should be scoped to. Individuals see
+ * only individual-eligible tenders and teams only team-eligible ones — both are
+ * scoped to their own account type, matching the audience the requester picked
+ * when creating the tender.
+ *
+ * Companies (and anonymous callers) keep the full view and return undefined for
+ * "no audience filter". That asymmetry is deliberate-by-omission rather than
+ * designed: it was never asked about, so it is left as it was. See Q-033.
  */
 export function marketplaceAudienceFor(callerAccountType: string | undefined): string | undefined {
-  return callerAccountType === "individual" ? "individual" : undefined;
+  if (callerAccountType === "individual") return "individual";
+  if (callerAccountType === "team") return "team";
+  return undefined;
 }
 
 // ── WhatsApp visibility gating ───────────────────────────────────────────────
@@ -80,42 +87,9 @@ export function gateWhatsappVisibility(input: WhatsappGateInput): WhatsappGateRe
   return { number: visible ? number : null, locked: !visible };
 }
 
-// ── Recommendation scoring ───────────────────────────────────────────────────
-
-export interface SuggestionScoreInput {
-  /** The tender's category. */
-  tenderCategory?: string | null;
-  /** The requesting company's city. */
-  requesterCity?: string | null;
-  /** The candidate individual. */
-  candidate: {
-    category?: string | null;
-    city?: string | null;
-    verificationStatus?: string | null;
-    availabilityStatus?: string | null;
-  };
-}
-
-/**
- * Score an individual as a match for a tender. Higher is better. Field match
- * dominates, then verification, availability, and same-city as tie-breakers.
- * Mirrors the ranking used by getSuggestedIndividualsForTender.
- */
-export function scoreSuggestion(input: SuggestionScoreInput): number {
-  const { tenderCategory, requesterCity, candidate } = input;
-  let score = 0;
-  if (tenderCategory && candidate.category === tenderCategory) score += 100;
-  if (candidate.verificationStatus === "verified") score += 20;
-  if (candidate.availabilityStatus === "accepting") score += 15;
-  if (
-    requesterCity &&
-    candidate.city &&
-    candidate.city.toLowerCase() === requesterCity.toLowerCase()
-  ) {
-    score += 10;
-  }
-  return score;
-}
+// Individual suggestion ranking (scoreSuggestion / SuggestionScoreInput) lived
+// here. It ordered candidates for the "suggested individuals" strip on an RFP,
+// which was part of Discovery and has been removed. See Q-022/Q-024.
 
 // ── Username / slug sanitization ─────────────────────────────────────────────
 

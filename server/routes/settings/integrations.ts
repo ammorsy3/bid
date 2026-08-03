@@ -24,7 +24,7 @@ export function registerIntegrationsAdminRoutes(app: Express, deps: MiddlewareDe
   const { authenticateToken, requireCompanyContext, requireCompanyRole, requireAccountType } = deps;
   // API keys & integrations are a buyer/collaboration feature. Individuals can't
   // create tenders or use the AI copilot, so they get no API access either.
-  const adminGate = [authenticateToken, requireCompanyContext, requireAccountType("company", "team"), requireCompanyRole("admin")];
+  const adminGate = [authenticateToken, requireCompanyContext, requireAccountType("company"), requireCompanyRole("admin")];
 
   const r = Router();
 

@@ -92,7 +92,6 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, asc, desc, ilike, or, isNull, sql, gte, gt, count, ne, lt, notInArray } from "drizzle-orm";
-import { scoreSuggestion } from "./lib/individual-sourcing";
 
 // One funnel group (companies or freelancers). Numbers are workspace counts.
 export interface VerificationFunnel {
@@ -115,7 +114,6 @@ export interface UserVerificationAnalytics {
     vatCertificate: number;
     gosiCertificate: number;
     nationalAddressCertificate: number;
-    nationalIdCard: number;
     other: number;
   };
 }
@@ -166,7 +164,6 @@ export interface IStorage {
   getCompanyBySlug(slug: string): Promise<Company | undefined>;
   getCompanyByJoinCode(code: string): Promise<Company | undefined>;
   getCompanyByCrNumber(crNumber: string): Promise<Company | undefined>;
-  getCompanyByNationalId(nationalId: string): Promise<Company | undefined>;
   updateCompany(id: string, updates: Partial<InsertCompany>): Promise<Company>;
   getCompaniesWithPendingVerification(): Promise<(Company & { profile?: CompanyProfile; documents?: CompanyDocument[]; owner?: { id: string; name: string; email: string } })[]>;
   verifyCompany(companyId: string, adminId: string, notes?: string): Promise<void>;
@@ -257,9 +254,6 @@ export interface IStorage {
   addVendorToBase(vendorBase: InsertVendorBase): Promise<VendorBase>;
   getVendorsInBase(requesterCompanyId: string, searchQuery?: string): Promise<(VendorBase & { vendorCompany: Company; profile?: CompanyProfile })[]>;
   isVendorInBase(requesterCompanyId: string, vendorCompanyId: string): Promise<boolean>;
-  searchIndividuals(opts: { search?: string; city?: string; category?: string; limit?: number; offset?: number }): Promise<{ rows: (Company & { profile?: CompanyProfile })[]; total: number }>;
-  getSuggestedIndividualsForTender(opts: { category?: string | null; city?: string | null; excludeCompanyIds?: string[]; limit?: number }): Promise<(Company & { profile?: CompanyProfile })[]>;
-  getIndividualsNearingInactivityCutoff(opts: { cutoffDays: number; warnBeforeDays: number }): Promise<{ userId: string; email: string; name: string; language: string | null }[]>;
   removeVendorFromBase(requesterCompanyId: string, vendorCompanyId: string): Promise<void>;
 
   // ============================================================================
@@ -543,14 +537,6 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(companies)
       .where(and(eq(companies.crNumber, crNumber), isNull(companies.deletedAt)));
-    return company || undefined;
-  }
-
-  async getCompanyByNationalId(nationalId: string): Promise<Company | undefined> {
-    const [company] = await db
-      .select()
-      .from(companies)
-      .where(and(eq(companies.nationalIdNumber, nationalId), isNull(companies.deletedAt)));
     return company || undefined;
   }
 
@@ -1545,147 +1531,10 @@ export class DatabaseStorage implements IStorage {
   // Individuals" tab). Returns completed individual profiles matching the
   // optional filters; the route annotates each with whether it's already in
   // the caller's vendors base.
-  async searchIndividuals(opts: {
-    search?: string;
-    city?: string;
-    category?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<{ rows: (Company & { profile?: CompanyProfile })[]; total: number }> {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const conditions = [
-      eq(companies.accountType, 'individual'),
-      isNull(companies.deletedAt),
-      eq(companies.onboardingState, 'completed'),
-      // Only verified individuals show up in Discovery.
-      eq(companies.verificationStatus, 'verified'),
-      // Opted-in to Discovery (defaults to true; individuals can turn it off).
-      or(isNull(companyProfiles.discoverable), eq(companyProfiles.discoverable, true))!,
-      // Only surface individuals active within the last 30 days. New accounts
-      // that have never had lastLoginAt recorded yet fall back to createdAt.
-      or(
-        gte(users.lastLoginAt, thirtyDaysAgo),
-        and(isNull(users.lastLoginAt), gte(companies.createdAt, thirtyDaysAgo)),
-      )!,
-    ];
-    if (opts.city) conditions.push(ilike(companies.city, `%${opts.city}%`));
-    if (opts.category) conditions.push(eq(companies.category, opts.category));
-    if (opts.search) {
-      conditions.push(or(
-        ilike(companies.name, `%${opts.search}%`),
-        ilike(companyProfiles.displayName, `%${opts.search}%`),
-        ilike(companyProfiles.bio, `%${opts.search}%`),
-      )!);
-    }
-    const whereClause = and(...conditions);
+  // searchIndividuals / getSuggestedIndividualsForTender /
+  // getIndividualsNearingInactivityCutoff lived here. All three existed only
+  // to serve individual Discovery, which has been removed. See Q-022/Q-024.
 
-    const [countRow] = await db
-      .select({ count: count() })
-      .from(companies)
-      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
-      .leftJoin(users, eq(companies.ownerUserId, users.id))
-      .where(whereClause);
-
-    const results = await db
-      .select({ company: companies, profile: companyProfiles })
-      .from(companies)
-      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
-      .leftJoin(users, eq(companies.ownerUserId, users.id))
-      .where(whereClause)
-      .orderBy(desc(companies.createdAt))
-      .limit(opts.limit ?? 12)
-      .offset(opts.offset ?? 0);
-
-    return {
-      rows: results.map(r => ({ ...r.company, profile: r.profile || undefined })),
-      total: Number(countRow?.count ?? 0),
-    };
-  }
-
-  // Individual-account owners approaching the 30-day Discovery inactivity
-  // cutoff: last activity (lastLoginAt, falling back to createdAt for users
-  // who've never had it recorded) is older than the warning threshold but not
-  // yet past the cutoff, their profile is still opted into Discovery, and
-  // they haven't already been sent a warning for this inactive streak.
-  async getIndividualsNearingInactivityCutoff(opts: {
-    cutoffDays: number;
-    warnBeforeDays: number;
-  }): Promise<{ userId: string; email: string; name: string; language: string | null }[]> {
-    const cutoff = new Date(Date.now() - opts.cutoffDays * 24 * 60 * 60 * 1000);
-    const warnAt = new Date(Date.now() - (opts.cutoffDays - opts.warnBeforeDays) * 24 * 60 * 60 * 1000);
-
-    const rows = await db
-      .selectDistinct({ id: users.id, email: users.email, name: users.name, language: users.language })
-      .from(users)
-      .innerJoin(companies, eq(companies.ownerUserId, users.id))
-      .leftJoin(companyProfiles, eq(companyProfiles.companyId, companies.id))
-      .where(and(
-        eq(companies.accountType, 'individual'),
-        isNull(companies.deletedAt),
-        eq(companies.onboardingState, 'completed'),
-        // Only warn users who'd otherwise actually be visible in Discovery.
-        eq(companies.verificationStatus, 'verified'),
-        or(isNull(companyProfiles.discoverable), eq(companyProfiles.discoverable, true))!,
-        isNull(users.inactivityWarningSentAt),
-        sql`coalesce(${users.lastLoginAt}, ${users.createdAt}) < ${warnAt}`,
-        sql`coalesce(${users.lastLoginAt}, ${users.createdAt}) >= ${cutoff}`,
-      ));
-
-    return rows.map(r => ({ userId: r.id, email: r.email, name: r.name, language: r.language }));
-  }
-
-  // Ranked individual suggestions for a tender: prefers same field/category,
-  // then verified, "open to work", and same city. Used for the RFP
-  // "Suggested individuals" one-click invite strip.
-  async getSuggestedIndividualsForTender(opts: {
-    category?: string | null;
-    city?: string | null;
-    excludeCompanyIds?: string[];
-    limit?: number;
-  }): Promise<(Company & { profile?: CompanyProfile })[]> {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const conditions = [
-      eq(companies.accountType, 'individual'),
-      isNull(companies.deletedAt),
-      eq(companies.onboardingState, 'completed'),
-      eq(companies.verificationStatus, 'verified'),
-      or(isNull(companyProfiles.discoverable), eq(companyProfiles.discoverable, true))!,
-      or(
-        gte(users.lastLoginAt, thirtyDaysAgo),
-        and(isNull(users.lastLoginAt), gte(companies.createdAt, thirtyDaysAgo)),
-      )!,
-    ];
-    if (opts.excludeCompanyIds && opts.excludeCompanyIds.length > 0) {
-      conditions.push(notInArray(companies.id, opts.excludeCompanyIds));
-    }
-
-    const rows = await db
-      .select({ company: companies, profile: companyProfiles })
-      .from(companies)
-      .leftJoin(companyProfiles, eq(companies.id, companyProfiles.companyId))
-      .leftJoin(users, eq(companies.ownerUserId, users.id))
-      .where(and(...conditions))
-      .limit(60);
-
-    const scored = rows.map((r) => {
-      const score = scoreSuggestion({
-        tenderCategory: opts.category,
-        requesterCity: opts.city,
-        candidate: {
-          category: r.company.category,
-          city: r.company.city,
-          verificationStatus: r.company.verificationStatus,
-          availabilityStatus: r.profile?.availabilityStatus,
-        },
-      });
-      return { r, score, created: r.company.createdAt?.getTime?.() ?? 0 };
-    });
-    scored.sort((a, b) => b.score - a.score || b.created - a.created);
-
-    return scored
-      .slice(0, opts.limit ?? 10)
-      .map((s) => ({ ...s.r.company, profile: s.r.profile || undefined }));
-  }
 
   async isVendorInBase(requesterCompanyId: string, vendorCompanyId: string): Promise<boolean> {
     const [result] = await db
@@ -2331,7 +2180,6 @@ export class DatabaseStorage implements IStorage {
         vatCertificate: docTypeCompanies['vat_certificate']?.size || 0,
         gosiCertificate: docTypeCompanies['gosi_certificate']?.size || 0,
         nationalAddressCertificate: docTypeCompanies['national_address_certificate']?.size || 0,
-        nationalIdCard: docTypeCompanies['national_id_card']?.size || 0,
         other: docTypeCompanies['other']?.size || 0,
       },
     };

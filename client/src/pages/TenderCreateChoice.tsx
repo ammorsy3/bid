@@ -30,13 +30,29 @@ export default function TenderCreateChoice() {
   const verificationStatus = activeCompany?.verificationStatus;
   const activeCompanyId = activeCompany?.id;
 
+  // Only company workspaces may create tenders (POST /api/tenders is behind
+  // requireAccountType('company')). Individual and team workspaces are
+  // auto-verified at creation, so without this check they'd satisfy the
+  // isVerified branch below and get pushed straight into the wizard.
+  const isCompanyAccount = (activeCompany?.accountType ?? 'company') === 'company';
+  useEffect(() => {
+    if (activeCompany && !isCompanyAccount) {
+      toast({
+        title: t('dashboard.individualRestrictedTitle'),
+        description: t('dashboard.individualRestrictedDesc'),
+      });
+      setLocation('/dashboard', { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCompany, isCompanyAccount, setLocation]);
+
   // The old create-choice screen offered "AI" vs "manual". With AI removed there
   // is only one path, so a verified company skips this page entirely and lands
   // straight in the wizard. This page now exists solely to host the verification
   // gate below for companies that aren't verified yet (RequireVerified bounces
   // unverified users back here). Only redirect when actually verified — never on
   // an undefined status — so we can't ping-pong with RequireVerified.
-  const isVerified = verificationStatus === 'verified';
+  const isVerified = isCompanyAccount && verificationStatus === 'verified';
   useEffect(() => {
     if (isVerified) {
       setLocation('/tenders/new/manual', { replace: true });

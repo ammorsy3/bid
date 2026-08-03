@@ -609,7 +609,9 @@ export default function Dashboard() {
   }
 
   if (!activeCompany) {
-    setLocation("/company-onboarding");
+    // Signup left half-finished (user exists, no workspace). Resume at the
+    // account-type choice rather than assuming they wanted a company.
+    setLocation("/onboarding");
     return null;
   }
 
@@ -1217,7 +1219,10 @@ export default function Dashboard() {
             </SidebarGroupContent>
           </SidebarGroup>
 
-          <ChatHistorySidebar />
+          {/* Tender-creation entry point (its "+" opens /tenders/new/ai), so it
+              follows the same gate as the create-tender button above rather
+              than rendering for workspace types that can't create tenders. */}
+          {canManage && canCreateTenders && <ChatHistorySidebar />}
         </SidebarContent>
 
         <SidebarFooter className="border-t px-4 py-4">
@@ -1740,7 +1745,11 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {canManage && (
+              {/* Buyer metrics: RFPs owned, proposals received, vendors managed.
+                  None of these mean anything for an individual (who IS the vendor)
+                  or a team (not a buyer account), and the matching tabs below are
+                  gated the same way — keep the two in step. */}
+              {canManage && isBuyerAccount && (
                 <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-8" data-tour="dashboard-tabs">
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
@@ -2014,7 +2023,7 @@ export default function Dashboard() {
                               <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{isTeam ? t('dashboard.task2DescTeam') : t('dashboard.task2Desc')}</p>
                               <Button
                                 className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
-                                onClick={() => setLocation('/company-onboarding')}
+                                onClick={() => setLocation('/settings?tab=company')}
                                 data-testid="button-task-complete-profile"
                               >
                                 {t('dashboard.task2Action')}
@@ -2203,8 +2212,8 @@ export default function Dashboard() {
 
           </TabsContent>
 
-          {/* Tenders Tab */}
-          {canManage && (
+          {/* Tenders Tab — buyer-only, same reasoning as the Vendors Base tab. */}
+          {canManage && isBuyerAccount && (
             <TabsContent value="tenders" className="space-y-6">
               {/* Header */}
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>
@@ -2794,8 +2803,10 @@ export default function Dashboard() {
             </Tabs>
           </TabsContent>
 
-          {/* Vendors Base Tab */}
-          {canManage && (
+          {/* Vendors Base Tab — buyer-only. The tab BUTTON is already gated the
+              same way; gating only the button left the panel reachable by
+              setActiveTab('vendors') with no way back via the tab bar. */}
+          {canManage && isBuyerAccount && (
             <TabsContent value="vendors" className="space-y-6">
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>
 <PageHeader
@@ -3915,7 +3926,7 @@ export default function Dashboard() {
                 className="flex-1"
                 onClick={() => {
                   setShowCompanyProfileDialog(false);
-                  setLocation('/company-onboarding');
+                  setLocation('/settings?tab=company');
                 }}
               >
                 <Edit className="h-4 w-4 me-2" />

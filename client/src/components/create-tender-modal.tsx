@@ -153,7 +153,9 @@ export default function CreateTenderModal({ isOpen, onClose }: CreateTenderModal
           description: profileDesc,
         });
         handleClose();
-        navigate('/company-onboarding');
+        navigate(activeCompany?.accountType === 'individual'
+          ? '/onboarding/individual-profile'
+          : '/settings?tab=company');
       } else {
         toast({
           title: "Error",

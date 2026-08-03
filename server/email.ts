@@ -1443,44 +1443,7 @@ export async function sendMembershipDecisionNotification(params: {
   sendEmail(requesterEmail, subject, html).catch(err => console.error(`[Email] Failed to send to ${requesterEmail}:`, err));
 }
 
-// =============================================================================
-// INACTIVITY WARNING (Discovery visibility)
-// =============================================================================
-
-export async function sendInactivityWarningEmail(params: {
-  email: string;
-  recipientName: string;
-  daysUntilHidden: number;
-  appBaseUrl?: string;
-  language?: Lang;
-}): Promise<void> {
-  const { email, recipientName, daysUntilHidden, appBaseUrl, language = 'en' } = params;
-  const isAr = language === 'ar';
-  const baseUrl = getBaseUrl(appBaseUrl);
-
-  const subject = isAr
-    ? "ملفك سيختفي قريباً من قسم الاستكشاف"
-    : "Your profile is about to disappear from Discovery";
-
-  const html = buildEmailHtml({
-    language,
-    iconEmoji: "&#128064;",
-    iconBg: "#FFF7ED",
-    headline: isAr ? "نفتقدك!" : "We miss you!",
-    subheadline: isAr
-      ? `لم تسجّل الدخول منذ فترة، وسيتوقف ظهور ملفك في الاستكشاف خلال ${daysUntilHidden} يوم${daysUntilHidden === 1 ? "" : "اً"}.`
-      : `You haven't logged in for a while, and your profile will stop showing in Discovery in ${daysUntilHidden} day${daysUntilHidden === 1 ? "" : "s"}.`,
-    recipientName,
-    bodyText: isAr
-      ? `للحفاظ على قسم الاستكشاف نشطاً بأفراد فعّالين، نخفي تلقائياً الملفات التي لم تسجّل الدخول لأكثر من 30 يوماً. سجّل الدخول الآن لإبقاء ملفك ظاهراً أمام الشركات الباحثة عن أفراد.`
-      : `To keep Discovery full of active individuals, we automatically hide profiles that haven't logged in for over 30 days. Sign in now to keep your profile visible to companies browsing Discovery.`,
-    ctaLabel: isAr ? "تسجيل الدخول الآن" : "Log in now",
-    ctaUrl: `${baseUrl}/login`,
-    ctaColor: "#FE3C01",
-    reasonText: isAr
-      ? "لقد تلقيت هذا البريد لأن ملفك الشخصي كفرد على Bid معروض في قسم الاستكشاف."
-      : "You received this email because your individual profile on Bid is listed in Discovery.",
-  });
-
-  sendEmail(email, subject, html).catch(err => console.error(`[Email] Failed to send inactivity warning to ${email}:`, err));
-}
+// sendInactivityWarningEmail lived here. It warned individuals that their
+// profile was about to disappear from Discovery. Discovery has been removed, so
+// the warning describes a mechanism that no longer exists. It had zero callers
+// and no cron ever invoked it. See Q-023.

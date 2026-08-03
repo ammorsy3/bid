@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +30,8 @@ interface TractionData {
   company: {
     id: string;
     name: string;
+    accountType: string | null;
+    slug: string | null;
     category: string | null;
     city: string | null;
     verificationStatus: string | null;
@@ -232,6 +234,22 @@ export default function TractionLink() {
     queryKey: ['/api/r', slug],
     enabled: !!slug,
   });
+
+  // Traction pages are a buyer-side storefront: a company publishes one so
+  // vendors can apply to join its Vendors Base. Individuals and teams are the
+  // vendors, so the page means nothing for them — send visitors to that
+  // workspace's actual profile instead. Old shared links keep working rather
+  // than 404ing. (Q-034)
+  const tractionOwnerType = data?.company.accountType;
+  const tractionOwnerSlug = data?.company.slug;
+  useEffect(() => {
+    if (!tractionOwnerType || !tractionOwnerSlug) return;
+    if (tractionOwnerType === 'individual') {
+      navigate(`/people/${tractionOwnerSlug}`, { replace: true });
+    } else if (tractionOwnerType === 'team') {
+      navigate(`/company/${tractionOwnerSlug}`, { replace: true });
+    }
+  }, [tractionOwnerType, tractionOwnerSlug, navigate]);
 
   const joinBase = useMutation({
     mutationFn: async () => {

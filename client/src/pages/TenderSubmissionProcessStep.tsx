@@ -346,7 +346,8 @@ export default function TenderSubmissionProcessStep() {
                   )}
                 </div>
 
-                <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
+                {submissionDeadline && (
+                <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
                   <label className="block text-sm font-medium text-gray-900 dark:text-white">
                     {t('tenderFlow.audienceHeading')}
                   </label>
@@ -381,12 +382,13 @@ export default function TenderSubmissionProcessStep() {
                     <p className="text-xs text-red-500">{t('tenderFlow.audienceRequired')}</p>
                   )}
                 </div>
+                )}
 
-                <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-6">
+                {submissionDeadline && targetAudienceTypes.length > 0 && (
+                <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
                   <label className="block text-sm font-medium text-gray-900 dark:text-white">
                     {t('tenderFlow.whatShouldSubmit')}
                   </label>
-                </div>
                 <div className="grid grid-cols-1 gap-4">
                   {submissionOptions.map((option) => {
                     const Icon = option.icon;
@@ -433,6 +435,8 @@ export default function TenderSubmissionProcessStep() {
                     );
                   })}
                 </div>
+                </div>
+                )}
 
                 {submissionType === "tech_fin_with_video" && (
                   <div className="space-y-3 border-t border-border dark:border-border pt-6 animate-in fade-in slide-in-from-top-2 duration-300">

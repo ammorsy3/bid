@@ -42,12 +42,11 @@ export const users = pgTable("users", {
   otpSendCount: integer("otp_send_count").default(0).notNull(),
   otpSendWindowStart: timestamp("otp_send_window_start"),
 
-  // Activity tracking — drives the Discovery "active in last 30 days" cutoff
-  // for individual profiles. Updated (throttled) on authenticated requests.
+  // Last-seen tracking, updated (throttled) on authenticated requests. This
+  // originally existed to drive the Discovery "active in last 30 days" cutoff;
+  // Discovery is gone but the signal is still generally useful.
+  // `inactivityWarningSentAt` was removed with it — see 0007_remove_discovery.sql.
   lastLoginAt: timestamp("last_login_at"),
-  // Set when the inactivity-warning email has been sent for the current
-  // inactive streak; cleared the next time the user is seen active again.
-  inactivityWarningSentAt: timestamp("inactivity_warning_sent_at"),
 
   // Legacy columns (preserved from old role-based schema)
   role: text("role"),
@@ -82,14 +81,21 @@ export const companies = pgTable("companies", {
   legalName: text("legal_name"),
   crNumber: text("cr_number").unique(),
   vatNumber: text("vat_number").unique(),
-  // National ID — required for individual accounts and team admins (10-digit)
-  nationalIdNumber: text("national_id_number").unique(),
   city: text("city"),
   category: text("category"),
-  // Workspace type: 'company' | 'individual' | 'team'
-  accountType: text("account_type").notNull().default("company"),
-  // National ID for individual (freelancer) workspaces — required before offer submission
-  nationalIdNumber: text("national_id_number"),
+  // `accountType` and `nationalIdNumber` were each declared twice here, from two
+  // branches that both shipped a migration numbered 0002. The later declaration
+  // silently won in both cases (tsc did flag it as TS1117, but `npm run check`
+  // was already failing for unrelated reasons, so nobody saw it).
+  //
+  // accountType: the duplicates were identical, so behaviour never differed —
+  // the single declaration above is retained.
+  //
+  // nationalIdNumber: removed entirely. Collecting it was found to be unlawful,
+  // and commit c6c5f61 scoped that removal to the UI layer only, leaving the
+  // column, a unique constraint, a zod validator, an unused lookup and a
+  // permanently-null field on every auth response behind. See migration
+  // 0006_drop_national_id.sql.
   certifications: jsonb("certifications").$type<string[]>().default([]),
   documents: jsonb("documents").$type<{
     vatCertificate?: string;
@@ -195,12 +201,10 @@ export const companyProfiles = pgTable("company_profiles", {
   whatsappNumber: text("whatsapp_number"),
   whatsappVisibility: text("whatsapp_visibility").notNull().default("requesters"), // 'requesters' | 'public'
 
-  // Visibility (traction/storefront page — unrelated to Discovery)
+  // Visibility of the traction/storefront page. (There was also a
+  // `discoverable` flag here, the individual's opt-in to the Discovery
+  // directory. Discovery has been removed — see 0007_remove_discovery.sql.)
   isPublic: boolean("is_public").default(true).notNull(),
-  // Individual's opt-in for the Discovery tab. Actual visibility also
-  // requires the account to be verified and active within 30 days — see
-  // storage.searchIndividuals / getSuggestedIndividualsForTender.
-  discoverable: boolean("discoverable").default(true).notNull(),
   
   // Vendors Base (for requesters)
   tractionSlug: text("traction_slug").unique(),
@@ -222,7 +226,12 @@ export const companyProfiles = pgTable("company_profiles", {
 export const companyDocuments = pgTable("company_documents", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   companyId: varchar("company_id").notNull().references(() => companies.id),
-  documentType: text("document_type").notNull(), // 'cr_certificate' | 'vat_certificate' | 'gosi_certificate' | 'national_address_certificate' | 'national_id_card' | 'other'
+  // 'cr_certificate' | 'vat_certificate' | 'gosi_certificate' | 'national_address_certificate' | 'other'
+  // ('national_id_card' was removed along with National-ID collection — no
+  // upload slot ever offered it after that, and neither admin label map had an
+  // entry for it, so any surviving row rendered unlabelled. Migration
+  // 0006_drop_national_id.sql deletes those rows.)
+  documentType: text("document_type").notNull(),
   fileUrl: text("file_url").notNull(),            // /objects/uploads/{uuid} path
   originalName: text("original_name"),            // display file name
   label: text("label"),                           // custom label for 'other' type
@@ -290,9 +299,6 @@ export const tenders = pgTable("tenders", {
   startDate: text("start_date"),
   endDate: text("end_date"),
   status: text("status").notNull().default("draft"), // 'draft', 'published', 'closed', 'cancelled'
-
-  // Who can apply: 'company' | 'individual'. Default both. Requesters set this when creating the tender.
-  targetAudienceTypes: jsonb("target_audience_types").$type<('company' | 'individual')[]>().default(['company', 'individual']),
 
   // Submission Process
   submissionType: text("submission_type"), // 'quote_only', 'tech_fin_proposal', 'video_only', 'tech_fin_with_video'
@@ -1207,12 +1213,10 @@ export const createCompanySchema = insertCompanySchema.omit({
   legalName: z.string().min(2).optional(),
   crNumber: z.string().regex(/^\d{10}$/, "CR number must be exactly 10 digits").optional(),
   vatNumber: z.string().optional(),
-  nationalIdNumber: z.string().regex(/^\d{10}$/, "National ID must be exactly 10 digits").optional(),
   city: z.string().optional(),
   category: z.enum(VENDOR_CATEGORIES, {
     errorMap: () => ({ message: "Please select a valid category" })
   }).optional(),
-  accountType: z.enum(['company', 'individual', 'team']).optional().default('company'),
 });
 
 // Submitted when a workspace completes verification.

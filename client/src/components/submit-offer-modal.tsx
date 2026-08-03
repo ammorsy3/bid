@@ -672,7 +672,9 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                       className="bg-primary-600 hover:bg-primary-700"
                       onClick={() => {
                         handleClose();
-                        navigate('/company-onboarding');
+                        navigate(activeCompany?.accountType === 'individual'
+                          ? '/onboarding/individual-profile'
+                          : '/settings?tab=company');
                       }}
                       data-testid="button-prequalify"
                     >

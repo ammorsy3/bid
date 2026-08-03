@@ -43,7 +43,6 @@ interface VerificationAnalytics {
     vatCertificate: number;
     gosiCertificate: number;
     nationalAddressCertificate: number;
-    nationalIdCard: number;
     other: number;
   };
 }

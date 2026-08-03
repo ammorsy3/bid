@@ -684,7 +684,10 @@ export default function Settings() {
   }
 
   if (!activeCompany) {
-    setLocation("/company-onboarding");
+    // No workspace yet — send them to pick an account type, not straight into a
+    // company form. They may want an individual workspace or to join an
+    // existing one.
+    setLocation("/onboarding");
     return null;
   }
 
@@ -998,10 +1001,12 @@ export default function Settings() {
   const isPersonalSaving = updateUserMutation.isPending || uploadProfilePictureMutation.isPending;
   const isCompanySaving = updateCompanyMutation.isPending || uploadCompanyLogoMutation.isPending;
 
+  // Was three hardcoded English strings in a file that otherwise uses t(),
+  // so Arabic users saw English tab names. (Q-031)
   const workspaceTabLabel =
-    workspaceKind === 'team' ? 'Team Settings' :
-    workspaceKind === 'individual' ? 'Profile Settings' :
-    'Company Settings';
+    workspaceKind === 'team' ? t('settings.workspaceTabTeam') :
+    workspaceKind === 'individual' ? t('settings.workspaceTabIndividual') :
+    t('settings.workspaceTabCompany');
 
   const sidebarItems = [
     { id: "account" as const, label: user.name || user.username, icon: null, isUser: true },
@@ -1050,7 +1055,7 @@ export default function Settings() {
               {item.label}
             </button>
           ))}
-          {!isIndividual && (
+          {isCompanyWorkspace && (
             <button
               onClick={() => setLocation("/settings/integrations")}
               className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap text-muted-foreground hover:bg-muted transition-colors"
@@ -1094,7 +1099,8 @@ export default function Settings() {
           ))}
 
           {/* External links (navigate away, don't switch tab state) */}
-          {!isIndividual && (
+          {/* Integrations/API are company-only — see Q-016. */}
+          {isCompanyWorkspace && (
             <div className="mt-4 pt-4 border-t border-border dark:border-border">
               <button
                 onClick={() => setLocation("/settings/integrations")}
@@ -1731,7 +1737,7 @@ export default function Settings() {
                           {t('companyProfileEditor.editMyProfile')}
                         </Button>
                       </a>
-                      {activeCompany?.profile?.tractionSlug && (
+                      {isCompanyWorkspace && activeCompany?.profile?.tractionSlug && (
                         <a
                           href={`/traction/${activeCompany.profile.tractionSlug}`}
                           target="_blank"
@@ -1749,8 +1755,11 @@ export default function Settings() {
               </div>
               )}
 
-              {/* Traction Page */}
-              {canManageCompany && activeCompany?.profile?.tractionSlug && (
+              {/* Traction Page — company-only. It is a buyer-side storefront for
+                  recruiting vendors into a Vendors Base; individuals and teams
+                  ARE the vendors, so it has no meaning for them. Their traction
+                  URLs now redirect to their profile. (Q-034) */}
+              {canManageCompany && isCompanyWorkspace && activeCompany?.profile?.tractionSlug && (
               <div className="space-y-4">
                 <h2 className="font-display font-black text-xl tracking-[-0.02em] flex items-center gap-2">
                   <Palette className="h-5 w-5" />

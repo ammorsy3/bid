@@ -18,7 +18,6 @@ import {
   isValidJoinCode,
   marketplaceAudienceFor,
   gateWhatsappVisibility,
-  scoreSuggestion,
   sanitizeUsername,
   isValidUsername,
 } from "../server/lib/individual-sourcing";
@@ -79,8 +78,11 @@ describe("marketplaceAudienceFor", () => {
     expect(marketplaceAudienceFor("company")).toBeUndefined();
   });
 
-  it("does not scope teams (full view)", () => {
-    expect(marketplaceAudienceFor("team")).toBeUndefined();
+  // Teams are a first-class audience now. They used to get the full unfiltered
+  // view while individuals were scoped, which meant a company-only tender was
+  // visible to teams. See Q-013.
+  it("scopes teams to team-eligible tenders", () => {
+    expect(marketplaceAudienceFor("team")).toBe("team");
   });
 
   it("does not scope anonymous callers", () => {
@@ -125,42 +127,6 @@ describe("gateWhatsappVisibility", () => {
 });
 
 // ─── Recommendation scoring ───────────────────────────────────────────────────
-
-describe("scoreSuggestion", () => {
-  it("gives the biggest boost to a field/category match", () => {
-    const match = scoreSuggestion({ tenderCategory: "IT Services", requesterCity: null, candidate: { category: "IT Services" } });
-    const noMatch = scoreSuggestion({ tenderCategory: "IT Services", requesterCity: null, candidate: { category: "Marketing" } });
-    expect(match).toBeGreaterThanOrEqual(100);
-    expect(match).toBeGreaterThan(noMatch);
-  });
-
-  it("adds points for verified and 'accepting' availability", () => {
-    const base = scoreSuggestion({ tenderCategory: "IT", requesterCity: null, candidate: { category: "IT" } });
-    const better = scoreSuggestion({
-      tenderCategory: "IT",
-      requesterCity: null,
-      candidate: { category: "IT", verificationStatus: "verified", availabilityStatus: "accepting" },
-    });
-    expect(better).toBe(base + 20 + 15);
-  });
-
-  it("adds a same-city tie-breaker (case-insensitive)", () => {
-    const s = scoreSuggestion({ tenderCategory: null, requesterCity: "Riyadh", candidate: { city: "riyadh" } });
-    expect(s).toBe(10);
-  });
-
-  it("ranks a verified same-field candidate above an unverified off-field one", () => {
-    const a = scoreSuggestion({ tenderCategory: "IT", requesterCity: "Riyadh", candidate: { category: "IT", verificationStatus: "verified", city: "Riyadh" } });
-    const b = scoreSuggestion({ tenderCategory: "IT", requesterCity: "Riyadh", candidate: { category: "Marketing", city: "Jeddah" } });
-    expect(a).toBeGreaterThan(b);
-  });
-
-  it("scores zero when nothing matches", () => {
-    expect(scoreSuggestion({ tenderCategory: "IT", requesterCity: "Riyadh", candidate: { category: "Marketing", city: "Jeddah" } })).toBe(0);
-  });
-});
-
-// ─── Username sanitization ────────────────────────────────────────────────────
 
 describe("sanitizeUsername", () => {
   it("lowercases and dashes out spaces/symbols", () => {

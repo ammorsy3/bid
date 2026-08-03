@@ -118,13 +118,14 @@ const authenticateToken = async (req: AuthRequest, res: Response, next: Function
       isAdmin: user.isAdmin
     };
 
-    // Track activity for the Discovery "active in last 30 days" cutoff.
-    // Throttled to once per hour per user to avoid a write on every request.
+    // Last-seen tracking. This used to drive the Discovery "active in last 30
+    // days" cutoff; Discovery is gone, but lastLoginAt is still worth keeping as
+    // general activity data. Throttled to once per hour per user to avoid a
+    // write on every request.
     const ONE_HOUR_MS = 60 * 60 * 1000;
     if (!user.lastLoginAt || Date.now() - new Date(user.lastLoginAt).getTime() > ONE_HOUR_MS) {
       storage.updateUser(user.id, {
         lastLoginAt: new Date(),
-        inactivityWarningSentAt: null,
       }).catch((err) => console.error('[Activity] Failed to update lastLoginAt:', err));
     }
 
@@ -161,7 +162,31 @@ const requireVerifiedCompany = async (req: AuthRequest, res: Response, next: Fun
   if (!company) {
     return res.status(404).json({ message: 'Company not found' });
   }
-  // Individual and team workspaces are not subject to CR/VAT verification
+  // Individual and team workspaces are not subject to CR/VAT verification.
+  //
+  // ─── TEMPORARY: auto-verification (see below before changing) ──────────────
+  // There are TWO mechanisms exempting individuals and teams, and they must be
+  // removed together:
+  //
+  //   (A) this bypass — skips the check by account type. Leaves no trace;
+  //       deleting these lines changes behaviour immediately.
+  //   (B) `initialVerificationStatus` at workspace creation (search this file
+  //       for it) — stamps verificationStatus='verified' into the ROW. This one
+  //       persists: removing the code later does NOT un-verify accounts already
+  //       stamped.
+  //
+  // Both exist because there is currently no lawful way to verify an individual
+  // (companies have a CR number and documents; individuals do not). The
+  // "Verified" badge on individual profiles reads (B).
+  //
+  // WHEN REAL VERIFICATION FOR INDIVIDUALS/TEAMS EXISTS, all three are required:
+  //   1. delete this bypass,
+  //   2. delete (B) so new workspaces start unverified,
+  //   3. run a migration resetting existing individual/team rows to
+  //      'not_verified' — otherwise every pre-existing account keeps a
+  //      "verified" claim it never earned.
+  // Doing only 1 and 2 leaves the database asserting something untrue.
+  // ───────────────────────────────────────────────────────────────────────────
   if (company.accountType !== 'company' && company.accountType !== undefined) {
     return next();
   }
@@ -207,9 +232,16 @@ const suggestDescriptionRateLimit = (req: AuthRequest, res: Response, next: Func
 
 // Middleware: Require minimum company role
 const requireCompanyRole = (minRole: 'owner' | 'admin' | 'member' | 'viewer') => {
+  // business_developer sits above member and below admin: it can do everything a
+  // member can, but not manage the workspace or invite people. It is offered in
+  // the team role dropdown and is the DEFAULT for new team invites
+  // (client/src/pages/onboarding/team-invite.tsx:27), so leaving it out of this
+  // map scored it 0 and failed every check below — including the member-level
+  // ones its own UI implies it passes.
   const roleHierarchy: Record<string, number> = {
     'owner': 4,
     'admin': 3,
+    'business_developer': 2.5,
     'member': 2,
     'viewer': 1
   };
@@ -940,8 +972,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verificationStatus: defaultCompany.company.verificationStatus,
           onboardingState: defaultCompany.company.onboardingState,
           rejectionReason: defaultCompany.company.rejectionReason || null,
-          accountType: defaultCompany.company.accountType,
-          nationalIdNumber: defaultCompany.company.nationalIdNumber || null,
           role: defaultCompany.roleInCompany,
           profile: defaultCompany.profile || null
         } : null,
@@ -958,8 +988,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verificationStatus: uc.company.verificationStatus,
           onboardingState: uc.company.onboardingState,
           rejectionReason: uc.company.rejectionReason || null,
-          accountType: uc.company.accountType,
-          nationalIdNumber: uc.company.nationalIdNumber || null,
           role: uc.roleInCompany,
           profile: uc.profile || null
         }))
@@ -1086,8 +1114,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verificationStatus: uc.company.verificationStatus,
           onboardingState: uc.company.onboardingState,
           rejectionReason: uc.company.rejectionReason || null,
-          accountType: uc.company.accountType,
-          nationalIdNumber: uc.company.nationalIdNumber || null,
           role: uc.roleInCompany,
           profile: uc.profile || null
         }))
@@ -1960,6 +1986,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         slugSuffix++;
       }
 
+      // TEMPORARY (mechanism B of the auto-verification pair — see the long note
+      // on requireVerifiedCompany above). Individuals and teams are stamped
+      // 'verified' at creation because there is no lawful way to verify them yet,
+      // and the "Verified" badge on their profile reads this column.
+      //
+      // This WRITES TO THE ROW, so it outlives the code: deleting these lines
+      // later will not un-verify accounts already created. Removing
+      // auto-verification therefore needs a migration resetting existing
+      // individual/team rows to 'not_verified' as well.
       const initialVerificationStatus = companyData.accountType === 'company'
         ? (inputDocuments.length > 0 ? 'under_review' : 'not_verified')
         : 'verified';
@@ -1968,7 +2003,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const company = await storage.createCompany({
         ...companyData,
         slug,
-        joinCode: await uniqueJoinCode(),
+        // An individual workspace is one person — there is nobody to invite
+        // into it, so it gets no join code. Companies and teams do. (Q-035)
+        joinCode: companyData.accountType === 'individual' ? null : await uniqueJoinCode(),
         verificationStatus: initialVerificationStatus,
         onboardingState: 'draft',
         ...(companyData.accountType !== 'company' && { ownerUserId: req.auth!.userId }),
@@ -2568,11 +2605,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: company.id,
           name: company.name,
           slug: company.slug,
+          accountType: company.accountType,
           verificationStatus: company.verificationStatus,
           onboardingState: company.onboardingState,
           rejectionReason: company.rejectionReason || null,
-          accountType: company.accountType,
-          nationalIdNumber: company.nationalIdNumber || null,
           role,
           profile: profile || null
         }
@@ -2629,11 +2665,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: company.id,
           name: company.name,
           slug: company.slug,
+          accountType: company.accountType,
           verificationStatus: company.verificationStatus,
           onboardingState: company.onboardingState,
           rejectionReason: company.rejectionReason || null,
-          accountType: company.accountType,
-          nationalIdNumber: company.nationalIdNumber || null,
           role,
           profile: profile || null,
         },
@@ -2653,6 +2688,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const company = await storage.getCompany(req.auth!.activeCompanyId!);
       if (!company) return res.status(404).json({ message: "Company not found" });
+      // Individual workspaces have no join code (Q-035). This endpoint mints one
+      // lazily when absent, so without this guard it would hand an individual
+      // the very code we stopped creating.
+      if (company.accountType === 'individual') {
+        return res.status(403).json({ message: "Individual workspaces don't have a join code." });
+      }
       let code = company.joinCode;
       if (!code) {
         code = await uniqueJoinCode();
@@ -2671,6 +2712,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const roleInCompany = req.auth!.roleInCompany;
       if (roleInCompany !== 'owner' && roleInCompany !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
+      }
+      const regenCompany = await storage.getCompany(req.auth!.activeCompanyId!);
+      if (regenCompany?.accountType === 'individual') {
+        return res.status(403).json({ message: "Individual workspaces don't have a join code." });
       }
       const code = await uniqueJoinCode();
       await storage.updateCompany(req.auth!.activeCompanyId!, { joinCode: code });
@@ -2796,7 +2841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Access denied" });
         }
 
-        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio, yearFounded, serviceAreas, languages, industriesServed, availabilityStatus, availabilityNote, introVideoUrl, stats, certifications: profileCertifications, insurancePolicies, whatsappNumber, whatsappVisibility, slug, discoverable } = req.body;
+        const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio, yearFounded, serviceAreas, languages, industriesServed, availabilityStatus, availabilityNote, introVideoUrl, stats, certifications: profileCertifications, insurancePolicies, whatsappNumber, whatsappVisibility, slug } = req.body;
 
         // Get current company
         const company = await storage.getCompany(companyId);
@@ -2852,8 +2897,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           companyUpdates.onboardingState = 'completed';
         }
 
-        // Reset verification if legal identity changed
-        if (legalFieldsChanged && company.verificationStatus === 'verified') {
+        // Reset verification if legal identity changed.
+        // Companies only: individuals and teams are auto-verified because there
+        // is no lawful way to verify them yet, and there is no UI for them to
+        // resubmit. Demoting one to 'under_review' would strand it in a review
+        // queue it can never leave, silently losing every verification-gated
+        // action. (Q-015)
+        if (company.accountType === 'company' && legalFieldsChanged && company.verificationStatus === 'verified') {
           companyUpdates.verificationStatus = 'under_review';
           companyUpdates.verifiedAt = null;
           
@@ -2891,13 +2941,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           profileUpdates.whatsappVisibility = whatsappVisibility;
         }
-        if (discoverable !== undefined) {
-          if (typeof discoverable !== 'boolean') {
-            return res.status(400).json({ message: "Invalid discoverable" });
-          }
-          profileUpdates.discoverable = company.accountType === 'individual' ? false : discoverable;
-        }
-
         // WhatsApp is mandatory for individual profiles.
         if (company.accountType === 'individual') {
           const finalNumber = whatsappNumber !== undefined
@@ -3096,16 +3139,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Move to under_review when documents are first uploaded (or resubmitted after rejection)
         const company = await storage.getCompany(companyId);
-        if (company && (company.verificationStatus === 'not_verified' || company.verificationStatus === 'rejected')) {
+        if (company && company.accountType === 'company' &&
+            (company.verificationStatus === 'not_verified' || company.verificationStatus === 'rejected')) {
           await storage.updateCompany(companyId, { verificationStatus: 'under_review' });
           // Notify admins that a workspace is awaiting verification review.
-          const isFreelancer = company.accountType === 'individual';
+          // This used to branch on an `isFreelancer` flag, but only company
+          // workspaces reach this block now (individuals and teams are
+          // auto-verified and have no document upload surface), so that branch
+          // was unreachable — and its '/admin/freelancers' link points at a
+          // route that does not exist in App.tsx anyway.
           storage.createAdminNotification({
-            type: isFreelancer ? 'freelancer_verification' : 'company_verification',
-            title: `${isFreelancer ? 'Individual' : 'Company'} awaiting verification: ${company.name}`,
+            type: 'company_verification',
+            title: `Company awaiting verification: ${company.name}`,
             body: `${company.name} uploaded verification documents and is now awaiting review.`,
             severity: 'info',
-            link: isFreelancer ? '/admin/freelancers' : '/admin/vendors',
+            link: '/admin/vendors',
             relatedId: companyId,
             metadata: { accountType: company.accountType },
           }).catch(err => console.error('[Admin] Verification notification failed:', err));
@@ -3292,10 +3340,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // who may bid, so it's only meaningful while the tender can still take
         // offers — draft (not yet out) or published (live). Once it's closed or
         // cancelled, neither the invite nor the audience change is allowed.
-        if (tender.status === 'closed' || tender.status === 'cancelled') {
+        // Published only, matching the picker in InviteToTenderModal. This was
+        // an exclusion list ('closed' or 'cancelled') that disagreed with the
+        // client's own exclusion list, so each accepted things the other
+        // refused. Stating the one allowed status keeps them from drifting
+        // apart again. (Q-020/Q-040)
+        if (tender.status !== 'published') {
           return res.status(400).json({
             code: 'TENDER_NOT_OPEN',
-            message: "This tender is no longer open, so individuals can't be added to it.",
+            message: "Only published RFPs can have individuals invited to them.",
+            status: tender.status,
           });
         }
 
@@ -3358,46 +3412,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Discovery and automatic individual suggestions are temporarily disabled.
-  app.get("/api/tenders/:id/suggested-individuals",
-    authenticateToken,
-    requireCompanyContext,
-    requireAccountType('company'),
-    async (req: AuthRequest, res) => {
-      res.status(404).json({ message: "Individual suggestions are not available." });
-    }
-  );
-
-  // Recommended tenders for an individual — individual-eligible marketplace
-  // tenders matched to their field/category.
-  app.get("/api/individuals/recommended-tenders",
-    authenticateToken,
-    requireCompanyContext,
-    requireAccountType('individual'),
-    async (req: AuthRequest, res) => {
-      try {
-        const me = await storage.getCompany(req.auth!.activeCompanyId!);
-        const result = await storage.getMarketplaceTenders({
-          category: me?.category || undefined,
-          audienceType: 'individual',
-          limit: 6,
-        });
-        res.json({
-          tenders: result.tenders.map((t) => ({
-            id: t.id,
-            title: t.title,
-            category: t.category,
-            deadline: t.deadline,
-            invitationToken: t.invitationToken,
-            requesterName: t.company?.name,
-          })),
-        });
-      } catch (error) {
-        console.error('Recommended tenders error:', error);
-        res.status(500).json({ message: "Server error" });
-      }
-    }
-  );
+  // Individual Discovery was removed, not paused. Companies can no longer be
+  // shown suggested individuals for a tender, and individuals are no longer
+  // shown recommended tenders — both directions are gone. Individuals still see
+  // the ordinary marketplace listing, audience-filtered to them. See Q-022/Q-024.
 
   // Get tender by ID
   app.get("/api/tenders/:id",
@@ -4802,11 +4820,15 @@ Respond with ONLY a JSON object. Example:
           return res.status(404).json({ message: "Tender not found" });
         }
 
-        // Enforce target audience restriction
+        // Enforce target audience restriction.
+        // Each workspace is tested against its own account type. 'team' used to
+        // be folded into 'company' here, which meant a tender targeted at
+        // ['team'] alone was submittable by nobody — teams tested 'company'
+        // (absent), companies tested 'company' (absent), individuals tested
+        // 'individual' (absent). Teams are a first-class audience now; existing
+        // open tenders were backfilled so they keep the access they had.
         if (tender.targetAudienceTypes && tender.targetAudienceTypes.length > 0) {
-          const companyType = company.accountType as string;
-          // Map 'team' to 'company' for audience purposes — teams are treated as companies
-          const audienceType = companyType === 'team' ? 'company' : companyType;
+          const audienceType = company.accountType as string;
           if (!tender.targetAudienceTypes.includes(audienceType as any)) {
             return res.status(403).json({
               message: 'This tender is not open to your workspace type.',
@@ -5220,18 +5242,10 @@ Respond with ONLY a JSON object. Example:
     }
   );
 
-  // Individual directory is temporarily disabled.
-  app.get("/api/individuals/directory",
-    authenticateToken,
-    requireCompanyContext,
-    requireAccountType('company'),
-    async (req: AuthRequest, res) => {
-      res.status(404).json({ message: "Individual discovery is not available." });
-    }
-  );
-
-  // Add an individual (or vendor) to the caller company's vendors base — the
-  // one-click "connect" from the directory. Companies only.
+  // Add a vendor (company or individual) to the caller company's vendors base.
+  // Companies only. Reached from the Vendors Base tab; it was previously
+  // labelled a directory feature, but the directory was only ever one of
+  // several entry points and no longer exists.
   app.post("/api/vendors-base",
     authenticateToken,
     requireCompanyContext,
@@ -5259,7 +5273,7 @@ Respond with ONLY a JSON object. Example:
         const row = await storage.addVendorToBase({
           requesterCompanyId: requesterId,
           vendorCompanyId,
-          joinMethod: 'directory',
+          joinMethod: 'manual',
           addedBy: req.auth!.userId,
         } as any);
 
@@ -5267,7 +5281,7 @@ Respond with ONLY a JSON object. Example:
           eventType: 'vendor_added_to_base',
           companyId: requesterId,
           userId: req.auth!.userId,
-          metadata: { vendorCompanyId, method: 'directory' },
+          metadata: { vendorCompanyId, method: 'manual' },
         }).catch(() => {});
 
         res.status(201).json({ id: row.id });
@@ -5862,6 +5876,11 @@ Respond with ONLY a JSON object. Example:
         company: {
           id: result.company.id,
           name: result.company.name,
+          // accountType + slug let the page redirect a non-company traction URL
+          // to that workspace's real profile instead of rendering a storefront
+          // for a workspace type that shouldn't have one. (Q-034)
+          accountType: result.company.accountType,
+          slug: result.company.slug,
           category: result.company.category,
           city: result.company.city,
           verificationStatus: result.company.verificationStatus,

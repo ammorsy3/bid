@@ -957,7 +957,9 @@ export default function TenderDetails() {
                     key={type}
                     className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border border-border text-muted-foreground bg-muted"
                   >
-                    {type === 'company' ? 'Companies' : type === 'team' ? 'Teams' : 'Individuals'}
+                    {type === 'company' ? t('tenderFlow.audienceCompanies')
+                      : type === 'team' ? t('tenderFlow.audienceTeams')
+                      : t('tenderFlow.audienceIndividuals')}
                   </span>
                 ))}
               </div>
@@ -2069,7 +2071,7 @@ export default function TenderDetails() {
                       <div className="bg-card p-5">
                         <p className="text-sm font-bold text-foreground mb-1">{t('tenderFlow.completeYourProfile')}</p>
                         <p className="text-xs text-gray-400 mb-4">{t('tenderFlow.completeProfileDesc')}</p>
-                        <Button variant="outline" className="w-full text-sm" onClick={() => setLocation('/company-onboarding')} data-testid="button-complete-profile">
+                        <Button variant="outline" className="w-full text-sm" onClick={() => setLocation(activeCompany?.accountType === 'individual' ? '/onboarding/individual-profile' : '/settings?tab=company')} data-testid="button-complete-profile">
                           {t('tenderFlow.completeProfileBtn')}
                         </Button>
                       </div>

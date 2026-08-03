@@ -74,7 +74,12 @@ export default function InviteToTenderModal({ open, onOpenChange, individualComp
     },
   });
 
-  const invitable = tenders.filter((t) => t.status !== "closed" && t.status !== "awarded");
+  // Published only. This used to be an exclusion list ("not closed, not
+  // awarded") which disagreed with the server in both directions: it offered
+  // CANCELLED tenders (the server rejects those, so the user got a generic
+  // error) and hid AWARDED ones the server would have accepted. An inclusion
+  // list cannot drift like that. (Q-020/Q-040)
+  const invitable = tenders.filter((t) => t.status === "published");
 
   const audienceIncludesIndividual = (t: CompanyTender) =>
     Array.isArray(t.targetAudienceTypes) && t.targetAudienceTypes.includes("individual");

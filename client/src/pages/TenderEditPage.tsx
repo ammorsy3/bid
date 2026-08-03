@@ -174,6 +174,22 @@ export default function TenderEditPage() {
   const { language, t } = useI18n();
   const dateLocale = language === 'ar' ? arLocale : undefined;
 
+  // Editing a tender is a buyer action. The server already rejects it — it
+  // checks tender ownership and individuals/teams own no tenders — but without
+  // this the page still renders the whole edit form and only fails on save,
+  // which reads as a bug rather than a permission boundary.
+  const isCompanyAccount = (activeCompany?.accountType ?? 'company') === 'company';
+  useEffect(() => {
+    if (activeCompany && !isCompanyAccount) {
+      toast({
+        title: t('dashboard.individualRestrictedTitle'),
+        description: t('dashboard.individualRestrictedDesc'),
+      });
+      navigate('/dashboard', { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCompany, isCompanyAccount]);
+
   const SUBMISSION_TYPE_OPTIONS = [
     { value: "quote_only", label: t('tenderFlow.editSubmTypeQuoteOnly') },
     { value: "tech_fin_proposal", label: t('tenderFlow.editSubmTypeTechFin') },

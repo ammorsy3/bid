@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { Router, Route, Switch } from "wouter";
+import { Router, Route, Switch, Redirect } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { I18nProvider as AriaI18nProvider } from "react-aria-components";
 import { queryClient } from "@/lib/queryClient";
@@ -16,7 +16,6 @@ import DashboardGuard from "@/pages/DashboardGuard";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import ResetPassword from "@/pages/reset-password";
-import CompanyOnboarding from "@/pages/CompanyOnboarding";
 import VerifyEmail from "@/pages/verify-email";
 import OnboardingChoice from "@/pages/onboarding/index";
 import AccountTypeChoice from "@/pages/onboarding/account-type";
@@ -136,7 +135,10 @@ export default function App() {
               <Route path="/auth/clerk-callback" component={ClerkCallback} />
               <Route path="/sso-callback" component={ClerkCallback} />
               <Route path="/reset-password" component={ResetPassword} />
-              <Route path="/company-onboarding" component={CompanyOnboarding} />
+              {/* Retired: the old standalone company create/edit form. Kept as a
+                  redirect so stale bookmarks and open tabs land on the real
+                  onboarding flow instead of a 404. */}
+              <Route path="/company-onboarding"><Redirect to="/onboarding" /></Route>
               <Route path="/verify-email" component={VerifyEmail} />
               <Route path="/onboarding" component={OnboardingChoice} />
               <Route path="/onboarding/account-type" component={AccountTypeChoice} />

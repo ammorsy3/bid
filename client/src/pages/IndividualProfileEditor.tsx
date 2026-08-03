@@ -44,7 +44,6 @@ interface ProfileResponse {
     socialLinks: Record<string, string | undefined> | null;
     whatsappNumber: string | null;
     whatsappVisibility?: string;
-    discoverable?: boolean;
   } | null;
 }
 
@@ -153,7 +152,6 @@ export default function IndividualProfileEditor() {
         ),
         whatsappNumber: whatsappNumber.trim(),
         whatsappVisibility,
-        discoverable: false,
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));

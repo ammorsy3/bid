@@ -198,7 +198,14 @@ export default function Marketplace() {
   const { t, language, isRtl } = useI18n();
   const [, setLocation] = useLocation();
   const { user, activeCompany } = useAuthStore();
-  const isIndividual = (activeCompany as any)?.accountType === 'individual';
+  const accountType = (activeCompany as any)?.accountType ?? 'company';
+  const isIndividual = accountType === 'individual';
+  const isTeam = accountType === 'team';
+  // Individuals and teams are both vendor-side: they respond to tenders rather
+  // than publish them, so they get the same marketplace shape — an
+  // audience-filtered listing plus the tenders they've been invited to, and
+  // none of the buyer controls. Only the headline copy differs. (Q-033)
+  const isVendorAccount = isIndividual || isTeam;
   const isSubdomain = isMarketplaceSubdomain();
   const marketplaceHome = isSubdomain ? "/" : "/marketplace";
 
@@ -257,21 +264,7 @@ export default function Marketplace() {
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: isIndividual,
-  });
-
-  // Individuals: tenders recommended to them (field-matched).
-  const { data: recommendedTenders = [] } = useQuery<any[]>({
-    queryKey: ["/api/individuals/recommended-tenders"],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const res = await fetch("/api/individuals/recommended-tenders",
-        token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
-      if (!res.ok) return [];
-      const j = await res.json();
-      return j.tenders || [];
-    },
-    enabled: isIndividual,
+    enabled: isVendorAccount,
   });
 
   const tenders = tendersData?.tenders || [];
@@ -322,7 +315,7 @@ export default function Marketplace() {
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                {!isIndividual && (
+                {!isVendorAccount && (
                   <Link href="/tenders/new">
                     <button
                       className="text-sm font-medium px-[18px] py-[11px] rounded-full transition-colors hover:bg-white"
@@ -410,7 +403,9 @@ export default function Marketplace() {
             className="inline-block text-[13px] font-semibold px-3.5 py-1.5 rounded-full mb-4"
             style={{ color: "#FE3C01", background: "#FFE4D7" }}
           >
-            {isIndividual ? t("marketplaceInd.forIndividuals") : t("marketplace.browseLabel")}
+            {isIndividual ? t("marketplaceInd.forIndividuals")
+              : isTeam ? t("marketplaceInd.forTeams")
+              : t("marketplace.browseLabel")}
           </div>
           <h2
             className="font-display font-bold leading-[0.95]"
@@ -424,43 +419,15 @@ export default function Marketplace() {
             {t("marketplace.liveOpportunities")}
             <span style={{ color: "#FE3C01" }}>.</span>
           </h2>
-          {isIndividual && (
+          {isVendorAccount && (
             <p className="mt-3 text-base max-w-[52ch]" style={{ color: "#8A8078" }}>
-              {t('marketplaceInd.forIndividualsSub')}
+              {t(isTeam ? 'marketplaceInd.forTeamsSub' : 'marketplaceInd.forIndividualsSub')}
             </p>
           )}
         </div>
 
-        {/* Recommended for you (individuals) */}
-        {isIndividual && recommendedTenders.length > 0 && (
-          <div className="mb-10">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-[13px] font-semibold px-3 py-1 rounded-full" style={{ color: "#FE3C01", background: "#FFE4D7" }}>
-                {t('marketplaceInd.recommended')}
-              </span>
-              <span className="text-sm" style={{ color: "#8A8078" }}>{t('marketplaceInd.recommendedSub')}</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {recommendedTenders.map((rec) => (
-                <Link
-                  key={rec.id}
-                  href={user ? `/invite/${rec.invitationToken}` : "/login"}
-                  className="block rounded-2xl border border-border bg-card p-4 hover:shadow-sm transition-shadow"
-                  data-testid={`recommended-tender-${rec.id}`}
-                >
-                  <p className="text-sm font-semibold text-[#0B0907] line-clamp-2">{rec.title}</p>
-                  <p className="text-xs mt-1" style={{ color: "#8A8078" }}>
-                    {rec.requesterName || t('marketplaceInd.byCompany')}
-                    {rec.category ? ` · ${rec.category}` : ""}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Invited to you (individuals) */}
-        {isIndividual && myInvitations.length > 0 && (
+        {isVendorAccount && myInvitations.length > 0 && (
           <div className="mb-10">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-[13px] font-semibold px-3 py-1 rounded-full" style={{ color: "#0B0907", background: "#FFE4D7" }}>
@@ -743,7 +710,7 @@ export default function Marketplace() {
             title={t("marketplace.noTenders").replace(/\.$/, "")}
             description={t("marketplace.checkBackLater")}
             action={
-              isIndividual ? undefined : (
+              isVendorAccount ? undefined : (
                 <Link href={user ? "/tenders/new" : "/signup"}>
                   <button className="inline-flex items-center gap-2 rounded-full bg-[var(--bid-orange)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#E33600]">
                     {t("marketplace.postTender")}
@@ -978,7 +945,7 @@ export default function Marketplace() {
       </div>
 
       {/* ── CTA STRIP ── */}
-      {!isIndividual && (
+      {!isVendorAccount && (
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-14 mb-16">
           <div
             className="grid grid-cols-1 sm:grid-cols-[1.3fr_1fr] gap-8 sm:gap-12 items-center p-8 sm:p-14 rounded-[24px] sm:rounded-[32px] relative overflow-hidden"

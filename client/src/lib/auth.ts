@@ -31,7 +31,6 @@ interface CompanyProfile {
   brochureUrl: string | null;
   socialLinks: Record<string, string> | null;
   isPublic: boolean;
-  discoverable: boolean;
   tractionSlug: string | null;
   tractionTheme: {
     themeId: string;
@@ -53,7 +52,6 @@ interface Company {
   onboardingState: string;
   rejectionReason: string | null;
   role: string; // User's role in this company: 'owner' | 'admin' | 'member' | 'viewer' | 'business_developer'
-  nationalIdNumber: string | null;
   profile: CompanyProfile | null;
 }
 

@@ -51,12 +51,24 @@ export default function TenderReview() {
 
   const toggleAudienceType = (type: string) => {
     setTargetAudienceTypes(prev => {
+      let next: string[];
       if (prev.includes(type)) {
         // Must keep at least one selected
         if (prev.length === 1) return prev;
-        return prev.filter(t => t !== type);
+        next = prev.filter(t => t !== type);
+      } else {
+        next = [...prev, type];
       }
-      return [...prev, type];
+      // Mirror back into the wizard draft so stepping back to the
+      // submission-process step shows what was picked here, rather than the
+      // two steps disagreeing in the opposite direction.
+      try {
+        const draft = JSON.parse(localStorage.getItem("tenderDraft") || "{}");
+        localStorage.setItem("tenderDraft", JSON.stringify({ ...draft, targetAudienceTypes: next }));
+      } catch {
+        // localStorage full/disabled — UI state still updates.
+      }
+      return next;
     });
   };
 
@@ -122,6 +134,22 @@ export default function TenderReview() {
       navigate("/tenders/new/form-builder");
     }
   }, [navigate]);
+
+  // Audience is chosen back on the submission-process step and lives in the
+  // wizard draft, not in TENDER_STATE_KEY (which only holds the form cards).
+  // Without this the page fell back to its ['company'] initial state and
+  // POSTed that, silently discarding whatever the requester actually picked.
+  useEffect(() => {
+    try {
+      const draft = JSON.parse(localStorage.getItem("tenderDraft") || "{}");
+      if (Array.isArray(draft.targetAudienceTypes) && draft.targetAudienceTypes.length > 0) {
+        setTargetAudienceTypes(draft.targetAudienceTypes);
+      }
+    } catch {
+      // Malformed/absent draft — keep the default and let the requester
+      // re-pick below rather than blocking the review page.
+    }
+  }, []);
 
   const validateCards = (cardsToValidate: FormCard[]) => {
     const errors: string[] = [];

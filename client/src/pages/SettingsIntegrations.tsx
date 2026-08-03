@@ -60,7 +60,9 @@ export default function SettingsIntegrations() {
   const { t } = useI18n();
   const user = useAuthStore((s) => s.user);
   const activeCompany = useAuthStore((s) => s.activeCompany);
-  const isIndividual = (activeCompany as any)?.accountType === "individual";
+  // API access is company-only: individuals and teams cannot create tenders,
+  // which is what the API and AI copilot exist to drive. (Q-016)
+  const isCompanyAccount = ((activeCompany as any)?.accountType ?? "company") === "company";
 
   const [createKeyOpen, setCreateKeyOpen] = useState(false);
   const [createIntegrationOpen, setCreateIntegrationOpen] = useState(false);
@@ -76,9 +78,10 @@ export default function SettingsIntegrations() {
     return null;
   }
 
-  // Individuals have no API access (they can't create tenders or use the AI
-  // copilot) — bounce them out if they reach this URL directly.
-  if (isIndividual) {
+  // Bounce non-company workspaces if they reach this URL directly. The server
+  // gate (requireAccountType("company")) is the real boundary; this just avoids
+  // rendering a page whose every request would 403.
+  if (!isCompanyAccount) {
     setLocation("/settings");
     return null;
   }

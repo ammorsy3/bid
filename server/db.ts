@@ -29,6 +29,16 @@ const isServerless = !!process.env.VERCEL;
 // real Postgres connection per client for the whole session and is capped low
 // (pool_size 15 on Supabase), so serverless traffic exhausts it — the cause of
 // the EMAXCONNSESSION sign-in failures. Warn loudly rather than fail silently.
+//
+// Production moved to the transaction pooler (6543) on 2026-08-03, so this
+// should now be silent there. An earlier attempt to switch failed with
+// "Connection terminated unexpectedly" and was reverted; a temporary diagnostic
+// endpoint run from inside a Vercel function later proved 6543 reachable in
+// 58ms using these exact TLS settings (pinned CA, rejectUnauthorized: true).
+// The original failure was therefore in the connection string itself, not the
+// port or the certificate. If this warning reappears, production has been
+// pointed back at 5432 — check Vercel's DATABASE_URL before assuming anything
+// deeper.
 if (isServerless && !isLocal && url.port === '5432') {
   console.warn(
     '[db] DATABASE_URL uses the session-mode pooler (port 5432). ' +

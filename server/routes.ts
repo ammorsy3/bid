@@ -7441,30 +7441,46 @@ Respond with ONLY a JSON object. Example:
       host = u.hostname; port = u.port || '(default)';
     } catch { /* leave as unparsed */ }
 
-    const started = Date.now();
+    // Test BOTH TLS modes. The first attempt only proved the network path was
+    // open, because it used permissive TLS — while server/db.ts verifies
+    // strictly against a PINNED Supabase root CA. If that pinned cert does not
+    // validate on the 6543 endpoint the handshake fails and pg surfaces it as
+    // "Connection terminated unexpectedly", which is exactly what the original
+    // 6543 outage looked like. So the strict mode is the one that matters.
     const { Client } = await import('pg');
-    const client = new Client({
-      connectionString: target,
-      connectionTimeoutMillis: 8000,
-      ssl: { rejectUnauthorized: false },
+    const { SUPABASE_ROOT_CA } = await import('./supabase-ca');
+
+    const attempt = async (label: string, ssl: any) => {
+      const started = Date.now();
+      const client = new Client({ connectionString: target, connectionTimeoutMillis: 8000, ssl });
+      try {
+        await client.connect();
+        const r = await client.query('select 1 as ok');
+        await client.end();
+        return { mode: label, ok: true, ms: Date.now() - started, result: r.rows[0] };
+      } catch (e: any) {
+        try { await client.end(); } catch { /* already closed */ }
+        return {
+          mode: label, ok: false, ms: Date.now() - started,
+          error: { name: e?.name, message: e?.message, code: e?.code, cause: e?.cause?.message },
+        };
+      }
+    };
+
+    const strict = await attempt('strict (what the app actually uses: pinned CA, rejectUnauthorized true)',
+      { ca: SUPABASE_ROOT_CA, rejectUnauthorized: true });
+    const permissive = await attempt('permissive (rejectUnauthorized false)',
+      { rejectUnauthorized: false });
+
+    return res.json({
+      host, port,
+      verdict: strict.ok
+        ? "SAFE — the app's own TLS settings connect on this port."
+        : permissive.ok
+          ? "NOT SAFE AS-IS — the port works, but the app's pinned-CA check fails on it. Fix TLS before switching."
+          : "NOT REACHABLE — both TLS modes failed.",
+      strict, permissive,
     });
-    try {
-      await client.connect();
-      const r = await client.query('select 1 as ok');
-      await client.end();
-      return res.json({
-        ok: true, host, port, ms: Date.now() - started,
-        query: r.rows[0],
-        note: "Transaction pooler reachable from Vercel. Safe to point DATABASE_URL at this.",
-      });
-    } catch (e: any) {
-      try { await client.end(); } catch { /* already closed */ }
-      return res.json({
-        ok: false, host, port, ms: Date.now() - started,
-        error: { name: e?.name, message: e?.message, code: e?.code,
-                 cause: e?.cause?.message, severity: e?.severity, routine: e?.routine },
-      });
-    }
   });
 
   const httpServer = createServer(app);

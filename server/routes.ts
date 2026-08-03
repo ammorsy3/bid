@@ -7415,10 +7415,15 @@ Respond with ONLY a JSON object. Example:
   // real driver error. It does not touch the app's own pool, so production
   // stays on 5432 while we find out.
   //
-  // Guarded by CRON_SECRET so it isn't a public probe. Never returns the
+  // Guarded by DIAG_SECRET so it isn't a public probe. Never returns the
   // connection string or password — only host, port, and the error.
+  //
+  // DIAG_SECRET rather than CRON_SECRET: CRON_SECRET is marked Sensitive in
+  // Vercel, which makes it write-only — nobody can read it back, so nobody
+  // could call this endpoint. DIAG_SECRET is a throwaway value created for this
+  // one diagnostic and deleted along with it.
   app.get("/api/_dbcheck", async (req, res) => {
-    const secret = process.env.CRON_SECRET;
+    const secret = process.env.DIAG_SECRET;
     const provided = (req.headers['x-diag-secret'] as string) || (req.query.secret as string) || '';
     if (!secret || provided !== secret) {
       return res.status(404).json({ message: "Not found" });

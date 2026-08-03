@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { categoryLabel, cityLabel } from "@/lib/category-labels";
 import { BidLogo } from "@/components/brand/BidLogo";
 import InviteToTenderModal from "@/components/InviteToTenderModal";
 
@@ -111,7 +112,8 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
 
 export default function IndividualProfilePage({ data }: { data: IndividualProfileData }) {
   const { user, activeCompany } = useAuthStore();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const isRtl = language === "ar";
   const { company, profile } = data;
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -242,13 +244,13 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
                 {company.category && (
                   <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#FE3C01]" />
-                    {company.category}
+                    {categoryLabel(company.category, isRtl)}
                   </span>
                 )}
                 {company.city && (
                   <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5" />
-                    {company.city}
+                    {cityLabel(company.city, isRtl)}
                   </span>
                 )}
               </div>

@@ -12,27 +12,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
+import { categoryLabel } from "@/lib/category-labels";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { ArrowRight, ArrowLeft, User, Loader2 } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
-const VENDOR_CATEGORY_LABELS_AR: Record<(typeof VENDOR_CATEGORIES)[number], string> = {
-  "Construction & Infrastructure": "الإنشاءات والبنية التحتية",
-  "Information Technology": "تقنية المعلومات",
-  "Healthcare & Medical Supplies": "الرعاية الصحية والمستلزمات الطبية",
-  "Transportation & Logistics": "النقل واللوجستيات",
-  "Professional Services": "الخدمات المهنية",
-  "Manufacturing & Production": "التصنيع والإنتاج",
-  "Food & Beverage": "الأغذية والمشروبات",
-  "Energy & Utilities": "الطاقة والمرافق",
-  "Education & Training": "التعليم والتدريب",
-  "Telecommunications": "الاتصالات",
-  "Facility Management": "إدارة المرافق",
-  "Security Services": "الخدمات الأمنية",
-  "Marketing & Advertising": "التسويق والإعلان",
-  "Legal Services": "الخدمات القانونية",
-  "Financial Services": "الخدمات المالية",
-};
 
 const individualBasicsSchema = z.object({
   displayName: z.string().min(2, "Display name is required"),
@@ -151,7 +135,7 @@ export default function IndividualBasics() {
                       <SelectContent>
                         {VENDOR_CATEGORIES.map((category) => (
                           <SelectItem key={category} value={category}>
-                            {isRtl ? VENDOR_CATEGORY_LABELS_AR[category] : category}
+                            {categoryLabel(category, isRtl)}
                           </SelectItem>
                         ))}
                       </SelectContent>

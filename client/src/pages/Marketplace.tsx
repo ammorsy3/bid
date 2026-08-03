@@ -1053,7 +1053,7 @@ export default function Marketplace() {
             className="flex items-center justify-between pt-7 text-[13px] gap-6 flex-wrap"
             style={{ color: "#8A8078" }}
           >
-            <span>{t("marketplace.copyright")}</span>
+            <span>{t("marketplace.copyright", { year: String(new Date().getFullYear()) })}</span>
           </div>
         </div>
       </footer>

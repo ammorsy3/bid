@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest, ApiError } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
+import { categoryLabel, cityLabel } from "@/lib/category-labels";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Building2, CheckCircle2, Loader2, UserPlus, LogIn,
@@ -621,12 +622,12 @@ export default function TractionLink() {
                   <div className="flex items-center gap-2.5 flex-wrap">
                     {data.company.city && (
                       <span className="flex items-center gap-1 text-xs text-gray-400 font-medium">
-                        <MapPin className="h-3 w-3 flex-shrink-0" />{data.company.city}
+                        <MapPin className="h-3 w-3 flex-shrink-0" />{cityLabel(data.company.city, isRtl)}
                       </span>
                     )}
                     {data.company.category && (
                       <span className="flex items-center gap-1 text-xs text-gray-400 font-medium">
-                        <Briefcase className="h-3 w-3 flex-shrink-0" />{data.company.category}
+                        <Briefcase className="h-3 w-3 flex-shrink-0" />{categoryLabel(data.company.category, isRtl)}
                       </span>
                     )}
                     {isVerified && (

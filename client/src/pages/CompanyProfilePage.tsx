@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
+import { categoryLabel, cityLabel } from "@/lib/category-labels";
 import { StatusBadge } from "@/components/brand/StatusDot";
 import { verificationStatusToState } from "@/components/brand/statusMap";
 import IndividualProfilePage from "@/pages/IndividualProfilePage";
@@ -143,7 +144,8 @@ function formatMemberSince(iso: string | null | undefined): string | null {
 }
 
 function VerificationBadge({ status }: { status: string }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const isRtl = language === "ar";
   const labelKey =
     status === 'verified' ? 'companyProfile.badgeVerified'
     : status === 'under_review' ? 'companyProfile.badgeUnderReview'
@@ -186,7 +188,8 @@ export default function CompanyProfilePage() {
   const [matchedCompanyRoute, companyParams] = useRoute("/company/:slug");
   const [matchedIndividualRoute, individualParams] = useRoute("/people/:slug");
   const slug = companyParams?.slug ?? individualParams?.slug;
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const isRtl = language === "ar";
 
   const { data, isLoading, error } = useQuery<CompanyProfileData>({
     queryKey: ['/api/companies/by-slug', slug, 'profile'],
@@ -300,10 +303,10 @@ export default function CompanyProfilePage() {
                 <div className="flex items-center gap-2.5 mt-1 flex-wrap">
                   <VerificationBadge status={company.verificationStatus} />
                   {company.category && (
-                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Briefcase className="h-3 w-3 flex-shrink-0" />{company.category}</span>
+                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Briefcase className="h-3 w-3 flex-shrink-0" />{categoryLabel(company.category, isRtl)}</span>
                   )}
                   {company.city && (
-                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><MapPin className="h-3 w-3 flex-shrink-0" />{company.city}</span>
+                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><MapPin className="h-3 w-3 flex-shrink-0" />{cityLabel(company.city, isRtl)}</span>
                   )}
                   {sizeLabel && (
                     <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Users className="h-3 w-3 flex-shrink-0" />{sizeLabel}</span>
@@ -328,10 +331,10 @@ export default function CompanyProfilePage() {
                 <div className="flex items-center gap-2.5 mt-1 flex-wrap">
                   <VerificationBadge status={company.verificationStatus} />
                   {company.category && (
-                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Briefcase className="h-3 w-3 flex-shrink-0" />{company.category}</span>
+                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Briefcase className="h-3 w-3 flex-shrink-0" />{categoryLabel(company.category, isRtl)}</span>
                   )}
                   {company.city && (
-                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><MapPin className="h-3 w-3 flex-shrink-0" />{company.city}</span>
+                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><MapPin className="h-3 w-3 flex-shrink-0" />{cityLabel(company.city, isRtl)}</span>
                   )}
                   {sizeLabel && (
                     <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Users className="h-3 w-3 flex-shrink-0" />{sizeLabel}</span>
@@ -409,13 +412,13 @@ export default function CompanyProfilePage() {
             {company.city && (
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsHqLabel')}</p>
-                <p className="text-sm font-bold text-foreground">{company.city}</p>
+                <p className="text-sm font-bold text-foreground">{cityLabel(company.city, isRtl)}</p>
               </div>
             )}
             {company.category && (
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsCategoryLabel')}</p>
-                <p className="text-sm font-bold text-foreground">{company.category}</p>
+                <p className="text-sm font-bold text-foreground">{categoryLabel(company.category, isRtl)}</p>
               </div>
             )}
           </div>
@@ -767,13 +770,13 @@ export default function CompanyProfilePage() {
                 {company.category && (
                   <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
                     <Briefcase className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                    <span>{company.category}</span>
+                    <span>{categoryLabel(company.category, isRtl)}</span>
                   </div>
                 )}
                 {company.city && (
                   <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                    <span>{company.city}</span>
+                    <span>{cityLabel(company.city, isRtl)}</span>
                   </div>
                 )}
                 {sizeLabel && (

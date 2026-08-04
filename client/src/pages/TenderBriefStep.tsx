@@ -907,14 +907,15 @@ export default function TenderBriefStep() {
           </div>
 
           <div className="space-y-6">
-            <Card className="overflow-hidden sticky top-20">
-              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
-              <CardContent className="p-5 space-y-5">
+            {/* Sticky column of standalone cards, matching the sidebar on the
+                tender details page. This used to be ONE Card with bordered
+                boxes nested inside it, which put a border inside a border. */}
+            <div className="sticky top-20 space-y-4">
                 {/* At a Glance — the same card-with-tile-grid pattern used on the
                     tender details and published RFP pages, rather than the flat
                     row list this panel had. Consistent with how a requester sees
                     the same facts after publishing. */}
-                <div className="rounded-2xl border border-border overflow-hidden">
+                <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
                   <div className="px-4 py-3 border-b border-border">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('tenderFlow.atAGlance')}</p>
                   </div>
@@ -1022,6 +1023,7 @@ export default function TenderBriefStep() {
                   </div>
                 </div>
 
+                <div className="bg-card rounded-2xl border border-border shadow-sm p-5 space-y-5">
                 {hasSkills && (
                   <div className="pt-4 border-t border-border">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">{t('tenderFlow.requiredSkillsLabel')}</p>
@@ -1171,8 +1173,8 @@ export default function TenderBriefStep() {
                     {t('tenderFlow.goBackEdit')}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+                </div>
+            </div>
           </div>
         </div>
       </main>

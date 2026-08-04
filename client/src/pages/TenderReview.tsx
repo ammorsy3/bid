@@ -547,7 +547,7 @@ export default function TenderReview() {
         backgroundSize: "20px 20px",
       }}
     >
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-6xl mx-auto">
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <div className="flex items-center justify-between mb-6 sm:mb-10">
@@ -604,7 +604,7 @@ export default function TenderReview() {
         )}
 
         {/* ── RFP Language & Translation Settings ────────────── */}
-        <div className="mb-6 bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-lg p-6 space-y-5">
+        <div className="mb-6 bg-card rounded-2xl border border-border shadow-sm p-6 space-y-5">
           {/* RFP Language (required) */}
           <div>
             <div className="flex items-center gap-3 mb-3">
@@ -729,7 +729,7 @@ export default function TenderReview() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05, duration: 0.35, ease: "easeOut" }}
-                className={`bg-white dark:bg-card rounded-2xl border-2 shadow-lg transition-all duration-300 ease-in-out ${
+                className={`bg-card rounded-2xl border shadow-sm transition-all duration-300 ease-in-out ${
                   hasValue
                     ? "border-[#FE3C01] shadow-[#FE3C01]/10"
                     : card.isRequired
@@ -819,7 +819,7 @@ export default function TenderReview() {
         </div>
 
         {/* ── Save as Template ────────────────────────────────────── */}
-        <div className="mb-10 bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-lg overflow-hidden">
+        <div className="mb-10 bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
           <button
             type="button"
             aria-expanded={templateExpanded}
@@ -917,7 +917,7 @@ export default function TenderReview() {
         </div>
 
         {/* ── Target audience ────────────────────────────────────── */}
-        <div className="mb-6 bg-white dark:bg-card rounded-2xl border-2 border-border dark:border-border shadow-lg p-6">
+        <div className="mb-6 bg-card rounded-2xl border border-border shadow-sm p-6">
           <div className="flex items-center gap-3 mb-4">
             <Users2 className="h-5 w-5 text-[#FE3C01]" />
             <div>

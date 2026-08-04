@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown, Shield, Copy, Languages, Paperclip, Upload, X } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
@@ -32,6 +31,25 @@ const formatLabel = (value: string, labels?: Record<string, string>): string => 
     .replace(/_/g, ' ')
     .replace(/\b\w/g, char => char.toUpperCase());
 };
+
+
+/**
+ * Numbered section header, matching TDSectionHeader on the tender details page
+ * so a requester sees the same treatment before and after publishing.
+ */
+function BriefSectionHeader({ index, title }: { index: number; title: string }) {
+  return (
+    <div className="flex items-start gap-3 mb-6">
+      <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#FE3C01]/10 border border-[#FE3C01]/20 flex-shrink-0 mt-0.5">
+        <span className="text-[11px] font-bold text-[#FE3C01] font-mono leading-none">{index}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <h2 className="font-display font-black text-xl text-foreground leading-tight tracking-[-0.02em]">{title}</h2>
+        <div className="mt-1.5 h-px bg-gradient-to-r from-[#FE3C01]/25 via-gray-200/60 to-transparent" />
+      </div>
+    </div>
+  );
+}
 
 export default function TenderBriefStep() {
   const [, navigate] = useLocation();
@@ -342,7 +360,7 @@ export default function TenderBriefStep() {
   return (
     <div className="min-h-screen bg-muted">
       <header className="bg-card border-b sticky top-0 z-50 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <BidLogo variant="orange" size={40} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")} />
           <Button
             variant="outline"
@@ -358,7 +376,7 @@ export default function TenderBriefStep() {
       </header>
 
       <div className="bg-card border-b">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex items-start justify-between gap-4 mb-2">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-3 flex-wrap">
@@ -429,55 +447,36 @@ export default function TenderBriefStep() {
         </div>
       </div>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
+      <main className="bg-muted/80">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_288px] gap-6 items-start">
+          {/* Main document column — one continuous card of numbered sections,
+              matching the tender details layout, rather than a stack of
+              separate cards each with its own gradient strip. */}
+          <div className="min-w-0 bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
 
             {hasDescription && (
-              <Card className="overflow-hidden">
-                <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-[#FE3C01]" />
-                    {t('tenderFlow.projectDescriptionTitle')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed" data-testid="brief-description">
+              <div className="p-6 sm:p-8">
+              <BriefSectionHeader index={1} title={t('tenderFlow.projectDescriptionTitle')} />
+                                    <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed" data-testid="brief-description">
                     {draft.description || draft.projectDescription}
                   </p>
-                </CardContent>
-              </Card>
+                </div>
             )}
 
             {hasObjective && (
-              <Card className="overflow-hidden">
-                <div className="h-1 bg-gradient-to-r from-blue-500 to-blue-400" />
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-[var(--bid-orange)]" />
-                    {t('tenderFlow.projectObjectiveTitle')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed" data-testid="brief-objective">
+              <div className="border-t border-border p-6 sm:p-8">
+              <BriefSectionHeader index={2} title={t('tenderFlow.projectObjectiveTitle')} />
+                                    <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed" data-testid="brief-objective">
                     {draft.projectObjective}
                   </p>
-                </CardContent>
-              </Card>
+                </div>
             )}
 
             {hasDeliverables && (
-              <Card className="overflow-hidden">
-                <div className="h-1 bg-gradient-to-r from-emerald-500 to-emerald-400" />
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Package className="h-5 w-5 text-[var(--state-won)]" />
-                    {t('tenderFlow.keyDeliverablesTitle')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3" data-testid="brief-deliverables">
+              <div className="border-t border-border p-6 sm:p-8">
+              <BriefSectionHeader index={3} title={t('tenderFlow.keyDeliverablesTitle')} />
+                                    <div className="space-y-3" data-testid="brief-deliverables">
                     {draft.keyDeliverables.map((deliverable: any, index: number) => {
                       if (typeof deliverable === 'string') {
                         return (
@@ -524,21 +523,13 @@ export default function TenderBriefStep() {
                       );
                     })}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
             )}
 
             {hasMilestones && (
-              <Card className="overflow-hidden">
-                <div className="h-1 bg-gradient-to-r from-violet-500 to-violet-400" />
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Flag className="h-5 w-5 text-violet-600" />
-                    {t('tenderFlow.milestonesTitle')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3" data-testid="brief-milestones">
+              <div className="border-t border-border p-6 sm:p-8">
+              <BriefSectionHeader index={4} title={t('tenderFlow.milestonesTitle')} />
+                                    <div className="space-y-3" data-testid="brief-milestones">
                     {draft.milestones.map((milestone: any, index: number) => (
                       <div key={milestone.id || index} className="flex items-center gap-4 p-4 bg-muted rounded-lg">
                         <div className="flex-shrink-0 h-8 w-8 rounded-full bg-violet-100 text-violet-700 dark:text-violet-300 flex items-center justify-center text-sm font-bold">
@@ -561,21 +552,13 @@ export default function TenderBriefStep() {
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
             )}
 
             {hasEvalCriteria && (
-              <Card className="overflow-hidden">
-                <div className="h-1 bg-gradient-to-r from-amber-500 to-amber-400" />
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ClipboardCheck className="h-5 w-5 text-amber-600" />
-                    {t('tenderFlow.evaluationCriteriaTitle')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {Array.isArray(draft.evaluationCriteria) ? (
+              <div className="border-t border-border p-6 sm:p-8">
+              <BriefSectionHeader index={5} title={t('tenderFlow.evaluationCriteriaTitle')} />
+                                    {Array.isArray(draft.evaluationCriteria) ? (
                     <div className="space-y-2" data-testid="brief-criteria">
                       {draft.evaluationCriteria.map((criteria: any, index: number) => {
                         if (typeof criteria === 'string') {
@@ -732,41 +715,25 @@ export default function TenderBriefStep() {
                       )}
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
             )}
 
-            <Card className="overflow-hidden" data-testid="brief-vendor-requirements">
-              <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-orange-400" />
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-[#FE3C01]" />
-                  {t('tenderFlow.vendorRequirementsTitle')}
-                </CardTitle>
+            <div className="border-t border-border p-6 sm:p-8" data-testid="brief-vendor-requirements">
+              <BriefSectionHeader index={6} title={t('tenderFlow.vendorRequirementsTitle')} />
                 <p className="text-sm text-muted-foreground">
                   {t('tenderFlow.vendorRequirementsBriefHint') || 'What vendors must (or should) prove to qualify. Edit anytime before publishing.'}
                 </p>
-              </CardHeader>
-              <CardContent>
-                <VendorRequirementsEditor
+                              <VendorRequirementsEditor
                   value={vendorRequirements}
                   onChange={handleVendorRequirementsChange}
                   isRtl={isRtl}
                   compact
                 />
-              </CardContent>
-            </Card>
+            </div>
 
-            <Card className="overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-pink-500 to-pink-400" />
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mic className="h-5 w-5 text-pink-600" />
-                  {t('tenderFlow.voiceNoteTitle')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <VoiceRecorder
+            <div className="border-t border-border p-6 sm:p-8">
+              <BriefSectionHeader index={7} title={t('tenderFlow.voiceNoteTitle')} />
+                              <VoiceRecorder
                   onRecordingComplete={(url) => updateDraft({ voiceNoteUrl: url })}
                   onRecordingDeleted={() => updateDraft({ voiceNoteUrl: "" })}
                   existingUrl={draft.voiceNoteUrl || undefined}
@@ -781,19 +748,11 @@ export default function TenderBriefStep() {
                     </audio>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+            </div>
 
-            <Card className="overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-pink-500 to-rose-400" />
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Video className="h-5 w-5 text-pink-600" />
-                  {t('tenderFlow.videoUrlLabel') || 'Video URL'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <div className="space-y-2">
+            <div className="border-t border-border p-6 sm:p-8">
+              <BriefSectionHeader index={8} title={t('tenderFlow.videoUrlLabel') || 'Video URL'} />
+                              <div className="space-y-2">
                   <Label htmlFor="video-url-input" className="text-sm font-medium text-foreground">
                     {t('tenderFlow.videoUrlLabel') || 'Video URL'}
                   </Label>
@@ -825,19 +784,11 @@ export default function TenderBriefStep() {
                     data-testid="switch-video-required"
                   />
                 </div>
-              </CardContent>
-            </Card>
+            </div>
 
-            <Card className="overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-slate-500 to-slate-400" />
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Paperclip className="h-5 w-5 text-slate-600" />
-                  {t('tenderFlow.supportingDocsTitle') || 'Supporting Documents'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3" data-testid="brief-attachments">
+            <div className="border-t border-border p-6 sm:p-8">
+              <BriefSectionHeader index={9} title={t('tenderFlow.supportingDocsTitle') || 'Supporting Documents'} />
+                              <div className="space-y-3" data-testid="brief-attachments">
                   <p className="text-sm text-muted-foreground">
                     {t('tenderFlow.supportingDocsDesc') || 'Upload any documents that help vendors understand the scope (specs, drawings, references).'}
                   </p>
@@ -902,8 +853,7 @@ export default function TenderBriefStep() {
                     </ul>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -1177,10 +1127,11 @@ export default function TenderBriefStep() {
             </div>
           </div>
         </div>
+        </div>
       </main>
 
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t shadow-lg px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50">
-        <div className="max-w-5xl mx-auto flex gap-3">
+        <div className="max-w-6xl mx-auto flex gap-3">
           <Button
             variant="outline"
             onClick={handleBack}

@@ -910,19 +910,23 @@ export default function TenderBriefStep() {
             <Card className="overflow-hidden sticky top-20">
               <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
               <CardContent className="p-5 space-y-5">
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t('tenderFlow.quickSummary')}</h3>
-                  <div className="space-y-4">
-                    {/* Who can bid. It was missing from this summary even though
-                        it is one of the most consequential choices in the wizard
-                        and is already in the draft — a requester could reach the
-                        brief without ever seeing it echoed back. */}
-                    {Array.isArray(draft.targetAudienceTypes) && draft.targetAudienceTypes.length > 0 && (
-                      <div className="flex items-start gap-3">
-                        <Users className="h-4 w-4 text-gray-400 mt-0.5" />
-                        <div>
-                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.audienceHeading')}</p>
-                          <p className="text-sm font-medium text-foreground">
+                {/* At a Glance — the same card-with-tile-grid pattern used on the
+                    tender details and published RFP pages, rather than the flat
+                    row list this panel had. Consistent with how a requester sees
+                    the same facts after publishing. */}
+                <div className="rounded-2xl border border-border overflow-hidden">
+                  <div className="px-4 py-3 border-b border-border">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('tenderFlow.atAGlance')}</p>
+                  </div>
+                  <div className="p-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      {Array.isArray(draft.targetAudienceTypes) && draft.targetAudienceTypes.length > 0 && (
+                        <div className="bg-muted rounded-xl p-3 border border-border">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Users className="h-3.5 w-3.5 text-[#FE3C01]" />
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.audienceHeading')}</span>
+                          </div>
+                          <p className="text-xs font-bold text-foreground leading-tight" data-testid="brief-audience">
                             {draft.targetAudienceTypes
                               .map((type: string) =>
                                 type === 'company' ? t('tenderFlow.audienceCompanies')
@@ -931,92 +935,90 @@ export default function TenderBriefStep() {
                               .join(' · ')}
                           </p>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {draft.projectSize && (
-                      <div className="flex items-start gap-3">
-                        <BarChart className="h-4 w-4 text-gray-400 mt-0.5" />
-                        <div>
-                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.projectSizeLabel')}</p>
-                          <p className="text-sm font-medium text-foreground">
+                      {draft.projectSize && (
+                        <div className="bg-muted rounded-xl p-3 border border-border">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <BarChart className="h-3.5 w-3.5 text-indigo-500" />
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.projectSizeLabel')}</span>
+                          </div>
+                          <p className="text-xs font-bold text-foreground leading-tight">
                             {PROJECT_SIZE_LABELS[draft.projectSize] || draft.projectSize}
                           </p>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {draft.budgetType && (
-                      <div className="flex items-start gap-3">
-                        <DollarSign className="h-4 w-4 text-gray-400 mt-0.5" />
-                        <div>
-                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.budgetTypeLabel')}</p>
-                          <p className="text-sm font-medium text-foreground">
+                      {draft.budgetType && (
+                        <div className="bg-muted rounded-xl p-3 border border-border">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.budgetTypeLabel')}</span>
+                          </div>
+                          <p className="text-xs font-bold text-foreground leading-tight">
                             {draft.budgetType === 'milestone' ? t('tenderFlow.milestoneBased') : t('tenderFlow.fixedPrice')}
                           </p>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {draft.pricingModel && (
-                      <div className="flex items-start gap-3">
-                        <DollarSign className="h-4 w-4 text-gray-400 mt-0.5" />
-                        <div>
-                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.pricingModelLabel')}</p>
-                          <p className="text-sm font-medium text-foreground">{formatLabel(draft.pricingModel)}</p>
+                      {draft.pricingModel && (
+                        <div className="bg-muted rounded-xl p-3 border border-border">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.pricingModelLabel')}</span>
+                          </div>
+                          <p className="text-xs font-bold text-foreground leading-tight">{formatLabel(draft.pricingModel)}</p>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {draft.showPriceToVendors !== undefined && (
-                      <div className="flex items-start gap-3">
-                        {draft.showPriceToVendors ? (
-                          <Eye className="h-4 w-4 text-emerald-500 mt-0.5" />
-                        ) : (
-                          <EyeOff className="h-4 w-4 text-gray-400 mt-0.5" />
-                        )}
-                        <div>
-                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.priceVisibilityLabel')}</p>
-                          <p className="text-sm font-medium text-foreground">
+                      {draft.showPriceToVendors !== undefined && (
+                        <div className="bg-muted rounded-xl p-3 border border-border">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            {draft.showPriceToVendors
+                              ? <Eye className="h-3.5 w-3.5 text-emerald-500" />
+                              : <EyeOff className="h-3.5 w-3.5 text-gray-400" />}
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.priceVisibilityLabel')}</span>
+                          </div>
+                          <p className="text-xs font-bold text-foreground leading-tight">
                             {draft.showPriceToVendors ? t('tenderFlow.visibleToVendors') : t('tenderFlow.hiddenSizeOnly')}
                           </p>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {draft.submissionType && (
-                      <div className="flex items-start gap-3">
-                        <Send className="h-4 w-4 text-gray-400 mt-0.5" />
-                        <div>
-                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.submissionFormatLabel')}</p>
-                          <p className="text-sm font-medium text-foreground" data-testid="brief-submission-type">
+                      {draft.submissionType && (
+                        <div className="bg-muted rounded-xl p-3 border border-border">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Send className="h-3.5 w-3.5 text-purple-500" />
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.submissionFormatLabel')}</span>
+                          </div>
+                          <p className="text-xs font-bold text-foreground leading-tight" data-testid="brief-submission-type">
                             {formatLabel(draft.submissionType, SUBMISSION_TYPE_LABELS)}
                           </p>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {draft.videoRequired && (
-                      <div className="flex items-start gap-3">
-                        <Video className="h-4 w-4 text-pink-500 mt-0.5" />
-                        <div>
-                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.videoPitchTitle')}</p>
-                          <p className="text-sm font-medium text-foreground">{t('tenderFlow.requiredBadge')}</p>
+                      {draft.videoRequired && (
+                        <div className="bg-muted rounded-xl p-3 border border-border">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Video className="h-3.5 w-3.5 text-pink-500" />
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.videoPitchTitle')}</span>
+                          </div>
+                          <p className="text-xs font-bold text-foreground leading-tight">{t('tenderFlow.requiredBadge')}</p>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {draft.inquiryType && (
-                      <div className="flex items-start gap-3">
-                        <MessageSquare className="h-4 w-4 text-gray-400 mt-0.5" />
-                        <div>
-                          <p className="text-xs text-muted-foreground uppercase tracking-wider">{t('tenderFlow.vendorQuestionsLabel')}</p>
-                          <p className="text-sm font-medium text-foreground" data-testid="brief-inquiry-type">
+                      {draft.inquiryType && (
+                        <div className="bg-muted rounded-xl p-3 border border-border">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <MessageSquare className="h-3.5 w-3.5 text-sky-500" />
+                            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.vendorQuestionsLabel')}</span>
+                          </div>
+                          <p className="text-xs font-bold text-foreground leading-tight" data-testid="brief-inquiry-type">
                             {formatLabel(draft.inquiryType, INQUIRY_TYPE_LABELS)}
                           </p>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
 

@@ -31,6 +31,25 @@ import { MarketplacePublishOption, type MarketplaceOptions } from "@/components/
 
 const TENDER_STATE_KEY = "tender_form_state";
 
+
+/**
+ * Numbered section header, matching TDSectionHeader on the tender details page
+ * so a requester sees the same treatment before and after publishing.
+ */
+function ReviewSectionHeader({ index, title }: { index: number; title: string }) {
+  return (
+    <div className="flex items-start gap-3 mb-6">
+      <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#FE3C01]/10 border border-[#FE3C01]/20 flex-shrink-0 mt-0.5">
+        <span className="text-[11px] font-bold text-[#FE3C01] font-mono leading-none">{index}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <h2 className="font-display font-black text-xl text-foreground leading-tight tracking-[-0.02em]">{title}</h2>
+        <div className="mt-1.5 h-px bg-gradient-to-r from-[#FE3C01]/25 via-gray-200/60 to-transparent" />
+      </div>
+    </div>
+  );
+}
+
 export default function TenderReview() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -540,14 +559,9 @@ export default function TenderReview() {
   };
 
   return (
-    <div
-      className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-background"
-      style={{
-        backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
-        backgroundSize: "20px 20px",
-      }}
-    >
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-background">
+      {/* Header band — light surface, like the tender details header. */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <div className="flex items-center justify-between mb-6 sm:mb-10">
@@ -582,15 +596,28 @@ export default function TenderReview() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: "easeOut" }}
         >
-        {/* ── Headline ───────────────────────────────────────────── */}
-        <div className="text-center mb-10">
-          <h1 className="font-display font-black text-2xl sm:text-4xl text-gray-900 dark:text-foreground leading-[0.95] tracking-[-0.04em] mb-3">
+        {/* ── Headline — mirrors the tender details header: eyebrow label,
+             large display title, supporting line ─────────────────────── */}
+        <div className="mb-8">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">
+            {t('tenderFlow.stepReview')}
+          </p>
+          <h1 className="font-display font-black text-3xl sm:text-4xl text-foreground leading-[0.95] tracking-[-0.04em] mb-3">
             {t('tenderFlow.reviewRfpTitle')}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-lg max-w-xl mx-auto">
+          <p className="text-muted-foreground text-[15px] max-w-2xl">
             {t('tenderFlow.reviewRfpSubtitle')}
           </p>
         </div>
+        </motion.div>
+      </div>
+
+      {/* ── Content area — muted surface + 1fr/288px grid, as on tender
+           details ────────────────────────────────────────────────────── */}
+      <div className="bg-muted/80 min-h-[60vh] mt-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_288px] gap-6 items-start">
+            <div className="min-w-0">
 
         {/* ── Onboarding hint ────────────────────────────────── */}
         {user && (
@@ -604,7 +631,9 @@ export default function TenderReview() {
         )}
 
         {/* ── RFP Language & Translation Settings ────────────── */}
-        <div className="mb-6 bg-card rounded-2xl border border-border shadow-sm p-6 space-y-5">
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="p-6 sm:p-8 space-y-5">
+          <ReviewSectionHeader index={1} title={t('tenderFlow.rfpLanguageLabel')} />
           {/* RFP Language (required) */}
           <div>
             <div className="flex items-center gap-3 mb-3">
@@ -668,6 +697,10 @@ export default function TenderReview() {
             />
           </div>
         </div>
+
+        {/* ── Section 2: the RFP itself ─────────────────────────── */}
+        <div className="border-t border-border p-6 sm:p-8">
+          <ReviewSectionHeader index={2} title={t('tenderFlow.reviewRfpTitle')} />
 
         {/* ── Status banner ──────────────────────────────────────── */}
         <AnimatePresence mode="wait">
@@ -818,8 +851,11 @@ export default function TenderReview() {
           })}
         </div>
 
+        </div>
+
         {/* ── Save as Template ────────────────────────────────────── */}
-        <div className="mb-10 bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="border-t border-border p-6 sm:p-8">
+          <ReviewSectionHeader index={3} title={t('tenderFlow.saveAsTemplate')} />
           <button
             type="button"
             aria-expanded={templateExpanded}
@@ -917,7 +953,8 @@ export default function TenderReview() {
         </div>
 
         {/* ── Target audience ────────────────────────────────────── */}
-        <div className="mb-6 bg-card rounded-2xl border border-border shadow-sm p-6">
+        <div className="border-t border-border p-6 sm:p-8">
+          <ReviewSectionHeader index={4} title={t('tenderFlow.audienceHeading')} />
           <div className="flex items-center gap-3 mb-4">
             <Users2 className="h-5 w-5 text-[#FE3C01]" />
             <div>
@@ -958,7 +995,8 @@ export default function TenderReview() {
         </div>
 
         {/* ── Marketplace option ──────────────────────────────────── */}
-        <div className="max-w-2xl mx-auto w-full mb-6">
+        <div className="border-t border-border p-6 sm:p-8">
+          <ReviewSectionHeader index={5} title={t('marketplace.publishToMarketplace')} />
           <MarketplacePublishOption
             value={marketplaceOptions}
             onChange={setMarketplaceOptions}
@@ -969,8 +1007,19 @@ export default function TenderReview() {
           />
         </div>
 
-        {/* ── Bottom navigation ──────────────────────────────────── */}
-        <div className="flex justify-center pb-12">
+        </div>
+            </div>
+
+            {/* ── Sidebar — sticky column of standalone cards, matching the
+                 tender details sidebar ──────────────────────────────── */}
+            <aside className="lg:sticky lg:top-20 space-y-4">
+
+              {/* Publish actions */}
+              <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+                <div className="px-4 py-3 border-b border-border">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('tenderFlow.stepReview')}</p>
+                </div>
+                <div className="p-4">
           <AnimatePresence mode="wait">
             {isSuccess ? (
               <motion.div
@@ -984,16 +1033,7 @@ export default function TenderReview() {
                 <p className="text-sm text-gray-500 dark:text-gray-400">{t('tenderFlow.redirectingToDashboard')}</p>
               </motion.div>
             ) : (
-              <motion.div key="buttons" className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleBackToEdit}
-                  className="w-full sm:min-w-[160px] sm:w-auto h-12 text-base"
-                >
-                  <ArrowLeft className="h-5 w-5 me-2" />
-                  {t('tenderFlow.backToEdit')}
-                </Button>
+              <motion.div key="buttons" className="flex flex-col gap-3">
                 <Button
                   onClick={handleLaunchTender}
                   disabled={isSubmitting || validationErrors.length > 0 || targetAudienceTypes.length === 0 || (marketplaceOptions.enabled && !marketplaceOptions.confirmed)}
@@ -1007,11 +1047,24 @@ export default function TenderReview() {
                   {isSubmitting ? t('tenderFlow.launching') : t('tenderFlow.launchRfp')}
                   <Rocket className="h-5 w-5 ms-2" />
                 </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBackToEdit}
+                  className="w-full h-11"
+                >
+                  <ArrowLeft className="h-4 w-4 me-2" />
+                  {t('tenderFlow.backToEdit')}
+                </Button>
               </motion.div>
             )}
           </AnimatePresence>
+                </div>
+              </div>
+            </aside>
+
+          </div>
         </div>
-        </motion.div>
       </div>
     </div>
   );

@@ -525,3 +525,48 @@ marketplace request in that environment right now.
 ---
 
 Generated at commit `8d21da125a385ceb359e5f9b0d16c6a2090191cb`
+---
+
+# SWEEP 2 — joining, offer lifecycle, tender status (2026-08-04)
+
+Same rules as above: read each row as **"Should `<Who>` be able to reach
+`<Can currently reach>`?"** Answer `Y` / `N` / `?` in the Answer column.
+
+Indexes: `docs/map/joining-a-workspace.md`, `offer-lifecycle.md`,
+`tender-lifecycle-status.md`.
+
+## F. Joining a workspace (8)
+
+| ID | Answer first? | Who | Can currently reach | Smells because | Answer |
+|---|---|---|---|---|---|
+| Q-041 | yes | company, team | inviting a member with the **default** role | server rejects it; UI says "sent" anyway. Nobody is invited | |
+| Q-042 | yes | (all) | the `invitation_links` table | zero code touches it; zero rows; its UI is unrouted | |
+| Q-043 | yes | (all) | the `membership_requests` flow | fully built, 4 routes, 2 emails — **never used once** in production | |
+| Q-044 | | platform admin | `/api/admin/join-requests` endpoints | live and admin-guarded, but `AdminJoinRequests.tsx` is unrouted, so there is no UI | |
+| Q-045 | | (all) | `invitation-signup.tsx` | complete page, not routed, no live backing flow | |
+| Q-046 | | company, team | `team_invitations.role` documented as admin/member/viewer | omits `business_developer`, which is now real and is the invite default | |
+| Q-047 | | (all) | three vocabularies for one decision | reject / denied / rejected, `rejectionReason` vs `decisionReason` | |
+| Q-048 | | individual | being invited to a company workspace | works today; confirm an individual keeps their own workspace and can switch | |
+
+## G. Offer / proposal lifecycle (5)
+
+| ID | Answer first? | Who | Can currently reach | Smells because | Answer |
+|---|---|---|---|---|---|
+| Q-049 | yes | company | setting an offer to `shortlisted` | real and used, but undocumented in the schema | |
+| Q-050 | yes | vendor | **no notification when shortlisted** | the decision email only handles accepted/rejected | |
+| Q-051 | | (all) | `superseded` documented but unreachable via the API | server-set only, and it has no translation in either locale | |
+| Q-052 | | (all) | `offers` in the DB vs "proposals" everywhere in the UI | three names for one row; `/proposals` route hits `/api/offers` | |
+| Q-053 | | (all) | offer status with no enum or CHECK constraint | four sources disagree on the allowed set | |
+
+## H. Tender lifecycle status (4)
+
+| ID | Answer first? | Who | Can currently reach | Smells because | Answer |
+|---|---|---|---|---|---|
+| Q-054 | yes | company | cancelling an RFP they can then never filter for | no `cancelled` tab; only `all` shows it | |
+| Q-055 | | (all) | `awarded` is not a tender status | awarding lives in the `awards` table; confirm tenders should not reflect it | |
+| Q-056 | | company | publishing straight from the wizard, skipping `draft` | `launch-tender.ts:99` sets `published` at creation; is `draft` ever reachable? | |
+| Q-057 | | (all) | tender status with no enum or CHECK constraint | the state machine guards the API, nothing guards the column | |
+
+## Progress — sweep 2
+
+Answered: ___ / 17 · of the "answer first" rows: ___ / 6

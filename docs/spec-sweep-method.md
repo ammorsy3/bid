@@ -1,142 +1,92 @@
-# Spec sweep — how to run one
+# Spec bug sweeps — method and progress
 
-A **spec bug** is code that compiles, typechecks, and runs correctly, and is
-still wrong: the repo disagrees with itself about what something is. No linter
-finds these, because nothing is broken. The app simply tells two stories.
+A **spec bug** is code that compiles, typechecks and runs, yet contradicts what
+the app is supposed to be. The build is green and the app is still wrong.
 
-Two real ones from this codebase:
+Two examples from this repo, both real:
 
-- An `individual` workspace — a freelancer, who *is* the vendor — had a
-  "Vendors in Base" stat card on their dashboard. The card fetched correctly and
-  displayed `0`. Perfect code; the surface should not have existed.
-- National ID collection was removed from onboarding as unlawful. The column,
-  its unique constraint, a 10-digit validator, an unused lookup and a
-  permanently-null field on every auth response all survived, because whoever
-  removed it removed what they were looking at.
+- An `individual` account — a freelancer, who **is** the vendor — had a "Vendors
+  in Base" card on their dashboard. The card fetched correctly and displayed 0.
+  Perfect code; an individual can never manage vendors.
+- National ID was removed from onboarding because collecting it was unlawful.
+  The column, a unique constraint, a validator, an unused lookup and an orphaned
+  document type all survived, because whoever removed it removed what they were
+  looking at.
 
-**To run one: invoke the `spec-sweep` skill.** What follows is the method it
-implements, and what this repo learned running it on 2026-08-02/03.
+Neither is a crash. Both are the repo telling two different stories about the
+same concept.
 
----
+## Running one
 
-## The distinction that makes it work
+Type **`/spec-sweep`**. The skill carries the method; this file carries what is
+specific to this repo.
 
-**Contradictions** — the truth already exists somewhere in the repo, and
-somewhere else disagrees. The enum is named `individual` and a team-shaped
-surface is gated open to it. The schema dropped a column and a validator still
-requires it. **These are findable mechanically, with no spec document.** They are
-the target.
+The shape of it, if you want to drive manually:
 
-**Missing intent** — nothing is inconsistent, the human just wanted something
-else. No tool finds these. Out of scope. Don't try.
+1. **Orient** — find the schema, migrations, routes, validation, i18n, guards.
+   Do not write a spec first: this app is too large to enumerate from memory and
+   a hand-written spec is stale within a fortnight.
+2. **Pick concepts by contradiction risk**, not importance. The strongest signal
+   is how many layers a concept touches — something living in one file cannot
+   contradict itself. Then churn (`git log`), aliasing (`snake_case` vs
+   `camelCase` vs a third name in the UI), and whether it gates access.
+   Deliberately include one you are unsure about.
+3. **Index each concept** into `docs/map/<concept>.md` — every location it
+   appears, across schema, migrations, routes, components, validation, both
+   locales, email, guards, tests. Optimise for greppability, not prose.
+4. **Sweep for contradictions.** Partial removal · semantic self-contradiction
+   (a value called `individual_*` reaching something team-shaped) · orphaned
+   dependency · locale divergence · orphans and dead ends.
+5. **Ask, do not guess.** Build the full account-type × surface matrix and turn
+   every currently-allowed cell into a yes/no question in
+   `docs/open-questions.md`. Be exhaustive — filtering to "the ones that are
+   probably real" is exactly the judgement that produced the bugs.
+6. **Write the rules down afterwards**, as a by-product of the answers. Never in
+   advance, or you encode guesses as truth.
 
-## Why not write a spec first
+## Swept so far
 
-The obvious approach — write down all the rules, then check code against them —
-fails. The app is too large to enumerate from memory, and a hand-written spec is
-incomplete on day one and stale by week two.
+**2026-08-02/03** — four concepts, indexed in `docs/map/`:
 
-Invert it. Read the code, build the map, find where the map contradicts itself,
-and generate specific yes/no questions for what can't be resolved alone.
-Answering *"should an individual see a team invite page? Y/N"* takes four
-seconds. *"Describe your permission model"* takes a week. **Rules get written
-down afterwards, as a byproduct of triage — never in advance.**
+| Concept | Outcome |
+|---|---|
+| Account type (`company` / `team` / `individual`) | 11 contradictions; buyer surfaces reachable by non-buyers |
+| Discovery | Removed entirely — routes, storage, an email with no caller, two columns |
+| Tender targeting (`targetAudienceTypes`) | Declared twice with different Postgres types; `['team']` was submittable by nobody |
+| Verification + National ID | Removal had been scoped to the UI only; the storage side was intact |
 
-## Phases
+40 questions answered in `docs/open-questions.md` — that file is the record of
+what was decided and why. All fixed and shipped.
 
-**0 — Orient.** Read `package.json`, the router, where schema/migrations/routes/
-validation/i18n live, how auth and route protection work. Enumerate the domain
-concepts. Score candidates and produce a ranked shortlist of ~10. **Stop and get
-the four confirmed** — if the architecture has been misread, everything
-downstream is wasted, and this checkpoint costs nothing.
+## Not swept yet
 
-Rank by, roughly in order of weight:
+From the original shortlist, ranked by contradiction risk:
 
-1. **Layer span** — how many distinct layers it touches. A concept living in one
-   file cannot contradict itself. Eight layers, eight chances to drift. Strongest
-   signal.
-2. **Churn** — `git log` it. Recently added, renamed, partially removed or
-   migrated. A dropped column is a loud signal: go find who still references it.
-3. **Aliasing** — different names in different layers (`snake_case` in schema,
-   `camelCase` in TS, dotted keys in i18n, a third name in the UI). Renames leak.
-4. **Gating** — anything controlling who can see or do what. User-visible and
-   embarrassing.
-5. **Recency** — whatever shipped last has had least time to be noticed.
+- **Joining a workspace** — five tables for what looks like two ideas
+  (`invitations`, `join_requests`, `membership_requests`, `team_invitations`,
+  `invitation_links`), several consumers unrouted.
+- **Offer / proposal lifecycle** — three names for one row (offers, proposals,
+  bids); status is free text with no enum anywhere.
+- **Tender lifecycle status** — same free-text problem. `schema.ts` documents
+  four values in a comment and omits `awarded`, which the code uses.
+- **Vendors Base** — buyer-only surface; who can reach it.
+- **Integrations & API keys** — now company-only, worth confirming nothing else
+  assumes teams still have access.
 
-Deliberately include one concept you're *uncertain* about. Four safe picks make
-the sweep worthless.
+## What this run taught
 
-**1 — Index.** For each concept write `docs/map/<concept>.md`: every location it
-appears, across schema, migrations, routes, components (note zero-import ones),
-handlers, validation, **both locales**, email templates, seed data, guards, and
-tests. Optimise for greppability, not prose — nobody reads these top to bottom.
-Note aliasing explicitly; missed aliases are how this phase fails. Record the
-commit SHA at the bottom.
-
-**2 — Sweep.** For each concept, do all its appearances agree? At minimum:
-
-- **A. Partial removal** — gone from some layers, present in others.
-- **B. Semantic self-contradiction** — a name *means* something and a surface
-  gated open to it contradicts that meaning. Read names literally and take them
-  seriously: if a value is called `individual_*`, anything plural or team-shaped
-  reachable by it is suspect. Highest-value pattern. Be aggressive.
-- **C. Orphaned dependency** — gated on data that no longer exists, is never
-  populated, or can never be true for that user.
-- **D. Locale divergence** — keys in one locale and not the other; keys implying
-  a feature that isn't there.
-- **E. Orphans** — components with zero imports, routes with no inbound link,
-  exported functions never called. Usually residue of a half-finished removal.
-
-**3 — Questions.** Build the full matrix: every account type × every surface it
-can reach. For each cell where access is *allowed*, ask whether it should be.
-**Be exhaustive.** Sixty questions beat a filtered ten — filtering is where the
-bugs escape, and the judgement doing the filtering is the one that produced them.
-
-**4 — Report and stop.** Including your blind spots.
-
-## Hard rules
-
-- **Change no application code during the sweep.** Only `docs/map/*.md` and
-  `docs/open-questions.md`.
-- **Write no rules or invariants yet.** They come after answers, or you encode
-  guesses as truth.
-- **Don't guess intent.** "I can't tell" is worth more than a confident wrong
-  answer.
-- **Don't pad.** If a concept is clean, say so. Manufactured findings destroy the
-  test.
-
----
-
-## What the 2026-08 run actually found
-
-Four concepts (account type, discovery, tender targeting, verification/national
-ID) → **11 contradictions, 40 questions**. Both known bugs surfaced
-independently.
-
-The highest-value single finding was structural rather than any one bug:
-`accountType`, `nationalIdNumber` and `targetAudienceTypes` were each **declared
-twice** in `shared/schema.ts`, the later declaration silently winning. Two
-migrations both numbered `0002` disagreed on whether a column was `jsonb` or
-`text[]`. `tsc` had been reporting all of it as `TS1117` the whole time — nobody
-saw it because `npm run check` was already failing for unrelated reasons.
-
-**Lesson: check whether the build is already red before assuming type errors
-would have been noticed.**
-
-## What the method missed
-
-Be honest about this when running the next one.
-
-- **Unreferenced i18n keys.** The sweep counted 329 keys defined but never
-  referenced and explicitly declined to chase them, calling it a blind spot.
-  Ahmed then found four real Arabic bugs by opening one page. Every translation
-  already existed and simply wasn't wired up. **Next time, treat unreferenced
-  keys as a finding class, not a footnote.**
-- **Anything visual.** Untranslated categories, a hardcoded copyright year, a
-  card nested inside a card. Tests and typecheck cannot see these. **Open the app
-  — in both languages — before declaring a sweep done.**
-- **Free-text columns.** `category` and `city` are stored as English strings, so
-  no key-parity check could catch them rendering untranslated.
-
-The sweep is good at *structural* disagreement and blind to *presentational*
-disagreement. Pair it with a browser pass.
+- **The compiler was already shouting.** Seven `TS1117` duplicate-key errors sat
+  in `npm run check`, unnoticed because the check was red for unrelated reasons.
+  A red build hides real findings. Keep it green or keep a baseline count.
+- **Translations existed and were never wired up.** Four separate Arabic bugs
+  were keys already present in both locales, rendered as hardcoded English. The
+  sweep counted 329 unreferenced i18n keys and skipped them as a known blind
+  spot; Ahmed then found four by opening one page. Do not skip that bucket
+  twice.
+- **Nothing replaces opening the app.** Every visual bug in this round came from
+  looking, none from tests. Tests confirm structure, not that a page reads
+  correctly — especially in Arabic and RTL.
+- **Answer questions with data where you can.** Two of the 40 questions
+  dissolved once checked against the database: `accountType` could never be null
+  (`NOT NULL DEFAULT`), and every disputed tender status was an expired March
+  test record. Check before asking someone to decide.

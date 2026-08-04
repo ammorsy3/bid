@@ -83,9 +83,13 @@ From the original shortlist, ranked by contradiction risk:
   sweep counted 329 unreferenced i18n keys and skipped them as a known blind
   spot; Ahmed then found four by opening one page. Do not skip that bucket
   twice.
-- **Nothing replaces opening the app.** Every visual bug in this round came from
-  looking, none from tests. Tests confirm structure, not that a page reads
-  correctly — especially in Arabic and RTL.
+- **Nothing replaces opening the app — this is a rule, not advice.** Every visual
+  bug in this round came from looking, none from tests. Proven twice: the brief
+  step was rebuilt with a green typecheck and 124 passing tests, and shipped with
+  its first visible section numbered "6" (numbers were static while sections are
+  conditional) and an At a Glance card rendering as a bare header on an empty
+  draft. Both were obvious on sight and invisible to every check. Tests confirm
+  structure, not that a page reads correctly — especially in Arabic and RTL.
 - **Answer questions with data where you can.** Two of the 40 questions
   dissolved once checked against the database: `accountType` could never be null
   (`NOT NULL DEFAULT`), and every disputed tender status was an expired March

@@ -357,6 +357,42 @@ export default function TenderBriefStep() {
   const hasObjective = !!draft.projectObjective;
   const hasContactInfo = !!(draft.emailContact || draft.whatsappContact);
 
+  // Section numbers must count only the sections that actually RENDER. The
+  // first five are conditional on the draft having that content, so a static
+  // 1..9 left gaps — an empty draft showed its first section numbered "6".
+  // tender-details solves this the same way: build the visible list, then look
+  // up the index. Sections 6-9 are input surfaces and always render.
+  const briefSections = [
+    { id: 'description',  show: hasDescription },
+    { id: 'objective',    show: hasObjective },
+    { id: 'deliverables', show: hasDeliverables },
+    { id: 'milestones',   show: hasMilestones },
+    { id: 'evaluation',   show: hasEvalCriteria },
+    { id: 'requirements', show: true },
+    { id: 'voice',        show: true },
+    { id: 'video',        show: true },
+    { id: 'documents',    show: true },
+  ].filter(s => s.show);
+
+  // Every tile in the At a Glance card is conditional, so an empty draft
+  // rendered a card containing nothing but its own header. Only show it when
+  // there is at least one fact to show.
+  const hasGlanceFacts = !!(
+    (Array.isArray(draft.targetAudienceTypes) && draft.targetAudienceTypes.length > 0) ||
+    draft.projectSize ||
+    draft.budgetType ||
+    draft.pricingModel ||
+    draft.showPriceToVendors !== undefined ||
+    draft.submissionType ||
+    draft.videoRequired ||
+    draft.inquiryType
+  );
+
+  const sectionNumber = (id: string) => {
+    const idx = briefSections.findIndex(s => s.id === id);
+    return idx >= 0 ? idx + 1 : 0;
+  };
+
   return (
     <div className="min-h-screen bg-muted">
       <header className="bg-card border-b sticky top-0 z-50 shadow-sm">
@@ -457,7 +493,7 @@ export default function TenderBriefStep() {
 
             {hasDescription && (
               <div className="p-6 sm:p-8">
-              <BriefSectionHeader index={1} title={t('tenderFlow.projectDescriptionTitle')} />
+              <BriefSectionHeader index={sectionNumber('description')} title={t('tenderFlow.projectDescriptionTitle')} />
                                     <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed" data-testid="brief-description">
                     {draft.description || draft.projectDescription}
                   </p>
@@ -466,7 +502,7 @@ export default function TenderBriefStep() {
 
             {hasObjective && (
               <div className="border-t border-border p-6 sm:p-8">
-              <BriefSectionHeader index={2} title={t('tenderFlow.projectObjectiveTitle')} />
+              <BriefSectionHeader index={sectionNumber('objective')} title={t('tenderFlow.projectObjectiveTitle')} />
                                     <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed" data-testid="brief-objective">
                     {draft.projectObjective}
                   </p>
@@ -475,7 +511,7 @@ export default function TenderBriefStep() {
 
             {hasDeliverables && (
               <div className="border-t border-border p-6 sm:p-8">
-              <BriefSectionHeader index={3} title={t('tenderFlow.keyDeliverablesTitle')} />
+              <BriefSectionHeader index={sectionNumber('deliverables')} title={t('tenderFlow.keyDeliverablesTitle')} />
                                     <div className="space-y-3" data-testid="brief-deliverables">
                     {draft.keyDeliverables.map((deliverable: any, index: number) => {
                       if (typeof deliverable === 'string') {
@@ -528,7 +564,7 @@ export default function TenderBriefStep() {
 
             {hasMilestones && (
               <div className="border-t border-border p-6 sm:p-8">
-              <BriefSectionHeader index={4} title={t('tenderFlow.milestonesTitle')} />
+              <BriefSectionHeader index={sectionNumber('milestones')} title={t('tenderFlow.milestonesTitle')} />
                                     <div className="space-y-3" data-testid="brief-milestones">
                     {draft.milestones.map((milestone: any, index: number) => (
                       <div key={milestone.id || index} className="flex items-center gap-4 p-4 bg-muted rounded-lg">
@@ -557,7 +593,7 @@ export default function TenderBriefStep() {
 
             {hasEvalCriteria && (
               <div className="border-t border-border p-6 sm:p-8">
-              <BriefSectionHeader index={5} title={t('tenderFlow.evaluationCriteriaTitle')} />
+              <BriefSectionHeader index={sectionNumber('evaluation')} title={t('tenderFlow.evaluationCriteriaTitle')} />
                                     {Array.isArray(draft.evaluationCriteria) ? (
                     <div className="space-y-2" data-testid="brief-criteria">
                       {draft.evaluationCriteria.map((criteria: any, index: number) => {
@@ -719,7 +755,7 @@ export default function TenderBriefStep() {
             )}
 
             <div className="border-t border-border p-6 sm:p-8" data-testid="brief-vendor-requirements">
-              <BriefSectionHeader index={6} title={t('tenderFlow.vendorRequirementsTitle')} />
+              <BriefSectionHeader index={sectionNumber('requirements')} title={t('tenderFlow.vendorRequirementsTitle')} />
                 <p className="text-sm text-muted-foreground">
                   {t('tenderFlow.vendorRequirementsBriefHint') || 'What vendors must (or should) prove to qualify. Edit anytime before publishing.'}
                 </p>
@@ -732,7 +768,7 @@ export default function TenderBriefStep() {
             </div>
 
             <div className="border-t border-border p-6 sm:p-8">
-              <BriefSectionHeader index={7} title={t('tenderFlow.voiceNoteTitle')} />
+              <BriefSectionHeader index={sectionNumber('voice')} title={t('tenderFlow.voiceNoteTitle')} />
                               <VoiceRecorder
                   onRecordingComplete={(url) => updateDraft({ voiceNoteUrl: url })}
                   onRecordingDeleted={() => updateDraft({ voiceNoteUrl: "" })}
@@ -751,7 +787,7 @@ export default function TenderBriefStep() {
             </div>
 
             <div className="border-t border-border p-6 sm:p-8">
-              <BriefSectionHeader index={8} title={t('tenderFlow.videoUrlLabel') || 'Video URL'} />
+              <BriefSectionHeader index={sectionNumber('video')} title={t('tenderFlow.videoUrlLabel') || 'Video URL'} />
                               <div className="space-y-2">
                   <Label htmlFor="video-url-input" className="text-sm font-medium text-foreground">
                     {t('tenderFlow.videoUrlLabel') || 'Video URL'}
@@ -787,7 +823,7 @@ export default function TenderBriefStep() {
             </div>
 
             <div className="border-t border-border p-6 sm:p-8">
-              <BriefSectionHeader index={9} title={t('tenderFlow.supportingDocsTitle') || 'Supporting Documents'} />
+              <BriefSectionHeader index={sectionNumber('documents')} title={t('tenderFlow.supportingDocsTitle') || 'Supporting Documents'} />
                               <div className="space-y-3" data-testid="brief-attachments">
                   <p className="text-sm text-muted-foreground">
                     {t('tenderFlow.supportingDocsDesc') || 'Upload any documents that help vendors understand the scope (specs, drawings, references).'}
@@ -865,6 +901,7 @@ export default function TenderBriefStep() {
                     tender details and published RFP pages, rather than the flat
                     row list this panel had. Consistent with how a requester sees
                     the same facts after publishing. */}
+                {hasGlanceFacts && (
                 <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
                   <div className="px-4 py-3 border-b border-border">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('tenderFlow.atAGlance')}</p>
@@ -972,6 +1009,7 @@ export default function TenderBriefStep() {
                     </div>
                   </div>
                 </div>
+                )}
 
                 <div className="bg-card rounded-2xl border border-border shadow-sm p-5 space-y-5">
                 {hasSkills && (

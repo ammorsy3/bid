@@ -524,49 +524,172 @@ marketplace request in that environment right now.
 
 ---
 
-Generated at commit `8d21da125a385ceb359e5f9b0d16c6a2090191cb`
----
+
+
+## Generated at commit `8d21da125a385ceb359e5f9b0d16c6a2090191cb`
+
+
 
 # SWEEP 2 — joining, offer lifecycle, tender status (2026-08-04)
 
-Same rules as above: read each row as **"Should `<Who>` be able to reach
-`<Can currently reach>`?"** Answer `Y` / `N` / `?` in the Answer column.
+Same rules as above: read each row as **"Should** `<Who>` **be able to reach**
+`<Can currently reach>`**?"** Answer `Y` / `N` / `?` in the Answer column.
 
 Indexes: `docs/map/joining-a-workspace.md`, `offer-lifecycle.md`,
 `tender-lifecycle-status.md`.
 
 ## F. Joining a workspace (8)
 
-| ID | Answer first? | Who | Can currently reach | Smells because | Answer |
-|---|---|---|---|---|---|
-| Q-041 | yes | company, team | inviting a member with the **default** role | server rejects it; UI says "sent" anyway. Nobody is invited | |
-| Q-042 | yes | (all) | the `invitation_links` table | zero code touches it; zero rows; its UI is unrouted | |
-| Q-043 | yes | (all) | the `membership_requests` flow | fully built, 4 routes, 2 emails — **never used once** in production | |
-| Q-044 | | platform admin | `/api/admin/join-requests` endpoints | live and admin-guarded, but `AdminJoinRequests.tsx` is unrouted, so there is no UI | |
-| Q-045 | | (all) | `invitation-signup.tsx` | complete page, not routed, no live backing flow | |
-| Q-046 | | company, team | `team_invitations.role` documented as admin/member/viewer | omits `business_developer`, which is now real and is the invite default | |
-| Q-047 | | (all) | three vocabularies for one decision | reject / denied / rejected, `rejectionReason` vs `decisionReason` | |
-| Q-048 | | individual | being invited to a company workspace | works today; confirm an individual keeps their own workspace and can switch | |
+
+| ID    | Answer first? | Who            | Can currently reach                                       | Smells because                                                                     | Answer                                                                                                                                                                   |
+| ----- | ------------- | -------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Q-041 | yes           | company, team  | inviting a member with the **default** role               | server rejects it; UI says "sent" anyway. Nobody is invited                        | no, if it says sent then it should actually send the invite obviously.                                                                                                   |
+| Q-042 | yes           | (all)          | the `invitation_links` table                              | zero code touches it; zero rows; its UI is unrouted                                | i dont understand this one. how are users supposed to reach the invitations links table anyways                                                                          |
+| Q-043 | yes           | (all)          | the `membership_requests` flow                            | fully built, 4 routes, 2 emails — **never used once** in production                | well if you mean there is an email sequence that consists of 2 emails and never used in prod, then why? dev should match prod in terms of what emails should get sent yk |
+| Q-044 |               | platform admin | `/api/admin/join-requests` endpoints                      | live and admin-guarded, but `AdminJoinRequests.tsx` is unrouted, so there is no UI |                                                                                                                                                                          |
+| Q-045 |               | (all)          | `invitation-signup.tsx`                                   | complete page, not routed, no live backing flow                                    |                                                                                                                                                                          |
+| Q-046 |               | company, team  | `team_invitations.role` documented as admin/member/viewer | omits `business_developer`, which is now real and is the invite default            |                                                                                                                                                                          |
+| Q-047 |               | (all)          | three vocabularies for one decision                       | reject / denied / rejected, `rejectionReason` vs `decisionReason`                  |                                                                                                                                                                          |
+| Q-048 |               | individual     | being invited to a company workspace                      | works today; confirm an individual keeps their own workspace and can switch        |                                                                                                                                                                          |
+
+
+
 
 ## G. Offer / proposal lifecycle (5)
 
-| ID | Answer first? | Who | Can currently reach | Smells because | Answer |
-|---|---|---|---|---|---|
-| Q-049 | yes | company | setting an offer to `shortlisted` | real and used, but undocumented in the schema | |
-| Q-050 | yes | vendor | **no notification when shortlisted** | the decision email only handles accepted/rejected | |
-| Q-051 | | (all) | `superseded` documented but unreachable via the API | server-set only, and it has no translation in either locale | |
-| Q-052 | | (all) | `offers` in the DB vs "proposals" everywhere in the UI | three names for one row; `/proposals` route hits `/api/offers` | |
-| Q-053 | | (all) | offer status with no enum or CHECK constraint | four sources disagree on the allowed set | |
+
+| ID    | Answer first? | Who     | Can currently reach                                    | Smells because                                                 | Answer                                                           |
+| ----- | ------------- | ------- | ------------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Q-049 | yes           | company | setting an offer to `shortlisted`                      | real and used, but undocumented in the schema                  | how could a company shortlist an offer? where is that in the UI? |
+| Q-050 | yes           | vendor  | **no notification when shortlisted**                   | the decision email only handles accepted/rejected              | how could a company shortlist an offer? where is that in the UI? |
+| Q-051 |               | (all)   | `superseded` documented but unreachable via the API    | server-set only, and it has no translation in either locale    |                                                                  |
+| Q-052 |               | (all)   | `offers` in the DB vs "proposals" everywhere in the UI | three names for one row; `/proposals` route hits `/api/offers` |                                                                  |
+| Q-053 |               | (all)   | offer status with no enum or CHECK constraint          | four sources disagree on the allowed set                       |                                                                  |
+
+
+
 
 ## H. Tender lifecycle status (4)
 
-| ID | Answer first? | Who | Can currently reach | Smells because | Answer |
-|---|---|---|---|---|---|
-| Q-054 | yes | company | cancelling an RFP they can then never filter for | no `cancelled` tab; only `all` shows it | |
-| Q-055 | | (all) | `awarded` is not a tender status | awarding lives in the `awards` table; confirm tenders should not reflect it | |
-| Q-056 | | company | publishing straight from the wizard, skipping `draft` | `launch-tender.ts:99` sets `published` at creation; is `draft` ever reachable? | |
-| Q-057 | | (all) | tender status with no enum or CHECK constraint | the state machine guards the API, nothing guards the column | |
+
+| ID    | Answer first? | Who     | Can currently reach                                   | Smells because                                                                 | Answer                                                                                                          |
+| ----- | ------------- | ------- | ----------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| Q-054 | yes           | company | cancelling an RFP they can then never filter for      | no `cancelled` tab; only `all` shows it                                        | okay small feature wouldnt matter much but there is no need to add a filter for cancelled since its "cancelled" |
+| Q-055 |               | (all)   | `awarded` is not a tender status                      | awarding lives in the `awards` table; confirm tenders should not reflect it    |                                                                                                                 |
+| Q-056 |               | company | publishing straight from the wizard, skipping `draft` | `launch-tender.ts:99` sets `published` at creation; is `draft` ever reachable? |                                                                                                                 |
+| Q-057 |               | (all)   | tender status with no enum or CHECK constraint        | the state machine guards the API, nothing guards the column                    |                                                                                                                 |
+
+
+
+
+## Replies to the questions you asked back (2026-08-06)
+
+### Q-041 — decided and shipped
+
+You said: *"if it says sent then it should actually send the invite obviously."*
+Done. Two things were wrong, not one:
+
+1. The server accepted only `admin`, `member`, `viewer`. It now accepts
+   `business_developer` too — and it rejects `owner`, which is transferred, never
+   handed out. Both places that check a role read the same list now
+   (`ASSIGNABLE_ROLES` in `server/routes.ts`), so they cannot drift apart again.
+   The role-change dropdown in Settings was broken by the same gap.
+2. The onboarding invite page counted the rows *it* had sent and called them
+   sent. It now reads what the server actually did with each address, and if any
+   failed it says so, names them, and keeps you on the page so you can fix them.
+
+Verified against the dev database: `admin`, `business_developer`, `member` and
+`viewer` all pass; `owner` and nonsense are rejected. Checked on screen in both
+English and Arabic.
+
+### Q-042 — nobody reaches `invitation_links`, and that's the point
+
+You asked how users are supposed to reach it. They aren't and they can't. It is
+not a page or a feature — it is a database table someone created for a "send an
+invite link by email" idea that was never wired up. No route reads it, no route
+writes it, nothing sends an email for it, and its three pages were never added to
+the router. It holds zero rows and always has.
+
+So the question is only: **delete it, or finish it?** Tender invitations by email
+already work (`sendTenderInvitationEmail`, added 2026-08-03), which is what this
+table was for — so my recommendation is delete. Nothing breaks; it has never
+done anything. Say the word and it goes.
+
+### Q-043 — not an email sequence; a whole way of joining
+
+I was unclear. `membership_requests` isn't two emails — it is the flow where **a
+person asks to join a workspace** (the mirror of inviting them). It is fully
+built and reachable:
+
+1. You sign up with, say, `you@acme.com`.
+2. Onboarding notices other people at `acme.com` already have a workspace and
+   offers "Request to join".
+3. You send the request; the workspace admins get an email.
+4. They approve or deny it in Settings; you get an email back.
+
+Zero rows in production means nobody has ever completed step 2 — not that it is
+broken. Dev and prod run identical code here, so the emails behave the same in
+both; there's nothing to bring in line.
+
+But checking this did turn up a real gap — see Q-058.
+
+### Q-049 / Q-050 — where shortlisting lives
+
+Dashboard → **Proposals** → click a proposal to open it. At the bottom of that
+panel, next to Accept and Ignore, there is a **Shortlist** button
+(`Dashboard.tsx:3690`). It only appears while the proposal is still pending.
+Clicking it marks the proposal shortlisted and shows a blue "Shortlisted" band.
+
+So it is a real, shipped feature. Two things follow, and they are the actual
+questions:
+
+- **Q-049** — the schema comment lists `pending, accepted, rejected, superseded`
+  and never mentions `shortlisted`. Reading the schema, you'd conclude the
+  feature doesn't exist. Should the comment be corrected to match reality?
+- **Q-050** — accepting or rejecting emails the vendor. Shortlisting emails
+  nobody. From the vendor's side, being shortlisted is invisible: their proposal
+  still reads "pending". **Should being shortlisted notify the vendor?** My
+  recommendation is yes — it's good news for them and it's the whole point of the
+  status — but it's your call, since it also tells a vendor they're in the running
+  before you've decided.
+
+### Q-054 — noted, no change
+
+Agreed, leaving it. Cancelled RFPs stay visible under "All".
+
+---
+
+## I. Follow-up found while answering (2026-08-06)
+
+| ID    | Answer first? | Who   | Can currently reach                                     | Smells because                                                       | Answer |
+| ----- | ------------- | ----- | ------------------------------------------------------- | -------------------------------------------------------------------- | ------ |
+| Q-058 | yes           | (all) | asking to join an **individual** (freelancer) workspace | the same rule is enforced on two other doors and missing on this one |        |
+
+**Q-058 in plain terms.** A freelancer's workspace is meant to be one person —
+they *are* the vendor. Two ways in already respect that:
+
+- the join-code page refuses individual workspaces (`routes.ts:2631`)
+- searching for a workspace by name only returns `company` ones
+  (`storage.ts:1036`)
+
+But the third way in — the "people at your email domain" suggestion during
+onboarding — doesn't filter at all, and neither does the endpoint behind it. So a
+new user at `mena.vt.edu` is offered the chance to join a freelancer's personal
+workspace there, and that freelancer can approve it. It also suggests teams,
+which the name search deliberately excludes, and it can suggest workspaces you
+are already in.
+
+**Should someone be able to request to join an individual workspace?** If no
+(which I'd expect, given the other two doors), the fix is a filter in
+`findCompaniesByMemberDomain` plus a guard on
+`POST /api/companies/:id/membership-requests`. There is no bad data to clean up —
+zero requests have ever been made.
 
 ## Progress — sweep 2
 
-Answered: ___ / 17 · of the "answer first" rows: ___ / 6
+Answered: 6 / 18 · of the "answer first" rows: 6 / 7
+
+Shipped: Q-041. Closed with no change: Q-054.
+Still waiting on you: Q-042 (delete the dead table?), Q-050 (notify a shortlisted
+vendor?), Q-058 (new — can anyone ask to join a freelancer's workspace?), plus
+the eleven not marked "answer first".

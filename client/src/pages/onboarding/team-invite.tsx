@@ -53,8 +53,32 @@ export default function TeamInvite() {
     }
     setLoading(true);
     try {
-      await apiRequest('POST', `/api/companies/${activeCompany.id}/invite-team`, { invitations: valid });
-      toast({ title: t('onboardingPanel.invitationsSent'), description: t('onboardingPanel.invitationsSentDesc', { count: valid.length }) });
+      const res = await apiRequest('POST', `/api/companies/${activeCompany.id}/invite-team`, { invitations: valid });
+      // Report what the server actually did, per row. Counting the rows we sent
+      // told people invitations had gone out when the server had rejected every
+      // one of them.
+      const { results = [] } = await res.json() as { results?: { email: string; status: string }[] };
+      const sent = results.filter(r => r.status === 'sent');
+      const notSent = results.filter(r => r.status !== 'sent' && r.status !== 'already_member');
+
+      if (notSent.length > 0) {
+        toast({
+          title: t('onboardingPanel.invitationsFailed'),
+          description: t('onboardingPanel.invitationsPartialDesc', {
+            sent: sent.length,
+            total: results.length,
+            emails: notSent.map(r => r.email).join(', '),
+          }),
+          variant: "destructive",
+        });
+        return; // stay on the page so they can correct the addresses
+      }
+
+      if (sent.length === 0) {
+        toast({ title: t('onboardingPanel.invitationsAllMembers'), description: t('onboardingPanel.invitationsAllMembersDesc') });
+      } else {
+        toast({ title: t('onboardingPanel.invitationsSent'), description: t('onboardingPanel.invitationsSentDesc', { count: sent.length }) });
+      }
       setLocation('/dashboard');
     } catch (error: any) {
       toast({ title: t('onboardingPanel.invitationsFailed'), description: error.message || t('onboardingPanel.invitationsFailedDesc'), variant: "destructive" });

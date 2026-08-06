@@ -153,9 +153,33 @@ export default function InviteTeam() {
       if (sendInvites) {
         const validInvitations = invitations.filter(inv => EMAIL_RE.test(inv.email.trim()));
         if (validInvitations.length > 0) {
-          await apiRequest('POST', `/api/companies/${companyResult.company.id}/invite-team`, {
-            invitations: validInvitations,
-          }).catch(err => console.error('Failed to send invitations:', err));
+          // Setup carries on either way — a failed invite must not cost someone
+          // their whole workspace — but it is never reported as sent.
+          try {
+            const res = await apiRequest('POST', `/api/companies/${companyResult.company.id}/invite-team`, {
+              invitations: validInvitations,
+            });
+            const { results = [] } = await res.json() as { results?: { email: string; status: string }[] };
+            const notSent = results.filter(r => r.status !== 'sent' && r.status !== 'already_member');
+            if (notSent.length > 0) {
+              toast({
+                title: t('onboardingPanel.invitationsFailed'),
+                description: t('onboardingPanel.invitationsPartialDesc', {
+                  sent: results.length - notSent.length,
+                  total: results.length,
+                  emails: notSent.map(r => r.email).join(', '),
+                }),
+                variant: "destructive",
+              });
+            }
+          } catch (err) {
+            console.error('Failed to send invitations:', err);
+            toast({
+              title: t('onboardingPanel.invitationsFailed'),
+              description: t('onboardingPanel.invitationsFailedDesc'),
+              variant: "destructive",
+            });
+          }
         }
       }
 

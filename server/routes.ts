@@ -231,6 +231,15 @@ const suggestDescriptionRateLimit = (req: AuthRequest, res: Response, next: Func
   next();
 };
 
+// Roles a workspace admin may assign to somebody else — by invitation or by
+// changing an existing member's role. 'owner' is deliberately absent: it is set
+// at workspace creation and transferred, never handed out.
+// Keep this in step with roleHierarchy below and with the role dropdowns in
+// Settings.tsx and the onboarding invite pages. When these two lists disagreed,
+// invitations were silently dropped: the server marked them 'invalid' and the
+// onboarding page reported them as sent.
+const ASSIGNABLE_ROLES = ['admin', 'business_developer', 'member', 'viewer'];
+
 // Middleware: Require minimum company role
 const requireCompanyRole = (minRole: 'owner' | 'admin' | 'member' | 'viewer') => {
   // business_developer sits above member and below admin: it can do everything a
@@ -2257,12 +2266,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const validRoles = ['admin', 'member', 'viewer'];
       const results: { email: string; status: string }[] = [];
 
       for (const inv of invitations) {
         const { email, role } = inv;
-        if (!email || !role || !validRoles.includes(role)) {
+        if (!email || !role || !ASSIGNABLE_ROLES.includes(role)) {
           results.push({ email: email || 'unknown', status: 'invalid' });
           continue;
         }
@@ -2491,7 +2499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only owners and admins can change roles" });
       }
 
-      if (!['admin', 'member', 'viewer'].includes(role)) {
+      if (!ASSIGNABLE_ROLES.includes(role)) {
         return res.status(400).json({ message: "Invalid role" });
       }
 

@@ -602,7 +602,7 @@ Verified against the dev database: `admin`, `business_developer`, `member` and
 `viewer` all pass; `owner` and nonsense are rejected. Checked on screen in both
 English and Arabic.
 
-### Q-042 — nobody reaches `invitation_links`, and that's the point
+### Q-042 — DECIDED: build it, don't delete it
 
 You asked how users are supposed to reach it. They aren't and they can't. It is
 not a page or a feature — it is a database table someone created for a "send an
@@ -610,12 +610,33 @@ invite link by email" idea that was never wired up. No route reads it, no route
 writes it, nothing sends an email for it, and its three pages were never added to
 the router. It holds zero rows and always has.
 
-So the question is only: **delete it, or finish it?** Tender invitations by email
-already work (`sendTenderInvitationEmail`, added 2026-08-03), which is what this
-table was for — so my recommendation is delete. Nothing breaks; it has never
-done anything. Say the word and it goes.
+**I recommended deleting it. That was wrong, and Ahmed was right to push back.**
+I said tender invitations by email "already work". They only work for people who
+*already have a Bid account* — `POST /api/tenders/:id/invite-individual` takes an
+`individualCompanyId`, and `InviteToTenderModal` is opened from an existing
+vendor's profile. There is nowhere in the app to type an email address that isn't
+already a user. That is exactly the hole `invitation_links` was dug for, and its
+columns say so: `requester_company_id`, `tender_id`, `vendor_email`, `token`.
 
-### Q-043 — not an email sequence; a whole way of joining
+Most of the surrounding plumbing already exists:
+
+- `/invite/:tenderId` is routed in **both** the logged-out and logged-in switches
+  (`App.tsx:104`, `:173`), so a stranger can already open an RFP and read it.
+- That page already handles the anonymous case — it shows Log in / Sign up and
+  stores `postLoginRedirect` so they land back on the RFP after signing up.
+- `sendTenderInvitationEmail` already exists and already sends the RFP link.
+
+So the missing piece is genuinely small: a way to enter an email address, a row
+in `invitation_links` to remember it, and a token so the invite can be tracked
+and expired. See "Plan" below.
+
+### Q-043 — CLOSED, no change
+
+Ahmed: *"if nobody has never done it soo what?? we dont have much users anyway."*
+Fair. Zero rows is a symptom of a small user base, not of a broken flow. Leaving
+it alone. Explanation kept below for whoever reads this next.
+
+
 
 I was unclear. `membership_requests` isn't two emails — it is the flow where **a
 person asks to join a workspace** (the mirror of inviting them). It is fully
@@ -647,17 +668,70 @@ questions:
   and never mentions `shortlisted`. Reading the schema, you'd conclude the
   feature doesn't exist. Should the comment be corrected to match reality?
 - **Q-050** — accepting or rejecting emails the vendor. Shortlisting emails
-  nobody. From the vendor's side, being shortlisted is invisible: their proposal
-  still reads "pending". **Should being shortlisted notify the vendor?** My
-  recommendation is yes — it's good news for them and it's the whole point of the
-  status — but it's your call, since it also tells a vendor they're in the running
-  before you've decided.
+  nobody. **Correction to what I said earlier:** shortlisting is *not* invisible
+  to the vendor — their own Proposals → Submitted list shows a "Shortlisted"
+  badge (`Dashboard.tsx:2539`). What's missing is only the push: they find out
+  only by logging in and looking. **Should being shortlisted email the
+  vendor?** My recommendation is yes — but it's your call, since it also tells a
+  vendor they're in the running before you've decided.
+
+**What shortlisting actually does today**, end to end:
+
+| | |
+|---|---|
+| Sets `offers.status = 'shortlisted'` | yes |
+| Badge on the buyer's Received list | yes (`:2685`) |
+| Badge on the vendor's Submitted list | yes (`:2539`) |
+| Blue "Shortlisted" band in the proposal panel | yes (`:3725`) |
+| Hides the Shortlist button, keeps Accept and Ignore | yes (`:3689`) |
+| Emails the vendor | **no** |
+| Filter or sort by shortlisted anywhere | **no** |
+| Any effect on awarding | **no** |
+
+In other words it is a bookmark — a private "come back to this one" marker that
+happens to also be visible to the vendor. It doesn't shortcut anything later.
+That is worth knowing before deciding whether it deserves an email.
 
 ### Q-054 — noted, no change
 
 Agreed, leaving it. Cancelled RFPs stay visible under "All".
 
 ---
+
+## Plan — invite a vendor by email address (Q-042, agreed 2026-08-08)
+
+Goal, in Ahmed's words: *"the company could invite an email so they could submit
+their RFP, the other person receives an email, and then opens it and sees the
+RFP."*
+
+What already exists, and must not be rebuilt:
+
+- the public RFP page at `/invite/:tenderId`, working for logged-out visitors
+- the sign-up-then-return handoff (`postLoginRedirect`)
+- `sendTenderInvitationEmail`
+- the `invitation_links` table, whose columns are already the right shape
+
+What has to be built:
+
+1. **A place to type an email.** An "Invite by email" field on the tender, next
+   to the existing invite-an-existing-vendor path.
+2. **`POST /api/tenders/:id/invite-by-email`.** Company accounts only, own
+   published tender only — the same three gates `invite-individual` already
+   applies, so the two cannot drift apart. Creates an `invitation_links` row with
+   a fresh token and sends the email.
+3. **Token handling.** `GET /invite/:token` resolves the link, marks it
+   `accepted` the first time it's opened, and expires it after N days. Decide N.
+4. **Don't invite the same address to the same tender twice** — mirror the
+   `ALREADY_INVITED` check.
+5. **If the address already belongs to a Bid user**, route it into the existing
+   invitation flow instead of creating a parallel one, so the invite shows up in
+   their "Invited to you" strip like any other.
+
+Open decisions before building: how long a link stays valid; whether an invited
+stranger may read the RFP before signing up (today they can — that's the current
+behaviour of `/invite/:tenderId`, and changing it is a separate decision);
+whether the two unrouted pages (`invitation-links.tsx`, `invitation-signup.tsx`)
+get revived or replaced.
 
 ## I. Follow-up found while answering (2026-08-06)
 
@@ -687,9 +761,10 @@ zero requests have ever been made.
 
 ## Progress — sweep 2
 
-Answered: 6 / 18 · of the "answer first" rows: 6 / 7
+Answered: 8 / 18 · of the "answer first" rows: 7 / 7
 
-Shipped: Q-041. Closed with no change: Q-054.
-Still waiting on you: Q-042 (delete the dead table?), Q-050 (notify a shortlisted
-vendor?), Q-058 (new — can anyone ask to join a freelancer's workspace?), plus
-the eleven not marked "answer first".
+Shipped: Q-041. Closed with no change: Q-043, Q-054.
+Decided, not yet built: Q-042 — build invite-by-email; see the plan above.
+Still waiting on you: Q-050 (email a vendor when they're shortlisted?), Q-058
+(can anyone ask to join a freelancer's workspace?), plus the eleven not marked
+"answer first".

@@ -93,6 +93,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, asc, desc, ilike, or, isNull, sql, gte, gt, count, ne, lt, notInArray } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 // One funnel group (companies or freelancers). Numbers are workspace counts.
 export interface VerificationFunnel {
@@ -1799,6 +1800,11 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(users, eq(userCompanies.userId, users.id))
       .where(and(
         ilike(users.email, `%@${safe}`),
+        // An individual workspace is one freelancer — they *are* the vendor.
+        // Join-by-code refuses them (routes.ts) and searchCompaniesByName
+        // excludes them; this was the third door and the only one left open,
+        // so a stranger could ask to join someone's personal workspace. (Q-058)
+        ne(companies.accountType, 'individual'),
         isNull(companies.deletedAt),
         isNull(userCompanies.deletedAt),
       ))
@@ -2000,15 +2006,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllJoinRequests(status?: string): Promise<(JoinRequest & { vendorCompany?: Company; requesterCompany?: Company })[]> {
+    // Self-join on companies: one row is the vendor being added, the other is
+    // the company doing the adding. This used to select the bare alias as
+    // `sql<Company>`requester_companies``, which type-checks but returns
+    // nothing usable — the admin screen showed "Requested by: N/A" for every
+    // row. Nobody noticed because the page was never routed. drizzle's alias()
+    // selects real columns.
+    const requesterCompanies = alias(companies, "requester_companies");
+
     let query = db
       .select({
         joinRequest: joinRequests,
         vendorCompany: companies,
-        requesterCompany: sql<Company>`requester_companies`
+        requesterCompany: requesterCompanies,
       })
       .from(joinRequests)
       .leftJoin(companies, eq(joinRequests.vendorCompanyId, companies.id))
-      .leftJoin(sql`${companies} AS requester_companies`, eq(joinRequests.requesterCompanyId, sql`requester_companies.id`))
+      .leftJoin(requesterCompanies, eq(joinRequests.requesterCompanyId, requesterCompanies.id))
       .$dynamic();
 
     if (status) {

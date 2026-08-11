@@ -815,7 +815,28 @@ finished page for them (`AdminJoinRequests.tsx`) that was never added to the
 router. So the ability exists but nobody can reach it.
 *What I'd do:* route the page — the endpoints are already written and guarded,
 so this is one line to get a feature you've already paid for.
-**Your call:**
+**Your call: DONE — routed.** (I had explained this badly the first time: these
+endpoints are not about making someone an admin. They let a platform admin
+approve a vendor company's request to join another company's Vendors Base.)
+
+Routed at `/admin/join-requests` and added to the admin sidebar under
+Operations, with a pending count that `getAdminMetrics` was **already
+computing** for a page nobody could open.
+
+**Routing it immediately exposed two bugs, neither visible from the code.** The
+page rendered "Unknown Vendor", "Vendor Email: N/A" and a raw requester UUID:
+
+1. It read `request.vendor`, but the endpoint returns `vendorCompany` /
+   `requesterCompany`. It also printed `requesterId` rather than the requesting
+   company's name, and asked for a vendor email — `companies` has no email
+   column, so that line could never have shown anything.
+2. `getAllJoinRequests` self-joined `companies` as
+   `` sql<Company>`requester_companies` ``, which type-checks and returns
+   nothing usable. Every row said "Requested by: N/A". Rewritten with drizzle's
+   `alias()`.
+
+Approve now works end to end: the vendor is added to the requester's base and
+the badge clears.
 
 **Q-045 — a signup page for a flow that now works differently.**
 `invitation-signup.tsx` was built for the old invite idea. Invite-by-email now
@@ -896,17 +917,18 @@ suggestion during onboarding doesn't filter at all — so a stranger can ask to
 join a freelancer's personal workspace, and the freelancer can accept.
 *What I'd do:* close it, so all three doors agree. No data to clean up — nobody
 has ever sent one of these requests.
-**Your call:**
+**Your call: DONE — closed.** Two changes, because the suggestion list was never
+the only way in: `findCompaniesByMemberDomain` no longer offers individual
+workspaces, and `POST /api/companies/:id/membership-requests` refuses them with
+`INDIVIDUAL_WORKSPACE`. Verified against a real freelancer workspace in dev: 403.
+All three doors now agree.
 
 ## Progress — sweep 2
 
-Answered: 12 / 18 · of the "answer first" rows: 7 / 7
+**Sweep 2 is complete — all 18 answered.**
 
-Shipped: Q-041, Q-042, Q-046.
-Closed with no change: Q-043, Q-048, Q-050, Q-054, Q-055.
-Still waiting on you: the eight in section J — Q-044, Q-045, Q-047, Q-051,
-Q-052, Q-053, Q-056, Q-057, Q-058. Each has a recommendation; most are "leave
-it", so this should be a quick pass.
+Shipped: Q-041, Q-042, Q-044, Q-045, Q-046, Q-047, Q-051, Q-053, Q-057, Q-058.
+Closed with no change: Q-043, Q-048, Q-049, Q-050, Q-052, Q-054, Q-055, Q-056.
 
 Still owed from sweep 1: re-check the 329 unreferenced i18n keys. Three more
 hardcoded-English spots turned up today by accident, so that bucket is still

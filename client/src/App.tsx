@@ -63,6 +63,7 @@ import AdminUsers from "@/pages/AdminUsers";
 import AdminAuditLogs from "@/pages/AdminAuditLogs";
 import AdminErrors from "@/pages/AdminErrors";
 import AdminNotifications from "@/pages/AdminNotifications";
+import AdminJoinRequests from "@/pages/AdminJoinRequests";
 import ClerkCallback from "@/pages/ClerkCallback";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
@@ -183,6 +184,7 @@ export default function App() {
               <Route path="/admin/marketplace" component={AdminMarketplace} />
               <Route path="/admin/awards" component={AdminAwards} />
               <Route path="/admin/users" component={AdminUsers} />
+              <Route path="/admin/join-requests" component={AdminJoinRequests} />
               <Route path="/admin/audit-logs" component={AdminAuditLogs} />
               <Route path="/admin/errors" component={AdminErrors} />
               <Route path="/settings/integrations" component={SettingsIntegrations} />

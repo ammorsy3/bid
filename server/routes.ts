@@ -1738,6 +1738,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const company = await storage.getCompany(companyId);
       if (!company) return res.status(404).json({ message: "Workspace not found" });
 
+      // A freelancer's workspace is one person. The suggestion list no longer
+      // offers these, but the list was never the only way in — this is the gate.
+      // Mirrors join-by-code, which refuses individual workspaces too. (Q-058)
+      if (company.accountType === 'individual') {
+        return res.status(403).json({
+          code: 'INDIVIDUAL_WORKSPACE',
+          message: "This is a freelancer's personal workspace and can't take members.",
+        });
+      }
+
       // Already a member?
       const existingRole = await storage.getUserRoleInCompany(req.auth!.userId, companyId);
       if (existingRole) {

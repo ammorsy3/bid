@@ -115,19 +115,23 @@ export default function AdminJoinRequests() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="flex items-center gap-2 text-base">
-                        {request.vendor?.name || "Unknown Vendor"}
+                        {request.vendorCompany?.name || t('admin.na')}
                         <Badge variant="secondary" className="text-xs" data-testid={`badge-status-${request.id}`}>
                           {t('admin.pendingBadge')}
                         </Badge>
                       </CardTitle>
                       <CardDescription className="mt-2 text-xs">
+                        {/* Reads vendorCompany/requesterCompany, which is what
+                            getAllJoinRequests actually returns. This page said
+                            request.vendor and printed a raw requesterId UUID —
+                            invisible until it was routed. Companies have no
+                            email column, so that line could never show one. */}
                         <div className="space-y-1">
-                          <div>{t('admin.vendorEmail')} {request.vendor?.email || t('admin.na')}</div>
-                          <div>{t('admin.requesterId')} {request.requesterId}</div>
+                          <div>{t('admin.requestedBy')} {request.requesterCompany?.name || t('admin.na')}</div>
                           <div>
                             {t('admin.submittedAt')} {request.createdAt ? format(new Date(request.createdAt), "PPP") : t('admin.na')}
                           </div>
-                          <div>{t('admin.vendorStatusLabel')} {request.vendor?.verificationStatus || t('admin.na')}</div>
+                          <div>{t('admin.vendorStatusLabel')} {request.vendorCompany?.verificationStatus || t('admin.na')}</div>
                         </div>
                       </CardDescription>
                     </div>
@@ -178,8 +182,8 @@ export default function AdminJoinRequests() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium mb-2">{t('admin.vendorLabel')} {selectedRequest?.vendor?.name}</p>
-              <p className="text-sm text-muted-foreground">{t('admin.emailLabel')} {selectedRequest?.vendor?.email}</p>
+              <p className="text-sm font-medium mb-2">{t('admin.vendorLabel')} {selectedRequest?.vendorCompany?.name || t('admin.na')}</p>
+              <p className="text-sm text-muted-foreground">{t('admin.requestedBy')} {selectedRequest?.requesterCompany?.name || t('admin.na')}</p>
             </div>
             {actionType === "reject" && (
               <div>

@@ -434,6 +434,38 @@ export default function TenderDetails() {
   });
 
   const isOwner = tender?.companyId === activeCompany?.id;
+
+  // Invite a vendor by email — including one who has no Bid account yet, which
+  // is the case the vendor picker can't cover.
+  const [inviteEmail, setInviteEmail] = useState("");
+
+  const { data: inviteLinks = [] } = useQuery<{ id: string; email: string; status: string; createdAt: string; acceptedAt: string | null }[]>({
+    queryKey: ['/api/tenders', id, 'invite-links'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', `/api/tenders/${id}/invite-links`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!id && isOwner,
+  });
+
+  const inviteByEmail = useMutation({
+    mutationFn: async (email: string) => {
+      const res = await apiRequest('POST', `/api/tenders/${id}/invite-by-email`, { email });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.message || t('tenderFlow.inviteByEmailFailedDesc'));
+      return body;
+    },
+    onSuccess: (_data, email) => {
+      setInviteEmail("");
+      queryClient.invalidateQueries({ queryKey: ['/api/tenders', id, 'invite-links'] });
+      toast({ title: t('tenderFlow.inviteByEmailSentToast'), description: t('tenderFlow.inviteByEmailSentDesc', { email }) });
+    },
+    onError: (error: Error) => {
+      toast({ title: t('tenderFlow.inviteByEmailFailed'), description: error.message, variant: "destructive" });
+    },
+  });
+
   const tenderLanguage = (tender as any)?.language || 'en';
   const isTenderRtl = tenderLanguage === 'ar';
   const isRtl = language === 'ar';
@@ -2033,6 +2065,62 @@ export default function TenderDetails() {
                           <ExternalLink className="h-3.5 w-3.5" />
                         </Button>
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Owner: invite a vendor by email. Published only — the server
+                    refuses anything else, and offering it would be a lie. */}
+                {isOwner && tender.status === 'published' && (
+                  <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 border-b border-border bg-muted/60">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('tenderFlow.inviteByEmailTitle')}</p>
+                    </div>
+                    <div className="p-4">
+                      <p className="text-xs text-muted-foreground mb-3">{t('tenderFlow.inviteByEmailHint')}</p>
+                      <form
+                        className="flex gap-2"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const email = inviteEmail.trim();
+                          if (email) inviteByEmail.mutate(email);
+                        }}
+                      >
+                        <Input
+                          type="email"
+                          value={inviteEmail}
+                          onChange={(e) => setInviteEmail(e.target.value)}
+                          placeholder="vendor@email.com"
+                          className="text-xs h-9"
+                          disabled={inviteByEmail.isPending}
+                          data-testid="input-invite-email"
+                        />
+                        <Button
+                          type="submit"
+                          size="sm"
+                          className="bg-[#FE3C01] hover:bg-[#d54d35] text-white shrink-0"
+                          disabled={inviteByEmail.isPending || !inviteEmail.trim()}
+                          data-testid="button-invite-email"
+                        >
+                          {inviteByEmail.isPending
+                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            : <Send className="h-3.5 w-3.5" />}
+                        </Button>
+                      </form>
+
+                      {inviteLinks.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-border space-y-2">
+                          {inviteLinks.map((link) => (
+                            <div key={link.id} className="flex items-center gap-2 text-xs" data-testid="row-invite-link">
+                              <Mail className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                              <span className="truncate flex-1 text-foreground">{link.email}</span>
+                              <span className={link.acceptedAt ? "text-green-600 shrink-0" : "text-muted-foreground shrink-0"}>
+                                {link.acceptedAt ? t('tenderFlow.inviteOpened') : t('tenderFlow.inviteSent')}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

@@ -1347,12 +1347,19 @@ export async function sendTenderInvitationEmail(params: {
   deadline?: string | null;
   invitationToken: string;
   appBaseUrl?: string;
-}): Promise<void> {
-  const { recipients, requesterName, tenderTitle, tenderCategory, deadline, invitationToken, appBaseUrl } = params;
-  if (recipients.length === 0) return;
+  // Set when the invite was sent to a bare email address (invitation_links).
+  // Comes back on the link so we can record that this particular invitation was
+  // opened — without it, every recipient shares one URL and "opened" is
+  // unknowable.
+  inviteRef?: string;
+}): Promise<{ sent: string[]; failed: string[] }> {
+  const { recipients, requesterName, tenderTitle, tenderCategory, deadline, invitationToken, appBaseUrl, inviteRef } = params;
+  const sent: string[] = [];
+  const failed: string[] = [];
+  if (recipients.length === 0) return { sent, failed };
 
   const baseUrl = getBaseUrl(appBaseUrl);
-  const tenderUrl = `${baseUrl}/invite/${invitationToken}`;
+  const tenderUrl = `${baseUrl}/invite/${invitationToken}${inviteRef ? `?i=${encodeURIComponent(inviteRef)}` : ''}`;
 
   for (const r of recipients) {
     const isAr = r.language === 'ar';
@@ -1391,10 +1398,21 @@ export async function sendTenderInvitationEmail(params: {
       language: r.language || 'en',
     });
 
-    // Fire and forget: an invitation must not fail because its email did.
-    sendEmail(r.email, subject, html).catch(err =>
-      console.error(`[Email] Failed to send tender invitation to ${r.email}:`, err));
+    // Report per recipient instead of firing and forgetting. Callers that don't
+    // care may still ignore the result — invite-individual does, because there
+    // an invitation row is the real artefact and the email is a courtesy. But
+    // invite-by-email has nothing *but* the email, so it has to be able to tell
+    // the requester the truth about whether it went out.
+    let ok = false;
+    try {
+      ok = await sendEmail(r.email, subject, html);
+    } catch (err) {
+      console.error(`[Email] Failed to send tender invitation to ${r.email}:`, err);
+    }
+    (ok ? sent : failed).push(r.email);
   }
+
+  return { sent, failed };
 }
 
 // =============================================================================

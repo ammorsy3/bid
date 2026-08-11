@@ -16,6 +16,7 @@ import {
   createTenderTemplateSchema,
   createMembershipRequestSchema,
   decideMembershipRequestSchema,
+  inviteByEmailSchema,
   VENDOR_CATEGORIES,
   ACCOUNT_TYPES,
   type AccountType,
@@ -3427,6 +3428,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Invite a vendor to a tender by email address — including someone who has no
+  // Bid account yet, which `invite-individual` cannot express because it takes a
+  // workspace id. The recipient gets a link to the public RFP page, which already
+  // serves logged-out visitors and hands them back to the RFP after they sign up.
+  //
+  // No expiry column is consulted: the invitation is good for exactly as long as
+  // the tender is open. `GET /api/tenders/:id/invite` already refuses anything
+  // that isn't published or draft, so a closed tender closes its invitations too.
+  app.post("/api/tenders/:id/invite-by-email",
+    authenticateToken,
+    requireCompanyContext,
+    requireCompanyRole('admin'),
+    async (req: AuthRequest, res) => {
+      try {
+        const tenderId = req.params.id;
+        const { email } = inviteByEmailSchema.parse(req.body);
+
+        // Same three gates as invite-individual, in the same order, so the two
+        // invite paths cannot drift apart on who may invite whom.
+        const requester = await storage.getCompany(req.auth!.activeCompanyId!);
+        if (!requester || requester.accountType !== 'company') {
+          return res.status(403).json({ message: "Only companies can invite vendors" });
+        }
+
+        const tender = await storage.getTender(tenderId);
+        if (!tender) return res.status(404).json({ message: "Tender not found" });
+        if (tender.companyId !== requester.id) {
+          return res.status(403).json({ message: "You can only invite to your own RFPs" });
+        }
+        if (tender.status !== 'published') {
+          return res.status(400).json({
+            code: 'TENDER_NOT_OPEN',
+            message: "Only published RFPs can have vendors invited to them.",
+            status: tender.status,
+          });
+        }
+
+        const existing = await storage.getInvitationLinkByTenderAndEmail(tenderId, email);
+        if (existing) {
+          return res.status(409).json({ code: 'ALREADY_INVITED', message: "That address has already been invited to this RFP." });
+        }
+
+        const link = await storage.createInvitationLink({
+          requesterCompanyId: requester.id,
+          tenderId,
+          vendorEmail: email,
+          token: crypto.randomBytes(32).toString('hex'),
+          status: 'pending',
+        });
+
+        // The email is the whole point of this endpoint, so unlike
+        // invite-individual it is awaited: if it fails, the caller is told the
+        // invitation did not go out rather than being shown a row that nobody
+        // will ever receive.
+        let delivery: { sent: string[]; failed: string[] } = { sent: [], failed: [] };
+        try {
+          const existingUser = await storage.getUserByEmail(email);
+          delivery = await sendTenderInvitationEmail({
+            recipients: [{
+              email,
+              name: existingUser?.name || email,
+              language: (existingUser?.language as any) || 'en',
+            }],
+            requesterName: requester.name,
+            tenderTitle: tender.title,
+            tenderCategory: tender.category,
+            deadline: tender.deadline ?? null,
+            invitationToken: tender.invitationToken,
+            inviteRef: link.token,
+          });
+        } catch (err) {
+          console.error('[Invite] Failed to email invited vendor:', err);
+        }
+
+        // Postmark failures come back as a `failed` entry, not a thrown error,
+        // so checking only for exceptions would report every undelivered
+        // invitation as sent.
+        if (delivery.sent.length === 0) {
+          // Drop the row. It only means "we emailed this address", which is now
+          // false — and keeping it would make the duplicate check refuse the
+          // retry the message is asking for.
+          await storage.deleteInvitationLink(link.id);
+          return res.status(502).json({
+            code: 'EMAIL_FAILED',
+            message: "We couldn't send the invitation email. Please try again.",
+          });
+        }
+
+        res.status(201).json({
+          id: link.id,
+          email: link.vendorEmail,
+          status: link.status,
+          createdAt: link.createdAt,
+        });
+      } catch (error: any) {
+        if (error?.name === 'ZodError') {
+          return res.status(400).json({ message: error.errors?.[0]?.message || 'Invalid request' });
+        }
+        console.error('Invite by email error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
+  // Record that an emailed invitation was opened. Public on purpose — the whole
+  // point is that the recipient has no account yet. The token is the only thing
+  // proving anything, so an unknown one is a silent no-op rather than a 404 that
+  // would let someone probe for valid tokens.
+  app.post("/api/invitation-links/:token/opened", async (req, res) => {
+    try {
+      await storage.markInvitationLinkAccepted(req.params.token);
+      res.json({ ok: true });
+    } catch (error) {
+      console.error('Mark invitation link opened error:', error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Who has been invited to this RFP by email, and whether they've opened it.
+  app.get("/api/tenders/:id/invite-links",
+    authenticateToken,
+    requireCompanyContext,
+    requireCompanyRole('admin'),
+    async (req: AuthRequest, res) => {
+      try {
+        const tender = await storage.getTender(req.params.id);
+        if (!tender) return res.status(404).json({ message: "Tender not found" });
+        if (tender.companyId !== req.auth!.activeCompanyId!) {
+          return res.status(403).json({ message: "You can only see invitations to your own RFPs" });
+        }
+        const links = await storage.getInvitationLinksByTender(req.params.id);
+        res.json(links.map(l => ({
+          id: l.id,
+          email: l.vendorEmail,
+          status: l.status,
+          createdAt: l.createdAt,
+          acceptedAt: l.acceptedAt,
+        })));
+      } catch (error) {
+        console.error('List invite links error:', error);
+        res.status(500).json({ message: "Server error" });
+      }
+    }
+  );
+
   // Tenders the active workspace has been invited to (the "Invited" list).
   app.get("/api/my-invitations", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
     try {
@@ -4866,13 +5012,26 @@ Respond with ONLY a JSON object. Example:
         // (absent), companies tested 'company' (absent), individuals tested
         // 'individual' (absent). Teams are a first-class audience now; existing
         // open tenders were backfilled so they keep the access they had.
+        //
+        // A direct invitation beats the audience filter. The audience says who
+        // may find this RFP on their own; it was never meant to overrule the
+        // requester naming somebody. Without this, inviting an email address is
+        // a dead end: the invitee reads the RFP, signs up as whatever suits
+        // them, and is then told they may not bid. Only this one check is
+        // waived — deadline, published status and verification all still apply.
         if (tender.targetAudienceTypes && tender.targetAudienceTypes.length > 0) {
           const audienceType = company.accountType as string;
           if (!tender.targetAudienceTypes.includes(audienceType as any)) {
-            return res.status(403).json({
-              message: 'This tender is not open to your workspace type.',
-              code: 'AUDIENCE_RESTRICTED',
-            });
+            const submitter = await storage.getUser(req.auth!.userId);
+            const invited = submitter?.email
+              ? await storage.getInvitationLinkByTenderAndEmail(req.params.id, submitter.email)
+              : undefined;
+            if (!invited) {
+              return res.status(403).json({
+                message: 'This tender is not open to your workspace type.',
+                code: 'AUDIENCE_RESTRICTED',
+              });
+            }
           }
         }
 

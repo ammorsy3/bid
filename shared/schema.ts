@@ -1289,6 +1289,17 @@ export const insertInvitationSchema = createInsertSchema(invitations).omit({
   invitedAt: true,
 });
 
+export const insertInvitationLinkSchema = createInsertSchema(invitationLinks).omit({
+  id: true,
+  createdAt: true,
+  acceptedAt: true,
+});
+
+// What a requester types when inviting a vendor who has no Bid account yet.
+export const inviteByEmailSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Enter a valid email address"),
+});
+
 export const insertVendorBaseSchema = createInsertSchema(vendorsBase).omit({
   id: true,
   addedAt: true,
@@ -1412,6 +1423,8 @@ export type CreateMembershipRequest = z.infer<typeof createMembershipRequestSche
 export type DecideMembershipRequest = z.infer<typeof decideMembershipRequestSchema>;
 
 export type InvitationLink = typeof invitationLinks.$inferSelect;
+export type InsertInvitationLink = z.infer<typeof insertInvitationLinkSchema>;
+export type InviteByEmail = z.infer<typeof inviteByEmailSchema>;
 
 export type Award = typeof awards.$inferSelect;
 export type InsertAward = z.infer<typeof insertAwardSchema>;

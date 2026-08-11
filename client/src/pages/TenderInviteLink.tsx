@@ -321,6 +321,16 @@ export default function TenderInviteLink() {
   const { user } = useAuthStore();
   const { t, language, setLanguage } = useI18n();
 
+  // An emailed invitation carries ?i=<token>. Tell the server it was opened, so
+  // the requester can see who has actually looked at the RFP. Fire-and-forget:
+  // this is a read receipt, not something the page should wait on or fail over.
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get('i');
+    if (!ref) return;
+    fetch(`/api/invitation-links/${encodeURIComponent(ref)}/opened`, { method: 'POST' })
+      .catch(() => {});
+  }, []);
+
   const translatedSubmissionTypeLabels: Record<string, string> = {
     quote_only: t('tenderFlow.inviteSubmissionQuoteOnly'),
     tech_fin_proposal: t('tenderFlow.inviteSubmissionTechFin'),

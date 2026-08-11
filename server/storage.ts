@@ -34,6 +34,7 @@ import {
   type InsertOfferView,
   type Invitation,
   type InsertInvitation,
+  type InsertInvitationLink,
   type VendorBase,
   type InsertVendorBase,
   type JoinRequest,
@@ -247,6 +248,17 @@ export interface IStorage {
   createInvitation(invitation: InsertInvitation): Promise<Invitation>;
   getInvitationsByTender(tenderId: string): Promise<Invitation[]>;
   getInvitationsByCompany(companyId: string): Promise<(Invitation & { tender: Tender; requester: Company })[]>;
+
+  // Invitations sent to a bare email address — someone with no Bid account yet.
+  // `invitations` can only reference a workspace that already exists, so it
+  // cannot express "I invited someone@example.com". These links can, and they
+  // stay valid for exactly as long as the tender is open (no separate expiry).
+  createInvitationLink(link: InsertInvitationLink): Promise<InvitationLink>;
+  getInvitationLinkByToken(token: string): Promise<InvitationLink | undefined>;
+  getInvitationLinkByTenderAndEmail(tenderId: string, email: string): Promise<InvitationLink | undefined>;
+  getInvitationLinksByTender(tenderId: string): Promise<InvitationLink[]>;
+  markInvitationLinkAccepted(token: string): Promise<void>;
+  deleteInvitationLink(id: string): Promise<void>;
 
   // ============================================================================
   // VENDORS BASE OPERATIONS
@@ -1482,6 +1494,54 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(invitations.invitedAt));
 
     return results.map(r => ({ ...r.invitation, tender: r.tender, requester: r.requester }));
+  }
+
+  async createInvitationLink(link: InsertInvitationLink): Promise<InvitationLink> {
+    const [created] = await db.insert(invitationLinks).values(link).returning();
+    return created;
+  }
+
+  async getInvitationLinkByToken(token: string): Promise<InvitationLink | undefined> {
+    const [link] = await db.select().from(invitationLinks).where(eq(invitationLinks.token, token));
+    return link;
+  }
+
+  // Emails are stored lowercased on the way in, so this compares like for like.
+  async getInvitationLinkByTenderAndEmail(tenderId: string, email: string): Promise<InvitationLink | undefined> {
+    const [link] = await db
+      .select()
+      .from(invitationLinks)
+      .where(and(
+        eq(invitationLinks.tenderId, tenderId),
+        eq(invitationLinks.vendorEmail, email.trim().toLowerCase()),
+      ));
+    return link;
+  }
+
+  async getInvitationLinksByTender(tenderId: string): Promise<InvitationLink[]> {
+    return await db
+      .select()
+      .from(invitationLinks)
+      .where(eq(invitationLinks.tenderId, tenderId))
+      .orderBy(desc(invitationLinks.createdAt));
+  }
+
+  // First open wins; re-opening the link must not move acceptedAt forward.
+  async markInvitationLinkAccepted(token: string): Promise<void> {
+    await db
+      .update(invitationLinks)
+      .set({ status: 'accepted', acceptedAt: new Date() })
+      .where(and(
+        eq(invitationLinks.token, token),
+        eq(invitationLinks.status, 'pending'),
+      ));
+  }
+
+  // Used when the invitation email could not be delivered. The row is only
+  // meaningful as the record of an email that went out, and leaving it behind
+  // would block the requester from ever retrying that address.
+  async deleteInvitationLink(id: string): Promise<void> {
+    await db.delete(invitationLinks).where(eq(invitationLinks.id, id));
   }
 
   // ============================================================================

@@ -288,7 +288,7 @@ export interface IStorage {
   countOutstandingMembershipRequestsByUser(requesterUserId: string): Promise<number>;
   listMembershipRequestsByCompany(companyId: string, status?: string): Promise<(MembershipRequest & { requester: { id: string; name: string; email: string } })[]>;
   listMembershipRequestsByUser(requesterUserId: string, status?: string): Promise<(MembershipRequest & { company: { id: string; name: string; slug: string } })[]>;
-  decideMembershipRequest(id: string, decision: 'approved' | 'denied', decidedBy: string, reason?: string): Promise<MembershipRequest>;
+  decideMembershipRequest(id: string, decision: 'approved' | 'rejected', decidedBy: string, reason?: string): Promise<MembershipRequest>;
   // Find companies that have at least one member with the given email domain.
   findCompaniesByMemberDomain(domain: string, limit?: number): Promise<{ id: string; name: string; slug: string; memberCount: number }[]>;
 
@@ -1770,7 +1770,7 @@ export class DatabaseStorage implements IStorage {
     return results.map(r => ({ ...r.request, company: r.company }));
   }
 
-  async decideMembershipRequest(id: string, decision: 'approved' | 'denied', decidedBy: string, reason?: string): Promise<MembershipRequest> {
+  async decideMembershipRequest(id: string, decision: 'approved' | 'rejected', decidedBy: string, reason?: string): Promise<MembershipRequest> {
     const [updated] = await db
       .update(membershipRequests)
       .set({

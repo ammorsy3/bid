@@ -174,7 +174,7 @@ interface MyOffer {
   videoUrl: string | null;
   notes: string | null;
   submittedAt: string;
-  status: 'pending' | 'accepted' | 'rejected' | 'shortlisted';
+  status: 'pending' | 'accepted' | 'rejected' | 'shortlisted' | 'superseded';
   tender: {
     id: string;
     title: string;
@@ -197,7 +197,7 @@ interface IncomingOffer {
   videoUrl: string | null;
   notes: string | null;
   submittedAt: string;
-  status: 'pending' | 'accepted' | 'rejected' | 'shortlisted';
+  status: 'pending' | 'accepted' | 'rejected' | 'shortlisted' | 'superseded';
   isViewed: boolean;
   tender: {
     id: string;
@@ -2539,6 +2539,9 @@ export default function Dashboard() {
                                   {offer.status === 'shortlisted' && (
                                     <StatusBadge state="decision" label={t('dashboard.shortlisted')} />
                                   )}
+                                  {offer.status === 'superseded' && (
+                                    <StatusBadge state="idle" label={t('dashboard.superseded')} />
+                                  )}
                                 </div>
                                 <p className="text-sm font-medium text-muted-foreground line-clamp-2">
                                   {offer.tender.description || t('dashboard.noDescription')}
@@ -2686,6 +2689,11 @@ export default function Dashboard() {
                                     <Badge className="bg-[#FE3C01]/10 text-[#FE3C01] dark:text-[#FE3C01] text-xs">
                                       <Bookmark className={`h-3 w-3 me-1`} />
                                       {t('dashboard.shortlisted')}
+                                    </Badge>
+                                  )}
+                                  {offer.status === 'superseded' && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      {t('dashboard.superseded')}
                                     </Badge>
                                   )}
                                 </div>

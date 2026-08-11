@@ -541,9 +541,10 @@ export const membershipRequests = pgTable("membership_requests", {
   companyId: varchar("company_id").notNull().references(() => companies.id),
   requesterUserId: varchar("requester_user_id").notNull().references(() => users.id),
 
-  status: text("status").notNull().default("pending"), // 'pending' | 'approved' | 'denied'
+  status: text("status").notNull().default("pending"), // 'pending' | 'approved' | 'rejected'
   message: text("message"), // optional message from requester
-  decisionReason: text("decision_reason"), // optional reason on deny
+  decisionReason: text("decision_reason"), // optional reason when rejecting. Column name kept: the table is
+  // empty and renaming it buys nothing users can see.
 
   decidedBy: varchar("decided_by").references(() => users.id),
   decidedAt: timestamp("decided_at"),
@@ -1333,8 +1334,8 @@ export const createMembershipRequestSchema = z.object({
 });
 
 export const decideMembershipRequestSchema = z.object({
-  decision: z.enum(["approved", "denied"], {
-    errorMap: () => ({ message: "Decision must be 'approved' or 'denied'" }),
+  decision: z.enum(["approved", "rejected"], {
+    errorMap: () => ({ message: "Decision must be 'approved' or 'rejected'" }),
   }),
   reason: z.string().max(500).optional(),
   role: z.enum(["admin", "member", "viewer"]).optional(), // role to assign on approval

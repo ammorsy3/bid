@@ -1813,7 +1813,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  // Approve or deny a membership request (admins only)
+  // Approve or reject a membership request (admins only)
   app.patch("/api/companies/:companyId/membership-requests/:reqId/decide",
     authenticateToken,
     requireCompanyContext,

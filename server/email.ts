@@ -1458,7 +1458,7 @@ export async function sendMembershipRequestNotification(params: {
       recipientName: recipient.name,
       bodyText: isAr
         ? `قدّم <strong>${requesterName}</strong> (${requesterEmail}) طلباً للانضمام إلى مساحة العمل الخاصة بك. يمكنك قبوله أو رفضه من إعدادات الشركة.`
-        : `<strong>${requesterName}</strong> (${requesterEmail}) requested to join your workspace. You can approve or deny the request from company settings.`,
+        : `<strong>${requesterName}</strong> (${requesterEmail}) requested to join your workspace. You can approve or reject the request from company settings.`,
       details: [
         { iconEmoji: "&#128100;", iconBg: "#EFF6FF", label: isAr ? "المستخدم" : "User",     value: `${requesterName} (${requesterEmail})` },
         { iconEmoji: "&#127970;", iconBg: "#FFF1EE", label: isAr ? "الشركة"   : "Workspace", value: companyName },
@@ -1483,7 +1483,7 @@ export async function sendMembershipDecisionNotification(params: {
   requesterEmail: string;
   requesterName: string;
   companyName: string;
-  decision: 'approved' | 'denied';
+  decision: 'approved' | 'rejected';
   reason: string | null;
   appBaseUrl?: string;
   language?: Lang;

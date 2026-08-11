@@ -546,10 +546,10 @@ Indexes: `docs/map/joining-a-workspace.md`, `offer-lifecycle.md`,
 | Q-041 | yes           | company, team  | inviting a member with the **default** role               | server rejects it; UI says "sent" anyway. Nobody is invited                        | no, if it says sent then it should actually send the invite obviously.                                                                                                   |
 | Q-042 | yes           | (all)          | the `invitation_links` table                              | zero code touches it; zero rows; its UI is unrouted                                | i dont understand this one. how are users supposed to reach the invitations links table anyways                                                                          |
 | Q-043 | yes           | (all)          | the `membership_requests` flow                            | fully built, 4 routes, 2 emails — **never used once** in production                | well if you mean there is an email sequence that consists of 2 emails and never used in prod, then why? dev should match prod in terms of what emails should get sent yk |
-| Q-044 |               | platform admin | `/api/admin/join-requests` endpoints                      | live and admin-guarded, but `AdminJoinRequests.tsx` is unrouted, so there is no UI |                                                                                                                                                                          |
-| Q-045 |               | (all)          | `invitation-signup.tsx`                                   | complete page, not routed, no live backing flow                                    |                                                                                                                                                                          |
+| Q-044 |               | platform admin | `/api/admin/join-requests` endpoints                      | live and admin-guarded, but `AdminJoinRequests.tsx` is unrouted, so there is no UI | well that endpoint is useless because i dont want to add it via the UI, adding admins should be done via the admin itself not inviting someone to become so              |
+| Q-045 |               | (all)          | `invitation-signup.tsx`                                   | complete page, not routed, no live backing flow                                    | sure delete it then                                                                                                                                                      |
 | Q-046 |               | company, team  | `team_invitations.role` documented as admin/member/viewer | omits `business_developer`, which is now real and is the invite default            |                                                                                                                                                                          |
-| Q-047 |               | (all)          | three vocabularies for one decision                       | reject / denied / rejected, `rejectionReason` vs `decisionReason`                  |                                                                                                                                                                          |
+| Q-047 |               | (all)          | three vocabularies for one decision                       | reject / denied / rejected, `rejectionReason` vs `decisionReason`                  | use rejected                                                                                                                                                             |
 | Q-048 |               | individual     | being invited to a company workspace                      | works today; confirm an individual keeps their own workspace and can switch        |                                                                                                                                                                          |
 
 
@@ -558,13 +558,13 @@ Indexes: `docs/map/joining-a-workspace.md`, `offer-lifecycle.md`,
 ## G. Offer / proposal lifecycle (5)
 
 
-| ID    | Answer first? | Who     | Can currently reach                                    | Smells because                                                 | Answer                                                           |
-| ----- | ------------- | ------- | ------------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Q-049 | yes           | company | setting an offer to `shortlisted`                      | real and used, but undocumented in the schema                  | how could a company shortlist an offer? where is that in the UI? |
-| Q-050 | yes           | vendor  | **no notification when shortlisted**                   | the decision email only handles accepted/rejected              | how could a company shortlist an offer? where is that in the UI? |
-| Q-051 |               | (all)   | `superseded` documented but unreachable via the API    | server-set only, and it has no translation in either locale    |                                                                  |
-| Q-052 |               | (all)   | `offers` in the DB vs "proposals" everywhere in the UI | three names for one row; `/proposals` route hits `/api/offers` |                                                                  |
-| Q-053 |               | (all)   | offer status with no enum or CHECK constraint          | four sources disagree on the allowed set                       |                                                                  |
+| ID    | Answer first? | Who     | Can currently reach                                    | Smells because                                                 | Answer                                                                                                                                                                                                        |
+| ----- | ------------- | ------- | ------------------------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q-049 | yes           | company | setting an offer to `shortlisted`                      | real and used, but undocumented in the schema                  | how could a company shortlist an offer? where is that in the UI?                                                                                                                                              |
+| Q-050 | yes           | vendor  | **no notification when shortlisted**                   | the decision email only handles accepted/rejected              | how could a company shortlist an offer? where is that in the UI?                                                                                                                                              |
+| Q-051 |               | (all)   | `superseded` documented but unreachable via the API    | server-set only, and it has no translation in either locale    | okay add a translation then buddy                                                                                                                                                                             |
+| Q-052 |               | (all)   | `offers` in the DB vs "proposals" everywhere in the UI | three names for one row; `/proposals` route hits `/api/offers` | the api doesnt matter or the whole backend wouldnt change anything for the user bro. as long as its functioning then what its called wont matter                                                              |
+| Q-053 |               | (all)   | offer status with no enum or CHECK constraint          | four sources disagree on the allowed set                       | add a CHECK constraint to both, listing the values that are actually in use. It's a small migration and it makes the database refuse anything the app doesn't recognise. Must be applied to dev **and** prod. |
 
 
 
@@ -572,17 +572,19 @@ Indexes: `docs/map/joining-a-workspace.md`, `offer-lifecycle.md`,
 ## H. Tender lifecycle status (4)
 
 
-| ID    | Answer first? | Who     | Can currently reach                                   | Smells because                                                                 | Answer                                                                                                          |
-| ----- | ------------- | ------- | ----------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| Q-054 | yes           | company | cancelling an RFP they can then never filter for      | no `cancelled` tab; only `all` shows it                                        | okay small feature wouldnt matter much but there is no need to add a filter for cancelled since its "cancelled" |
-| Q-055 |               | (all)   | `awarded` is not a tender status                      | awarding lives in the `awards` table; confirm tenders should not reflect it    |                                                                                                                 |
-| Q-056 |               | company | publishing straight from the wizard, skipping `draft` | `launch-tender.ts:99` sets `published` at creation; is `draft` ever reachable? |                                                                                                                 |
-| Q-057 |               | (all)   | tender status with no enum or CHECK constraint        | the state machine guards the API, nothing guards the column                    |                                                                                                                 |
+| ID    | Answer first? | Who     | Can currently reach                                   | Smells because                                                                 | Answer                                                                                                                                                                                                        |
+| ----- | ------------- | ------- | ----------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q-054 | yes           | company | cancelling an RFP they can then never filter for      | no `cancelled` tab; only `all` shows it                                        | okay small feature wouldnt matter much but there is no need to add a filter for cancelled since its "cancelled"                                                                                               |
+| Q-055 |               | (all)   | `awarded` is not a tender status                      | awarding lives in the `awards` table; confirm tenders should not reflect it    |                                                                                                                                                                                                               |
+| Q-056 |               | company | publishing straight from the wizard, skipping `draft` | `launch-tender.ts:99` sets `published` at creation; is `draft` ever reachable? |                                                                                                                                                                                                               |
+| Q-057 |               | (all)   | tender status with no enum or CHECK constraint        | the state machine guards the API, nothing guards the column                    | add a CHECK constraint to both, listing the values that are actually in use. It's a small migration and it makes the database refuse anything the app doesn't recognise. Must be applied to dev **and** prod. |
 
 
 
 
 ## Replies to the questions you asked back (2026-08-06)
+
+
 
 ### Q-041 — decided and shipped
 
@@ -590,12 +592,12 @@ You said: *"if it says sent then it should actually send the invite obviously."*
 Done. Two things were wrong, not one:
 
 1. The server accepted only `admin`, `member`, `viewer`. It now accepts
-   `business_developer` too — and it rejects `owner`, which is transferred, never
+  `business_developer` too — and it rejects `owner`, which is transferred, never
    handed out. Both places that check a role read the same list now
    (`ASSIGNABLE_ROLES` in `server/routes.ts`), so they cannot drift apart again.
    The role-change dropdown in Settings was broken by the same gap.
 2. The onboarding invite page counted the rows *it* had sent and called them
-   sent. It now reads what the server actually did with each address, and if any
+  sent. It now reads what the server actually did with each address, and if any
    failed it says so, names them, and keeps you on the page so you can fix them.
 
 Verified against the dev database: `admin`, `business_developer`, `member` and
@@ -621,9 +623,9 @@ columns say so: `requester_company_id`, `tender_id`, `vendor_email`, `token`.
 Most of the surrounding plumbing already exists:
 
 - `/invite/:tenderId` is routed in **both** the logged-out and logged-in switches
-  (`App.tsx:104`, `:173`), so a stranger can already open an RFP and read it.
+(`App.tsx:104`, `:173`), so a stranger can already open an RFP and read it.
 - That page already handles the anonymous case — it shows Log in / Sign up and
-  stores `postLoginRedirect` so they land back on the RFP after signing up.
+stores `postLoginRedirect` so they land back on the RFP after signing up.
 - `sendTenderInvitationEmail` already exists and already sends the RFP link.
 
 So the missing piece is genuinely small: a way to enter an email address, a row
@@ -636,15 +638,13 @@ Ahmed: *"if nobody has never done it soo what?? we dont have much users anyway."
 Fair. Zero rows is a symptom of a small user base, not of a broken flow. Leaving
 it alone. Explanation kept below for whoever reads this next.
 
-
-
 I was unclear. `membership_requests` isn't two emails — it is the flow where **a
 person asks to join a workspace** (the mirror of inviting them). It is fully
 built and reachable:
 
 1. You sign up with, say, `you@acme.com`.
 2. Onboarding notices other people at `acme.com` already have a workspace and
-   offers "Request to join".
+  offers "Request to join".
 3. You send the request; the workspace admins get an email.
 4. They approve or deny it in Settings; you get an email back.
 
@@ -665,29 +665,31 @@ So it is a real, shipped feature. Two things follow, and they are the actual
 questions:
 
 - **Q-049** — the schema comment lists `pending, accepted, rejected, superseded`
-  and never mentions `shortlisted`. Reading the schema, you'd conclude the
-  feature doesn't exist. Should the comment be corrected to match reality?
+and never mentions `shortlisted`. Reading the schema, you'd conclude the
+feature doesn't exist. Should the comment be corrected to match reality?
 - **Q-050** — accepting or rejecting emails the vendor. Shortlisting emails
-  nobody. **Correction to what I said earlier:** shortlisting is *not* invisible
-  to the vendor — their own Proposals → Submitted list shows a "Shortlisted"
-  badge (`Dashboard.tsx:2539`). What's missing is only the push: they find out
-  only by logging in and looking. **Should being shortlisted email the
-  vendor?** **DECIDED 2026-08-11: no.** Ahmed: *"no its not worth an email."*
-  Consistent with what shortlisting actually is — see the table below. No change
-  made; the vendor still sees the badge if they look.
+nobody. **Correction to what I said earlier:** shortlisting is *not* invisible
+to the vendor — their own Proposals → Submitted list shows a "Shortlisted"
+badge (`Dashboard.tsx:2539`). What's missing is only the push: they find out
+only by logging in and looking. **Should being shortlisted email the
+vendor?** **DECIDED 2026-08-11: no.** Ahmed: *"no its not worth an email."*
+Consistent with what shortlisting actually is — see the table below. No change
+made; the vendor still sees the badge if they look.
 
 **What shortlisting actually does today**, end to end:
 
-| | |
-|---|---|
-| Sets `offers.status = 'shortlisted'` | yes |
-| Badge on the buyer's Received list | yes (`:2685`) |
-| Badge on the vendor's Submitted list | yes (`:2539`) |
-| Blue "Shortlisted" band in the proposal panel | yes (`:3725`) |
+
+|                                                     |               |
+| --------------------------------------------------- | ------------- |
+| Sets `offers.status = 'shortlisted'`                | yes           |
+| Badge on the buyer's Received list                  | yes (`:2685`) |
+| Badge on the vendor's Submitted list                | yes (`:2539`) |
+| Blue "Shortlisted" band in the proposal panel       | yes (`:3725`) |
 | Hides the Shortlist button, keeps Accept and Ignore | yes (`:3689`) |
-| Emails the vendor | **no** |
-| Filter or sort by shortlisted anywhere | **no** |
-| Any effect on awarding | **no** |
+| Emails the vendor                                   | **no**        |
+| Filter or sort by shortlisted anywhere              | **no**        |
+| Any effect on awarding                              | **no**        |
+
 
 In other words it is a bookmark — a private "come back to this one" marker that
 happens to also be visible to the vendor. It doesn't shortcut anything later.
@@ -698,6 +700,8 @@ That is worth knowing before deciding whether it deserves an email.
 Agreed, leaving it. Cancelled RFPs stay visible under "All".
 
 ---
+
+
 
 ## Plan — invite a vendor by email address (Q-042, agreed 2026-08-08)
 
@@ -715,30 +719,30 @@ What already exists, and must not be rebuilt:
 What has to be built:
 
 1. **A place to type an email.** An "Invite by email" field on the tender, next
-   to the existing invite-an-existing-vendor path.
-2. **`POST /api/tenders/:id/invite-by-email`.** Company accounts only, own
-   published tender only — the same three gates `invite-individual` already
+  to the existing invite-an-existing-vendor path.
+2. `POST /api/tenders/:id/invite-by-email`**.** Company accounts only, own
+  published tender only — the same three gates `invite-individual` already
    applies, so the two cannot drift apart. Creates an `invitation_links` row with
    a fresh token and sends the email.
 3. **Token handling.** `GET /invite/:token` resolves the link, marks it
-   `accepted` the first time it's opened, and expires it after N days. Decide N.
+  `accepted` the first time it's opened, and expires it after N days. Decide N.
 4. **Don't invite the same address to the same tender twice** — mirror the
-   `ALREADY_INVITED` check.
+  `ALREADY_INVITED` check.
 5. **If the address already belongs to a Bid user**, route it into the existing
-   invitation flow instead of creating a parallel one, so the invite shows up in
+  invitation flow instead of creating a parallel one, so the invite shows up in
    their "Invited to you" strip like any other.
 
 Ahmed's answers, 2026-08-11, and what shipped in `73b8a2f`:
 
 - **How long is a link valid?** *"as long as the RFP or tender is published and
-  open."* So there is no expiry column and nothing to tune — the tender's own
-  status is the expiry. A closed RFP closes its invitations for free.
+open."* So there is no expiry column and nothing to tune — the tender's own
+status is the expiry. A closed RFP closes its invitations for free.
 - **May a stranger read it before signing up?** Yes. That is already how
-  `/invite/:tenderId` behaves, so nothing changed.
+`/invite/:tenderId` behaves, so nothing changed.
 - **What if the address is already a Bid user?** *"they should just get the
-  invite and view the tender and be able to submit it."* Done — there is no
-  special case. The same email goes out and the same link works; being an
-  existing user only means they are already logged in when they arrive.
+invite and view the tender and be able to submit it."* Done — there is no
+special case. The same email goes out and the same link works; being an
+existing user only means they are already logged in when they arrive.
 
 The two unrouted pages were left alone. Neither is needed: the invite reuses the
 public RFP page, which already exists and already works.
@@ -752,16 +756,18 @@ verification all still apply.
 
 ## I. Follow-up found while answering (2026-08-06)
 
+
 | ID    | Answer first? | Who   | Can currently reach                                     | Smells because                                                       | Answer |
 | ----- | ------------- | ----- | ------------------------------------------------------- | -------------------------------------------------------------------- | ------ |
 | Q-058 | yes           | (all) | asking to join an **individual** (freelancer) workspace | the same rule is enforced on two other doors and missing on this one |        |
+
 
 **Q-058 in plain terms.** A freelancer's workspace is meant to be one person —
 they *are* the vendor. Two ways in already respect that:
 
 - the join-code page refuses individual workspaces (`routes.ts:2631`)
 - searching for a workspace by name only returns `company` ones
-  (`storage.ts:1036`)
+(`storage.ts:1036`)
 
 But the third way in — the "people at your email domain" suggestion during
 onboarding — doesn't filter at all, and neither does the endpoint behind it. So a
@@ -778,6 +784,8 @@ zero requests have ever been made.
 
 ---
 
+
+
 ## J. The ten still open (written up 2026-08-11)
 
 Everything answerable from the code or the database has been answered below, so
@@ -787,15 +795,17 @@ Write your answer in the space after **Your call:**.
 ### Closed without needing you
 
 - **Q-046 — DONE.** The schema comment for `team_invitations.role` still listed
-  the old three roles, which my own change made false. Fixed; it now points at
-  the one list both checks read.
+the old three roles, which my own change made false. Fixed; it now points at
+the one list both checks read.
 - **Q-048 — no change needed.** Accepting a workspace invitation only *adds* a
-  membership; nothing removes the one you already have. An individual keeps
-  their own freelancer workspace and switches between the two. Confirmed in
-  `POST /api/team-invitations/:token/accept`, which only calls `addUserToCompany`.
+membership; nothing removes the one you already have. An individual keeps
+their own freelancer workspace and switches between the two. Confirmed in
+`POST /api/team-invitations/:token/accept`, which only calls `addUserToCompany`.
 - **Q-055 — no change needed.** `awarded` really isn't a tender status: nothing
-  in the codebase sets it and no tender in production has it. Awarding lives in
-  the `awards` table, and the schema comment is right to omit it.
+in the codebase sets it and no tender in production has it. Awarding lives in
+the `awards` table, and the schema comment is right to omit it.
+
+
 
 ### Still yours to decide
 
@@ -812,7 +822,7 @@ so this is one line to get a feature you've already paid for.
 uses the normal public RFP page and the normal signup, which is better — the
 invitee reads the RFP first and signs up when they choose.
 *What I'd do:* delete it. It can only rot and confuse the next person.
-**Your call:**
+**Your call: DONE — deleted.** Ahmed: *"sure delete it then."*
 
 **Q-047 — three words for one action.**
 Turning down a join request is `rejected`, turning down a membership request is
@@ -821,14 +831,23 @@ Turning down a join request is `rejected`, turning down a membership request is
 to read and invites mistakes.
 *What I'd do:* leave the database alone (renaming columns is real risk for zero
 user benefit) and make the *user-facing* words consistent. Low priority.
-**Your call:**
+**Your call: DONE — "rejected" everywhere.** Ahmed: *"use rejected."* Worth
+noting the Arabic never had the drift: it already said رفض in every place. Only
+the English said "Deny"/"Denied". The stored value moved from `denied` to
+`rejected` too (both databases hold zero membership requests, so there was
+nothing to migrate). The `decision_reason` column keeps its name — renaming a
+column nobody sees, on an empty table, is risk without benefit.
 
 **Q-051 — a status with no name.**
 `superseded` is set when a vendor resubmits, replacing their old proposal. It
 has no translation in either language and no badge, so if one were ever
 displayed it would show blank. There are zero in production.
 *What I'd do:* nothing now. Worth knowing, not worth touching.
-**Your call:**
+**Your call: DONE — translated.** Ahmed: *"okay add a translation then buddy."*
+"Replaced" / "مُستبدل", shown on both proposal lists. While adding it I found
+the shared status map was also missing `shortlisted`, so that is fixed too — it
+only escaped notice because the one caller passes it `accepted` and nothing
+else.
 
 **Q-052 — "offer" in the database, "proposal" everywhere you look.**
 The table is `offers`, the API is `/api/offers`, and every screen says
@@ -836,7 +855,10 @@ The table is `offers`, the API is `/api/offers`, and every screen says
 *What I'd do:* nothing. Renaming touches the database, the API and every screen,
 and users only ever see "Proposal", which is the right word. Worth writing down
 so nobody "fixes" half of it later.
-**Your call:**
+**Your call: no change.** Ahmed: *"the api doesnt matter or the whole backend
+wouldnt change anything for the user bro. as long as its functioning then what
+its called wont matter."* Agreed and recorded, so nobody renames half of it
+later.
 
 **Q-053 / Q-057 — nothing stops a nonsense status.**
 Neither `offers.status` nor `tenders.status` has a database constraint. The API
@@ -845,7 +867,18 @@ guards them, but any bug or manual query could write anything at all. That's how
 *What I'd do:* add a CHECK constraint to both, listing the values that are
 actually in use. It's a small migration and it makes the database refuse
 anything the app doesn't recognise. Must be applied to dev **and** prod.
-**Your call:**
+**Your call: DONE — `migrations/0010_status_check_constraints.sql`**, applied to
+dev and prod. `offers.status` is now limited to pending / shortlisted /
+accepted / rejected / superseded, `tenders.status` to draft / published /
+closed / cancelled. Verified beforehand that no row in either database would
+violate them, and audited every write in the server: all inside the lists (the
+two `'awarded'` writes are on the `awards` table, not tenders).
+
+**It paid for itself immediately.** The dev database had one offer with status
+`submitted` — a value no code path can produce. The constraint traced it to
+`tests/helpers/fixtures.ts`, which had been inserting it since the fixture was
+written. Fixed to `pending`. That is precisely the leak this was meant to
+close.
 
 **Q-056 — the draft state nobody uses.**
 Creating an RFP publishes it straight away; the wizard never makes a draft. The
@@ -853,7 +886,8 @@ only way to get one is to unpublish a published RFP. Production has never had a
 single draft.
 *What I'd do:* keep it. It costs nothing and unpublishing is a reasonable thing
 to want. Just don't build anything else on the assumption that drafts exist.
-**Your call:**
+**Your call: kept** (no objection raised). `draft` is in the CHECK constraint,
+so unpublishing still works.
 
 **Q-058 — the third door into a freelancer's workspace.**
 A freelancer's workspace is meant to be one person. Join-by-code refuses them

@@ -37,13 +37,15 @@ export function awardStatusToState(status: string | null | undefined): BidState 
 }
 
 // Proposal lifecycle — shared/schema.ts:360
-//   pending | accepted | rejected | superseded
+//   pending | shortlisted | accepted | rejected | superseded
 export function proposalStatusToState(status: string | null | undefined): BidState {
   switch (status) {
     case "accepted":
       return "won";
     case "rejected":
       return "lost";
+    case "shortlisted":
+      return "decision";
     case "superseded":
       return "idle";
     case "pending":

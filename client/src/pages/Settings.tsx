@@ -328,7 +328,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl, worksp
 
 interface MembershipRequest {
   id: string;
-  status: 'pending' | 'approved' | 'denied';
+  status: 'pending' | 'approved' | 'rejected';
   message: string | null;
   createdAt: string;
   requester: { id: string; name: string; email: string };
@@ -351,7 +351,7 @@ function MembershipRequestsSection({ companyId }: { companyId: string }) {
   });
 
   const decideMutation = useMutation({
-    mutationFn: async ({ id, decision, reason }: { id: string; decision: 'approved' | 'denied'; reason?: string }) => {
+    mutationFn: async ({ id, decision, reason }: { id: string; decision: 'approved' | 'rejected'; reason?: string }) => {
       const res = await apiRequest('PATCH', `/api/companies/${companyId}/membership-requests/${id}/decide`, {
         decision,
         reason: reason || undefined,
@@ -444,7 +444,7 @@ function MembershipRequestsSection({ companyId }: { companyId: string }) {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => { setDecidingId(req.id); decideMutation.mutate({ id: req.id, decision: 'denied', reason: denyReason }); }}
+                        onClick={() => { setDecidingId(req.id); decideMutation.mutate({ id: req.id, decision: 'rejected', reason: denyReason }); }}
                         disabled={isThisDeciding}
                       >
                         {isThisDeciding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : t('settings.confirmDeny')}

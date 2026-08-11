@@ -155,10 +155,13 @@ export async function makeOffer(args: {
   technicalFileUrl: string;
 }) {
   const id = randomUUID();
+  // 'pending' is what the app actually writes on submission. This fixture said
+  // 'submitted', a status no code path can produce — which is how one turned up
+  // in the dev database. The CHECK constraint added in 0010 caught it.
   await db.execute(sql`
     insert into offers (id, tender_id, company_id, created_by, technical_file_url, status)
     values (${id}, ${args.tenderId}, ${args.companyId}, ${args.createdBy},
-            ${args.technicalFileUrl}, 'submitted')
+            ${args.technicalFileUrl}, 'pending')
   `);
   track("offers", id);
   return { id };

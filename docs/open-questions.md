@@ -672,8 +672,9 @@ questions:
   to the vendor — their own Proposals → Submitted list shows a "Shortlisted"
   badge (`Dashboard.tsx:2539`). What's missing is only the push: they find out
   only by logging in and looking. **Should being shortlisted email the
-  vendor?** My recommendation is yes — but it's your call, since it also tells a
-  vendor they're in the running before you've decided.
+  vendor?** **DECIDED 2026-08-11: no.** Ahmed: *"no its not worth an email."*
+  Consistent with what shortlisting actually is — see the table below. No change
+  made; the vendor still sees the badge if they look.
 
 **What shortlisting actually does today**, end to end:
 
@@ -727,11 +728,27 @@ What has to be built:
    invitation flow instead of creating a parallel one, so the invite shows up in
    their "Invited to you" strip like any other.
 
-Open decisions before building: how long a link stays valid; whether an invited
-stranger may read the RFP before signing up (today they can — that's the current
-behaviour of `/invite/:tenderId`, and changing it is a separate decision);
-whether the two unrouted pages (`invitation-links.tsx`, `invitation-signup.tsx`)
-get revived or replaced.
+Ahmed's answers, 2026-08-11, and what shipped in `73b8a2f`:
+
+- **How long is a link valid?** *"as long as the RFP or tender is published and
+  open."* So there is no expiry column and nothing to tune — the tender's own
+  status is the expiry. A closed RFP closes its invitations for free.
+- **May a stranger read it before signing up?** Yes. That is already how
+  `/invite/:tenderId` behaves, so nothing changed.
+- **What if the address is already a Bid user?** *"they should just get the
+  invite and view the tender and be able to submit it."* Done — there is no
+  special case. The same email goes out and the same link works; being an
+  existing user only means they are already logged in when they arrive.
+
+The two unrouted pages were left alone. Neither is needed: the invite reuses the
+public RFP page, which already exists and already works.
+
+**One thing the build exposed.** Submission enforces `targetAudienceTypes`, so
+an invited stranger could read an RFP and then be refused when bidding, purely
+because of the account type they happened to pick on the way in. A direct
+invitation now overrides that one check — the audience decides who may *find* an
+RFP, not who the requester may *name*. Deadline, published status and
+verification all still apply.
 
 ## I. Follow-up found while answering (2026-08-06)
 
@@ -761,10 +778,8 @@ zero requests have ever been made.
 
 ## Progress — sweep 2
 
-Answered: 8 / 18 · of the "answer first" rows: 7 / 7
+Answered: 9 / 18 · of the "answer first" rows: 7 / 7
 
-Shipped: Q-041. Closed with no change: Q-043, Q-054.
-Decided, not yet built: Q-042 — build invite-by-email; see the plan above.
-Still waiting on you: Q-050 (email a vendor when they're shortlisted?), Q-058
-(can anyone ask to join a freelancer's workspace?), plus the eleven not marked
-"answer first".
+Shipped: Q-041, Q-042. Closed with no change: Q-043, Q-050, Q-054.
+Still waiting on you: Q-058 (can anyone ask to join a freelancer's workspace?),
+plus the eleven not marked "answer first".

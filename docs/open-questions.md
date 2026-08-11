@@ -776,10 +776,104 @@ are already in.
 `POST /api/companies/:id/membership-requests`. There is no bad data to clean up —
 zero requests have ever been made.
 
+---
+
+## J. The ten still open (written up 2026-08-11)
+
+Everything answerable from the code or the database has been answered below, so
+what's left is only what needs your judgement. Each one says what I'd do.
+Write your answer in the space after **Your call:**.
+
+### Closed without needing you
+
+- **Q-046 — DONE.** The schema comment for `team_invitations.role` still listed
+  the old three roles, which my own change made false. Fixed; it now points at
+  the one list both checks read.
+- **Q-048 — no change needed.** Accepting a workspace invitation only *adds* a
+  membership; nothing removes the one you already have. An individual keeps
+  their own freelancer workspace and switches between the two. Confirmed in
+  `POST /api/team-invitations/:token/accept`, which only calls `addUserToCompany`.
+- **Q-055 — no change needed.** `awarded` really isn't a tender status: nothing
+  in the codebase sets it and no tender in production has it. Awarding lives in
+  the `awards` table, and the schema comment is right to omit it.
+
+### Still yours to decide
+
+**Q-044 — an admin screen that exists but has no door.**
+There are three working, admin-only endpoints for approving join requests, and a
+finished page for them (`AdminJoinRequests.tsx`) that was never added to the
+router. So the ability exists but nobody can reach it.
+*What I'd do:* route the page — the endpoints are already written and guarded,
+so this is one line to get a feature you've already paid for.
+**Your call:**
+
+**Q-045 — a signup page for a flow that now works differently.**
+`invitation-signup.tsx` was built for the old invite idea. Invite-by-email now
+uses the normal public RFP page and the normal signup, which is better — the
+invitee reads the RFP first and signs up when they choose.
+*What I'd do:* delete it. It can only rot and confuse the next person.
+**Your call:**
+
+**Q-047 — three words for one action.**
+Turning down a join request is `rejected`, turning down a membership request is
+`denied`, and the reason is stored as `rejectionReason` in one place and
+`decisionReason` in the other. Nothing is broken; it just makes the code harder
+to read and invites mistakes.
+*What I'd do:* leave the database alone (renaming columns is real risk for zero
+user benefit) and make the *user-facing* words consistent. Low priority.
+**Your call:**
+
+**Q-051 — a status with no name.**
+`superseded` is set when a vendor resubmits, replacing their old proposal. It
+has no translation in either language and no badge, so if one were ever
+displayed it would show blank. There are zero in production.
+*What I'd do:* nothing now. Worth knowing, not worth touching.
+**Your call:**
+
+**Q-052 — "offer" in the database, "proposal" everywhere you look.**
+The table is `offers`, the API is `/api/offers`, and every screen says
+"Proposal". Each layer is consistent with itself and none agree.
+*What I'd do:* nothing. Renaming touches the database, the API and every screen,
+and users only ever see "Proposal", which is the right word. Worth writing down
+so nobody "fixes" half of it later.
+**Your call:**
+
+**Q-053 / Q-057 — nothing stops a nonsense status.**
+Neither `offers.status` nor `tenders.status` has a database constraint. The API
+guards them, but any bug or manual query could write anything at all. That's how
+`shortlisted` came to exist without anyone documenting it.
+*What I'd do:* add a CHECK constraint to both, listing the values that are
+actually in use. It's a small migration and it makes the database refuse
+anything the app doesn't recognise. Must be applied to dev **and** prod.
+**Your call:**
+
+**Q-056 — the draft state nobody uses.**
+Creating an RFP publishes it straight away; the wizard never makes a draft. The
+only way to get one is to unpublish a published RFP. Production has never had a
+single draft.
+*What I'd do:* keep it. It costs nothing and unpublishing is a reasonable thing
+to want. Just don't build anything else on the assumption that drafts exist.
+**Your call:**
+
+**Q-058 — the third door into a freelancer's workspace.**
+A freelancer's workspace is meant to be one person. Join-by-code refuses them
+and workspace search excludes them, but the "people at your email domain"
+suggestion during onboarding doesn't filter at all — so a stranger can ask to
+join a freelancer's personal workspace, and the freelancer can accept.
+*What I'd do:* close it, so all three doors agree. No data to clean up — nobody
+has ever sent one of these requests.
+**Your call:**
+
 ## Progress — sweep 2
 
-Answered: 9 / 18 · of the "answer first" rows: 7 / 7
+Answered: 12 / 18 · of the "answer first" rows: 7 / 7
 
-Shipped: Q-041, Q-042. Closed with no change: Q-043, Q-050, Q-054.
-Still waiting on you: Q-058 (can anyone ask to join a freelancer's workspace?),
-plus the eleven not marked "answer first".
+Shipped: Q-041, Q-042, Q-046.
+Closed with no change: Q-043, Q-048, Q-050, Q-054, Q-055.
+Still waiting on you: the eight in section J — Q-044, Q-045, Q-047, Q-051,
+Q-052, Q-053, Q-056, Q-057, Q-058. Each has a recommendation; most are "leave
+it", so this should be a quick pass.
+
+Still owed from sweep 1: re-check the 329 unreferenced i18n keys. Three more
+hardcoded-English spots turned up today by accident, so that bucket is still
+paying out.

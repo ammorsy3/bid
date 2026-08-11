@@ -294,7 +294,7 @@ function TeamMembersSection({ companyId, canManage, currentUserId, isRtl, worksp
                                   onClick={() => updateRoleMutation.mutate({ userId: member.userId, role })}
                                 >
                                   <Shield className="h-4 w-4 me-2" />
-                                  {t('settings.makeRole', { role: role.charAt(0).toUpperCase() + role.slice(1) })}
+                                  {t('settings.makeRole', { role: displayRoleName(role, workspaceKind, t) })}
                                 </DropdownMenuItem>
                               ))}
                               <DropdownMenuSeparator />

@@ -568,7 +568,7 @@ export const teamInvitations = pgTable("team_invitations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   companyId: varchar("company_id").notNull().references(() => companies.id),
   email: text("email").notNull(),
-  role: text("role").notNull(), // 'admin', 'member', 'viewer'
+  role: text("role").notNull(), // see ASSIGNABLE_ROLES in server/routes.ts: 'admin', 'business_developer', 'member', 'viewer'
   token: varchar("token").notNull().unique(),
   invitedBy: varchar("invited_by").notNull().references(() => users.id),
   status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'expired'

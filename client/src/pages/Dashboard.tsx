@@ -2522,7 +2522,7 @@ export default function Dashboard() {
                                   </h3>
                                   <StatusBadge
                                     state={tenderStatusToState(offer.tender.status)}
-                                    label={offer.tender.status.charAt(0).toUpperCase() + offer.tender.status.slice(1)}
+                                    label={getStatusBadge(offer.tender.status).label}
                                   />
                                   {offer.status === 'accepted' && (
                                     <StatusBadge

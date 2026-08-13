@@ -77,6 +77,7 @@ function formatMemberSince(iso: string | null | undefined): string | null {
 
 // Simple full-screen image viewer.
 function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
+  const { t } = useI18n();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);

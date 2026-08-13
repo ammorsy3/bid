@@ -95,7 +95,7 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
     >
       <button
         onClick={onClose}
-        aria-label="Close"
+        aria-label={t('tenderFlow.closeBtn')}
         className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
       >
         <X className="h-5 w-5" />

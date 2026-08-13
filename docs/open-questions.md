@@ -827,11 +827,11 @@ computing** for a page nobody could open.
 page rendered "Unknown Vendor", "Vendor Email: N/A" and a raw requester UUID:
 
 1. It read `request.vendor`, but the endpoint returns `vendorCompany` /
-   `requesterCompany`. It also printed `requesterId` rather than the requesting
+  `requesterCompany`. It also printed `requesterId` rather than the requesting
    company's name, and asked for a vendor email — `companies` has no email
    column, so that line could never have shown anything.
 2. `getAllJoinRequests` self-joined `companies` as
-   `` sql<Company>`requester_companies` ``, which type-checks and returns
+  `sql<Company>`requester_companies``, which type-checks and returns
    nothing usable. Every row said "Requested by: N/A". Rewritten with drizzle's
    `alias()`.
 
@@ -888,7 +888,7 @@ guards them, but any bug or manual query could write anything at all. That's how
 *What I'd do:* add a CHECK constraint to both, listing the values that are
 actually in use. It's a small migration and it makes the database refuse
 anything the app doesn't recognise. Must be applied to dev **and** prod.
-**Your call: DONE — `migrations/0010_status_check_constraints.sql`**, applied to
+**Your call: DONE —** `migrations/0010_status_check_constraints.sql`, applied to
 dev and prod. `offers.status` is now limited to pending / shortlisted /
 accepted / rejected / superseded, `tenders.status` to draft / published /
 closed / cancelled. Verified beforehand that no row in either database would

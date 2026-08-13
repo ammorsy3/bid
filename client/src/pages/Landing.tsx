@@ -94,7 +94,7 @@ function SignUpModal({ onClose, lang }: { onClose: () => void; lang: Lang }) {
   return (
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-card" dir={lang === "ar" ? "rtl" : "ltr"}>
-        <button className="modal-close" onClick={onClose} aria-label="Close">
+        <button className="modal-close" onClick={onClose} aria-label={lang === "ar" ? "إغلاق" : "Close"}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
         <div className="modal-icon"><BidMonogram variant="onInk" size={56} /></div>

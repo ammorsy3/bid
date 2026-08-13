@@ -1136,7 +1136,7 @@ export default function Settings() {
                       {profilePicturePreview ? (
                         <img 
                           src={profilePicturePreview} 
-                          alt="Profile" 
+                          alt={t('nav.profile')} 
                           className="h-20 w-20 rounded-full object-cover"
                         />
                       ) : (
@@ -1436,7 +1436,7 @@ export default function Settings() {
                       {companyLogoPreview ? (
                         <img 
                           src={companyLogoPreview} 
-                          alt="Company Logo" 
+                          alt={t('settings.companyLogo')} 
                           className="h-20 w-20 rounded-lg object-cover border"
                         />
                       ) : (

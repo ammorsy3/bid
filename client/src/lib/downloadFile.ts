@@ -38,7 +38,15 @@ export async function viewAuthenticatedFile(fileUrl: string) {
   if (!win) {
     throw new Error("Popup blocked — please allow popups for this site");
   }
-  win.document.write('<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666">Loading file...</body></html>');
+  // This runs outside React, in a window we just opened, so there is no `t()`
+  // to call — hence reading the language the same way the i18n provider stores
+  // it. Without this an Arabic user gets an English holding page every time
+  // they open an attachment.
+  const isAr = localStorage.getItem('language') === 'ar';
+  const loadingText = isAr ? 'جاري فتح الملف…' : 'Loading file…';
+  win.document.write(
+    `<html dir="${isAr ? 'rtl' : 'ltr'}" lang="${isAr ? 'ar' : 'en'}"><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666">${loadingText}</body></html>`
+  );
 
   try {
     const token = localStorage.getItem("token");

@@ -241,7 +241,7 @@ export default function InviteTeam() {
                     <div className="flex-1">
                       <Input
                         type="email"
-                        placeholder="colleague@company.com"
+                        placeholder={t('settings.inviteEmailPlaceholder')}
                         value={inv.email}
                         onChange={(e) => updateInvitation(index, 'email', e.target.value)}
                         className={`w-full ${invalid ? 'border-red-500 focus-visible:ring-red-500' : ''}`}

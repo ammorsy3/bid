@@ -71,7 +71,7 @@ export default function VendorProfileDrawer({
   open, onClose, joinRequestId,
   showActions, onApprove, onDecline, isApproving, isDeclining
 }: VendorProfileDrawerProps) {
-  const { isRtl } = useI18n();
+  const { t, isRtl } = useI18n();
   const { data, isLoading } = useQuery<VendorProfileData>({
     queryKey: [`/api/join-requests/${joinRequestId}/profile`],
     enabled: open && !!joinRequestId,
@@ -208,7 +208,7 @@ export default function VendorProfileDrawer({
                         data-testid="link-linkedin"
                       >
                         <Linkedin className="h-3.5 w-3.5" />
-                        LinkedIn
+                        {t('companyProfile.socialLinkedIn')}
                       </Button>
                     )}
                     {data.profile?.xUrl && (

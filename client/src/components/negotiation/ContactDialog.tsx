@@ -100,7 +100,7 @@ export default function ContactDialog({
               {contact.socialLinks?.linkedin && (
                 <a href={contact.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-[#FE3C01] transition-colors">
                   <Linkedin className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                  <span>LinkedIn</span>
+                  <span>{t('companyProfile.socialLinkedIn')}</span>
                 </a>
               )}
 

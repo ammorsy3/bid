@@ -405,7 +405,9 @@ export const offers = pgTable("offers", {
   resubmissionAllowed: boolean("resubmission_allowed").default(false).notNull(),
 
   // Proposal Status
-  status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'rejected', 'superseded'
+  // Enforced by offers_status_check (migrations/0010). 'shortlisted' was a real,
+  // shipped status that this comment had never mentioned — that gap is Q-049.
+  status: text("status").notNull().default("pending"), // 'pending', 'shortlisted', 'accepted', 'rejected', 'superseded'
   decidedBy: varchar("decided_by").references(() => users.id),
   decidedAt: timestamp("decided_at"),
   

@@ -426,7 +426,7 @@ export default function TractionLinkEditor() {
               </div>
               <div className="flex items-center gap-3">
                 {currentLogoUrl ? (
-                  <img src={currentLogoUrl} alt="Logo" className="w-14 h-14 rounded-xl object-cover border border-border" />
+                  <img src={currentLogoUrl} alt={t('tractionPage.editorLogo')} className="w-14 h-14 rounded-xl object-cover border border-border" />
                 ) : (
                   <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center text-sm font-bold text-gray-400">
                     {initials}

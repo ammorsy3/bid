@@ -952,7 +952,7 @@ export default function CompanyProfileEditor() {
                     <CardContent>
                       <div className="flex items-center gap-4">
                         {currentLogoUrl ? (
-                          <img src={currentLogoUrl} alt="Logo" className="w-20 h-20 rounded-xl object-cover border border-border dark:border-border" />
+                          <img src={currentLogoUrl} alt={t('companyProfileEditor.logo')} className="w-20 h-20 rounded-xl object-cover border border-border dark:border-border" />
                         ) : (
                           <div className="w-20 h-20 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-lg font-bold text-gray-400">
                             {initials}
@@ -1686,7 +1686,7 @@ export default function CompanyProfileEditor() {
                     <CardContent>
                       {currentHeaderUrl ? (
                         <div className="relative rounded-lg overflow-hidden border border-border dark:border-border group">
-                          <img src={currentHeaderUrl} alt="Header" className="w-full h-40 object-cover" />
+                          <img src={currentHeaderUrl} alt={t('profEditor.header')} className="w-full h-40 object-cover" />
                           <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
                               type="button"

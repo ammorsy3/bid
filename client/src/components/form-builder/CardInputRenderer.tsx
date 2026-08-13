@@ -856,7 +856,7 @@ function ProjectDescriptionInput({
         </label>
         <input
           type="url"
-          placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+          placeholder={t('tenderSteps.videoUrlPlaceholder')}
           value={val.videoUrl}
           onChange={(e) => update({ videoUrl: e.target.value })}
           className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent text-sm"

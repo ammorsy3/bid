@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, AlertTriangle, FileText,
-  Shield, LogOut, ArrowLeft, Store, Bug, Bell, UserPlus
+  Shield, LogOut, ArrowLeft, Store, Bug, Bell, UserPlus, Megaphone
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { useLogout } from "@/hooks/use-logout";
@@ -87,6 +87,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           label: t('admin.navJoinRequests'),
           icon: UserPlus,
           count: metrics?.pendingJoinRequests || 0,
+        },
+      ],
+    },
+    {
+      label: t('admin.navGrowth'),
+      items: [
+        {
+          href: "/admin/campaigns",
+          label: t('admin.navCampaigns'),
+          icon: Megaphone,
+          count: 0,
         },
       ],
     },

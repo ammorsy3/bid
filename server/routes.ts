@@ -30,6 +30,8 @@ import { registerCopilotV1Routes } from "./routes/v1/copilot";
 import { registerWebhookAdapter } from "./routes/integrations/webhook";
 import { registerMcpAdapter } from "./routes/integrations/mcp";
 import { registerIntegrationsAdminRoutes } from "./routes/settings/integrations";
+import { registerMarketingRoutes } from "./routes/marketing";
+import { attributeSignup } from "./lib/campaigns";
 import {
   sendNewOfferNotification,
   sendOfferDecisionNotification,
@@ -495,6 +497,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profilePictureUrl: clerkUser.imageUrl || null,
         } as any);
 
+        // Credit the influencer whose link first sent them here, if any.
+        // Best-effort by contract: attributeSignup swallows its own errors so a
+        // tracking problem can never cost us a sign-in.
+        await attributeSignup(user.id, req.body?.attribution, 'clerk');
+
         // No auto-join: new social sign-up users go through the onboarding
         // domain-match flow where they can request to join or create their org.
       } else {
@@ -597,6 +604,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: hashedPassword,
         isAdmin: false
       });
+
+      // Credit the influencer whose link first sent them here, if any.
+      await attributeSignup(user.id, req.body?.attribution, 'password');
 
       // No auto-join on registration: users go through the onboarding
       // domain-match flow where they can choose to request to join or create their org.
@@ -6879,6 +6889,7 @@ Respond with ONLY a JSON object. Example:
   registerWebhookAdapter(app);
   registerMcpAdapter(app);
   registerIntegrationsAdminRoutes(app, { authenticateToken, requireCompanyContext, requireCompanyRole, requireAccountType });
+  registerMarketingRoutes(app, { authenticateToken, requireAdmin });
 
   // ============================================================================
   // AI CHAT HISTORY

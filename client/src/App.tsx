@@ -64,6 +64,7 @@ import AdminAuditLogs from "@/pages/AdminAuditLogs";
 import AdminErrors from "@/pages/AdminErrors";
 import AdminNotifications from "@/pages/AdminNotifications";
 import AdminJoinRequests from "@/pages/AdminJoinRequests";
+import AdminCampaigns from "@/pages/AdminCampaigns";
 import ClerkCallback from "@/pages/ClerkCallback";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
@@ -72,6 +73,7 @@ import FAQ from "@/pages/FAQ";
 import NotFound from "@/pages/not-found";
 
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
+import { captureAttribution } from "@/lib/attribution";
 
 // react-aria's date pickers default to the Hijri calendar for Arabic locales;
 // force Gregorian regardless of language so dates never render as Hijri.
@@ -89,6 +91,13 @@ export default function App() {
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  // Read the campaign parameters off the URL before anything routes away from
+  // it. Runs on every entry point, marketplace subdomain included, because an
+  // influencer link can legitimately land anywhere.
+  useEffect(() => {
+    captureAttribution();
+  }, []);
 
   const isMarketplace = useMemo(() => isMarketplaceSubdomain(), []);
 
@@ -185,6 +194,7 @@ export default function App() {
               <Route path="/admin/awards" component={AdminAwards} />
               <Route path="/admin/users" component={AdminUsers} />
               <Route path="/admin/join-requests" component={AdminJoinRequests} />
+              <Route path="/admin/campaigns" component={AdminCampaigns} />
               <Route path="/admin/audit-logs" component={AdminAuditLogs} />
               <Route path="/admin/errors" component={AdminErrors} />
               <Route path="/settings/integrations" component={SettingsIntegrations} />

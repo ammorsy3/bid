@@ -956,6 +956,194 @@ export type AiChatMessage = typeof aiChatMessages.$inferSelect;
 export type InsertAiChatMessage = typeof aiChatMessages.$inferInsert;
 
 // ============================================================================
+// INFLUENCER / MARKETING CAMPAIGNS
+// ============================================================================
+//
+// Three tables, one job: tell us which influencer actually brought us users.
+//
+//   marketing_campaigns  the definition — one row per influencer per push.
+//                        Owns the short code (/r/<code>) and the UTM values,
+//                        so the link an influencer posts is generated from
+//                        the row rather than typed by hand into a doc.
+//   campaign_visits      every click, whether it arrived through the short
+//                        link or as a raw UTM URL. campaign_id is nullable on
+//                        purpose: traffic carrying UTMs we don't recognise is
+//                        still worth counting, and shows up as "unmatched".
+//   campaign_attributions  first touch, frozen at signup. One row per user.
+//
+// Deliberately NOT stored here: the activation milestones (company created,
+// company verified, first tender). Those are derived at read time by joining
+// user_companies / companies / tenders, so they can never drift out of sync
+// with the tables that own them, and no write path anywhere else has to
+// remember this feature exists.
+
+export const INFLUENCER_PLATFORMS = [
+  'instagram', 'tiktok', 'x', 'snapchat', 'youtube', 'linkedin',
+  'whatsapp', 'telegram', 'podcast', 'newsletter', 'other',
+] as const;
+export type InfluencerPlatform = typeof INFLUENCER_PLATFORMS[number];
+
+export const CAMPAIGN_STATUSES = ['active', 'paused', 'ended'] as const;
+export type CampaignStatus = typeof CAMPAIGN_STATUSES[number];
+
+export const marketingCampaigns = pgTable("marketing_campaigns", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+
+  // The short code an influencer shares: https://bidapp.sa/r/<code>
+  code: varchar("code", { length: 64 }).notNull().unique(),
+
+  name: text("name").notNull(),              // internal label, e.g. "Sara — IG launch"
+  influencerName: text("influencer_name"),
+  influencerHandle: text("influencer_handle"), // stored without the leading @
+
+  platform: varchar("platform", { length: 24 }).notNull(),
+
+  // The UTM values the short link redirects with. Kept as real columns rather
+  // than derived from platform/name so an existing campaign's reporting label
+  // never silently changes when someone renames the campaign.
+  utmSource: text("utm_source").notNull(),
+  utmMedium: text("utm_medium").notNull().default("influencer"),
+  utmCampaign: text("utm_campaign").notNull(),
+  utmContent: text("utm_content"),
+  utmTerm: text("utm_term"),
+
+  // Where the link lands. Path only ("/", "/signup", "/marketplace") — the
+  // origin comes from the request, so the same row works on every deploy.
+  landingPath: text("landing_path").notNull().default("/"),
+
+  // What we're paying, for cost-per-signup. Whole currency units, no decimals.
+  feeAmount: integer("fee_amount"),
+  currency: varchar("currency", { length: 8 }).default("SAR"),
+
+  notes: text("notes"),
+  status: varchar("status", { length: 16 }).notNull().default("active"),
+  startsAt: timestamp("starts_at"),
+  endsAt: timestamp("ends_at"),
+
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  // Raw-UTM landings (someone copied the expanded link) are matched back to a
+  // campaign on these two columns, so the lookup needs to be indexed.
+  utmLookupIdx: index("marketing_campaigns_utm_idx").on(t.utmCampaign, t.utmContent),
+  statusIdx: index("marketing_campaigns_status_idx").on(t.status),
+}));
+
+export const campaignVisits = pgTable("campaign_visits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").references(() => marketingCampaigns.id, { onDelete: 'cascade' }),
+
+  // Anonymous, client-generated, stored in the visitor's localStorage. This is
+  // what links a click to a later signup; it is not a user id and never
+  // identifies a person on its own.
+  visitorId: varchar("visitor_id", { length: 64 }).notNull(),
+
+  source: varchar("source", { length: 16 }).notNull(), // 'shortlink' | 'landing'
+
+  utmSource: text("utm_source"),
+  utmMedium: text("utm_medium"),
+  utmCampaign: text("utm_campaign"),
+  utmContent: text("utm_content"),
+  utmTerm: text("utm_term"),
+
+  landingPath: text("landing_path"),
+  referrer: text("referrer"),
+  userAgent: text("user_agent"),
+  country: varchar("country", { length: 2 }),
+
+  // Salted SHA-256, never the address itself — PDPL. Used only to spot one
+  // person refreshing a link a hundred times.
+  ipHash: varchar("ip_hash", { length: 64 }),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  campaignIdx: index("campaign_visits_campaign_idx").on(t.campaignId, t.createdAt),
+  visitorIdx: index("campaign_visits_visitor_idx").on(t.visitorId),
+}));
+
+export const campaignAttributions = pgTable("campaign_attributions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").notNull().references(() => marketingCampaigns.id, { onDelete: 'cascade' }),
+
+  // One campaign per user, forever: first touch wins. The unique constraint is
+  // the whole enforcement — a second influencer cannot claim the same signup.
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
+
+  visitorId: varchar("visitor_id", { length: 64 }),
+  signupMethod: varchar("signup_method", { length: 16 }), // 'password' | 'clerk'
+
+  // The UTMs exactly as the browser saw them at first touch, kept verbatim so
+  // a mis-typed link can be diagnosed after the fact.
+  utmSnapshot: jsonb("utm_snapshot").$type<Record<string, string>>(),
+
+  firstTouchAt: timestamp("first_touch_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  campaignIdx: index("campaign_attributions_campaign_idx").on(t.campaignId),
+}));
+
+export type MarketingCampaign = typeof marketingCampaigns.$inferSelect;
+export type InsertMarketingCampaign = typeof marketingCampaigns.$inferInsert;
+export type CampaignVisit = typeof campaignVisits.$inferSelect;
+export type CampaignAttribution = typeof campaignAttributions.$inferSelect;
+
+// A campaign code lives in a URL an influencer pastes into a bio, so it is
+// restricted to what survives that trip intact and stays readable.
+export const campaignCodeSchema = z
+  .string()
+  .trim()
+  .min(3)
+  .max(64)
+  .regex(/^[a-z0-9][a-z0-9-]*[a-z0-9]$/, "Use lowercase letters, numbers and hyphens");
+
+const utmValueSchema = z
+  .string()
+  .trim()
+  .max(120)
+  .regex(/^[a-z0-9][a-z0-9._-]*$/, "Use lowercase letters, numbers, dots, underscores and hyphens");
+
+export const createCampaignSchema = z.object({
+  name: z.string().trim().min(2).max(160),
+  code: campaignCodeSchema.optional(), // derived from the name when omitted
+  influencerName: z.string().trim().max(160).optional(),
+  influencerHandle: z.string().trim().max(80).optional(),
+  platform: z.enum(INFLUENCER_PLATFORMS),
+  utmCampaign: utmValueSchema,
+  utmContent: utmValueSchema.optional(),
+  utmTerm: utmValueSchema.optional(),
+  utmMedium: utmValueSchema.default("influencer"),
+  utmSource: utmValueSchema.optional(), // defaults to the platform
+  landingPath: z.string().trim().max(300).default("/"),
+  feeAmount: z.number().int().min(0).max(100_000_000).nullable().optional(),
+  currency: z.string().trim().length(3).default("SAR"),
+  notes: z.string().trim().max(2000).optional(),
+  startsAt: z.string().datetime().nullable().optional(),
+  endsAt: z.string().datetime().nullable().optional(),
+});
+
+export const updateCampaignSchema = createCampaignSchema
+  .partial()
+  .omit({ code: true })
+  .extend({ status: z.enum(CAMPAIGN_STATUSES).optional() });
+
+// What the browser sends: first-touch attribution it captured on landing.
+export const attributionPayloadSchema = z.object({
+  visitorId: z.string().trim().min(8).max(64),
+  code: z.string().trim().max(64).optional(),
+  utmSource: z.string().trim().max(200).optional(),
+  utmMedium: z.string().trim().max(200).optional(),
+  utmCampaign: z.string().trim().max(200).optional(),
+  utmContent: z.string().trim().max(200).optional(),
+  utmTerm: z.string().trim().max(200).optional(),
+  landingPath: z.string().trim().max(300).optional(),
+  referrer: z.string().trim().max(500).optional(),
+  firstTouchAt: z.string().datetime().optional(),
+});
+
+export type AttributionPayload = z.infer<typeof attributionPayloadSchema>;
+
+// ============================================================================
 // RELATIONS
 // ============================================================================
 

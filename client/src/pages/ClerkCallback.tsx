@@ -7,6 +7,7 @@ import { BidLogo } from "@/components/brand/BidLogo";
 import { Loader2 } from "lucide-react";
 import { HAS_CLERK } from "@/lib/clerkConfig";
 import { markJustSignedIn } from "@/components/desktop-recommendation-modal";
+import { attributionForSignup } from "@/lib/attribution";
 
 function ClerkCallbackInner() {
   const [, setLocation] = useLocation();
@@ -66,7 +67,10 @@ function ClerkCallbackInner() {
         const res = await fetch("/api/auth/clerk-exchange", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: clerkToken }),
+          // attribution credits the influencer whose link first brought this
+          // visitor in; the server ignores it for an existing account, so only
+          // a genuinely new social sign-up is ever attributed.
+          body: JSON.stringify({ token: clerkToken, attribution: attributionForSignup() }),
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));

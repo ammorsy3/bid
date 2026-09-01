@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { apiRequest } from './queryClient';
+import { attributionForSignup } from './attribution';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -150,6 +151,9 @@ export const useAuthStore = create<AuthState>()(
           const response = await apiRequest('POST', '/api/auth/register', {
             ...userData,
             language: currentLanguage === 'ar' || currentLanguage === 'en' ? currentLanguage : undefined,
+            // Credits the influencer whose link first brought this visitor in.
+            // Ignored by the server if there is no matching campaign.
+            attribution: attributionForSignup(),
           });
           const data = await response.json();
 

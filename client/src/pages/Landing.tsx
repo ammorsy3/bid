@@ -9,7 +9,7 @@ type Lang = "en" | "ar";
 
 const copy = {
   en: {
-    navAbout: "About Bid", navMarketplace: "Marketplace", navTraction: "Traction Link", navVendors: "For Vendors",
+    navAbout: "About Bid", navMarketplace: "Marketplace", navTraction: "Traction Link", navVendors: "For Vendors", navPricing: "Pricing",
     btnSignIn: "Sign in", btnCreateAccount: "Create an Account\u00a0→", btnDashboard: "Dashboard",
     heroBadge: "Now live", heroLine1: "Sourcing", heroLine2: "Redefined",
     heroSub: "Brief, Invite, Receive, Award Pre-Verified Vendors.",
@@ -42,13 +42,13 @@ const copy = {
     ctaBtn: "Start free →",
     ftBrand: "Bid turns messy sourcing into a clear workflow: create the RFP, invite the right vendors, and receive proposals in a unified format.",
     ftReq: "FOR REQUESTERS", ftVen: "FOR VENDORS", ftCo: "COMPANY",
-    ftRFP: "RFP Crafting", ftMkt: "Marketplace", ftTrac: "Traction Link",
+    ftRFP: "RFP Crafting", ftMkt: "Marketplace", ftTrac: "Traction Link", ftPricing: "Pricing",
     ftBriefs: "Receive briefs", ftTenders: "Explore tenders", ftConnect: "Connect with clients",
     ftContact: "Contact", ftTerms: "Terms", ftPrivacy: "Privacy", ftSupport: "SUPPORT",
     ftCopy: "© 2026 Bid, Sourcing Redefined.", ftCookies: "Cookies",
   },
   ar: {
-    navAbout: "عن Bid", navMarketplace: "سوق Bid", navTraction: "روابط الانضمام", navVendors: "للموردين",
+    navAbout: "عن Bid", navMarketplace: "سوق Bid", navTraction: "روابط الانضمام", navVendors: "للموردين", navPricing: "الأسعار",
     btnSignIn: "دخول", btnCreateAccount: "سجّل حساب\u00a0←", btnDashboard: "لوحة التحكم",
     heroBadge: "الإطلاق التجريبي", heroLine1: "أنشئ الـ(RFP)", heroLine2: "اطرح مشروعك",
     heroSub: "اكتب البريف، وادعُ الموردين، واستقبل العروض، ثم رسِّ المشروع.",
@@ -81,7 +81,7 @@ const copy = {
     ctaBtn: "ابدأ الحين ←",
     ftBrand: "Bid يرتّب لك رحلة التوريد: أنشئ طلب العروض، وادعُ الموردين المناسبين، واستقبل عروضهم بصيغة موحّدة.",
     ftReq: "للمشترين", ftVen: "للموردين", ftCo: "Bid",
-    ftRFP: "تجهيز طلب العروض", ftMkt: "السوق", ftTrac: "رابط الانضمام",
+    ftRFP: "تجهيز طلب العروض", ftMkt: "السوق", ftTrac: "رابط الانضمام", ftPricing: "الأسعار",
     ftBriefs: "استلام البريفات", ftTenders: "استكشف المناقصات", ftConnect: "تواصل مع العملاء",
     ftContact: "تواصل معنا", ftTerms: "الشروط", ftPrivacy: "الخصوصية", ftSupport: "الدعم",
     ftCopy: "© 2026 Bid، التوريد بشكل جديد.", ftCookies: "الكوكيز",
@@ -143,7 +143,7 @@ const Landing = () => {
   const arrowRight = isRtl ? "←" : "→";
 
   return (
-    <div style={{ background: "var(--cream)" }} dir={isRtl ? "rtl" : "ltr"} className={`landing-page${isRtl ? " landing-rtl" : ""}`}>
+    <div style={{ background: "var(--cream)" }} dir={isRtl ? "rtl" : "ltr"} className={`landing-page surface-cream${isRtl ? " landing-rtl" : ""}`}>
       {showModal && <SignUpModal onClose={() => setShowModal(false)} lang={lang} />}
       <div className="page">
 

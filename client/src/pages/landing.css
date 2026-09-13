@@ -32,7 +32,9 @@
     border-bottom:1px solid var(--line);
   }
   .logo-mini{height:28px;width:auto;display:block}
-  .topbar-nav-desktop{display:flex;gap:28px}
+  /* Nudged off the logo so the links sit nearer the middle of the bar.
+     margin-inline-start mirrors itself: pushes right in LTR, left in RTL. */
+  .topbar-nav-desktop{display:flex;gap:28px;margin-inline-start:56px}
   .topbar-nav-desktop a{font-size:14px;font-weight:500;color:var(--ink);opacity:.7;transition:opacity .2s}
   .topbar-nav-desktop a:hover{opacity:1;color:var(--orange)}
   .topbar-right{display:flex;gap:10px;align-items:center}
@@ -570,8 +572,8 @@
   .footer-row h5{font-size:11px;font-weight:600;color:var(--ink);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
   .footer-row a{display:block;font-size:14px;color:var(--stone);padding:5px 0;transition:color .2s}
   .footer-row a:hover{color:var(--orange)}
-  /* Support links pair an icon with the value, so they opt out of the
-     display:block used by the plain text links above. */
+  /* Support links pair an icon with the value: stack them, each row icon + value. */
+  .footer-support{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
   .footer-support a{display:inline-flex;align-items:center;gap:8px}
   .footer-support svg{width:15px;height:15px;flex-shrink:0}
   .footer-bot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;padding-top:28px;font-size:13px;color:var(--stone);gap:16px 24px}
@@ -714,7 +716,7 @@
     .page{padding:0 32px}
     .cta-strip{margin:0 32px 60px !important}
     .stages.s4{grid-template-columns:1fr 1fr}
-    .topbar-nav-desktop{gap:18px}
+    .topbar-nav-desktop{gap:18px;margin-inline-start:24px}
     .topbar-nav-desktop a{font-size:13px}
     /* Five columns get too tight here — drop the link lists to a 2x2 under
        the brand blurb before the single-column mobile layout takes over. */

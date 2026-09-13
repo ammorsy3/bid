@@ -1,0 +1,126 @@
+/* Shared marketing footer. Self-contained so it drops into any public page
+   (Landing, Pricing, Marketplace) without depending on landing.css. Uses the
+   same design tokens (--cream/--ink/--orange/--stone/--line) which are defined
+   globally in landing.css / index.css. */
+
+.site-footer {
+  background: var(--cream);
+  padding: 64px 0 48px;
+}
+.site-footer .site-footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.site-footer-row {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
+  gap: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--line);
+}
+.site-footer-brand img {
+  height: 32px;
+  margin-bottom: 18px;
+  display: block;
+}
+.site-footer-brand p {
+  font-size: 14px;
+  color: var(--stone);
+  line-height: 1.55;
+  max-width: 36ch;
+  margin: 0;
+}
+.site-footer-row h5 {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 14px;
+}
+.site-footer-col a {
+  display: block;
+  font-size: 14px;
+  color: var(--stone);
+  padding: 5px 0;
+  transition: color 0.2s;
+  text-decoration: none;
+}
+.site-footer-col a:hover {
+  color: var(--orange);
+}
+/* Support links pair an icon with a value: stack them, each row icon + value. */
+.site-footer-support {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.site-footer-support a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.site-footer-support svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+.site-footer-bot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 28px;
+  font-size: 13px;
+  color: var(--stone);
+  gap: 16px 24px;
+}
+.site-footer-bot a {
+  color: var(--stone);
+  text-decoration: none;
+}
+.site-footer-bot a:hover {
+  color: var(--orange);
+}
+.site-footer-partner {
+  display: inline-flex;
+  align-items: center;
+}
+.site-footer-partner img {
+  height: 44px;
+  width: auto;
+  display: block;
+}
+
+/* RTL */
+.site-footer--rtl .site-footer-col a,
+.site-footer--rtl .site-footer-row h5 {
+  text-align: right;
+}
+.site-footer--rtl .site-footer-support {
+  direction: rtl;
+  text-align: right;
+}
+.site-footer--rtl .site-footer-bot {
+  direction: rtl;
+}
+
+@media (max-width: 900px) {
+  .site-footer-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+}
+@media (max-width: 560px) {
+  .site-footer-row {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .site-footer-bot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+}

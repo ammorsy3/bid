@@ -168,6 +168,18 @@
   --neutral-900: hsl(26, 16%, 9%);
 }
 
+/* Cream marketing surfaces (landing, pricing, marketplace) hardcode a light
+   background and stay cream even when .dark is set on <html>. Without this the
+   adaptive "orange" colorway below flips <BidLogo variant="orange"> to a cream
+   wordmark on that cream ground, leaving only the orange dot visible. Custom
+   properties inherit, so re-pinning the light values on the page root beats
+   .dark on <html> for the whole subtree. Add this class to any root that
+   hardcodes a light background. */
+.surface-cream {
+  --bid-logo-orange-word: var(--bid-orange);
+  --bid-logo-orange-dot: var(--bid-ink);
+}
+
 .dark {
   /* "orange" logo variant — dark: cream word + orange dot */
   --bid-logo-orange-word: var(--bid-cream);

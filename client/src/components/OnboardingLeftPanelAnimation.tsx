@@ -32,7 +32,7 @@ export function OnboardingLeftPanelAnimation() {
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 28 }}>
           <div style={{ position: "relative", overflow: "hidden", width: "100%", maxWidth: 300, background: "rgba(255,255,255,.42)", backdropFilter: "blur(22px) saturate(165%)", WebkitBackdropFilter: "blur(22px) saturate(165%)", border: "1px solid rgba(255,255,255,.6)", borderRadius: 26, padding: "34px 30px 32px", boxShadow: "0 30px 70px -28px rgba(11,9,7,.4), inset 0 1px 0 rgba(255,255,255,.55)", animation: "ob-card 7s ease-in-out infinite", textAlign: "center" }}>
             <div style={{ position: "absolute", top: "-60%", left: 0, width: "45%", height: "220%", background: "linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent)", animation: "ob-shimmer 6.5s ease-in-out infinite", pointerEvents: "none" }} />
-            <div style={{ width: 58, height: 58, borderRadius: 18, background: "#F7F1E6", display: "inline-flex", alignItems: "center", justifyContent: "center", boxShadow: "0 14px 30px -10px rgba(11,9,7,.25)", marginBottom: 18 }}>
+            <div className="surface-cream" style={{ width: 58, height: 58, borderRadius: 18, background: "#F7F1E6", display: "inline-flex", alignItems: "center", justifyContent: "center", boxShadow: "0 14px 30px -10px rgba(11,9,7,.25)", marginBottom: 18 }}>
               <BidMonogram variant="orange" size={32} />
             </div>
             <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-.03em", color: "#0B0907", lineHeight: 1.1, marginBottom: 8 }}>

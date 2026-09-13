@@ -3009,10 +3009,6 @@ const translations = {
       ctaButton: "Post a tender",
       listView: "List",
       gridView: "Grid",
-      footerTagline: "Bid turns messy sourcing into a clear workflow.",
-      footerForRequesters: "For Requesters",
-      footerForVendors: "For Vendors",
-      footerCompany: "Company",
       daysUnit: "days",
     },
     landing: {
@@ -4225,8 +4221,12 @@ const translations = {
       description: "Talk to our team directly — we usually reply within a few minutes.",
       callUs: "Call us",
       whatsapp: "WhatsApp",
+      instagram: "Instagram",
+      linkedin: "LinkedIn",
       phoneAria: "Call Bid support",
       whatsappAria: "Message Bid support on WhatsApp",
+      instagramAria: "Bid on Instagram",
+      linkedinAria: "Bid on LinkedIn",
     },
   },
   ar: {
@@ -7226,10 +7226,6 @@ const translations = {
       ctaButton: "أنشئ طلب عروض",
       listView: "قائمة",
       gridView: "شبكة",
-      footerTagline: "عمليات توريد أوضح وأسهل مع Bid",
-      footerForRequesters: "للمشترين",
-      footerForVendors: "للموردين",
-      footerCompany: "الشركة",
       daysUnit: "أيام",
     },
     landing: {
@@ -8439,8 +8435,12 @@ const translations = {
       description: "تواصل مع فريقنا مباشرة — نرد عادةً خلال دقائق.",
       callUs: "اتصل بنا",
       whatsapp: "واتساب",
+      instagram: "إنستغرام",
+      linkedin: "لينكدإن",
       phoneAria: "اتصل بدعم بد",
       whatsappAria: "راسل دعم بد على واتساب",
+      instagramAria: "بِد على إنستغرام",
+      linkedinAria: "بِد على لينكدإن",
     },
   }
 };

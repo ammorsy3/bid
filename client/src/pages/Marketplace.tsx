@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
 import { useAuthStore } from "@/lib/auth";
 import { BidLogo } from "@/components/brand/BidLogo";
+import { SiteFooter } from "@/components/site-footer";
 
 interface MarketplaceTender {
   id: string;
@@ -195,7 +196,7 @@ function FilterDropdown({
 }
 
 export default function Marketplace() {
-  const { t, language, isRtl } = useI18n();
+  const { t, language, isRtl, setLanguage } = useI18n();
   const [, setLocation] = useLocation();
   const { user, activeCompany } = useAuthStore();
   const accountType = (activeCompany as any)?.accountType ?? 'company';
@@ -290,7 +291,7 @@ export default function Marketplace() {
         color: "#0B0907",
         fontFamily: isRtl ? "'IBM Plex Sans Arabic', sans-serif" : undefined,
       }}
-      className="min-h-screen"
+      className="min-h-screen surface-cream"
       dir={isRtl ? "rtl" : "ltr"}
     >
 
@@ -301,7 +302,7 @@ export default function Marketplace() {
       >
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-14 py-5 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href={marketplaceHome} className="flex items-center">
+            <Link href="/" className="flex items-center" aria-label="Bid home">
               <BidLogo variant="orange" size={28} />
             </Link>
             <nav className="hidden md:flex items-center gap-7">
@@ -313,6 +314,15 @@ export default function Marketplace() {
             </nav>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLanguage(language === "ar" ? "en" : "ar")}
+              className="text-sm font-medium px-3 py-[11px] rounded-full border transition-colors hover:bg-white"
+              style={{ color: "#0B0907", borderColor: "rgba(11,9,7,0.16)" }}
+              aria-label="Switch language"
+              data-testid="button-language-toggle"
+            >
+              {language === "ar" ? "EN" : "AR"}
+            </button>
             {user ? (
               <>
                 {!isVendorAccount && (
@@ -379,7 +389,14 @@ export default function Marketplace() {
               fontSize: "clamp(44px, 9vw, 140px)",
               letterSpacing: "-0.045em",
               color: "#0B0907",
-              ...(isRtl && { fontFamily: "'IBM Plex Sans Arabic', sans-serif" }),
+              // Arabic script has tall marks and descenders, so the 0.92
+              // line-height built for Latin display type makes the two lines
+              // collide. Loosen it and drop the Latin letter-spacing.
+              ...(isRtl && {
+                fontFamily: "'IBM Plex Sans Arabic', sans-serif",
+                lineHeight: 1.2,
+                letterSpacing: 0,
+              }),
             }}
           >
             {t("marketplace.heroLine1")}
@@ -982,81 +999,7 @@ export default function Marketplace() {
       )}
 
       {/* ── FOOTER ── */}
-      <footer className="border-t" style={{ borderColor: "rgba(11,9,7,0.08)" }}>
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-14 py-14 sm:py-16">
-          <div
-            className="grid grid-cols-2 sm:grid-cols-[1.6fr_1fr_1fr_1fr] gap-8 sm:gap-10 pb-10 border-b"
-            style={{ borderColor: "rgba(11,9,7,0.08)" }}
-          >
-            {/* Brand */}
-            <div className="col-span-2 sm:col-span-1">
-              <div className="mb-4">
-                <BidLogo variant="orange" size={30} />
-              </div>
-              <p className="text-sm leading-[1.55] max-w-[36ch]" style={{ color: "#8A8078" }}>
-                {t("marketplace.footerTagline")}
-              </p>
-            </div>
-            {/* For Requesters */}
-            <div>
-              <h5
-                className="text-[11px] font-bold uppercase tracking-[0.08em] mb-3.5"
-                style={{ color: "#0B0907" }}
-              >
-                {t("marketplace.footerForRequesters")}
-              </h5>
-              <div className="flex flex-col gap-1">
-                <Link href={marketplaceHome} className="text-sm py-1 transition-colors hover:text-[#FE3C01]" style={{ color: "#8A8078" }}>
-                  {t("marketplace.title")}
-                </Link>
-                <Link href="/signup" className="text-sm py-1 transition-colors hover:text-[#FE3C01]" style={{ color: "#8A8078" }}>
-                  {t("marketplace.getStarted")}
-                </Link>
-              </div>
-            </div>
-            {/* For Vendors */}
-            <div>
-              <h5
-                className="text-[11px] font-bold uppercase tracking-[0.08em] mb-3.5"
-                style={{ color: "#0B0907" }}
-              >
-                {t("marketplace.footerForVendors")}
-              </h5>
-              <div className="flex flex-col gap-1">
-                <Link href={marketplaceHome} className="text-sm py-1 transition-colors hover:text-[#FE3C01]" style={{ color: "#8A8078" }}>
-                  {t("marketplace.title")}
-                </Link>
-                <Link href="/login" className="text-sm py-1 transition-colors hover:text-[#FE3C01]" style={{ color: "#8A8078" }}>
-                  {t("marketplace.login")}
-                </Link>
-              </div>
-            </div>
-            {/* Company */}
-            <div>
-              <h5
-                className="text-[11px] font-bold uppercase tracking-[0.08em] mb-3.5"
-                style={{ color: "#0B0907" }}
-              >
-                {t("marketplace.footerCompany")}
-              </h5>
-              <div className="flex flex-col gap-1">
-                <Link href="/" className="text-sm py-1 transition-colors hover:text-[#FE3C01]" style={{ color: "#8A8078" }}>
-                  {t("marketplace.home")}
-                </Link>
-                <Link href="/login" className="text-sm py-1 transition-colors hover:text-[#FE3C01]" style={{ color: "#8A8078" }}>
-                  {t("marketplace.login")}
-                </Link>
-              </div>
-            </div>
-          </div>
-          <div
-            className="flex items-center justify-between pt-7 text-[13px] gap-6 flex-wrap"
-            style={{ color: "#8A8078" }}
-          >
-            <span>{t("marketplace.copyright", { year: String(new Date().getFullYear()) })}</span>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter lang={language === "ar" ? "ar" : "en"} />
     </div>
   );
 }

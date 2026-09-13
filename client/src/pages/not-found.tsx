@@ -10,7 +10,7 @@ export default function NotFound() {
   const { t } = useI18n();
   const user = useAuthStore((s) => s.user);
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[var(--bid-cream)] px-4">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[var(--bid-cream)] dark:bg-background px-4">
       <div className="mb-8">
         <BidLogo variant="orange" size={40} />
       </div>

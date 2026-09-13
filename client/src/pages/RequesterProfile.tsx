@@ -147,7 +147,7 @@ export default function RequesterProfile() {
     };
   };
 
-  const handleLogoUpload = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+  const handleLogoUpload = async (result: UploadResult) => {
     if (result.successful && result.successful[0]) {
       const uploadURL = result.successful[0].uploadURL;
 

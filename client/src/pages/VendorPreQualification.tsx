@@ -140,7 +140,7 @@ export default function VendorPreQualification() {
     return { method: 'PUT' as const, url: data.uploadURL };
   };
 
-  const handleFileUpload = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>, fieldName: keyof PreQualificationForm, fileKey: string) => {
+  const handleFileUpload = async (result: UploadResult, fieldName: keyof PreQualificationForm, fileKey: string) => {
     if (result.successful && result.successful[0]) {
       const uploadURL = result.successful[0].uploadURL;
 
@@ -599,7 +599,7 @@ export default function VendorPreQualification() {
                 {isSaving
                   ? t('vendorPreQual.saving')
                   : lastSaved
-                  ? t('vendorPreQual.lastSaved', { time: lastSaved })
+                  ? t('vendorPreQual.lastSaved', { time: lastSaved.toLocaleTimeString() })
                   : ""}
               </div>
               <div className="flex gap-4">

@@ -489,7 +489,7 @@ export default function TractionLinkEditor() {
                   {(headerPreview || data.profile.headerUrl) ? (
                     <div className="relative rounded-lg overflow-hidden border border-border">
                       <img
-                        src={headerPreview || data.profile.headerUrl}
+                        src={headerPreview || data.profile.headerUrl || undefined}
                         alt="Header background"
                         className="w-full h-20 object-cover"
                       />

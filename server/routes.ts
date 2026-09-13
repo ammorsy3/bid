@@ -5132,10 +5132,11 @@ Respond with ONLY a JSON object. Example:
           metadata: { tenderId: tender.id, offerId: offer.id },
         });
 
-        // Auto-add vendor to requester's vendors base on submission
+        // Auto-add vendor to requester's vendors base on submission.
+        // Legacy tenders can have no owning company; there's no base to add to.
         try {
-          const isAlreadyInBase = await storage.isVendorInBase(tender.companyId, req.auth!.activeCompanyId!);
-          if (!isAlreadyInBase) {
+          const isAlreadyInBase = !tender.companyId || await storage.isVendorInBase(tender.companyId, req.auth!.activeCompanyId!);
+          if (!isAlreadyInBase && tender.companyId) {
             await storage.addVendorToBase({
               requesterCompanyId: tender.companyId,
               vendorCompanyId: req.auth!.activeCompanyId!,
@@ -5157,6 +5158,7 @@ Respond with ONLY a JSON object. Example:
 
             // Only notify on the 1st proposal, then every 5th (5, 10, 15, 20, ...)
             if (proposalCount !== 1 && proposalCount % 5 !== 0) return;
+            if (!tender.companyId) return;
 
             const members = await storage.getCompanyMembers(tender.companyId);
             const adminMembers = members.filter(
@@ -5893,6 +5895,10 @@ Respond with ONLY a JSON object. Example:
           return res.status(403).json({ message: "Access denied" });
         }
 
+        if (!joinRequest.vendorCompanyId) {
+          return res.status(400).json({ message: "Join request has no vendor company" });
+        }
+
         // Check if vendor already in base — if so, just mark the request as approved
         const alreadyInBase = await storage.isVendorInBase(
           req.auth!.activeCompanyId!,
@@ -6035,6 +6041,10 @@ Respond with ONLY a JSON object. Example:
 
         if (joinRequest.requesterCompanyId !== req.auth!.activeCompanyId) {
           return res.status(403).json({ message: "Access denied" });
+        }
+
+        if (!joinRequest.vendorCompanyId) {
+          return res.status(404).json({ message: "Vendor not found" });
         }
 
         const vendorCompany = await storage.getCompany(joinRequest.vendorCompanyId);
@@ -6895,7 +6905,7 @@ Respond with ONLY a JSON object. Example:
   // AI CHAT HISTORY
   // ============================================================================
 
-  app.get("/api/ai-chat-sessions", authenticateToken, async (req, res) => {
+  app.get("/api/ai-chat-sessions", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const sessions = await storage.getAiChatSessions(
         req.auth!.userId,
@@ -6908,7 +6918,7 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.get("/api/ai-chat-sessions/:id", authenticateToken, async (req, res) => {
+  app.get("/api/ai-chat-sessions/:id", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const session = await storage.getAiChatSession(req.params.id);
       if (!session || session.userId !== req.auth!.userId) {
@@ -6922,7 +6932,7 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.post("/api/ai-chat-sessions", authenticateToken, async (req, res) => {
+  app.post("/api/ai-chat-sessions", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const MAX_SESSIONS_PER_USER = 100;
       const userId = req.auth!.userId;
@@ -6948,7 +6958,7 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.patch("/api/ai-chat-sessions/:id", authenticateToken, async (req, res) => {
+  app.patch("/api/ai-chat-sessions/:id", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const session = await storage.getAiChatSession(req.params.id);
       if (!session || session.userId !== req.auth!.userId) {
@@ -6965,7 +6975,7 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.delete("/api/ai-chat-sessions/:id", authenticateToken, async (req, res) => {
+  app.delete("/api/ai-chat-sessions/:id", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const session = await storage.getAiChatSession(req.params.id);
       if (!session || session.userId !== req.auth!.userId) {
@@ -6979,7 +6989,7 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.post("/api/ai-chat-sessions/:id/messages", authenticateToken, async (req, res) => {
+  app.post("/api/ai-chat-sessions/:id/messages", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const session = await storage.getAiChatSession(req.params.id);
       if (!session || session.userId !== req.auth!.userId) {

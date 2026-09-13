@@ -82,9 +82,7 @@ function CalendarHeading({ ...props }) {
 function CalendarGrid({ className, ...props }: CalendarGridProps) {
   return (
     <AriaCalendarGrid
-      className={composeRenderProps(className, (className) =>
-        cn("w-full border-collapse space-y-1", className)
-      )}
+      className={cn("w-full border-collapse space-y-1", className)}
       {...props}
     />
   )
@@ -97,11 +95,9 @@ function CalendarGridHeader({ ...props }: CalendarGridHeaderProps) {
 function CalendarHeaderCell({ className, ...props }: CalendarHeaderCellProps) {
   return (
     <AriaCalendarHeaderCell
-      className={composeRenderProps(className, (className) =>
-        cn(
-          "w-9 rounded-md text-[0.8rem] font-normal text-muted-foreground",
-          className
-        )
+      className={cn(
+        "w-9 rounded-md text-[0.8rem] font-normal text-muted-foreground",
+        className
       )}
       {...props}
     />
@@ -111,9 +107,7 @@ function CalendarHeaderCell({ className, ...props }: CalendarHeaderCellProps) {
 function CalendarGridBody({ className, ...props }: CalendarGridBodyProps) {
   return (
     <AriaCalendarGridBody
-      className={composeRenderProps(className, (className) =>
-        cn("[&>tr>td]:p-0", className)
-      )}
+      className={cn("[&>tr>td]:p-0", className)}
       {...props}
     />
   )

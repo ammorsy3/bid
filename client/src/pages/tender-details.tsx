@@ -284,7 +284,11 @@ interface NegotiationAction {
   id: string;
   tenderId: string;
   offerId: string;
+  companyId: string;
   actionType: string;
+  message: string;
+  status: string;
+  createdAt: string;
   [key: string]: unknown;
 }
 
@@ -713,6 +717,7 @@ export default function TenderDetails() {
   };
 
   const getDurationDisplay = () => {
+    if (!tender) return t('tenderFlow.notSpecified');
     if (tender.startDate && tender.endDate) {
       const start = new Date(tender.startDate);
       const end = new Date(tender.endDate);

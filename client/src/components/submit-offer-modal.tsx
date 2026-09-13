@@ -496,7 +496,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     };
   };
 
-  const handleTechnicalUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+  const handleTechnicalUploadComplete = async (result: UploadResult) => {
     if (result.successful && result.successful[0]) {
       const uploadURL = result.successful[0].uploadURL;
       const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
@@ -507,7 +507,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     }
   };
 
-  const handleFinancialUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+  const handleFinancialUploadComplete = async (result: UploadResult) => {
     if (result.successful && result.successful[0]) {
       const uploadURL = result.successful[0].uploadURL;
       const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
@@ -518,7 +518,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
     }
   };
 
-  const handleCombinedUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+  const handleCombinedUploadComplete = async (result: UploadResult) => {
     if (result.successful && result.successful[0]) {
       const uploadURL = result.successful[0].uploadURL;
       const metadataResponse = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });

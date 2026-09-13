@@ -93,7 +93,7 @@ interface NegotiationActionData {
   actionType: string;
   message: string;
   status: string;
-  createdAt: string;
+  createdAt: string | Date;
 }
 
 interface ProposalComparisonProps {
@@ -104,7 +104,7 @@ interface ProposalComparisonProps {
   tenderTitle?: string;
   tenderCompanyName?: string;
   negotiationActions?: NegotiationActionData[];
-  submissionType?: string;
+  submissionType?: string | null;
 }
 
 const VENDOR_COLORS = [

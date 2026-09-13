@@ -225,14 +225,14 @@ function MobileAtAGlance({
   getBudgetDisplay,
   durationDisplay,
 }: {
-  tender: TenderData;
+  tender: TenderInvite;
   isDeadlinePassed: boolean;
   isDeadlineToday: boolean;
   daysRemaining: number;
   formatDate: (d: string) => string;
-  deadlineSubtext: () => string;
+  deadlineSubtext: () => string | null;
   getBudgetDisplay: () => string;
-  durationDisplay: string;
+  durationDisplay: string | null;
 }) {
   const [open, setOpen] = useState(true);
   const { t } = useI18n();
@@ -1014,7 +1014,7 @@ export default function TenderInviteLink() {
                               <div className="flex flex-col items-start">
                                 <span className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide">{t('tenderFlow.startLabel')}</span>
                                 <span className="text-xs font-semibold text-muted-foreground">
-                                  {tender.startDate ? formatDate(tender.startDate) : formatDate(tender.createdAt)}
+                                  {tender.startDate ? formatDate(tender.startDate) : tender.createdAt ? formatDate(tender.createdAt) : t('tenderFlow.notSpecified')}
                                 </span>
                               </div>
                               <div className="flex flex-col items-end">

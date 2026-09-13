@@ -116,7 +116,7 @@ export default function VendorOnboarding() {
     };
   };
 
-  const handleFileUpload = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>, fieldName: keyof Step2Form, fileKey: string) => {
+  const handleFileUpload = async (result: UploadResult, fieldName: keyof Step2Form, fileKey: string) => {
     if (result.successful && result.successful[0]) {
       const uploadURL = result.successful[0].uploadURL;
       

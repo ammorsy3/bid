@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import "./landing.css";
 import { BidLogo, BidMonogram } from "@/components/brand/BidLogo";
 import { useAuthStore } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { SupportContactLinks } from "@/components/support-contact";
 
 type Lang = "en" | "ar";
@@ -108,29 +109,17 @@ function SignUpModal({ onClose, lang }: { onClose: () => void; lang: Lang }) {
 
 const Landing = () => {
   const [showModal, setShowModal] = useState(false);
-  // Always default to English on load for every visitor. Users can still
-  // toggle to Arabic for the session, but the page no longer restores a
-  // previously-saved language preference.
-  const [lang, setLang] = useState<Lang>("en");
+  // Use the app-wide language (English for first-time visitors) rather than a
+  // page-local copy, so the homepage, login and signup always agree and a
+  // visitor's choice survives navigating away and back.
+  const { language: lang, setLanguage } = useI18n();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuthStore();
   const c = copy[lang];
   const isRtl = lang === "ar";
   const label = (en: string, ar: string) => isRtl ? ar : en;
 
-  const toggleLang = () => {
-    const next = lang === "en" ? "ar" : "en";
-    setLang(next);
-    try {
-      localStorage.setItem("landing-lang", next);
-      // Keep the app-wide language (read by login/register/OTP requests, and by
-      // every other page's i18n) in sync with what's shown here — otherwise the
-      // language a visitor sees on the homepage has no bearing on the language
-      // their account and verification emails end up using.
-      localStorage.setItem("language", next);
-      window.dispatchEvent(new CustomEvent("bid:language-sync", { detail: next }));
-    } catch {}
-  };
+  const toggleLang = () => setLanguage(lang === "en" ? "ar" : "en");
 
   const handleCreate = () => setShowModal(true);
 

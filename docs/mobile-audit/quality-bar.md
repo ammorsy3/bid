@@ -63,7 +63,32 @@ automatic checklist (`tests/mobile/checker.js`) enforces the measurable parts.
   stays visible (see the note in `client/src/index.css`).
 - Text contrast at least 4.5:1.
 
-## 6. Desktop stays exactly as it is
+## 6. Feels like an installed app, not a website you're visiting
+The client's own words: it should feel like something from the App Store, not
+a browser tab. Concretely:
+- **Every tap answers back.** A phone has no hover — without an `:active`
+  state a tap gives no feedback until the action finishes, which reads as
+  slow/broken. `Button` and `NeonButton` already dim + shrink slightly on
+  press (`active:scale-[0.97]`); anything that rolls its own clickable
+  `<div>`/`<button>` instead of using those needs the same treatment.
+- **No browser tells.** No grey tap-highlight flash (suppressed globally),
+  no visible scrollbars on phones (default), no pull-past-the-edge chaining
+  into the browser's own refresh/back gesture (`overscroll-behavior-y:
+  contain`, set globally — don't fight it with `overscroll-behavior: auto`).
+- **Opens like an app.** `site.webmanifest` + `apple-touch-icon.png` mean
+  "Add to Home Screen" gets the real Bid icon and opens full-screen with no
+  address bar; `theme-color` tints the status bar to match the page. If you
+  add a genuinely new screen (not a variant of an existing one), it doesn't
+  need a manifest change, but check it doesn't reintroduce a stray browser
+  chrome moment (e.g. a full page navigation where a modal would do).
+- **Motion feels deliberate, not instant cuts.** Popups slide in as bottom
+  sheets (already the case for `Dialog`/`Sheet` on phones) rather than
+  popping. Prefer a transition over a hard flash when content swaps.
+- **Never make people pinch-zoom.** This is the practical test: if reading
+  or tapping anything requires zooming in, it fails section 1/2 above,
+  regardless of what this section says.
+
+## 7. Desktop stays exactly as it is
 - Phone fixes use the base classes; the desktop look is kept with `md:`/`lg:`
   prefixes. The 1280 px photos before and after must match.
 

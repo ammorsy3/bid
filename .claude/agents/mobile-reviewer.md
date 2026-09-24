@@ -25,6 +25,11 @@ edit anything.
    - a first screen that hides the main action
    - dark mode that looks broken
    - anything on desktop that moved
+   - anything that still feels like "a website" rather than an app: a custom
+     tappable element with no press feedback (quality-bar.md §6 — Button and
+     NeonButton already handle this; flag one-off clickable divs that don't),
+     a hard instant cut where a slide/fade would read as more deliberate, or
+     anything that would make a real person reach to pinch-zoom
 
 ## Reply (25 lines max)
 - `PASS`, when nothing breaks the quality bar. Optionally add `NICE-TO-HAVE:` with up to 3 items.

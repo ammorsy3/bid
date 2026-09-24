@@ -20,3 +20,6 @@ test-results/
 
 # Mobile + Arabic audit loop output (photos, results, reports, browser profiles)
 .mobile-audit/
+
+# Snapshots and logs from the Playwright MCP browser
+.playwright-mcp/

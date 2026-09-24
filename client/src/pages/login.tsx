@@ -356,7 +356,7 @@ export default function Login() {
                   {/* Bigger tap areas without moving anything: padding taken back
                       out of the margins. "Sign up" grows 12px each way (the 12px
                       gap below is its limit); the small links grow downwards only,
-                      so the two areas never overlap. */}
+                      into the card's padding, so no two areas overlap. */}
                   <p className="text-sm text-muted-foreground">
                     {t('auth.noAccount')}{" "}
                     <Link href="/signup" className="inline-block py-3 -my-3 text-[#FE3C01] hover:text-[#d54d35] font-medium">
@@ -364,9 +364,9 @@ export default function Login() {
                     </Link>
                   </p>
                   <p className="mt-3 text-xs text-muted-foreground">
-                    <Link href="/terms" className="inline-block pb-2 -mb-2 hover:text-foreground" data-testid="link-terms">{t('terms.pageTitle')}</Link>
+                    <Link href="/terms" className="inline-block pb-4 -mb-4 hover:text-foreground" data-testid="link-terms">{t('terms.pageTitle')}</Link>
                     <span className="mx-2">·</span>
-                    <Link href="/privacy" className="inline-block pb-2 -mb-2 hover:text-foreground" data-testid="link-privacy">{t('privacy.pageTitle')}</Link>
+                    <Link href="/privacy" className="inline-block pb-4 -mb-4 hover:text-foreground" data-testid="link-privacy">{t('privacy.pageTitle')}</Link>
                   </p>
                 </div>
               </div>

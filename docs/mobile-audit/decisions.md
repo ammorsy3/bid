@@ -45,3 +45,9 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
    widening a desktop control, which this audit deliberately leaves alone
    (mobile + Arabic only, desktop pixels unchanged). Worth a quick separate
    fix whenever you're next in that file.
+
+9. **Pre-existing, not fixed: empty Field/Industry dropdown placeholder.**
+   IndividualProfileEditor's specialization Select shows no placeholder text
+   when nothing is chosen, in both languages — noticed while reviewing the
+   onboarding pages, predates this audit, not touched. Worth a quick look
+   next time you're in that file.

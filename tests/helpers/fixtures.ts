@@ -63,13 +63,18 @@ function track(table: Table, key: string) {
   created[table].push(key);
 }
 
-export async function makeUser(opts: { isAdmin?: boolean } = {}) {
+// Test users are created already past the email code step, because that is the
+// state nearly every test cares about. Pass otpVerified: false to build the
+// "signed in but has not entered the code yet" case that the server now refuses.
+export async function makeUser(opts: { isAdmin?: boolean; otpVerified?: boolean } = {}) {
   const id = randomUUID();
   const email = `acltest-${RUN}-${id.slice(0, 6)}@test.invalid`;
+  const verified = opts.otpVerified ?? true;
   await db.execute(sql`
-    insert into users (id, email, username, password, name, is_admin)
+    insert into users (id, email, username, password, name, is_admin, email_verified, otp_verified)
     values (${id}, ${email}, ${`acltest_${RUN}_${id.slice(0, 6)}`},
-            'x-not-a-real-hash', 'ACL Test User', ${opts.isAdmin ?? false})
+            'x-not-a-real-hash', 'ACL Test User', ${opts.isAdmin ?? false},
+            ${verified}, ${verified})
   `);
   track("users", id);
   return { id, email };
@@ -198,12 +203,15 @@ export function tokenFor(user: {
   id: string;
   activeCompanyId?: string | null;
   isAdmin?: boolean;
+  /** What the token *claims* the role is — which is not necessarily what the
+   *  database says any more. Tests for stale-token handling need to set this. */
+  roleInCompany?: string | null;
 }) {
   return jwt.sign(
     {
       userId: user.id,
       activeCompanyId: user.activeCompanyId ?? null,
-      roleInCompany: null,
+      roleInCompany: user.roleInCompany ?? null,
       isAdmin: user.isAdmin ?? false,
     },
     process.env.JWT_SECRET!,

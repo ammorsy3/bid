@@ -129,6 +129,13 @@ export async function authenticateApiKeyOrJwt(
       res.status(403).json({ message: "User not found" });
       return;
     }
+    // Same second-factor rule as the main app: a JWT issued at login does not
+    // work until its owner has confirmed the emailed code. (API keys are not
+    // affected — they are minted by an already-verified admin.)
+    if (!user.otpVerified) {
+      res.status(403).json({ message: "Please verify the code we emailed you before continuing.", requiresOtp: true });
+      return;
+    }
     req.auth = {
       userId: payload.userId,
       activeCompanyId: payload.activeCompanyId,

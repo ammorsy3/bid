@@ -62,22 +62,97 @@ for (const phase of ["before", "after"]) {
   }
 }
 
-// Light markdown → HTML for decisions and per-page fix notes.
-const md = (text) =>
-  esc(text)
-    .split(/\n{2,}/)
-    .map((block) => {
-      if (/^#{1,6} /.test(block)) {
-        const level = Math.min(6, block.match(/^#+/)[0].length + 2);
-        return `<h${level}>${block.replace(/^#+ /, "")}</h${level}>`;
+// Light markdown → HTML for decisions and per-page fix notes. Line-based
+// rather than blank-line-block-based: the result.md files this renders have
+// numbered items whose own prose soft-wraps onto indented continuation
+// lines (a plain block-splitter turns each wrapped line into its own fake
+// list item), and headings that aren't always followed by a blank line
+// before their list (which a naive "block starts with #" check would then
+// swallow whole, list and all, as the heading's text).
+function md(text) {
+  const lines = esc(text).split("\n");
+  const html = [];
+  // Open block: { type: "ol"|"ul", items: [{ text, sub: null|{type,items} }] }.
+  // Each top-level item carries its OWN sub-list (a nested indented bullet
+  // list under just that item), not a slot shared by the whole list — two
+  // items in the same list can each have their own, or none.
+  let list = null;
+  let para = null;
+
+  const renderList = (l) => `<${l.type}>${l.items.map((it) => `<li>${it.text}${it.sub ? renderList(it.sub) : ""}</li>`).join("")}</${l.type}>`;
+  const closeList = () => {
+    if (!list) return;
+    html.push(renderList(list));
+    list = null;
+  };
+  const closePara = () => {
+    if (!para) return;
+    html.push(`<p>${para}</p>`);
+    para = null;
+  };
+  const lastItem = () => list && list.items[list.items.length - 1];
+  // A continuation line belongs to whichever is innermost and still open:
+  // the current item's own sub-list, else the current top-level item, else
+  // (no list open at all) a plain paragraph.
+  const appendToOpen = (text) => {
+    const item = lastItem();
+    if (item && item.sub) {
+      const sub = item.sub.items;
+      sub[sub.length - 1].text += " " + text;
+    } else if (item) {
+      item.text += " " + text;
+    } else if (para) {
+      para += " " + text;
+    } else {
+      para = text;
+    }
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/\s+$/, "");
+    const heading = line.match(/^(#{1,6})\s+(.*)/);
+    const ordered = line.match(/^\s*\d+\.\s+(.*)/);
+    const nestedBullet = line.match(/^\s{2,}[-*]\s+(.*)/);
+    const bullet = !nestedBullet && line.match(/^[-*]\s+(.*)/);
+
+    if (heading) {
+      closeList();
+      closePara();
+      const level = Math.min(6, heading[1].length + 2);
+      html.push(`<h${level}>${heading[2]}</h${level}>`);
+    } else if (ordered) {
+      closePara();
+      if (!list || list.type !== "ol") {
+        closeList();
+        list = { type: "ol", items: [] };
       }
-      if (/^\s*[-*] /m.test(block)) return `<ul>${block.split(/\n/).filter(Boolean).map((l) => `<li>${l.replace(/^\s*[-*] /, "")}</li>`).join("")}</ul>`;
-      if (/^\s*\d+\. /m.test(block)) return `<ol>${block.split(/\n/).filter(Boolean).map((l) => `<li>${l.replace(/^\s*\d+\. /, "")}</li>`).join("")}</ol>`;
-      return `<p>${block.replace(/\n/g, "<br>")}</p>`;
-    })
+      list.items.push({ text: ordered[1], sub: null });
+    } else if (nestedBullet && lastItem()) {
+      closePara();
+      const item = lastItem();
+      if (!item.sub) item.sub = { type: "ul", items: [] };
+      item.sub.items.push({ text: nestedBullet[1], sub: null });
+    } else if (bullet) {
+      closePara();
+      if (!list || list.type !== "ul") {
+        closeList();
+        list = { type: "ul", items: [] };
+      }
+      list.items.push({ text: bullet[1], sub: null });
+    } else if (line.trim() === "") {
+      closePara(); // a list stays open across a blank line — see the note above
+    } else {
+      appendToOpen(line.trim());
+    }
+  }
+  closeList();
+  closePara();
+
+  return html
     .join("")
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
 const readIf = (file) => (fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "");
 
 const counts = (r) => (r ? `<span class="pill ${r.fails ? "bad" : "good"}">${r.fails} fail</span> <span class="pill warn">${r.warns} warn</span>` : `<span class="pill none">not captured</span>`);

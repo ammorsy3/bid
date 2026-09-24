@@ -26,7 +26,7 @@ status column up to date.
 | sso-callback, desktop-suggestion, not-found | fixed (28 → 0 phone fails) | Google sign-in return is translated + stays light; failure stays on-screen instead of an English toast; popup close button now 44px everywhere in the app | ClerkCallback texts are hard-coded English and it isn't forced light. |
 | onboarding | fixed (0 phone fails; shared onboarding-layout.tsx also touched) | Choice screen, join-with-code, colleagues found, waiting invitation, add-account. |
 | onboarding-company, onboarding-individual, onboarding-team | fixed (email/ltr/small-text fails → 0; category names + validation messages translated) | |
-| team-invite, join | todo | |
+| team-invite, join | fixed (dark-mode warning box, RTL name truncation, min-h-dvh) | |
 
 ## Later batches (session mode: your real account, every save still blocked)
 | Batch | Pages | Status |

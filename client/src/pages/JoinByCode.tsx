@@ -44,7 +44,7 @@ export default function JoinByCode() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted">
+    <div className="min-h-dvh flex items-center justify-center bg-muted">
       <div className="flex items-center gap-2 text-muted-foreground">
         <Loader2 className="h-5 w-5 animate-spin" />
         {t('onbJoin.joining')}

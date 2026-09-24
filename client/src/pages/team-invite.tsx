@@ -120,7 +120,7 @@ export default function TeamInvite() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted">
+      <div className="min-h-dvh flex items-center justify-center bg-muted">
         <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
       </div>
     );
@@ -128,7 +128,7 @@ export default function TeamInvite() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+      <div className="min-h-dvh flex items-center justify-center bg-muted p-4">
         <div className="w-full max-w-md">
           <Card>
             <CardContent className="pt-8 pb-8 text-center">
@@ -150,7 +150,7 @@ export default function TeamInvite() {
   if (!invitation) return null;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-muted p-4">
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-muted p-4">
       <div className="mb-8">
         <BidLogo variant="orange" size={40} />
       </div>
@@ -161,7 +161,7 @@ export default function TeamInvite() {
           </div>
           <h1 className="font-display font-black text-3xl text-foreground mb-2 tracking-[-0.04em]">{t('teamInvite.invitedHeading')}</h1>
           <p className="text-muted-foreground">
-            <span className="font-medium text-muted-foreground">{invitation.inviterName}</span> {t('teamInvite.invitedBy')}
+            <span className="font-medium text-muted-foreground" dir="auto">{invitation.inviterName}</span> {t('teamInvite.invitedBy')}
           </p>
         </div>
 
@@ -175,7 +175,7 @@ export default function TeamInvite() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">{t('teamInvite.company')}</p>
-                  <p className="font-semibold text-foreground">{invitation.companyName}</p>
+                  <p className="font-semibold text-foreground" dir="auto">{invitation.companyName}</p>
                 </div>
               </div>
 
@@ -192,7 +192,7 @@ export default function TeamInvite() {
 
             {/* Email notice */}
             {user && user.email.toLowerCase() !== invitation.email.toLowerCase() && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-amber-800 dark:text-amber-300">
                   {t('teamInvite.emailMismatch', { inviteEmail: invitation.email, userEmail: user.email })}
@@ -210,12 +210,12 @@ export default function TeamInvite() {
               >
                 {accepting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="me-2 h-4 w-4 animate-spin" />
                     {t('teamInvite.joining')}
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    <CheckCircle2 className="me-2 h-4 w-4" />
                     {t('teamInvite.acceptInvitation')}
                   </>
                 )}
@@ -265,7 +265,7 @@ export default function TeamInvite() {
             <AlertDialogAction onClick={acceptInvitation} disabled={accepting}>
               {accepting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
                   {t('teamInvite.joining')}
                 </>
               ) : (

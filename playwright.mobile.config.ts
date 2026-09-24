@@ -63,7 +63,8 @@ export default defineConfig({
         ...devices["iPhone 15"],
         browserName: "chromium",
         colorScheme: "dark",
-        launchOptions: { args: ["--enable-features=WebContentsForceDark"] },
+        // Blink's own switch; the chrome://flags feature doesn't apply headless.
+        launchOptions: { args: ["--blink-settings=forceDarkModeEnabled=true"] },
       },
     },
     // Desktop must look the same before and after.

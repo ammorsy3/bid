@@ -92,6 +92,7 @@ import {
   type InsertAdminNotification,
 } from "@shared/schema";
 import { db } from "./db";
+import { safeCompany, type SafeCompany } from "./lib/safe-company";
 import { eq, and, asc, desc, ilike, or, isNull, sql, gte, gt, count, ne, lt, notInArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
@@ -176,7 +177,7 @@ export interface IStorage {
   // ============================================================================
   createCompanyProfile(profile: InsertCompanyProfile): Promise<CompanyProfile>;
   getCompanyProfile(companyId: string): Promise<CompanyProfile | undefined>;
-  getCompanyProfileByTractionSlug(slug: string): Promise<(CompanyProfile & { company: Company }) | undefined>;
+  getCompanyProfileByTractionSlug(slug: string): Promise<(CompanyProfile & { company: SafeCompany }) | undefined>;
   updateCompanyProfile(companyId: string, updates: Partial<InsertCompanyProfile>): Promise<CompanyProfile>;
 
   // ============================================================================
@@ -203,10 +204,10 @@ export interface IStorage {
   // TEAM INVITATION OPERATIONS
   // ============================================================================
   createTeamInvitation(invitation: InsertTeamInvitation): Promise<TeamInvitation>;
-  getTeamInvitationByToken(token: string): Promise<(TeamInvitation & { company: Company; inviter: User }) | undefined>;
+  getTeamInvitationByToken(token: string): Promise<(TeamInvitation & { company: SafeCompany; inviter: User }) | undefined>;
   updateTeamInvitation(id: string, updates: Partial<InsertTeamInvitation>): Promise<TeamInvitation>;
   getPendingTeamInvitationForEmail(email: string, companyId: string): Promise<TeamInvitation | undefined>;
-  getPendingTeamInvitationsForEmail(email: string): Promise<(TeamInvitation & { company: Company; inviter: User })[]>;
+  getPendingTeamInvitationsForEmail(email: string): Promise<(TeamInvitation & { company: SafeCompany; inviter: User })[]>;
   searchCompaniesByName(query: string, limit?: number): Promise<{ id: string; name: string; slug: string; memberCount: number }[]>;
 
   // ============================================================================
@@ -221,7 +222,7 @@ export interface IStorage {
   getTenderWithProposalCount(id: string): Promise<(Tender & { proposalCount: number }) | undefined>;
   getTendersByCompany(companyId: string): Promise<Tender[]>;
   getTendersWithProposalCounts(companyId: string): Promise<(Tender & { proposalCount: number })[]>;
-  getTenderByInvitationToken(token: string): Promise<(Tender & { company: Company; profile?: CompanyProfile }) | undefined>;
+  getTenderByInvitationToken(token: string): Promise<(Tender & { company: SafeCompany; profile?: CompanyProfile }) | undefined>;
   updateTender(id: string, updates: Partial<InsertTender>): Promise<Tender>;
   updateTenderStatus(id: string, status: string): Promise<void>;
   deleteTender(id: string): Promise<void>;
@@ -231,14 +232,14 @@ export interface IStorage {
   // ============================================================================
   createOffer(offer: InsertOffer): Promise<Offer>;
   getOffer(id: string): Promise<Offer | undefined>;
-  getOffersByTender(tenderId: string): Promise<(Offer & { company: Company; profile?: CompanyProfile })[]>;
+  getOffersByTender(tenderId: string): Promise<(Offer & { company: SafeCompany; profile?: CompanyProfile })[]>;
   getOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender })[]>;
   hasAppliedToRequester(applicantCompanyId: string, requesterCompanyId: string): Promise<boolean>;
   getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null>;
   getOfferByFileUrl(fileUrl: string): Promise<Offer | null>;
   getCompanyDocumentByFileUrl(fileUrl: string): Promise<CompanyDocument | null>;
-  getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile })[]>;
-  getIncomingOffersByCompanyWithViews(companyId: string, viewerId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile; isViewed: boolean })[]>;
+  getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: SafeCompany; profile?: CompanyProfile })[]>;
+  getIncomingOffersByCompanyWithViews(companyId: string, viewerId: string): Promise<(Offer & { tender: Tender; company: SafeCompany; profile?: CompanyProfile; isViewed: boolean })[]>;
   updateOfferStatus(offerId: string, status: string, decidedBy: string): Promise<Offer>;
   markOfferViewed(offerId: string, viewerId: string): Promise<void>;
   getViewedOfferIds(viewerId: string): Promise<string[]>;
@@ -248,7 +249,7 @@ export interface IStorage {
   // ============================================================================
   createInvitation(invitation: InsertInvitation): Promise<Invitation>;
   getInvitationsByTender(tenderId: string): Promise<Invitation[]>;
-  getInvitationsByCompany(companyId: string): Promise<(Invitation & { tender: Tender; requester: Company })[]>;
+  getInvitationsByCompany(companyId: string): Promise<(Invitation & { tender: Tender; requester: SafeCompany })[]>;
 
   // Invitations sent to a bare email address — someone with no Bid account yet.
   // `invitations` can only reference a workspace that already exists, so it
@@ -297,7 +298,7 @@ export interface IStorage {
   // AWARD OPERATIONS
   // ============================================================================
   createAward(award: InsertAward): Promise<Award>;
-  getBlockedAwards(): Promise<(Award & { tender: Tender; company: Company })[]>;
+  getBlockedAwards(): Promise<(Award & { tender: Tender; company: SafeCompany })[]>;
   unblockAward(awardId: string, adminId: string): Promise<void>;
 
   // ============================================================================
@@ -429,7 +430,7 @@ export interface IStorage {
   // NEGOTIATION ACTION OPERATIONS
   // ============================================================================
   createNegotiationAction(action: InsertNegotiationAction): Promise<NegotiationAction>;
-  getNegotiationActionsByTender(tenderId: string): Promise<(NegotiationAction & { company: Company })[]>;
+  getNegotiationActionsByTender(tenderId: string): Promise<(NegotiationAction & { company: SafeCompany })[]>;
   getNegotiationActionsByOffer(offerId: string): Promise<NegotiationAction[]>;
   getLatestNegotiationAction(tenderId: string, offerId: string, actionType: string): Promise<NegotiationAction | undefined>;
   allowOfferResubmission(offerId: string): Promise<void>;
@@ -447,10 +448,10 @@ export interface IStorage {
     limit?: number;
     callerAccountType?: string;
     audienceType?: string;
-  }): Promise<{ tenders: (Tender & { company: Company; profile?: CompanyProfile })[]; total: number }>;
+  }): Promise<{ tenders: (Tender & { company: SafeCompany; profile?: CompanyProfile })[]; total: number }>;
   getMarketplaceStats(): Promise<{ activeTenders: number; awardedTenders: number; totalOffers: number }>;
-  getPendingMarketplaceRequests(): Promise<(Tender & { company: Company; profile?: CompanyProfile })[]>;
-  getApprovedMarketplaceTenders(): Promise<(Tender & { company: Company; profile?: CompanyProfile })[]>;
+  getPendingMarketplaceRequests(): Promise<(Tender & { company: SafeCompany; profile?: CompanyProfile })[]>;
+  getApprovedMarketplaceTenders(): Promise<(Tender & { company: SafeCompany; profile?: CompanyProfile })[]>;
   approveMarketplaceTender(tenderId: string, adminId: string): Promise<void>;
   rejectMarketplaceTender(tenderId: string, reason: string, adminId: string): Promise<void>;
 
@@ -777,7 +778,7 @@ export class DatabaseStorage implements IStorage {
     return profile || undefined;
   }
 
-  async getCompanyProfileByTractionSlug(slug: string): Promise<(CompanyProfile & { company: Company }) | undefined> {
+  async getCompanyProfileByTractionSlug(slug: string): Promise<(CompanyProfile & { company: SafeCompany }) | undefined> {
     const [result] = await db
       .select({
         profile: companyProfiles,
@@ -794,7 +795,7 @@ export class DatabaseStorage implements IStorage {
 
     return {
       ...result.profile,
-      company: result.company
+      company: safeCompany(result.company)
     };
   }
 
@@ -962,7 +963,7 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async getTeamInvitationByToken(token: string): Promise<(TeamInvitation & { company: Company; inviter: User }) | undefined> {
+  async getTeamInvitationByToken(token: string): Promise<(TeamInvitation & { company: SafeCompany; inviter: User }) | undefined> {
     const [result] = await db
       .select({
         invitation: teamInvitations,
@@ -977,7 +978,7 @@ export class DatabaseStorage implements IStorage {
     if (!result) return undefined;
     return {
       ...result.invitation,
-      company: result.company,
+      company: safeCompany(result.company),
       inviter: result.inviter,
     };
   }
@@ -1002,7 +1003,7 @@ export class DatabaseStorage implements IStorage {
   // All pending, non-expired invitations sent to a given email — used on the
   // onboarding "Join a Company" step to surface invites a company sent before
   // the user had even signed up.
-  async getPendingTeamInvitationsForEmail(email: string): Promise<(TeamInvitation & { company: Company; inviter: User })[]> {
+  async getPendingTeamInvitationsForEmail(email: string): Promise<(TeamInvitation & { company: SafeCompany; inviter: User })[]> {
     const results = await db
       .select({
         invitation: teamInvitations,
@@ -1022,7 +1023,7 @@ export class DatabaseStorage implements IStorage {
 
     return results.map(r => ({
       ...r.invitation,
-      company: r.company,
+      company: safeCompany(r.company),
       inviter: r.inviter,
     }));
   }
@@ -1185,7 +1186,7 @@ export class DatabaseStorage implements IStorage {
     return results;
   }
 
-  async getTenderByInvitationToken(token: string): Promise<(Tender & { company: Company; profile?: CompanyProfile }) | undefined> {
+  async getTenderByInvitationToken(token: string): Promise<(Tender & { company: SafeCompany; profile?: CompanyProfile }) | undefined> {
     const [result] = await db
       .select({
         tender: tenders,
@@ -1201,7 +1202,7 @@ export class DatabaseStorage implements IStorage {
 
     return {
       ...result.tender,
-      company: result.company,
+      company: safeCompany(result.company),
       profile: result.profile || undefined
     };
   }
@@ -1281,7 +1282,7 @@ export class DatabaseStorage implements IStorage {
     return offer;
   }
 
-  async getOffersByTender(tenderId: string): Promise<(Offer & { company: Company; profile?: CompanyProfile })[]> {
+  async getOffersByTender(tenderId: string): Promise<(Offer & { company: SafeCompany; profile?: CompanyProfile })[]> {
     const results = await db
       .select({
         offer: offers,
@@ -1296,7 +1297,7 @@ export class DatabaseStorage implements IStorage {
 
     return results.map(r => ({
       ...r.offer,
-      company: r.company,
+      company: safeCompany(r.company),
       profile: r.profile || undefined
     }));
   }
@@ -1371,7 +1372,7 @@ export class DatabaseStorage implements IStorage {
     return doc || null;
   }
 
-  async getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile })[]> {
+  async getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: SafeCompany; profile?: CompanyProfile })[]> {
     const results = await db
       .select({
         offer: offers,
@@ -1389,7 +1390,7 @@ export class DatabaseStorage implements IStorage {
     return results.map(r => ({
       ...r.offer,
       tender: r.tender,
-      company: r.company,
+      company: safeCompany(r.company),
       profile: r.profile || undefined
     }));
   }
@@ -1407,7 +1408,7 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async getIncomingOffersByCompanyWithViews(companyId: string, viewerId: string): Promise<(Offer & { tender: Tender; company: Company; profile?: CompanyProfile; isViewed: boolean })[]> {
+  async getIncomingOffersByCompanyWithViews(companyId: string, viewerId: string): Promise<(Offer & { tender: Tender; company: SafeCompany; profile?: CompanyProfile; isViewed: boolean })[]> {
     const results = await db
       .select({
         offer: offers,
@@ -1430,7 +1431,7 @@ export class DatabaseStorage implements IStorage {
     return results.map(r => ({
       ...r.offer,
       tender: r.tender,
-      company: r.company,
+      company: safeCompany(r.company),
       profile: r.profile || undefined,
       isViewed: r.view !== null
     }));
@@ -1482,7 +1483,7 @@ export class DatabaseStorage implements IStorage {
 
   // Tenders a given workspace has been invited to (the "Invited" list). Joins in
   // the tender and the requesting company so the invitee can see who invited them.
-  async getInvitationsByCompany(companyId: string): Promise<(Invitation & { tender: Tender; requester: Company })[]> {
+  async getInvitationsByCompany(companyId: string): Promise<(Invitation & { tender: Tender; requester: SafeCompany })[]> {
     const results = await db
       .select({ invitation: invitations, tender: tenders, requester: companies })
       .from(invitations)
@@ -1494,7 +1495,7 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(desc(invitations.invitedAt));
 
-    return results.map(r => ({ ...r.invitation, tender: r.tender, requester: r.requester }));
+    return results.map(r => ({ ...r.invitation, tender: r.tender, requester: safeCompany(r.requester) }));
   }
 
   async createInvitationLink(link: InsertInvitationLink): Promise<InvitationLink> {
@@ -1829,7 +1830,7 @@ export class DatabaseStorage implements IStorage {
     return award;
   }
 
-  async getBlockedAwards(): Promise<(Award & { tender: Tender; company: Company })[]> {
+  async getBlockedAwards(): Promise<(Award & { tender: Tender; company: SafeCompany })[]> {
     const results = await db
       .select({
         award: awards,
@@ -1845,7 +1846,7 @@ export class DatabaseStorage implements IStorage {
     return results.map(r => ({
       ...r.award,
       tender: r.tender,
-      company: r.company
+      company: safeCompany(r.company)
     }));
   }
 
@@ -2625,7 +2626,7 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async getNegotiationActionsByTender(tenderId: string): Promise<(NegotiationAction & { company: Company })[]> {
+  async getNegotiationActionsByTender(tenderId: string): Promise<(NegotiationAction & { company: SafeCompany })[]> {
     const results = await db
       .select({
         action: negotiationActions,
@@ -2638,7 +2639,7 @@ export class DatabaseStorage implements IStorage {
 
     return results.map(r => ({
       ...r.action,
-      company: r.company,
+      company: safeCompany(r.company),
     }));
   }
 
@@ -2714,7 +2715,7 @@ export class DatabaseStorage implements IStorage {
     limit?: number;
     callerAccountType?: string;
     audienceType?: string;
-  }): Promise<{ tenders: (Tender & { company: Company; profile?: CompanyProfile })[]; total: number }> {
+  }): Promise<{ tenders: (Tender & { company: SafeCompany; profile?: CompanyProfile })[]; total: number }> {
     const page = options.page || 1;
     const limit = options.limit || 6;
     const offset = (page - 1) * limit;
@@ -2783,7 +2784,7 @@ export class DatabaseStorage implements IStorage {
     return {
       tenders: results.map(r => ({
         ...r.tender,
-        company: r.company,
+        company: safeCompany(r.company),
         profile: r.profile || undefined,
       })),
       total: countResult?.count || 0,
@@ -2850,7 +2851,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getPendingMarketplaceRequests(): Promise<(Tender & { company: Company; profile?: CompanyProfile })[]> {
+  async getPendingMarketplaceRequests(): Promise<(Tender & { company: SafeCompany; profile?: CompanyProfile })[]> {
     const results = await db
       .select({
         tender: tenders,
@@ -2868,12 +2869,12 @@ export class DatabaseStorage implements IStorage {
 
     return results.map(r => ({
       ...r.tender,
-      company: r.company,
+      company: safeCompany(r.company),
       profile: r.profile || undefined,
     }));
   }
 
-  async getApprovedMarketplaceTenders(): Promise<(Tender & { company: Company; profile?: CompanyProfile })[]> {
+  async getApprovedMarketplaceTenders(): Promise<(Tender & { company: SafeCompany; profile?: CompanyProfile })[]> {
     const results = await db
       .select({
         tender: tenders,
@@ -2891,7 +2892,7 @@ export class DatabaseStorage implements IStorage {
 
     return results.map(r => ({
       ...r.tender,
-      company: r.company,
+      company: safeCompany(r.company),
       profile: r.profile || undefined,
     }));
   }

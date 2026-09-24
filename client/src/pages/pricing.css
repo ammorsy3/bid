@@ -1,0 +1,508 @@
+/* Pricing page. Rides on the tokens and layout primitives defined in
+   landing.css (--cream/--ink/--orange, .page, .topbar, .btn, footer).
+   Only pricing-specific structure lives here. */
+
+/* NOTE: these three rules must stay scoped under .landing-page. landing.css has
+   `.landing-page section{padding:80px 0}`, which is more specific than a bare
+   `.pricing-hero` and would silently override the padding below. */
+.landing-page .pricing-hero {
+  padding: 72px 0 22px;
+  text-align: center;
+}
+.pricing-hero h1 {
+  font-size: clamp(38px, 5.5vw, 66px);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+  color: var(--ink);
+}
+.pricing-hero h1 .o { color: var(--orange); }
+.pricing-hero p {
+  margin: 20px auto 0;
+  max-width: 52ch;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--stone);
+}
+
+/* ============ BILLING TOGGLE ============ */
+.billing-toggle {
+  display: inline-flex;
+  /* stretch, not center: Monthly carries no saving note, and centring would
+     leave its pill shorter than the Yearly one. */
+  align-items: stretch;
+  gap: 4px;
+  margin-top: 34px;
+  padding: 4px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+}
+.billing-toggle button {
+  border: 0;
+  cursor: pointer;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--stone);
+  padding: 10px 26px;
+  border-radius: 100px;
+  transition: all 0.2s;
+}
+.billing-toggle .term-label { font-size: 14px; font-weight: 600; }
+.billing-toggle .term-note {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--orange);
+}
+.billing-toggle button:hover { color: var(--ink); }
+.billing-toggle button.active { background: var(--ink); color: var(--cream); }
+/* On the dark active pill, orange loses contrast, so switch to the warm yellow. */
+.billing-toggle button.active .term-note { color: var(--yellow); }
+
+/* ============ THE THREE BOXES ============ */
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items: stretch;
+  margin-top: 30px;
+}
+.plan {
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 32px 28px;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.plan:hover { transform: translateY(-3px); box-shadow: 0 18px 44px -20px rgba(11, 9, 7, 0.22); }
+
+/* The middle box: this is the one the page is built to sell. */
+.plan.featured {
+  background: var(--ink);
+  border-color: var(--ink);
+  box-shadow: 0 24px 60px -22px rgba(11, 9, 7, 0.45);
+}
+.plan.featured .plan-name,
+.plan.featured .plan-price,
+.plan.featured .plan-feat { color: var(--cream); }
+.plan.featured .plan-tagline,
+.plan.featured .plan-period,
+.plan.featured .plan-usd { color: var(--stone-soft); }
+.plan.featured .plan-feat-list { border-top-color: rgba(255, 255, 255, 0.12); }
+
+.plan-badge {
+  position: absolute;
+  top: -12px;
+  inset-inline-start: 28px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--white);
+  background: var(--orange);
+  padding: 6px 13px;
+  border-radius: 100px;
+}
+.plan-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+.plan-tagline {
+  margin-top: 7px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--stone);
+  min-height: 42px;
+}
+.plan-price-row {
+  margin-top: 26px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.plan-price {
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  line-height: 1;
+}
+.plan-period { font-size: 14px; font-weight: 500; color: var(--stone); }
+.plan-usd { margin-top: 8px; font-size: 13px; color: var(--stone); }
+.plan .btn { margin-top: 22px; width: 100%; justify-content: center; text-align: center; }
+/* The Enterprise CTA is a ghost button, which is borderless by default on the
+   landing page and reads as plain text inside a card. Give it an edge. */
+.plan .btn-ghost { border: 1px solid var(--line-strong); }
+.plan .btn-ghost:hover { border-color: var(--ink); background: var(--ink); color: var(--cream); }
+
+.plan-feat-list {
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.plan-feat {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.plan-feat .feat-icon {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  margin-top: 1px;
+  stroke-width: 1.9;
+  color: var(--orange);
+}
+
+.plan-save {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+}
+.plan.featured .plan-save { color: #4ade80; }
+.soon {
+  display: inline-block;
+  margin-inline-start: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--stone);
+  border: 1px solid var(--line-strong);
+  padding: 1px 6px;
+  border-radius: 100px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.plan.featured .soon { color: var(--stone-soft); border-color: rgba(255, 255, 255, 0.22); }
+
+/* ============ FREE STRIP ============
+   Deliberately not a fourth plan box. A white card with a dashed edge, so it
+   reads as "and there's also a free tier" rather than a fourth option to weigh. */
+.free-strip {
+  margin-top: 24px;
+  background: var(--white);
+  border: 1px dashed var(--line-strong);
+  border-radius: 20px;
+  padding: 26px 30px;
+}
+.free-strip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.free-strip-name {
+  display: block;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+.free-strip-sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--stone);
+}
+.free-list {
+  list-style: none;
+  margin: 22px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px 36px;
+}
+.free-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.free-list .feat-icon {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  stroke-width: 2.6;
+  color: var(--orange);
+}
+
+@media (max-width: 900px) {
+  .free-list { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .free-list { grid-template-columns: 1fr; }
+}
+.free-strip-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (max-width: 560px) {
+  .free-strip-head { flex-direction: column; align-items: stretch; gap: 16px; }
+  .free-strip-btn { width: 100%; }
+}
+
+/* ============ SECTIONS ============ */
+.landing-page .pricing-section { padding: 84px 0 0; }
+.pricing-section h2 {
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+  text-align: center;
+}
+.pricing-section .sub {
+  margin: 14px auto 0;
+  max-width: 56ch;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--stone);
+}
+.eyebrow {
+  display: block;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--orange);
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+}
+
+/* ============ FAQ ============ */
+.pricing-faq { margin-top: 40px; max-width: 760px; margin-inline: auto; }
+.pricing-faq details {
+  border-bottom: 1px solid var(--line);
+  padding: 18px 0;
+}
+.pricing-faq summary {
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.pricing-faq summary::-webkit-details-marker { display: none; }
+.pricing-faq summary::after {
+  content: "+";
+  color: var(--orange);
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.pricing-faq details[open] summary::after { content: "−"; }
+.pricing-faq p {
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--stone);
+  max-width: 68ch;
+}
+.faq-contact {
+  margin-top: 26px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--stone);
+}
+.faq-contact a {
+  color: var(--orange);
+  font-weight: 600;
+  border-bottom: 1px solid transparent;
+}
+.faq-contact a:hover { border-bottom-color: var(--orange); }
+
+/* ============ CLOSING CTA (split panel) ============
+   Plain text on a cream panel beside a solid orange panel that holds a tilted
+   mock tender card over a drifting dot field and a soft light sweep. */
+.cta--split {
+  margin-top: 88px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+  border-radius: 28px;
+  overflow: hidden;
+}
+.cta-split-text {
+  background: var(--cream-2);
+  padding: 56px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+}
+.cta--split h2 {
+  margin: 0;
+  font-size: clamp(28px, 3.6vw, 42px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--ink);
+}
+.cta-split-text p {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--stone);
+}
+
+.cta-split-panel {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #fe3c01 0%, #ff6535 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  min-height: 300px;
+}
+/* Dot field drifting behind the card. */
+.cta-split-panel::before {
+  content: "";
+  position: absolute;
+  inset: -48px;
+  z-index: 0;
+  opacity: 0.5;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.22) 1.5px,
+    transparent 2px
+  );
+  background-size: 22px 22px;
+  animation: ctaDrift 44s linear infinite;
+}
+@keyframes ctaDrift {
+  from { background-position: 0 0; }
+  to { background-position: 44px 88px; }
+}
+/* Soft light bands sweeping across. */
+.cta-split-panel .cta-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 0%, transparent 33%,
+    rgba(255, 255, 255, 0.16) 39%, rgba(255, 255, 255, 0.03) 44%,
+    transparent 50%, transparent 63%,
+    rgba(255, 255, 255, 0.11) 68%, transparent 73%,
+    transparent 100%
+  );
+  background-size: 250% 100%;
+  animation: ctaBeams 11s linear infinite;
+}
+@keyframes ctaBeams {
+  from { background-position: 130% 0; }
+  to { background-position: -30% 0; }
+}
+
+.cta-mock {
+  position: relative;
+  z-index: 1;
+  width: min(320px, 100%);
+  background: var(--white);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 28px 60px -24px rgba(11, 9, 7, 0.45);
+  transform: rotate(-4deg);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cta-mock-top { display: flex; align-items: center; gap: 10px; }
+.cta-mock-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--orange);
+  flex-shrink: 0;
+}
+.cta-mock-title { font-size: 14px; font-weight: 700; color: var(--ink); }
+.cta-mock-bar { height: 10px; border-radius: 6px; background: var(--line-strong); }
+.cta-mock-bar.w-85 { width: 85%; }
+.cta-mock-bar.w-70 { width: 70%; }
+.cta-mock-bar.w-60 { width: 60%; }
+.cta-mock-foot { margin-top: 6px; }
+.cta-mock-chip {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 100px;
+  background: var(--peach-light);
+  color: var(--orange);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cta--split .cta-btn {
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px 22px;
+  border-radius: 100px;
+  background: var(--orange);
+  color: var(--white);
+  transition: transform 0.2s ease, background 0.2s;
+}
+.cta--split .cta-btn:hover { background: #e63400; transform: translateY(-2px); }
+
+.landing-rtl .cta-mock { transform: rotate(4deg); }
+
+@media (max-width: 900px) {
+  .cta--split { grid-template-columns: 1fr; }
+  .cta-split-panel { min-height: 260px; }
+}
+@media (max-width: 640px) {
+  .cta-split-text { padding: 40px 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta-split-panel::before,
+  .cta-split-panel .cta-fx { animation: none; }
+}
+
+/* ============ RTL ============ */
+.landing-rtl .plan-feat { direction: rtl; text-align: right; }
+.landing-rtl .pricing-faq summary { direction: rtl; text-align: right; }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 1000px) {
+  .plan-grid { grid-template-columns: 1fr; max-width: 460px; margin-inline: auto; }
+  .plan.featured { order: -1; }
+}
+@media (max-width: 640px) {
+  .landing-page .pricing-hero { padding: 48px 0 28px; }
+  .landing-page .pricing-section { padding: 60px 0 0; }
+  .plan-tagline { min-height: 0; }
+}

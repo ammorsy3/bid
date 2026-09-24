@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { NeonButton } from "@/components/ui/neon-button";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, ApiError } from "@/lib/queryClient";
 import { CheckCircle, XCircle } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useForceLightMode } from "@/hooks/useForceLightMode";
+import { LanguageSwitch } from "@/components/LanguageSwitch";
 
 type ResetForm = { password: string; confirmPassword: string };
 
@@ -28,8 +29,8 @@ export default function ResetPassword() {
   const form = useForm<ResetForm>({
     resolver: zodResolver(
       z.object({
-        password: z.string().min(6, t('validation.passwordMin')),
-        confirmPassword: z.string().min(6, t('validation.passwordMin')),
+        password: z.string().min(8, t('validation.passwordMin')),
+        confirmPassword: z.string().min(8, t('validation.passwordMin')),
       }).refine((d) => d.password === d.confirmPassword, {
         message: t('validation.passwordsNoMatch'),
         path: ["confirmPassword"],
@@ -43,20 +44,27 @@ export default function ResetPassword() {
       await apiRequest("POST", "/api/auth/reset-password", { token, password: data.password });
       setDone(true);
     } catch (err: any) {
-      const msg = err?.message || t("auth.passwordResetError");
+      // The server answers in English; show the user's language instead.
+      const status = err instanceof ApiError ? err.statusCode : undefined;
+      const msg: string = err?.message ?? "";
       if (msg.includes("expired") || msg.includes("Invalid")) {
         setInvalid(true);
       } else {
-        toast({ title: t("common.error"), description: msg, variant: "destructive" });
+        const description =
+          status === 429 ? t("auth.tooManyAttempts")
+          : msg.includes("at least 8") ? t("validation.passwordMin")
+          : t("auth.passwordResetError");
+        toast({ title: t("common.error"), description, variant: "destructive" });
       }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted p-6">
+    <div className="min-h-dvh flex items-center justify-center bg-muted p-6">
       <div className="w-full max-w-md">
-        <div className="flex items-center justify-center mb-8">
+        <div className="relative flex items-center justify-center mb-8">
           <BidLogo variant="orange" size={40} />
+          <LanguageSwitch className="absolute end-0 top-1/2 -translate-y-1/2 -me-1 lg:hidden" />
         </div>
 
         {done ? (
@@ -64,8 +72,8 @@ export default function ResetPassword() {
             <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto">
               <CheckCircle className="h-7 w-7 text-green-500" />
             </div>
-            <h2 className="text-xl font-bold text-foreground">{t("auth.passwordResetSuccess")}</h2>
-            <NeonButton className="w-full mt-2" onClick={() => setLocation("/login")}>
+            <h2 className="text-xl font-bold text-foreground text-balance md:text-wrap">{t("auth.passwordResetSuccess")}</h2>
+            <NeonButton className="w-full mt-2 min-h-11 md:min-h-0" onClick={() => setLocation("/login")}>
               {t("auth.signIn")}
             </NeonButton>
           </div>
@@ -74,8 +82,8 @@ export default function ResetPassword() {
             <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto">
               <XCircle className="h-7 w-7 text-red-400" />
             </div>
-            <h2 className="text-xl font-bold text-foreground">{t("auth.resetLinkInvalid")}</h2>
-            <NeonButton className="w-full mt-2" onClick={() => setLocation("/login")}>
+            <h2 className="text-xl font-bold text-foreground text-balance md:text-wrap">{t("auth.resetLinkInvalid")}</h2>
+            <NeonButton className="w-full mt-2 min-h-11 md:min-h-0" onClick={() => setLocation("/login")}>
               {t("auth.requestNewLink")}
             </NeonButton>
           </div>
@@ -83,7 +91,7 @@ export default function ResetPassword() {
           <div className="bg-card rounded-2xl border border-border shadow-sm p-6 sm:p-8">
             <div className="mb-6">
               <h2 className="font-display font-black text-2xl text-foreground mb-1 tracking-[-0.03em]">{t("auth.forgotPasswordTitle")}</h2>
-              <p className="text-sm text-muted-foreground">{t("auth.newPassword")}</p>
+              <p className="text-sm text-muted-foreground">{t("auth.passwordReqMin8")}</p>
             </div>
 
             <Form {...form}>
@@ -95,7 +103,7 @@ export default function ResetPassword() {
                     <FormItem>
                       <FormLabel>{t("auth.newPassword")}</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder={t("auth.newPasswordPlaceholder")} {...field} />
+                        <Input type="password" autoComplete="new-password" dir="ltr" placeholder={t("auth.newPasswordPlaceholder")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -108,7 +116,7 @@ export default function ResetPassword() {
                     <FormItem>
                       <FormLabel>{t("auth.confirmNewPassword")}</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder={t("auth.confirmNewPasswordPlaceholder")} {...field} />
+                        <Input type="password" autoComplete="new-password" dir="ltr" placeholder={t("auth.confirmNewPasswordPlaceholder")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -126,10 +134,11 @@ export default function ResetPassword() {
             </Form>
 
             <div className="mt-5 text-center">
+              {/* 44px tap area that moves nothing: the padding comes back out of the margins. */}
               <button
                 type="button"
                 onClick={() => setLocation("/login")}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="-my-3 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 {t("auth.backToLogin")}
               </button>

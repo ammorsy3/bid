@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, ApiError } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
 import { emailInputProps } from "@/lib/form-validation";
 import { Mail, ArrowRight, Loader2, Pencil } from "lucide-react";
@@ -35,6 +35,9 @@ export default function VerifyEmail() {
   const [newEmail, setNewEmail] = useState("");
   const [changingEmail, setChangingEmail] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  // The boxes are disabled while a code is checked, so focus can only go back
+  // to the first box once loading has finished.
+  const refocusFirstBox = useRef(false);
 
   const otpSendAttempted = useRef(false);
 
@@ -69,6 +72,13 @@ export default function VerifyEmail() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!loading && refocusFirstBox.current) {
+      refocusFirstBox.current = false;
+      inputRefs.current[0]?.focus();
+    }
+  }, [loading]);
+
   // Cooldown timer
   useEffect(() => {
     if (resendCooldown > 0) {
@@ -86,23 +96,22 @@ export default function VerifyEmail() {
         description: t('onboardingPanel.codeSentDesc', { email: user?.email ?? '' }),
       });
     } catch (error: any) {
-      if (error.message?.includes("Too many")) {
+      // The server answers in English; show the user's language instead.
+      const status = error instanceof ApiError ? error.statusCode : undefined;
+      const message: string = error?.message ?? '';
+      if (status === 429 || message.includes("Too many")) {
         toast({
           title: t('onboardingPanel.rateLimitedTitle'),
           description: t('onboardingPanel.rateLimitedDesc'),
           variant: "destructive",
         });
       } else {
-        let description = t('onboardingPanel.sendCodeErrorDesc');
-        try {
-          const raw = error?.message ?? '';
-          const jsonStr = raw.includes(': ') ? raw.slice(raw.indexOf(': ') + 2) : raw;
-          const parsed = JSON.parse(jsonStr);
-          if (parsed?.message) description = parsed.message;
-        } catch {}
         toast({
           title: t('onboardingPanel.sendCodeErrorTitle'),
-          description,
+          // "inactive": the mail provider refuses this address (hard bounce or spam report).
+          description: message.includes("inactive")
+            ? t('onboardingPanel.emailUndeliverableDesc')
+            : t('onboardingPanel.sendCodeErrorDesc'),
           variant: "destructive",
         });
       }
@@ -134,13 +143,15 @@ export default function VerifyEmail() {
         description: t('onboardingPanel.emailUpdatedDesc', { email: trimmed }),
       });
     } catch (error: any) {
-      let description = t('onboardingPanel.changeEmailErrorDesc') || "Couldn't update your email. Please try again.";
-      try {
-        const raw = error?.message ?? '';
-        const jsonStr = raw.includes(': ') ? raw.slice(raw.indexOf(': ') + 2) : raw;
-        const parsed = JSON.parse(jsonStr);
-        if (parsed?.message) description = parsed.message;
-      } catch {}
+      // Known server answers (English) mapped to the user's language.
+      const status = error instanceof ApiError ? error.statusCode : undefined;
+      const message: string = error?.message ?? '';
+      const description =
+        status === 429 ? t('auth.tooManyAttempts')
+        : message.includes("already exists") ? t('onboardingPanel.emailTakenDesc')
+        : message.includes("already your current email") ? t('onboardingPanel.sameEmailDesc')
+        : /invalid email|email is required/i.test(message) ? t('validation.invalidEmail')
+        : t('onboardingPanel.changeEmailErrorDesc');
       toast({
         title: t('onboardingPanel.changeEmailErrorTitle'),
         description,
@@ -232,13 +243,24 @@ export default function VerifyEmail() {
         }
       }
     } catch (error: any) {
+      // Known server answers (English) mapped to the user's language; the
+      // attempts left are only in the message text ("… 3 attempt(s) remaining").
+      const status = error instanceof ApiError ? error.statusCode : undefined;
+      const message: string = error?.message ?? '';
+      const attemptsLeft = message.match(/(\d+) attempt/)?.[1];
+      const description =
+        status === 429 ? (message.includes("failed attempts") ? t('onboardingPanel.codeLockedDesc') : t('auth.tooManyAttempts'))
+        : /expired|no verification code/i.test(message) ? t('onboardingPanel.codeExpiredDesc')
+        : message.includes("Invalid verification code")
+          ? (attemptsLeft ? t('onboardingPanel.wrongCodeLeftDesc', { count: attemptsLeft }) : t('onboardingPanel.wrongCodeDesc'))
+        : t('onboardingPanel.verifyFailedDesc');
       toast({
-        title: t('onboardingPanel.verifyFailedTitle'),
-        description: error.message || t('onboardingPanel.verifyFailedDesc'),
+        title: status === 429 ? t('onboardingPanel.rateLimitedTitle') : t('onboardingPanel.verifyFailedTitle'),
+        description,
         variant: "destructive",
       });
       setCode(["", "", "", "", "", ""]);
-      inputRefs.current[0]?.focus();
+      refocusFirstBox.current = true;
     } finally {
       setLoading(false);
     }
@@ -247,7 +269,7 @@ export default function VerifyEmail() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+    <div className="min-h-dvh flex items-center justify-center bg-muted p-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <BidLogo variant="orange" size={40} />
@@ -259,7 +281,7 @@ export default function VerifyEmail() {
           <h1 className="font-display font-black text-2xl sm:text-3xl text-foreground mb-2 tracking-[-0.04em]">{t('onboardingPanel.checkYourEmail')}</h1>
           <p className="text-muted-foreground">
             {t('onboardingPanel.sentCodeTo')}{" "}
-            <span className="font-medium text-muted-foreground">{user.email}</span>
+            <span className="latin-token break-words font-medium text-muted-foreground">{user.email}</span>
           </p>
           <button
             type="button"
@@ -267,7 +289,7 @@ export default function VerifyEmail() {
               setNewEmail(user.email);
               setChangeEmailOpen(true);
             }}
-            className="mt-2 inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
+            className="-mt-1 -mb-3 py-3 inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
             data-testid="button-change-email"
           >
             <Pencil className="w-3.5 h-3.5" />
@@ -276,20 +298,23 @@ export default function VerifyEmail() {
         </div>
 
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex gap-2 justify-center mb-6" dir="ltr">
+          {/* Phones: 16px card padding so six 44px boxes fit from 360px wide
+              (36px below that, down to 320; 48px from 400). Desktop sizes come back at sm:. */}
+          <CardContent className="pt-6 px-4 sm:px-6">
+            <div className="flex gap-1.5 min-[400px]:gap-2 justify-center mb-6" dir="ltr">
               {code.map((digit, index) => (
                 <Input
                   key={index}
                   ref={(el) => { inputRefs.current[index] = el; }}
                   type="text"
                   inputMode="numeric"
+                  autoComplete={index === 0 ? "one-time-code" : "off"}
                   dir="ltr"
                   maxLength={6}
                   value={digit}
                   onChange={(e) => handleInput(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-xl border-2 focus:border-primary-500 focus:ring-primary-500"
+                  className="w-9 min-[360px]:w-11 min-[400px]:w-12 h-12 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-xl border-2 focus:border-primary-500 focus:ring-primary-500"
                   disabled={loading}
                   autoFocus={index === 0}
                 />
@@ -304,13 +329,13 @@ export default function VerifyEmail() {
             >
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
                   {t('onboardingPanel.verifying')}
                 </>
               ) : (
                 <>
                   {t('onboardingPanel.verifyEmailBtn')}
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ms-2 h-4 w-4 rtl:-scale-x-100" />
                 </>
               )}
             </Button>
@@ -319,11 +344,11 @@ export default function VerifyEmail() {
               <p className="text-sm text-muted-foreground">
                 {t('onboardingPanel.didntReceiveCode')}{" "}
                 {resendCooldown > 0 ? (
-                  <span className="text-neutral-400">{t('onboardingPanel.resendIn', { seconds: resendCooldown })}</span>
+                  <span className="text-muted-foreground md:text-neutral-400">{t('onboardingPanel.resendIn', { seconds: resendCooldown })}</span>
                 ) : (
                   <button
                     onClick={handleResend}
-                    className="text-primary-600 hover:text-primary-700 font-medium"
+                    className="inline-block py-3 -my-3 text-primary-600 hover:text-primary-700 font-medium"
                   >
                     {t('onboardingPanel.resendCode')}
                   </button>
@@ -358,7 +383,7 @@ export default function VerifyEmail() {
               }}
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:space-x-0">
             <Button
               variant="outline"
               onClick={() => setChangeEmailOpen(false)}
@@ -373,7 +398,7 @@ export default function VerifyEmail() {
             >
               {changingEmail ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
                   {t('onboardingPanel.updating')}
                 </>
               ) : (

@@ -1,0 +1,25 @@
+{
+  "_about": "Owner of a verified company workspace (the requester side). Used when a screen needs a signed-in, finished account.",
+  "storage": {
+    "token": "audit-token-company-owner",
+    "auth-storage": "{\"state\":{\"token\":\"audit-token-company-owner\",\"user\":{\"id\":\"audit-user-4\",\"username\":\"noura_h7i8j\",\"email\":\"noura.alqahtani@example.com\",\"name\":\"نورة عبدالله القحطاني\",\"isAdmin\":false,\"profilePictureUrl\":null,\"jobTitle\":\"مديرة المشتريات\",\"timezone\":\"Asia/Riyadh\",\"linkedinUrl\":null,\"phoneNumber\":null,\"tenderInquiryEmail\":null,\"language\":\"en\",\"emailVerified\":true,\"otpVerified\":true},\"activeCompany\":{\"id\":\"audit-co-1\",\"name\":\"شركة الأفق المتقدم للمقاولات العامة\",\"slug\":\"al-ofoq\",\"accountType\":\"company\",\"verificationStatus\":\"verified\",\"onboardingState\":\"completed\",\"rejectionReason\":null,\"role\":\"owner\",\"profile\":null},\"companies\":[{\"id\":\"audit-co-1\",\"name\":\"شركة الأفق المتقدم للمقاولات العامة\",\"slug\":\"al-ofoq\",\"accountType\":\"company\",\"verificationStatus\":\"verified\",\"onboardingState\":\"completed\",\"rejectionReason\":null,\"role\":\"owner\",\"profile\":null}]},\"version\":0}"
+  },
+  "me": {
+    "user": {
+      "id": "audit-user-4", "username": "noura_h7i8j", "email": "noura.alqahtani@example.com",
+      "name": "نورة عبدالله القحطاني", "isAdmin": false, "profilePictureUrl": null, "jobTitle": "مديرة المشتريات",
+      "timezone": "Asia/Riyadh", "linkedinUrl": null, "phoneNumber": null, "language": "en",
+      "emailVerified": true, "otpVerified": true
+    },
+    "activeCompanyId": "audit-co-1",
+    "companies": [
+      {
+        "id": "audit-co-1", "name": "شركة الأفق المتقدم للمقاولات العامة", "slug": "al-ofoq",
+        "legalName": "شركة الأفق المتقدم للمقاولات العامة المحدودة", "crNumber": "1010000000", "vatNumber": "300000000000003",
+        "city": "Riyadh", "category": "construction", "accountType": "company", "verificationStatus": "verified",
+        "onboardingState": "completed", "rejectionReason": null, "role": "owner", "profile": null
+      }
+    ]
+  },
+  "routes": {}
+}

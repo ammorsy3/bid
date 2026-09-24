@@ -1,0 +1,66 @@
+{
+  "_about": "A freelancer (individual account) filling in their profile during onboarding.",
+  "storage": {
+    "token": "audit-token-individual",
+    "auth-storage": "{\"state\": {\"token\": \"audit-token-individual\", \"user\": {\"id\": \"audit-user-6\", \"username\": \"noura_h7i8j\", \"email\": \"noura.alqahtani@example.com\", \"name\": \"نورة عبدالله القحطاني\", \"isAdmin\": false, \"profilePictureUrl\": null, \"jobTitle\": \"مديرة المشتريات\", \"timezone\": \"Asia/Riyadh\", \"linkedinUrl\": null, \"phoneNumber\": null, \"tenderInquiryEmail\": null, \"language\": \"en\", \"emailVerified\": true, \"otpVerified\": true}, \"activeCompany\": {\"id\": \"audit-ind-1\", \"name\": \"نورة عبدالله القحطاني\", \"slug\": \"noura-alqahtani\", \"accountType\": \"individual\", \"verificationStatus\": \"unverified\", \"onboardingState\": \"in_progress\", \"rejectionReason\": null, \"role\": \"owner\", \"profile\": null}, \"companies\": [{\"id\": \"audit-ind-1\", \"name\": \"نورة عبدالله القحطاني\", \"slug\": \"noura-alqahtani\", \"accountType\": \"individual\", \"verificationStatus\": \"unverified\", \"onboardingState\": \"in_progress\", \"rejectionReason\": null, \"role\": \"owner\", \"profile\": null}]}, \"version\": 0}"
+  },
+  "me": {
+    "user": {
+      "id": "audit-user-6",
+      "username": "noura_h7i8j",
+      "email": "noura.alqahtani@example.com",
+      "name": "نورة عبدالله القحطاني",
+      "isAdmin": false,
+      "profilePictureUrl": null,
+      "jobTitle": "مديرة المشتريات",
+      "timezone": "Asia/Riyadh",
+      "linkedinUrl": null,
+      "phoneNumber": null,
+      "language": "en",
+      "emailVerified": true,
+      "otpVerified": true
+    },
+    "activeCompanyId": "audit-ind-1",
+    "companies": [
+      {
+        "id": "audit-ind-1",
+        "name": "نورة عبدالله القحطاني",
+        "slug": "noura-alqahtani",
+        "legalName": null,
+        "crNumber": null,
+        "vatNumber": null,
+        "city": "Riyadh",
+        "category": "consulting",
+        "accountType": "individual",
+        "verificationStatus": "unverified",
+        "onboardingState": "in_progress",
+        "rejectionReason": null,
+        "role": "owner",
+        "profile": null
+      }
+    ]
+  },
+  "routes": {
+    "GET /api/companies/:id/profile": {
+      "status": 200,
+      "json": {
+        "company": {
+          "id": "audit-ind-1",
+          "slug": "noura-alqahtani",
+          "category": "consulting",
+          "accountType": "individual",
+          "verificationStatus": "unverified"
+        },
+        "profile": {
+          "displayName": "نورة عبدالله القحطاني",
+          "bio": null,
+          "logoUrl": null,
+          "headerUrl": null,
+          "socialLinks": null,
+          "whatsappNumber": null,
+          "whatsappVisibility": "hidden"
+        }
+      }
+    }
+  }
+}

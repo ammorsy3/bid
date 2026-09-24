@@ -1,0 +1,666 @@
+{
+  "_about": "One recipe per screen state for the mobile + Arabic audit. The capture spec photographs each state in every language and on every phone; the in-page helper (__mobileAudit.useState) loads the same recipe in the visible Chrome window. persona = a file in fixtures/. overrides = scripted API answers for this state (they win over fixtures). storage values of null remove the key.",
+  "states": [
+    {
+      "id": "login-default",
+      "batch": "batch-1",
+      "page": "login",
+      "title": "Login — first look",
+      "route": "/login"
+    },
+    {
+      "id": "login-empty-submit",
+      "batch": "batch-1",
+      "page": "login",
+      "title": "Login — pressed Sign in with nothing typed",
+      "route": "/login",
+      "actions": [
+        {
+          "click": "[data-testid=\"button-submit\"]"
+        },
+        {
+          "wait": 400
+        }
+      ]
+    },
+    {
+      "id": "login-wrong-password",
+      "batch": "batch-1",
+      "page": "login",
+      "title": "Login — wrong email or password",
+      "route": "/login",
+      "overrides": {
+        "POST /api/auth/login": {
+          "status": 401,
+          "json": {
+            "message": "Invalid credentials"
+          }
+        }
+      },
+      "actions": [
+        {
+          "fill": [
+            "[data-testid=\"input-email\"]",
+            "noura.alqahtani@example.com"
+          ]
+        },
+        {
+          "fill": [
+            "[data-testid=\"input-password\"]",
+            "wrong-password-1"
+          ]
+        },
+        {
+          "click": "[data-testid=\"button-submit\"]"
+        },
+        {
+          "waitFor": "[data-testid=\"login-error\"]"
+        }
+      ]
+    },
+    {
+      "id": "login-forgot",
+      "batch": "batch-1",
+      "page": "login",
+      "title": "Login — forgot password form",
+      "route": "/login",
+      "actions": [
+        {
+          "click": "form button[type=\"button\"]:not([aria-label])"
+        },
+        {
+          "wait": 300
+        }
+      ]
+    },
+    {
+      "id": "login-forgot-sent",
+      "batch": "batch-1",
+      "page": "login",
+      "title": "Login — reset link sent",
+      "route": "/login",
+      "actions": [
+        {
+          "click": "form button[type=\"button\"]:not([aria-label])"
+        },
+        {
+          "fill": [
+            "form input",
+            "noura.alqahtani@example.com"
+          ]
+        },
+        {
+          "click": "form button[type=\"submit\"]"
+        },
+        {
+          "wait": 800
+        }
+      ]
+    },
+    {
+      "id": "login-expired-session",
+      "batch": "batch-1",
+      "page": "login",
+      "title": "Login — phone still holds an expired session",
+      "route": "/login",
+      "persona": "expired",
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
+    },
+    {
+      "id": "login-first-visit-arabic-phone",
+      "batch": "batch-1",
+      "page": "login",
+      "title": "Login — first visit on an Arabic phone (nothing saved yet)",
+      "route": "/login",
+      "langs": [
+        "en"
+      ],
+      "storage": {
+        "language": null
+      }
+    },
+    {
+      "id": "login-instagram",
+      "batch": "batch-1",
+      "page": "login",
+      "title": "Login — opened inside Instagram",
+      "route": "/login",
+      "projects": [
+        "iphone-chrome",
+        "iphone-webkit"
+      ],
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 339.0.3.12.105 (iPhone15,3; iOS 17_5; ar_SA; ar; scale=3.00; 1290x2796; 625162385)"
+    },
+    {
+      "id": "login-snapchat",
+      "batch": "batch-1",
+      "page": "login",
+      "title": "Login — opened inside Snapchat",
+      "route": "/login",
+      "projects": [
+        "iphone-chrome",
+        "iphone-webkit"
+      ],
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Snapchat/13.10.0.40 (like Safari/8617.2.4.10.8, panda)"
+    },
+    {
+      "id": "signup-default",
+      "batch": "batch-1",
+      "page": "signup",
+      "title": "Sign up — first look",
+      "route": "/signup"
+    },
+    {
+      "id": "signup-errors",
+      "batch": "batch-1",
+      "page": "signup",
+      "title": "Sign up — pressed Create with nothing typed",
+      "route": "/signup",
+      "actions": [
+        {
+          "click": "[data-testid=\"button-submit\"]"
+        },
+        {
+          "wait": 400
+        }
+      ]
+    },
+    {
+      "id": "signup-filled",
+      "batch": "batch-1",
+      "page": "signup",
+      "title": "Sign up — long Arabic name, password shown with the eye button",
+      "route": "/signup",
+      "actions": [
+        {
+          "fill": [
+            "[data-testid=\"input-name\"]",
+            "عبدالرحمن بن عبدالعزيز بن سليمان الحربي"
+          ]
+        },
+        {
+          "fill": [
+            "[data-testid=\"input-email\"]",
+            "abdulrahman.alharbi@example.com"
+          ]
+        },
+        {
+          "fill": [
+            "[data-testid=\"input-password\"]",
+            "Bid-audit-2026"
+          ]
+        },
+        {
+          "click": "div.relative:has([data-testid=\"input-password\"]) button"
+        },
+        {
+          "fill": [
+            "[data-testid=\"input-confirm-password\"]",
+            "Bid-audit-2026"
+          ]
+        },
+        {
+          "click": "div.relative:has([data-testid=\"input-confirm-password\"]) button"
+        },
+        {
+          "click": "[data-testid=\"input-password\"]"
+        },
+        {
+          "wait": 300
+        }
+      ]
+    },
+    {
+      "id": "signup-email-taken",
+      "batch": "batch-1",
+      "page": "signup",
+      "title": "Sign up — email already has an account",
+      "route": "/signup",
+      "overrides": {
+        "POST /api/auth/register": {
+          "status": 400,
+          "json": {
+            "message": "User already exists"
+          }
+        }
+      },
+      "actions": [
+        {
+          "fill": [
+            "[data-testid=\"input-name\"]",
+            "نورة عبدالله القحطاني"
+          ]
+        },
+        {
+          "fill": [
+            "[data-testid=\"input-email\"]",
+            "noura.alqahtani@example.com"
+          ]
+        },
+        {
+          "fill": [
+            "[data-testid=\"input-password\"]",
+            "Bid-audit-2026"
+          ]
+        },
+        {
+          "fill": [
+            "[data-testid=\"input-confirm-password\"]",
+            "Bid-audit-2026"
+          ]
+        },
+        {
+          "click": "[data-testid=\"button-submit\"]"
+        },
+        {
+          "wait": 1000
+        }
+      ]
+    },
+    {
+      "id": "reset-form",
+      "batch": "batch-1",
+      "page": "reset-password",
+      "title": "Reset password — choose a new password",
+      "route": "/reset-password?token=audit-reset-token"
+    },
+    {
+      "id": "reset-invalid",
+      "batch": "batch-1",
+      "page": "reset-password",
+      "title": "Reset password — link has no token",
+      "route": "/reset-password"
+    },
+    {
+      "id": "reset-done",
+      "batch": "batch-1",
+      "page": "reset-password",
+      "title": "Reset password — success",
+      "route": "/reset-password?token=audit-reset-token",
+      "actions": [
+        {
+          "fill": [
+            "input[type=\"password\"] >> nth=0",
+            "Bid-audit-2026"
+          ]
+        },
+        {
+          "fill": [
+            "input[type=\"password\"] >> nth=1",
+            "Bid-audit-2026"
+          ]
+        },
+        {
+          "click": "button[type=\"submit\"]"
+        },
+        {
+          "wait": 800
+        }
+      ]
+    },
+    {
+      "id": "verify-default",
+      "batch": "batch-1",
+      "page": "verify-email",
+      "title": "Email code — first look",
+      "route": "/verify-email",
+      "persona": "unverified"
+    },
+    {
+      "id": "verify-typing",
+      "batch": "batch-1",
+      "page": "verify-email",
+      "title": "Email code — half typed",
+      "route": "/verify-email",
+      "persona": "unverified",
+      "actions": [
+        {
+          "click": "input[inputmode=\"numeric\"] >> nth=0"
+        },
+        {
+          "type": "123"
+        },
+        {
+          "wait": 200
+        }
+      ]
+    },
+    {
+      "id": "verify-wrong-code",
+      "batch": "batch-1",
+      "page": "verify-email",
+      "title": "Email code — wrong code",
+      "route": "/verify-email",
+      "persona": "unverified",
+      "overrides": {
+        "POST /api/auth/verify-otp": {
+          "status": 400,
+          "json": {
+            "message": "Invalid verification code"
+          }
+        }
+      },
+      "actions": [
+        {
+          "click": "input[inputmode=\"numeric\"] >> nth=0"
+        },
+        {
+          "type": "123456"
+        },
+        {
+          "wait": 1000
+        }
+      ]
+    },
+    {
+      "id": "verify-change-email",
+      "batch": "batch-1",
+      "page": "verify-email",
+      "title": "Email code — change email popup",
+      "route": "/verify-email",
+      "persona": "unverified",
+      "expectDialog": true,
+      "actions": [
+        {
+          "click": "[data-testid=\"button-change-email\"]"
+        },
+        {
+          "waitFor": "[data-testid=\"input-new-email\"]"
+        }
+      ]
+    },
+    {
+      "id": "verify-too-many",
+      "batch": "batch-1",
+      "page": "verify-email",
+      "title": "Email code — too many code requests",
+      "route": "/verify-email",
+      "persona": "unverified",
+      "overrides": {
+        "POST /api/auth/send-otp": {
+          "status": 429,
+          "json": {
+            "message": "Too many verification code requests. Please wait before trying again."
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 1000
+        }
+      ]
+    },
+    {
+      "id": "sso-callback-loading",
+      "batch": "batch-1",
+      "page": "sso-callback",
+      "title": "Google sign-in — returning to Bid",
+      "route": "/sso-callback",
+      "allowBusy": true,
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 1500
+        }
+      ]
+    },
+    {
+      "id": "sso-callback-failed",
+      "batch": "batch-1",
+      "page": "sso-callback",
+      "title": "Google sign-in — gave up after 12 seconds",
+      "route": "/sso-callback",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 13500
+        }
+      ]
+    },
+    {
+      "id": "onboarding-choice",
+      "batch": "batch-1",
+      "page": "onboarding",
+      "title": "Onboarding — choose account type",
+      "route": "/onboarding",
+      "persona": "verified-new"
+    },
+    {
+      "id": "onboarding-join",
+      "batch": "batch-1",
+      "page": "onboarding",
+      "title": "Onboarding — join with a code",
+      "route": "/onboarding?join=1",
+      "persona": "verified-new"
+    },
+    {
+      "id": "onboarding-domain-match",
+      "batch": "batch-1",
+      "page": "onboarding",
+      "title": "Onboarding — colleagues' workspace found",
+      "route": "/onboarding",
+      "persona": "verified-new",
+      "overrides": {
+        "GET /api/onboarding/domain-match": {
+          "status": 200,
+          "json": {
+            "domain": "alofoq.sa",
+            "isPublic": false,
+            "workspaces": [
+              {
+                "id": "audit-co-1",
+                "name": "شركة الأفق المتقدم للمقاولات العامة",
+                "slug": "al-ofoq",
+                "memberCount": 12,
+                "alreadyRequested": false
+              },
+              {
+                "id": "audit-co-2",
+                "name": "Al-Ofoq Advanced General Contracting — Western Region",
+                "slug": "al-ofoq-west",
+                "memberCount": 3,
+                "alreadyRequested": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "onboarding-pending-invite",
+      "batch": "batch-1",
+      "page": "onboarding",
+      "title": "Onboarding — an invitation is waiting",
+      "route": "/onboarding",
+      "persona": "verified-new",
+      "overrides": {
+        "GET /api/onboarding/pending-invitations": {
+          "status": 200,
+          "json": [
+            {
+              "token": "audit-invite-token",
+              "role": "admin",
+              "companyId": "audit-co-1",
+              "companyName": "شركة الأفق المتقدم للمقاولات العامة",
+              "companySlug": "al-ofoq",
+              "inviterName": "سارة محمد العتيبي",
+              "expiresAt": "2026-12-31T00:00:00.000Z"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "onboarding-add-account",
+      "batch": "batch-1",
+      "page": "onboarding",
+      "title": "Onboarding — adding another account",
+      "route": "/onboarding?addAccount=1",
+      "persona": "company-owner"
+    },
+    {
+      "id": "onboarding-company-basics",
+      "batch": "batch-1",
+      "page": "onboarding-company",
+      "title": "Company — basics",
+      "route": "/onboarding/company-basics",
+      "persona": "verified-new"
+    },
+    {
+      "id": "onboarding-company-profile",
+      "batch": "batch-1",
+      "page": "onboarding-company",
+      "title": "Company — profile",
+      "route": "/onboarding/company-profile",
+      "persona": "verified-new",
+      "storage": {
+        "onboarding-draft": "{\"step1Complete\":true,\"name\":\"شركة الأفق المتقدم للمقاولات العامة\",\"category\":\"construction\"}"
+      }
+    },
+    {
+      "id": "onboarding-company-documents",
+      "batch": "batch-1",
+      "page": "onboarding-company",
+      "title": "Company — documents",
+      "route": "/onboarding/company-documents",
+      "persona": "verified-new",
+      "storage": {
+        "onboarding-draft": "{\"step1Complete\":true,\"name\":\"شركة الأفق المتقدم للمقاولات العامة\",\"category\":\"construction\"}"
+      }
+    },
+    {
+      "id": "onboarding-invite-team",
+      "batch": "batch-1",
+      "page": "onboarding-company",
+      "title": "Company — invite your team",
+      "route": "/onboarding/invite-team",
+      "persona": "verified-new",
+      "storage": {
+        "onboarding-draft": "{\"step1Complete\":true,\"step2Complete\":true,\"name\":\"شركة الأفق المتقدم للمقاولات العامة\",\"category\":\"construction\"}"
+      }
+    },
+    {
+      "id": "onboarding-individual-basics",
+      "batch": "batch-1",
+      "page": "onboarding-individual",
+      "title": "Freelancer — basics",
+      "route": "/onboarding/individual-basics",
+      "persona": "verified-new"
+    },
+    {
+      "id": "onboarding-individual-profile",
+      "batch": "batch-1",
+      "page": "onboarding-individual",
+      "title": "Freelancer — profile",
+      "route": "/onboarding/individual-profile",
+      "persona": "individual"
+    },
+    {
+      "id": "onboarding-team-basics",
+      "batch": "batch-1",
+      "page": "onboarding-team",
+      "title": "Vendor team — basics",
+      "route": "/onboarding/team-basics",
+      "persona": "verified-new"
+    },
+    {
+      "id": "onboarding-team-invite",
+      "batch": "batch-1",
+      "page": "onboarding-team",
+      "title": "Vendor team — invite teammates",
+      "route": "/onboarding/team-invite",
+      "persona": "team-owner"
+    },
+    {
+      "id": "team-invite-link",
+      "batch": "batch-1",
+      "page": "team-invite",
+      "title": "Invitation link — join a workspace",
+      "route": "/team-invite/audit-invite-token",
+      "persona": "verified-new",
+      "overrides": {
+        "GET /api/team-invitations/:token": {
+          "status": 200,
+          "json": {
+            "id": "audit-inv-1",
+            "email": "noura.alqahtani@example.com",
+            "role": "admin",
+            "companyName": "شركة الأفق المتقدم للمقاولات العامة",
+            "companyId": "audit-co-1",
+            "inviterName": "سارة محمد العتيبي",
+            "expiresAt": "2026-12-31T00:00:00.000Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "join-by-code",
+      "batch": "batch-1",
+      "page": "join",
+      "title": "Join link — joining the workspace",
+      "route": "/join/AUDIT1",
+      "persona": "verified-new",
+      "overrides": {
+        "POST /api/companies/join-by-code": {
+          "hang": true
+        }
+      },
+      "actions": [
+        {
+          "wait": 1000
+        }
+      ],
+      "allowBusy": true,
+      "keyboard": false
+    },
+    {
+      "id": "desktop-suggestion",
+      "batch": "batch-1",
+      "page": "desktop-suggestion",
+      "title": "Right after signing in on a phone — 'better on desktop' popup",
+      "route": "/terms",
+      "persona": "company-owner",
+      "expectDialog": true,
+      "keyboard": false,
+      "sessionStorage": {
+        "just_signed_in": "1"
+      },
+      "skipProjects": [
+        "desktop"
+      ],
+      "actions": [
+        {
+          "wait": 800
+        }
+      ]
+    },
+    {
+      "id": "not-found",
+      "batch": "batch-1",
+      "page": "not-found",
+      "title": "Page not found",
+      "route": "/this-page-does-not-exist",
+      "keyboard": false
+    },
+    {
+      "id": "calibrate-terms",
+      "batch": "calibrate",
+      "page": "terms",
+      "title": "Calibration — Terms (expected to be mostly clean)",
+      "route": "/terms",
+      "keyboard": false
+    },
+    {
+      "id": "calibrate-faq",
+      "batch": "calibrate",
+      "page": "faq",
+      "title": "Calibration — FAQ (expected to be mostly clean)",
+      "route": "/faq",
+      "keyboard": false
+    }
+  ]
+}

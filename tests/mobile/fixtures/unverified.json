@@ -1,0 +1,18 @@
+{
+  "_about": "Signed up (or signed in) but has not entered the emailed code yet — lands on /verify-email.",
+  "storage": {
+    "token": "audit-token-unverified",
+    "auth-storage": "{\"state\":{\"token\":\"audit-token-unverified\",\"user\":{\"id\":\"audit-user-1\",\"username\":\"noura_a1b2c\",\"email\":\"noura.alqahtani@example.com\",\"name\":\"نورة عبدالله القحطاني\",\"isAdmin\":false,\"profilePictureUrl\":null,\"jobTitle\":null,\"timezone\":null,\"linkedinUrl\":null,\"phoneNumber\":null,\"tenderInquiryEmail\":null,\"language\":\"en\",\"emailVerified\":false,\"otpVerified\":false},\"activeCompany\":null,\"companies\":[]},\"version\":0}"
+  },
+  "me": {
+    "user": {
+      "id": "audit-user-1", "username": "noura_a1b2c", "email": "noura.alqahtani@example.com",
+      "name": "نورة عبدالله القحطاني", "isAdmin": false, "profilePictureUrl": null, "jobTitle": null,
+      "timezone": null, "linkedinUrl": null, "phoneNumber": null, "language": "en",
+      "emailVerified": false, "otpVerified": false
+    },
+    "activeCompanyId": null,
+    "companies": []
+  },
+  "routes": {}
+}

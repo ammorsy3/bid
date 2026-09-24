@@ -1,0 +1,18 @@
+{
+  "_about": "Verified the email code but has no workspace yet — goes through onboarding.",
+  "storage": {
+    "token": "audit-token-verified-new",
+    "auth-storage": "{\"state\":{\"token\":\"audit-token-verified-new\",\"user\":{\"id\":\"audit-user-2\",\"username\":\"noura_c3d4e\",\"email\":\"noura.alqahtani@example.com\",\"name\":\"نورة عبدالله القحطاني\",\"isAdmin\":false,\"profilePictureUrl\":null,\"jobTitle\":null,\"timezone\":null,\"linkedinUrl\":null,\"phoneNumber\":null,\"tenderInquiryEmail\":null,\"language\":\"en\",\"emailVerified\":true,\"otpVerified\":true},\"activeCompany\":null,\"companies\":[]},\"version\":0}"
+  },
+  "me": {
+    "user": {
+      "id": "audit-user-2", "username": "noura_c3d4e", "email": "noura.alqahtani@example.com",
+      "name": "نورة عبدالله القحطاني", "isAdmin": false, "profilePictureUrl": null, "jobTitle": null,
+      "timezone": null, "linkedinUrl": null, "phoneNumber": null, "language": "en",
+      "emailVerified": true, "otpVerified": true
+    },
+    "activeCompanyId": null,
+    "companies": []
+  },
+  "routes": {}
+}

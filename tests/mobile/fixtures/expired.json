@@ -1,0 +1,22 @@
+{
+  "_about": "Signed in on this phone weeks ago; the saved session has expired. Opening /login should show the login form, not a loader or the desktop popup.",
+  "storage": {
+    "token": "audit-token-expired",
+    "auth-storage": "{\"state\":{\"token\":\"audit-token-expired\",\"user\":{\"id\":\"audit-user-3\",\"username\":\"noura_e5f6g\",\"email\":\"noura.alqahtani@example.com\",\"name\":\"نورة عبدالله القحطاني\",\"isAdmin\":false,\"profilePictureUrl\":null,\"jobTitle\":null,\"timezone\":null,\"linkedinUrl\":null,\"phoneNumber\":null,\"tenderInquiryEmail\":null,\"language\":\"en\",\"emailVerified\":true,\"otpVerified\":true},\"activeCompany\":{\"id\":\"audit-co-1\",\"name\":\"شركة الأفق المتقدم للمقاولات العامة\",\"slug\":\"al-ofoq\",\"accountType\":\"company\",\"verificationStatus\":\"verified\",\"onboardingState\":\"completed\",\"rejectionReason\":null,\"role\":\"owner\",\"profile\":null},\"companies\":[]},\"version\":0}"
+  },
+  "me": null,
+  "defaultGet": {
+    "status": 401,
+    "json": {
+      "message": "Invalid or expired token"
+    }
+  },
+  "routes": {
+    "GET /api/auth/me": {
+      "status": 401,
+      "json": {
+        "message": "Invalid or expired token"
+      }
+    }
+  }
+}

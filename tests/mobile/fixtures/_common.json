@@ -1,0 +1,55 @@
+{
+  "_about": "Answers shared by every persona in fixture mode. Writes are faked by the guard anyway; these give them realistic bodies.",
+  "routes": {
+    "POST /api/errors": {
+      "status": 200,
+      "json": {}
+    },
+    "POST /api/track/visit": {
+      "status": 200,
+      "json": {}
+    },
+    "POST /api/auth/send-otp": {
+      "status": 200,
+      "json": {
+        "message": "Verification code sent"
+      }
+    },
+    "POST /api/auth/forgot-password": {
+      "status": 200,
+      "json": {
+        "message": "If an account exists, a reset email has been sent."
+      }
+    },
+    "POST /api/auth/reset-password": {
+      "status": 200,
+      "json": {
+        "message": "Password reset successfully"
+      }
+    },
+    "GET /api/onboarding/domain-match": {
+      "status": 200,
+      "json": {
+        "domain": "example.com",
+        "isPublic": false,
+        "workspaces": []
+      }
+    },
+    "GET /api/onboarding/pending-invitations": {
+      "status": 200,
+      "json": []
+    },
+    "GET /api/company/join-code": {
+      "always": true,
+      "status": 200,
+      "json": {
+        "code": "AUDIT1",
+        "link": "/join/AUDIT1"
+      }
+    },
+    "GET /api/tour-progress": {
+      "status": 200,
+      "json": []
+    }
+  }
+}

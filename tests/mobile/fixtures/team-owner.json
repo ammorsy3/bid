@@ -1,0 +1,44 @@
+{
+  "_about": "Owner of a vendor team workspace that is still onboarding (invites teammates next).",
+  "storage": {
+    "token": "audit-token-team-owner",
+    "auth-storage": "{\"state\": {\"token\": \"audit-token-team-owner\", \"user\": {\"id\": \"audit-user-5\", \"username\": \"noura_h7i8j\", \"email\": \"noura.alqahtani@example.com\", \"name\": \"نورة عبدالله القحطاني\", \"isAdmin\": false, \"profilePictureUrl\": null, \"jobTitle\": \"مديرة المشتريات\", \"timezone\": \"Asia/Riyadh\", \"linkedinUrl\": null, \"phoneNumber\": null, \"tenderInquiryEmail\": null, \"language\": \"en\", \"emailVerified\": true, \"otpVerified\": true}, \"activeCompany\": {\"id\": \"audit-team-1\", \"name\": \"فريق الإتقان للتصميم والتطوير الرقمي\", \"slug\": \"itqan-team\", \"accountType\": \"team\", \"verificationStatus\": \"unverified\", \"onboardingState\": \"in_progress\", \"rejectionReason\": null, \"role\": \"owner\", \"profile\": null}, \"companies\": [{\"id\": \"audit-team-1\", \"name\": \"فريق الإتقان للتصميم والتطوير الرقمي\", \"slug\": \"itqan-team\", \"accountType\": \"team\", \"verificationStatus\": \"unverified\", \"onboardingState\": \"in_progress\", \"rejectionReason\": null, \"role\": \"owner\", \"profile\": null}]}, \"version\": 0}"
+  },
+  "me": {
+    "user": {
+      "id": "audit-user-5",
+      "username": "noura_h7i8j",
+      "email": "noura.alqahtani@example.com",
+      "name": "نورة عبدالله القحطاني",
+      "isAdmin": false,
+      "profilePictureUrl": null,
+      "jobTitle": "مديرة المشتريات",
+      "timezone": "Asia/Riyadh",
+      "linkedinUrl": null,
+      "phoneNumber": null,
+      "language": "en",
+      "emailVerified": true,
+      "otpVerified": true
+    },
+    "activeCompanyId": "audit-team-1",
+    "companies": [
+      {
+        "id": "audit-team-1",
+        "name": "فريق الإتقان للتصميم والتطوير الرقمي",
+        "slug": "itqan-team",
+        "legalName": null,
+        "crNumber": null,
+        "vatNumber": null,
+        "city": "Jeddah",
+        "category": "technology",
+        "accountType": "team",
+        "verificationStatus": "unverified",
+        "onboardingState": "in_progress",
+        "rejectionReason": null,
+        "role": "owner",
+        "profile": null
+      }
+    ]
+  },
+  "routes": {}
+}

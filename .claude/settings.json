@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__phone",
+      "Bash(node tests/mobile/run.mjs:*)",
+      "Bash(node tests/mobile/summary.mjs:*)",
+      "Bash(node tests/mobile/report.mjs:*)",
+      "Bash(node scripts/check-i18n-parity.mjs:*)",
+      "Bash(node scripts/check-i18n-usage.mjs:*)",
+      "Bash(npm run check)",
+      "Bash(npm run test:unit)",
+      "Bash(npm run build)"
+    ],
+    "deny": [
+      "mcp__phone__browser_run_code_unsafe",
+      "mcp__phone__browser_file_upload"
+    ]
+  }
+}

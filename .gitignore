@@ -17,3 +17,6 @@ playwright-report/
 test-results/
 .vercel
 .env*
+
+# Mobile + Arabic audit loop output (photos, results, reports, browser profiles)
+.mobile-audit/

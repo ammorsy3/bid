@@ -35,7 +35,7 @@ export function OnboardingLeftPanelAnimation() {
             <div className="surface-cream" style={{ width: 58, height: 58, borderRadius: 18, background: "#F7F1E6", display: "inline-flex", alignItems: "center", justifyContent: "center", boxShadow: "0 14px 30px -10px rgba(11,9,7,.25)", marginBottom: 18 }}>
               <BidMonogram variant="orange" size={32} />
             </div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-.03em", color: "#0B0907", lineHeight: 1.1, marginBottom: 8 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: isRtl ? "normal" : "-.03em", color: "#0B0907", lineHeight: 1.1, marginBottom: 8 }}>
               {isRtl ? "أهلًا بك في Bid" : "Welcome to Bid"}
             </h2>
             <p style={{ fontSize: 13.5, color: "#6B625A", lineHeight: 1.5, marginBottom: 18 }}>

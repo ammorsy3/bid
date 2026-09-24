@@ -35,6 +35,19 @@
   unicode-bidi: isolate;
 }
 
+/* Arabic letters join up. Tailwind's tracking-* utilities pull them apart and
+   make Arabic headings look broken, so on Arabic pages they are neutralised.
+   (BidLogo sets its own letter-spacing inline and is not affected.) */
+[dir="rtl"] :is(.tracking-tighter, .tracking-tight, .tracking-wide, .tracking-wider, .tracking-widest, [class*="tracking-["]) {
+  letter-spacing: normal;
+}
+
+/* Email, password, phone and code fields type left-to-right on Arabic pages,
+   but while empty their Arabic placeholder should still sit on the right. */
+[dir="rtl"] input[dir="ltr"]:placeholder-shown {
+  text-align: right;
+}
+
 /* Official Saudi Riyal currency symbol (SAMA) */
 .saudi-riyal-symbol {
   display: inline-flex;

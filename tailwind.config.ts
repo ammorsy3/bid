@@ -11,8 +11,12 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
+        // The Latin fonts have no Arabic letters, so Arabic falls through to
+        // IBM Plex Sans Arabic (loaded in index.html) instead of whatever
+        // font each phone happens to have.
         sans: [
           '"Space Grotesk"',
+          '"IBM Plex Sans Arabic"',
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
@@ -21,6 +25,7 @@ export default {
         ],
         display: [
           "Inter",
+          '"IBM Plex Sans Arabic"',
           "ui-sans-serif",
           "system-ui",
           "-apple-system",

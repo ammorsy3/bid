@@ -182,7 +182,7 @@ export default function Login() {
 
       {/* Right panel — form. Phones scroll the page itself; the locked,
           screen-high layout with its own scroller is for lg: and up. */}
-      <div className="flex-1 flex flex-col bg-muted lg:overflow-y-auto">
+      <div className="flex-1 min-w-0 flex flex-col bg-muted lg:overflow-y-auto">
         <div className="flex-1 flex flex-col items-center justify-center px-4 py-6">
           <header className="relative mb-6 flex w-full justify-center">
             <Link href="/" className="inline-flex">

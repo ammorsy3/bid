@@ -258,7 +258,12 @@ export const userCompanies = pgTable("user_companies", {
   
   // Soft Delete
   deletedAt: timestamp("deleted_at"),
-});
+}, (t) => ({
+  // Every company-scoped request now re-reads this row to confirm the caller is
+  // still a member (server/routes.ts requireCompanyContext). Without this index
+  // that lookup is a sequential scan of the whole table on every request.
+  byUserCompany: index("user_companies_user_company_idx").on(t.userId, t.companyId),
+}));
 
 // ============================================================================
 // DOMAIN TABLES - Business Operations

@@ -130,3 +130,16 @@ export function getConstraints(
 
   return constraints;
 }
+
+// Spread onto every field where someone types an email address. Without these,
+// phones capitalise the first letter and autocorrect the address, and on Arabic
+// pages the address is laid out right-to-left so "@" and "." jump around while
+// typing. Pair with an `autoComplete` of "username" (sign-in) or "email".
+export const emailInputProps = {
+  type: "email",
+  inputMode: "email",
+  autoCapitalize: "none",
+  autoCorrect: "off",
+  spellCheck: false,
+  dir: "ltr",
+} as const;

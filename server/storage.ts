@@ -94,6 +94,7 @@ import {
 import { db } from "./db";
 import { safeCompany, type SafeCompany } from "./lib/safe-company";
 import { eq, and, asc, desc, ilike, or, isNull, sql, gte, gt, count, ne, lt, notInArray } from "drizzle-orm";
+import { normalizeEmail, pickAccountForEmail } from "./lib/email-address";
 import { alias } from "drizzle-orm/pg-core";
 
 // One funnel group (companies or freelancers). Numbers are workspace counts.
@@ -154,6 +155,8 @@ export interface IStorage {
   // ============================================================================
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByEmailInsensitive(email: string): Promise<User | undefined>;
+  isEmailTaken(email: string, excludeUserId?: string): Promise<boolean>;
   getUserByPasswordResetToken(token: string): Promise<User | undefined>;
   getCompanyByEmailDomain(domain: string): Promise<(Company) | undefined>;
   createUser(user: InsertUser): Promise<User>;
@@ -478,6 +481,41 @@ export class DatabaseStorage implements IStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
+  }
+
+  // Emails are stored as typed, and about one account in five has a capital
+  // letter in it. Phones capitalise the first letter of what you type, so an
+  // exact match turned "Ahmed@x.com" vs "ahmed@x.com" into "Invalid
+  // credentials". An exact match still wins, so nobody who can sign in today
+  // loses access. Otherwise the one account whose email matches ignoring case
+  // and surrounding spaces is used. Two accounts that differ only by case
+  // (production has one such pair) are ambiguous, so neither is returned —
+  // exactly today's behaviour for them.
+  async getUserByEmailInsensitive(email: string): Promise<User | undefined> {
+    const trimmed = email.trim();
+    if (!trimmed) return undefined;
+    const exact = await this.getUserByEmail(trimmed);
+    if (exact) return exact;
+    const looseMatches = await db
+      .select()
+      .from(users)
+      .where(sql`lower(btrim(${users.email})) = ${normalizeEmail(trimmed)}`)
+      .limit(2);
+    return pickAccountForEmail(undefined, looseMatches);
+  }
+
+  // True when any account already uses this email in any capitalisation, so
+  // new accounts can't create another case-variant of an existing one.
+  async isEmailTaken(email: string, excludeUserId?: string): Promise<boolean> {
+    const normalized = normalizeEmail(email);
+    if (!normalized) return false;
+    const match = sql`lower(btrim(${users.email})) = ${normalized}`;
+    const [row] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(excludeUserId ? and(match, ne(users.id, excludeUserId)) : match)
+      .limit(1);
+    return !!row;
   }
 
   async getUserByPasswordResetToken(token: string): Promise<User | undefined> {

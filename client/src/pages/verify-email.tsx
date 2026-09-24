@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
+import { emailInputProps } from "@/lib/form-validation";
 import { Mail, ArrowRight, Loader2, Pencil } from "lucide-react";
 import {
   Dialog,
@@ -345,7 +346,8 @@ export default function VerifyEmail() {
             <Label htmlFor="new-email">{t('onboardingPanel.newEmail')}</Label>
             <Input
               id="new-email"
-              type="email"
+              {...emailInputProps}
+              autoComplete="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder={t('onboardingPanel.emailPlaceholder')}

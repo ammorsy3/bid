@@ -64,13 +64,20 @@ function ClerkCallbackInner() {
         const clerkToken = await getToken();
         if (!clerkToken) throw new Error("No Clerk session token");
 
+        const currentLanguage = localStorage.getItem("language");
         const res = await fetch("/api/auth/clerk-exchange", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           // attribution credits the influencer whose link first brought this
           // visitor in; the server ignores it for an existing account, so only
-          // a genuinely new social sign-up is ever attributed.
-          body: JSON.stringify({ token: clerkToken, attribution: attributionForSignup() }),
+          // a genuinely new social sign-up is ever attributed. language works
+          // like password sign-in: without it a Google sign-up in Arabic was
+          // saved as English and the app switched language right after joining.
+          body: JSON.stringify({
+            token: clerkToken,
+            attribution: attributionForSignup(),
+            language: currentLanguage === "ar" || currentLanguage === "en" ? currentLanguage : undefined,
+          }),
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));

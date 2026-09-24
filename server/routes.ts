@@ -32,6 +32,7 @@ import { registerMcpAdapter } from "./routes/integrations/mcp";
 import { registerIntegrationsAdminRoutes } from "./routes/settings/integrations";
 import { registerMarketingRoutes } from "./routes/marketing";
 import { attributeSignup } from "./lib/campaigns";
+import { normalizeEmail } from "./lib/email-address";
 import { rateLimiter } from "./middleware/rate-limit";
 import {
   sendNewOfferNotification,
@@ -499,6 +500,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!clerkToken || typeof clerkToken !== 'string') {
         return res.status(400).json({ message: "Missing Clerk session token" });
       }
+      // The language the person is using, as with password sign-in. Without
+      // it a Google sign-up was saved as 'en' and the app flipped Arabic
+      // users to English right after they joined.
+      const clientLanguage: 'en' | 'ar' | undefined = req.body?.language === 'ar' || req.body?.language === 'en' ? req.body.language : undefined;
 
       const { createClerkClient, verifyToken } = await import('@clerk/backend');
       let claims: any;
@@ -540,7 +545,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         || clerkUser.username
         || emailLower.split('@')[0];
 
-      let user = await storage.getUserByEmail(emailLower);
+      // Case-insensitive so an account saved as "Ahmed@x.com" is found rather
+      // than duplicated when its owner signs in with Google.
+      let user = await storage.getUserByEmailInsensitive(emailLower);
       let isNewUser = false;
 
       if (!user) {
@@ -558,6 +565,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           emailVerified: true,
           otpVerified: true,
           profilePictureUrl: clerkUser.imageUrl || null,
+          language: clientLanguage || 'en',
         } as any);
 
         // Credit the influencer whose link first sent them here, if any.
@@ -568,12 +576,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // No auto-join: new social sign-up users go through the onboarding
         // domain-match flow where they can request to join or create their org.
       } else {
-        if (!user.otpVerified || !user.emailVerified) {
+        const languageChanged = !!clientLanguage && clientLanguage !== user.language;
+        if (!user.otpVerified || !user.emailVerified || languageChanged) {
           await storage.updateUser(user.id, {
             otpVerified: true,
             emailVerified: true,
+            ...(languageChanged ? { language: clientLanguage } : {}),
           } as any);
-          user = { ...user, otpVerified: true, emailVerified: true };
+          user = { ...user, otpVerified: true, emailVerified: true, ...(languageChanged ? { language: clientLanguage! } : {}) };
         }
       }
 
@@ -605,7 +615,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timezone: user.timezone,
           linkedinUrl: user.linkedinUrl,
           phoneNumber: user.phoneNumber,
-          language: user.language || 'en',
+          language: clientLanguage || user.language || 'en',
           emailVerified: true,
           otpVerified: true,
         },
@@ -650,11 +660,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register user (creates user account only, no company)
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const userData = registerUserSchema.parse(req.body);
-      
-      // Check if user exists
-      const existingUser = await storage.getUserByEmail(userData.email);
-      if (existingUser) {
+      const parsed = registerUserSchema.parse(req.body);
+      // Saved lowercase, and checked in any capitalisation, so one address
+      // can't become two accounts that differ only by capital letters.
+      const userData = { ...parsed, email: normalizeEmail(parsed.email) };
+
+      if (await storage.isEmailTaken(userData.email)) {
         return res.status(400).json({ message: "User already exists" });
       }
 
@@ -888,8 +899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "This is already your current email" });
       }
 
-      const existing = await storage.getUserByEmail(normalized);
-      if (existing && existing.id !== user.id) {
+      if (await storage.isEmailTaken(normalized, user.id)) {
         return res.status(400).json({ message: "An account with this email already exists" });
       }
 
@@ -937,8 +947,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, password, trustedBrowserToken } = req.body;
       const clientLanguage: 'en' | 'ar' | undefined = req.body?.language === 'ar' || req.body?.language === 'en' ? req.body.language : undefined;
 
-      const user = await storage.getUserByEmail(email);
-      if (!user) {
+      // Ignores capitals and stray spaces: phones capitalise the first letter
+      // of an email, which used to make correct details "Invalid credentials".
+      const user = typeof email === 'string' ? await storage.getUserByEmailInsensitive(email) : undefined;
+      if (!user || typeof password !== 'string') {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
@@ -1090,7 +1102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Email is required" });
       }
 
-      const user = await storage.getUserByEmail(email.toLowerCase().trim());
+      const user = await storage.getUserByEmailInsensitive(email);
 
       // Always respond 200 to prevent email enumeration
       if (!user) {
@@ -2360,7 +2372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Check if user already exists and is in this company
-        const existingUser = await storage.getUserByEmail(email);
+        const existingUser = await storage.getUserByEmailInsensitive(email);
         if (existingUser) {
           const existingMembership = await storage.getUserRoleInCompany(existingUser.id, companyId);
           if (existingMembership) {
@@ -3567,7 +3579,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // will ever receive.
         let delivery: { sent: string[]; failed: string[] } = { sent: [], failed: [] };
         try {
-          const existingUser = await storage.getUserByEmail(email);
+          const existingUser = await storage.getUserByEmailInsensitive(email);
           delivery = await sendTenderInvitationEmail({
             recipients: [{
               email,

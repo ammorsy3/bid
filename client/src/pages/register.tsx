@@ -9,6 +9,7 @@ import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
+import { emailInputProps } from "@/lib/form-validation";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { Check, Eye, EyeOff, X } from "lucide-react";
 import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
@@ -70,7 +71,7 @@ export default function Register() {
   const form = useForm<RegisterForm>({
     resolver: zodResolver(
       z.object({
-        email: z.string().email(t('validation.invalidEmail')),
+        email: z.string().trim().email(t('validation.invalidEmail')),
         password: z.string().min(8, t('validation.passwordMin')),
         confirmPassword: z.string(),
         name: z.string().min(2, t('validation.nameMin')),
@@ -215,7 +216,7 @@ export default function Register() {
                       <FormItem>
                         <FormLabel>{t('auth.email')}</FormLabel>
                         <FormControl>
-                          <Input data-testid="input-email" type="email" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
+                          <Input data-testid="input-email" {...emailInputProps} autoComplete="email" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -233,6 +234,7 @@ export default function Register() {
                             <Input
                               data-testid="input-password"
                               type={showPassword ? "text" : "password"}
+                              autoComplete="new-password"
                               placeholder={t('auth.passwordCreatePlaceholder')}
                               className="bg-card pe-10"
                               {...field}
@@ -304,6 +306,7 @@ export default function Register() {
                             <Input
                               data-testid="input-confirm-password"
                               type={showConfirm ? "text" : "password"}
+                              autoComplete="new-password"
                               placeholder={t('authPanel.reenterPassword')}
                               className="bg-card pe-10"
                               {...field}

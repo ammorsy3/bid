@@ -19,6 +19,7 @@ import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAn
 import { useForceLightMode } from "@/hooks/useForceLightMode";
 import { FullscreenLoader } from "@/components/ui/fullscreen-loader";
 import { markJustSignedIn } from "@/components/desktop-recommendation-modal";
+import { emailInputProps } from "@/lib/form-validation";
 
 type LoginForm = { email: string; password: string };
 type ForgotForm = { email: string };
@@ -39,7 +40,7 @@ export default function Login() {
 
   const forgotForm = useForm<ForgotForm>({
     resolver: zodResolver(z.object({
-      email: z.string().email(t('validation.invalidEmail')),
+      email: z.string().trim().email(t('validation.invalidEmail')),
     })),
     defaultValues: { email: "" },
   });
@@ -59,7 +60,7 @@ export default function Login() {
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(z.object({
-      email: z.string().email(t('validation.invalidEmail')),
+      email: z.string().trim().email(t('validation.invalidEmail')),
       password: z.string().min(6, t('validation.passwordMin')),
     })),
     defaultValues: {
@@ -215,7 +216,7 @@ export default function Login() {
                             <FormItem>
                               <FormLabel>{t('auth.email')}</FormLabel>
                               <FormControl>
-                                <Input placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
+                                <Input {...emailInputProps} autoComplete="email" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -265,7 +266,7 @@ export default function Login() {
                         <FormItem>
                           <FormLabel>{t('auth.email')}</FormLabel>
                           <FormControl>
-                            <Input data-testid="input-email" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} onChange={(e) => { field.onChange(e); if (loginError) setLoginError(null); }} />
+                            <Input data-testid="input-email" {...emailInputProps} autoComplete="username" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} onChange={(e) => { field.onChange(e); if (loginError) setLoginError(null); }} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -292,6 +293,7 @@ export default function Login() {
                               <Input
                                 data-testid="input-password"
                                 type={showPassword ? "text" : "password"}
+                                autoComplete="current-password"
                                 placeholder={t('auth.passwordPlaceholder')}
                                 className="bg-card pr-10"
                                 {...field}

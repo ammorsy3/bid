@@ -238,7 +238,7 @@ export default function OnboardingChoice() {
         <CardContent className="pt-4 pb-4 px-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <h3 className="text-base font-semibold text-foreground truncate">{w.name}</h3>
+              <h3 className="text-base font-semibold text-foreground truncate" dir="auto">{w.name}</h3>
               <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
             </div>
             {w.alreadyMember ? (
@@ -333,6 +333,7 @@ export default function OnboardingChoice() {
                     : `border-transparent ${hoverBorder} hover:shadow-md`
                 }`}
                 onClick={onClick}
+                data-testid={`card-account-type-${key}`}
               >
                 <CardContent className="pt-5 pb-5 px-5">
                   <div className="flex items-center gap-4">
@@ -353,7 +354,7 @@ export default function OnboardingChoice() {
                         className={`w-5 h-5 ${color} opacity-50 transition-transform flex-shrink-0 ${joinExpanded ? "rotate-180" : ""}`}
                       />
                     ) : (
-                      <ArrowRight className={`w-5 h-5 ${color} opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0`} />
+                      <ArrowRight className={`w-5 h-5 ${color} opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 rtl:-scale-x-100`} />
                     )}
                   </div>
                 </CardContent>
@@ -379,7 +380,7 @@ export default function OnboardingChoice() {
                             <CardContent className="pt-4 pb-4 px-5">
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="text-base font-semibold text-foreground truncate">{inv.companyName}</h3>
+                                  <h3 className="text-base font-semibold text-foreground truncate" dir="auto">{inv.companyName}</h3>
                                   <p className="text-xs text-muted-foreground mt-0.5">
                                     {t('onbJoin.invitedBy', { inviter: inv.inviterName, role: inv.role })}
                                   </p>
@@ -440,7 +441,7 @@ export default function OnboardingChoice() {
                         value={joinCode}
                         onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 16))}
                         placeholder={t('onbJoin.codePlaceholder')}
-                        className="uppercase tracking-widest font-mono min-w-0 flex-1"
+                        className="uppercase tracking-widest font-mono min-w-0 w-full sm:flex-1"
                         dir="ltr"
                         data-testid="input-join-code"
                         onKeyDown={(e) => { if (e.key === "Enter" && joinCode.trim()) joinByCodeMutation.mutate(joinCode); }}
@@ -482,7 +483,7 @@ export default function OnboardingChoice() {
               onClick={() => setLocation("/dashboard")}
               data-testid="button-join-back"
             >
-              <ArrowLeft className="me-2 h-4 w-4" />
+              <ArrowLeft className="me-2 h-4 w-4 rtl:-scale-x-100" />
               {t('onboardingPanel.backBtn')}
             </Button>
           </div>

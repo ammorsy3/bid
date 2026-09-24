@@ -468,7 +468,8 @@
             ]
           }
         }
-      }
+      },
+      "actions": [{ "click": "[data-testid=card-account-type-join]" }]
     },
     {
       "id": "onboarding-pending-invite",
@@ -492,7 +493,8 @@
             }
           ]
         }
-      }
+      },
+      "actions": [{ "click": "[data-testid=card-account-type-join]" }]
     },
     {
       "id": "onboarding-add-account",

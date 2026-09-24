@@ -37,3 +37,11 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
    Mac doesn't have — 13 GB free), so WebKit-via-Playwright plus your own
    5-minute real-iPhone check (README.md) is the closest available proxy. If
    you free up ~20 GB and want the exact Simulator, say so and I'll set it up.
+
+8. **Pre-existing desktop bug, not fixed (out of scope for this audit).** On
+   /onboarding/team-invite, the role dropdown showing "Business Developer"
+   truncates to "Business…" on desktop too — this was already true before
+   any of this work started (same `sm:w-40` width). Fixing it would mean
+   widening a desktop control, which this audit deliberately leaves alone
+   (mobile + Arabic only, desktop pixels unchanged). Worth a quick separate
+   fix whenever you're next in that file.

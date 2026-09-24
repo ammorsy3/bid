@@ -50,7 +50,7 @@ export default function CompanyBasics() {
   const backTarget = addAccountMode ? "/dashboard" : "/onboarding";
   const { user, checkAuth } = useAuthStore();
   const { toast } = useToast();
-  const { t } = useI18n();
+  const { t, isRtl } = useI18n();
   const [submitting, setSubmitting] = useState(false);
 
   const companyBasicsSchema = z.object({
@@ -174,7 +174,7 @@ export default function CompanyBasics() {
                   onClick={() => setLocation(backTarget)}
                   disabled={submitting}
                 >
-                  <ArrowLeft className="me-2 h-4 w-4" />
+                  <ArrowLeft className={`me-2 h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
                   {t('onboardingPanel.backBtn')}
                 </Button>
                 <Button
@@ -191,7 +191,7 @@ export default function CompanyBasics() {
                   ) : (
                     <>
                       {t('onboardingPanel.goToDashboard')}
-                      <ArrowRight className="ms-2 h-4 w-4" />
+                      <ArrowRight className={`ms-2 h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
                     </>
                   )}
                 </Button>

@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { VENDOR_CATEGORIES } from "@shared/schema";
+import { categoryLabel } from "@/lib/category-labels";
 import { ArrowRight, ArrowLeft, UsersRound, Loader2 } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 import { useI18n } from "@/lib/i18n";
@@ -123,7 +124,7 @@ export default function TeamBasics() {
                       <SelectContent>
                         {VENDOR_CATEGORIES.map((category) => (
                           <SelectItem key={category} value={category}>
-                            {category}
+                            {categoryLabel(category, isRtl)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -144,7 +145,7 @@ export default function TeamBasics() {
                   onClick={() => setLocation("/onboarding")}
                   disabled={submitting}
                 >
-                  <BackArrow className="mr-2 h-4 w-4" />
+                  <BackArrow className="me-2 h-4 w-4" />
                   {t('common.back')}
                 </Button>
                 <Button
@@ -155,13 +156,13 @@ export default function TeamBasics() {
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
                       {t('onboardingTeamBasics.creating')}
                     </>
                   ) : (
                     <>
                       {t('onboardingTeamBasics.continue')}
-                      <ForwardArrow className="ml-2 h-4 w-4" />
+                      <ForwardArrow className="ms-2 h-4 w-4" />
                     </>
                   )}
                 </Button>

@@ -6,6 +6,7 @@ import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { VENDOR_CATEGORIES } from "@shared/schema";
+import { categoryLabel } from "@/lib/category-labels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,7 +51,7 @@ interface ProfileResponse {
 export default function IndividualProfileEditor() {
   const [location, navigate] = useLocation();
   const isOnboarding = location.startsWith("/onboarding");
-  const { t } = useI18n();
+  const { t, isRtl } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
@@ -282,13 +283,13 @@ export default function IndividualProfileEditor() {
           <div>
             <Label htmlFor="username">{t('profEditor.username')}</Label>
             <div className="mt-1.5 flex items-center rounded-md border border-input bg-background focus-within:ring-1 focus-within:ring-ring overflow-hidden">
-              <span className="pl-3 pr-1 text-sm text-muted-foreground select-none">@</span>
+              <span className="pl-3 pr-1 text-base md:text-sm text-muted-foreground select-none">@</span>
               <input
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
                 placeholder="your-handle"
-                className="flex-1 bg-transparent py-2 pr-3 text-sm outline-none"
+                className="flex-1 bg-transparent py-2 pr-3 text-base md:text-sm outline-none"
                 dir="ltr"
                 data-testid="input-username"
               />
@@ -303,7 +304,7 @@ export default function IndividualProfileEditor() {
               </SelectTrigger>
               <SelectContent>
                 {VENDOR_CATEGORIES.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                  <SelectItem key={c} value={c}>{categoryLabel(c, isRtl)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

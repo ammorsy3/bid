@@ -37,7 +37,7 @@ export default function CompanyDocuments() {
   const [, setLocation] = useLocation();
   const { user } = useAuthStore();
   const { toast } = useToast();
-  const { t } = useI18n();
+  const { t, isRtl } = useI18n();
   const [uploaded, setUploaded] = useState<Record<string, string>>({});
   const [fileNames, setFileNames] = useState<Record<string, string>>({});
 
@@ -193,7 +193,7 @@ export default function CompanyDocuments() {
               variant="ghost"
               onClick={() => setLocation("/onboarding/company-basics")}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className={`me-2 h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
               {t('onboardingPanel.backBtn')}
             </Button>
             {Object.keys(uploaded).length === 0 ? (
@@ -203,7 +203,7 @@ export default function CompanyDocuments() {
                 variant="outline"
                 className="text-muted-foreground"
               >
-                <SkipForward className="mr-2 h-4 w-4" />
+                <SkipForward className={`me-2 h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
                 {t('onboardingPanel.skipForNow')}
               </Button>
             ) : (
@@ -213,7 +213,7 @@ export default function CompanyDocuments() {
                 className="bg-[#FE3C01] hover:bg-[#E83501]"
               >
                 {t('onboardingPanel.continueBtn')}
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className={`ms-2 h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
               </Button>
             )}
           </div>

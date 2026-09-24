@@ -9,6 +9,7 @@ import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
 import { useDebouncedSave } from "@/lib/autosave";
+import { emailInputProps } from "@/lib/form-validation";
 import { ArrowLeft, Users, Plus, X, Loader2, Rocket } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
@@ -240,7 +241,8 @@ export default function InviteTeam() {
                   <div className="flex items-center gap-2">
                     <div className="flex-1">
                       <Input
-                        type="email"
+                        {...emailInputProps}
+                        autoComplete="email"
                         placeholder={t('settings.inviteEmailPlaceholder')}
                         value={inv.email}
                         onChange={(e) => updateInvitation(index, 'email', e.target.value)}
@@ -322,7 +324,7 @@ export default function InviteTeam() {
                 type="button"
                 onClick={handleSkip}
                 disabled={loading}
-                className="text-sm text-neutral-400 hover:text-muted-foreground transition-colors disabled:opacity-50"
+                className="text-sm text-neutral-400 hover:text-muted-foreground transition-colors disabled:opacity-50 max-md:p-2 max-md:-m-2"
               >
                 {t('onboardingPanel.skipForNow')}
               </button>

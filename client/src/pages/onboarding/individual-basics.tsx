@@ -18,13 +18,6 @@ import { ArrowRight, ArrowLeft, User, Loader2 } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 
 
-const individualBasicsSchema = z.object({
-  displayName: z.string().min(2, "Display name is required"),
-  specialization: z.string().min(1, "Please select a specialization"),
-});
-
-type IndividualBasicsForm = z.infer<typeof individualBasicsSchema>;
-
 export default function IndividualBasics() {
   const [, setLocation] = useLocation();
   const { user, checkAuth } = useAuthStore();
@@ -33,6 +26,12 @@ export default function IndividualBasics() {
   const [submitting, setSubmitting] = useState(false);
   const BackArrow = isRtl ? ArrowRight : ArrowLeft;
   const ForwardArrow = isRtl ? ArrowLeft : ArrowRight;
+
+  const individualBasicsSchema = z.object({
+    displayName: z.string().min(2, t('validation.displayNameRequired')),
+    specialization: z.string().min(1, t('validation.specializationRequired')),
+  });
+  type IndividualBasicsForm = z.infer<typeof individualBasicsSchema>;
 
   const form = useForm<IndividualBasicsForm>({
     resolver: zodResolver(individualBasicsSchema),
@@ -152,7 +151,7 @@ export default function IndividualBasics() {
                   onClick={() => setLocation("/onboarding")}
                   disabled={submitting}
                 >
-                  <BackArrow className="mr-2 h-4 w-4" />
+                  <BackArrow className="me-2 h-4 w-4" />
                   {t('indBasics.back')}
                 </Button>
                 <Button
@@ -163,13 +162,13 @@ export default function IndividualBasics() {
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
                       {t('indBasics.creating')}
                     </>
                   ) : (
                     <>
                       {t('indBasics.goToDashboard')}
-                      <ForwardArrow className="ml-2 h-4 w-4" />
+                      <ForwardArrow className="ms-2 h-4 w-4" />
                     </>
                   )}
                 </Button>

@@ -25,7 +25,7 @@ status column up to date.
 | verify-email, reset-password | fixed (90 → 0 phone fails) | Code boxes: `autocomplete="one-time-code"` and the row fits 320–360px. Server error toasts are raw English. Password fields `dir="ltr"`. |
 | sso-callback, desktop-suggestion, not-found | fixed (28 → 0 phone fails) | Google sign-in return is translated + stays light; failure stays on-screen instead of an English toast; popup close button now 44px everywhere in the app | ClerkCallback texts are hard-coded English and it isn't forced light. |
 | onboarding | fixed (0 phone fails; shared onboarding-layout.tsx also touched) | Choice screen, join-with-code, colleagues found, waiting invitation, add-account. |
-| onboarding-company, onboarding-individual, onboarding-team | todo | Shared `onboarding-layout.tsx` (100vh shell, step indicator). Button rows overflow in Arabic on ≤390px. `index.tsx:271` textarea is 14px. Category names in English. `individual-basics.tsx:22-23` validation messages are English. Team-invite role picker `w-40`. |
+| onboarding-company, onboarding-individual, onboarding-team | fixed (email/ltr/small-text fails → 0; category names + validation messages translated) | |
 | team-invite, join | todo | |
 
 ## Later batches (session mode: your real account, every save still blocked)

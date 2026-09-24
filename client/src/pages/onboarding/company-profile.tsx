@@ -258,7 +258,7 @@ export default function CompanyProfile() {
                   <button
                     type="button"
                     onClick={handleSkip}
-                    className="text-sm text-neutral-400 hover:text-muted-foreground transition-colors"
+                    className="text-sm text-neutral-400 hover:text-muted-foreground transition-colors max-md:p-2 max-md:-m-2"
                   >
                     {t('onboardingPanel.skipForNow')}
                   </button>

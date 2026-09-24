@@ -10,6 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, UsersRound, Plus, X, Loader2, Rocket } from "lucide-react";
 import OnboardingLayout from "@/components/onboarding-layout";
 import { useI18n } from "@/lib/i18n";
+import { emailInputProps } from "@/lib/form-validation";
 
 interface Invitation {
   email: string;
@@ -107,36 +108,40 @@ export default function TeamInvite() {
               const invalid = inv.email.trim() !== '' && !EMAIL_RE.test(inv.email.trim());
               return (
                 <div key={index}>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <Input
-                        type="email"
-                        placeholder="teammate@email.com"
-                        value={inv.email}
-                        onChange={(e) => updateInvitation(index, 'email', e.target.value)}
-                        className={`w-full ${invalid ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                        disabled={loading}
-                      />
-                    </div>
-                    <Select
-                      value={inv.role}
-                      onValueChange={(value) => updateInvitation(index, 'role', value)}
+                  {/* Stacks on phones: "Business Developer" doesn't fit next to
+                      the email field at 360px, whatever role picker width is
+                      tried — the picker keeps its full label on its own row. */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <Input
+                      {...emailInputProps}
+                      autoComplete="email"
+                      placeholder={t('settings.inviteEmailPlaceholder')}
+                      value={inv.email}
+                      onChange={(e) => updateInvitation(index, 'email', e.target.value)}
+                      className={`w-full sm:flex-1 ${invalid ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                       disabled={loading}
-                    >
-                      <SelectTrigger className="w-40">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">{t('onboardingPanel.roleAdminLabel')}</SelectItem>
-                        <SelectItem value="business_developer">{t('onboardingPanel.roleBusinessDeveloperLabel')}</SelectItem>
-                        <SelectItem value="member">{t('onboardingPanel.roleMemberLabel')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {invitations.length > 1 && (
-                      <Button type="button" variant="ghost" size="icon" onClick={() => removeRow(index)} disabled={loading}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
+                    />
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={inv.role}
+                        onValueChange={(value) => updateInvitation(index, 'role', value)}
+                        disabled={loading}
+                      >
+                        <SelectTrigger className="flex-1 sm:w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">{t('onboardingPanel.roleAdminLabel')}</SelectItem>
+                          <SelectItem value="business_developer">{t('onboardingPanel.roleBusinessDeveloperLabel')}</SelectItem>
+                          <SelectItem value="member">{t('onboardingPanel.roleMemberLabel')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {invitations.length > 1 && (
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeRow(index)} disabled={loading}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   {invalid && <p className="text-xs text-red-600 mt-1 ms-1">{t('onboardingPanel.invalidTeamEmail')}</p>}
                 </div>
@@ -167,7 +172,7 @@ export default function TeamInvite() {
                 type="button"
                 onClick={() => setLocation('/dashboard')}
                 disabled={loading}
-                className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors disabled:opacity-50"
+                className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors disabled:opacity-50 max-md:p-2 max-md:-m-2"
               >
                 {t('onboardingPanel.skipForNow')}
               </button>

@@ -42,6 +42,16 @@
   letter-spacing: normal;
 }
 
+/* Say which colour scheme the page is really in. "only light" stops Samsung
+   Internet and Chrome's "force dark" from repainting light pages (sign-in,
+   onboarding, landing) on their own; the app's dark theme switches it via .dark. */
+:root {
+  color-scheme: only light;
+}
+:root.dark {
+  color-scheme: dark;
+}
+
 /* Email, password, phone and code fields type left-to-right on Arabic pages,
    but while empty their Arabic placeholder should still sit on the right. */
 [dir="rtl"] input[dir="ltr"]:placeholder-shown {
